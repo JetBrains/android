@@ -73,7 +73,7 @@ class DeviceAdapterTest {
     override fun onReady() { onReadyCalls++ }
     override fun onFailedToBecomeReady(msg: String) { errors.add(msg) }
   }
-  private val fakeInstaller = object : MirroringBenchmarkerAppInstaller {
+  private val fakeInstaller = object : StreamingBenchmarkerAppInstaller {
     override suspend fun installBenchmarkingApp(indicator: ProgressIndicator?): Boolean {
       installCalls++
       return installSuccess
@@ -344,7 +344,7 @@ class DeviceAdapterTest {
   ) : DeviceAdapter {
     return DeviceAdapter(
       projectRule.project,
-      target = DeviceMirroringBenchmarkTarget("Device Name", "12345", view),
+      target = StreamingBenchmarkTarget("Device Name", "12345", view),
       bitsPerChannel = bitsPerChannel,
       latencyBits = latencyBits,
       maxTouches = maxTouches,

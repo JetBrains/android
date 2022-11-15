@@ -35,8 +35,8 @@ import java.nio.file.Path
 import java.util.Base64
 import kotlin.time.Duration.Companion.hours
 
-private const val APK_NAME = "mirroring-benchmarker.apk"
-private const val PROJECT_NAME = "mirroring-benchmarker"
+private const val APK_NAME = "streaming-benchmarker.apk"
+private const val PROJECT_NAME = "streaming-benchmarker"
 private const val RELATIVE_PATH = "common/$PROJECT_NAME/$APK_NAME"
 private const val SOURCE_PATH = "tools/adt/idea/streaming/$PROJECT_NAME"
 private const val PREBUILT_PATH = "prebuilts/tools/$RELATIVE_PATH"
@@ -49,7 +49,7 @@ private const val DISABLE_IMMERSIVE_CONFIRMATION_COMMAND = "settings put secure 
 private const val START_COMMAND = "am start -n $APP_PKG/.$ACTIVITY -f $NO_ANIMATIONS"
 
 /** Object that handles installation, launching, and uninstallation of the Mirroring Benchmarker APK. */
-interface MirroringBenchmarkerAppInstaller {
+interface StreamingBenchmarkerAppInstaller {
   /** Installs the mirroring benchmarker APK, returning `true` iff installation succeeds. */
   suspend fun installBenchmarkingApp(indicator: ProgressIndicator?) : Boolean
   /** Launches the mirroring benchmarker APK, returning `true` iff launching succeeds. */
@@ -62,7 +62,7 @@ interface MirroringBenchmarkerAppInstaller {
       project: Project,
       deviceSerialNumber: String,
       adb: AdbWrapper = AdbWrapper.around(AdbLibService.getSession(project).deviceServices),
-    ) : MirroringBenchmarkerAppInstaller = MirroringBenchmarkerAppInstallerImpl(project, deviceSerialNumber, adb)
+    ) : StreamingBenchmarkerAppInstaller = StreamingBenchmarkerAppInstallerImpl(project, deviceSerialNumber, adb)
   }
 
   /** Wrapper to make testing interactions with ADB possible. Without this, testing is very heavy-weight. */
@@ -92,12 +92,12 @@ interface MirroringBenchmarkerAppInstaller {
   }
 }
 
-/** Implementation of [MirroringBenchmarkerAppInstaller]. */
-internal class MirroringBenchmarkerAppInstallerImpl(
+/** Implementation of [StreamingBenchmarkerAppInstaller]. */
+internal class StreamingBenchmarkerAppInstallerImpl(
   private val project: Project,
   private val deviceSerialNumber: String,
-  private val adb: MirroringBenchmarkerAppInstaller.AdbWrapper
-) : MirroringBenchmarkerAppInstaller {
+  private val adb: StreamingBenchmarkerAppInstaller.AdbWrapper
+) : StreamingBenchmarkerAppInstaller {
   private val logger = thisLogger()
 
   override suspend fun installBenchmarkingApp(indicator: ProgressIndicator?): Boolean {
@@ -115,8 +115,7 @@ internal class MirroringBenchmarkerAppInstallerImpl(
         logger.debug("App project open, building and installing from here.")
         val facet = project.allModules().firstNotNullOfOrNull { AndroidFacet.getInstance(it) }
         val buildVariant = facet?.properties?.SELECTED_BUILD_VARIANT ?: "debug"
-        val apkName = if (buildVariant == "debug") "app-debug.apk" else "app-release-unsigned.apk"
-        projectDir.resolve("app/build/outputs/apk/$buildVariant/$apkName")
+        projectDir.resolve("app/build/outputs/apk/$buildVariant/app-$buildVariant.apk")
       }
       else {
         // Development environment for Studio.

@@ -46,26 +46,26 @@ private const val SERIAL_NUMBER = "abc123"
 private const val DISABLE_IMMERSIVE_CONFIRMATION_COMMAND = "settings put secure immersive_mode_confirmations confirmed"
 private const val START_COMMAND = "am start -n com.android.tools.screensharing.benchmark/.InputEventRenderingActivity -f 65536"
 
-/** Tests the [MirroringBenchmarkerAppInstaller] class. */
+/** Tests the [StreamingBenchmarkerAppInstaller] class. */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(JUnit4::class)
-class MirroringBenchmarkerAppInstallerTest {
+class StreamingBenchmarkerAppInstallerTest {
   @get:Rule
   val projectRule = AndroidProjectRule.onDisk()
-  private val adb: MirroringBenchmarkerAppInstaller.AdbWrapper = mock()
+  private val adb: StreamingBenchmarkerAppInstaller.AdbWrapper = mock()
   private val urlFileCache: UrlFileCache = mock()
 
-  lateinit var installer: MirroringBenchmarkerAppInstaller
+  lateinit var installer: StreamingBenchmarkerAppInstaller
   @Before
   fun setUp() {
-    installer = MirroringBenchmarkerAppInstaller(projectRule.project, SERIAL_NUMBER, adb)
+    installer = StreamingBenchmarkerAppInstaller(projectRule.project, SERIAL_NUMBER, adb)
     projectRule.replaceProjectService(UrlFileCache::class.java, urlFileCache)
   }
 
   @Test
   fun installationFromDownload() = runBlockingTest {
     val downloadPath = Paths.get("/help/i/am/trapped/in/a/unit/test/factory.apk")
-    val relativePath = "common/mirroring-benchmarker/mirroring-benchmarker.apk"
+    val relativePath = "common/streaming-benchmarker/streaming-benchmarker.apk"
     val basePrebuiltsUrl = "https://android.googlesource.com/platform/prebuilts/tools/+/refs/heads/mirror-goog-studio-main/"
     val apkUrl = "$basePrebuiltsUrl$relativePath?format=TEXT"  // Base-64 encoded
 
@@ -97,7 +97,7 @@ class MirroringBenchmarkerAppInstallerTest {
   @Test
   fun installationFromPrebuilts_success() = runBlockingTest {
     val prebuiltPath = StudioPathManager.resolvePathFromSourcesRoot(
-      "prebuilts/tools/common/mirroring-benchmarker/mirroring-benchmarker.apk")
+      "prebuilts/tools/common/streaming-benchmarker/streaming-benchmarker.apk")
     whenever(adb.install(SERIAL_NUMBER, prebuiltPath)).thenReturn(true)
     assertThat(installer.installBenchmarkingApp(null)).isTrue()
 
@@ -107,7 +107,7 @@ class MirroringBenchmarkerAppInstallerTest {
   @Test
   fun installationFromPrebuilts_failure() = runBlockingTest {
     val prebuiltPath = StudioPathManager.resolvePathFromSourcesRoot(
-      "prebuilts/tools/common/mirroring-benchmarker/mirroring-benchmarker.apk")
+      "prebuilts/tools/common/streaming-benchmarker/streaming-benchmarker.apk")
     whenever(adb.install(SERIAL_NUMBER, prebuiltPath)).thenReturn(false)
 
     assertThat(installer.installBenchmarkingApp(null)).isFalse()

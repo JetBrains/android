@@ -196,7 +196,7 @@ private fun Rectangle.scribble(numPoints: Int, step: Int, spikiness: Int): Seque
 
 internal class DeviceAdapter (
   private val project: Project,
-  private val target: DeviceMirroringBenchmarkTarget,
+  private val target: StreamingBenchmarkTarget,
   private val bitsPerChannel: Int = 0,
   private val latencyBits: Int = 6,
   private val maxTouches: Int = 10_000,
@@ -204,7 +204,7 @@ internal class DeviceAdapter (
   private val spikiness: Int = 1,
   private val readyIndicator: ProgressIndicator? = null,
   private val timeSource: TimeSource = TimeSource.Monotonic,
-  private val installer: MirroringBenchmarkerAppInstaller = MirroringBenchmarkerAppInstaller(project, target.serialNumber),
+  private val installer: StreamingBenchmarkerAppInstaller = StreamingBenchmarkerAppInstaller(project, target.serialNumber),
   private val coroutineScope: CoroutineScope = AndroidCoroutineScope(target.view),
   ) : Adapter<Point>, AbstractDisplayView.FrameListener {
 
@@ -424,4 +424,4 @@ internal class DeviceAdapter (
   }
 }
 
-data class DeviceMirroringBenchmarkTarget(val name: String, val serialNumber: String, val view: AbstractDisplayView)
+data class StreamingBenchmarkTarget(val name: String, val serialNumber: String, val view: AbstractDisplayView)

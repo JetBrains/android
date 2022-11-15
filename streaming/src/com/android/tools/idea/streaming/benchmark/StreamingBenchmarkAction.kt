@@ -25,25 +25,25 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 
 /** Action to bring up a dialog that controls device mirroring benchmarking. */
-class DeviceMirroringBenchmarkAction : AnAction() {
+class StreamingBenchmarkAction : AnAction() {
   override fun update(event: AnActionEvent) {
     event.presentation.isEnabled = getTarget(event.project) != null
   }
 
   override fun actionPerformed(event: AnActionEvent) {
     getTarget(event.project)?.let {
-      DeviceMirroringBenchmarkDialog(it).createWrapper(event.project).show()
+      StreamingBenchmarkDialog(it).createWrapper(event.project).show()
     }
   }
 
-  private fun getTarget(project: Project?): DeviceMirroringBenchmarkTarget? {
+  private fun getTarget(project: Project?): StreamingBenchmarkTarget? {
     val panel = project
                   ?.getEmulatorToolWindow()
                   ?.contentManager
                   ?.selectedContent
                   ?.component as? RunningDevicePanel ?: return null
     val view = panel.preferredFocusableComponent as? AbstractDisplayView ?: return null
-    return DeviceMirroringBenchmarkTarget(panel.title, panel.id.serialNumber, view)
+    return StreamingBenchmarkTarget(panel.title, panel.id.serialNumber, view)
   }
 
   private fun Project.getEmulatorToolWindow(): ToolWindow? =

@@ -37,7 +37,6 @@ import android.widget.TextView
 import android.widget.Toast
 import android.widget.Toast.makeText
 import androidx.annotation.MainThread
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -70,9 +69,10 @@ private fun Point.scale(src: Size, dst: Size): Point {
 
 /**
  * An activity that displays and encodes touches and some other inputs in its video output.
- * The intended use is to analyze the performance of the end-to-end device mirroring in
- * Android Studio by tracking how long it takes an input sent from Studio to make it all the
- * way to the device and for the resulting video from the device to make it back to Studio.
+ * The intended use is to analyze the performance of the end-to-end device mirroring or
+ * embedded emulator in Android Studio by tracking how long it takes an input sent from Studio
+ * to make it all the way to the device and for the resulting video from the device to make it
+ * back to Studio.
  */
 class InputEventRenderingActivity : Activity() {
   private val textVisible = AtomicBoolean()
