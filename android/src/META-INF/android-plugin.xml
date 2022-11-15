@@ -117,9 +117,6 @@
       <action internal="true" id="Android.Jfr.Dump" class="com.android.tools.idea.diagnostics.profiler.DumpJfrRecording" />
       <action internal="true" id="Android.Jfr.Stop" class="com.android.tools.idea.diagnostics.profiler.StopJfr" />
       <action internal="true" id="Android.Diagnostic.Summary.File" class="com.android.tools.idea.diagnostics.report.DiagnosticSummaryAction" />
-      <action internal="true" id="Android.Streaming.Benchmark" icon="StudioIcons.Shell.Menu.PROFILER"
-              class="com.android.tools.idea.streaming.benchmark.StreamingBenchmarkAction" text="Benchmark Streaming Device"
-              description="Benchmark embedded emulator or mirroring of physical device" />
       <add-to-group group-id="Internal"/>
     </group>
     <group id="Internal.Android.LiveLiterals" text="Live Literals" popup="true" internal="true">

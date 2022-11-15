@@ -119,5 +119,10 @@
       <action id="android.device.screen.record" class="com.android.tools.idea.ui.screenrecording.ScreenRecorderAction"
               icon="StudioIcons.Common.VIDEO_CAPTURE" text="Record Screen" description="Record a video of the device display"/>
     </group>
+    <action internal="true" id="Android.Streaming.Benchmark" icon="StudioIcons.Shell.Menu.PROFILER"
+            class="com.android.tools.idea.streaming.benchmark.StreamingBenchmarkAction" text="Benchmark Streaming Device"
+            description="Benchmark embedded emulator or mirroring of physical device">
+      <add-to-group group-id="Internal.Android"/>
+    </action>
   </actions>
 </idea-plugin>
