@@ -247,7 +247,7 @@ def _studio_plugin_impl(ctx):
 
 _studio_plugin = rule(
     attrs = {
-        "modules": attr.label_list(providers = [ImlModuleInfo], allow_empty = False),
+        "modules": attr.label_list(providers = [ImlModuleInfo], allow_empty = True),
         "libs": attr.label_list(allow_files = True),
         "licenses": attr.label_list(allow_files = True),
         "jars": attr.string_list(),
