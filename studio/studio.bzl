@@ -993,7 +993,7 @@ def intellij_platform(
         name = name + "-build-txt",
         srcs = select({
             "//tools/base/bazel:windows": [src + "/windows/android-studio/build.txt"],
-            "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/build.txt"],
+            "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/Resources/build.txt"],
             "//conditions:default": [src + "/linux/android-studio/build.txt"],
         }),
         visibility = ["//visibility:public"],
