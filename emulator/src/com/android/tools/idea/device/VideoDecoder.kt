@@ -380,7 +380,6 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
   ) {
 
     companion object {
-      @Suppress("UsePropertyAccessSyntax")
       fun deserialize(buffer: ByteBuffer): PacketHeader {
         val width = buffer.getInt()
         val height = buffer.getInt()
