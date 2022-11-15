@@ -20,17 +20,45 @@ import com.intellij.ui.IconManager
 import org.junit.rules.ExternalResource
 
 /**
- * Enables icon loading in a headless test environment.
+ * Enables icon loading in a headless test environment. Use as a class rule.
+ *
+ * Please notice that since icons are cached and not reloaded for each test, loading of icons
+ * has to be enabled before the first test in the suite that may trigger icon loading. It is
+ * therefore recommended to add
+ * ```
+ *   static {
+ *     IconLoaderRule.enableIconLoading();
+ *   }
+ * ```
+ * to the test suite class in addition to using the [IconLoaderRule] in each test that depends
+ * on realistic icon appearance.
  */
 class IconLoaderRule : ExternalResource() {
+  private var wasEnabled = false
 
   override fun before() {
-    IconManager.activate(null)
-    IconLoader.activate()
+    val oldIconManagerClass = IconManager.getInstance().javaClass
+    enableIconLoading()
+    wasEnabled = IconManager.getInstance().javaClass == oldIconManagerClass
   }
 
   override fun after() {
-    IconLoader.deactivate()
-    IconManager.deactivate()
+    if (!wasEnabled) {
+      disableIconLoading()
+    }
+  }
+
+  companion object {
+    @JvmStatic
+    fun enableIconLoading() {
+      IconManager.activate(null)
+      IconLoader.activate()
+    }
+
+    @JvmStatic
+    fun disableIconLoading() {
+      IconLoader.deactivate()
+      IconManager.deactivate()
+    }
   }
 }
