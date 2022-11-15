@@ -122,6 +122,7 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
 
   val otherAffectedFiles = mutableSetOf<PsiFile>()
   val psiSpoilingUsageInfos = mutableListOf<UsageInfo>()
+  val undoHooks = mutableListOf<UndoHook>()
 
   var foundUsages: Boolean = false
 
@@ -246,6 +247,11 @@ abstract class SpoilingGradleBuildModelUsageInfo(
     processor.psiSpoilingUsageInfos.add(this)
   }
 }
+
+data class UndoHook(
+  val undo: () -> Unit,
+  val redo: () -> Unit
+)
 
 class AgpUpgradeRefactoringProcessor(
   project: Project,
@@ -589,10 +595,14 @@ class AgpUpgradeRefactoringProcessor(
     syncRequestCallback?.invoke()
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener)
     UndoManager.getInstance(project).undoableActionPerformed(object : BasicUndoableAction() {
-      override fun undo(): Unit =
+      override fun undo() {
+        undoHooks.reversed().forEach { it.undo.invoke() }
         GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_MODIFIER_ACTION_UNDONE))
-      override fun redo(): Unit =
+      }
+      override fun redo() {
+        undoHooks.forEach { it.redo.invoke() }
         GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_MODIFIER_ACTION_REDONE))
+      }
     })
   }
 
