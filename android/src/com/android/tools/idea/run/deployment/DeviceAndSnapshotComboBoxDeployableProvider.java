@@ -126,12 +126,9 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
     }
 
     @Override
-    public boolean isOnline() {
-      IDevice iDevice = myDevice.getDdmlibDevice();
-      if (iDevice == null) {
-        return false;
-      }
-      return iDevice.isOnline();
+    public @NotNull ListenableFuture<@NotNull Boolean> isOnline() {
+      // noinspection UnstableApiUsage
+      return Futures.transform(myDevice.getDdmlibDeviceAsync(), IDevice::isOnline, EdtExecutorService.getInstance());
     }
 
     @Override

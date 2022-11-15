@@ -210,7 +210,9 @@ public abstract class BaseAction extends AnAction {
         return new DisableMessage(DisableMode.DISABLED, "selected device is invalid", "the selected device is not valid");
       }
 
-      if (!deployable.isOnline()) {
+      var onlineFuture = deployable.isOnline();
+
+      if (!(onlineFuture.isDone() && onlineFuture.get())) {
         if (deployable.isUnauthorized()) {
           return new DisableMessage(DisableMode.DISABLED, "device not authorized", "the selected device is not authorized");
         }

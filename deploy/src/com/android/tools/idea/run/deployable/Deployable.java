@@ -33,10 +33,7 @@ public interface Deployable {
 
   @NotNull ListenableFuture<@NotNull List<@NotNull Client>> searchClientsForPackage();
 
-  /**
-   * @return true if the underlying device is online, or false otherwise.
-   */
-  boolean isOnline();
+  @NotNull ListenableFuture<@NotNull Boolean> isOnline();
 
   /**
    * @return true if the underlying device is unauthorized, or false otherwise.
