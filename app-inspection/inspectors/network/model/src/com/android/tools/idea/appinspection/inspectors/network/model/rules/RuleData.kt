@@ -24,7 +24,6 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
 import com.intellij.util.xmlb.annotations.Transient
 import com.intellij.util.xmlb.annotations.XCollection
-import org.jetbrains.annotations.TestOnly
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria
 import studio.network.inspection.NetworkInspectorProtocol.InterceptRule
 import studio.network.inspection.NetworkInspectorProtocol.MatchingText.Type
@@ -47,7 +46,6 @@ class RuleData(
       return count
     }
 
-    @TestOnly
     fun getLatestId() = count
   }
 

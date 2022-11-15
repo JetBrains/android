@@ -20,6 +20,8 @@ import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInsp
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData.Companion.getLatestId
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData.Companion.newId
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleDataListener
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RulesPersistentStateComponent
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RulesTableModel
@@ -60,7 +62,7 @@ class RulesTableView(
   init {
     initPersistentRules()
     val decorator = ToolbarDecorator.createDecorator(table).setAddAction {
-      val id = RuleData.newId()
+      val id = newId()
       val ruleData = createRuleDataWithListener(id)
       tableModel.addRow(ruleData)
       val selectedRow = tableModel.rowCount - 1
@@ -181,16 +183,21 @@ class RulesTableView(
 
   private fun initPersistentRules() {
     tableModel.items = persistentStateComponent.myRuleDataState.rulesList
-    persistentStateComponent.myRuleDataState.rulesList.forEach { ruleData ->
-      ruleData.ruleDataListener = createNewRuleDataListener()
-      scope.launch {
+
+    scope.launch {
+      persistentStateComponent.myRuleDataState.rulesList.forEach { ruleData ->
+        ruleData.ruleDataListener = createNewRuleDataListener()
         client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
           interceptRuleAddedBuilder.apply {
             ruleId = ruleData.id
             rule = ruleData.toProto()
           }
-        }.build()
-        )
+        }.build())
+
+        // Increment the ID to the current ID so that new rule ID don't conflict with existing ones.
+        while (getLatestId() < ruleData.id) {
+          newId()
+        }
       }
     }
   }
