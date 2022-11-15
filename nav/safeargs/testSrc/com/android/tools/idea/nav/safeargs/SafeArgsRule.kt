@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs
 
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
@@ -110,9 +111,9 @@ class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : ExternalResourc
    *
    * Finally, this method should be called before any light classes are generated.
    */
-  fun addFakeNavigationDependency(version: GradleVersion) {
+  fun addFakeNavigationDependency(version: Version) {
     val projectSystem = TestProjectSystem(module.project)
-    projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON, module, version)
+    projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON, module, GradleVersion.parse(version.toString()))
     projectSystem.useInTests()
   }
 }

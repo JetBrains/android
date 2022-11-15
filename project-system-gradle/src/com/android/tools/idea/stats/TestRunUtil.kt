@@ -43,7 +43,7 @@ fun recordTestLibraries(builder: TestLibraries.Builder, artifact: IdeBaseArtifac
     val coordinate = GradleCoordinate.parseCoordinateString(lib.target.artifactAddress) ?: continue
     val groupId = coordinate.groupId
     val artifactId = coordinate.artifactId
-    val version = coordinate.version?.toString() ?: continue
+    val version = coordinate.lowerBoundVersion?.toString() ?: continue
     builder.recordTestLibrary(groupId, artifactId, version)
   }
 }

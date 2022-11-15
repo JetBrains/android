@@ -19,8 +19,8 @@ import com.android.build.attribution.data.GradlePluginsData
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.AgpVersion
 import kotlinx.collections.immutable.toImmutableMap
 
@@ -94,7 +94,7 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
     val upgradePluginWarnings = mutableListOf<IncompatiblePluginWarning>()
     pluginsByPluginInfo.forEach { (pluginInfo, plugins) ->
       if (pluginInfo?.pluginArtifact == null) return@forEach
-      val detectedVersion = buildscriptClasspath.find { it.isSameCoordinate(pluginInfo.pluginArtifact) }?.version
+      val detectedVersion = buildscriptClasspath.find { it.isSameCoordinate(pluginInfo.pluginArtifact) }?.lowerBoundVersion
       if (detectedVersion != null) {
         when {
           pluginInfo.configurationCachingCompatibleFrom == null -> incompatiblePluginWarnings.addAll(
@@ -153,10 +153,10 @@ data class IncompatiblePluginsDetected(
 
 data class IncompatiblePluginWarning(
   val plugin: PluginData,
-  val currentVersion: GradleVersion,
+  val currentVersion: Version,
   val pluginInfo: GradlePluginsData.PluginInfo,
 ) {
-  val requiredVersion: GradleVersion?
+  val requiredVersion: Version?
     get() = pluginInfo.configurationCachingCompatibleFrom
 }
 

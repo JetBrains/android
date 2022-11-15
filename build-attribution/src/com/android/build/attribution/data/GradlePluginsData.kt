@@ -15,7 +15,7 @@
  */
 package com.android.build.attribution.data
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
@@ -40,7 +40,7 @@ data class GradlePluginsData(
     val pluginClasses: List<String>,
     val pluginArtifact: DependencyCoordinates? = null,
     //TODO mlazeba: should this be a list of supported ranges instead?
-    val configurationCachingCompatibleFrom: GradleVersion? = null
+    val configurationCachingCompatibleFrom: Version? = null
   ) {
     /** Checks if [plugin] matches this PluginInfo entry. */
     fun isThisPlugin(plugin: PluginData): Boolean {
@@ -62,14 +62,14 @@ data class GradlePluginsData(
     val emptyData = GradlePluginsData(emptyList())
 
     fun loadFromJson(jsonString: String): GradlePluginsData {
-      val gradleVersionDeserializer = JsonDeserializer { json: JsonElement, typeOfT: Type?, context: JsonDeserializationContext? ->
-        json.asString.takeIf { it != "N/A" }?.let { GradleVersion.parse(it) }
-      } as JsonDeserializer<GradleVersion>
+      val versionDeserializer = JsonDeserializer { json: JsonElement, typeOfT: Type?, context: JsonDeserializationContext? ->
+        json.asString.takeIf { it != "N/A" }?.let { Version.parse(it) }
+      } as JsonDeserializer<Version>
       val dependencyCoordinatesDeserializer = JsonDeserializer { json: JsonElement, typeOfT: Type?, context: JsonDeserializationContext? ->
         json.asString.let{ DependencyCoordinates(it.substringBefore(":"), it.substringAfter(":"))}
       } as JsonDeserializer<DependencyCoordinates>
       val gson = GsonBuilder()
-        .registerTypeAdapter(object : TypeToken<GradleVersion>() {}.type, gradleVersionDeserializer)
+        .registerTypeAdapter(object : TypeToken<Version>() {}.type, versionDeserializer)
         .registerTypeAdapter(object : TypeToken<DependencyCoordinates>() {}.type, dependencyCoordinatesDeserializer)
         .create()
       return try {

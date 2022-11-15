@@ -29,8 +29,8 @@ import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.splitPath;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
+import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
@@ -257,7 +257,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     if (version == null) {
       GoogleMavenArtifactId library = GoogleMavenArtifactId.Companion.find(libraryGroupId, libraryArtifactId);
       if (library != null) {
-        Predicate<GradleVersion> filter =
+        Predicate<Version> filter =
           descriptor.getMinVersion() == null ? null : (v -> v.toString().startsWith(descriptor.getMinVersion()));
 
         String gc = RepositoryUrlManager.get().getArtifactStringCoordinate(library, filter,false);

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.gradle.repositories.search.CachingRepositorySearchFactory
 import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.gradle.repositories.search.FoundArtifact
@@ -34,7 +34,7 @@ class CachingRepositorySearchFactoryTest {
   private class TestRepository(val id: String, val onSearch: () -> Unit) : ArtifactRepositorySearchService {
     override fun search(request: SearchRequest): ListenableFuture<SearchResult> {
       onSearch()
-      return Futures.immediateFuture(SearchResult(listOf(FoundArtifact(id, "group", "name", GradleVersion.parse("1.0")))))
+      return Futures.immediateFuture(SearchResult(listOf(FoundArtifact(id, "group", "name", Version.parse("1.0")))))
     }
 
     override fun equals(other: Any?): Boolean {

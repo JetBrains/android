@@ -76,17 +76,17 @@ class GradleModuleSystemIntegrationTest {
 
       assertThat(foundDependency.artifactId).isEqualTo(APPCOMPAT_LIB_ARTIFACT_ID)
       assertThat(foundDependency.groupId).isEqualTo(SUPPORT_LIB_GROUP_ID)
-      assertThat(foundDependency.version!!.major).isEqualTo(28)
+      assertThat(foundDependency.lowerBoundVersion!!.major).isEqualTo(28)
 
       // TODO: b/129297171
       @Suppress("ConstantConditionIf")
       if (CHECK_DIRECT_GRADLE_DEPENDENCIES) {
         // When we were checking the parsed gradle file we were able to detect a specified "+" in the version.
-        assertThat(foundDependency.version!!.minorSegment!!.text).isEqualTo("+")
+        assertThat(foundDependency.acceptsGreaterRevisions()).isTrue()
       } else {
         // Now that we are using the resolved gradle version we are no longer able to detect a "+" in the version.
-        assertThat(foundDependency.version!!.minor).isLessThan(Integer.MAX_VALUE)
-        assertThat(foundDependency.version!!.micro).isLessThan(Integer.MAX_VALUE)
+        assertThat(foundDependency.lowerBoundVersion!!.minor).isLessThan(Integer.MAX_VALUE)
+        assertThat(foundDependency.lowerBoundVersion!!.micro).isLessThan(Integer.MAX_VALUE)
       }
     }
   }

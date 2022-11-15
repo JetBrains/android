@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.fast
 
 import com.android.flags.junit.FlagRule
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_FAST_PREVIEW_AUTO_DISABLE
@@ -51,7 +51,7 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
-private val TEST_VERSION = GradleVersion.parse("0.0.1-test")
+private val TEST_VERSION = Version.parse("0.0.1-test")
 
 private object NopCompilerDaemonClient : CompilerDaemonClient {
   override val isRunning: Boolean = true

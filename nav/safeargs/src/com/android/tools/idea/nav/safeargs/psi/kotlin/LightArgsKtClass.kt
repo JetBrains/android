@@ -16,7 +16,7 @@
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.android.tools.idea.nav.safeargs.psi.java.toCamelCase
@@ -82,7 +82,7 @@ import org.jetbrains.kotlin.utils.Printer
  * ```
  */
 class LightArgsKtClass(
-  private val navigationVersion: GradleVersion,
+  private val navigationVersion: Version,
   name: Name,
   private val destination: NavDestinationData,
   superTypes: Collection<KotlinType>,

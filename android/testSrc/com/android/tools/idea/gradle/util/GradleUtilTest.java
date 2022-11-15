@@ -24,7 +24,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.utils.FileUtils;
 import com.google.common.collect.Lists;

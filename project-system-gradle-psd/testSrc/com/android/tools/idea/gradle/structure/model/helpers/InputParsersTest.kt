@@ -15,17 +15,15 @@
  */
 package com.android.tools.idea.gradle.structure.model.helpers
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.pom.java.LanguageLevel
 import junit.framework.Assert.*
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Ignore
 import org.junit.Test
 import java.io.File
-import java.math.BigDecimal
 
 class InputParsersTest {
 
@@ -212,7 +210,7 @@ class InputParsersTest {
 
   @Test
   fun gradleVersion() {
-    assertEquals(GradleVersion(1, 1, 1).asParsed().annotated(), parseGradleVersion("1.1.1"))
+    assertEquals(Version.parse("1.1.1").asParsed().annotated(), parseGradleVersion("1.1.1"))
   }
 
   @Test

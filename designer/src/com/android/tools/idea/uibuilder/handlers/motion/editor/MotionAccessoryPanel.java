@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor;
 
 import com.android.AndroidXConstants;
 import com.android.SdkConstants;
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.gradle.Version;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.NlComponent;
@@ -401,24 +401,11 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     if (myMotionLayout == null) return null;
     if (myMotionLayout.getModel() == null) return null;
 
-    GradleVersion v = dep.getModuleDependencyVersion(artifact, myMotionLayout.getModel().getFacet());
+    Version v = dep.getModuleDependencyVersion(artifact, myMotionLayout.getModel().getFacet());
     NlDependencyManager.getInstance().getModuleDependencyVersion(artifact, myMotionLayout.getModel().getFacet());
     String error = "Version ConstraintLayout library must be version 2.0.0 beta3 or later";
-    if (v == null) { // if you could not get the version assume it is the ok
-      return null;
-    }
-    if (v.getMajor() < 2) {
-      return error;
-    }
-    if (v.getMinor() == 0 && v.getMicro() == 0) {
-      if ("alpha".equals(v.getPreviewType())) {
-        return error;
-      }
-      if ("beta".equals(v.getPreviewType()) && v.getPreview() < 3) {
-        return error;
-      }
-    }
-
+    if (v == null) return null;
+    if (v.compareTo(Version.Companion.parse("2.0.0-beta03")) < 0) return error;
     return null;
   }
 

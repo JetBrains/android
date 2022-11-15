@@ -21,7 +21,7 @@ import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
@@ -41,7 +41,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     name = "Compatible Plugin",
     pluginClasses = listOf("my.org.gradle.Plugin1"),
     pluginArtifact = GradlePluginsData.DependencyCoordinates("my.org", "plugin1-jar"),
-    configurationCachingCompatibleFrom = GradleVersion.parse("0.2.0")
+    configurationCachingCompatibleFrom = Version.parse("0.2.0")
   )
   val incompatiblePlugin = GradlePluginsData.PluginInfo(
     name = "Incompatible Plugin",
@@ -131,7 +131,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     expectedResult = IncompatiblePluginsDetected(
       incompatiblePluginWarnings = listOf(IncompatiblePluginWarning(
         plugin = binaryPlugin("my.org.gradle.Plugin2"),
-        currentVersion = GradleVersion.parse("0.1.0"),
+        currentVersion = Version.parse("0.1.0"),
         pluginInfo = incompatiblePlugin
       )),
       upgradePluginWarnings = emptyList()
@@ -147,7 +147,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
       incompatiblePluginWarnings = emptyList(),
       upgradePluginWarnings = listOf(IncompatiblePluginWarning(
         plugin = binaryPlugin("my.org.gradle.Plugin1"),
-        currentVersion = GradleVersion.parse("0.1.0"),
+        currentVersion = Version.parse("0.1.0"),
         pluginInfo = compatiblePlugin
       ))
     )
@@ -214,7 +214,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
       incompatiblePluginWarnings = emptyList(),
       upgradePluginWarnings = listOf(IncompatiblePluginWarning(
         plugin = binaryPlugin("my.org.gradle.Plugin1"),
-        currentVersion = GradleVersion.parse("0.1.0"),
+        currentVersion = Version.parse("0.1.0"),
         pluginInfo = compatiblePlugin
       ))
     ))

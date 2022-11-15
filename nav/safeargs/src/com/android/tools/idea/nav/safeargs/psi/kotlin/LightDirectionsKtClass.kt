@@ -16,7 +16,7 @@
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.nav.safeargs.index.NavActionData
 import com.android.tools.idea.nav.safeargs.index.NavArgumentData
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
@@ -99,7 +99,7 @@ import org.jetbrains.kotlin.utils.Printer
  * ```
  */
 class LightDirectionsKtClass(
-  private val navigationVersion: GradleVersion,
+  private val navigationVersion: Version,
   name: Name,
   private val destination: NavDestinationData,
   private val navResourceData: NavXmlData,

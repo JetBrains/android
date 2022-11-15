@@ -43,7 +43,7 @@ import com.android.buildanalyzer.common.CheckJetifierResult
 import com.android.buildanalyzer.common.DependencyPath
 import com.android.buildanalyzer.common.FullDependencyPath
 import com.android.buildanalyzer.common.TaskCategoryIssue
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
@@ -147,8 +147,8 @@ class BuildAttributionAnalyticsManagerTest {
       override fun getJavaVersion(): Int? = null
       override fun isGCSettingSet(): Boolean? = null
       override fun getConfigurationCachingCompatibility() = IncompatiblePluginsDetected(
-        listOf(IncompatiblePluginWarning(pluginA, GradleVersion.parse("1.0.0"), GradlePluginsData.PluginInfo("Plugin A", listOf("my.plugin.PluginA")))),
-        listOf(IncompatiblePluginWarning(applicationPlugin, GradleVersion.parse("2.0.0"), GradlePluginsData.PluginInfo("AGP", listOf("com.android.build.gradle.api.AndroidBasePlugin"))))
+        listOf(IncompatiblePluginWarning(pluginA, Version.parse("1.0.0"), GradlePluginsData.PluginInfo("Plugin A", listOf("my.plugin.PluginA")))),
+        listOf(IncompatiblePluginWarning(applicationPlugin, Version.parse("2.0.0"), GradlePluginsData.PluginInfo("AGP", listOf("com.android.build.gradle.api.AndroidBasePlugin"))))
       )
 
       override fun getJetifierUsageResult() = JetifierUsageAnalyzerResult(

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.designinfo
 
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.getLastSyncTimestamp
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
@@ -53,9 +54,9 @@ private fun findDesignInfoProviders(moduleToSearch: Module): Boolean {
       .getResolvedDependency(
         GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT_COMPOSE.getCoordinate("+")
       )
-      ?.version
+      ?.lowerBoundVersion
       ?: return false
 
   // Support for DesignInfo was added in 'constraintlayout-compose:1.0.0-alpha06'
-  return gradleCoordinate.isAtLeast(1, 0, 0, "alpha", 6, false)
+  return gradleCoordinate >= Version.parse("1.0.0-alpha06")
 }

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.repositories;
 
+import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.StubGoogleMavenRepository;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
@@ -112,7 +112,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
     return getLibraryRevision(artifactId, preview, null);
   }
 
-  private String getLibraryRevision(GoogleMavenArtifactId artifactId, boolean preview, Predicate<GradleVersion> filter) {
+  private String getLibraryRevision(GoogleMavenArtifactId artifactId, boolean preview, Predicate<Version> filter) {
     return myRepositoryUrlManager
       .getLibraryRevision(artifactId.getMavenGroupId(), artifactId.getMavenArtifactId(), filter, preview, myRoot.getFileSystem());
   }

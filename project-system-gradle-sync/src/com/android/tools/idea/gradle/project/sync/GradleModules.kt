@@ -363,7 +363,7 @@ private fun collectIdentifiers(
     .flatMap { it.dependencies.asSequence() }
     .mapNotNull { (libraryResolver(it.target) as? IdeArtifactLibrary)?.artifactAddress }
     .mapNotNull { GradleCoordinate.parseCoordinateString(it) }
-    .map { ArtifactIdentifierImpl(it.groupId, it.artifactId, it.version?.toString().orEmpty()) }
+    .map { ArtifactIdentifierImpl(it.groupId, it.artifactId, it.lowerBoundVersion?.toString().orEmpty()) }
     .distinct()
     .toList()
 }

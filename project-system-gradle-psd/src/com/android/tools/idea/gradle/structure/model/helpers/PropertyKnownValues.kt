@@ -17,7 +17,7 @@
 
 package com.android.tools.idea.gradle.structure.model.helpers
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.concurrency.readOnPooledThread
 import com.android.tools.idea.concurrency.transform
@@ -167,17 +167,17 @@ fun androidGradlePluginVersionValues(model: PsProject): ListenableFuture<List<Va
     },
     directExecutor())
 
-fun gradleVersionValues(): ListenableFuture<KnownValues<String>> =
+fun versionValues(): ListenableFuture<KnownValues<String>> =
   GradleVersionsRepository.getKnownVersionsFuture().transform(directExecutor()) {
     object : KnownValues<String> {
       override val literals: List<ValueDescriptor<String>> =
-        it.sortedByDescending { GradleVersion.tryParse(it) }.map { ValueDescriptor(it) }
+        it.sortedByDescending { Version.parse(it) }.map { ValueDescriptor(it) }
       override fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<String>>): Boolean = false
     }
   }
 
 @VisibleForTesting
-fun SearchResult.toVersionValueDescriptors(filter: (GradleVersion) -> Boolean = { true }): List<ValueDescriptor<String>> =
+fun SearchResult.toVersionValueDescriptors(filter: (Version) -> Boolean = { true }): List<ValueDescriptor<String>> =
   artifacts
     .flatMap { it.versions }
     .distinct()

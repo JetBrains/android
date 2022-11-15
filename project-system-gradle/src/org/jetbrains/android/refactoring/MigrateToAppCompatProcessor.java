@@ -17,11 +17,11 @@ package org.jetbrains.android.refactoring;
 
 import com.android.AndroidXConstants;
 import com.android.annotations.NonNull;
+import com.android.ide.common.gradle.Version;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.google.common.annotations.VisibleForTesting;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.support.AndroidxName;
@@ -656,7 +656,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
     }
     GoogleMavenArtifactId artifact;
     AndroidVersion finalAndroidVersion = highest;
-    Predicate<GradleVersion> filter;
+    Predicate<Version> filter;
 
     if (dependsOnAndroidX) {
       artifact = GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7;
@@ -669,7 +669,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
     }
 
     // For androidx since it it not stable, we need to also look in previews
-    GradleVersion version = IdeGoogleMavenRepository.INSTANCE.findVersion(
+    Version version = IdeGoogleMavenRepository.INSTANCE.findVersion(
       artifact.getMavenGroupId(), artifact.getMavenArtifactId(), filter,
       artifact.isAndroidxLibrary() ||finalAndroidVersion.isPreview());
 

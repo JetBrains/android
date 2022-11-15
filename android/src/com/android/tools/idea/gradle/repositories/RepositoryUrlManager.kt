@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.repositories
 
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleCoordinate.ArtifactType
 import com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_LOWER
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.MavenRepositories
 import com.android.ide.common.repository.SdkMavenRepository
 import com.android.io.CancellableFileIo
@@ -61,7 +61,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
   fun getArtifactStringCoordinate(artifactId: GoogleMavenArtifactId, preview: Boolean): String? =
     getArtifactStringCoordinate(artifactId, null, preview)
 
-  fun getArtifactStringCoordinate(artifactId: GoogleMavenArtifactId, filter: Predicate<GradleVersion>?, preview: Boolean): String? {
+  fun getArtifactStringCoordinate(artifactId: GoogleMavenArtifactId, filter: Predicate<Version>?, preview: Boolean): String? {
     val revision = getLibraryRevision(
       artifactId.mavenGroupId, artifactId.mavenArtifactId, filter, preview, FileSystems.getDefault()
     ) ?: return null
@@ -72,7 +72,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
    * A helper function which wraps [findVersion]?.toString().
    */
   fun getLibraryRevision(
-    groupId: String, artifactId: String, filter: Predicate<GradleVersion>?, includePreviews: Boolean,
+    groupId: String, artifactId: String, filter: Predicate<Version>?, includePreviews: Boolean,
     // TODO: remove when EmbeddedDistributionPaths uses Path rather than File
     fileSystem: FileSystem
   ): String? = findVersion(groupId, artifactId, filter, includePreviews, fileSystem)?.toString()
@@ -87,9 +87,9 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
    * @param includePreviews whether to include preview versions of libraries
    */
   fun findVersion(
-    groupId: String, artifactId: String, filter: Predicate<GradleVersion>?, includePreviews: Boolean, fileSystem: FileSystem
-  ): GradleVersion? {
-    val version: GradleVersion?
+    groupId: String, artifactId: String, filter: Predicate<Version>?, includePreviews: Boolean, fileSystem: FileSystem
+  ): Version? {
+    val version: Version?
     // First check the Google maven repository, which has most versions.
     if (ApplicationManager.getApplication().isDispatchThread) {
       version = cachedGoogleMavenRepository.findVersion(groupId, artifactId, filter, includePreviews)
@@ -108,14 +108,12 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
         .filter { it?.isDirectory == true }
         .firstNotNullOfOrNull {
           MavenRepositories.getHighestInstalledVersion(groupId, artifactId, fileSystem.getPath(it.path), filter, includePreviews)
-        }?.version
+        }?.lowerBoundVersion
     }
     return null
   }
 
-  fun findCompileDependencies(groupId: String,
-                              artifactId: String,
-                              version: GradleVersion): List<GradleCoordinate> {
+  fun findCompileDependencies(groupId: String, artifactId: String, version: Version): List<GradleCoordinate> {
     // First check the Google maven repository, which has most versions.
     val result: List<GradleCoordinate>
     if (ApplicationManager.getApplication().isDispatchThread) {
@@ -196,7 +194,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
       return revision
     }
     val versionPrefix = revision.substring(0, revision.length - 1)
-    val filter = Predicate { version: GradleVersion -> version.toString().startsWith(versionPrefix) }
+    val filter = Predicate { version: Version -> version.toString().startsWith(versionPrefix) } // TODO: replace with proper prefix version handling
     val groupId = coordinate.groupId
     val artifactId = coordinate.artifactId
     val bestAvailableGoogleMavenRepo: GoogleMavenRepository

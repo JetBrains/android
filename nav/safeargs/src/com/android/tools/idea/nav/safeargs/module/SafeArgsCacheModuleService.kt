@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.nav.safeargs.module
 
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
@@ -142,7 +142,7 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
 
   private fun createLightArgsClasses(facet: AndroidFacet,
                                      modulePackage: String,
-                                     navigationVersion: GradleVersion,
+                                     navigationVersion: Version,
                                      entry: NavEntry): Collection<LightArgsClass> {
     return entry.data.resolvedDestinations
       .filter { destination -> destination.arguments.isNotEmpty() }
