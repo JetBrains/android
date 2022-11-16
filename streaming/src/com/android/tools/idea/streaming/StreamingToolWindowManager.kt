@@ -674,6 +674,10 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
       for (device in removed) {
         removePhysicalDevicePanel(device)
       }
+      val toolWindow = getToolWindow()
+      if (!toolWindow.isVisible && mirrorableDeviceProperties.isEmpty() && emulators.isEmpty()) {
+        hideLiveIndicator(toolWindow)
+      }
       for (deviceSerialNumber in onlineDevices) {
         if (!mirroredDevices.contains(deviceSerialNumber)) {
           coroutineScope.launch {
@@ -689,13 +693,15 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
       if (deviceProperties != null) {
         UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
           if (deviceSerialNumber in onlineDevices && mirrorableDeviceProperties.put(deviceSerialNumber, deviceProperties) == null) {
+            val toolWindow = getToolWindow()
+            showLiveIndicator(toolWindow)
             if (contentCreated) {
               deviceConnected(deviceSerialNumber, deviceProperties)
             }
             else if (recentAttentionRequests.getIfPresent(deviceSerialNumber) != null) {
               recentAttentionRequests.invalidate(deviceSerialNumber)
               lastSelectedDeviceId = DeviceId.ofPhysicalDevice(deviceSerialNumber)
-              getToolWindow().showAndActivate()
+              toolWindow.showAndActivate()
             }
           }
         }
