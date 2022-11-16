@@ -21,6 +21,8 @@ import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.Pr
 
 import com.android.annotations.Nullable;
 import com.android.annotations.Trace;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.intellij.util.ThreeState;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.analytics.UsageTracker;
@@ -76,9 +78,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * Helper to set up Live Literal deployment monitoring.
@@ -86,7 +90,7 @@ import org.jetbrains.annotations.NotNull;
  * Since the UI / UX of this is still not fully agreed upon. This class is design to have MVP like
  * functionality just enough for compose user group to dogfood for now.
  *
-  * The LiveEdit change detection & handling flow is as follows:
+ * The LiveEdit change detection & handling flow is as follows:
  * There are three thread contexts:
  * - The UI thread, which reports PSI events
  * - The LiveEditService executor, which queues changes and schedules
@@ -172,6 +176,8 @@ public class AndroidLiveEditDeployMonitor {
 
   private static final EditStatus DEBUGGER_ATTACHED = new EditStatus(EditState.RECOMPOSE_ERROR, "The app is currently running in debugging or profiling mode. These modes are not compatible with Live Edit.", ToolWindowId.RUN);
 
+  private static final EditStatus GRADLE_SYNC_ERROR = new EditStatus(EditState.ERROR, "Gradle sync needs to be performed. Sync and rerun the app.", null);
+
   private final @NotNull Project project;
 
   private final @NotNull LinkedHashMap<String, SourceInlineCandidate> sourceInlineCandidateCache;
@@ -188,6 +194,8 @@ public class AndroidLiveEditDeployMonitor {
   // For every files a user modify, we keep track of whether we were able to successfully compile it. As long as one file has an error,
   // LE status remains in Paused state.
   private final Set<String> filesWithCompilationErrors = new HashSet<>();
+
+  private AtomicReference<Long> gradleTimeSync = new AtomicReference<>(Integer.toUnsignedLong(0));
 
   public void resetState() {
     bufferedEvents.clear();
@@ -271,9 +279,15 @@ public class AndroidLiveEditDeployMonitor {
     }
   }
 
-  private class EditsListener implements Disposable {
+  @VisibleForTesting
+  public class EditsListener implements Disposable {
     // Care should be given when modifying this field to preserve atomicity.
     private final ConcurrentLinkedQueue<EditEvent> changedMethodQueue = new ConcurrentLinkedQueue<>();
+
+
+    public EditsListener(){
+      gradleTimeSync.set(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp());
+    }
 
     @Override
     public void dispose() {
@@ -292,6 +306,11 @@ public class AndroidLiveEditDeployMonitor {
       }
 
       if (mergeStatuses(editStatus).getEditState() == EditState.ERROR) {
+        return;
+      }
+
+      if (GradleSyncState.getInstance(project).isSyncNeeded() != ThreeState.NO || gradleTimeSync.get().compareTo(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp()) != 0 ){
+        updateEditStatus(GRADLE_SYNC_ERROR);
         return;
       }
 
@@ -368,6 +387,7 @@ public class AndroidLiveEditDeployMonitor {
       .schedule(
         () -> {
           this.applicationId = applicationId;
+          this.gradleTimeSync.set(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp());
           LiveEditService.getInstance(project).resetState();
 
           LiveLiteralsMonitorHandler.DeviceType deviceType;
@@ -491,7 +511,7 @@ public class AndroidLiveEditDeployMonitor {
     logLiveEditEvent(event);
     return true;
   }
-  
+
   private void scheduleErrorPolling(LiveUpdateDeployer deployer, Installer installer, AdbClient adb, String packageName) {
     ScheduledExecutorService scheduler = JobScheduler.getScheduler();
     ScheduledFuture<?> statusPolling = scheduler.scheduleWithFixedDelay(() -> {
