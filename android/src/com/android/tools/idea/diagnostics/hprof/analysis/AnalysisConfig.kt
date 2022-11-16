@@ -66,7 +66,6 @@ class AnalysisConfig(
   )
 
   class DisposerOptions(
-    val includeDisposerTree: Boolean = true,
     val includeDisposerTreeSummary: Boolean = true,
     val includeDisposedObjectsSummary: Boolean = true,
     val includeDisposedObjectsDetails: Boolean = true,
@@ -78,8 +77,8 @@ class AnalysisConfig(
 
   class DisposerTreeSummaryOptions(
     val maxDepth: Int = 20,
-    val headLimit: Int = 400,
-    val nodeCutoff: Int = 20
+    val headLimit: Int = 500,
+    val nodeCutoff: Int = 4
   )
 
   class TraverseOptions(

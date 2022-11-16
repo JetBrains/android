@@ -76,30 +76,30 @@ Root 1:
 [    3/ 25%/   48B]   160B          1   | referent: MyRef
 [    3/ 25%/   48B]   144B          1   | referent: MyRef
 [    3/ 25%/   48B]   128B          1   | referent: TestClassA
+[    1/  8%/   16B]    16B          1 * | +-a1string: TestString
 [    1/  8%/   16B]    40B          1   | +-a2b: TestClassB
 [    1/  8%/   16B]    16B          1 * | | b2string: TestString
-[    1/  8%/   16B]    16B          1 * | +-a1string: TestString
 [    1/  8%/   16B]    40B          1   | \-a3b: TestClassB
 [    1/  8%/   16B]    16B          1 * |   b2string: TestString
 [    3/ 25%/   48B]   128B          1   +-[]: TestClassA
+[    1/  8%/   16B]    16B          1 * | +-a1string: TestString
 [    1/  8%/   16B]    40B          1   | +-a2b: TestClassB
 [    1/  8%/   16B]    16B          1 * | | b2string: TestString
-[    1/  8%/   16B]    16B          1 * | +-a1string: TestString
 [    1/  8%/   16B]    40B          1   | \-a3b: TestClassB
 [    1/  8%/   16B]    16B          1 * |   b2string: TestString
 [    3/ 25%/   48B]   152B          1   \-[]: java.lang.ref.WeakReference
 [    3/ 25%/   48B]   128B          1 !   (weak): TestClassA
+[    1/  8%/   16B]    16B          1 *   +-a1string: TestString
 [    1/  8%/   16B]    40B          1     +-a2b: TestClassB
 [    1/  8%/   16B]    16B          1 *   | b2string: TestString
-[    1/  8%/   16B]    40B          1     +-a3b: TestClassB
-[    1/  8%/   16B]    16B          1 *   | b2string: TestString
-[    1/  8%/   16B]    16B          1 *   \-a1string: TestString
+[    1/  8%/   16B]    40B          1     \-a3b: TestClassB
+[    1/  8%/   16B]    16B          1 *     b2string: TestString
 Root 2:
 [    3/ 25%/   48B]   272B          1   ROOT: Unknown
 [    3/ 25%/   48B]   272B          1   (root): TestClassA
+[    1/  8%/   16B]    64B          1 * +-a1string: TestString
 [    1/  8%/   16B]    88B          1   +-a2b: TestClassB
 [    1/  8%/   16B]    64B          1 * | b2string: TestString
-[    1/  8%/   16B]    88B          1   +-a3b: TestClassB
-[    1/  8%/   16B]    64B          1 * | b2string: TestString
-[    1/  8%/   16B]    64B          1 * \-a1string: TestString
+[    1/  8%/   16B]    88B          1   \-a3b: TestClassB
+[    1/  8%/   16B]    64B          1 *   b2string: TestString
 

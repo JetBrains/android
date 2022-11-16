@@ -39,13 +39,15 @@ class HeapAnalysisTest {
     tmpFolder.delete()
   }
 
-  private fun runHProfScenario(scenario: HProfBuilder.() -> Unit,
-                               baselineFileName: String,
-                               nominatedClassNames: List<String>? = null,
-                               classNameMapping: ((Class<*>) -> String)? = null) {
+  private fun runHProfScenario(
+    scenario: HProfBuilder.() -> Unit,
+    baselineFileName: String,
+    nominatedClassNames: List<String>? = null,
+    classNameMapping: ((Class<*>) -> String)? = null,
+    config: AnalysisConfig? = null) {
     object : HProfScenarioRunner(tmpFolder, remapInMemory) {
       override fun mapClassName(clazz: Class<*>): String = classNameMapping?.invoke(clazz) ?: super.mapClassName(clazz)
-    }.run(scenario, baselineFileName, nominatedClassNames)
+    }.run(scenario, baselineFileName, nominatedClassNames, config = config)
   }
 
   @Test
@@ -163,11 +165,67 @@ class HeapAnalysisTest {
     val scenario: HProfBuilder.() -> Unit = {
       addDisposer(this, objectTree)
     }
-/* b/243081723
-    object : HProfScenarioRunner(tmpFolder, remapInMemory) {
-      override fun adjustConfig(config: AnalysisConfig): AnalysisConfig = configWithDisposerTreeSummaryOnly()
-    }.run(scenario, "testDisposerTreeSummarySection.txt", null)
-b/243081723 */
+
+    runHProfScenario(scenario, "testDisposerTreeSummarySection.txt", config = configWithDisposerTreeSummaryOnly())
+  }
+
+  @Suppress("unused") // Field names are accessed through reflection
+  @Test
+  fun testDisposedObjectsHaveLowerPriority() {
+    val objectTree = ObjectTreeTestWrapper()
+
+    class Observed1
+    class Observed2
+    class Observed3
+    class C1(val field: Any)
+    class C2(val field: Any)
+    class DisposableParent1(val field: Any) : Disposable {
+      override fun dispose() { }
+    }
+    class DisposableParent2(val field: Any, val field2: Any) : Disposable {
+      override fun dispose() { }
+    }
+    class DisposableChild : Disposable {
+      override fun dispose() { }
+    }
+
+    val observedParent1 = Observed1()
+    val observedParent2 = Observed2()
+    val parent1 = DisposableParent1(observedParent1)
+
+    // The parent2 leak Observed3 if it still strong-referenced after dispose. The test detects it.
+    val parent2 = DisposableParent2(observedParent2, Observed3())
+
+    // register and dispose both parent and a child
+    objectTree.register(parent1, DisposableChild())
+    objectTree.register(parent2, DisposableChild())
+
+    val scenario: HProfBuilder.() -> Unit = {
+      addDisposer(this, objectTree)
+
+      // Scenario 1: Disposed root object
+      // short path GC-root(parent1) -> observed
+      addRootUnknown(parent1)
+      // longer path GCRoot(C1) -> C1 -> observed. Expected only after parent1 is disposed.
+      addRootGlobalJNI(C1(C1(observedParent1)))
+
+      // Scenario 2: Disposed non-root object
+      // short GC-root(C2) -> parent2 -> observed
+      addRootGlobalJNI(C2(parent2))
+      // longer path GCRoot(C2) -> C2 -> C2 -> observed. Expected only after parent2 is disposed.
+      addRootUnknown(C2(C2(C2(observedParent2))))
+    }
+
+    val config = configWithDisposedObjectsSummaryAndDetails("Observed1", "Observed2", "Observed3")
+
+    // Test before dispose
+    runHProfScenario(scenario, "testDisposedObjectsHaveLowerPriority-beforeDispose.txt", config = config)
+
+    objectTree.dispose(parent1)
+    objectTree.dispose(parent2)
+
+    // Test after dispose
+    runHProfScenario(scenario, "testDisposedObjectsHaveLowerPriority-afterDispose.txt", config = config)
   }
 
   @Test
@@ -191,9 +249,7 @@ b/243081723 */
       g.b = b
       addRootGlobalJNI(a)
     }
-    object : HProfScenarioRunner(tmpFolder, remapInMemory) {
-      override fun adjustConfig(config: AnalysisConfig): AnalysisConfig = configWithDominatorTreeOnly()
-    }.run(scenario, "testDominatorTreeFlameGraph.txt", null)
+    runHProfScenario(scenario, "testDominatorTreeFlameGraph.txt", config = configWithDominatorTreeOnly())
   }
 
   @Test
@@ -207,9 +263,9 @@ b/243081723 */
       val c = listOf(b)
       addRootGlobalJNI(c)
     }
-    object : HProfScenarioRunner(tmpFolder, remapInMemory) {
-      override fun adjustConfig(config: AnalysisConfig): AnalysisConfig = configWithInnerClassSectionOnly()
-    }.run(scenario, "testInnerClassSection.txt", null, shouldMapClassNames = false)
+    HProfScenarioRunner(tmpFolder, remapInMemory).run(
+      scenario, "testInnerClassSection.txt", null, shouldMapClassNames = false,
+      config = configWithInnerClassSectionOnly())
   }
 
   private fun configWithDisposerTreeSummaryOnly() = AnalysisConfig(
@@ -221,7 +277,6 @@ b/243081723 */
                                     includeBySize = false,
                                     includeSummary = false),
     AnalysisConfig.DisposerOptions(
-      includeDisposerTree = false,
       includeDisposerTreeSummary = true,
       includeDisposedObjectsSummary = false,
       includeDisposedObjectsDetails = false,
@@ -246,7 +301,6 @@ b/243081723 */
                                     includeBySize = false,
                                     includeSummary = false),
     AnalysisConfig.DisposerOptions(
-      includeDisposerTree = false,
       includeDisposerTreeSummary = false,
       includeDisposedObjectsSummary = false,
       includeDisposedObjectsDetails = false,
@@ -272,7 +326,6 @@ b/243081723 */
                                     includeBySize = false,
                                     includeSummary = false),
     AnalysisConfig.DisposerOptions(
-      includeDisposerTree = false,
       includeDisposerTreeSummary = false,
       includeDisposedObjectsSummary = false,
       includeDisposedObjectsDetails = false,
@@ -286,6 +339,34 @@ b/243081723 */
     ),
     innerClassOptions = AnalysisConfig.InnerClassOptions(
       includeInnerClassSection = true
+    )
+  )
+
+  private fun configWithDisposedObjectsSummaryAndDetails(vararg classes: String) = AnalysisConfig(
+    AnalysisConfig.PerClassOptions(
+      classNames = classes.asList(),
+      includeClassList = false,
+    ),
+    AnalysisConfig.HistogramOptions(includeByCount = false,
+                                    includeBySize = false,
+                                    includeSummary = false),
+    AnalysisConfig.DisposerOptions(
+      includeDisposerTreeSummary = false,
+      includeDisposedObjectsSummary = true,
+      includeDisposedObjectsDetails = true,
+      disposerTreeSummaryOptions = AnalysisConfig.DisposerTreeSummaryOptions(
+        nodeCutoff = 0
+      )
+    ),
+    dominatorTreeOptions = AnalysisConfig.DominatorTreeOptions(
+      includeDominatorTree = false,
+      minNodeSize = 0
+    ),
+    innerClassOptions = AnalysisConfig.InnerClassOptions(
+      includeInnerClassSection = false
+    ),
+    metaInfoOptions = AnalysisConfig.MetaInfoOptions(
+      include = false
     )
   )
 

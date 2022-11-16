@@ -20,9 +20,10 @@ import com.android.tools.idea.diagnostics.hprof.parser.HProfVisitor
 import com.android.tools.idea.diagnostics.hprof.parser.HeapDumpRecordType
 import com.android.tools.idea.diagnostics.hprof.parser.RecordType
 import gnu.trove.TLongObjectHashMap
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 
-class CollectThreadInfoVisitor(private val threadsMap: TLongObjectHashMap<ThreadInfo>,
-                               private val stringIdMap: TLongObjectHashMap<String>) : HProfVisitor() {
+class CollectThreadInfoVisitor(private val threadsMap: Long2ObjectOpenHashMap<ThreadInfo>,
+                               private val stringIdMap: Long2ObjectOpenHashMap<String>) : HProfVisitor() {
 
   private val stackFrameIdToStringMap = TLongObjectHashMap<String>()
   private val classSerialNumberToNameMap = TLongObjectHashMap<String>()

@@ -63,7 +63,7 @@ class HProfEventBasedParserTest {
     val roots = hprofMetadata.roots
     var javaFrameRootsCount = 0
     val counts = TObjectIntHashMap<RootReason>()
-    roots.forEachValue {
+    roots.values.forEach {
       if (it.javaFrame) {
         javaFrameRootsCount++
       } else {
@@ -72,7 +72,6 @@ class HProfEventBasedParserTest {
         }
         counts.increment(it)
       }
-      true
     }
     assertEquals(2, counts[RootReason.rootGlobalJNI])
     assertEquals(16, javaFrameRootsCount)

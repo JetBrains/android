@@ -1,0 +1,44 @@
+======== INSTANCES OF EACH NOMINATED CLASS ========
+CLASS: Observed1 (1 objects)
+Root 1:
+[    1/100%/    8B]    40B          1   ROOT: Global JNI
+[    1/100%/    8B]    40B          1   (root): C1
+[    1/100%/    8B]    24B          1   field: C1
+[    1/100%/    8B]     8B          1 * field: Observed1
+
+CLASS: Observed2 (1 objects)
+Root 1:
+[    1/100%/    8B]    56B          1   ROOT: Unknown
+[    1/100%/    8B]    56B          1   (root): C2
+[    1/100%/    8B]    40B          1   field: C2
+[    1/100%/    8B]    24B          1   field: C2
+[    1/100%/    8B]     8B          1 * field: Observed2
+
+CLASS: Observed3 (1 objects)
+Root 1:
+[    1/100%/    8B]    48B          1   ROOT: Global JNI
+[    1/100%/    8B]    48B          1   (root): C2
+[    1/100%/    8B]    32B          1 ! field: DisposableParent2 (disposed)
+[    1/100%/    8B]     8B          1 * field2: Observed3
+
+================= DISPOSED OBJECTS ================
+Count of disposed-but-strong-referenced objects: 2
+  1 DisposableParent1
+  1 DisposableParent2
+
+Disposed-but-strong-referenced dominator object count: 2
+Disposed-but-strong-referenced dominator sub-graph size: 48B
+     32B - 1 DisposableParent2
+     16B - 1 DisposableParent1
+
+Disposed but still strong-referenced objects: 1 DisposableParent1, most common paths from GC-roots:
+Root 1:
+[    1/100%/   16B]    16B          1   ROOT: Unknown
+[    1/100%/   16B]    16B          1 * (root): DisposableParent1 (disposed)
+
+Disposed but still strong-referenced objects: 1 DisposableParent2, most common paths from GC-roots:
+Root 1:
+[    1/100%/   24B]    48B          1   ROOT: Global JNI
+[    1/100%/   24B]    48B          1   (root): C2
+[    1/100%/   24B]    32B          1 * field: DisposableParent2 (disposed)
+
