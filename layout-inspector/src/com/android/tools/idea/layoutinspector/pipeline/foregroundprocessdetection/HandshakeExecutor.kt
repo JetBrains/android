@@ -52,7 +52,7 @@ import org.jetbrains.annotations.TestOnly
  */
 class HandshakeExecutor(private val device: DeviceDescriptor,
                         private val stream: Stream,
-                        scope: CoroutineScope,
+                        private val scope: CoroutineScope,
                         private val workDispatcher: CoroutineDispatcher,
                         private val transportClient: TransportClient,
                         private val metrics: ForegroundProcessDetectionMetrics,
@@ -64,8 +64,10 @@ class HandshakeExecutor(private val device: DeviceDescriptor,
    */
   private val stateChannel = Channel<HandshakeState>(2)
 
-  init {
-    // coroutine responsible for starting the handshake with the device
+  /**
+   * Starts a coroutine that coordinates the handshake with the device.
+   */
+  private fun startHandshakeCoordinator() {
     scope.launch(workDispatcher) {
       var wasPreviousStateUnknown = false
 
@@ -80,6 +82,7 @@ class HandshakeExecutor(private val device: DeviceDescriptor,
               sendStartHandshakeCommand(stream)
             }
           }
+          // stop the loop and the coroutine
           else -> break
         }
 
@@ -113,7 +116,7 @@ class HandshakeExecutor(private val device: DeviceDescriptor,
     }
 
     when (state) {
-      is HandshakeState.Connected -> { }
+      is HandshakeState.Connected -> { startHandshakeCoordinator() }
       // UNKNOWN support means that the handshake couldn't determine if the device supports foreground process detection.
       // This could be because the device is in a state where we can't determine the foreground activity,
       // for example if the device is locked and there is no foreground activity.
