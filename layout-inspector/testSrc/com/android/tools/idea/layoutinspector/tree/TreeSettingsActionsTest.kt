@@ -143,7 +143,15 @@ class TreeSettingsActionsTest {
     val event = createEvent()
     assertThat(RecompositionCounts.isSelected(event)).isEqualTo(false)
 
-    RecompositionCounts.testActionVisibility(event, Capability.SUPPORTS_COMPOSE, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
+    RecompositionCounts.testActionVisibility(event, Capability.SUPPORTS_COMPOSE)
+
+    // Check enabled enabled state:
+    assertThat(event.presentation.isEnabled).isFalse()
+    assertThat(event.presentation.text).isEqualTo("Show Recomposition Counts (Needs Compose 1.2.1+)")
+    capabilities.add(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
+    RecompositionCounts.update(event)
+    assertThat(event.presentation.isEnabled).isTrue()
+    assertThat(event.presentation.text).isEqualTo("Show Recomposition Counts")
 
     RecompositionCounts.setSelected(event, true)
     assertThat(treeSettings.showRecompositions).isEqualTo(true)

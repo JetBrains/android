@@ -19,7 +19,7 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
-import com.android.tools.idea.layoutinspector.tree.isActionVisible
+import com.android.tools.idea.layoutinspector.tree.isActionActive
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -74,7 +74,7 @@ object HighlightColorAction : DefaultActionGroup("Recomposition Highlight Color"
                                    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.get() &&
                                    StudioFlags.USE_COMPONENT_TREE_TABLE.get() &&
                                    layoutInspector?.treeSettings?.showRecompositions ?: false &&
-                                   (!isConnected || isActionVisible(event, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS))
+                                   (!isConnected || isActionActive(event, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS))
     event.presentation.isEnabled = isConnected
   }
 

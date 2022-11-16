@@ -75,7 +75,7 @@ object SystemNodeFilterAction : ToggleAction("Filter System-Defined Layers") {
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isVisible = isActionVisible(event, Capability.SUPPORTS_SYSTEM_NODES)
+    event.presentation.isVisible = isActionActive(event, Capability.SUPPORTS_SYSTEM_NODES)
   }
 }
 
@@ -92,7 +92,7 @@ object HighlightSemanticsAction : ToggleAction("Highlight Semantics Layers") {
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isVisible = isActionVisible(event, Capability.SUPPORTS_SEMANTICS)
+    event.presentation.isVisible = isActionActive(event, Capability.SUPPORTS_SEMANTICS)
   }
 }
 
@@ -108,7 +108,7 @@ object CallstackAction : ToggleAction("Show Compose as Callstack", null, null) {
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isVisible = isActionVisible(event, Capability.SUPPORTS_COMPOSE)
+    event.presentation.isVisible = isActionActive(event, Capability.SUPPORTS_COMPOSE)
   }
 }
 
@@ -139,13 +139,16 @@ object RecompositionCounts : ToggleAction("Show Recomposition Counts", null, nul
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isVisible = isActionVisible(event, Capability.SUPPORTS_COMPOSE, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS) &&
+    event.presentation.isVisible = isActionActive(event, Capability.SUPPORTS_COMPOSE) &&
                                    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.get() &&
                                    StudioFlags.USE_COMPONENT_TREE_TABLE.get()
+    event.presentation.isEnabled = isActionActive(event, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
+    event.presentation.text =
+      if (event.presentation.isEnabled) "Show Recomposition Counts" else "Show Recomposition Counts (Needs Compose 1.2.1+)"
   }
 }
 
-fun isActionVisible(event: AnActionEvent, vararg capabilities: Capability): Boolean =
+fun isActionActive(event: AnActionEvent, vararg capabilities: Capability): Boolean =
   LayoutInspector.get(event)?.currentClient?.let { client ->
     !client.isConnected || // If not running, default to visible so user can modify selection when next client is connected
     capabilities.all { client.capabilities.contains(it) }
