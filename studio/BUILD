@@ -68,6 +68,7 @@ studio_plugin(
         "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
         "//tools/data-binding:compilerCommon.antlr.shaded",
         "//tools/adt/idea/build-attribution:build-analysis-results-proto",
+        "//tools/base/common:version",
     ],
     licenses = [
         "//prebuilts/r8:license",

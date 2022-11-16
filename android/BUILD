@@ -455,6 +455,7 @@ filegroup(
         "//tools/vendor/google/firebase/src/proto:firebase_java_proto",
         "//tools/vendor/google/url-assistant/src/proto:urlassistant_proto",
         "//tools/adt/idea/build-attribution/proto:build-analysis-results-proto",
+        "//tools/base/common:version",
     ] + select({
         "//tools/base/bazel:windows": [],
         "//conditions:default": [

@@ -2092,6 +2092,7 @@ android-studio/plugins/android/lib/libstudio.android-test-plugin-host-device-inf
 android-studio/plugins/android/lib/libstudio.android-test-plugin-host-retention-proto.jar
 android-studio/plugins/android/lib/libstudio.android-test-plugin-result-listener-gradle-proto.jar
 android-studio/plugins/android/lib/libstudio.proto.jar
+android-studio/plugins/android/lib/libversion.jar
 android-studio/plugins/android/lib/lint-ide.jar
 android-studio/plugins/android/lib/manifest-merger.jar
 android-studio/plugins/android/lib/network_inspector_java_proto.jar

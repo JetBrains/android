@@ -2102,6 +2102,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-p
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-plugin-host-retention-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-plugin-result-listener-gradle-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.proto.jar
+Android Studio Preview.app/Contents/plugins/android/lib/libversion.jar
 Android Studio Preview.app/Contents/plugins/android/lib/lint-ide.jar
 Android Studio Preview.app/Contents/plugins/android/lib/manifest-merger.jar
 Android Studio Preview.app/Contents/plugins/android/lib/network_inspector_java_proto.jar
