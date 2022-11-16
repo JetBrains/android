@@ -718,7 +718,7 @@ MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :app
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/app/build.gradle
         buildFilePath                 : <ROOT>/app/build.gradle
         rootFolderPath                : <ROOT>
@@ -1082,7 +1082,7 @@ MODULE                        : project.library
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :library
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/library/build.gradle
         buildFilePath                 : <ROOT>/library/build.gradle
         rootFolderPath                : <ROOT>
@@ -1403,7 +1403,7 @@ MODULE                        : project.library-remote
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :library-remote
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/library-remote/build.gradle
         buildFilePath                 : <ROOT>/library-remote/build.gradle
         rootFolderPath                : <ROOT>
@@ -1734,7 +1734,7 @@ MODULE                        : project.library.unitTest
 MODULE                        : project.lint
     GradleModuleModel
         gradlePath                    : :lint
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/lint/build.gradle
         buildFilePath                 : <ROOT>/lint/build.gradle
         rootFolderPath                : <ROOT>
@@ -1746,7 +1746,7 @@ MODULE                        : project.lint.test
 MODULE                        : project.lintpublish
     GradleModuleModel
         gradlePath                    : :lintpublish
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/lintpublish/build.gradle
         buildFilePath                 : <ROOT>/lintpublish/build.gradle
         rootFolderPath                : <ROOT>
@@ -1756,7 +1756,7 @@ MODULE                        : project.lintpublish
 MODULE                        : project.lintpublish-remote
     GradleModuleModel
         gradlePath                    : :lintpublish-remote
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/lintpublish-remote/build.gradle
         buildFilePath                 : <ROOT>/lintpublish-remote/build.gradle
         rootFolderPath                : <ROOT>

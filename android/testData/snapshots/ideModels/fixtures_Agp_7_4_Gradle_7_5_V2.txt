@@ -272,7 +272,7 @@ MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :app
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/app/build.gradle
         buildFilePath                 : <ROOT>/app/build.gradle
         rootFolderPath                : <ROOT>
@@ -1757,7 +1757,7 @@ MODULE                        : project.lib
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :lib
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/lib/build.gradle
         buildFilePath                 : <ROOT>/lib/build.gradle
         rootFolderPath                : <ROOT>

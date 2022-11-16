@@ -291,7 +291,7 @@ MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :app
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/app/build.gradle
         buildFilePath                 : <ROOT>/app/build.gradle
         rootFolderPath                : <ROOT>
@@ -700,7 +700,7 @@ MODULE                        : project.benchmark
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :benchmark
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/benchmark/build.gradle
         buildFilePath                 : <ROOT>/benchmark/build.gradle
         rootFolderPath                : <ROOT>
@@ -1561,7 +1561,7 @@ MODULE                        : project.test
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :test
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/test/build.gradle
         buildFilePath                 : <ROOT>/test/build.gradle
         rootFolderPath                : <ROOT>
@@ -1910,7 +1910,7 @@ MODULE                        : project.test2
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :test2
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/test2/build.gradle
         buildFilePath                 : <ROOT>/test2/build.gradle
         rootFolderPath                : <ROOT>

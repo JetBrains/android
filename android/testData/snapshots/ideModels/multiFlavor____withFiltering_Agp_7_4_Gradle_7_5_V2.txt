@@ -266,7 +266,7 @@ MODULE                        : MultiFlavor.app
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :app
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/app/build.gradle
         buildFilePath                 : <ROOT>/app/build.gradle
         rootFolderPath                : <ROOT>

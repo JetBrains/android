@@ -552,7 +552,7 @@ MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :app
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/app/build.gradle
         buildFilePath                 : <ROOT>/app/build.gradle
         rootFolderPath                : <ROOT>
@@ -1823,7 +1823,7 @@ MODULE                        : project.app.unitTest
 MODULE                        : project.javalib1
     GradleModuleModel
         gradlePath                    : :javalib1
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/javalib1/build.gradle
         buildFilePath                 : <ROOT>/javalib1/build.gradle
         rootFolderPath                : <ROOT>
@@ -1835,7 +1835,7 @@ MODULE                        : project.javalib1.test
 MODULE                        : project.javalib2
     GradleModuleModel
         gradlePath                    : :javalib2
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/javalib2/build.gradle
         buildFilePath                 : <ROOT>/javalib2/build.gradle
         rootFolderPath                : <ROOT>
@@ -1848,7 +1848,7 @@ MODULE                        : project.library1
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :library1
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/library1/build.gradle
         buildFilePath                 : <ROOT>/library1/build.gradle
         rootFolderPath                : <ROOT>
@@ -2682,7 +2682,7 @@ MODULE                        : project.library2
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :library2
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/library2/build.gradle
         buildFilePath                 : <ROOT>/library2/build.gradle
         rootFolderPath                : <ROOT>

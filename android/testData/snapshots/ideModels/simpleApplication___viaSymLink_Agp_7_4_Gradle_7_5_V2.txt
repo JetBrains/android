@@ -135,7 +135,7 @@ MODULE                        : project_sm_src.app
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :app
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>_sm_src/app/build.gradle
         buildFilePath                 : <ROOT>_sm_src/app/build.gradle
         rootFolderPath                : <ROOT>_sm_src

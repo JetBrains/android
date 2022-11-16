@@ -1642,7 +1642,7 @@ MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :app
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/app/build.gradle
         buildFilePath                 : <ROOT>/app/build.gradle
         rootFolderPath                : <ROOT>
@@ -3473,7 +3473,7 @@ MODULE                        : project.dyn_feature
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :dyn_feature
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/dyn_feature/build.gradle
         buildFilePath                 : <ROOT>/dyn_feature/build.gradle
         rootFolderPath                : <ROOT>
@@ -3792,7 +3792,7 @@ MODULE                        : project.dyn_feature.unitTest
 MODULE                        : project.jav
     GradleModuleModel
         gradlePath                    : :jav
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/jav/build.gradle
         buildFilePath                 : <ROOT>/jav/build.gradle
         rootFolderPath                : <ROOT>
@@ -3805,7 +3805,7 @@ MODULE                        : project.lib
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :lib
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/lib/build.gradle
         buildFilePath                 : <ROOT>/lib/build.gradle
         rootFolderPath                : <ROOT>
@@ -4508,7 +4508,7 @@ MODULE                        : project.nested1
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :nested1
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/nested1/build.gradle
         buildFilePath                 : <ROOT>/nested1/build.gradle
         rootFolderPath                : <ROOT>
@@ -4826,7 +4826,7 @@ MODULE                        : project.nested1.deep
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :nested1:deep
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/nested1/deep/build.gradle
         buildFilePath                 : <ROOT>/nested1/deep/build.gradle
         rootFolderPath                : <ROOT>
@@ -5154,7 +5154,7 @@ MODULE                        : project.nested2
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :nested2
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/nested2/build.gradle
         buildFilePath                 : <ROOT>/nested2/build.gradle
         rootFolderPath                : <ROOT>
@@ -5622,7 +5622,7 @@ MODULE                        : project.nested2.deep
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :nested2:deep
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/nested2/deep/build.gradle
         buildFilePath                 : <ROOT>/nested2/deep/build.gradle
         rootFolderPath                : <ROOT>
@@ -5942,7 +5942,7 @@ MODULE                        : project.nested2.main
 MODULE                        : project.nested2.trans
     GradleModuleModel
         gradlePath                    : :nested2:trans
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFilePath                 : <ROOT>/nested2/trans/build.gradle [-]
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
@@ -5952,7 +5952,7 @@ MODULE                        : project.nested2.trans.deep2
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :nested2:trans:deep2
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/nested2/trans/deep2/build.gradle
         buildFilePath                 : <ROOT>/nested2/trans/deep2/build.gradle
         rootFolderPath                : <ROOT>

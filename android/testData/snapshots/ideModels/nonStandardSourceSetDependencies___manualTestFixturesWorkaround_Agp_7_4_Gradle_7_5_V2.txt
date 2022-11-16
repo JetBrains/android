@@ -1827,7 +1827,7 @@ MODULE                        : NonStandardSourceSetDependencies
 MODULE                        : NonStandardSourceSetDependencies.aarWrapperLib
     GradleModuleModel
         gradlePath                    : :aarWrapperLib
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/aarWrapperLib/build.gradle
         buildFilePath                 : <ROOT>/aarWrapperLib/build.gradle
         rootFolderPath                : <ROOT>
@@ -1838,7 +1838,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :app
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/app/build.gradle
         buildFilePath                 : <ROOT>/app/build.gradle
         rootFolderPath                : <ROOT>
@@ -3084,7 +3084,7 @@ MODULE                        : NonStandardSourceSetDependencies.app.unitTest
 MODULE                        : NonStandardSourceSetDependencies.common
     GradleModuleModel
         gradlePath                    : :common
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/common/build.gradle
         buildFilePath                 : <ROOT>/common/build.gradle
         rootFolderPath                : <ROOT>
@@ -3366,7 +3366,7 @@ MODULE                        : NonStandardSourceSetDependencies.common.jvmTest
 MODULE                        : NonStandardSourceSetDependencies.desktop
     GradleModuleModel
         gradlePath                    : :desktop
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/desktop/build.gradle
         buildFilePath                 : <ROOT>/desktop/build.gradle
         rootFolderPath                : <ROOT>
@@ -3455,7 +3455,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :feature-a
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/feature-a/build.gradle
         buildFilePath                 : <ROOT>/feature-a/build.gradle
         rootFolderPath                : <ROOT>
@@ -4359,7 +4359,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :feature-b
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/feature-b/build.gradle
         buildFilePath                 : <ROOT>/feature-b/build.gradle
         rootFolderPath                : <ROOT>
@@ -5299,7 +5299,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b.unitT
 MODULE                        : NonStandardSourceSetDependencies.jarWrapperLib
     GradleModuleModel
         gradlePath                    : :jarWrapperLib
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/jarWrapperLib/build.gradle
         buildFilePath                 : <ROOT>/jarWrapperLib/build.gradle
         rootFolderPath                : <ROOT>
@@ -5309,7 +5309,7 @@ MODULE                        : NonStandardSourceSetDependencies.jarWrapperLib
 MODULE                        : NonStandardSourceSetDependencies.javaLibrary
     GradleModuleModel
         gradlePath                    : :javaLibrary
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/javaLibrary/build.gradle
         buildFilePath                 : <ROOT>/javaLibrary/build.gradle
         rootFolderPath                : <ROOT>
@@ -5433,7 +5433,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary.tes
 MODULE                        : NonStandardSourceSetDependencies.kmp-java
     GradleModuleModel
         gradlePath                    : :kmp-java
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFilePath                 : <ROOT>/kmp-java/build.gradle [-]
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
@@ -5442,7 +5442,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java
 MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
     GradleModuleModel
         gradlePath                    : :kmp-java:sample
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/kmp-java/sample/build.gradle
         buildFilePath                 : <ROOT>/kmp-java/sample/build.gradle
         rootFolderPath                : <ROOT>
@@ -5732,7 +5732,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :kmp-java:sample-test
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/kmp-java/sample-test/build.gradle
         buildFilePath                 : <ROOT>/kmp-java/sample-test/build.gradle
         rootFolderPath                : <ROOT>
@@ -6058,7 +6058,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :lib
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/lib/build.gradle
         buildFilePath                 : <ROOT>/lib/build.gradle
         rootFolderPath                : <ROOT>

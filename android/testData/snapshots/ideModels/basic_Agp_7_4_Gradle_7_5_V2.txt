@@ -6,7 +6,7 @@ MODULE                        : project
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/build.gradle
         buildFilePath                 : <ROOT>/build.gradle
         rootFolderPath                : <ROOT>

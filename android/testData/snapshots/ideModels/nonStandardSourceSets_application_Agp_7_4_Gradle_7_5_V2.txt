@@ -135,7 +135,7 @@ MODULE                        : application.app
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :app
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/application/app/build.gradle
         buildFilePath                 : <ROOT>/application/app/build.gradle
         rootFolderPath                : <ROOT>/application

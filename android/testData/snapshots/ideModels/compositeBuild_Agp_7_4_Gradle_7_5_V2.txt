@@ -520,7 +520,7 @@ MODULE                        : TestCompositeLib1.app
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :app
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/TestCompositeLib1/app/build.gradle
         buildFilePath                 : <ROOT>/TestCompositeLib1/app/build.gradle
         rootFolderPath                : <ROOT>/TestCompositeLib1
@@ -2035,7 +2035,7 @@ MODULE                        : TestCompositeLib1.lib
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :lib
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/TestCompositeLib1/lib/build.gradle
         buildFilePath                 : <ROOT>/TestCompositeLib1/lib/build.gradle
         rootFolderPath                : <ROOT>/TestCompositeLib1
@@ -3418,7 +3418,7 @@ MODULE                        : TestCompositeLib3.app
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :app
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/TestCompositeLib3/app/build.gradle
         buildFilePath                 : <ROOT>/TestCompositeLib3/app/build.gradle
         rootFolderPath                : <ROOT>/TestCompositeLib3
@@ -4445,7 +4445,7 @@ MODULE                        : TestCompositeLib3.lib
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :lib
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/TestCompositeLib3/lib/build.gradle
         buildFilePath                 : <ROOT>/TestCompositeLib3/lib/build.gradle
         rootFolderPath                : <ROOT>/TestCompositeLib3
@@ -5148,7 +5148,7 @@ MODULE                        : TestCompositeLib3.lib.unitTest
 MODULE                        : com.test.compositeNest3.compositeNest
     GradleModuleModel
         gradlePath                    : :
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build.gradle
         buildFilePath                 : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build.gradle
         rootFolderPath                : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3
@@ -5233,7 +5233,7 @@ MODULE                        : com.test.compositeNest3.compositeNest.test
 MODULE                        : composite2
     GradleModuleModel
         gradlePath                    : :
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/TestCompositeLib2/build.gradle
         buildFilePath                 : <ROOT>/TestCompositeLib2/build.gradle
         rootFolderPath                : <ROOT>/TestCompositeLib2
@@ -5318,7 +5318,7 @@ MODULE                        : composite2.test
 MODULE                        : composite4
     GradleModuleModel
         gradlePath                    : :
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/TestCompositeLib4/build.gradle
         buildFilePath                 : <ROOT>/TestCompositeLib4/build.gradle
         rootFolderPath                : <ROOT>/TestCompositeLib4
@@ -5403,7 +5403,7 @@ MODULE                        : composite4.test
 MODULE                        : compositeNest
     GradleModuleModel
         gradlePath                    : :
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build.gradle
         buildFilePath                 : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build.gradle
         rootFolderPath                : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1
@@ -5995,7 +5995,7 @@ MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :app
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/app/build.gradle
         buildFilePath                 : <ROOT>/app/build.gradle
         rootFolderPath                : <ROOT>
@@ -7054,7 +7054,7 @@ MODULE                        : project.lib
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :lib
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/lib/build.gradle
         buildFilePath                 : <ROOT>/lib/build.gradle
         rootFolderPath                : <ROOT>

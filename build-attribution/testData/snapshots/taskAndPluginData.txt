@@ -162,18 +162,6 @@ Task                          : :app:writeDebugSigningConfigVersions
     TaskType                      : com.android.build.gradle.internal.tasks.SigningConfigVersionsWriterTask
     PrimaryTaskCategory           : APK_PACKAGING
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
-Task                          : :buildSrc:assemble
-    TaskType                      : UNKNOWN
-    PrimaryTaskCategory           : GRADLE
-    Plugin                        : binary plugin org.gradle.language.base.plugins.LifecycleBasePlugin
-Task                          : :buildSrc:build
-    TaskType                      : UNKNOWN
-    PrimaryTaskCategory           : GRADLE
-    Plugin                        : binary plugin org.gradle.language.base.plugins.LifecycleBasePlugin
-Task                          : :buildSrc:check
-    TaskType                      : UNKNOWN
-    PrimaryTaskCategory           : GRADLE
-    Plugin                        : binary plugin org.gradle.language.base.plugins.LifecycleBasePlugin
 Task                          : :buildSrc:classes
     TaskType                      : UNKNOWN
     PrimaryTaskCategory           : GRADLE
@@ -190,22 +178,10 @@ Task                          : :buildSrc:pluginDescriptors
     TaskType                      : UNKNOWN
     PrimaryTaskCategory           : GRADLE
     Plugin                        : binary plugin org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
-Task                          : :buildSrc:pluginUnderTestMetadata
-    TaskType                      : UNKNOWN
-    PrimaryTaskCategory           : GRADLE
-    Plugin                        : binary plugin org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
 Task                          : :buildSrc:processResources
     TaskType                      : UNKNOWN
     PrimaryTaskCategory           : GRADLE
     Plugin                        : binary plugin org.gradle.api.plugins.JavaBasePlugin
-Task                          : :buildSrc:testClasses
-    TaskType                      : UNKNOWN
-    PrimaryTaskCategory           : GRADLE
-    Plugin                        : binary plugin org.gradle.api.plugins.JavaBasePlugin
-Task                          : :buildSrc:validatePlugins
-    TaskType                      : UNKNOWN
-    PrimaryTaskCategory           : GRADLE
-    Plugin                        : binary plugin org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
 Task                          : :lib:assembleDebug
     TaskType                      : org.gradle.api.DefaultTask
     PrimaryTaskCategory           : UNCATEGORIZED
@@ -416,6 +392,9 @@ Plugin                        : org.gradle.api.plugins.JavaPlugin
 Plugin                        : org.gradle.api.plugins.JvmEcosystemPlugin
     PluginType                    : BINARY_PLUGIN
     PluginDisplayNames            : org.gradle.api.plugins.JvmEcosystemPlugin
+Plugin                        : org.gradle.api.plugins.JvmToolchainsPlugin
+    PluginType                    : BINARY_PLUGIN
+    PluginDisplayNames            : org.gradle.api.plugins.JvmToolchainsPlugin
 Plugin                        : org.gradle.api.plugins.ReportingBasePlugin
     PluginType                    : BINARY_PLUGIN
     PluginDisplayNames            : org.gradle.api.plugins.ReportingBasePlugin

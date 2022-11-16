@@ -508,7 +508,7 @@ MODULE                        : My_First_App.app
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :app
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/firstapp/app/build.gradle
         buildFilePath                 : <ROOT>/firstapp/app/build.gradle
         rootFolderPath                : <ROOT>/firstapp
@@ -1982,7 +1982,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
     GradleModuleModel
         agpVersion                    : 7.4.0-alpha09
         gradlePath                    : :app:mysharedlibrary
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 7.5
         buildFile                     : <ROOT>/shared/mysharedlibrary/build.gradle
         buildFilePath                 : <ROOT>/shared/mysharedlibrary/build.gradle
         rootFolderPath                : <ROOT>/firstapp
