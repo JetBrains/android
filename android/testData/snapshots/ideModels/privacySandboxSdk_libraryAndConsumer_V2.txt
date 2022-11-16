@@ -45,94 +45,205 @@ MODULE                        : project
                     androidApis                   : <empty>
                     androidJdkImage               : <empty>
                     androidTestAnnotationProcessor          : <empty>
+                    androidTestApi                : <empty>
+                    androidTestApiDependenciesMetadata      : <empty>
                     androidTestCompileOnly        : <empty>
+                    androidTestCompileOnlyDependenciesMetadata        : <empty>
                     androidTestDebugAnnotationProcessor     : <empty>
+                    androidTestDebugApi           : <empty>
+                    androidTestDebugApiDependenciesMetadata : <empty>
                     androidTestDebugCompileOnly   : <empty>
+                    androidTestDebugCompileOnlyDependenciesMetadata   : <empty>
                     androidTestDebugImplementation          : <empty>
+                    androidTestDebugImplementationDependenciesMetadata          : <empty>
+                    androidTestDebugIntransitiveDependenciesMetadata  : <empty>
                     androidTestDebugRuntimeOnly   : <empty>
+                    androidTestDebugRuntimeOnlyDependenciesMetadata   : <empty>
                     androidTestDebugWearApp       : <empty>
                     androidTestImplementation     : <empty>
+                    androidTestImplementationDependenciesMetadata     : <empty>
+                    androidTestIntransitiveDependenciesMetadata       : <empty>
                     androidTestReleaseAnnotationProcessor   : <empty>
+                    androidTestReleaseApi         : <empty>
+                    androidTestReleaseApiDependenciesMetadata         : <empty>
                     androidTestReleaseCompileOnly : <empty>
+                    androidTestReleaseCompileOnlyDependenciesMetadata : <empty>
                     androidTestReleaseImplementation        : <empty>
+                    androidTestReleaseImplementationDependenciesMetadata        : <empty>
+                    androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
                     androidTestReleaseRuntimeOnly : <empty>
+                    androidTestReleaseRuntimeOnlyDependenciesMetadata : <empty>
                     androidTestReleaseWearApp     : <empty>
                     androidTestRuntimeOnly        : <empty>
+                    androidTestRuntimeOnlyDependenciesMetadata        : <empty>
                     androidTestUtil               : <empty>
                     androidTestWearApp            : <empty>
                     annotationProcessor           : <empty>
                     api                           : <empty>
-                    archives                      : <empty>
+                    apiDependenciesMetadata       : <empty>
+                    - archives                    : <ROOT>/ads-sdk-implementation/build/outputs/aar/ads-sdk-implementation-debug.aar [-]
+                    - archives                    : <ROOT>/ads-sdk-implementation/build/outputs/aar/ads-sdk-implementation-release.aar [-]
                     compileOnly                   : <empty>
+                    compileOnlyDependenciesMetadata         : <empty>
                     coreLibraryDesugaring         : <empty>
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                    debugAndroidTestApi           : <empty>
+                    debugAndroidTestApiDependenciesMetadata : <empty>
                     debugAndroidTestCompileClasspath        : <empty>
+                    debugAndroidTestCompileOnly   : <empty>
+                    debugAndroidTestCompileOnlyDependenciesMetadata   : <empty>
+                    debugAndroidTestImplementation          : <empty>
+                    debugAndroidTestImplementationDependenciesMetadata          : <empty>
+                    debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
                     debugAndroidTestRuntimeClasspath        : <empty>
+                    debugAndroidTestRuntimeOnly   : <empty>
+                    debugAndroidTestRuntimeOnlyDependenciesMetadata   : <empty>
                     debugAnnotationProcessor      : <empty>
                     debugAnnotationProcessorClasspath       : <empty>
                     debugApi                      : <empty>
+                    debugApiDependenciesMetadata  : <empty>
                     debugApiElements              : <empty>
+                    - debugApiElements-published  : <ROOT>/ads-sdk-implementation/build/outputs/aar/ads-sdk-implementation-debug.aar [-]
+                    - debugArchives               : <ROOT>/ads-sdk-implementation/build/outputs/aar/ads-sdk-implementation-debug.aar [-]
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
+                    debugCompileOnlyDependenciesMetadata    : <empty>
                     debugImplementation           : <empty>
+                    debugImplementationDependenciesMetadata : <empty>
+                    debugIntransitiveDependenciesMetadata   : <empty>
                     debugRuntimeClasspath         : <empty>
                     debugRuntimeElements          : <empty>
+                    - debugRuntimeElements-published        : <ROOT>/ads-sdk-implementation/build/outputs/aar/ads-sdk-implementation-debug.aar [-]
                     debugRuntimeOnly              : <empty>
+                    debugRuntimeOnlyDependenciesMetadata    : <empty>
+                    - debugSourceArtifacts        : <ROOT>/ads-sdk-implementation/build/libs/ads-sdk-implementation-debug-sources.jar [-]
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
+                    debugUnitTestApi              : <empty>
+                    debugUnitTestApiDependenciesMetadata    : <empty>
                     debugUnitTestCompileClasspath : <empty>
+                    debugUnitTestCompileOnly      : <empty>
+                    debugUnitTestCompileOnlyDependenciesMetadata      : <empty>
+                    debugUnitTestImplementation   : <empty>
+                    debugUnitTestImplementationDependenciesMetadata   : <empty>
+                    debugUnitTestIntransitiveDependenciesMetadata     : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
+                    debugUnitTestRuntimeOnly      : <empty>
+                    debugUnitTestRuntimeOnlyDependenciesMetadata      : <empty>
                     debugWearApp                  : <empty>
                     default                       : <empty>
                     implementation                : <empty>
+                    implementationDependenciesMetadata      : <empty>
+                    intransitiveDependenciesMetadata        : <empty>
+                    kotlinCompilerClasspath       : <empty>
+                    kotlinCompilerPluginClasspath : <empty>
+                    kotlinCompilerPluginClasspathDebug      : <empty>
+                    kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
+                    kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
+                    kotlinCompilerPluginClasspathRelease    : <empty>
+                    kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
+                    kotlinKlibCommonizerClasspath : <empty>
+                    kotlinNativeCompilerPluginClasspath     : <empty>
                     lintChecks                    : <empty>
                     lintPublish                   : <empty>
                     releaseAnnotationProcessor    : <empty>
                     releaseAnnotationProcessorClasspath     : <empty>
                     releaseApi                    : <empty>
+                    releaseApiDependenciesMetadata          : <empty>
                     releaseApiElements            : <empty>
+                    - releaseApiElements-published          : <ROOT>/ads-sdk-implementation/build/outputs/aar/ads-sdk-implementation-release.aar [-]
+                    - releaseArchives             : <ROOT>/ads-sdk-implementation/build/outputs/aar/ads-sdk-implementation-release.aar [-]
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
+                    releaseCompileOnlyDependenciesMetadata  : <empty>
                     releaseImplementation         : <empty>
+                    releaseImplementationDependenciesMetadata         : <empty>
+                    releaseIntransitiveDependenciesMetadata : <empty>
                     releaseRuntimeClasspath       : <empty>
                     releaseRuntimeElements        : <empty>
+                    - releaseRuntimeElements-published      : <ROOT>/ads-sdk-implementation/build/outputs/aar/ads-sdk-implementation-release.aar [-]
                     releaseRuntimeOnly            : <empty>
+                    releaseRuntimeOnlyDependenciesMetadata  : <empty>
+                    - releaseSourceArtifacts      : <ROOT>/ads-sdk-implementation/build/libs/ads-sdk-implementation-sources.jar [-]
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                    releaseUnitTestApi            : <empty>
+                    releaseUnitTestApiDependenciesMetadata  : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
+                    releaseUnitTestCompileOnly    : <empty>
+                    releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
+                    releaseUnitTestImplementation : <empty>
+                    releaseUnitTestImplementationDependenciesMetadata : <empty>
+                    releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
+                    releaseUnitTestRuntimeOnly    : <empty>
+                    releaseUnitTestRuntimeOnlyDependenciesMetadata    : <empty>
                     releaseWearApp                : <empty>
                     runtimeOnly                   : <empty>
+                    runtimeOnlyDependenciesMetadata         : <empty>
                     testAnnotationProcessor       : <empty>
+                    testApi                       : <empty>
+                    testApiDependenciesMetadata   : <empty>
                     testCompileOnly               : <empty>
+                    testCompileOnlyDependenciesMetadata     : <empty>
                     testDebugAnnotationProcessor  : <empty>
+                    testDebugApi                  : <empty>
+                    testDebugApiDependenciesMetadata        : <empty>
                     testDebugCompileOnly          : <empty>
+                    testDebugCompileOnlyDependenciesMetadata          : <empty>
                     testDebugImplementation       : <empty>
+                    testDebugImplementationDependenciesMetadata       : <empty>
+                    testDebugIntransitiveDependenciesMetadata         : <empty>
                     testDebugRuntimeOnly          : <empty>
+                    testDebugRuntimeOnlyDependenciesMetadata          : <empty>
                     testDebugWearApp              : <empty>
                     testFixturesAnnotationProcessor         : <empty>
                     testFixturesApi               : <empty>
+                    testFixturesApiDependenciesMetadata     : <empty>
                     testFixturesCompileOnly       : <empty>
+                    testFixturesCompileOnlyDependenciesMetadata       : <empty>
                     testFixturesDebugAnnotationProcessor    : <empty>
                     testFixturesDebugApi          : <empty>
+                    testFixturesDebugApiDependenciesMetadata          : <empty>
                     testFixturesDebugCompileOnly  : <empty>
+                    testFixturesDebugCompileOnlyDependenciesMetadata  : <empty>
                     testFixturesDebugImplementation         : <empty>
+                    testFixturesDebugImplementationDependenciesMetadata         : <empty>
+                    testFixturesDebugIntransitiveDependenciesMetadata : <empty>
                     testFixturesDebugRuntimeOnly  : <empty>
+                    testFixturesDebugRuntimeOnlyDependenciesMetadata  : <empty>
                     testFixturesDebugWearApp      : <empty>
                     testFixturesImplementation    : <empty>
+                    testFixturesImplementationDependenciesMetadata    : <empty>
+                    testFixturesIntransitiveDependenciesMetadata      : <empty>
                     testFixturesReleaseAnnotationProcessor  : <empty>
                     testFixturesReleaseApi        : <empty>
+                    testFixturesReleaseApiDependenciesMetadata        : <empty>
                     testFixturesReleaseCompileOnly          : <empty>
+                    testFixturesReleaseCompileOnlyDependenciesMetadata          : <empty>
                     testFixturesReleaseImplementation       : <empty>
+                    testFixturesReleaseImplementationDependenciesMetadata       : <empty>
+                    testFixturesReleaseIntransitiveDependenciesMetadata         : <empty>
                     testFixturesReleaseRuntimeOnly          : <empty>
+                    testFixturesReleaseRuntimeOnlyDependenciesMetadata          : <empty>
                     testFixturesReleaseWearApp    : <empty>
                     testFixturesRuntimeOnly       : <empty>
+                    testFixturesRuntimeOnlyDependenciesMetadata       : <empty>
                     testFixturesWearApp           : <empty>
                     testImplementation            : <empty>
+                    testImplementationDependenciesMetadata  : <empty>
+                    testIntransitiveDependenciesMetadata    : <empty>
                     testReleaseAnnotationProcessor          : <empty>
+                    testReleaseApi                : <empty>
+                    testReleaseApiDependenciesMetadata      : <empty>
                     testReleaseCompileOnly        : <empty>
+                    testReleaseCompileOnlyDependenciesMetadata        : <empty>
                     testReleaseImplementation     : <empty>
+                    testReleaseImplementationDependenciesMetadata     : <empty>
+                    testReleaseIntransitiveDependenciesMetadata       : <empty>
                     testReleaseRuntimeOnly        : <empty>
+                    testReleaseRuntimeOnlyDependenciesMetadata        : <empty>
                     testReleaseWearApp            : <empty>
                     testRuntimeOnly               : <empty>
+                    testRuntimeOnlyDependenciesMetadata     : <empty>
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             app                           : :app (DefaultExternalProject)
@@ -813,8 +924,9 @@ MODULE                        : project.ads-sdk-implementation
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
         targetSdk
-            ApiLevel                      : 1
-            ApiString                     : 1
+            ApiLevel                      : <SDK_VERSION>
+            CodeName                      : TiramisuPrivacySandbox
+            ApiString                     : TiramisuPrivacySandbox
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     BuildName                     : :
@@ -874,16 +986,20 @@ MODULE                        : project.ads-sdk-implementation
             MinSdkVersion
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                CodeName                      : TiramisuPrivacySandbox
+                ApiString                     : TiramisuPrivacySandbox
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
             Name                          : main
             Manifest                      : <ROOT>/ads-sdk-implementation/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/ads-sdk-implementation/src/main/java
-            KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/main/java
             KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/main/kotlin [-]
+            KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/main/java
             ResourcesDirectories          : <ROOT>/ads-sdk-implementation/src/main/resources [-]
-            ResDirectories                : <ROOT>/ads-sdk-implementation/src/main/res [-]
+            ResDirectories                : <ROOT>/ads-sdk-implementation/src/main/res
             AssetsDirectories             : <ROOT>/ads-sdk-implementation/src/main/assets
             JniLibsDirectories            : <ROOT>/ads-sdk-implementation/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/ads-sdk-implementation/src/main/shaders [-]
@@ -895,8 +1011,8 @@ MODULE                        : project.ads-sdk-implementation
                     Name                          : androidTest
                     Manifest                      : <ROOT>/ads-sdk-implementation/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/ads-sdk-implementation/src/androidTest/java [-]
-                    KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/androidTest/java [-]
                     KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/androidTest/kotlin [-]
+                    KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/androidTest/java [-]
                     ResourcesDirectories          : <ROOT>/ads-sdk-implementation/src/androidTest/resources [-]
                     ResDirectories                : <ROOT>/ads-sdk-implementation/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/ads-sdk-implementation/src/androidTest/assets [-]
@@ -909,8 +1025,8 @@ MODULE                        : project.ads-sdk-implementation
                     Name                          : test
                     Manifest                      : <ROOT>/ads-sdk-implementation/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/ads-sdk-implementation/src/test/java [-]
-                    KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/test/java [-]
                     KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/test/kotlin [-]
+                    KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/test/java [-]
                     ResourcesDirectories          : <ROOT>/ads-sdk-implementation/src/test/resources [-]
                     ResDirectories                : <ROOT>/ads-sdk-implementation/src/test/res [-]
                     AssetsDirectories             : <ROOT>/ads-sdk-implementation/src/test/assets [-]
@@ -930,8 +1046,8 @@ MODULE                        : project.ads-sdk-implementation
             Name                          : debug
             Manifest                      : <ROOT>/ads-sdk-implementation/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/ads-sdk-implementation/src/debug/java [-]
-            KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/debug/java [-]
             KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/debug/kotlin [-]
+            KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/debug/java [-]
             ResourcesDirectories          : <ROOT>/ads-sdk-implementation/src/debug/resources [-]
             ResDirectories                : <ROOT>/ads-sdk-implementation/src/debug/res [-]
             AssetsDirectories             : <ROOT>/ads-sdk-implementation/src/debug/assets [-]
@@ -945,8 +1061,8 @@ MODULE                        : project.ads-sdk-implementation
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/ads-sdk-implementation/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/ads-sdk-implementation/src/androidTestDebug/java [-]
-                    KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/androidTestDebug/java [-]
                     KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/androidTestDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/androidTestDebug/java [-]
                     ResourcesDirectories          : <ROOT>/ads-sdk-implementation/src/androidTestDebug/resources [-]
                     ResDirectories                : <ROOT>/ads-sdk-implementation/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/ads-sdk-implementation/src/androidTestDebug/assets [-]
@@ -960,8 +1076,8 @@ MODULE                        : project.ads-sdk-implementation
                     Name                          : testDebug
                     Manifest                      : <ROOT>/ads-sdk-implementation/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/ads-sdk-implementation/src/testDebug/java [-]
-                    KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/testDebug/java [-]
                     KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/testDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/testDebug/java [-]
                     ResourcesDirectories          : <ROOT>/ads-sdk-implementation/src/testDebug/resources [-]
                     ResDirectories                : <ROOT>/ads-sdk-implementation/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/ads-sdk-implementation/src/testDebug/assets [-]
@@ -980,8 +1096,8 @@ MODULE                        : project.ads-sdk-implementation
             Name                          : release
             Manifest                      : <ROOT>/ads-sdk-implementation/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/ads-sdk-implementation/src/release/java [-]
-            KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/release/java [-]
             KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/release/kotlin [-]
+            KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/release/java [-]
             ResourcesDirectories          : <ROOT>/ads-sdk-implementation/src/release/resources [-]
             ResDirectories                : <ROOT>/ads-sdk-implementation/src/release/res [-]
             AssetsDirectories             : <ROOT>/ads-sdk-implementation/src/release/assets [-]
@@ -995,8 +1111,8 @@ MODULE                        : project.ads-sdk-implementation
                     Name                          : testRelease
                     Manifest                      : <ROOT>/ads-sdk-implementation/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/ads-sdk-implementation/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/testRelease/java [-]
                     KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/testRelease/kotlin [-]
+                    KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/testRelease/java [-]
                     ResourcesDirectories          : <ROOT>/ads-sdk-implementation/src/testRelease/resources [-]
                     ResDirectories                : <ROOT>/ads-sdk-implementation/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/ads-sdk-implementation/src/testRelease/assets [-]
@@ -1027,6 +1143,10 @@ MODULE                        : project.ads-sdk-implementation
             MinSdkVersion
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                CodeName                      : TiramisuPrivacySandbox
+                ApiString                     : TiramisuPrivacySandbox
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
             MainArtifact
                 Name                          : MAIN
@@ -1037,15 +1157,52 @@ MODULE                        : project.ads-sdk-implementation
                 GeneratedSourceFolders        : <ROOT>/ads-sdk-implementation/build/generated/ap_generated_sources/debug/out [-]
                 ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/intermediates/javac/debug/classes [-]
+                ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debug [-]
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
                         - javaLibraries               : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryDependencyImpl)
                             target                        : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl)
                                 artifact                      : <M2>/androidx/annotation/annotation/1.3.0/annotation-1.3.0.jar
                                 artifactAddress               : androidx.annotation:annotation:1.3.0@jar
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                                artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                                artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                                artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                                artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.3 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.3 (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.3/kotlinx-coroutines-core-jvm-1.6.3.jar
+                                artifactAddress               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.3@jar
+                        - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                                artifactAddress               : org.jetbrains:annotations:13.0@jar
                     runtimeClasspath              : IdeDependenciesImpl
                         - javaLibraries               : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryDependencyImpl)
                             target                        : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.3 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.3 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -1065,10 +1222,23 @@ MODULE                        : project.ads-sdk-implementation
                 GeneratedSourceFolders        : <ROOT>/ads-sdk-implementation/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/intermediates/javac/debugAndroidTest/classes [-]
+                ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debugAndroidTest [-]
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
                         - javaLibraries               : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryDependencyImpl)
                             target                        : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.3 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.3 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::ads-sdk-implementation@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::ads-sdk-implementation@debug (IdeModuleLibraryImpl)
                                 buildId                       : <ROOT>
@@ -1079,6 +1249,18 @@ MODULE                        : project.ads-sdk-implementation
                     runtimeClasspath              : IdeDependenciesImpl
                         - javaLibraries               : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryDependencyImpl)
                             target                        : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.3 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.3 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::ads-sdk-implementation@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::ads-sdk-implementation@debug (IdeModuleLibraryImpl) (*seen*)
                 ApplicationId                 : com.example.ads_sdk_implementation.test
@@ -1102,18 +1284,152 @@ MODULE                        : project.ads-sdk-implementation
                 GeneratedSourceFolders        : <ROOT>/ads-sdk-implementation/build/generated/ap_generated_sources/debugUnitTest/out [-]
                 ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/intermediates/javac/debugUnitTest/classes [-]
+                ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debugUnitTest [-]
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
                         - javaLibraries               : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryDependencyImpl)
                             target                        : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.3 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.3 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::ads-sdk-implementation@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::ads-sdk-implementation@debug (IdeModuleLibraryImpl) (*seen*)
                     runtimeClasspath              : IdeDependenciesImpl
                         - javaLibraries               : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryDependencyImpl)
                             target                        : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.3 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.3 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::ads-sdk-implementation@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::ads-sdk-implementation@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+    kotlinGradleModel             : KotlinGradleModelImpl
+        additionalVisibleSourceSets
+            debug                         : <empty>
+            - debugAndroidTest            : debug
+            - debugAndroidTest            : main
+            - debugUnitTest               : debug
+            - debugUnitTest               : main
+        cachedCompilerArgumentsBySourceSet
+            debug
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    backendThreads                : 1
+                    - classpath                   : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.3/kotlinx-coroutines-core-jvm-1.6.3.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - classpath                   : <M2>/androidx/annotation/annotation/1.3.0/annotation-1.3.0.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-TiramisuPrivacySandbox/android.jar
+                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
+                    destination                   : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debug
+                    jvmDefault                    : disable
+                    moduleName                    : ads-sdk-implementation_debug
+                    noJdk                         : true
+                    noReflect                     : true
+                    noStdlib                      : true
+                    serializeIr                   : none
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
+                    errors                        : ArgumentParseErrors
+                    explicitApi                   : disable
+            debugAndroidTest
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    backendThreads                : 1
+                    - classpath                   : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.3/kotlinx-coroutines-core-jvm-1.6.3.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - classpath                   : <M2>/androidx/annotation/annotation/1.3.0/annotation-1.3.0.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-TiramisuPrivacySandbox/android.jar
+                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
+                    destination                   : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debugAndroidTest
+                    - friendPaths                 : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debug [-]
+                    - friendPaths                 : <ROOT>/ads-sdk-implementation/build/intermediates/javac/debug/classes [-]
+                    - friendPaths                 : <ROOT>/ads-sdk-implementation/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
+                    jvmDefault                    : disable
+                    moduleName                    : ads-sdk-implementation_debug
+                    noJdk                         : true
+                    noReflect                     : true
+                    noStdlib                      : true
+                    serializeIr                   : none
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
+                    errors                        : ArgumentParseErrors
+                    explicitApi                   : disable
+            debugUnitTest
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    backendThreads                : 1
+                    - classpath                   : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.3/kotlinx-coroutines-core-jvm-1.6.3.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - classpath                   : <M2>/androidx/annotation/annotation/1.3.0/annotation-1.3.0.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-TiramisuPrivacySandbox/android.jar
+                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
+                    destination                   : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debugUnitTest
+                    - friendPaths                 : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debug [-]
+                    - friendPaths                 : <ROOT>/ads-sdk-implementation/build/intermediates/javac/debug/classes [-]
+                    - friendPaths                 : <ROOT>/ads-sdk-implementation/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
+                    jvmDefault                    : disable
+                    moduleName                    : ads-sdk-implementation_debug
+                    noJdk                         : true
+                    noReflect                     : true
+                    noStdlib                      : true
+                    serializeIr                   : none
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
+                    errors                        : ArgumentParseErrors
+                    explicitApi                   : disable
+        gradleUserHome                : <GRADLE>
+        hasKotlinPlugin               : true
+        kotlinTarget                  : kotlin-android
+        kotlinTaskProperties
+            debug                         : KotlinTaskPropertiesImpl
+                incremental                   : true
+                pluginVersion                 : <CUT>
+                - pureKotlinSourceFolders     : <ROOT>/ads-sdk-implementation/src/debug/kotlin [-]
+                - pureKotlinSourceFolders     : <ROOT>/ads-sdk-implementation/src/debug/java [-]
+            debugAndroidTest              : KotlinTaskPropertiesImpl
+                incremental                   : true
+                pluginVersion                 : <CUT>
+                - pureKotlinSourceFolders     : <ROOT>/ads-sdk-implementation/src/debugAndroidTest/kotlin [-]
+            debugUnitTest                 : KotlinTaskPropertiesImpl
+                incremental                   : true
+                pluginVersion                 : <CUT>
+                - pureKotlinSourceFolders     : <ROOT>/ads-sdk-implementation/src/debugUnitTest/kotlin [-]
     externalProject               : :ads-sdk-implementation (DefaultExternalProject) (*seen*)
 MODULE                        : project.ads-sdk-implementation.androidTest
 MODULE                        : project.ads-sdk-implementation.main
@@ -1130,14 +1446,15 @@ MODULE                        : project.app
         hasSafeArgsKotlin             : false
     CurrentVariantReportedVersions
         minSdk
-            ApiLevel                      : 24
-            ApiString                     : 24
-        runtimeMinSdk
-            ApiLevel                      : 24
-            ApiString                     : 24
-        targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+        runtimeMinSdk
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
+        targetSdk
+            ApiLevel                      : <SDK_VERSION>
+            CodeName                      : TiramisuPrivacySandbox
+            ApiString                     : TiramisuPrivacySandbox
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     BuildName                     : :
@@ -1203,11 +1520,12 @@ MODULE                        : project.app
             VersionName                   : 1.0
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
             MinSdkVersion
-                ApiLevel                      : 24
-                ApiString                     : 24
-            TargetSdkVersion
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                CodeName                      : TiramisuPrivacySandbox
+                ApiString                     : TiramisuPrivacySandbox
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1369,11 +1687,12 @@ MODULE                        : project.app
             DisplayName                   : debug
             InstantAppCompatible          : false
             MinSdkVersion
-                ApiLevel                      : 24
-                ApiString                     : 24
-            TargetSdkVersion
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                CodeName                      : TiramisuPrivacySandbox
+                ApiString                     : TiramisuPrivacySandbox
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
@@ -1870,25 +2189,15 @@ MODULE                        : project.app
                                 artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
                                 artifactAddress               : org.hamcrest:hamcrest-core:1.3@jar
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-                                artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                                artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-                                artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                                artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-                                artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                                artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-                                artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                                artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl)
-                                artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                                artifactAddress               : org.jetbrains:annotations:13.0@jar
+                            target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                     runtimeClasspath              : IdeDependenciesImpl
                         - androidLibraries            : androidx.activity:activity:1.2.4@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.activity:activity:1.2.4@aar (IdeAndroidLibraryImpl) (*seen*)
@@ -2236,24 +2545,6 @@ MODULE                        : project.app
                             target                        : androidx.test:core:1.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.test:monitor:1.4.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.test:monitor:1.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.test:rules:1.3.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.test:rules:1.3.0@aar (IdeAndroidLibraryImpl)
-                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/aidl [-]
-                                artifact                      : <M2>/androidx/test/rules/1.3.0/rules-1.3.0.aar
-                                artifactAddress               : androidx.test:rules:1.3.0@aar
-                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/assets [-]
-                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/jars/classes.jar
-                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/annotations.zip [-]
-                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0
-                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/jni [-]
-                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/AndroidManifest.xml
-                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/proguard.txt
-                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/public.txt [-]
-                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/rs [-]
-                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/res [-]
-                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/res.apk [-]
-                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/jars/classes.jar
-                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/R.txt
                         - androidLibraries            : androidx.test:runner:1.4.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.test:runner:1.4.0@aar (IdeAndroidLibraryImpl)
                                 aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/aidl [-]
@@ -2341,8 +2632,6 @@ MODULE                        : project.app
                             target                        : androidx.test.services:storage:1.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.test:monitor:1.4.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.test:monitor:1.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.test:rules:1.3.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.test:rules:1.3.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.test:runner:1.4.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.test:runner:1.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryDependencyImpl)
@@ -2670,7 +2959,6 @@ MODULE                        : project.app
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0-api.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0-api.jar
@@ -2823,14 +3111,15 @@ MODULE                        : project.app-with-dynamic-feature
         hasSafeArgsKotlin             : false
     CurrentVariantReportedVersions
         minSdk
-            ApiLevel                      : 24
-            ApiString                     : 24
-        runtimeMinSdk
-            ApiLevel                      : 24
-            ApiString                     : 24
-        targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+        runtimeMinSdk
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
+        targetSdk
+            ApiLevel                      : <SDK_VERSION>
+            CodeName                      : TiramisuPrivacySandbox
+            ApiString                     : TiramisuPrivacySandbox
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     BuildName                     : :
@@ -2897,11 +3186,12 @@ MODULE                        : project.app-with-dynamic-feature
             VersionName                   : 1.0
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
             MinSdkVersion
-                ApiLevel                      : 24
-                ApiString                     : 24
-            TargetSdkVersion
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                CodeName                      : TiramisuPrivacySandbox
+                ApiString                     : TiramisuPrivacySandbox
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -3063,11 +3353,12 @@ MODULE                        : project.app-with-dynamic-feature
             DisplayName                   : debug
             InstantAppCompatible          : false
             MinSdkVersion
-                ApiLevel                      : 24
-                ApiString                     : 24
-            TargetSdkVersion
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                CodeName                      : TiramisuPrivacySandbox
+                ApiString                     : TiramisuPrivacySandbox
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
@@ -3336,7 +3627,23 @@ MODULE                        : project.app-with-dynamic-feature
                         - androidLibraries            : androidx.test:monitor:1.4.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.test:monitor:1.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.test:rules:1.3.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.test:rules:1.3.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                            target                        : androidx.test:rules:1.3.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/aidl [-]
+                                artifact                      : <M2>/androidx/test/rules/1.3.0/rules-1.3.0.aar
+                                artifactAddress               : androidx.test:rules:1.3.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/proguard.txt
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/R.txt
                         - androidLibraries            : androidx.test:runner:1.4.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.test:runner:1.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.vectordrawable:vectordrawable-animated:1.1.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -3885,11 +4192,11 @@ MODULE                        : project.feature
         hasSafeArgsKotlin             : false
     CurrentVariantReportedVersions
         minSdk
-            ApiLevel                      : 24
-            ApiString                     : 24
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         runtimeMinSdk
-            ApiLevel                      : 24
-            ApiString                     : 24
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         targetSdk
             ApiLevel                      : 31
             ApiString                     : 31
@@ -3951,8 +4258,8 @@ MODULE                        : project.feature
             Name                          : main
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
             MinSdkVersion
-                ApiLevel                      : 24
-                ApiString                     : 24
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -3962,7 +4269,7 @@ MODULE                        : project.feature
             KotlinDirectories             : <ROOT>/feature/src/main/kotlin [-]
             KotlinDirectories             : <ROOT>/feature/src/main/java
             ResourcesDirectories          : <ROOT>/feature/src/main/resources [-]
-            ResDirectories                : <ROOT>/feature/src/main/res
+            ResDirectories                : <ROOT>/feature/src/main/res [-]
             AssetsDirectories             : <ROOT>/feature/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/feature/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/feature/src/main/shaders [-]
@@ -3973,9 +4280,9 @@ MODULE                        : project.feature
                 SourceProvider
                     Name                          : androidTest
                     Manifest                      : <ROOT>/feature/src/androidTest/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/feature/src/androidTest/java
+                    JavaDirectories               : <ROOT>/feature/src/androidTest/java [-]
                     KotlinDirectories             : <ROOT>/feature/src/androidTest/kotlin [-]
-                    KotlinDirectories             : <ROOT>/feature/src/androidTest/java
+                    KotlinDirectories             : <ROOT>/feature/src/androidTest/java [-]
                     ResourcesDirectories          : <ROOT>/feature/src/androidTest/resources [-]
                     ResDirectories                : <ROOT>/feature/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/feature/src/androidTest/assets [-]
@@ -4106,8 +4413,8 @@ MODULE                        : project.feature
             DisplayName                   : debug
             InstantAppCompatible          : false
             MinSdkVersion
-                ApiLevel                      : 24
-                ApiString                     : 24
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
             MainArtifact
                 Name                          : MAIN
@@ -4121,56 +4428,6 @@ MODULE                        : project.feature
                 ClassesFolder                 : <ROOT>/feature/build/tmp/kotlin-classes/debug [-]
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
-                        - androidLibraries            : androidx.annotation:annotation-experimental:1.1.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.annotation:annotation-experimental:1.1.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.core:core-ktx:1.8.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.core:core-ktx:1.8.0@aar (IdeAndroidLibraryImpl)
-                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/aidl [-]
-                                artifact                      : <M2>/androidx/core/core-ktx/1.8.0/core-ktx-1.8.0.aar
-                                artifactAddress               : androidx.core:core-ktx:1.8.0@aar
-                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/assets [-]
-                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/jars/classes.jar
-                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/annotations.zip [-]
-                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0
-                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/jni [-]
-                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/AndroidManifest.xml
-                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/proguard.txt [-]
-                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/public.txt
-                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/rs [-]
-                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/res
-                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/res.apk [-]
-                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/jars/classes.jar
-                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/R.txt
-                        - androidLibraries            : androidx.core:core:1.8.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.core:core:1.8.0@aar (IdeAndroidLibraryImpl)
-                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/aidl
-                                artifact                      : <M2>/androidx/core/core/1.8.0/core-1.8.0.aar
-                                artifactAddress               : androidx.core:core:1.8.0@aar
-                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/assets [-]
-                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/jars/classes.jar
-                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/annotations.zip
-                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0
-                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/jni [-]
-                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/AndroidManifest.xml
-                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/proguard.txt
-                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/public.txt
-                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/rs [-]
-                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/res
-                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/res.apk [-]
-                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/jars/classes.jar
-                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/R.txt
-                        - androidLibraries            : androidx.lifecycle:lifecycle-runtime:2.4.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.lifecycle:lifecycle-runtime:2.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - javaLibraries               : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : androidx.collection:collection:1.1.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.collection:collection:1.1.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : androidx.lifecycle:lifecycle-common:2.4.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.lifecycle:lifecycle-common:2.4.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
@@ -4184,30 +4441,6 @@ MODULE                        : project.feature
                         - moduleDependencies          : <ROOT>::app-with-dynamic-feature@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::app-with-dynamic-feature@debug (IdeModuleLibraryImpl) (*seen*)
                     runtimeClasspath              : IdeDependenciesImpl
-                        - androidLibraries            : androidx.annotation:annotation-experimental:1.1.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.annotation:annotation-experimental:1.1.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.arch.core:core-runtime:2.1.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.arch.core:core-runtime:2.1.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.core:core-ktx:1.8.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.core:core-ktx:1.8.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.core:core:1.8.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.core:core:1.8.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.lifecycle:lifecycle-runtime:2.4.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.lifecycle:lifecycle-runtime:2.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - javaLibraries               : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : androidx.collection:collection:1.1.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.collection:collection:1.1.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : androidx.concurrent:concurrent-futures:1.0.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.concurrent:concurrent-futures:1.0.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : androidx.lifecycle:lifecycle-common:2.4.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.lifecycle:lifecycle-common:2.4.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : com.google.guava:listenablefuture:1.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : com.google.guava:listenablefuture:1.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
@@ -4218,10 +4451,6 @@ MODULE                        : project.feature
                             target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
-                RuntimeOnlyClasses
-                    - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar
-                    - class                       : <M2>/androidx/concurrent/concurrent-futures/1.0.0/concurrent-futures-1.0.0.jar
-                    - class                       : <M2>/com/google/guava/listenablefuture/1.0/listenablefuture-1.0.jar
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -4245,54 +4474,6 @@ MODULE                        : project.feature
                 ClassesFolder                 : <ROOT>/feature/build/tmp/kotlin-classes/debugAndroidTest [-]
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
-                        - androidLibraries            : androidx.annotation:annotation-experimental:1.1.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.annotation:annotation-experimental:1.1.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.core:core-ktx:1.8.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.core:core-ktx:1.8.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.core:core:1.8.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.core:core:1.8.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.lifecycle:lifecycle-runtime:2.3.1@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.lifecycle:lifecycle-runtime:2.3.1@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.test.espresso:espresso-core:3.4.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.test.espresso:espresso-core:3.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.test.espresso:espresso-idling-resource:3.4.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.test.espresso:espresso-idling-resource:3.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.test.ext:junit:1.1.3@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.test.ext:junit:1.1.3@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.test.services:storage:1.4.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.test.services:storage:1.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.test:core:1.4.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.test:core:1.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.test:monitor:1.4.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.test:monitor:1.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.test:runner:1.4.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.test:runner:1.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - javaLibraries               : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : androidx.collection:collection:1.0.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.collection:collection:1.0.0 (IdeJavaLibraryImpl)
-                                artifact                      : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
-                                artifactAddress               : androidx.collection:collection:1.0.0@jar
-                        - javaLibraries               : androidx.lifecycle:lifecycle-common:2.4.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.lifecycle:lifecycle-common:2.4.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : com.google.code.findbugs:jsr305:2.0.1 (IdeJavaLibraryDependencyImpl)
-                            target                        : com.google.code.findbugs:jsr305:2.0.1 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : com.squareup:javawriter:2.1.1 (IdeJavaLibraryDependencyImpl)
-                            target                        : com.squareup:javawriter:2.1.1 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : javax.inject:javax.inject:1 (IdeJavaLibraryDependencyImpl)
-                            target                        : javax.inject:javax.inject:1 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : junit:junit:4.12 (IdeJavaLibraryDependencyImpl)
-                            target                        : junit:junit:4.12 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
@@ -4312,46 +4493,7 @@ MODULE                        : project.feature
                                 sourceSet                     : MAIN
                                 variant                       : debug
                     runtimeClasspath              : IdeDependenciesImpl
-                        - androidLibraries            : androidx.test.espresso:espresso-core:3.4.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.test.espresso:espresso-core:3.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.test.espresso:espresso-idling-resource:3.4.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.test.espresso:espresso-idling-resource:3.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.test.ext:junit:1.1.3@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.test.ext:junit:1.1.3@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.test.services:storage:1.4.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.test.services:storage:1.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.test:core:1.4.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.test:core:1.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.test:monitor:1.4.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.test:monitor:1.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.test:runner:1.4.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.test:runner:1.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - javaLibraries               : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : androidx.lifecycle:lifecycle-common:2.4.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.lifecycle:lifecycle-common:2.4.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : com.google.code.findbugs:jsr305:2.0.1 (IdeJavaLibraryDependencyImpl)
-                            target                        : com.google.code.findbugs:jsr305:2.0.1 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : com.squareup:javawriter:2.1.1 (IdeJavaLibraryDependencyImpl)
-                            target                        : com.squareup:javawriter:2.1.1 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : javax.inject:javax.inject:1 (IdeJavaLibraryDependencyImpl)
-                            target                        : javax.inject:javax.inject:1 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : junit:junit:4.12 (IdeJavaLibraryDependencyImpl)
-                            target                        : junit:junit:4.12 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
                 ProvidedDependencies
-                    - provided                    : androidx.annotation:annotation-experimental:1.1.0@aar
-                    - provided                    : androidx.arch.core:core-common:2.1.0
-                    - provided                    : androidx.collection:collection:1.0.0
-                    - provided                    : androidx.core:core-ktx:1.8.0@aar
-                    - provided                    : androidx.core:core:1.8.0@aar
-                    - provided                    : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
-                    - provided                    : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                     - provided                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
@@ -4380,28 +4522,6 @@ MODULE                        : project.feature
                 ClassesFolder                 : <ROOT>/feature/build/tmp/kotlin-classes/debugUnitTest [-]
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
-                        - androidLibraries            : androidx.annotation:annotation-experimental:1.1.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.annotation:annotation-experimental:1.1.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.core:core-ktx:1.8.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.core:core-ktx:1.8.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.core:core:1.8.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.core:core:1.8.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.lifecycle:lifecycle-runtime:2.4.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.lifecycle:lifecycle-runtime:2.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - javaLibraries               : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : androidx.collection:collection:1.1.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.collection:collection:1.1.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : androidx.lifecycle:lifecycle-common:2.4.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.lifecycle:lifecycle-common:2.4.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : junit:junit:4.13.2 (IdeJavaLibraryDependencyImpl)
-                            target                        : junit:junit:4.13.2 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
@@ -4417,34 +4537,6 @@ MODULE                        : project.feature
                         - moduleDependencies          : <ROOT>::feature@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::feature@debug (IdeModuleLibraryImpl) (*seen*)
                     runtimeClasspath              : IdeDependenciesImpl
-                        - androidLibraries            : androidx.annotation:annotation-experimental:1.1.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.annotation:annotation-experimental:1.1.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.arch.core:core-runtime:2.1.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.arch.core:core-runtime:2.1.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.core:core-ktx:1.8.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.core:core-ktx:1.8.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.core:core:1.8.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.core:core:1.8.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.lifecycle:lifecycle-runtime:2.4.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.lifecycle:lifecycle-runtime:2.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - javaLibraries               : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : androidx.collection:collection:1.1.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.collection:collection:1.1.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : androidx.concurrent:concurrent-futures:1.0.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.concurrent:concurrent-futures:1.0.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : androidx.lifecycle:lifecycle-common:2.4.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : androidx.lifecycle:lifecycle-common:2.4.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : com.google.guava:listenablefuture:1.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : com.google.guava:listenablefuture:1.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : junit:junit:4.13.2 (IdeJavaLibraryDependencyImpl)
-                            target                        : junit:junit:4.13.2 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
@@ -4457,10 +4549,6 @@ MODULE                        : project.feature
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::feature@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::feature@debug (IdeModuleLibraryImpl) (*seen*)
-                RuntimeOnlyClasses
-                    - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar
-                    - class                       : <M2>/androidx/concurrent/concurrent-futures/1.0.0/concurrent-futures-1.0.0.jar
-                    - class                       : <M2>/com/google/guava/listenablefuture/1.0/listenablefuture-1.0.jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     kotlinGradleModel             : KotlinGradleModelImpl
         additionalVisibleSourceSets
@@ -4476,19 +4564,10 @@ MODULE                        : project.feature
                     assertionsMode                : legacy
                     backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0-api.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1-api.jar
-                    - classpath                   : <M2>/androidx/lifecycle/lifecycle-common/2.4.0/lifecycle-common-2.4.0.jar
-                    - classpath                   : <M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar
-                    - classpath                   : <M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar
-                    - classpath                   : <M2>/androidx/annotation/annotation/1.3.0/annotation-1.3.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0-api.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/feature/build/tmp/kotlin-classes/debug
@@ -4508,34 +4587,11 @@ MODULE                        : project.feature
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.3-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0-api.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0-api.jar
-                    - classpath                   : <M2>/junit/junit/4.12/junit-4.12.jar
-                    - classpath                   : <M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar
-                    - classpath                   : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
-                    - classpath                   : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1-api.jar
-                    - classpath                   : <M2>/androidx/lifecycle/lifecycle-common/2.4.0/lifecycle-common-2.4.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1-api.jar
-                    - classpath                   : <M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar
-                    - classpath                   : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
-                    - classpath                   : <M2>/androidx/annotation/annotation/1.3.0/annotation-1.3.0.jar
-                    - classpath                   : <M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0-api.jar
-                    - classpath                   : <M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar
-                    - classpath                   : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0-api.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/feature/build/tmp/kotlin-classes/debugAndroidTest
@@ -4559,21 +4615,10 @@ MODULE                        : project.feature
                     assertionsMode                : legacy
                     backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/junit/junit/4.13.2/junit-4.13.2.jar
-                    - classpath                   : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0-api.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1-api.jar
-                    - classpath                   : <M2>/androidx/lifecycle/lifecycle-common/2.4.0/lifecycle-common-2.4.0.jar
-                    - classpath                   : <M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar
-                    - classpath                   : <M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar
-                    - classpath                   : <M2>/androidx/annotation/annotation/1.3.0/annotation-1.3.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0-api.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/feature/build/tmp/kotlin-classes/debugUnitTest
