@@ -61,6 +61,10 @@ class DeviceModelTest {
 
     deviceModel.setSelectedDevice(FakeTransportService.FAKE_DEVICE.toDeviceDescriptor())
 
+    assertThat(processModel.selectedProcess).isEqualTo(fakeProcess)
+
+    deviceModel.setSelectedDevice(null)
+
     assertThat(processModel.selectedProcess).isNull()
   }
 

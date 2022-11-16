@@ -60,7 +60,11 @@ class DeviceModel(parentDisposable: Disposable, private val processesModel: Proc
   var selectedDevice: DeviceDescriptor? = null
     internal set(value) {
       // each time the selected device changes, the selected process should be reset
-      processesModel.selectedProcess = null
+      // If selectedDevice is null, no device was selected. So we should not reset the process,
+      // because selectedProcess might be set by the user from the process picker.
+      if (selectedDevice != null) {
+        processesModel.selectedProcess = null
+      }
       newSelectedDeviceListeners.forEach { it.invoke(value) }
       field = value
     }
