@@ -158,6 +158,7 @@ maven_repository(
         "@maven//:androidx.navigation.navigation-fragment_2.5.2",
         "@maven//:androidx.navigation.navigation-safe-args-gradle-plugin_2.5.2",
         "@maven//:androidx.navigation.navigation-ui-ktx_2.5.2",
+        "@maven//:androidx.navigation.navigation-ui_2.5.2",
         "@maven//:androidx.palette.palette-ktx_1.0.0",
         "@maven//:androidx.recyclerview.recyclerview_1.2.1",
         "@maven//:androidx.slice.slice-builders_1.0.0",
@@ -1389,9 +1390,11 @@ java_test(
 )
 
 java_test(
-    name = "NavGraphAttributeTest",
-    data = COMMON_DATA,
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.naveditor.NavGraphAttributeTest"],
+    name = "NavGraphSanityTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+    ],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.naveditor.NavGraphSanityTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
     ],

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
 import static junit.framework.TestCase.assertTrue;
 import static org.fest.swing.awt.AWT.translate;
 
@@ -44,6 +45,7 @@ import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.structure.BackNavigationComponent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import java.awt.AWTException;
 import java.awt.Container;
@@ -56,6 +58,7 @@ import javax.swing.JPanel;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import org.fest.swing.core.ComponentDragAndDrop;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JMenuItemFixture;
@@ -127,6 +130,49 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
 
   public double getScale() {
     return myDesignSurfaceFixture.getScale();
+  }
+
+  public void zoomIn() {
+    DesignSurface<?> surface = myDesignSurfaceFixture.target();
+    robot().click(surface);
+
+    Wait.seconds(10);
+    ActionButton zoomInButton = waitUntilShowingAndEnabled(robot(), target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override protected boolean isMatching(@NotNull ActionButton actionButton) {
+        return "Zoom In".equals(actionButton.getAccessibleContext().getAccessibleName());
+      }
+    });
+    robot().focus(zoomInButton);
+    robot().click(zoomInButton);
+    Wait.seconds(10);
+  }
+
+  public boolean panButtonPresent() {
+    DesignSurface<?> surface = myDesignSurfaceFixture.target();
+    robot().click(surface);
+
+    Wait.seconds(10);
+    ActionButton panButton = waitUntilShowingAndEnabled(robot(), target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override protected boolean isMatching(@NotNull ActionButton actionButton) {
+        return "Pan screen (hold SPACE bar and drag)".equals(actionButton.getAccessibleContext().getAccessibleName());
+      }
+    });
+    return (panButton.isEnabled() && panButton.isShowing());
+  }
+
+  public void zoomOut() {
+    DesignSurface<?> surface = myDesignSurfaceFixture.target();
+    robot().click(surface);
+
+    Wait.seconds(10);
+    ActionButton zoomOutButton = waitUntilShowingAndEnabled(robot(), target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override protected boolean isMatching(@NotNull ActionButton actionButton) {
+        return "Zoom Out".equals(actionButton.getAccessibleContext().getAccessibleName());
+      }
+    });
+    robot().focus(zoomOutButton);
+    robot().click(zoomOutButton);
+    Wait.seconds(10);
   }
 
   /**
