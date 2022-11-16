@@ -19,13 +19,13 @@ import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.FolderTypeRelationship
+import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.res.IdeResourceNameValidator
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.findStyleableAttrFieldsForAttr
 import com.android.tools.idea.res.findStyleableAttrFieldsForStyleable
 import com.android.tools.idea.res.getResourceElementFromSurroundingValuesTag
-import com.android.tools.idea.res.isFileBased
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.RESOURCE_CONTEXT_ELEMENT
@@ -338,14 +338,14 @@ open class ResourceRenameHandler : RenameHandler, TitledHandler {
     private fun getNameValidator(): InputValidatorEx {
       var validator = nameValidator
       if (validator == null) {
-        val resourceType = (psiElement as ResourceReferencePsiElement).resourceReference.resourceType
-        validator = if (resourceType.isFileBased()) {
+        val resourceReference = (psiElement as ResourceReferencePsiElement).resourceReference
+        validator = if (isFileBased(resourceReference, psiElement)) {
           // Guaranteed to be not null for a file based resource type.
-          val resourceFolderType = FolderTypeRelationship.getNonValuesRelatedFolder(resourceType)!!
+          val resourceFolderType = FolderTypeRelationship.getNonValuesRelatedFolder(resourceReference.resourceType)!!
           IdeResourceNameValidator.forFilename(resourceFolderType)
         }
         else {
-          IdeResourceNameValidator.forResourceName(resourceType)
+          IdeResourceNameValidator.forResourceName(resourceReference.resourceType)
         }
         nameValidator = validator
       }
@@ -360,5 +360,31 @@ open class ResourceRenameHandler : RenameHandler, TitledHandler {
 class KotlinResourceRenameHandler : ResourceRenameHandler() {
   override fun isAvailableInFile(file: PsiFile) : Boolean {
     return file.language == KotlinLanguage.INSTANCE
+  }
+}
+
+/**
+ * Checks if this a resource that is defined in a file named by the resource plus the extension.
+ *
+ * Some resource types (color and drawable) can be defined **both** as a separate XML file as well as defined within a value XML file along
+ * with other properties. In those cases, we have to find the declaration of the resource to determine whether it's defined in its own file
+ * or not.
+ *
+ * @return true if the given resource is stored in a file named by the resource
+ */
+internal fun isFileBased(resourceReference: ResourceReference, context: PsiElement): Boolean {
+  return when (val resourceType = resourceReference.resourceType) {
+    ResourceType.ID ->
+      // The folder types for ID is not only VALUES but also LAYOUT and MENU. However, unlike resources, they are only defined inline there
+      // so for the purposes of isFileBased (where the intent is to figure out files that are uniquely identified by a resource's name) this
+      // method should return false anyway.
+      false
+
+    ResourceType.COLOR, ResourceType.DRAWABLE ->
+      // These resources can be either file-based or not, and we have to resolve the reference to figure it out.
+      AndroidResourceToPsiResolver.getInstance().getGotoDeclarationFileBasedTargets(resourceReference, context).any()
+
+    else ->
+      FolderTypeRelationship.getRelatedFolders(resourceType).any { it != ResourceFolderType.VALUES }
   }
 }

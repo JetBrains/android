@@ -47,7 +47,6 @@ import com.android.tools.idea.model.TestAndroidModel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
@@ -70,8 +69,6 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import javax.imageio.ImageIO;
@@ -89,19 +86,6 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     MergedManifestModificationListener.ensureSubscribed(getProject());
-  }
-
-  public void testIsFileBasedResourceType() {
-    assertTrue(IdeResourcesUtil.isFileBased(ResourceType.ANIMATOR));
-    assertTrue(IdeResourcesUtil.isFileBased(ResourceType.LAYOUT));
-
-    assertFalse(IdeResourcesUtil.isFileBased(ResourceType.STRING));
-    assertFalse(IdeResourcesUtil.isFileBased(ResourceType.DIMEN));
-    assertFalse(IdeResourcesUtil.isFileBased(ResourceType.ID));
-
-    // Both:
-    assertTrue(IdeResourcesUtil.isFileBased(ResourceType.DRAWABLE));
-    assertTrue(IdeResourcesUtil.isFileBased(ResourceType.COLOR));
   }
 
   public void testIsValueBasedResourceType() {

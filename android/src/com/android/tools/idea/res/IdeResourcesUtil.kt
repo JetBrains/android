@@ -228,29 +228,6 @@ fun ResourceType.isValueBased(): Boolean {
   return FolderTypeRelationship.getRelatedFolders(this).contains(ResourceFolderType.VALUES)
 }
 
-/**
- * Checks if this a resource that is defined in a file named by the resource plus the extension.
- *
- * Some resource types can be defined **both** as a separate XML file as well as
- * defined within a value XML file along with other properties. This method will
- * return true for these resource types as well. In other words, a ResourceType can
- * return true for both [ResourceType.isValueBased] and [ResourceType.isFileBased].
- *
- * @return true if the given resource type is stored in a file named by the resource
- */
-fun ResourceType.isFileBased(): Boolean {
-  if (this == ResourceType.ID) {
-    // The folder types for ID is not only VALUES but also
-    // LAYOUT and MENU. However, unlike resources, they are only defined
-    // inline there so for the purposes of isFileBased
-    // (where the intent is to figure out files that are uniquely identified
-    // by a resource's name) this method should return false anyway.
-    return false
-  }
-
-  return FolderTypeRelationship.getRelatedFolders(this).firstOrNull { it != ResourceFolderType.VALUES } != null
-}
-
 fun getFolderType(file: PsiFile?): ResourceFolderType? {
   return when {
     file == null -> null
