@@ -772,13 +772,13 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
     }
     get() {
       if (_isAlwaysNoOpForProject == null) {
-        _isAlwaysNoOpForProject = runReadAction { computeIsAlwaysNoOpForProject() }
+        DumbService.getInstance(project).runReadActionInSmartMode {_isAlwaysNoOpForProject = computeIsAlwaysNoOpForProject() }
       }
       return _isAlwaysNoOpForProject!!
     }
 
   internal fun initializeComponentCaches() {
-    runReadAction {
+    DumbService.getInstance(project).runReadActionInSmartMode {
       _isAlwaysNoOpForProject = computeIsAlwaysNoOpForProject()
       _cachedUsages = findComponentUsages().toList()
       initializeComponentExtraCaches()
