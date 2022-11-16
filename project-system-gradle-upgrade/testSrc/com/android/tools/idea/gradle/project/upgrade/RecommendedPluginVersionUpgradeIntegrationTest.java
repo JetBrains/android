@@ -25,6 +25,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.project.upgrade.ui.ContentManagerImpl;
 import com.intellij.mock.MockDumbService;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
