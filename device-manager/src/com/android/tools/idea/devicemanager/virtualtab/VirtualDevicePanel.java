@@ -78,7 +78,8 @@ public final class VirtualDevicePanel extends DevicePanel {
     initDetailsPanelPanel();
     layOut();
 
-    myWatcher.addVirtualDeviceWatcherListener(getTable());
+    // TODO: b/243972484 duplicated AVDs
+    // myWatcher.addVirtualDeviceWatcherListener(getTable());
     Disposer.register(parent, this);
   }
 
