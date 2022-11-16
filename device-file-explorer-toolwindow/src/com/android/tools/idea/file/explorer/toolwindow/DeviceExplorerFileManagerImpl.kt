@@ -16,6 +16,7 @@
 package com.android.tools.idea.file.explorer.toolwindow
 
 import com.android.annotations.concurrency.UiThread
+import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.runWriteActionAndWait
@@ -147,10 +148,12 @@ class DeviceExplorerFileManagerImpl @NonInjectable @VisibleForTesting constructo
 
   private fun createFileTransferProgress(entry: DeviceFileEntry, progress: DownloadProgress): FileTransferProgress {
     return object : FileTransferProgress {
+      @UiThread
       override fun progress(currentBytes: Long, totalBytes: Long) {
         progress.onProgress(entry.fullPath, currentBytes, totalBytes)
       }
 
+      @WorkerThread
       override fun isCancelled(): Boolean {
         return progress.isCancelled()
       }

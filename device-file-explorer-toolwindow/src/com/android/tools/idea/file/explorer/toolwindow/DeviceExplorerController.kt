@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.file.explorer.toolwindow
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
+import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -991,6 +993,7 @@ class DeviceExplorerController(
       try {
         parentEntry.uploadFile(localPath, object : FileTransferProgress {
           private var previousBytes: Long = 0
+          @UiThread
           override fun progress(currentBytes: Long, totalBytes: Long) {
             // Update progress UI
             tracker.processFileBytes(currentBytes - previousBytes)
@@ -1035,6 +1038,7 @@ class DeviceExplorerController(
             }
           }
 
+          @WorkerThread
           override fun isCancelled(): Boolean {
             return tracker.isCancelled
           }
@@ -1198,12 +1202,15 @@ class DeviceExplorerController(
       val stopwatch = Stopwatch.createStarted()
       fileManager.downloadFileEntry(entry, localPath, object : DownloadProgress {
         private var previousBytes: Long = 0
+
+        @UiThread
         override fun onStarting(entryFullPath: String) {
           val currentNode = getTreeNodeFromEntry(treeNode, entryFullPath)!!
           previousBytes = 0
           startNodeDownload(currentNode)
         }
 
+        @UiThread
         override fun onProgress(entryFullPath: String, currentBytes: Long, totalBytes: Long) {
           val currentNode = getTreeNodeFromEntry(treeNode, entryFullPath)!!
           tracker.processFileBytes(currentBytes - previousBytes)
@@ -1214,6 +1221,7 @@ class DeviceExplorerController(
           }
         }
 
+        @UiThread
         override fun onCompleted(entryFullPath: String) {
           sizeRef.complete(previousBytes)
           if (tracker.isInForeground) {
@@ -1222,6 +1230,7 @@ class DeviceExplorerController(
           }
         }
 
+        @AnyThread
         override fun isCancelled(): Boolean {
           return tracker.isCancelled
         }

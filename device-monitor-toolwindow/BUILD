@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.device-monitor-toolwindow",
     srcs = ["src"],
     iml_files = ["intellij.android.device-monitor-toolwindow.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

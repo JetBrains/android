@@ -86,6 +86,7 @@ class DeviceMonitorController(
     }
   }
 
+  @UiThread
   private inner class ViewListener : DeviceMonitorViewListener {
     override fun refreshInvoked() {
       uiThreadScope.launch {
