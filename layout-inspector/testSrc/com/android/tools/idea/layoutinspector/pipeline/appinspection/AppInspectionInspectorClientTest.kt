@@ -982,7 +982,7 @@ class AppInspectionInspectorClientTest {
 
   private fun setUpRunConfiguration(enableInspectionWithoutRestart: Boolean = false) {
     addManifest(projectRule.fixture)
-    AndroidRunConfigurations.getInstance().createRunConfiguration(AndroidFacet.getInstance(projectRule.module)!!)
+    AndroidRunConfigurations.instance.createRunConfiguration(AndroidFacet.getInstance(projectRule.module)!!)
     if (enableInspectionWithoutRestart) {
       val runManager = RunManager.getInstance(inspectorRule.project)
       val config = runManager.allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().firstOrNull { it.name == "app" }

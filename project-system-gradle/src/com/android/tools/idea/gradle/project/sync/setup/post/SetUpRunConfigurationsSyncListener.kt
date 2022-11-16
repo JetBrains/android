@@ -42,7 +42,7 @@ class SetUpRunConfigurationsSyncListener : GradleSyncListenerWithRoot {
 
 private fun setUpRunConfigurations(project: Project) {
   project.getAndroidFacets().filter { it.configuration.isAppProject }.forEach {
-    AndroidRunConfigurations.getInstance().createRunConfiguration(it)
+    AndroidRunConfigurations.instance.createRunConfiguration(it)
   }
 }
 
