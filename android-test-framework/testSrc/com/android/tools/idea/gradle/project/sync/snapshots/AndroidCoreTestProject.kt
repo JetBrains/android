@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_74
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.project.Project
 import com.intellij.util.PathUtil
@@ -41,6 +42,7 @@ enum class AndroidCoreTestProject(
 ) : TemplateBasedTestProject {
   ANDROID_LIBRARY_AS_TEST_DEPENDENCY(TestProjectPaths.ANDROID_LIBRARY_AS_TEST_DEPENDENCY),
   APP_WITH_BUILDSRC(TestProjectPaths.APP_WITH_BUILDSRC),
+  APP_WITH_ACTIVITY_IN_LIB(TestProjectPaths.APP_WITH_ACTIVITY_IN_LIB, isCompatibleWith = { it >= AGP_74 }),
   APPLICATION_ID_SUFFIX(TestProjectPaths.APPLICATION_ID_SUFFIX),
   APPLICATION_ID_VARIANT_API(TestProjectPaths.APPLICATION_ID_VARIANT_API),
   APPLICATION_ID_VARIANT_API_BROKEN(TestProjectPaths.APPLICATION_ID_VARIANT_API_BROKEN),

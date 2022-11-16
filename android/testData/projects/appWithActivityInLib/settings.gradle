@@ -1,0 +1,3 @@
+rootProject.name = "appWithActivityInLib"
+include ':app'
+include ':mylibrary'
