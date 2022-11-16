@@ -140,6 +140,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       profilerDevice = waitForDaemon(device, client);
     }
     catch (InterruptedException | TimeoutException e) {
+      client.shutdownChannel();
       getLogger().debug(e);
       // Don't attach JVMTI agent for now, there is a chance that it will be attached during runtime.
       return "";
@@ -149,6 +150,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     pushStartupAgentConfig(fileManager, project);
     String agentArgs = fileManager.configureStartupAgent(applicationId, STARTUP_AGENT_CONFIG_NAME);
     String startupProfilingResult = startStartupProfiling(profilerState, applicationId, project, client, device, profilerDevice);
+    client.shutdownChannel();
     return String.format("%s %s", agentArgs, startupProfilingResult);
   }
 
@@ -544,6 +546,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       catch (StatusRuntimeException exception) {
         getLogger().error(exception);
       }
+      client.shutdownChannel();
 
       return startTimeNs;
     }

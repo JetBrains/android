@@ -33,7 +33,7 @@ import java.util.concurrent.Executor;
 import org.jetbrains.annotations.NotNull;
 
 public class ProfilerClient {
-
+  @NotNull private final ManagedChannel myChannel;
   @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myTransportClient;
   @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerClient;
   @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myMemoryClient;
@@ -50,6 +50,7 @@ public class ProfilerClient {
 
   @VisibleForTesting
   public ProfilerClient(@NotNull ManagedChannel channel) {
+    myChannel = channel;
     myTransportClient = TransportServiceGrpc.newBlockingStub(channel);
     myProfilerClient = ProfilerServiceGrpc.newBlockingStub(channel);
     myMemoryClient = MemoryServiceGrpc.newBlockingStub(channel);
@@ -96,5 +97,14 @@ public class ProfilerClient {
   @NotNull
   public EnergyServiceGrpc.EnergyServiceBlockingStub getEnergyClient() {
     return myEnergyClient;
+  }
+
+  /**
+   * Shuts down the managed channel. Should be called when this client is no longer used.
+   */
+  public void shutdownChannel() {
+    if (!myChannel.isShutdown()) {
+      myChannel.shutdown();
+    }
   }
 }

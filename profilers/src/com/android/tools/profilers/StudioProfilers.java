@@ -302,6 +302,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // and make some models inconsistent. In this case, we want future calls to this method to return early, as we can only make the
     // inconsistency worse if we call these lines again.
     setProcess(null, null);
+    myClient.shutdownChannel();
     changed(ProfilerAspect.STAGE);
   }
 
