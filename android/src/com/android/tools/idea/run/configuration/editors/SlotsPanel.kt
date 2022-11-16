@@ -244,8 +244,9 @@ class SlotsPanel() : JPanel(FlowLayout(FlowLayout.LEFT)) {
         drawComplication(g, largeImageSlot.type!!, largeImageSlot.id)
       }
       for (chosenSlot in currentModel.currentChosenSlots) {
-        if (chosenSlot.type != ComplicationType.LARGE_IMAGE) {
-          drawComplication(g, chosenSlot.type!!, chosenSlot.id)
+        val type = chosenSlot.type
+        if (type != null && type != ComplicationType.LARGE_IMAGE) {
+          drawComplication(g, type, chosenSlot.id)
         }
       }
     }
