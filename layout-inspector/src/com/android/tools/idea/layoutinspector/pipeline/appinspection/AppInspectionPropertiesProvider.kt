@@ -38,6 +38,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Future
 
 class AppInspectionPropertiesProvider(
@@ -46,7 +47,7 @@ class AppInspectionPropertiesProvider(
   private val model: InspectorModel)
   : PropertiesProvider {
 
-  override val resultListeners = mutableListOf<(PropertiesProvider, ViewNode, PropertiesTable<InspectorPropertyItem>) -> Unit>()
+  override val resultListeners = CopyOnWriteArrayList<(PropertiesProvider, ViewNode, PropertiesTable<InspectorPropertyItem>) -> Unit>()
 
   override fun requestProperties(view: ViewNode): Future<*> {
     val future = CompletableFuture<Unit>()
