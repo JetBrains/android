@@ -43,13 +43,13 @@ class AndroidViewNodeNdkProvider : AndroidViewNodeProvider {
 
   override fun getModuleChildren(module: Module, settings: ViewSettings): List<AbstractTreeNode<*>>? {
     val ndkModuleModel = NdkModuleModel.Companion.get(module) ?: return null
-      return listOf(
-        AndroidJniFolderNode(
-          module.project,
-          ndkModuleModel,
-          settings
-        )
+    return listOf(
+      AndroidJniFolderNode(
+        module.project,
+        ndkModuleModel,
+        settings
       )
+    )
   }
 
   override fun moduleContainsExternalFile(module: Module, file: VirtualFile): Boolean {

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="5" by="lint 8.0.0-dev">
+
+  <issue
+      id="FileComparisons"
+      message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
+    <location
+        file="src/com/android/tools/idea/navigator/nodes/apk/ndk/NdkSourceNode.java"
+        line="99"/>
+  </issue>
+
+</issues>
