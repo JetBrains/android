@@ -100,6 +100,7 @@ fun interface ForegroundProcessListener {
 class ForegroundProcessDetection(
   private val project: Project,
   private val deviceModel: DeviceModel,
+  processModel: ProcessesModel,
   private val transportClient: TransportClient,
   private val metrics: ForegroundProcessDetectionMetrics,
   scope: CoroutineScope,
@@ -173,6 +174,28 @@ class ForegroundProcessDetection(
   private val handshakeExecutors = ConcurrentHashMap<DeviceDescriptor, HandshakeExecutor>()
 
   init {
+    processModel.addSelectedProcessListeners {
+      val selectedProcess = processModel.selectedProcess ?: return@addSelectedProcessListeners
+
+      val device = if (selectedProcess.isRunning) {
+        selectedProcess.device
+      }
+      else {
+        return@addSelectedProcessListeners
+      }
+
+      // If there is a new selectedProcess, but the device does not support foreground process detection,
+      // it means the process was selected by the user from the process picker (TODO verify this works) or by launching the app.
+      // When this happens, initiate the handshake with the device again.
+      // We don't know exactly all the configurations on which the handshake can fail (device in weird states),
+      // this is our last resort to recover from false negatives.
+      if (!deviceModel.supportsForegroundProcessDetection(device)) {
+        scope.launch {
+          initiateNewHandshake(device)
+        }
+      }
+    }
+
     val manager = TransportStreamManager.createManager(transportClient.transportStub, workDispatcher)
 
     scope.launch {
@@ -354,6 +377,14 @@ class ForegroundProcessDetection(
     val deviceModels = ForegroundProcessDetection.deviceModels
     val count = deviceModels.mapNotNull { it.selectedDevice }.count { it.serial == selectedDevice.serial }
     return count <= 1
+  }
+
+  /**
+   * Initiates a new handshake. Only if [device] already executed the handshake that happens at connection time.
+   */
+  private suspend fun initiateNewHandshake(device: DeviceDescriptor) {
+    val handshakeExecutor = handshakeExecutors[device]
+    handshakeExecutor?.post(HandshakeState.Connected)
   }
 }
 

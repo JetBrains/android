@@ -76,6 +76,7 @@ object ForegroundProcessDetectionInitializer {
     val foregroundProcessDetection = ForegroundProcessDetection(
       project,
       deviceModel,
+      processModel,
       transportClient,
       metrics,
       coroutineScope
@@ -83,6 +84,7 @@ object ForegroundProcessDetectionInitializer {
 
     foregroundProcessDetection.foregroundProcessListeners.add(foregroundProcessListener)
 
+    // TODO move inside ForegroundProcessDetection, when b/250404336 is resolved
     processModel.addSelectedProcessListeners {
       val selectedProcessDevice = processModel.selectedProcess?.device
       if (selectedProcessDevice != null && selectedProcessDevice != deviceModel.selectedDevice) {

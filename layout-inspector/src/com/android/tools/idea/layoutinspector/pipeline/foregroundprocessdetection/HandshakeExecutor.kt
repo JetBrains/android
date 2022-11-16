@@ -49,6 +49,9 @@ import org.jetbrains.annotations.TestOnly
  * 1. UNKNOWN converts to SUPPORTED.
  * 2. UNKNOWN converts to NOT_SUPPORTED.
  * 3. The device is disconnected.
+ *
+ * This class can be re-used to execute multiple handshakes with [device].
+ * For example to double-check that a NOT_SUPPORTED state is not a false negative.
  */
 class HandshakeExecutor(private val device: DeviceDescriptor,
                         private val stream: Stream,
@@ -99,7 +102,30 @@ class HandshakeExecutor(private val device: DeviceDescriptor,
     }
   }
 
+  /**
+   * Indicates whether the previous handshake for this device terminated with a NOT_SUPPORTED state.
+   * We keep track of this so that if the handshake is executed multiple times for the same device
+   * and the result changes from NOT_SUPPORTED to SUPPORTED, we can log it to our metrics.
+   * This can happen if the NOT_SUPPORTED was a false negative.
+   */
+  private var wasNotSupported = false
+
   private var previousState: HandshakeState? = null
+    set(value) {
+      // null is reserved for the initial state, it should not be set again
+      checkNotNull(value)
+
+      when (value) {
+        HandshakeState.Connected, HandshakeState.Disconnected, is HandshakeState.UnknownSupported, null -> { }
+        is HandshakeState.NotSupported -> wasNotSupported = true
+        is HandshakeState.Supported -> wasNotSupported = false
+      }
+
+      field = value
+    }
+
+  // TODO log recovery handshake in metrics
+  private var isRecoveryHandshake = false
 
   suspend fun post(state: HandshakeState) = withContext(workDispatcher) {
     // There can be multiple projects open of Studio, all using Layout Inspector.
@@ -116,7 +142,15 @@ class HandshakeExecutor(private val device: DeviceDescriptor,
     }
 
     when (state) {
-      is HandshakeState.Connected -> { startHandshakeCoordinator() }
+      is HandshakeState.Connected -> {
+        startHandshakeCoordinator()
+
+        // if previous state was set, it means the handshake was executed at least once before,
+        // therefore this is a recovery handshake
+        if (previousState != null) {
+          isRecoveryHandshake = true
+        }
+      }
       // UNKNOWN support means that the handshake couldn't determine if the device supports foreground process detection.
       // This could be because the device is in a state where we can't determine the foreground activity,
       // for example if the device is locked and there is no foreground activity.
@@ -131,6 +165,9 @@ class HandshakeExecutor(private val device: DeviceDescriptor,
         metrics.logHandshakeResult(state.transportEvent, device)
         if (previousState is HandshakeState.UnknownSupported) {
           metrics.logHandshakeConversion(DynamicLayoutInspectorAutoConnectInfo.HandshakeUnknownConversion.UNKNOWN_TO_SUPPORTED, device)
+        }
+        if (wasNotSupported) {
+          // TODO log to metrics, handshake conversion from NOT_SUPPORTED to SUPPORTED
         }
       }
       is HandshakeState.NotSupported -> {
