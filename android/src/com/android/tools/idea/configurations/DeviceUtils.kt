@@ -114,7 +114,7 @@ fun getAvdDevices(configuration: Configuration): List<Device> {
   // Unlikely, but has happened - see http://b.android.com/68091
   val facet = AndroidFacet.getInstance(configuration.module) ?: return emptyList()
   val configurationManager = configuration.configurationManager
-  val avdManager = AvdManagerUtils.getAvdManagerSilently(facet) ?: return emptyList()
+  val avdManager = AvdManagerUtils.getAvdManager(facet) ?: return emptyList()
   return avdManager.validAvds.mapNotNull { configurationManager.createDeviceForAvd(it) }
 }
 

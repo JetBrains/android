@@ -79,6 +79,7 @@ import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.streaming.EmulatorSettings;
+import com.android.tools.idea.sdk.IdeAvdManagers;
 import com.android.utils.ILogger;
 import com.android.utils.PathUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -281,10 +282,7 @@ public class AvdManagerConnection {
         return false;
       }
       try {
-        myAvdManager = AvdManager.getInstance(
-          mySdkHandler,
-          myAvdHomeFolder,
-          SDK_LOG);
+        myAvdManager = IdeAvdManagers.INSTANCE.getAvdManager(mySdkHandler, myAvdHomeFolder);
       }
       catch (AndroidLocationsException e) {
         IJ_LOG.error(e);

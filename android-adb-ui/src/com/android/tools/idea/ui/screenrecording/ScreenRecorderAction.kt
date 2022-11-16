@@ -27,6 +27,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.idea.ui.AndroidAdbUiBundle
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -141,7 +142,7 @@ class ScreenRecorderAction : DumbAwareAction(
 
   private fun getVirtualDeviceManager(): AvdManager? {
     return try {
-      AvdManager.getInstance(AndroidSdks.getInstance().tryToChooseSdkHandler(), LogWrapper(logger))
+      IdeAvdManagers.getAvdManager(AndroidSdks.getInstance().tryToChooseSdkHandler())
     }
     catch (exception: AndroidLocationsException) {
       logger.warn(exception)

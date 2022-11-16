@@ -24,6 +24,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.io.FilePaths;
+import com.android.tools.idea.sdk.IdeDeviceManagers;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Maps;
@@ -138,7 +139,7 @@ public class AndroidSdkData {
     String locationPath = getLocation().toString();
     Revision platformToolsRevision = parsePackageRevision(locationPath, FD_PLATFORM_TOOLS);
     myPlatformToolsRevision = platformToolsRevision == null ? -1 : platformToolsRevision.getMajor();
-    myDeviceManager = DeviceManager.createInstance(mySdkHandler, new MessageBuildingSdkLog());
+    myDeviceManager = IdeDeviceManagers.getDeviceManager(mySdkHandler);
   }
 
   @NotNull

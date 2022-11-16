@@ -22,9 +22,8 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.devicemanager.DeviceManagerFutures;
 import com.android.tools.idea.devicemanager.Key;
-import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.utils.ILogger;
+import com.android.tools.idea.sdk.IdeAvdManagers;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -107,9 +106,7 @@ public final class VirtualDeviceWatcher implements ApplicationActivationListener
 
   @UiThread
   private static @NotNull AvdManager getAvdManagerInstance() throws AndroidLocationsException {
-    ILogger logger = new LogWrapper(Logger.getInstance(VirtualDeviceWatcher.class));
-
-    AvdManager manager = AvdManager.getInstance(AndroidSdks.getInstance().tryToChooseSdkHandler(), logger);
+    AvdManager manager = IdeAvdManagers.INSTANCE.getAvdManager(AndroidSdks.getInstance().tryToChooseSdkHandler());
     assert manager != null;
 
     return manager;

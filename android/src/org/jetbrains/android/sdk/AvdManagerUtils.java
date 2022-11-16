@@ -17,6 +17,7 @@ package org.jetbrains.android.sdk;
 
 import com.android.prefs.AndroidLocationsException;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.tools.idea.sdk.IdeAvdManagers;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,9 +25,9 @@ import org.jetbrains.annotations.Nullable;
 public final class AvdManagerUtils {
   private AvdManagerUtils() {}
 
-  public static @Nullable AvdManager getAvdManagerSilently(@NotNull AndroidFacet facet) {
+  public static @Nullable AvdManager getAvdManager(@NotNull AndroidFacet facet) {
     try {
-      return AvdManager.getInstance(AndroidSdkData.getSdkHolder(facet), new AvdManagerLog());
+      return IdeAvdManagers.INSTANCE.getAvdManager(AndroidSdkData.getSdkHolder(facet));
     }
     catch (AndroidLocationsException exception) {
       return null;

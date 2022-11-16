@@ -69,9 +69,13 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(mSdkRoot, mPrefsRoot);
 
-    mAvdManager = AvdManager.getInstance(androidSdkHandler, mPrefsRoot.resolve("avd"), new NullLogger());
+    mAvdManager =
+        AvdManager.createInstance(
+            androidSdkHandler,
+            mPrefsRoot.resolve("avd"),
+            DeviceManager.createInstance(androidSdkHandler, NullLogger.getLogger()),
+            NullLogger.getLogger());
 
-    assert mAvdManager != null;
     mAvdFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, getName(), false);
 
     mSystemImage = androidSdkHandler.getSystemImageManager(new FakeProgressIndicator()).getImages().iterator().next();

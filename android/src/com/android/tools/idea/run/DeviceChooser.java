@@ -151,7 +151,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
 
     myDeviceTable.setDefaultRenderer(LaunchCompatibility.class, new LaunchCompatibilityRenderer());
     myDeviceTable.setDefaultRenderer(IDevice.class, new DeviceRenderer.DeviceNameRenderer(
-      AvdManagerUtils.getAvdManagerSilently(facet),
+      AvdManagerUtils.getAvdManager(facet),
       new DeviceNamePropertiesFetcher(this, new FutureCallback<DeviceNameProperties>() {
         @Override
         public void onSuccess(@Nullable DeviceNameProperties result) {

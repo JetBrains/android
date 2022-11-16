@@ -32,6 +32,7 @@ import com.android.tools.idea.ddms.screenrecord.ScreenRecorderOptionsDialog;
 import com.android.tools.idea.ddms.screenrecord.ScreenRecorderPersistentOptions;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.IdeAvdManagers;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -158,9 +159,8 @@ public final class ScreenRecorderAction extends AbstractDeviceAction implements 
   @Nullable
   private static AvdManager getVirtualDeviceManager() {
     Logger logger = Logger.getInstance(ScreenRecorderAction.class);
-
     try {
-      return AvdManager.getInstance(AndroidSdks.getInstance().tryToChooseSdkHandler(), new LogWrapper(logger));
+      return IdeAvdManagers.INSTANCE.getAvdManager(AndroidSdks.getInstance().tryToChooseSdkHandler());
     }
     catch (AndroidLocationsException exception) {
       logger.warn(exception);

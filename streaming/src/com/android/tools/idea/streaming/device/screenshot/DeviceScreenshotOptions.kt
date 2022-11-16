@@ -18,13 +18,13 @@ package com.android.tools.idea.streaming.device.screenshot
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.resources.ScreenRound
 import com.android.sdklib.devices.Device
-import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.devices.DeviceManager.DeviceFilter
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.idea.avdmanager.SkinUtils
+import com.android.tools.idea.sdk.IdeDeviceManagers
 import com.android.tools.idea.streaming.device.DeviceConfiguration
 import com.android.tools.idea.streaming.device.DeviceView
 import com.android.tools.idea.ui.screenshot.FramingOption
@@ -32,7 +32,6 @@ import com.android.tools.idea.ui.screenshot.ScreenshotAction
 import com.android.tools.idea.ui.screenshot.ScreenshotImage
 import com.android.tools.idea.ui.screenshot.ScreenshotPostprocessor
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer
-import com.android.utils.StdLogger
 import java.awt.image.BufferedImage
 import java.nio.file.Files
 import java.nio.file.Path
@@ -72,9 +71,8 @@ internal class DeviceScreenshotOptions(
 
   override fun getFramingOptions(screenshotImage: ScreenshotImage): List<FramingOption> {
     val framingOptions = mutableListOf<DeviceFramingOption>()
-    val deviceManager = DeviceManager.createInstance(
-      AndroidSdkHandler.getInstance(AndroidLocationsSingleton, null),
-      StdLogger(StdLogger.Level.INFO))
+    val deviceManager = IdeDeviceManagers.getDeviceManager(
+      AndroidSdkHandler.getInstance(AndroidLocationsSingleton, null))
     val devices = deviceManager.getDevices(EnumSet.of(DeviceFilter.USER, DeviceFilter.DEFAULT, DeviceFilter.VENDOR))
     val device = deviceModel?.let { devices.find { it.displayName == deviceModel } }
     if (device != null) {
