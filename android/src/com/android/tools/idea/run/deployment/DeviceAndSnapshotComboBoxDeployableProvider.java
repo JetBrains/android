@@ -128,12 +128,25 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
 
     @Override
     public @NotNull ListenableFuture<@NotNull Boolean> isOnline() {
+      // TODO It's probably enough to return myDevice.isConnected(). Which means this doesn't have to be asynchronous after all.
+
+      if (!myDevice.isConnected()) {
+        return Futures.immediateFuture(false);
+      }
+
       // noinspection UnstableApiUsage
       return Futures.transform(myDevice.getDdmlibDeviceAsync(), IDevice::isOnline, EdtExecutorService.getInstance());
     }
 
     @Override
     public @NotNull ListenableFuture<@NotNull Boolean> isAuthorized() {
+      // TODO I think this only makes sense to call for online devices. The exception thrown at Device.java:151 is appropriate. Restructure
+      //  the caller.
+
+      if (!myDevice.isConnected()) {
+        return Futures.immediateFuture(false);
+      }
+
       var executor = EdtExecutorService.getInstance();
 
       // noinspection UnstableApiUsage
