@@ -521,6 +521,9 @@ public class AndroidLiveEditDeployMonitor {
       case ADDED_INTERFACE:
       case REMOVED_INTERFACE:
         return LiveEditEvent.Status.UNSUPPORTED_MODIFY_INHERITANCE;
+      case UNSUPPORTED_COMPOSE_VERSION:
+        // TODO: Add new event.
+        return LiveEditEvent.Status.UNKNOWN;
       default:
         return LiveEditEvent.Status.UNKNOWN;
     }
@@ -679,7 +682,12 @@ public class AndroidLiveEditDeployMonitor {
     }
 
     if (!results.isEmpty()) {
-      updateEditStatus(device, new EditStatus(EditState.ERROR, results.get(0).getMessage(), null));
+      LiveUpdateDeployer.UpdateLiveEditError firstProblem = results.get(0);
+      if (firstProblem.getType() == Deploy.UnsupportedChange.Type.UNSUPPORTED_COMPOSE_VERSION) {
+        updateEditStatus(device, new EditStatus(EditState.COMPOSE_VERSION_ERROR, firstProblem.getMessage(), null));
+      } else {
+        updateEditStatus(device, new EditStatus(EditState.ERROR, firstProblem.getMessage(), null));
+      }
     }
     return results;
   }

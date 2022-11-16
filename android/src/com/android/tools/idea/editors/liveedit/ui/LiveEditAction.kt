@@ -78,7 +78,9 @@ class LiveEditAction(private val instanceEditor: Editor? = null) : DropDownActio
       EditState.UP_TO_DATE to AllIcons.General.InspectionsOK,
       EditState.OUT_OF_DATE to ColoredIconGenerator.generateColoredIcon(AllIcons.General.InlineRefreshHover, Color(0x62B543)),
       EditState.RECOMPOSE_NEEDED to ColoredIconGenerator.generateColoredIcon(AllIcons.General.InlineRefreshHover, Color.RED),
-      EditState.RECOMPOSE_ERROR to AllIcons.General.Warning
+      EditState.RECOMPOSE_ERROR to AllIcons.General.Warning,
+      EditState.COMPOSE_VERSION_ERROR to AllIcons.General.Warning
+
       // DISABLED will end up with null icon
     )
 

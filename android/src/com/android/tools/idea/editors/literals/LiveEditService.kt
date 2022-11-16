@@ -63,15 +63,16 @@ data class EditEvent(val file: PsiFile,
 }
 
 enum class EditState {
-  ERROR,            // LiveEdit has encountered an error that is not recoverable.
-  RECOMPOSE_ERROR,  // A possibly recoverable error occurred after a recomposition.
-  PAUSED,           // No apps are ready to receive live edit updates or a compilation error is preventing push to the device.
-  RECOMPOSE_NEEDED, // In manual mode, changes have been pushed to the devices but not recomposed yet.
-  OUT_OF_DATE,      // In manual mode, changes have been detected but not pushed to the device yet.
-  LOADING,          // App is being deployed.
-  IN_PROGRESS,      // Processing...
-  UP_TO_DATE,       // The device and the code are in Sync.
-  DISABLED          // LiveEdit has been disabled (via UI or custom properties).
+  ERROR,                  // LiveEdit has encountered an error that is not recoverable.
+  COMPOSE_VERSION_ERROR,  // Compose Runtime version too old.
+  RECOMPOSE_ERROR,        // A possibly recoverable error occurred after a recomposition.
+  PAUSED,                 // No apps are ready to receive live edit updates or a compilation error is preventing push to the device.
+  RECOMPOSE_NEEDED,       // In manual mode, changes have been pushed to the devices but not recomposed yet.
+  OUT_OF_DATE,            // In manual mode, changes have been detected but not pushed to the device yet.
+  LOADING,                // App is being deployed.
+  IN_PROGRESS,            // Processing...
+  UP_TO_DATE,             // The device and the code are in Sync.
+  DISABLED                // LiveEdit has been disabled (via UI or custom properties).
 }
 
 data class EditStatus(val editState: EditState, val message: String, val actionId: String?)
