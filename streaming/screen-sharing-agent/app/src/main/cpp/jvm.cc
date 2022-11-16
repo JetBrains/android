@@ -220,6 +220,15 @@ jmethodID JClass::FindMethod(JNIEnv* jni_env, const char* name, const char* sign
   return method;
 }
 
+jmethodID JClass::FindStaticMethod(JNIEnv* jni_env, const char* name, const char* signature) const {
+  jmethodID method = jni_env->GetStaticMethodID(ref(), name, signature);
+  jboolean exception_thrown = jni_env->ExceptionCheck();
+  if (exception_thrown) {
+    jni_env->ExceptionClear();
+  }
+  return method;
+}
+
 JClass JClass::GetSuperclass(JNIEnv* jni_env) const {
   return JClass(jni_env, jni_env->GetSuperclass(ref()));
 }

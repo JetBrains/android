@@ -226,6 +226,11 @@ public:
     return FindMethod(GetJni(), name, signature);
   }
   jmethodID FindMethod(JNIEnv* jni_env, const char* name, const char* signature) const;
+  // Similar to GetStaticMethodId, but gracefully handles a non-existent method by returning nullptr.
+  jmethodID FindStaticMethod(const char* name, const char* signature) const {
+    return FindStaticMethod(GetJni(), name, signature);
+  }
+  jmethodID FindStaticMethod(JNIEnv* jni_env, const char* name, const char* signature) const;
 
   JObject NewObject(jmethodID constructor, ...) const;
   JObject NewObject(JNIEnv* jni_env, jmethodID constructor, ...) const;
