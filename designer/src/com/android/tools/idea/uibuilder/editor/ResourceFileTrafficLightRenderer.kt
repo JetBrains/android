@@ -102,7 +102,7 @@ class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) : TrafficLig
     return ResourceFileUIController()
   }
 
-  inner class ResourceFileUIController : DefaultUIController() {
+  private inner class ResourceFileUIController : DefaultUIController() {
     override fun toggleProblemsView() {
       val issuePanelService = IssuePanelService.getInstance(project)
       issuePanelService.setSharedIssuePanelVisibility(!issuePanelService.isShowingIssuePanel(null))
