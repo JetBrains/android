@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.inspectors-common.api",
     srcs = ["src"],
     iml_files = ["intellij.android.inspectors-common.api.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     test_class = "com.android.tools.inspectors.common.api.InspectorsCommonApiTestSuite",
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
