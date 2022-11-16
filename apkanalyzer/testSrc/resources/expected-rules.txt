@@ -1,0 +1,16 @@
+HSPLandroidx/profileinstaller/ProfileInstallerInitializer;-><init>()V
+HSPLandroidx/startup/InitializationProvider;-><init>()V
+HSPLandroidx/startup/InitializationProvider;->onCreate()Z
+HSPLb/a;-><clinit>()V
+HSPLb/a;-><init>(Landroid/content/Context;)V
+HSPLb/a;->a(Landroid/os/Bundle;)V
+HSPLb/a;->b(Ljava/lang/Class;Ljava/util/HashSet;)V
+HSPLc/a;->a()Z
+HSPLcom/example/emptyactivity/CustomTextView;-><init>(Landroid/content/Context;Landroid/util/AttributeSet;)V
+HSPLcom/example/emptyactivity/MainActivity;-><init>()V
+HSPLcom/example/emptyactivity/MainActivity;->onCreate(Landroid/os/Bundle;)V
+Landroidx/profileinstaller/ProfileInstallerInitializer;
+Landroidx/startup/InitializationProvider;
+Lb/a;
+Lcom/example/emptyactivity/CustomTextView;
+Lcom/example/emptyactivity/MainActivity;
