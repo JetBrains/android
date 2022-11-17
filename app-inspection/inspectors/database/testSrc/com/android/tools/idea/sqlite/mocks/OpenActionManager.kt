@@ -42,7 +42,7 @@ open class OpenActionManager(private val wrapped: ActionManagerEx) : ActionManag
     place: String,
     group: ActionGroup,
     horizontal: Boolean,
-    separatorCreator: Function<String, Component>
+    separatorCreator: Function<in String, out Component>
   ) = wrapped.createActionToolbar(place, group, horizontal, separatorCreator)
   override fun createActionToolbar(
     place: String,
