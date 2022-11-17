@@ -16,9 +16,7 @@
 package com.android.tools.idea.configurations;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
 
-import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -32,12 +30,10 @@ import org.jetbrains.annotations.Nullable;
 public class OrientationMenuActionTest extends AndroidTestCase {
   private static final String FILE_ARROW = " \u2192 ";
   private ConfigurationHolder myConfigurationHolder;
-  private EditorDesignSurface mySurface;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySurface = mock(EditorDesignSurface.class);
     myConfigurationHolder = createConfigurationAndHolder();
   }
 
@@ -45,7 +41,6 @@ public class OrientationMenuActionTest extends AndroidTestCase {
   public void tearDown() throws Exception {
     try {
       myConfigurationHolder = null;
-      mySurface = null;
     }
     finally {
       super.tearDown();
@@ -53,7 +48,7 @@ public class OrientationMenuActionTest extends AndroidTestCase {
   }
 
   public void testAction() {
-    OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, mySurface);
+    OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder);
     action.updateActions(DataContext.EMPTY_CONTEXT);
     AnAction[] actions = action.getChildren(null);
     int index = 0;
@@ -67,7 +62,7 @@ public class OrientationMenuActionTest extends AndroidTestCase {
   public void testActionWithExistingLandscapeVariation() throws Exception {
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-land/layout1.xml");
     waitForResourceRepositoryUpdates();
-    OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, mySurface);
+    OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder);
     action.updateActions(DataContext.EMPTY_CONTEXT);
     AnAction[] actions = action.getChildren(null);
     int index = 0;
@@ -83,7 +78,7 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-land/layout1.xml");
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-sw600dp/layout1.xml");
     waitForResourceRepositoryUpdates();
-    OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, mySurface);
+    OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder);
     action.updateActions(DataContext.EMPTY_CONTEXT);
     AnAction[] actions = action.getChildren(null);
     int index = 0;

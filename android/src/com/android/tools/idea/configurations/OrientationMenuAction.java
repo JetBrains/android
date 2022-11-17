@@ -24,7 +24,6 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -33,24 +32,19 @@ import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class OrientationMenuAction extends DropDownAction {
   private final ConfigurationHolder myRenderContext;
-  private final EditorDesignSurface mySurface;
 
   /**
    * Create a Menu to switch the orientation and UI mode of the preview.
    *
    * @param renderContext The render context to get the configuration
-   * @param surface       The current {@link EditorDesignSurface} where this action is display
-   *                      used to create the variation.
    */
   // TODO The surface is probably no needed, createVariationAction should be able to use the renderContext configuration
-  public OrientationMenuAction(@NotNull ConfigurationHolder renderContext, @Nullable EditorDesignSurface surface) {
+  public OrientationMenuAction(@NotNull ConfigurationHolder renderContext) {
     super("Orientation for Preview", "Orientation for Preview", StudioIcons.LayoutEditor.Toolbar.ROTATE_BUTTON);
     myRenderContext = renderContext;
-    mySurface = surface;
   }
 
   @Override
