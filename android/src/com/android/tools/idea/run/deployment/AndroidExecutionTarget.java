@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.IDevice;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.ExecutionTarget;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
@@ -29,8 +30,17 @@ public abstract class AndroidExecutionTarget extends ExecutionTarget {
   public abstract int getAvailableDeviceCount();
 
   /**
-   * @return the collection of live running devices to run a configuration on, apply changes to, etc
+   * @return the collection of running devices to run a configuration on, apply changes to, etc
    */
+  public @NotNull ListenableFuture<@NotNull Collection<@NotNull IDevice>> getRunningDevicesAsync() {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * @return the collection of live running devices to run a configuration on, apply changes to, etc
+   * @deprecated Use {@link #getRunningDevicesAsync}
+   */
+  @Deprecated
   @NotNull
   public abstract Collection<IDevice> getRunningDevices();
 

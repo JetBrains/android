@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import static com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxAction.DEPLOYS_TO_LOCAL_DEVICE;
-
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.execution.ExecutionTarget;
-import com.intellij.execution.application.ApplicationConfiguration;
-import com.intellij.execution.configurations.LocatableConfigurationBase;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.util.UserDataHolderBase;
 import icons.StudioIcons;
@@ -33,6 +31,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The combo box generates these {@link ExecutionTarget ExecutionTargets.} ExecutionTargets determine the state of the run, debug, and stop
@@ -60,12 +59,33 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
     return (int)deviceStream().count();
   }
 
+  @Override
+  public @NotNull ListenableFuture<@NotNull Collection<@NotNull IDevice>> getRunningDevicesAsync() {
+    var futures = deviceStream()
+      .filter(Device::isConnected)
+      .map(Device::getDdmlibDeviceAsync)
+      .collect(Collectors.toList());
+
+    @SuppressWarnings("UnstableApiUsage")
+    var future = Futures.successfulAsList(futures);
+
+    // noinspection UnstableApiUsage
+    return Futures.transform(future, DeviceAndSnapshotComboBoxExecutionTarget::filterNonNull, MoreExecutors.directExecutor());
+  }
+
+  private static @NotNull Collection<@NotNull IDevice> filterNonNull(@NotNull Collection<@Nullable IDevice> devices) {
+    return devices.stream()
+      .filter(Objects::nonNull)
+      .collect(Collectors.toList());
+  }
+
   @NotNull
   @Override
   public Collection<IDevice> getRunningDevices() {
     return deviceStream()
-      .map(Device::getDdmlibDevice)
-      .filter(Objects::nonNull)
+      .filter(Device::isConnected)
+      .map(Device::getDdmlibDeviceAsync)
+      .map(Futures::getUnchecked)
       .collect(Collectors.toList());
   }
 
@@ -118,7 +138,7 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
     Boolean deploysToLocalDevice = false;
     // This allows BlazeCommandRunConfiguration to run as its DEPLOY_TO_LOCAL_DEVICE is set by BlazeAndroidBinaryRunConfigurationHandler
     if (configuration instanceof UserDataHolderBase) {
-      deploysToLocalDevice = ((UserDataHolderBase)configuration).getUserData(DEPLOYS_TO_LOCAL_DEVICE);
+      deploysToLocalDevice = ((UserDataHolderBase)configuration).getUserData(DeviceAndSnapshotComboBoxAction.DEPLOYS_TO_LOCAL_DEVICE);
     }
     return configuration instanceof AndroidRunConfigurationBase || (deploysToLocalDevice != null && deploysToLocalDevice);
   }
