@@ -120,11 +120,11 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
 
   private fun createStatusCodeCategoryPanel(rule: RuleData): JPanel {
     val statusCodeData = rule.statusCodeRuleData
-
-    val findCodeWarningLabel = createWarningLabel("Status code should be an integer", "findCodeWarningLabel")
-    val newCodeWarningLabel = createWarningLabel("Status code should be an integer", "newCodeWarningLabel")
+    fun validateStatusCode(text: String, isEmptyValid: Boolean) = validateIntegerInput(text, isEmptyValid, 100, 599)
+    val findCodeWarningLabel = createWarningLabel("Status code should be an integer between 100 and 599", "findCodeWarningLabel")
+    val newCodeWarningLabel = createWarningLabel("Status code should be an integer between 100 and 599", "newCodeWarningLabel")
     val newCodeTextField = createTextField(statusCodeData.newCode, "500", "newCodeTextField") {
-      if (isEnabled && !validateIntegerInput(it, false)) {
+      if (isEnabled && !validateStatusCode(it, false)) {
         newCodeWarningLabel.isVisible = true
         statusCodeData.isActive = false
         return@createTextField
@@ -140,7 +140,7 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
 
     val findCodeTextField = createTextField(statusCodeData.findCode, "200", "findCodeTextField") {
       // newCodeTextField is enabled only when the isActiveCheckBox is checked. Use that as a marker to check if empty input is acceptable
-      if(!validateIntegerInput(it, !newCodeTextField.isEnabled)) {
+      if(!validateStatusCode(it, !newCodeTextField.isEnabled)) {
         findCodeWarningLabel.isVisible = true
         statusCodeData.isActive = false
         return@createTextField
@@ -159,8 +159,8 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
       newCodeTextField.isEnabled = isSelected
       addItemListener {
         newCodeTextField.isEnabled = isSelected
-        newCodeWarningLabel.isVisible = isSelected && !validateIntegerInput(newCodeTextField.text, false)
-        findCodeWarningLabel.isVisible = !validateIntegerInput(findCodeTextField.text, !isSelected)
+        newCodeWarningLabel.isVisible = isSelected && !validateStatusCode(newCodeTextField.text, false)
+        findCodeWarningLabel.isVisible = !validateStatusCode(findCodeTextField.text, !isSelected)
         statusCodeData.isActive = isSelected && !newCodeWarningLabel.isVisible && !findCodeWarningLabel.isVisible
       }
     }

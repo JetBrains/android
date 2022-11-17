@@ -939,12 +939,29 @@ class RuleDetailsViewTest {
     findCodeTextField.onFocusLost()
     isActiveCheckBox.doClick()
 
-    assert(findCodeWarningLabel.isVisible)
-
-
+    assertThat(findCodeWarningLabel.isVisible).isTrue()
     tracker.verifyLatestEvent {
       assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
     }
+
+    findCodeTextField.text = "123"
+    findCodeTextField.onFocusLost()
+
+    assertThat(findCodeWarningLabel.isVisible).isFalse()
+    tracker.verifyLatestEvent {
+      assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
+    }
+
+    findCodeTextField.text = "-123"
+    findCodeTextField.onFocusLost()
+    assertThat(findCodeWarningLabel.isVisible).isTrue()
+
+    findCodeTextField.text = "123"
+    findCodeTextField.onFocusLost()
+
+    findCodeTextField.text = "12345"
+    findCodeTextField.onFocusLost()
+    assertThat(findCodeWarningLabel.isVisible).isTrue()
   }
 
 
