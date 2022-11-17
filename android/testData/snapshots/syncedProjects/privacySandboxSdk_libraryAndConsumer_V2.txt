@@ -657,6 +657,8 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
             VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.annotation:annotation-experimental:1.1.0@aar [=]
@@ -870,6 +872,7 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
             VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified [=]
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4@aar [=]
         LIBRARY                       : Gradle: androidx.annotation:annotation-experimental:1.1.0@aar [=]
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.3.0 [=]
@@ -1022,6 +1025,8 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
             VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.annotation:annotation-experimental:1.1.0@aar [=]
@@ -1215,6 +1220,8 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
             VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.annotation:annotation-experimental:1.1.0@aar [=]
@@ -1428,6 +1435,7 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
             VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified [=]
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4@aar [=]
         LIBRARY                       : Gradle: androidx.annotation:annotation-experimental:1.1.0@aar [=]
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.3.0 [=]
@@ -1580,6 +1588,8 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
             VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.annotation:annotation-experimental:1.1.0@aar [=]
@@ -2228,6 +2238,8 @@ PROJECT                       : project
         ModuleName                    : project.app-with-dynamic-feature.main
         Module                        : project.app-with-dynamic-feature.main
     LIBRARY_TABLE
+        LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified
+            *CLASSES                      : jar://<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar!/ [-]
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.4/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.4/jars/classes.jar!/

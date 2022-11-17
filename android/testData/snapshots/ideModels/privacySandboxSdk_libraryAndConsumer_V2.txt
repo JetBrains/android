@@ -1827,6 +1827,10 @@ MODULE                        : project.app
                                 resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/R.txt
+                        - javaLibraries               : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified (IdeJavaLibraryDependencyImpl)
+                            target                        : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified (IdeJavaLibraryImpl)
+                                artifact                      : <ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar [-]
+                                artifactAddress               : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified@jar
                         - javaLibraries               : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryDependencyImpl)
                             target                        : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryDependencyImpl)
@@ -2013,6 +2017,8 @@ MODULE                        : project.app
                             target                        : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified (IdeJavaLibraryDependencyImpl)
+                            target                        : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryDependencyImpl)
                             target                        : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryDependencyImpl)
@@ -2258,6 +2264,8 @@ MODULE                        : project.app
                             target                        : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified (IdeJavaLibraryDependencyImpl)
+                            target                        : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryDependencyImpl)
                             target                        : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryDependencyImpl)
@@ -2338,6 +2346,7 @@ MODULE                        : project.app
                         - javaLibraries               : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryDependencyImpl)
                             target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
                 ProvidedDependencies
+                    - provided                    : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified
                     - provided                    : androidx.activity:activity:1.2.4@aar
                     - provided                    : androidx.annotation:annotation-experimental:1.1.0@aar
                     - provided                    : androidx.appcompat:appcompat-resources:1.4.1@aar
@@ -2444,6 +2453,8 @@ MODULE                        : project.app
                             target                        : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified (IdeJavaLibraryDependencyImpl)
+                            target                        : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryDependencyImpl)
                             target                        : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryDependencyImpl)
@@ -2531,6 +2542,8 @@ MODULE                        : project.app
                             target                        : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified (IdeJavaLibraryDependencyImpl)
+                            target                        : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryDependencyImpl)
                             target                        : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryDependencyImpl)
@@ -3096,6 +3109,8 @@ MODULE                        : project.app-with-dynamic-feature
                             target                        : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified (IdeJavaLibraryDependencyImpl)
+                            target                        : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryDependencyImpl)
                             target                        : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryDependencyImpl)
@@ -3179,6 +3194,8 @@ MODULE                        : project.app-with-dynamic-feature
                             target                        : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified (IdeJavaLibraryDependencyImpl)
+                            target                        : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryDependencyImpl)
                             target                        : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryDependencyImpl)
@@ -3306,6 +3323,8 @@ MODULE                        : project.app-with-dynamic-feature
                             target                        : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified (IdeJavaLibraryDependencyImpl)
+                            target                        : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryDependencyImpl)
                             target                        : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryDependencyImpl)
@@ -3380,6 +3399,7 @@ MODULE                        : project.app-with-dynamic-feature
                         - javaLibraries               : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryDependencyImpl)
                             target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
                 ProvidedDependencies
+                    - provided                    : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified
                     - provided                    : androidx.activity:activity:1.2.4@aar
                     - provided                    : androidx.annotation:annotation-experimental:1.1.0@aar
                     - provided                    : androidx.appcompat:appcompat-resources:1.4.1@aar
@@ -3483,6 +3503,8 @@ MODULE                        : project.app-with-dynamic-feature
                             target                        : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified (IdeJavaLibraryDependencyImpl)
+                            target                        : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryDependencyImpl)
                             target                        : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryDependencyImpl)
@@ -3568,6 +3590,8 @@ MODULE                        : project.app-with-dynamic-feature
                             target                        : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified (IdeJavaLibraryDependencyImpl)
+                            target                        : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryDependencyImpl)
                             target                        : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryDependencyImpl)
