@@ -80,7 +80,6 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
   val detailsPanel = JBPanel<JBPanel<*>>().apply {
     layout = VerticalLayout(0, SwingConstants.LEFT)
     border = JBUI.Borders.empty(20)
-    myListeners.listen(this@UpgradeAssistantView.model.uiState) { refreshDetailsPanel() }
   }
 
   val tree: CheckboxTree = CheckboxTree(UpgradeAssistantTreeCellRenderer(), null)
@@ -258,6 +257,10 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
   }
 
   init {
+    myListeners.listen(model.uiRefreshNotificationTimestamp) {
+      tree.repaint()
+      refreshDetailsPanel()
+    }
     model.treeModel.addTreeModelListener(object : TreeModelAdapter() {
       override fun treeStructureChanged(event: TreeModelEvent?) {
         // Tree expansion should not run in 'treeStructureChanged' as another listener clears the nodes expanded state
@@ -416,6 +419,9 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
             comboPanel.add(this)
             detailsPanel.add(comboPanel)
           }
+        }
+        if (selectedStep is UpgradeAssistantWindowModel.StepUiWithUserSelection) {
+          detailsPanel.add(selectedStep.createUiSelector())
         }
       }
       selectedStep == null && uiState.showTree -> {

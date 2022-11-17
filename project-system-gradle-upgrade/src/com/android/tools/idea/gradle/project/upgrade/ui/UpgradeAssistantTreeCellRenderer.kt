@@ -65,7 +65,7 @@ class UpgradeAssistantTreeCellRenderer : CheckboxTree.CheckboxTreeCellRenderer(t
             textRenderer.isIconOnTheRight = true
             textRenderer.iconTextGap = 10
           }
-          else if (o is UpgradeAssistantWindowModel.StepUiWithComboSelectorPresentation) {
+          else if (o is UpgradeAssistantWindowModel.StepUiWithComboSelectorPresentation || o is UpgradeAssistantWindowModel.StepUiWithUserSelection) {
             textRenderer.icon = AllIcons.Actions.Edit
             textRenderer.isIconOnTheRight = true
             textRenderer.iconTextGap = 10

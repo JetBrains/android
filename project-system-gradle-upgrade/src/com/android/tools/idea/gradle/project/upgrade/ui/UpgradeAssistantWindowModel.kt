@@ -63,6 +63,7 @@ import com.intellij.util.ui.UIUtil
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
 import javax.swing.Icon
+import javax.swing.JComponent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 
@@ -87,6 +88,7 @@ class UpgradeAssistantWindowModel(
   var beforeUpgradeFilesStateLabel: Label? = null
 
   val uiState = ObjectValueProperty<UIState>(UIState.Loading)
+  val uiRefreshNotificationTimestamp = ObjectValueProperty<Long>(0L)
 
   enum class Severity(val icon: Icon) {
     ERROR(AllIcons.General.Error),
@@ -286,13 +288,7 @@ class UpgradeAssistantWindowModel(
         }
         AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT -> findNecessityNode(AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT)?.let { it.isEnabled = !anyChildrenChecked(parentNode) }
       }
-      processorsForCheckedPresentations().let { processors ->
-        when {
-          processors.isEmpty() -> uiState.set(UIState.NoStepsSelected)
-          processors.any { it.isBlocked } -> uiState.set(UIState.Blocked)
-          else -> uiState.set(UIState.ReadyToRun)
-        }
-      }
+      recheckBlockageState()
     }
   }
 
@@ -493,6 +489,20 @@ class UpgradeAssistantWindowModel(
       .map { it.processor }
   } ?: listOf()
 
+  fun recheckBlockageState() {
+    processorsForCheckedPresentations().let { processors ->
+      when {
+        processors.isEmpty() -> uiState.set(UIState.NoStepsSelected)
+        processors.any { it.isBlocked } -> uiState.set(UIState.Blocked)
+        else -> uiState.set(UIState.ReadyToRun)
+      }
+    }
+  }
+
+  fun notifyUiNeedsToRefresh() {
+    uiRefreshNotificationTimestamp.set(System.currentTimeMillis())
+  }
+
   fun runUpgrade(showPreview: Boolean) = processor?.let { processor ->
     if (!showPreview) uiState.set(UIState.RunningUpgrade)
     processor.componentRefactoringProcessors.forEach { it.isEnabled = false }
@@ -548,6 +558,10 @@ class UpgradeAssistantWindowModel(
       get() = null
     val isBlocked: Boolean
     val blockReasons: List<AgpUpgradeComponentRefactoringProcessor.BlockReason>
+  }
+
+  interface StepUiWithUserSelection {
+    fun createUiSelector(): JComponent
   }
 
   interface StepUiWithComboSelectorPresentation {
