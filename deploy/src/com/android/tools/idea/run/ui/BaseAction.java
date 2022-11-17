@@ -22,7 +22,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.deployable.Deployable;
 import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.android.tools.idea.run.deployable.SwappableProcessHandler;
-import com.android.tools.idea.run.ui.BaseAction.DisableMessage.DisableMode;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.run.util.SwapInfo.SwapType;
 import com.android.tools.idea.util.CommonAndroidUtil;
@@ -168,88 +167,88 @@ public abstract class BaseAction extends AnAction {
 
   protected void disableAction(@NotNull Presentation presentation, @NotNull DisableMessage disableMessage) {
     if (!presentation.isVisible()) return;
-    presentation.setVisible(disableMessage.myDisableMode != DisableMode.INVISIBLE);
+    presentation.setVisible(disableMessage.myDisableMode != DisableMessage.DisableMode.INVISIBLE);
     presentation.setEnabled(false);
     presentation.setText(String.format("%s (disabled: %s)", myName, disableMessage.myTooltip));
     presentation.setDescription(String.format("%s is disabled for this device because %s.", myName, disableMessage.myDescription));
   }
 
-  // TODO Return ListenableFuture<DisableMessage>
   @Nullable
   public static DisableMessage getDisableMessage(@NotNull Project project) {
     RunnerAndConfigurationSettings configSettings = RunManager.getInstance(project).getSelectedConfiguration();
     if (configSettings == null) {
-      return new DisableMessage(DisableMode.DISABLED, "no configuration selected", "there is no configuration selected");
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "no configuration selected", "there is no configuration selected");
     }
 
     RunConfiguration selectedRunConfig = configSettings.getConfiguration();
     ExecutionTarget selectedExecutionTarget = ExecutionTargetManager.getActiveTarget(project);
     if (!isApplyChangesRelevant(selectedRunConfig)) {
-      return new DisableMessage(DisableMode.INVISIBLE, "unsupported configuration", "the selected configuration is not supported");
+      return new DisableMessage(DisableMessage.DisableMode.INVISIBLE, "unsupported configuration",
+                                "the selected configuration is not supported");
     }
 
     if (!programRunnerAvailable(selectedRunConfig, selectedExecutionTarget)) {
-      return new DisableMessage(DisableMode.DISABLED, "no runner available",
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "no runner available",
                                 "there are no Program Runners available to run the given configuration (perhaps project needs a sync?)");
     }
 
     if (isExecutorStarting(project, selectedRunConfig)) {
-      return new DisableMessage(DisableMode.DISABLED, "building and/or launching",
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "building and/or launching",
                                 "the selected configuration is currently building and/or launching");
     }
 
     DeployableProvider deployableProvider = DeployableProvider.getInstance(project);
     if (deployableProvider == null) {
-      return new DisableMessage(DisableMode.DISABLED, "no deployment provider", "there is no deployment provider specified");
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "no deployment provider",
+                                "there is no deployment provider specified");
     }
 
     Deployable deployable;
     try {
       deployable = deployableProvider.getDeployable(selectedRunConfig);
       if (deployable == null) {
-        return new DisableMessage(DisableMode.DISABLED, "selected device is invalid", "the selected device is not valid");
+        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "selected device is invalid", "the selected device is not valid");
       }
 
-      var onlineFuture = deployable.isOnline();
-
-      if (!(onlineFuture.isDone() && onlineFuture.get())) {
-        var authorizedFuture = deployable.isAuthorized();
-
-        if (authorizedFuture.isDone() && authorizedFuture.get()) {
-          return new DisableMessage(DisableMode.DISABLED, "device not connected", "the selected device is not connected");
+      if (!deployable.isOnline()) {
+        if (deployable.isUnauthorized()) {
+          return new DisableMessage(DisableMessage.DisableMode.DISABLED, "device not authorized",
+                                    "the selected device is not authorized");
         }
         else {
-          return new DisableMessage(DisableMode.DISABLED, "device not authorized", "the selected device is not authorized");
+          return new DisableMessage(DisableMessage.DisableMode.DISABLED, "device not connected", "the selected device is not connected");
         }
       }
 
       Future<AndroidVersion> versionFuture = deployable.getVersion();
       if (!versionFuture.isDone()) {
         // Don't stall the EDT - if the Future isn't ready, just return false.
-        return new DisableMessage(DisableMode.DISABLED, "unknown device API level", "its API level is currently unknown");
+        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "unknown device API level", "its API level is currently unknown");
       }
 
       if (versionFuture.get().getApiLevel() < MIN_API_VERSION) {
-        return new DisableMessage(DisableMode.DISABLED, "incompatible device API level", "its API level is lower than 26");
+        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "incompatible device API level",
+                                  "its API level is lower than 26");
       }
 
-      var clientsFuture = deployable.searchClientsForPackage();
-
-      if (!clientsFuture.isDone() || clientsFuture.get().isEmpty()) {
-        return new DisableMessage(DisableMode.DISABLED, "app not detected", "the app is not yet running or not debuggable");
+      if (deployable.searchClientsForPackage().isEmpty()) {
+        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "app not detected",
+                                  "the app is not yet running or not debuggable");
       }
     }
     catch (InterruptedException ex) {
       LOG.warn(ex);
-      return new DisableMessage(DisableMode.DISABLED, "update interrupted", "its status update was interrupted");
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "update interrupted", "its status update was interrupted");
     }
     catch (ExecutionException ex) {
       LOG.warn(ex);
-      return new DisableMessage(DisableMode.DISABLED, "unknown device API level", "its API level could not be determined");
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "unknown device API level",
+                                "its API level could not be determined");
     }
     catch (Exception ex) {
       LOG.warn(ex);
-      return new DisableMessage(DisableMode.DISABLED, "unexpected exception", "an unexpected exception was thrown: " + ex);
+      return new DisableMessage(
+        DisableMessage.DisableMode.DISABLED, "unexpected exception", "an unexpected exception was thrown: " + ex);
     }
 
     return null;

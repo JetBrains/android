@@ -17,7 +17,6 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.IDevice.DeviceState;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvisionException;
@@ -25,12 +24,10 @@ import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.deployable.Deployable;
 import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.serviceContainer.NonInjectable;
-import com.intellij.util.concurrency.EdtExecutorService;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Future;
@@ -117,40 +114,32 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
       return myDevice.getAndroidVersion();
     }
 
+    @NotNull
     @Override
-    public @NotNull ListenableFuture<@NotNull List<@NotNull Client>> searchClientsForPackage() {
-      var future = myDevice.getDdmlibDeviceAsync();
-      var executor = EdtExecutorService.getInstance();
-
-      // noinspection UnstableApiUsage
-      return Futures.transform(future, device -> Deployable.searchClientsForPackage(device, myPackageName), executor);
+    public List<Client> searchClientsForPackage() {
+      IDevice iDevice = myDevice.getDdmlibDevice();
+      if (iDevice == null) {
+        return Collections.emptyList();
+      }
+      return Deployable.searchClientsForPackage(iDevice, myPackageName);
     }
 
     @Override
-    public @NotNull ListenableFuture<@NotNull Boolean> isOnline() {
-      // TODO It's probably enough to return myDevice.isConnected(). Which means this doesn't have to be asynchronous after all.
-
-      if (!myDevice.isConnected()) {
-        return Futures.immediateFuture(false);
+    public boolean isOnline() {
+      IDevice iDevice = myDevice.getDdmlibDevice();
+      if (iDevice == null) {
+        return false;
       }
-
-      // noinspection UnstableApiUsage
-      return Futures.transform(myDevice.getDdmlibDeviceAsync(), IDevice::isOnline, EdtExecutorService.getInstance());
+      return iDevice.isOnline();
     }
 
     @Override
-    public @NotNull ListenableFuture<@NotNull Boolean> isAuthorized() {
-      // TODO I think this only makes sense to call for online devices. The exception thrown at Device.java:151 is appropriate. Restructure
-      //  the caller.
-
-      if (!myDevice.isConnected()) {
-        return Futures.immediateFuture(false);
+    public boolean isUnauthorized() {
+      IDevice iDevice = myDevice.getDdmlibDevice();
+      if (iDevice == null) {
+        return false;
       }
-
-      var executor = EdtExecutorService.getInstance();
-
-      // noinspection UnstableApiUsage
-      return Futures.transform(myDevice.getDdmlibDeviceAsync(), device -> !device.getState().equals(DeviceState.UNAUTHORIZED), executor);
+      return iDevice.getState() == IDevice.DeviceState.UNAUTHORIZED;
     }
 
     @Override

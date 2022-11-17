@@ -19,7 +19,6 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.DeploymentApplicationService;
-import com.google.common.util.concurrent.ListenableFuture;
 import java.util.List;
 import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
@@ -31,11 +30,21 @@ public interface Deployable {
   @NotNull
   Future<AndroidVersion> getVersion();
 
-  @NotNull ListenableFuture<@NotNull List<@NotNull Client>> searchClientsForPackage();
+  /**
+   * Returns the {@link Client}s associated with the current project's application that are already running on this {@link Deployable}.
+   */
+  @NotNull
+  List<Client> searchClientsForPackage();
 
-  @NotNull ListenableFuture<@NotNull Boolean> isOnline();
+  /**
+   * @return true if the underlying device is online, or false otherwise.
+   */
+  boolean isOnline();
 
-  @NotNull ListenableFuture<@NotNull Boolean> isAuthorized();
+  /**
+   * @return true if the underlying device is unauthorized, or false otherwise.
+   */
+  boolean isUnauthorized();
 
   @NotNull
   static List<Client> searchClientsForPackage(@NotNull IDevice device, @NotNull String packageName) {
