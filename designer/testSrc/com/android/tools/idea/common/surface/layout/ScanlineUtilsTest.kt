@@ -17,6 +17,7 @@ package com.android.tools.idea.common.surface.layout
 
 import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
+import com.android.tools.idea.uibuilder.surface.layout.getScaledContentSize
 import com.intellij.util.ui.JBInsets
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -28,8 +29,9 @@ class TestPositionableContent(override var x: Int = 0,
                               override var y: Int = 0,
                               val width: Int,
                               val height: Int,
-                              val scale: Double = 1.0,
+                              override val scale: Double = 1.0,
                               override val margin: Insets = JBInsets.emptyInsets()) : PositionableContent {
+
   private val dimension = Dimension(width, height)
 
   override val groupId: String? = null
@@ -41,9 +43,7 @@ class TestPositionableContent(override var x: Int = 0,
     this.y = y
   }
 
-  override fun getContentSize(dimension: Dimension?): Dimension = this.dimension
-
-  override fun getScaledContentSize(dimension: Dimension?): Dimension = getContentSize(dimension).scaleBy(scale)
+  override fun getContentSize(dimension: Dimension?): Dimension = Dimension(this.dimension)
 }
 
 class ScanlineUtilsTest {

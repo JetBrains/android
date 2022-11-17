@@ -24,7 +24,9 @@ import com.android.tools.idea.common.surface.layout.findSmallerScanline
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
+import com.android.tools.idea.uibuilder.surface.layout.getScaledContentSize
 import com.android.tools.idea.uibuilder.surface.layout.horizontal
+import com.android.tools.idea.uibuilder.surface.layout.scaledContentSize
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
@@ -144,6 +146,9 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     override val groupId: String?
       get() = this@SceneViewPeerPanel.sceneView.sceneManager.model.groupId
 
+    override val scale: Double
+      get() = sceneView.scale
+
     override val x: Int get() = sceneView.x
     override val y: Int get() = sceneView.y
     override val isVisible: Boolean get() = sceneView.isVisible
@@ -195,20 +200,6 @@ class SceneViewPeerPanel(val sceneView: SceneView,
           size = cachedContentSize
         } ?: Dimension(cachedContentSize)
       }
-
-    /**
-     * Returns the current size of the view content, excluding margins. This is the same as {@link #getContentSize()} but accounts for the
-     * current zoom level
-     *
-     * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
-     *                  returned.
-     */
-    override fun getScaledContentSize(dimension: Dimension?): Dimension {
-      val outputDimension = dimension ?: Dimension()
-
-      return getContentSize(outputDimension).scaleBy(sceneView.scale)
-    }
-
 
     /**
      * Applies the calculated coordinates from this adapter to the backing SceneView.

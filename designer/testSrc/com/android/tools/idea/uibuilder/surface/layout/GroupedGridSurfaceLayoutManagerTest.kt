@@ -27,7 +27,7 @@ class GroupedGridSurfaceLayoutManagerTest {
 
   @Test
   fun testLayoutSingleGroup() {
-    val manager = GroupedGridSurfaceLayoutManager(0, 0) { contents ->
+    val manager = GroupedGridSurfaceLayoutManager(0, { 0 }) { contents ->
       listOf(contents.toList())
     }
 
@@ -131,7 +131,7 @@ class GroupedGridSurfaceLayoutManagerTest {
 
   @Test
   fun testLayoutDifferentSizeContent() {
-    val manager = GroupedGridSurfaceLayoutManager(0, 0) { contents ->
+    val manager = GroupedGridSurfaceLayoutManager(0, { 0 }) { contents ->
       listOf(contents.toList())
     }
 
@@ -191,7 +191,7 @@ class GroupedGridSurfaceLayoutManagerTest {
 
   @Test
   fun testLayoutMultipleGroups() {
-    val manager = GroupedGridSurfaceLayoutManager(0, 0) { contents ->
+    val manager = GroupedGridSurfaceLayoutManager(0, { 0 }) { contents ->
       listOf(contents.take(3), contents.drop(3))
     }
 
@@ -244,9 +244,7 @@ class GroupedGridSurfaceLayoutManagerTest {
     val canvasTopPadding = 10
     val framePadding = 20
     // single group
-    val manager1 = GroupedGridSurfaceLayoutManager(canvasTopPadding, framePadding) { contents ->
-      listOf(contents.toList())
-    }
+    val manager1 = GroupedGridSurfaceLayoutManager(canvasTopPadding, { framePadding }) { listOf(it.toList()) }
     val contents = listOf(TestPositionableContent(0, 0, 100, 100),
                           TestPositionableContent(0, 0, 100, 100),
                           TestPositionableContent(0, 0, 100, 100),
@@ -267,7 +265,7 @@ class GroupedGridSurfaceLayoutManagerTest {
       assertEquals(580, contents[4].x)
       assertEquals(30, contents[4].y)
       val size = manager1.getPreferredSize(contents, width, 100000, null)
-      assertEquals(Dimension(680, 130), size)
+      assertEquals(Dimension(680, 150), size)
     }
 
     run {
@@ -286,14 +284,11 @@ class GroupedGridSurfaceLayoutManagerTest {
       assertEquals(160, contents[4].x)
       assertEquals(170, contents[4].y)
       val size = manager1.getPreferredSize(contents, width, 100000, null)
-      assertEquals(Dimension(400, 270), size)
+      assertEquals(Dimension(400, 290), size)
     }
 
     // Multiple groups
-    val manager2 = GroupedGridSurfaceLayoutManager(canvasTopPadding, framePadding) { contents ->
-      // 2 groups
-      listOf(contents.take(3), contents.drop(3))
-    }
+    val manager2 = GroupedGridSurfaceLayoutManager(canvasTopPadding, { framePadding }) { listOf(contents.take(3), contents.drop(3)) }
     run {
       // test (3, 2)
       val width = 10000
@@ -310,7 +305,7 @@ class GroupedGridSurfaceLayoutManagerTest {
       assertEquals(160, contents[4].x)
       assertEquals(170, contents[4].y)
       val size = manager2.getPreferredSize(contents, width, 100000, null)
-      assertEquals(Dimension(400, 270), size)
+      assertEquals(Dimension(400, 290), size)
     }
     run {
       // test (2, 1, 2)
@@ -328,14 +323,14 @@ class GroupedGridSurfaceLayoutManagerTest {
       assertEquals(160, contents[4].x)
       assertEquals(310, contents[4].y)
       val size = manager2.getPreferredSize(contents, width, 100000, null)
-      assertEquals(Dimension(260, 410), size)
+      assertEquals(Dimension(260, 430), size)
     }
   }
 
   @Test
   fun testCentralizeSinglePreview() {
     // Single visible preview case. Which the preview should be placed at the center of the window.
-    val manager = GroupedGridSurfaceLayoutManager(10, 20) { contents -> listOf(contents.toList()) }
+    val manager = GroupedGridSurfaceLayoutManager(10, { 20 }) { contents -> listOf(contents.toList()) }
     val contents = listOf(TestPositionableContent(0, 0, 100, 100))
     run {
       manager.layout(contents, 1000, 1000, false)
@@ -346,6 +341,70 @@ class GroupedGridSurfaceLayoutManagerTest {
       manager.layout(contents, 60, 60, false)
       assertEquals(20, contents[0].x)
       assertEquals(20, contents[0].y)
+    }
+  }
+
+  @Test
+  fun testAdaptiveFramePadding() {
+    val canvasTopPadding = 0
+    val framePadding = 50
+    val manager = GroupedGridSurfaceLayoutManager(canvasTopPadding, { (it.scale * framePadding).toInt() }) { contents ->
+      listOf(contents.toList())
+    }
+    val contents = listOf(TestPositionableContent(0, 0, 100, 100, scale = 0.5),
+                          TestPositionableContent(0, 0, 100, 100, scale = 1.0),
+                          TestPositionableContent(0, 0, 100, 100, scale = 1.0),
+                          TestPositionableContent(0, 0, 100, 100, scale = 2.0))
+
+    run {
+      // 3 rows: (2, 1, 1)
+      val width = 300
+      val height = 10000
+      manager.layout(contents, width, height, false)
+      assertEquals(25, contents[0].x)
+      assertEquals(25, contents[0].y)
+      assertEquals(150, contents[1].x)
+      assertEquals(50, contents[1].y)
+      assertEquals(50, contents[2].x)
+      assertEquals(250, contents[2].y)
+      assertEquals(100, contents[3].x)
+      assertEquals(500, contents[3].y)
+      val size = manager.getPreferredSize(contents, width, height, null)
+      assertEquals(Dimension(300, 700), size)
+    }
+
+    run {
+      // 2 rows: (3, 1)
+      val width = 600
+      val height = 10000
+      manager.layout(contents, width, height, false)
+      assertEquals(25, contents[0].x)
+      assertEquals(25, contents[0].y)
+      assertEquals(150, contents[1].x)
+      assertEquals(50, contents[1].y)
+      assertEquals(350, contents[2].x)
+      assertEquals(50, contents[2].y)
+      assertEquals(100, contents[3].x)
+      assertEquals(300, contents[3].y)
+      val size = manager.getPreferredSize(contents, width, height, null)
+      assertEquals(Dimension(500, 500), size)
+    }
+
+    run {
+      // 1 row: (4)
+      val width = 10000
+      val height = 10000
+      manager.layout(contents, width, height, false)
+      assertEquals(25, contents[0].x)
+      assertEquals(25, contents[0].y)
+      assertEquals(150, contents[1].x)
+      assertEquals(50, contents[1].y)
+      assertEquals(350, contents[2].x)
+      assertEquals(50, contents[2].y)
+      assertEquals(600, contents[3].x)
+      assertEquals(100, contents[3].y)
+      val size = manager.getPreferredSize(contents, width, height, null)
+      assertEquals(Dimension(750, 300), size)
     }
   }
 }

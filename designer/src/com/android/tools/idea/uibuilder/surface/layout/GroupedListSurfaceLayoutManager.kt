@@ -24,11 +24,11 @@ import kotlin.math.max
  * It centres every preview in the middle of the window.
  *
  * [canvasTopPadding] is the top padding from the surface.
- * [previewFramePadding] is the horizontal and vertical paddings of every "preview frame". The "preview frame" is a preview with its
- * toolbars.
+ * [previewFramePaddingProvider] is to provide the horizontal and vertical paddings of every "preview frame". The "preview frame" is a
+ * preview with its toolbars. The input value is the scale value of the current [PositionableContent].
  */
 class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadding: Int,
-                                      @SwingCoordinate private val previewFramePadding: Int,
+                                      @SwingCoordinate private val previewFramePaddingProvider: (content: PositionableContent) -> Int,
                                       private val transform: (Collection<PositionableContent>) -> List<List<PositionableContent>>)
   : SurfaceLayoutManager {
 
@@ -61,7 +61,8 @@ class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
 
     for (view in verticalList) {
       val viewWidth = view.sizeFunc().width + view.margin.horizontal
-      val requiredHeight = previewFramePadding + view.sizeFunc().height + view.margin.vertical + previewFramePadding
+      val framePadding = previewFramePaddingProvider(view)
+      val requiredHeight = framePadding + view.sizeFunc().height + view.margin.vertical + framePadding
 
       requiredWidth = maxOf(requiredWidth, viewWidth)
       totalRequiredHeight += requiredHeight
@@ -80,11 +81,16 @@ class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
       return
     }
 
-
     val widthMap =
-      verticalList.associateWith { previewFramePadding + it.scaledContentSize.width + it.margin.horizontal + previewFramePadding }
+      verticalList.associateWith {
+        val framePadding = previewFramePaddingProvider(it)
+        framePadding + it.scaledContentSize.width + it.margin.horizontal + framePadding
+      }
     val heightMap =
-      verticalList.associateWith { previewFramePadding + it.scaledContentSize.height + it.margin.vertical + previewFramePadding }
+      verticalList.associateWith {
+        val framePadding = previewFramePaddingProvider(it)
+        framePadding + it.scaledContentSize.height + it.margin.vertical + framePadding
+      }
 
     val maxWidth = widthMap.values.maxOrNull() ?: 0
     val centerX: Int = maxOf(maxWidth, availableWidth) / 2
@@ -97,7 +103,8 @@ class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
     for (view in verticalList) {
       val width = widthMap[view]!!
       val locationX = centerX - (width / 2)
-      setContentPosition(view, locationX, nextY + previewFramePadding)
+      val framePadding = previewFramePaddingProvider(view)
+      setContentPosition(view, locationX + framePadding, nextY + framePadding)
       nextY += heightMap[view]!!
     }
 

@@ -40,6 +40,20 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
 
+private val PREVIEW_FRAME_PADDING_PROVIDER: (PositionableContent) -> Int = { content ->
+  val scale = content.scale
+  // Minimum 5 at 20% and maximum 20 at 100%, responsive.
+  val min = 5
+  val max = 20
+
+  when {
+    scale <= 0.2 -> min
+    scale >= 1.0 -> max
+    else ->
+      min + ((max - min) / (1 - 0.2)) * (scale - 0.2) // find interpolated value between min and max
+  }.toInt()
+}
+
 private val NO_GROUP_TRANSFORM:
   (Collection<PositionableContent>) -> List<List<PositionableContent>> =
   {
@@ -90,12 +104,12 @@ internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
       listOf(
         SurfaceLayoutManagerOption(
           "Group List Layout (By Group Name)",
-          GroupedListSurfaceLayoutManager(5, 20, NO_GROUP_TRANSFORM),
+          GroupedListSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
           DesignSurface.SceneViewAlignment.LEFT
         ),
         SurfaceLayoutManagerOption(
           "Group Grid Layout (By Group name)",
-          GroupedGridSurfaceLayoutManager(5, 20, NO_GROUP_TRANSFORM),
+          GroupedGridSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
           DesignSurface.SceneViewAlignment.LEFT
         ),
       )

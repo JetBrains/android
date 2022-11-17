@@ -24,7 +24,7 @@ class GroupedListSurfaceLayoutManagerTest {
 
   @Test
   fun testLayoutVertically() {
-    val manager = GroupedListSurfaceLayoutManager(0, 0) { contents ->
+    val manager = GroupedListSurfaceLayoutManager(0,  { 0 }) { contents ->
       listOf(contents.toList())
     }
     val contents = listOf(TestPositionableContent(0, 0, 100, 100),
@@ -47,7 +47,7 @@ class GroupedListSurfaceLayoutManagerTest {
       assertEquals(300, contents[3].y)
       assertEquals(450, contents[4].x)
       assertEquals(400, contents[4].y)
-      val size = manager.getPreferredSize(contents, width, 100000, null)
+      val size = manager.getRequiredSize(contents, width, 100000, null)
       assertEquals(Dimension(100, 500), size)
     }
 
@@ -65,7 +65,7 @@ class GroupedListSurfaceLayoutManagerTest {
       assertEquals(550, contents[3].y)
       assertEquals(450, contents[4].x)
       assertEquals(650, contents[4].y)
-      val size = manager.getPreferredSize(contents, width, 100000, null)
+      val size = manager.getRequiredSize(contents, width, 100000, null)
       assertEquals(Dimension(100, 500), size)
     }
 
@@ -83,7 +83,7 @@ class GroupedListSurfaceLayoutManagerTest {
       assertEquals(300, contents[3].y)
       assertEquals(0, contents[4].x)
       assertEquals(400, contents[4].y)
-      val size = manager.getPreferredSize(contents, width, 100000, null)
+      val size = manager.getRequiredSize(contents, width, 100000, null)
       assertEquals(Dimension(100, 500), size)
     }
 
@@ -101,14 +101,14 @@ class GroupedListSurfaceLayoutManagerTest {
       assertEquals(550, contents[3].y)
       assertEquals(0, contents[4].x)
       assertEquals(650, contents[4].y)
-      val size = manager.getPreferredSize(contents, width, height, null)
+      val size = manager.getRequiredSize(contents, width, height, null)
       assertEquals(Dimension(100, 500), size)
     }
   }
 
   @Test
   fun testLayoutMultipleContentSizes() {
-    val manager = GroupedListSurfaceLayoutManager(0, 0) { contents ->
+    val manager = GroupedListSurfaceLayoutManager(0, { 0 }) { contents ->
       listOf(contents.take(3), contents.drop(3))
     }
     val contents = listOf(TestPositionableContent(0, 0, 100, 100),
@@ -131,7 +131,7 @@ class GroupedListSurfaceLayoutManagerTest {
       assertEquals(400, contents[3].y)
       assertEquals(400, contents[4].x)
       assertEquals(500, contents[4].y)
-      val size = manager.getPreferredSize(contents, width, height, null)
+      val size = manager.getRequiredSize(contents, width, height, null)
       assertEquals(Dimension(400, 700), size)
     }
 
@@ -149,7 +149,7 @@ class GroupedListSurfaceLayoutManagerTest {
       assertEquals(550, contents[3].y)
       assertEquals(400, contents[4].x)
       assertEquals(650, contents[4].y)
-      val size = manager.getPreferredSize(contents, width, height, null)
+      val size = manager.getRequiredSize(contents, width, height, null)
       assertEquals(Dimension(400, 700), size)
     }
 
@@ -167,7 +167,7 @@ class GroupedListSurfaceLayoutManagerTest {
       assertEquals(400, contents[3].y)
       assertEquals(100, contents[4].x)
       assertEquals(500, contents[4].y)
-      val size = manager.getPreferredSize(contents, width, height, null)
+      val size = manager.getRequiredSize(contents, width, height, null)
       assertEquals(Dimension(400, 700), size)
     }
 
@@ -185,7 +185,7 @@ class GroupedListSurfaceLayoutManagerTest {
       assertEquals(550, contents[3].y)
       assertEquals(100, contents[4].x)
       assertEquals(650, contents[4].y)
-      val size = manager.getPreferredSize(contents, width, height, null)
+      val size = manager.getRequiredSize(contents, width, height, null)
       assertEquals(Dimension(400, 700), size)
     }
   }
@@ -195,7 +195,7 @@ class GroupedListSurfaceLayoutManagerTest {
   fun testPaddingAndMargin() {
     val canvasTopPadding = 10
     val framePadding = 20
-    val manager = GroupedListSurfaceLayoutManager(canvasTopPadding, framePadding) { contents ->
+    val manager = GroupedListSurfaceLayoutManager(canvasTopPadding, { framePadding }) { contents ->
       listOf(contents.toList())
     }
     val contents = listOf(TestPositionableContent(0, 0, 100, 100),
@@ -208,17 +208,17 @@ class GroupedListSurfaceLayoutManagerTest {
       val width = 1000
       val height = 300
       manager.layout(contents, width, height, false)
-      assertEquals(430, contents[0].x)
+      assertEquals(450, contents[0].x)
       assertEquals(30, contents[0].y)
-      assertEquals(430, contents[1].x)
+      assertEquals(450, contents[1].x)
       assertEquals(170, contents[1].y)
-      assertEquals(430, contents[2].x)
+      assertEquals(450, contents[2].x)
       assertEquals(310, contents[2].y)
-      assertEquals(430, contents[3].x)
+      assertEquals(450, contents[3].x)
       assertEquals(450, contents[3].y)
-      assertEquals(430, contents[4].x)
+      assertEquals(450, contents[4].x)
       assertEquals(590, contents[4].y)
-      val size = manager.getPreferredSize(contents, width, height, null)
+      val size = manager.getRequiredSize(contents, width, height, null)
       assertEquals(Dimension(100, 710), size)
     }
 
@@ -226,17 +226,17 @@ class GroupedListSurfaceLayoutManagerTest {
       val width = 1000
       val height = 1000
       manager.layout(contents, width, height, false)
-      assertEquals(430, contents[0].x)
+      assertEquals(450, contents[0].x)
       assertEquals(170, contents[0].y)
-      assertEquals(430, contents[1].x)
+      assertEquals(450, contents[1].x)
       assertEquals(310, contents[1].y)
-      assertEquals(430, contents[2].x)
+      assertEquals(450, contents[2].x)
       assertEquals(450, contents[2].y)
-      assertEquals(430, contents[3].x)
+      assertEquals(450, contents[3].x)
       assertEquals(590, contents[3].y)
-      assertEquals(430, contents[4].x)
+      assertEquals(450, contents[4].x)
       assertEquals(730, contents[4].y)
-      val size = manager.getPreferredSize(contents, width, height, null)
+      val size = manager.getRequiredSize(contents, width, height, null)
       assertEquals(Dimension(100, 710), size)
     }
 
@@ -244,17 +244,17 @@ class GroupedListSurfaceLayoutManagerTest {
       val width = 80
       val height = 300
       manager.layout(contents, width, height, false)
-      assertEquals(0, contents[0].x)
+      assertEquals(20, contents[0].x)
       assertEquals(30, contents[0].y)
-      assertEquals(0, contents[1].x)
+      assertEquals(20, contents[1].x)
       assertEquals(170, contents[1].y)
-      assertEquals(0, contents[2].x)
+      assertEquals(20, contents[2].x)
       assertEquals(310, contents[2].y)
-      assertEquals(0, contents[3].x)
+      assertEquals(20, contents[3].x)
       assertEquals(450, contents[3].y)
-      assertEquals(0, contents[4].x)
+      assertEquals(20, contents[4].x)
       assertEquals(590, contents[4].y)
-      val size = manager.getPreferredSize(contents, width, height, null)
+      val size = manager.getRequiredSize(contents, width, height, null)
       assertEquals(Dimension(100, 710), size)
     }
 
@@ -262,18 +262,44 @@ class GroupedListSurfaceLayoutManagerTest {
       val width = 80
       val height = 1000
       manager.layout(contents, width, height, false)
-      assertEquals(0, contents[0].x)
+      assertEquals(20, contents[0].x)
       assertEquals(170, contents[0].y)
-      assertEquals(0, contents[1].x)
+      assertEquals(20, contents[1].x)
       assertEquals(310, contents[1].y)
-      assertEquals(0, contents[2].x)
+      assertEquals(20, contents[2].x)
       assertEquals(450, contents[2].y)
-      assertEquals(0, contents[3].x)
+      assertEquals(20, contents[3].x)
       assertEquals(590, contents[3].y)
-      assertEquals(0, contents[4].x)
+      assertEquals(20, contents[4].x)
       assertEquals(730, contents[4].y)
-      val size = manager.getPreferredSize(contents, width, height, null)
+      val size = manager.getRequiredSize(contents, width, height, null)
       assertEquals(Dimension(100, 710), size)
     }
+  }
+
+  @Test
+  fun testAdaptiveFramePadding() {
+    val framePadding = 50
+    val manager = GroupedListSurfaceLayoutManager(0, { (it.scale * framePadding).toInt() }) { contents ->
+      listOf(contents.toList())
+    }
+    val contents = listOf(TestPositionableContent(0, 0, 100, 100, scale = 0.5),
+                          TestPositionableContent(0, 0, 100, 100, scale = 1.0),
+                          TestPositionableContent(0, 0, 100, 100, scale = 1.0),
+                          TestPositionableContent(0, 0, 100, 100, scale = 2.0))
+
+    val width = 500
+    val height = 500
+    manager.layout(contents, width, height, false)
+    assertEquals(225, contents[0].x)
+    assertEquals(25, contents[0].y)
+    assertEquals(200, contents[1].x)
+    assertEquals(150, contents[1].y)
+    assertEquals(200, contents[2].x)
+    assertEquals(350, contents[2].y)
+    assertEquals(150, contents[3].x)
+    assertEquals(600, contents[3].y)
+    val size = manager.getRequiredSize(contents, width, height, null)
+    assertEquals(Dimension(200, 900), size)
   }
 }

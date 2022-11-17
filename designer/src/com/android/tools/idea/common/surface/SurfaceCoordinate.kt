@@ -20,7 +20,8 @@ package com.android.tools.idea.common.surface
  * For example, when zoom level is 50% and ScreenScalingFactor is 2, this value is 50% / 2 = 25%
  */
 @Retention(AnnotationRetention.SOURCE)
-@Target(AnnotationTarget.FIELD, AnnotationTarget.FUNCTION, AnnotationTarget.LOCAL_VARIABLE, AnnotationTarget.VALUE_PARAMETER)
+@Target(AnnotationTarget.FIELD, AnnotationTarget.FUNCTION, AnnotationTarget.LOCAL_VARIABLE, AnnotationTarget.VALUE_PARAMETER,
+        AnnotationTarget.PROPERTY)
 internal annotation class SurfaceScale
 
 /**
