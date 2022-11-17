@@ -31,11 +31,13 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.AppInspectionTarget
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_INSPECTION_NOT_AVAILABLE_KEY
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_JAR_FOUND_FOUND_KEY
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_MAY_CAUSE_APP_CRASH_KEY
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient.Companion.resolveFolder
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.INCOMPATIBLE_LIBRARY_MESSAGE_KEY
@@ -110,7 +112,7 @@ class ComposeLayoutInspectorClientTest {
     whenever(apiServices.launchInspector(any())).thenReturn(messenger)
     val target = mock<AppInspectionTarget>()
     whenever(messenger.sendRawCommand(any())).thenReturn(UnknownCommandResponse.getDefaultInstance().toByteArray())
-    whenever(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatbilityInfo(mock(), mock(), "1", "")))
+    whenever(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatbilityInfo(mock(), mock(), "1.3.0", "")))
     whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
 
     checkLaunch(apiServices, "", AttachErrorCode.UNKNOWN_ERROR_CODE, expectClient = true)
@@ -266,6 +268,37 @@ class ComposeLayoutInspectorClientTest {
   }
 
   @Test
+  fun inspectorVersionWarning() = runBlocking {
+    val target = mock<AppInspectionTarget>()
+    whenever(target.getLibraryVersions(any()))
+      .thenReturn(comp("1.1.0-beta05"))
+      .thenReturn(comp("1.2.1"))
+      .thenReturn(comp("1.2.0"))
+      .thenReturn(comp("1.3.0"))
+      .thenReturn(comp("1.3.0-alpha01"))
+    val messenger = mock<AppInspectorMessenger>()
+    whenever(messenger.sendRawCommand(any())).thenReturn(UnknownCommandResponse.getDefaultInstance().toByteArray())
+    val apiServices = mock<AppInspectionApiServices>()
+    whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
+    whenever(apiServices.launchInspector(any())).thenReturn(messenger)
+    val artifactService = mock<InspectorArtifactService>()
+    whenever(artifactService.getOrResolveInspectorArtifact(any(), any())).thenReturn(Paths.get("/foo/bar"))
+    ApplicationManager.getApplication().registerServiceInstance(InspectorArtifactService::class.java, artifactService)
+    projectRule.mockProjectService(GradleProjectInfo::class.java)
+    whenever(GradleProjectInfo.getInstance(projectRule.project).isBuildWithGradle).thenReturn(true)
+
+    checkLaunch(apiServices, LayoutInspectorBundle.message(COMPOSE_MAY_CAUSE_APP_CRASH_KEY, "1.1.0-beta05", "1.2.1"), expectClient = true)
+    checkLaunch(apiServices, "", expectClient = true)
+    checkLaunch(apiServices, LayoutInspectorBundle.message(COMPOSE_MAY_CAUSE_APP_CRASH_KEY, "1.2.0", "1.2.1"), expectClient = true)
+    checkLaunch(apiServices, "", expectClient = true)
+    checkLaunch(apiServices, LayoutInspectorBundle.message(COMPOSE_MAY_CAUSE_APP_CRASH_KEY, "1.3.0-alpha01", "1.3.0"), expectClient = true)
+  }
+
+  private fun comp(version: String): List<LibraryCompatbilityInfo> =
+    listOf(LibraryCompatbilityInfo(MINIMUM_COMPOSE_COORDINATE, LibraryCompatbilityInfo.Status.COMPATIBLE, version, ""))
+
+
+  @Test
   fun testResolveFolder() {
     assertThat(resolveFolder("/Volumes/android/studio-main/tools/adt/idea", "#tools/../prebuilts/studio/sdk"))
       .isEqualTo("../../../prebuilts/studio/sdk".replace("/", File.separator))
@@ -290,7 +323,7 @@ class ComposeLayoutInspectorClientTest {
   private suspend fun checkLaunch(
     apiServices: AppInspectionApiServices,
     expectedMessage: String,
-    expectedError: AttachErrorCode,
+    expectedError: AttachErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE,
     expectClient: Boolean = false,
     isRunningFromSources: Boolean = true
   ) {

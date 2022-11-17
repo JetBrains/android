@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
-import com.android.tools.idea.analytics.IdeBrandProvider
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.analytics.currentIdeBrand
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.checkVersion
@@ -91,6 +91,9 @@ const val INSPECTOR_NOT_FOUND_USE_SNAPSHOT_KEY = "inspector.not.found.use.snapsh
 
 @VisibleForTesting
 const val COMPOSE_INSPECTION_NOT_AVAILABLE_KEY = "compose.inspection.not.available"
+
+@VisibleForTesting
+const val COMPOSE_MAY_CAUSE_APP_CRASH_KEY = "compose.inspection.may.cause.app.crash"
 
 @VisibleForTesting
 const val MAVEN_DOWNLOAD_PROBLEM = "maven.download.problem"
@@ -171,6 +174,9 @@ class ComposeLayoutInspectorClient(
                                                      MINIMUM_COMPOSE_COORDINATE.artifactId, listOf(EXPECTED_CLASS_IN_COMPOSE_LIBRARY))
         val version = compatibility?.version?.takeIf { it.isNotBlank() }
                       ?: return handleError(project, logErrorToMetrics, isRunningFromSourcesInTests, compatibility?.status.errorCode)
+
+        checkComposeVersion(project, version)
+
         try {
           InspectorArtifactService.instance.getOrResolveInspectorJar(project, MINIMUM_COMPOSE_COORDINATE.copy(version = version))
         }
@@ -280,6 +286,23 @@ class ComposeLayoutInspectorClient(
       banner.setNotification(message, actions)
       logErrorToMetrics(error.code)
       return null
+    }
+
+    /**
+     * Check for problems with the specified compose version.
+     * @return false if the compose inspector should not be started for this version.
+     */
+    private fun checkComposeVersion(project: Project, versionString: String) {
+      val version = GradleVersion.tryParse(versionString) ?: return
+      // b/237987764 App crash while fetching parameters with empty lambda was fixed in 1.3.0-alpha03 and in 1.2.1
+      // b/235526153 App crash while fetching component tree with certain Borders was fixed in 1.3.0-alpha03 and in 1.2.1
+      if (version.isAtLeast(1, 3, 0, "alpha", 3, false) || (version.minor == 2 && version.isAtLeast(1, 2, 1))) return
+      val versionUpgrade = if (version.minor == 3) "1.3.0" else "1.2.1"
+      val banner = InspectorBannerService.getInstance(project) ?: return
+      banner.setNotification(LayoutInspectorBundle.message(COMPOSE_MAY_CAUSE_APP_CRASH_KEY, versionString, versionUpgrade))
+      // Allow the user to connect and inspect compose elements because:
+      // - b/235526153 is uncommon
+      // - b/237987764 only happens if the kotlin compiler version is at least 1.6.20 (which we cannot reliably detect)
     }
 
     /**
