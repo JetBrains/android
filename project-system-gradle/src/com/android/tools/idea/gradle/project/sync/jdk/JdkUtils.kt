@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.jdk
 
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.sdk.Jdks
 import com.android.tools.idea.sdk.extensions.isEqualTo
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
@@ -25,19 +26,36 @@ import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.ex.JavaSdkUtil
 import com.intellij.openapi.roots.ProjectRootManager
+import com.jetbrains.rd.util.firstOrNull
+import org.jetbrains.plugins.gradle.settings.GradleSettings
+import kotlin.io.path.Path
 
 private val LOG = Logger.getInstance(JdkUtils::class.java)
 
 object JdkUtils {
 
   /**
-   * Obtain the project gradle JVM path used to configure gradle sync daemon
+   * Obtain the path with max version JDK from [GradleSettings.getLinkedProjectsSettings] taking in
+   * consideration the different gradle project roots and return first sorting by suggested name
+   * that combines the provider and version i.e: jbr-17
    * @param project one of the projects currently open in the IDE.
-   * @return the jdk absolute path in case is possible to obtain it
+   * @return jdk path if was possible to obtain
    */
-  fun getProjectGradleJvmPath(project: Project): String? {
-    val projectPath = project.basePath ?: return null
-    return AndroidStudioGradleInstallationManager.getInstance().getGradleJvmPath(project, projectPath)
+  fun getMaxVersionJdkPathFromAllGradleRoots(project: Project): String? {
+    val maxVersionJdkPaths = GradleSettings.getInstance(project).linkedProjectsSettings
+      .mapNotNull { AndroidStudioGradleInstallationManager.getInstance().getGradleJvmPath(project, it.externalProjectPath) }
+      .groupBy { Jdks.getInstance().findVersion(Path(it)) }
+      .mapValues { it.value.toSet() }
+      .toSortedMap(compareByDescending { it?.ordinal })
+      .firstOrNull()
+      ?.value ?: return null
+
+    return maxVersionJdkPaths
+      .associateBy { JavaSdk.getInstance().suggestSdkName(null, it) }
+      .toSortedMap()
+      .values
+      .toSet()
+      .firstOrNull()
   }
 
   /**

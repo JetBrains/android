@@ -1020,7 +1020,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     }
 
     fun alignProjectJdkWithGradleSyncJdk(project: Project, projectDataNode: DataNode<ProjectData>) {
-      JdkUtils.getProjectGradleJvmPath(project)?.let {
+      JdkUtils.getMaxVersionJdkPathFromAllGradleRoots(project)?.let {
         projectDataNode.createChild(AndroidProjectKeys.PROJECT_JDK_UPDATE, ProjectJdkUpdateData(it))
       }
     }
