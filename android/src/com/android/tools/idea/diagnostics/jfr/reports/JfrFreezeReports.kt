@@ -38,20 +38,21 @@ class JfrFreezeReports {
     private val EMPTY_ANR_STACKTRACE = EXCEPTION_TYPE + ": \n" +
                                        "\tat " + FreezeReport::class.java.name + ".missingEdtStack(Unknown source)"
 
-    val freezeReportManager = JfrReportManager.create(::JfrFreezeReportGenerator, null) {
-      val application = ApplicationManager.getApplication()
-      application.messageBus.connect(application).subscribe(IdePerformanceListener.TOPIC, object : IdePerformanceListener {
-        override fun uiFreezeStarted() {
-          startCapture()
-          (currentReportGenerator as JfrFreezeReportGenerator).edtStackForCrash =
-            ThreadDumper.getEdtStackForCrash(ThreadDumper.dumpThreadsToString(), EXCEPTION_TYPE) ?: EMPTY_ANR_STACKTRACE
-        }
+    fun createFreezeReportManager() =
+      JfrReportManager.create(::JfrFreezeReportGenerator, null) {
+        val application = ApplicationManager.getApplication()
+        application.messageBus.connect(application).subscribe(IdePerformanceListener.TOPIC, object : IdePerformanceListener {
+          override fun uiFreezeStarted() {
+            startCapture()
+            (currentReportGenerator as JfrFreezeReportGenerator).edtStackForCrash =
+              ThreadDumper.getEdtStackForCrash(ThreadDumper.dumpThreadsToString(), EXCEPTION_TYPE) ?: EMPTY_ANR_STACKTRACE
+          }
 
-        override fun uiFreezeFinished(durationMs: Long, reportDir: File?) {
-          stopCapture()
-        }
-      })
-    }
+          override fun uiFreezeFinished(durationMs: Long, reportDir: File?) {
+            stopCapture()
+          }
+        })
+      }
   }
 
   class JfrFreezeReportGenerator : JfrReportGenerator(REPORT_TYPE, EventFilter.CPU_SAMPLES,

@@ -104,12 +104,12 @@ public class RecordingManager {
           }
         }
       }, 0, JFR_RECORDING_DURATION_SECONDS, TimeUnit.SECONDS);
+      createReportManagers();
     }
-    createReportManagers();
   }
 
   private static void createReportManagers() {
-    JfrFreezeReports.Companion.getFreezeReportManager();
+    JfrFreezeReports.Companion.createFreezeReportManager();
   }
 
   static void startCapture(JfrReportGenerator.Capture capture) {
