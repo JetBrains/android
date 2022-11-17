@@ -640,7 +640,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   private static void ensureLayersAreShown(@NotNull ViewEditor editor, int duration) {
     NlDesignSurface designSurface = (NlDesignSurface)editor.getScene().getDesignSurface();
     designSurface.forceLayersPaint(true);
-    designSurface.repaint();
     Timer timer = new Timer(duration, actionEvent -> designSurface.forceLayersPaint(false));
     timer.setRepeats(false);
     timer.start();
