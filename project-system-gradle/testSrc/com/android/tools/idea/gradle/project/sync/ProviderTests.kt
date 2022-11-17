@@ -26,16 +26,16 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestPro
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.run.AndroidRunConfiguration
-import com.android.tools.idea.run.AndroidRunConfigurationBase
+import com.android.tools.idea.run.configuration.AndroidWatchFaceConfiguration
 import com.android.tools.idea.testartifacts.TestConfigurationTesting
 import com.android.tools.idea.testing.AgpIntegrationTestDefinition
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.IntegrationTestEnvironment
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.createRunConfigurationFromClass
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.mockDeviceFor
@@ -43,6 +43,7 @@ import com.android.tools.idea.testing.outputCurrentlyRunningTest
 import com.android.tools.idea.testing.switchVariant
 import com.google.common.truth.Expect
 import com.intellij.execution.RunManager
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
@@ -64,6 +65,7 @@ sealed class Target {
   data class NamedAppTargetRunConfiguration(val externalSystemModuleId: String?) : Target()
   object AppTargetRunConfiguration : Target()
   data class TestTargetRunConfiguration(val testClassFqn: String) : Target()
+  data class WatchFaceRunConfiguration(val testClassFqn: String) : Target()
   data class ManuallyAssembled(val gradlePath: String, val forTests: Boolean = false) : Target()
 }
 
@@ -88,6 +90,7 @@ data class TestScenario(
       fun Target.prefixed(): String = when (this) {
         Target.AppTargetRunConfiguration -> ""
         is Target.TestTargetRunConfiguration -> "-test:$testClassFqn"
+        is Target.WatchFaceRunConfiguration -> "-watch_face:$testClassFqn"
         is Target.NamedAppTargetRunConfiguration -> "-app:$externalSystemModuleId"
         is Target.ManuallyAssembled -> "-assemble:$gradlePath${forTests.prefixed("tests")}"
       }
@@ -114,7 +117,7 @@ interface ProviderTestDefinition {
     expect: Expect,
     valueNormalizers: ValueNormalizers,
     project: Project,
-    runConfiguration: AndroidRunConfigurationBase?,
+    runConfiguration: RunConfiguration?,
     assembleResult: AssembleInvocationResult?,
     device: IDevice
   )
@@ -131,6 +134,7 @@ fun IntegrationTestEnvironment.runProviderTest(testDefinition: AggregateTestDefi
   }
 
   with(testDefinition) {
+    if (!scenario.testProject.isCompatibleWith(agpVersion)) skipTest("Project ${scenario.testProject.name} is incompatible with $agpVersion")
     Assume.assumeThat(runCatching { testConfiguration.IGNORE() }.exceptionOrNull(), Matchers.nullValue())
     outputCurrentlyRunningTest(this)
     val preparedProject = prepareTestProject(scenario.testProject, agpVersion = agpVersion)
@@ -174,6 +178,7 @@ fun IntegrationTestEnvironment.runProviderTest(testDefinition: AggregateTestDefi
                 .also {
                   it.DEPLOY_APK_FROM_BUNDLE = scenario.viaBundle
                 } to null
+
             is Target.NamedAppTargetRunConfiguration ->
               androidRunConfigurations()
                 .single {
@@ -182,8 +187,16 @@ fun IntegrationTestEnvironment.runProviderTest(testDefinition: AggregateTestDefi
                 .also {
                   it.DEPLOY_APK_FROM_BUNDLE = scenario.viaBundle
                 } to null
+
             is Target.TestTargetRunConfiguration ->
               runReadAction { TestConfigurationTesting.createAndroidTestConfigurationFromClass(project, target.testClassFqn)!! } to null
+
+            is Target.WatchFaceRunConfiguration ->
+              runReadAction {
+                createRunConfigurationFromClass(project, target.testClassFqn, AndroidWatchFaceConfiguration::class.java)
+                  ?: error("Run config for ${target.testClassFqn} not found.")
+              } to null
+
             is Target.ManuallyAssembled ->
               if (scenario.viaBundle) error("viaBundle mode is not supported with ManuallyAssembled test configurations")
               else {
@@ -296,7 +309,7 @@ data class AggregateTestDefinitionImpl(
     expect: Expect,
     valueNormalizers: ValueNormalizers,
     project: Project,
-    runConfiguration: AndroidRunConfigurationBase?,
+    runConfiguration: RunConfiguration?,
     assembleResult: AssembleInvocationResult?,
     device: IDevice
   ) {
@@ -321,6 +334,11 @@ data class AggregateTestDefinitionImpl(
     copy(agpVersion = agpVersion)
 
   override fun toString(): String = displayName()
+}
+
+private fun skipTest(message: String): Nothing {
+  Assume.assumeTrue(message, false)
+  error(message)
 }
 
 infix fun <T, V> Array<T>.eachTo(value: V): Array<Pair<T, V>> = map { it to value }.toTypedArray()

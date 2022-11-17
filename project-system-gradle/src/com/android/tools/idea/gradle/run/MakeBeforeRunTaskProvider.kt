@@ -46,7 +46,6 @@ import com.android.tools.idea.projectsystem.gradle.RunConfigurationGradleContext
 import com.android.tools.idea.projectsystem.gradle.getGradleContext
 import com.android.tools.idea.projectsystem.requiresAndroidModel
 import com.android.tools.idea.run.AndroidDeviceSpec
-import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.GradleApkProvider
 import com.android.tools.idea.run.PreferGradleMake
@@ -72,6 +71,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.openapi.util.io.FileUtil
 import icons.StudioIcons
 import org.jetbrains.kotlin.idea.roots.findAll
@@ -226,7 +226,6 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
     env: ExecutionEnvironment,
     task: MakeBeforeRunTask
   ): Boolean {
-    val androidRunConfiguration = if (configuration is AndroidRunConfigurationBase) configuration else null
     if (!configuration.project.requiresAndroidModel()) {
       val regularMake = CompileStepBeforeRun(configuration.project)
       return regularMake.executeTask(context, configuration, env, CompileStepBeforeRun.MakeBeforeRunTask())
@@ -268,10 +267,10 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
       }
     val targetDeviceVersion = targetDeviceSpec?.commonVersion
     val buildResult = build(modules, runConfigurationGradleContext, targetDeviceVersion, task.goal, cmdLineArgs)
-    if (androidRunConfiguration != null && buildResult != null) {
+    if (configuration is UserDataHolderEx && buildResult != null) {
       val model = buildResult.invocationResult.models.firstOrNull()
       if (model is PostBuildProjectModels) {
-        androidRunConfiguration.putUserData(GradleApkProvider.POST_BUILD_MODEL, PostBuildModel(model))
+        configuration.putUserData(GradleApkProvider.POST_BUILD_MODEL, PostBuildModel(model))
       } else {
         log.info("Couldn't get post build models.")
       }

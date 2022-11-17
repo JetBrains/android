@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.project.sync.issues.SyncIssues.Companion.sy
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
@@ -31,6 +30,7 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_72
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.google.common.truth.Expect
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 
@@ -276,7 +276,7 @@ private data class ApplicationIdProviderTest(
     expect: Expect,
     valueNormalizers: ValueNormalizers,
     project: Project,
-    runConfiguration: AndroidRunConfigurationBase?,
+    runConfiguration: RunConfiguration?,
     assembleResult: AssembleInvocationResult?,
     device: IDevice
   ) {

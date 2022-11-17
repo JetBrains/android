@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProje
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.getBuiltApksForSelectedVariant
-import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
@@ -40,6 +39,7 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.gradleModule
 import com.google.common.truth.Expect
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -611,6 +611,34 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
+        testProject = AndroidCoreTestProject.WEAR_WATCHFACE,
+        target = Target.WatchFaceRunConfiguration("com.example.myface.MyWatchFace"),
+      ),
+      expectApks =
+      """
+          ApplicationId: com.example.myface
+          Files:
+            project.app -> project/app/build/outputs/apk/debug/app-debug.apk
+          RequiredInstallationOptions: []
+            """.let {
+        listOf(
+          AGP_35 to it,
+          AGP_40 to it,
+          AGP_41 to it,
+          AGP_42 to it,
+          AGP_70 to it,
+          AGP_CURRENT to """
+           ApplicationId: com.example.myface
+           Files:
+             project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
+           RequiredInstallationOptions: []
+            """,
+        )
+      }.toMap()
+    ),
+    def(
+      stackMarker = { it() },
+      TestScenario(
         testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
       ),
@@ -675,7 +703,7 @@ private data class ApkProviderTest(
     expect: Expect,
     valueNormalizers: ValueNormalizers,
     project: Project,
-    runConfiguration: AndroidRunConfigurationBase?,
+    runConfiguration: RunConfiguration?,
     assembleResult: AssembleInvocationResult?,
     device: IDevice
   ) {
@@ -690,7 +718,7 @@ private data class ApkProviderTest(
 
     val apkProvider = when (scenario.target) {
       is ManuallyAssembled -> assembleResult!!.getApkProvider(scenario.target.gradlePath, scenario.target.forTests)
-      else -> runConfiguration!!.apkProvider!!
+      else -> project.getProjectSystem().getApkProvider(runConfiguration!!)!!
     }
 
     with(valueNormalizers) {

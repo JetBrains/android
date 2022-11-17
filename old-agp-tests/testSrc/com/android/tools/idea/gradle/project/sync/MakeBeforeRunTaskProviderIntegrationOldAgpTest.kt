@@ -18,18 +18,16 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
-import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.buildAndWait
-import com.android.tools.tests.IdeaTestSuiteBase
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 
 @OldAgpTest(agpVersions = ["4.0.0"], gradleVersions = ["6.7.1"])
-class MakeBeforeRunTaskProviderIntegrationOldAgpTest : IdeaTestSuiteBase() {
+class MakeBeforeRunTaskProviderIntegrationOldAgpTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels()

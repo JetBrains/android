@@ -176,6 +176,7 @@ maven_repository(
         "@maven//:androidx.test.ext.junit_1.1.3",
         "@maven//:androidx.test.ext.junit_1.1.3-alpha02",
         "@maven//:androidx.test.rules_1.3.0",
+        "@maven//:androidx.wear.watchface.watchface-guava_1.1.0",
         "@maven//:com.android.support.appcompat-v7_25.4.0",
         "@maven//:com.android.support.appcompat-v7_28.0.0",
         "@maven//:com.android.support.constraint.constraint-layout_1.0.2",
