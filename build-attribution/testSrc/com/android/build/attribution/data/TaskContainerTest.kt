@@ -64,7 +64,7 @@ class TaskContainerTest {
     val sampleTask = createTaskFinishEventStub(":sampleTask", pluginA, emptyList(), 0, 0 )
     taskContainer.getTask(sampleTask, pluginContainer)
     taskContainer.updateTasksData(data)
-    assertThat(taskContainer.getTask(":sampleTask")?.primaryTaskCategory).isEqualTo(TaskCategory.UNKNOWN)
+    assertThat(taskContainer.getTask(":sampleTask")?.primaryTaskCategory).isEqualTo(TaskCategory.UNCATEGORIZED)
   }
 
   @Test
@@ -76,6 +76,6 @@ class TaskContainerTest {
     val sampleTask = createTaskFinishEventStub(":sampleTask", pluginA, emptyList(), 0, 0 )
     taskContainer.getTask(sampleTask, pluginContainer)
     taskContainer.updateTasksData(data)
-    assertThat(taskContainer.getTask(":sampleTask")?.primaryTaskCategory).isEqualTo(TaskCategory.UNKNOWN)
+    assertThat(taskContainer.getTask(":sampleTask")?.primaryTaskCategory).isEqualTo(TaskCategory.UNCATEGORIZED)
   }
 }

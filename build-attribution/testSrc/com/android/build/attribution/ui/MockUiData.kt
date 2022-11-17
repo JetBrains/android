@@ -58,7 +58,7 @@ fun mockTask(
   executionTimeMs: Long,
   criticalPathDurationMs: Long = defaultCriticalPathDurationMs,
   pluginUnknownBecauseOfCC: Boolean = false,
-  taskCategory: TaskCategory = TaskCategory.UNKNOWN,
+  taskCategory: TaskCategory = TaskCategory.UNCATEGORIZED,
 ) = TestTaskUiData(module, name, pluginName, taskCategory, TimeWithPercentage(executionTimeMs, criticalPathDurationMs), pluginUnknownBecauseOfCC)
 
 class MockUiData(

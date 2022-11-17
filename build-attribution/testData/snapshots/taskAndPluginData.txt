@@ -4,15 +4,15 @@ Task                          : :app:alwaysRunningBuildSrcTask
     Plugin                        : buildSrc plugin org.example.buildsrc.AlwaysRunningBuildSrcPlugin
 Task                          : :app:alwaysRunningTask
     TaskType                      : AlwaysRunTask
-    PrimaryTaskCategory           : UNKNOWN
+    PrimaryTaskCategory           : UNCATEGORIZED
     Plugin                        : binary plugin AlwaysRunTasksPlugin
 Task                          : :app:alwaysRunningTask2
     TaskType                      : AlwaysRunTask
-    PrimaryTaskCategory           : UNKNOWN
+    PrimaryTaskCategory           : UNCATEGORIZED
     Plugin                        : binary plugin AlwaysRunTasksPlugin
 Task                          : :app:assembleDebug
     TaskType                      : org.gradle.api.DefaultTask
-    PrimaryTaskCategory           : MISC
+    PrimaryTaskCategory           : UNCATEGORIZED
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:checkDebugAarMetadata
     TaskType                      : com.android.build.gradle.internal.tasks.CheckAarMetadataTask
@@ -54,7 +54,7 @@ Task                          : :app:extractProguardFiles
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:generateDebugAssets
     TaskType                      : org.gradle.api.DefaultTask
-    PrimaryTaskCategory           : MISC
+    PrimaryTaskCategory           : UNCATEGORIZED
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:generateDebugResValues
     TaskType                      : com.android.build.gradle.tasks.GenerateResValues
@@ -63,7 +63,7 @@ Task                          : :app:generateDebugResValues
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:generateDebugResources
     TaskType                      : org.gradle.api.DefaultTask
-    PrimaryTaskCategory           : MISC
+    PrimaryTaskCategory           : UNCATEGORIZED
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:javaPreCompileDebug
     TaskType                      : com.android.build.gradle.tasks.JavaPreCompileTask
@@ -81,12 +81,12 @@ Task                          : :app:mergeDebugArtProfile
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:mergeDebugAssets
     TaskType                      : com.android.build.gradle.tasks.MergeSourceSetFolders
-    PrimaryTaskCategory           : MISC
+    PrimaryTaskCategory           : UNCATEGORIZED
     SecondaryTaskCategories       : SOURCE_PROCESSING,MERGING
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:mergeDebugGeneratedProguardFiles
     TaskType                      : com.android.build.gradle.internal.tasks.MergeFileTask
-    PrimaryTaskCategory           : MISC
+    PrimaryTaskCategory           : UNCATEGORIZED
     SecondaryTaskCategories       : MERGING
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:mergeDebugJavaResource
@@ -96,7 +96,7 @@ Task                          : :app:mergeDebugJavaResource
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:mergeDebugJniLibFolders
     TaskType                      : com.android.build.gradle.tasks.MergeSourceSetFolders
-    PrimaryTaskCategory           : MISC
+    PrimaryTaskCategory           : UNCATEGORIZED
     SecondaryTaskCategories       : SOURCE_PROCESSING,MERGING
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:mergeDebugResources
@@ -106,7 +106,7 @@ Task                          : :app:mergeDebugResources
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:mergeDebugShaders
     TaskType                      : com.android.build.gradle.tasks.MergeSourceSetFolders
-    PrimaryTaskCategory           : MISC
+    PrimaryTaskCategory           : UNCATEGORIZED
     SecondaryTaskCategories       : SOURCE_PROCESSING,MERGING
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:minifyDebugWithR8
@@ -127,11 +127,11 @@ Task                          : :app:packageDebug
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:preBuild
     TaskType                      : org.gradle.api.DefaultTask
-    PrimaryTaskCategory           : MISC
+    PrimaryTaskCategory           : UNCATEGORIZED
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:preDebugBuild
     TaskType                      : com.android.build.gradle.internal.tasks.AndroidVariantTask
-    PrimaryTaskCategory           : MISC
+    PrimaryTaskCategory           : UNCATEGORIZED
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:processDebugMainManifest
     TaskType                      : com.android.build.gradle.tasks.ProcessApplicationManifest
@@ -208,7 +208,7 @@ Task                          : :buildSrc:validatePlugins
     Plugin                        : binary plugin org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
 Task                          : :lib:assembleDebug
     TaskType                      : org.gradle.api.DefaultTask
-    PrimaryTaskCategory           : MISC
+    PrimaryTaskCategory           : UNCATEGORIZED
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:bundleDebugAar
     TaskType                      : com.android.build.gradle.tasks.BundleAar
@@ -270,7 +270,7 @@ Task                          : :lib:extractDeepLinksForAarDebug
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:generateDebugAssets
     TaskType                      : org.gradle.api.DefaultTask
-    PrimaryTaskCategory           : MISC
+    PrimaryTaskCategory           : UNCATEGORIZED
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:generateDebugRFile
     TaskType                      : com.android.build.gradle.internal.res.GenerateLibraryRFileTask
@@ -283,7 +283,7 @@ Task                          : :lib:generateDebugResValues
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:generateDebugResources
     TaskType                      : org.gradle.api.DefaultTask
-    PrimaryTaskCategory           : MISC
+    PrimaryTaskCategory           : UNCATEGORIZED
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:javaPreCompileDebug
     TaskType                      : com.android.build.gradle.tasks.JavaPreCompileTask
@@ -306,7 +306,7 @@ Task                          : :lib:mergeDebugConsumerProguardFiles
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:mergeDebugGeneratedProguardFiles
     TaskType                      : com.android.build.gradle.internal.tasks.MergeFileTask
-    PrimaryTaskCategory           : MISC
+    PrimaryTaskCategory           : UNCATEGORIZED
     SecondaryTaskCategories       : MERGING
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:mergeDebugJavaResource
@@ -316,17 +316,17 @@ Task                          : :lib:mergeDebugJavaResource
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:mergeDebugJniLibFolders
     TaskType                      : com.android.build.gradle.tasks.MergeSourceSetFolders
-    PrimaryTaskCategory           : MISC
+    PrimaryTaskCategory           : UNCATEGORIZED
     SecondaryTaskCategories       : SOURCE_PROCESSING,MERGING
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:mergeDebugShaders
     TaskType                      : com.android.build.gradle.tasks.MergeSourceSetFolders
-    PrimaryTaskCategory           : MISC
+    PrimaryTaskCategory           : UNCATEGORIZED
     SecondaryTaskCategories       : SOURCE_PROCESSING,MERGING
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:packageDebugAssets
     TaskType                      : com.android.build.gradle.tasks.MergeSourceSetFolders
-    PrimaryTaskCategory           : MISC
+    PrimaryTaskCategory           : UNCATEGORIZED
     SecondaryTaskCategories       : SOURCE_PROCESSING,MERGING
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:packageDebugResources
@@ -340,11 +340,11 @@ Task                          : :lib:parseDebugLocalResources
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:preBuild
     TaskType                      : org.gradle.api.DefaultTask
-    PrimaryTaskCategory           : MISC
+    PrimaryTaskCategory           : UNCATEGORIZED
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:preDebugBuild
     TaskType                      : com.android.build.gradle.internal.tasks.AndroidVariantTask
-    PrimaryTaskCategory           : MISC
+    PrimaryTaskCategory           : UNCATEGORIZED
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:prepareDebugArtProfile
     TaskType                      : com.android.build.gradle.tasks.ProcessLibraryArtProfileTask

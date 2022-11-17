@@ -45,7 +45,7 @@ class TaskContainer {
       if (BUILD_ANALYZER_CATEGORY_ANALYSIS.get()) {
         val taskCategoryInfo = taskInfo?.taskCategoryInfo
         task.setTaskCategories(
-          primaryTaskCategory = taskCategoryInfo?.primaryTaskCategory ?: TaskCategory.UNKNOWN,
+          primaryTaskCategory = taskCategoryInfo?.primaryTaskCategory ?: TaskCategory.UNCATEGORIZED,
           secondaryTaskCategories = taskCategoryInfo?.secondaryTaskCategories ?: emptyList()
         )
       }

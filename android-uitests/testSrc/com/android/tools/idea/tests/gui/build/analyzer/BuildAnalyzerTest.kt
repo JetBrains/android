@@ -134,7 +134,7 @@ class BuildAnalyzerTest {
 
   private fun verifyTasksPage(view: BuildAnalyzerViewFixture, tasksPage: BuildAnalyzerViewFixture.BuildAnalyzerMasterDetailsPageFixture) {
     //Array of tasks that are going to run.
-    val totalBuildTasks = arrayOf<String>("Android Resources", "Unknown")
+    val totalBuildTasks = arrayOf<String>("Android Resources", "Uncategorized")
 
     //Check if the right page is opened.
     view.pageComboBox.requireSelection("Tasks")
@@ -167,8 +167,8 @@ class BuildAnalyzerTest {
       //detailsPanel.verifyLinkPresent("Click here to migrate your project to use non-transitive R classes")
     }
     guiTest.waitForAllBackgroundTasksToBeCompleted()
-    tasksPage.tree.expandPath("Unknown")
-    tasksPage.tree.selectPath("Unknown/:app:sample1")
+    tasksPage.tree.expandPath("Uncategorized")
+    tasksPage.tree.selectPath("Uncategorized/:app:sample1")
     tasksPage.findDetailsPanel(":app:sample1").also { detailsPanel ->
       detailsPanel.requireVisible()
       detailsPanel.clickGenerateReport()
@@ -180,7 +180,7 @@ class BuildAnalyzerTest {
       }
     }
     guiTest.waitForAllBackgroundTasksToBeCompleted()
-    tasksPage.tree.selectPath("Unknown/:app:sample2")
+    tasksPage.tree.selectPath("Uncategorized/:app:sample2")
     tasksPage.findDetailsPanel(":app:sample2").also { detailsPanel ->
       detailsPanel.requireVisible()
       detailsPanel.clickGenerateReport()
@@ -216,10 +216,7 @@ class BuildAnalyzerTest {
       assertTrue ( appSample2.contains(Regex("Sub-project:\\s+:app")) )
       assertTrue ( appSample2.contains(Regex("Plugin:\\s+SamplePlugin")) )
       assertTrue ( appSample2.contains(Regex("Type:\\s+SampleTask")) )
-      assertTrue ( appSample2.contains(Regex("Categories:\\s+Unknown")) )
-      //assertTrue ( appSample2.contains("Plugin: SamplePlugin") )
-      //assertTrue ( appSample2.contains("Type: SampleTask") )
-      //assertTrue ( appSample2.contains("Categories: Unknown") )
+      assertTrue ( appSample2.contains(Regex("Categories:\\s+Uncategorized")) )
       assertTrue ( appSample2.contains("Warnings") )
       assertTrue ( appSample2.contains("Reason task ran") )
       detailsPanel.clickGenerateReport()
@@ -241,7 +238,7 @@ class BuildAnalyzerTest {
       assertTrue ( appSample1.contains(Regex("Sub-project:\\s+:app")) )
       assertTrue ( appSample1.contains(Regex("Plugin:\\s+SamplePlugin")) )
       assertTrue ( appSample1.contains(Regex("Type:\\s+SampleTask")) )
-      assertTrue ( appSample1.contains(Regex("Categories:\\s+Unknown")) )
+      assertTrue ( appSample1.contains(Regex("Categories:\\s+Uncategorized")) )
       assertTrue ( appSample1.contains("Warnings") )
       assertTrue ( appSample1.contains("Reason task ran") )
       detailsPanel.clickGenerateReport()
@@ -267,7 +264,7 @@ class BuildAnalyzerTest {
       assertTrue ( appSample1.contains(Regex("Sub-project:\\s+:app")) )
       assertTrue ( appSample1.contains(Regex("Plugin:\\s+SamplePlugin")) )
       assertTrue ( appSample1.contains(Regex("Type:\\s+SampleTask")) )
-      assertTrue ( appSample1.contains(Regex("Categories:\\s+Unknown")) )
+      assertTrue ( appSample1.contains(Regex("Categories:\\s+Uncategorized")) )
       assertTrue ( appSample1.contains("Warnings") )
       assertTrue ( appSample1.contains("Reason task ran") )
       detailsPanel.clickGenerateReport()
@@ -287,7 +284,7 @@ class BuildAnalyzerTest {
       assertTrue ( appSample2.contains(Regex("Sub-project:\\s+:app")) )
       assertTrue ( appSample2.contains(Regex("Plugin:\\s+SamplePlugin")) )
       assertTrue ( appSample2.contains(Regex("Type:\\s+SampleTask")) )
-      assertTrue ( appSample2.contains(Regex("Categories:\\s+Unknown")) )
+      assertTrue ( appSample2.contains(Regex("Categories:\\s+Uncategorized")) )
       assertTrue ( appSample2.contains("Warnings") )
       assertTrue ( appSample2.contains("Reason task ran") )
       detailsPanel.clickGenerateReport()
@@ -373,7 +370,7 @@ class BuildAnalyzerTest {
       assertTrue ( appSample1.contains(Regex("Sub-project:\\s+:app")) )
       assertTrue ( appSample1.contains(Regex("Plugin:\\s+SamplePlugin")) )
       assertTrue ( appSample1.contains(Regex("Type:\\s+SampleTask")) )
-      assertTrue ( appSample1.contains(Regex("Categories:\\s+Unknown")) )
+      assertTrue ( appSample1.contains(Regex("Categories:\\s+Uncategorized")) )
       assertTrue ( appSample1.contains("Warnings") )
       assertTrue ( appSample1.contains("Reason task ran") )
       detailsPanel.clickGenerateReport()
@@ -394,7 +391,7 @@ class BuildAnalyzerTest {
       assertTrue ( appSample2.contains(Regex("Sub-project\\:\\s+\\:app")) )
       assertTrue ( appSample2.contains(Regex("Plugin:\\s+SamplePlugin")) )
       assertTrue ( appSample2.contains(Regex("Type:\\s+SampleTask")) )
-      assertTrue ( appSample2.contains(Regex("Categories:\\s+Unknown")) )
+      assertTrue ( appSample2.contains(Regex("Categories:\\s+Uncategorized")) )
       assertTrue ( appSample2.contains("Warnings") )
       assertTrue ( appSample2.contains("Reason task ran") )
       detailsPanel.clickGenerateReport()

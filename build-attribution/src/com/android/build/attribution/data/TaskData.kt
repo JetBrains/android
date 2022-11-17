@@ -94,7 +94,7 @@ class TaskData(private val taskId: TaskDataId,
   /**
    * Primary execution function of the task.
    */
-  var primaryTaskCategory: TaskCategory = TaskCategory.UNKNOWN
+  var primaryTaskCategory: TaskCategory = TaskCategory.UNCATEGORIZED
     private set
 
   /**
@@ -119,18 +119,16 @@ class TaskData(private val taskId: TaskDataId,
 
   private fun setPrimaryTaskCategory(primaryTaskCategory: TaskCategory) {
     this.primaryTaskCategory = when {
-      isKotlinCompilationTask() -> TaskCategory.KOTLIN
-      isJavaCompilationTask() || originPlugin.isJavaPlugin() -> TaskCategory.JAVA
+      primaryTaskCategory != TaskCategory.UNCATEGORIZED && primaryTaskCategory != TaskCategory.MISC -> primaryTaskCategory
 
-      primaryTaskCategory != TaskCategory.UNKNOWN -> primaryTaskCategory
+      isKotlinCompilationTask() || originPlugin.isKotlinPlugin() -> TaskCategory.KOTLIN
+      isJavaCompilationTask() || originPlugin.isJavaPlugin() -> TaskCategory.JAVA
+      originPlugin.isGradlePlugin() -> TaskCategory.GRADLE
 
       originPlugin.pluginType == PluginData.PluginType.BUILDSRC_PLUGIN -> TaskCategory.BUILD_SOURCE
       originPlugin.pluginType == PluginData.PluginType.SCRIPT -> TaskCategory.BUILD_SCRIPT
 
-      originPlugin.isAndroidPlugin() -> TaskCategory.MISC
-      originPlugin.isKotlinPlugin() -> TaskCategory.KOTLIN
-      originPlugin.isGradlePlugin() -> TaskCategory.GRADLE
-      else -> primaryTaskCategory
+      else -> TaskCategory.UNCATEGORIZED
     }
   }
 
@@ -144,8 +142,9 @@ class TaskData(private val taskId: TaskDataId,
   private fun isJavaCompilationTask(): Boolean {
     return taskType == "org.gradle.api.tasks.compile.JavaCompile"
   }
+
   private fun isKotlinCompilationTask(): Boolean {
-    return isKaptTask() || taskType == "org.jetbrains.kotlin.gradle.tasks.KotlinCompile"
+    return isKaptTask() || taskType.startsWith("org.jetbrains.kotlin.gradle.tasks.")
   }
 
   override fun equals(other: Any?): Boolean {

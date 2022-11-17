@@ -104,7 +104,7 @@ message BuildAnalysisResultsMessage {
     }
 
     enum TaskCategory {
-      UNKNOWN = 0;
+      UNCATEGORIZED = 0;
       COMPILATION = 1;
       TEST = 2;
       MANIFEST = 3;
