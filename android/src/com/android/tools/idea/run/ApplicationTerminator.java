@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.annotations.Nullable;
 import com.android.annotations.Trace;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.execution.ExecutionException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,11 +53,10 @@ public class ApplicationTerminator implements AndroidDebugBridge.IDeviceChangeLi
   /**
    * @return true if upon return no processes related to an app are running.
    * <p>
-   * launchStatus is presented for old configurations' execution flow.
    * @throws ExecutionException if device is not online.
    */
   @Trace
-  public boolean killApp(@Nullable LaunchStatus launchStatus) throws ExecutionException {
+  public boolean killApp() throws ExecutionException {
     if (!myIDevice.isOnline()) {
       throw new ExecutionException(String.format("Couldn't terminate the existing process for %s. Device is offline.", myApplicationId));
     }
@@ -79,16 +76,10 @@ public class ApplicationTerminator implements AndroidDebugBridge.IDeviceChangeLi
     try {
       // Ensure all Clients are killed prior to handing off to the AndroidProcessHandler.
       if (!myProcessKilledLatch.await(10, TimeUnit.SECONDS)) {
-        if (launchStatus != null) {
-          launchStatus.terminateLaunch(String.format("Couldn't terminate the existing process for %s.", myApplicationId), true);
-        }
         return false;
       }
     }
     catch (InterruptedException ignored) {
-      if (launchStatus != null) {
-        launchStatus.terminateLaunch(String.format("Termination of the existing process for %s was cancelled.", myApplicationId), true);
-      }
       return false;
     }
     finally {
@@ -96,15 +87,6 @@ public class ApplicationTerminator implements AndroidDebugBridge.IDeviceChangeLi
     }
 
     return true;
-  }
-
-  /**
-   * @return true if upon return no processes related to an app are running. The same as [killApp(LaunchStatus)],
-   * but without usage of LaunchStatus. [killApp(LaunchStatus)] is going to be deleted when we enable [StudioFlags.NEW_EXECUTION_FLOW_ENABLED.get()].
-   */
-  @Trace
-  public boolean killApp() throws ExecutionException {
-    return killApp(null);
   }
 
   @Override

@@ -87,7 +87,7 @@ public class KillAndRestartAppLaunchTask implements LaunchTask {
     // Ensure the app is killed (otherwise launch won't work).
     ApplicationTerminator appTerminator = new ApplicationTerminator(device, myPackageName);
     try {
-      if (!appTerminator.killApp(launchContext.getLaunchStatus())) {
+      if (!appTerminator.killApp()) {
         return LaunchResult.error("", "trying to terminate app prior to restarting.");
       }
     }

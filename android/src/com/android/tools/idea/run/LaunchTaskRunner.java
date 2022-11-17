@@ -148,7 +148,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
           ContainerUtil.map(devices, device -> MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()).submit(() -> {
             ApplicationTerminator terminator = new ApplicationTerminator(device, myApplicationId);
             try {
-              if (!terminator.killApp(launchStatus)) {
+              if (!terminator.killApp()) {
                 throw new CancellationException("Could not terminate running app " + myApplicationId);
               }
             }
@@ -164,6 +164,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         ProgressIndicatorUtils.awaitWithCheckCanceled(waitApplicationTerminationTask, indicator);
 
         if (waitApplicationTerminationTask.isCancelled()) {
+          launchStatus.terminateLaunch(String.format("Couldn't terminate the existing process for %s.", myApplicationId), true);
           return;
         }
       }
