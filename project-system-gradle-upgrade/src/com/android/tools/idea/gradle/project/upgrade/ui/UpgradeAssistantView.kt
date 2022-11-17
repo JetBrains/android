@@ -107,8 +107,7 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
         }
         refreshDetailsPanel()
       }
-      update(this@UpgradeAssistantView.model.uiState.get())
-      myListeners.listen(this@UpgradeAssistantView.model.uiState, ::update)
+      myListeners.listenAndFire(this@UpgradeAssistantView.model.uiState, ::update)
     }
   }
 
@@ -151,8 +150,7 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
       }
     }
   ).apply {
-    isEnabled = this@UpgradeAssistantView.model.uiState.get().comboEnabled
-    myListeners.listen(this@UpgradeAssistantView.model.uiState) { uiState ->
+    myListeners.listenAndFire(this@UpgradeAssistantView.model.uiState) { uiState ->
       isEnabled = uiState.comboEnabled
     }
 
@@ -181,8 +179,7 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
   }
 
   val refreshButton = JButton("Refresh").apply {
-    isEnabled = !this@UpgradeAssistantView.model.uiState.get().showLoadingState
-    myListeners.listen(this@UpgradeAssistantView.model.uiState) { uiState ->
+    myListeners.listenAndFire(this@UpgradeAssistantView.model.uiState) { uiState ->
       isEnabled = !uiState.showLoadingState
     }
     addActionListener {
@@ -193,11 +190,7 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
   }
   val okButton = JButton("Run selected steps").apply {
     addActionListener { this@UpgradeAssistantView.model.runUpgrade(false) }
-    this@UpgradeAssistantView.model.uiState.get().let { uiState ->
-      toolTipText = uiState.runTooltip
-      isEnabled = uiState.runEnabled
-    }
-    myListeners.listen(this@UpgradeAssistantView.model.uiState) { uiState ->
+    myListeners.listenAndFire(this@UpgradeAssistantView.model.uiState) { uiState ->
       toolTipText = uiState.runTooltip
       isEnabled = uiState.runEnabled
     }
@@ -205,22 +198,16 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
   }
   val previewButton = JButton("Show Usages").apply {
     addActionListener { this@UpgradeAssistantView.model.runUpgrade(true) }
-    this@UpgradeAssistantView.model.uiState.get().let { uiState ->
-      toolTipText = uiState.runTooltip
-      isEnabled = uiState.showPreviewEnabled
-    }
-    myListeners.listen(this@UpgradeAssistantView.model.uiState) { uiState ->
+    myListeners.listenAndFire(this@UpgradeAssistantView.model.uiState) { uiState ->
       toolTipText = uiState.runTooltip
       isEnabled = uiState.showPreviewEnabled
     }
   }
   val messageLabel = JBLabel().apply {
-    fun update(uiState: UpgradeAssistantWindowModel.UIState) {
+    myListeners.listenAndFire(this@UpgradeAssistantView.model.uiState) { uiState ->
       icon = uiState.statusMessage?.severity?.icon
       text = uiState.statusMessage?.text
     }
-    update(this@UpgradeAssistantView.model.uiState.get())
-    myListeners.listen(this@UpgradeAssistantView.model.uiState, ::update)
   }
   val hyperlinkLabel = object : ActionLink("Read more") {
     var url: String? = null
@@ -228,12 +215,10 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
     .apply {
       addActionListener { url?.let { BrowserUtil.browse(it) } }
       setExternalLinkIcon()
-      fun update(uiState: UpgradeAssistantWindowModel.UIState) {
+      myListeners.listenAndFire(this@UpgradeAssistantView.model.uiState) { uiState ->
         url = uiState.statusMessage?.url
         isVisible = url != null
       }
-      update(this@UpgradeAssistantView.model.uiState.get())
-      myListeners.listen(this@UpgradeAssistantView.model.uiState, ::update)
     }
 
   val content = JBLoadingPanel(BorderLayout(), contentManager).apply {
@@ -259,8 +244,17 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
       }
     }
 
-    myListeners.listen(model.uiState, ::updateLoadingState)
-    updateLoadingState(model.uiState.get())
+    myListeners.listenAndFire(model.uiState) { uiState ->
+      setLoadingText(uiState.loadingText)
+      if (uiState.showLoadingState) {
+        startLoading()
+      }
+      else {
+        stopLoading()
+        upgradeLabel.text = model.current.upgradeLabelText()
+        contentManager.getContent(this)?.displayName = model.current.contentDisplayName()
+      }
+    }
   }
 
   init {
