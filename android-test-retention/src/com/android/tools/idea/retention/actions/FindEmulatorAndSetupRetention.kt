@@ -280,7 +280,7 @@ class FindEmulatorAndSetupRetention(private val avdManagerBuilder: (AndroidSdkHa
               LOG.warn("$errorMessage")
             }
 
-            override fun addExecutionStack(executionStacks: MutableList<out XExecutionStack>, last: Boolean) {
+            override fun addExecutionStack(executionStacks: List<XExecutionStack>, last: Boolean) {
               if (foundUserFrame) {
                 return
               }
@@ -291,7 +291,7 @@ class FindEmulatorAndSetupRetention(private val avdManagerBuilder: (AndroidSdkHa
                     LOG.warn("$errorMessage")
                   }
 
-                  override fun addStackFrames(stackFrames: MutableList<out XStackFrame>, last: Boolean) {
+                  override fun addStackFrames(stackFrames: List<XStackFrame>, last: Boolean) {
                     if (foundUserFrame) {
                       return
                     }

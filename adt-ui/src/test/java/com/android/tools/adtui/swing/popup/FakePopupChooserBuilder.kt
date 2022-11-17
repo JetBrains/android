@@ -40,7 +40,7 @@ import javax.swing.ListCellRenderer
  */
 internal class FakePopupChooserBuilder<T>(
     private val factory: FakeJBPopupFactory,
-    private val list: MutableList<out T>
+    private val list: List<T>
 ) : IPopupChooserBuilder<T> {
 
   private var isMovable: Boolean? = null

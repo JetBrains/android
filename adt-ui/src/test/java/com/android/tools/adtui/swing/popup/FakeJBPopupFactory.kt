@@ -75,7 +75,7 @@ class FakeJBPopupFactory : JBPopupFactory() {
     popups.add(popup)
   }
 
-  override fun <T> createPopupChooserBuilder(list: MutableList<out T>): IPopupChooserBuilder<T> =
+  override fun <T> createPopupChooserBuilder(list: List<T>): IPopupChooserBuilder<T> =
     FakePopupChooserBuilder(this, list)
 
   override fun createActionGroupPopup(

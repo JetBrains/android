@@ -120,7 +120,7 @@ open class FakeComponentPopupBuilder(
 
   override fun setCommandButton(commandButton: ActiveComponent) = this
 
-  override fun setKeyboardActions(keyboardActions: MutableList<out Pair<ActionListener, KeyStroke>>) = this
+  override fun setKeyboardActions(keyboardActions: List<Pair<ActionListener, KeyStroke>>) = this
 
   override fun setKeyEventHandler(handler: BooleanFunction<in KeyEvent>) = this
 
