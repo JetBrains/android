@@ -13,231 +13,196 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.swing;
+package com.android.tools.adtui.swing
 
-import static java.awt.event.InputEvent.ALT_DOWN_MASK;
-import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
-import static java.awt.event.InputEvent.META_DOWN_MASK;
-import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
-import static java.awt.event.KeyEvent.KEY_PRESSED;
-import static java.awt.event.KeyEvent.KEY_RELEASED;
-import static java.awt.event.KeyEvent.KEY_TYPED;
-import static java.awt.event.KeyEvent.VK_ALT;
-import static java.awt.event.KeyEvent.VK_CONTROL;
-import static java.awt.event.KeyEvent.VK_META;
-import static java.awt.event.KeyEvent.VK_SHIFT;
-import static java.awt.event.KeyEvent.VK_UNDEFINED;
-
-import com.intellij.openapi.util.SystemInfo;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import java.awt.Component;
-import java.awt.KeyboardFocusManager;
-import java.awt.event.KeyEvent;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.intellij.openapi.util.SystemInfo
+import it.unimi.dsi.fastutil.ints.IntArrayList
+import java.awt.Component
+import java.awt.KeyboardFocusManager
+import java.awt.event.InputEvent
+import java.awt.event.KeyEvent
 
 /**
  * A fake keyboard device that can be used for holding down keys in tests.
- * <p>
- * Do not instantiate directly - use {@link FakeUi#keyboard} instead.
+ *
+ * Do not instantiate directly - use [FakeUi.keyboard] instead.
  */
-public final class FakeKeyboard {
-  public static final int MENU_KEY_CODE = SystemInfo.isMac ? VK_META : VK_CONTROL;
-
-  private final IntArrayList myPressedKeys = new IntArrayList();
-  @Nullable private Component myFocus;
+class FakeKeyboard {
+  private val pressedKeys = IntArrayList()
+  private var focusedComponent: Component? = null
 
   /**
    * Set (or clear) the component that will receive the key events. Note that if the focus is
-   * {@code null}, you can still press/release keys but no events will be dispatched.
+   * `null`, you can still press/release keys but no events will be dispatched.
    */
-  public void setFocus(@Nullable Component focus) {
-    myFocus = focus;
+  fun setFocus(focus: Component?) {
+    focusedComponent = focus
   }
 
-  public boolean isPressed(int keyCode) {
-    return myPressedKeys.contains(keyCode);
+  fun isPressed(keyCode: Int): Boolean {
+    return pressedKeys.contains(keyCode)
   }
 
   /**
-   * Begins holding down the specified key. You may release it later using {@link #release(int)}.
-   * This method will not generate {@code KEY_TYPED} events. For now those must be generated using
-   * {@link #type(int)}.
-   * <p>
+   * Begins holding down the specified key. You may release it later using [release].
+   * This method will not generate `KEY_TYPED` events. For now those must be generated using
+   * [type].
+   *
    * For the key event to be handled by its target component, it is sometimes necessary to call
-   * {@link com.intellij.testFramework.PlatformTestUtil#dispatchAllEventsInIdeEventQueue}.
+   * [com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue].
    */
-  public void press(int keyCode) {
-    performDownKeyEvent(keyCode, KEY_PRESSED);
+  fun press(keyCode: Int) {
+    performDownKeyEvent(keyCode, KeyEvent.KEY_PRESSED)
   }
 
   /**
-   * Begins holding down the specified key. You may release it later using {@link #release(Key)}.
-   * This method will not generate {@code KEY_TYPED} events. For now those must be generated using
-   * {@link #type(Key)}.
-   * <p>
+   * Begins holding down the specified key. You may release it later using [release].
+   * This method will not generate `KEY_TYPED` events. For now those must be generated using
+   * [type].
+   *
    * For the key event to be handled by its target component, it is sometimes necessary to call
-   * {@link com.intellij.testFramework.PlatformTestUtil#dispatchAllEventsInIdeEventQueue}.
+   * [com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue].
    */
-  public void press(@NotNull Key key) {
-    press(key.code);
+  fun press(key: Key) {
+    press(key.code)
   }
 
-  public void release(int keyCode) {
-    if (!isPressed(keyCode)) {
-      throw new IllegalStateException(String.format("Can't release key %s as it's not pressed.", KeyEvent.getKeyText(keyCode)));
-    }
-
-    myPressedKeys.rem(keyCode);
+  fun release(keyCode: Int) {
+    check(isPressed(keyCode)) { "Can't release key ${KeyEvent.getKeyText(keyCode)} as it's not pressed" }
+    pressedKeys.rem(keyCode)
     // Dispatch AFTER removing the key from our list of pressed keys. If it is a modifier key, we
     // don't want it to included in "toModifiersCode" logic called by "dispatchKeyEvent".
-    dispatchKeyEvent(KEY_RELEASED, keyCode);
+    dispatchKeyEvent(KeyEvent.KEY_RELEASED, keyCode)
   }
 
-  public void release(@NotNull Key key) {
-    release(key.code);
+  fun release(key: Key) {
+    release(key.code)
   }
 
-  public void pressAndRelease(int keyCode) {
-    press(keyCode);
-    release(keyCode);
+  fun pressAndRelease(keyCode: Int) {
+    press(keyCode)
+    release(keyCode)
   }
 
-  public void pressAndRelease(Key key) {
-    press(key);
-    release(key);
+  fun pressAndRelease(key: Key) {
+    press(key)
+    release(key)
   }
 
   /**
-   * Types the specified key. This is a convenience method for generating {@code KEY_TYPED} events.
-   * <p>
-   * TODO: We should consider having these events be generated by {@link #press(Key)}, but as the mapping
+   * Types the specified key. This is a convenience method for generating `KEY_TYPED` events.
+   *
+   * TODO: We should consider having these events be generated by [press], but as the mapping
    *       between key presses and typed characters isn't straightforward in some cases (the simplest being
    *       typing capital letters and a more complex example being the generation of e.g. chinese characters
    *       using an input method) this might be a significant undertaking to do correctly.
    */
-  public void type(int keyCode) {
-    performDownKeyEvent(keyCode, KEY_TYPED);
+  fun type(keyCode: Int) {
+    performDownKeyEvent(keyCode, KeyEvent.KEY_TYPED)
   }
 
   /**
-   * Types the specified key. This is a convenience method for generating {@code KEY_TYPED} events.
-   * <p>
-   * TODO: We should consider having these events be generated by {@link #press(Key)}, but as the mapping
+   * Types the specified key. This is a convenience method for generating `KEY_TYPED` events.
+   *
+   * TODO: We should consider having these events be generated by [press], but as the mapping
    *       between key presses and typed characters isn't straightforward in some cases (the simplest being
    *       typing capital letters and a more complex example being the generation of e.g. chinese characters
    *       using an input method) this might be a significant undertaking to do correctly.
    */
-  public void type(@NotNull Key key) {
-    type(key.code);
+  fun type(key: Key) {
+    type(key.code)
   }
 
-  private void performDownKeyEvent(int keyCode, int event) {
-    if (isPressed(keyCode)) {
-      throw new IllegalStateException(String.format("Can't press key %s as it's already pressed.", KeyEvent.getKeyText(keyCode)));
+  private fun performDownKeyEvent(keyCode: Int, event: Int) {
+    check(!isPressed(keyCode)) { "Can't press key ${KeyEvent.getKeyText(keyCode)} as it's already pressed" }
+    if (event == KeyEvent.KEY_PRESSED) {
+      pressedKeys.add(keyCode)
     }
-
-    if (event == KEY_PRESSED) {
-      myPressedKeys.add(keyCode);
-    }
-    dispatchKeyEvent(event, keyCode);
+    dispatchKeyEvent(event, keyCode)
   }
 
-  public int toModifiersCode() {
-    int modifiers = 0;
-    if (myPressedKeys.contains(VK_ALT)) {
-      modifiers |= ALT_DOWN_MASK;
+  fun toModifiersCode(): Int {
+    var modifiers = 0
+    if (pressedKeys.contains(KeyEvent.VK_ALT)) {
+      modifiers = modifiers or InputEvent.ALT_DOWN_MASK
     }
-    if (myPressedKeys.contains(VK_CONTROL)) {
-      modifiers |= CTRL_DOWN_MASK;
+    if (pressedKeys.contains(KeyEvent.VK_CONTROL)) {
+      modifiers = modifiers or InputEvent.CTRL_DOWN_MASK
     }
-    if (myPressedKeys.contains(VK_SHIFT)) {
-      modifiers |= SHIFT_DOWN_MASK;
+    if (pressedKeys.contains(KeyEvent.VK_SHIFT)) {
+      modifiers = modifiers or InputEvent.SHIFT_DOWN_MASK
     }
-    if (myPressedKeys.contains(VK_META)) {
-      modifiers |= META_DOWN_MASK;
+    if (pressedKeys.contains(KeyEvent.VK_META)) {
+      modifiers = modifiers or InputEvent.META_DOWN_MASK
     }
-    return modifiers;
+    return modifiers
   }
 
   /** Presses keys corresponding to the given modifiers. */
-  public void pressForModifiers(int modifiers) {
-    if ((modifiers & ALT_DOWN_MASK) != 0) {
-      press(VK_ALT);
+  fun pressForModifiers(modifiers: Int) {
+    if (modifiers and InputEvent.ALT_DOWN_MASK != 0) {
+      press(KeyEvent.VK_ALT)
     }
-    if ((modifiers & SHIFT_DOWN_MASK) != 0) {
-      press(VK_SHIFT);
+    if (modifiers and InputEvent.SHIFT_DOWN_MASK != 0) {
+      press(KeyEvent.VK_SHIFT)
     }
-    if ((modifiers & CTRL_DOWN_MASK) != 0) {
-      press(VK_CONTROL);
+    if (modifiers and InputEvent.CTRL_DOWN_MASK != 0) {
+      press(KeyEvent.VK_CONTROL)
     }
-    if ((modifiers & META_DOWN_MASK) != 0) {
-      press(VK_META);
+    if (modifiers and InputEvent.META_DOWN_MASK != 0) {
+      press(KeyEvent.VK_META)
     }
   }
 
   /** Releases keys corresponding to the given modifiers. */
-  public void releaseForModifiers(int modifiers) {
-    if ((modifiers & META_DOWN_MASK) != 0) {
-      release(VK_META);
+  fun releaseForModifiers(modifiers: Int) {
+    if (modifiers and InputEvent.META_DOWN_MASK != 0) {
+      release(KeyEvent.VK_META)
     }
-    if ((modifiers & CTRL_DOWN_MASK) != 0) {
-      release(VK_CONTROL);
+    if (modifiers and InputEvent.CTRL_DOWN_MASK != 0) {
+      release(KeyEvent.VK_CONTROL)
     }
-    if ((modifiers & SHIFT_DOWN_MASK) != 0) {
-      release(VK_SHIFT);
+    if (modifiers and InputEvent.SHIFT_DOWN_MASK != 0) {
+      release(KeyEvent.VK_SHIFT)
     }
-    if ((modifiers & ALT_DOWN_MASK) != 0) {
-      release(VK_ALT);
+    if (modifiers and InputEvent.ALT_DOWN_MASK != 0) {
+      release(KeyEvent.VK_ALT)
     }
   }
 
-  private void dispatchKeyEvent(int eventType, int keyCode) {
-    KeyboardFocusManager focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-    Component component = myFocus;
-    if (component == null) {
-      component = focusManager.getFocusOwner();
-      if (component == null) {
-        return;
-      }
-    }
+  private fun dispatchKeyEvent(eventType: Int, keyCode: Int) {
+    val focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
+    val component = focusedComponent ?: focusManager.focusOwner ?: return
+    val correctedKeyCode = if (eventType == KeyEvent.KEY_TYPED) KeyEvent.VK_UNDEFINED else keyCode
+    val event = KeyEvent(component, eventType, System.nanoTime(), toModifiersCode(), correctedKeyCode, keyCode.toChar())
 
-    //noinspection MagicConstant toModifiersCode returns correct magic number type
-    KeyEvent event = new KeyEvent(component, eventType, System.nanoTime(), toModifiersCode(),
-                                  eventType == KEY_TYPED ? VK_UNDEFINED : keyCode, (char)keyCode);
-
-    // If you use myFocus.dispatchEvent(), the event goes through a flow which gives other systems
-    // a chance to handle it first. The following approach bypasses the event queue and sends the
-    // event to listeners, directly.
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(component, event);
+    // If you use focusedComponent.dispatchEvent(), the event goes through a flow which gives other
+    // systems a chance to handle it first. The following approach bypasses the event queue and
+    // sends the event to listeners, directly.
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(component, event)
   }
 
-  public enum Key {
-    ALT(VK_ALT),
+  enum class Key(val code: Int) {
+    ALT(KeyEvent.VK_ALT),
     BACKSPACE(KeyEvent.VK_BACK_SPACE),
-    CTRL(VK_CONTROL),
-    DELETE(KeyEvent.VK_DELETE),
+    CTRL(KeyEvent.VK_CONTROL),
     ENTER(KeyEvent.VK_ENTER),
     ESC(KeyEvent.VK_ESCAPE),
     LEFT(KeyEvent.VK_LEFT),
-    META(VK_META),
-    PAGE_DOWN(KeyEvent.VK_PAGE_DOWN),
-    PAGE_UP(KeyEvent.VK_PAGE_UP),
+    META(KeyEvent.VK_META),
     RIGHT(KeyEvent.VK_RIGHT),
-    SHIFT(VK_SHIFT),
+    SHIFT(KeyEvent.VK_SHIFT),
     SPACE(KeyEvent.VK_SPACE),
     TAB(KeyEvent.VK_TAB),
-    // Add more modifier keys here (alphabetically) as necessary
     A(KeyEvent.VK_A),
     D(KeyEvent.VK_D),
     S(KeyEvent.VK_S),
-    W(KeyEvent.VK_W);
-    // Add more simple keys here (alphabetically) as necessary
+    W(KeyEvent.VK_W)
+    // Do not add any more values to this enum. Use VK_* codes directly.
+  }
 
-    final int code;
-
-    Key(int code) {
-      this.code = code;
-    }
+  companion object {
+    @JvmField
+    val MENU_KEY_CODE = if (SystemInfo.isMac) KeyEvent.VK_META else KeyEvent.VK_CONTROL
   }
 }
