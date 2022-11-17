@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.ide.ui.NO_PROCESS_ACTION
 import com.android.tools.idea.appinspection.ide.ui.buildDeviceName
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -165,10 +166,15 @@ class SelectDeviceAction(
 
   /**
    * A device with all its debuggable processes, which the user can select.
+   * This is shown if [device] doesn't support foreground process detection.
    */
   private inner class DeviceProcessPickerAction(
     private val device: DeviceDescriptor,
-  ) : DropDownAction(device.buildDeviceName(), null, device.toIcon()) {
+  ) : DropDownAction(
+    "${device.buildDeviceName()} ${LayoutInspectorBundle.message("cant.detect.foreground.process")}",
+    null,
+    device.toIcon()
+  ) {
     override fun displayTextInToolbar() = true
 
     init {

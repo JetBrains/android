@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
+import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -382,7 +383,9 @@ class SelectDeviceActionTest {
     // Physical devices prepend the manufacturer
     Truth.assertThat(children[0].templateText).isEqualTo("$FAKE_MANUFACTURER_NAME ${FakeTransportService.FAKE_DEVICE_NAME}")
     // Virtual devices hide the manufacturer
-    Truth.assertThat(children[1].templateText).isEqualTo(FakeTransportService.FAKE_DEVICE_NAME)
+    Truth.assertThat(children[1].templateText)
+      .isEqualTo(FakeTransportService.FAKE_DEVICE_NAME + " " +
+                 LayoutInspectorBundle.message("cant.detect.foreground.process"))
     // Stop button
     Truth.assertThat(children[2].templateText).isEqualTo("Stop Inspector")
 
