@@ -28,6 +28,7 @@ import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.SwingHelper
+import org.jetbrains.kotlin.lombok.utils.capitalize
 import javax.swing.Icon
 import javax.swing.JEditorPane
 import javax.swing.event.HyperlinkEvent
@@ -47,9 +48,16 @@ fun TimeWithPercentage.percentageStringHtml() = StringUtil.escapeXmlEntities(per
 
 fun Int.withPluralization(base: String): String = "$this ${StringUtil.pluralize(base, this)}"
 
-fun TaskCategory.displayName() = toString().split("_").joinToString(separator = " ") { word ->
-  word.lowercase().replaceFirstChar { it.uppercase() }
-}
+fun TaskCategory.displayName() =
+  when (this) {
+    TaskCategory.AAR_PACKAGING -> "AAR Packaging"
+    TaskCategory.APK_PACKAGING -> "APK Packaging"
+    else -> {
+      toString().split("_").joinToString(separator = " ") { word ->
+        word.lowercase().capitalize()
+      }
+    }
+  }
 
 fun TaskCategoryIssue.getWarningMessage(nonIncrementalAnnotationProcessors: List<AnnotationProcessorData>): String {
   return when (this) {
