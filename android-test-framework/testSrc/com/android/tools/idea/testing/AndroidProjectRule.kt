@@ -212,6 +212,8 @@ class AndroidProjectRule private constructor(
       val wrappedRules: TestRule = RuleChain.outerRule(EdtAndroidProjectRule(projectRule)).around(EdtRule())!!
       return object : IntegrationTestEnvironmentRule, TestRule by wrappedRules {
         override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
+        override fun <T> replaceService(serviceType: Class<T>, newServiceInstance: T) =
+          projectRule.replaceService(serviceType, newServiceInstance)
         override val testRootDisposable: Disposable get() = projectRule.testRootDisposable
       }
     }
@@ -409,6 +411,7 @@ class AndroidProjectRule private constructor(
 
 interface IntegrationTestEnvironmentRule : IntegrationTestEnvironment, TestRule {
   val testRootDisposable: Disposable
+  fun <T> replaceService(serviceType: Class<T>, newServiceInstance: T)
 }
 
 class EdtAndroidProjectRule(val projectRule: AndroidProjectRule) :

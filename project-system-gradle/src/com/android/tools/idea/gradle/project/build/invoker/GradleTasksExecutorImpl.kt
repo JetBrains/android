@@ -47,6 +47,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.compiler.CompilerConfiguration
 import com.intellij.compiler.CompilerManagerImpl
+import com.intellij.ide.SaveAndSyncHandler
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
@@ -182,6 +183,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
             if (acquired) {
               semaphore.release()
             }
+            SaveAndSyncHandler.getInstance().scheduleRefresh()
           }
         }
       } catch (t: Throwable) {
