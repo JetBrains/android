@@ -20,15 +20,13 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinitio
 import com.android.tools.idea.gradle.structure.GradleResolver
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
-import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.testResolve
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.EdtAndroidProjectRule
-import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -50,7 +48,7 @@ import java.util.concurrent.TimeUnit
 class PsAndroidModuleTest {
 
   @get:Rule
-  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   val changedModules = mutableSetOf<String>()
   var buildTypesChanged = 0

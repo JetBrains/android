@@ -21,11 +21,10 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.buildAndWait
 import com.android.tools.idea.testing.gradleModule
-import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Expect
-import com.google.common.truth.Truth.assertThat
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.OutputBuildEvent
 import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8
@@ -63,7 +62,7 @@ class Jvm8BuildTest {
   }
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModel().onEdt()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()

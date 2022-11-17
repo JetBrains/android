@@ -25,8 +25,8 @@ import com.android.tools.idea.gradle.project.upgrade.BuildConfigDefaultRefactori
 import com.android.tools.idea.gradle.project.upgrade.BuildConfigDefaultRefactoringProcessorTest
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.findAppModule
-import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessModuleDir
@@ -51,7 +51,7 @@ import java.io.File
 class BuildConfigDefaultRefactoringProcessorSyncedTest {
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testProjectWithoutGeneratedSources() {

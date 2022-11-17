@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinitio
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.onEdt
 import com.google.common.collect.ImmutableList
@@ -36,27 +37,36 @@ import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class FixNdkVersionProcessorTest  {
+class FixNdkVersionProcessorTest {
   @get:Rule
-  var projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @get:Rule
   var expect: Expect = Expect.createAndEnableStackTrace()
 
-  @Test
-  fun testUsageViewDescriptor() {
-    val processor = FixNdkVersionProcessor(projectRule.project, ImmutableList.of(), "77.7.7")
-    val usageDescriptor = processor.createUsageViewDescriptor(UsageInfo.EMPTY_ARRAY)
-    expect.that(usageDescriptor.getCodeReferencesText(1, 1)).isEqualTo("Values to update " + UsageViewBundle.getReferencesString(1, 1))
-    expect.that(usageDescriptor.processedElementsHeader).isEqualTo("Update Android NDK Versions")
-  }
+  @RunsInEdt
+  class NonGradle {
+    @get:Rule
+    val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
-  @Test
-  fun testUpdateUsageViewDescriptor() {
-    val processor = FixNdkVersionProcessor(projectRule.project, ImmutableList.of(), "77.7.7")
-    val usageDescriptor = processor.createUsageViewDescriptor(UsageInfo.EMPTY_ARRAY)
-    expect.that(usageDescriptor.getCodeReferencesText(1, 1)).isEqualTo("Values to update " + UsageViewBundle.getReferencesString(1, 1))
-    expect.that(usageDescriptor.processedElementsHeader).isEqualTo("Update Android NDK Versions")
+    @get:Rule
+    var expect: Expect = Expect.createAndEnableStackTrace()
+
+    @Test
+    fun testUsageViewDescriptor() {
+      val processor = FixNdkVersionProcessor(projectRule.project, ImmutableList.of(), "77.7.7")
+      val usageDescriptor = processor.createUsageViewDescriptor(UsageInfo.EMPTY_ARRAY)
+      expect.that(usageDescriptor.getCodeReferencesText(1, 1)).isEqualTo("Values to update " + UsageViewBundle.getReferencesString(1, 1))
+      expect.that(usageDescriptor.processedElementsHeader).isEqualTo("Update Android NDK Versions")
+    }
+
+    @Test
+    fun testUpdateUsageViewDescriptor() {
+      val processor = FixNdkVersionProcessor(projectRule.project, ImmutableList.of(), "77.7.7")
+      val usageDescriptor = processor.createUsageViewDescriptor(UsageInfo.EMPTY_ARRAY)
+      expect.that(usageDescriptor.getCodeReferencesText(1, 1)).isEqualTo("Values to update " + UsageViewBundle.getReferencesString(1, 1))
+      expect.that(usageDescriptor.processedElementsHeader).isEqualTo("Update Android NDK Versions")
+    }
   }
 
   @Test

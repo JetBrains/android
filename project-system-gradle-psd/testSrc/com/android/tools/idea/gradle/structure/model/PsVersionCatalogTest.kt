@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProje
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.intellij.testFramework.RunsInEdt
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert
@@ -30,7 +30,7 @@ import org.junit.Test
 class PsVersionCatalogTest {
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testGetBuildScriptVariables() {

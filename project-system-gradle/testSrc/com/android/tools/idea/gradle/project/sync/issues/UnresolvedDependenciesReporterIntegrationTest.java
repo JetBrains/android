@@ -20,7 +20,6 @@ import static com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestP
 import static com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.prepareTestProject;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
-import static com.android.tools.idea.testing.AndroidProjectRuleKt.onEdt;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.testFramework.UsefulTestCase.assertNotEmpty;
@@ -39,7 +38,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenReposi
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.android.tools.idea.testing.EdtAndroidProjectRule;
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -64,7 +63,7 @@ public class UnresolvedDependenciesReporterIntegrationTest {
   private UnresolvedDependenciesReporter myReporter = new UnresolvedDependenciesReporter();
 
   @Rule
-  public EdtAndroidProjectRule projectRule = onEdt(AndroidProjectRule.withAndroidModels());
+  public IntegrationTestEnvironmentRule projectRule = AndroidProjectRule.withIntegrationTestEnvironment();
 
   @Test
   public void testGetSupportedIssueType() {

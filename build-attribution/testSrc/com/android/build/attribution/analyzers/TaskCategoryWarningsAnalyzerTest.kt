@@ -22,8 +22,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.EdtAndroidProjectRule
-import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Before
@@ -32,7 +31,7 @@ import org.junit.Test
 
 class TaskCategoryWarningsAnalyzerTest {
   @get:Rule
-  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Before
   fun setUp() {

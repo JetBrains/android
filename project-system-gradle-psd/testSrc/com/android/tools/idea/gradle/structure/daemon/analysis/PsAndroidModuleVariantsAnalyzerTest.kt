@@ -29,8 +29,7 @@ import com.android.tools.idea.gradle.structure.model.android.psTestWithProject
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.parents
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.EdtAndroidProjectRule
-import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.testFramework.RunsInEdt
 import org.hamcrest.CoreMatchers.equalTo
@@ -44,7 +43,7 @@ import org.junit.Test
 class PsAndroidModuleVariantsAnalyzerTest {
 
   @get:Rule
-  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   private val pathRenderer = object : PsPathRenderer {
     override fun PsPath.renderNavigation(specificPlace: PsPath): String {

@@ -24,10 +24,10 @@ import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.assertAreEqualToSnapshots
 import com.android.tools.idea.testing.gradleModule
-import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.util.androidFacet
 import com.android.utils.FileUtils.toSystemIndependentPath
 import org.junit.Rule
@@ -54,7 +54,7 @@ class ManifestPanelContentTest : SnapshotComparisonTest {
   @get:Rule
   var testName = TestName()
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData"
 

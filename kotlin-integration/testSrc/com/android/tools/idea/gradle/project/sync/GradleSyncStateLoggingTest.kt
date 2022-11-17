@@ -22,7 +22,7 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.testFramework.RunsInEdt
 import junit.framework.Assert.assertEquals
@@ -35,7 +35,7 @@ import org.junit.Test
 class GradleSyncStateLoggingTest {
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
 

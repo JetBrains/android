@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_33_WITH_5_3_1
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.requestSyncAndWait
 import com.google.common.truth.Truth
 import com.intellij.openapi.project.Project
@@ -39,7 +39,7 @@ import org.junit.Test
 @OldAgpTest(agpVersions = ["3.3.2"], gradleVersions = ["5.3.1"])
 class GradleSyncWithOlderPluginTest {
   @get:Rule
-  var projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   /**
    * Verify that Gradle daemons can be stopped for Gradle 5.3.1 (b/155991417).

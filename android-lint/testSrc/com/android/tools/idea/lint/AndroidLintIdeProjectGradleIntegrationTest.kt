@@ -21,7 +21,7 @@ import com.android.tools.idea.lint.common.LintIdeClient
 import com.android.tools.idea.lint.common.LintIgnoredResult
 import com.android.tools.idea.lint.common.LintResult
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.ModuleManager
@@ -33,7 +33,7 @@ import org.junit.Test
 class AndroidLintIdeProjectGradleIntegrationTest {
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @get:Rule
   var expect = Expect.createAndEnableStackTrace()

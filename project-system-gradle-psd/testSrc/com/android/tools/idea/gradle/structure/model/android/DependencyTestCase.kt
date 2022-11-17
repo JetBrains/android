@@ -22,8 +22,7 @@ import com.android.tools.idea.gradle.structure.model.PsModuleDependency
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.testResolve
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.requestSyncAndWait
 import com.google.common.truth.Truth.assertThat
@@ -45,7 +44,7 @@ interface PsTestProject {
   fun requestSyncAndWait()
 }
 
-fun <T> AndroidProjectRule.psTestWithContext(
+fun <T> IntegrationTestEnvironmentRule.psTestWithContext(
   preparedProject: PreparedTestProject,
   disableAnalysis: Boolean = false,
   resolveModels: Boolean = true,
@@ -68,24 +67,10 @@ fun <T> AndroidProjectRule.psTestWithContext(
   }
 }
 
-fun <T> EdtAndroidProjectRule.psTestWithContext(
-  preparedProject: PreparedTestProject,
-  disableAnalysis: Boolean = false,
-  resolveModels: Boolean = true,
-  body: PsTestContext.() -> T
-): T {
-  return projectRule.psTestWithContext(
-    preparedProject,
-    disableAnalysis = disableAnalysis,
-    resolveModels = resolveModels,
-    body = body
-  )
-}
-
-fun <T> AndroidProjectRule.psTestWithProject(
+fun <T> IntegrationTestEnvironmentRule.psTestWithProject(
   preparedProject: PreparedTestProject,
   resolveModels: Boolean = true,
-  expectSyncFailing: Boolean,
+  expectSyncFailing: Boolean = false,
   body: PsTestProject.() -> T
 ): T {
   fun updateOptions(options: OpenPreparedProjectOptions): OpenPreparedProjectOptions {
@@ -126,18 +111,4 @@ fun <T> AndroidProjectRule.psTestWithProject(
       }
     })
   }
-}
-
-fun <T> EdtAndroidProjectRule.psTestWithProject(
-  preparedProject: PreparedTestProject,
-  resolveModels: Boolean = true,
-  expectSyncFailing: Boolean = false,
-  body: PsTestProject.() -> T
-): T {
-  return projectRule.psTestWithProject(
-    preparedProject,
-    resolveModels = resolveModels,
-    expectSyncFailing = expectSyncFailing,
-    body = body
-  )
 }

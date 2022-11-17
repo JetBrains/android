@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils
 import com.android.tools.idea.gradle.project.sync.utils.ProjectJdkUtils
 import com.android.tools.idea.gradle.project.sync.utils.environment.TestEnvironment
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Expect
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.util.environment.Environment
@@ -33,7 +33,7 @@ import java.io.File
 import kotlin.reflect.KClass
 
 class JdkIntegrationTest(
-  private val projectRule: EdtAndroidProjectRule,
+  private val projectRule: IntegrationTestEnvironmentRule,
   private val temporaryFolder: TemporaryFolder,
   private val expect: Expect
 ) {
@@ -48,7 +48,7 @@ class JdkIntegrationTest(
       agpVersion = agpVersion
     )
     val environment = TestEnvironment()
-    ApplicationManager.getApplication().replaceService(Environment::class.java, environment, projectRule.fixture.projectDisposable)
+    ApplicationManager.getApplication().replaceService(Environment::class.java, environment, projectRule.testRootDisposable)
     JdkTableUtils.removeAllJavaSdkFromJdkTable()
 
     body(ProjectRunnable(
@@ -57,7 +57,7 @@ class JdkIntegrationTest(
       tempDir = temporaryFolder.newFolder(),
       preparedProject = preparedProject,
       projectJdkUtils = ProjectJdkUtils(
-        disposable = projectRule.fixture.projectDisposable,
+        disposable = projectRule.testRootDisposable,
         projectPath = preparedProject.root.toPath(),
         projectModules = project.projectModules
       )

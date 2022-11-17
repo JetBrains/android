@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.model;
 
 import static com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.prepareTestProject;
-import static com.android.tools.idea.testing.AndroidProjectRuleKt.onEdt;
 import static java.util.stream.Collectors.toList;
 import static junit.framework.Assert.assertNotNull;
 import static org.hamcrest.CoreMatchers.anyOf;
@@ -40,7 +39,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.android.tools.idea.testing.EdtAndroidProjectRule;
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
@@ -59,7 +58,7 @@ import org.junit.Test;
 public class PsModuleTest {
 
   @Rule
-  public EdtAndroidProjectRule projectRule = onEdt(AndroidProjectRule.withAndroidModels());
+  public IntegrationTestEnvironmentRule projectRule = AndroidProjectRule.withIntegrationTestEnvironment();
 
   private static final String GUAVA_GROUP = "com.google.guava";
   private static final String GUAVA_NAME = "guava";

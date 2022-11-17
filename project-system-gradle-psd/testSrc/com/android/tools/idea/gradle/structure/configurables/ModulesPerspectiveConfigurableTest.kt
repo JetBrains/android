@@ -22,8 +22,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.TestTree
 import com.android.tools.idea.gradle.structure.configurables.ui.testStructure
 import com.android.tools.idea.gradle.structure.model.android.psTestWithContext
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.EdtAndroidProjectRule
-import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.RunsInEdt
@@ -34,7 +33,7 @@ import org.junit.Test
 class ModulesPerspectiveConfigurableTest  {
 
   @get:Rule
-  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testModulesTreeWithBasicSingleModuleProject() {

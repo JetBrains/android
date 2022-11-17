@@ -25,8 +25,8 @@ import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.testResolve
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
-import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.requestSyncAndWait
 import com.android.tools.idea.testing.withoutKtsRelatedIndexing
 import com.google.common.truth.Expect
@@ -47,7 +47,7 @@ import java.io.File
 class PsBuildTypeTest {
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @get:Rule
   val expect = Expect.createAndEnableStackTrace()!!

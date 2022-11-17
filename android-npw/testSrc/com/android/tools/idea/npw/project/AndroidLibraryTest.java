@@ -20,7 +20,6 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.prepareTestProject;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.requestSyncAndWait;
-import static com.android.tools.idea.testing.AndroidProjectRuleKt.onEdt;
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE;
@@ -35,7 +34,7 @@ import com.android.tools.idea.observable.BatchInvoker;
 import com.android.tools.idea.observable.TestInvokeStrategy;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.android.tools.idea.testing.EdtAndroidProjectRule;
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.template.Template;
 import com.google.common.io.Files;
@@ -56,7 +55,7 @@ import org.junit.Test;
 public class AndroidLibraryTest {
 
   @Rule
-  public EdtAndroidProjectRule projectRule = onEdt(AndroidProjectRule.withAndroidModels());
+  public IntegrationTestEnvironmentRule projectRule = AndroidProjectRule.withIntegrationTestEnvironment();
 
   private final TestInvokeStrategy myInvokeStrategy = new TestInvokeStrategy();
 

@@ -19,7 +19,8 @@ import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import com.android.tools.idea.testing.AndroidProjectRule.Companion.withAndroidModels
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
@@ -30,7 +31,7 @@ import org.junit.Test
 @OldAgpTest(agpVersions = ["3.1.4"], gradleVersions = ["5.3.1"])
 class SyncWithUnsupportedAGPPluginTest {
   @get:Rule
-  var projectRule = withAndroidModels()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testGradleSyncFails() {

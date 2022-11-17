@@ -31,6 +31,7 @@ import com.android.tools.idea.run.tasks.RunInstantAppTask
 import com.android.tools.idea.run.util.LaunchStatus
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IdeComponents
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.mockDeviceFor
@@ -73,7 +74,7 @@ class DynamicFeatureInstantAppTest  {
   private lateinit var instantAppSdks: InstantAppSdks
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Before
   fun setUp() {
@@ -94,7 +95,7 @@ class DynamicFeatureInstantAppTest  {
       launchOptionsBuilder = LaunchOptions.builder()
         .setClearLogcatBeforeStart(false)
 
-      instantAppSdks = IdeComponents(null, projectRule.fixture.testRootDisposable)
+      instantAppSdks = IdeComponents(null, projectRule.testRootDisposable)
         .mockApplicationService(InstantAppSdks::class.java)
 
       androidFacet = project.gradleModule(":app")?.androidFacet!!

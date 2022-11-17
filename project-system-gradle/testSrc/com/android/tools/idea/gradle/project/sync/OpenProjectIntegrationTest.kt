@@ -25,9 +25,9 @@ import com.android.tools.idea.testing.AndroidGradleTests.addJdk8ToTableButUseCur
 import com.android.tools.idea.testing.AndroidGradleTests.restoreJdk
 import com.android.tools.idea.testing.AndroidGradleTests.syncProject
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.fileUnderGradleRoot
 import com.android.tools.idea.testing.gradleModule
-import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.requestSyncAndWait
 import com.android.tools.idea.testing.saveAndDump
 import com.android.tools.idea.testing.verifySyncSkipped
@@ -51,7 +51,7 @@ import java.io.File
 @RunsInEdt
 class OpenProjectIntegrationTest {
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @get:Rule
   val expect = Expect.createAndEnableStackTrace()!!
@@ -66,7 +66,7 @@ class OpenProjectIntegrationTest {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     val before = preparedProject.open { project -> project.saveAndDump() }
     val after = preparedProject.open { project ->
-      verifySyncSkipped(project, projectRule.fixture.testRootDisposable)
+      verifySyncSkipped(project, projectRule.testRootDisposable)
       project.saveAndDump()
     }
     assertThat(after).isEqualTo(before)
@@ -91,7 +91,7 @@ class OpenProjectIntegrationTest {
     val preparedProject = projectRule.prepareTestProject(TestProject.KOTLIN_KAPT)
     val before = preparedProject.open { project -> project.saveAndDump() }
     val after = preparedProject.open { project ->
-      verifySyncSkipped(project, projectRule.fixture.testRootDisposable)
+      verifySyncSkipped(project, projectRule.testRootDisposable)
       project.saveAndDump()
     }
     assertThat(after).isEqualTo(before)
@@ -140,7 +140,7 @@ class OpenProjectIntegrationTest {
     val preparedProject = projectRule.prepareTestProject(TestProject.COMPOSITE_BUILD)
     val before = preparedProject.open { project -> project.saveAndDump() }
     val after = preparedProject.open { project ->
-      verifySyncSkipped(project, projectRule.fixture.testRootDisposable)
+      verifySyncSkipped(project, projectRule.testRootDisposable)
       project.saveAndDump()
     }
     assertThat(after).isEqualTo(before)
@@ -151,7 +151,7 @@ class OpenProjectIntegrationTest {
     val preparedProject = projectRule.prepareTestProject(TestProject.PSD_SAMPLE_GROOVY)
     val before = preparedProject.open { project -> project.saveAndDump() }
     val after = preparedProject.open { project ->
-      verifySyncSkipped(project, projectRule.fixture.testRootDisposable)
+      verifySyncSkipped(project, projectRule.testRootDisposable)
       project.saveAndDump()
     }
     assertThat(after).isEqualTo(before)

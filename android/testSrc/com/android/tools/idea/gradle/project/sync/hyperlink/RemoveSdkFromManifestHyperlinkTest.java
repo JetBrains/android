@@ -20,7 +20,6 @@ import static com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestP
 import static com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.prepareTestProject;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.requestSyncAndWait;
-import static com.android.tools.idea.testing.AndroidProjectRuleKt.onEdt;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
@@ -32,7 +31,7 @@ import com.android.tools.idea.gradle.project.sync.issues.SdkInManifestIssuesRepo
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.BuildEnvironment;
-import com.android.tools.idea.testing.EdtAndroidProjectRule;
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
@@ -60,7 +59,7 @@ import org.junit.Test;
 @RunsInEdt
 public class RemoveSdkFromManifestHyperlinkTest {
   @Rule
-  public EdtAndroidProjectRule projectRule = onEdt(AndroidProjectRule.withAndroidModels());
+  public IntegrationTestEnvironmentRule projectRule = AndroidProjectRule.withIntegrationTestEnvironment();
 
   private RemoveSdkFromManifestHyperlink myHyperlink;
 

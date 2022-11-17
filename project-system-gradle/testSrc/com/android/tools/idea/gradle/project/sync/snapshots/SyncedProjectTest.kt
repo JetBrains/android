@@ -244,7 +244,7 @@ abstract class SyncedProjectTest(
   override fun setupAdditionalEnvironment() {
     CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(
       CapturePlatformModelsProjectResolverExtension.IdeModels(),
-      projectRule.fixture.testRootDisposable
+      projectRule.testRootDisposable
     )
   }
 

@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
 import static com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.prepareTestProject;
-import static com.android.tools.idea.testing.AndroidProjectRuleKt.onEdt;
 import static junit.framework.Assert.assertEquals;
 
 import com.android.SdkConstants;
@@ -30,7 +29,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestPro
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.android.tools.idea.testing.EdtAndroidProjectRule;
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleAndroidModule;
 import com.google.wireless.android.sdk.stats.GradleBuildDetails;
@@ -55,7 +54,7 @@ import org.junit.Test;
 public class ProjectStructureUsageTrackerTest {
 
   @Rule
-  public EdtAndroidProjectRule projectRule = onEdt(AndroidProjectRule.withAndroidModels());
+  public IntegrationTestEnvironmentRule projectRule = AndroidProjectRule.withIntegrationTestEnvironment();
 
   // Used to test the scheduling of usage tracking.
   private VirtualTimeScheduler scheduler;

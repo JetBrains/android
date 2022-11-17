@@ -19,22 +19,18 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.SIMPLE_APPLICATION
-import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.util.PathUtil
-import org.jetbrains.android.AndroidTestBase
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 @RunsInEdt
 class TaskConfigurationNotTriggeredDuringSyncTest {
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()

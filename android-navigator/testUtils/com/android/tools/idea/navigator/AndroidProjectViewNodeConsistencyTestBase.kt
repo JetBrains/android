@@ -22,8 +22,7 @@ import com.android.tools.idea.navigator.nodes.FileGroupNode
 import com.android.tools.idea.navigator.nodes.FolderGroupNode
 import com.android.tools.idea.navigator.nodes.android.AndroidModuleNode
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.IntegrationTestEnvironment
-import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.util.toIoFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.FileSelectInContext
@@ -31,6 +30,7 @@ import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.projectView.ProjectViewNode
 import com.intellij.ide.util.treeView.AbstractTreeStructure
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessModuleDir
 import com.intellij.openapi.vfs.VirtualFile
 import org.junit.Rule
@@ -46,7 +46,7 @@ import java.util.ArrayDeque
  * [ProjectViewNode.canRepresent] and [ProjectViewNode.contains] are used by the platform to locate a node by a file and are essential
  * to refresh the tree in response to changes in the virtual file system.
  */
-abstract class AndroidProjectViewNodeConsistencyTestBase : IntegrationTestEnvironment {
+abstract class AndroidProjectViewNodeConsistencyTestBase {
 
   data class TestProjectDef(val template: TestProjectDefinition, val skipWindows: Boolean = false)
 
@@ -56,11 +56,10 @@ abstract class AndroidProjectViewNodeConsistencyTestBase : IntegrationTestEnviro
 
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   private interface TestContext {
+    val project: Project
     val viewPane: AndroidProjectViewPane
     val rootElement: ProjectViewNode<*>
     val projectRoot: File
@@ -90,6 +89,7 @@ abstract class AndroidProjectViewNodeConsistencyTestBase : IntegrationTestEnviro
 
         val problems = mutableListOf<String>()
         with(object : TestContext {
+          override val project: Project get() = project
           override val viewPane: AndroidProjectViewPane get() = viewPane
           override val rootElement = (treeStructure?.rootElement ?: error("No root element")) as ProjectViewNode<*>
           override val projectRoot = preparedProject.root
@@ -178,7 +178,7 @@ abstract class AndroidProjectViewNodeConsistencyTestBase : IntegrationTestEnviro
       val selectInTarget = viewPane.createSelectInTarget()
 
       nodes.map { it.node }.mapNotNull { it.virtualFile }.forEach { fileInProject ->
-        if (!selectInTarget.canSelect(FileSelectInContext(projectRule.project, fileInProject))) {
+        if (!selectInTarget.canSelect(FileSelectInContext(project, fileInProject))) {
           reportProblem("$fileInProject cannot be selected")
         }
       }

@@ -112,7 +112,7 @@ class AndroidProjectRule private constructor(
    * Default is the test class' short name.
    */
   private var fixtureName: String? = null
-) : NamedExternalResource(), IntegrationTestEnvironment {
+) : NamedExternalResource() {
 
   private var userHome: String? = null
   lateinit var fixture: CodeInsightTestFixture
@@ -205,6 +205,16 @@ class AndroidProjectRule private constructor(
       withAndroidSdk = false,
       projectModuleBuilders = projectModuleBuilders.toList()
     )
+
+    @JvmStatic
+    fun withIntegrationTestEnvironment(): IntegrationTestEnvironmentRule {
+      val projectRule = withAndroidModels()
+      val wrappedRules: TestRule = RuleChain.outerRule(EdtAndroidProjectRule(projectRule)).around(EdtRule())!!
+      return object : IntegrationTestEnvironmentRule, TestRule by wrappedRules {
+        override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
+        override val testRootDisposable: Disposable get() = projectRule.testRootDisposable
+      }
+    }
   }
 
   fun initAndroid(shouldInit: Boolean): AndroidProjectRule {
@@ -395,14 +405,13 @@ class AndroidProjectRule private constructor(
   fun waitForResourceRepositoryUpdates() {
     waitForResourceRepositoryUpdates(module)
   }
+}
 
-  override fun getBaseTestPath(): String {
-    return fixture.tempDirPath
-  }
+interface IntegrationTestEnvironmentRule : IntegrationTestEnvironment, TestRule {
+  val testRootDisposable: Disposable
 }
 
 class EdtAndroidProjectRule(val projectRule: AndroidProjectRule) :
-  IntegrationTestEnvironment by projectRule,
   TestRule by RuleChain.outerRule(projectRule).around(EdtRule())!! {
   val project: Project get() = projectRule.project
   val fixture: CodeInsightTestFixture get() = projectRule.fixture

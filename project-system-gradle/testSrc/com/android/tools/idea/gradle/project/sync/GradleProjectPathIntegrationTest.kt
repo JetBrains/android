@@ -24,6 +24,7 @@ import com.android.tools.idea.projectsystem.gradle.getBuildAndRelativeGradleProj
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.requestSyncAndWait
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.ModuleManager
@@ -36,7 +37,7 @@ import java.io.File
 class GradleProjectPathIntegrationTest {
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun gradleProjectPaths() {

@@ -23,10 +23,9 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.openPreparedProject
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
@@ -63,7 +62,7 @@ import java.util.concurrent.TimeUnit
 class PlatformIntegrationTest {
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
@@ -73,7 +72,7 @@ class PlatformIntegrationTest {
     val compositeBuild = projectRule.prepareTestProject(TestProject.COMPOSITE_BUILD, "project")
     CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(
       CapturePlatformModelsProjectResolverExtension.TestGradleModels(),
-      projectRule.fixture.testRootDisposable
+      projectRule.testRootDisposable
     )
     compositeBuild.open { project ->
       for (module in ModuleManager.getInstance(project).modules) {
@@ -504,7 +503,7 @@ class PlatformIntegrationTest {
       projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(
       CapturePlatformModelsProjectResolverExtension.TestExceptionModels(),
-      projectRule.fixture.testRootDisposable
+      projectRule.testRootDisposable
     )
     preparedProject.open { project ->
       for (module in ModuleManager.getInstance(project).modules) {

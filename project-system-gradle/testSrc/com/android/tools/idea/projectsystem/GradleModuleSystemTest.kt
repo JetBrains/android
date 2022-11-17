@@ -28,10 +28,9 @@ import com.android.tools.idea.projectsystem.SourceProviderManager.Companion.getI
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.projectsystem.gradle.ProjectBuildModelHandler
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.EdtAndroidProjectRule
 import com.android.tools.idea.testing.IdeComponents
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.gradleModule
-import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.vfs.VfsUtil
@@ -103,7 +102,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
   class Gradle {
 
     @get:Rule
-    val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
+    val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
     @Test
     fun testFindSourceProvider() {

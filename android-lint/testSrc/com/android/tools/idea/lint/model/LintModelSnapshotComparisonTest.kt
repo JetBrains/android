@@ -18,9 +18,9 @@ package com.android.tools.idea.lint.model
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.lint.LintTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
-import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.saveAndDump
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
@@ -28,7 +28,6 @@ import org.junit.Test
 import org.junit.rules.TestName
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.io.File
 
 /**
  * Snapshot tests for 'Lint Models'.
@@ -74,7 +73,7 @@ class LintModelSnapshotComparisonTest : SnapshotComparisonTest {
   }
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @get:Rule
   var testName = TestName()

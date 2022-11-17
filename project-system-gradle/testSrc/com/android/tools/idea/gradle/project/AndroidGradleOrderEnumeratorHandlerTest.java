@@ -37,6 +37,7 @@ import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.EdtAndroidProjectRule;
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
 import com.android.tools.idea.testing.JavaModuleModelBuilder;
 import com.google.common.collect.Collections2;
 import com.intellij.openapi.module.Module;
@@ -61,7 +62,7 @@ import org.junit.Test;
 public class AndroidGradleOrderEnumeratorHandlerTest {
 
   @Rule
-  public EdtAndroidProjectRule projectRule = onEdt(AndroidProjectRule.withAndroidModels());
+  public IntegrationTestEnvironmentRule projectRule = AndroidProjectRule.withIntegrationTestEnvironment();
 
   @Test
   public void testAndroidProjectOutputCorrect() {
@@ -194,19 +195,25 @@ public class AndroidGradleOrderEnumeratorHandlerTest {
     });
   }
 
-  @Test
-  public void testAndroidModulesRecursiveAndJavaModulesNot() {
-    projectRule.setupProjectFrom(JavaModuleModelBuilder.getRootModuleBuilder(),
-                                 new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
-                                 new JavaModuleModelBuilder(":jav", true));
+  @RunsInEdt
+  public static class NonGradle {
+    @Rule
+    public EdtAndroidProjectRule projectRule = onEdt(AndroidProjectRule.withAndroidModels());
 
-    Module appModule = gradleModule(projectRule.getProject(), ":app");
-    Module libModule = gradleModule(projectRule.getProject(), ":jav");
+    @Test
+    public void testAndroidModulesRecursiveAndJavaModulesNot() {
+      projectRule.setupProjectFrom(JavaModuleModelBuilder.getRootModuleBuilder(),
+                                   new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
+                                   new JavaModuleModelBuilder(":jav", true));
 
-    OrderEnumerationHandler appHandler = new AndroidGradleOrderEnumeratorHandlerFactory().createHandler(appModule);
-    assertTrue(appHandler.shouldProcessDependenciesRecursively());
-    OrderEnumerationHandler libHandler = new AndroidGradleOrderEnumeratorHandlerFactory().createHandler(libModule);
-    assertFalse(libHandler.shouldProcessDependenciesRecursively());
+      Module appModule = gradleModule(projectRule.getProject(), ":app");
+      Module libModule = gradleModule(projectRule.getProject(), ":jav");
+
+      OrderEnumerationHandler appHandler = new AndroidGradleOrderEnumeratorHandlerFactory().createHandler(appModule);
+      assertTrue(appHandler.shouldProcessDependenciesRecursively());
+      OrderEnumerationHandler libHandler = new AndroidGradleOrderEnumeratorHandlerFactory().createHandler(libModule);
+      assertFalse(libHandler.shouldProcessDependenciesRecursively());
+    }
   }
 
   private static List<String> getAmendedPaths(@NotNull Module module, boolean includeTests) {

@@ -27,8 +27,7 @@ import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.testing.AgpIntegrationTestDefinition
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.buildAndWait
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.outputCurrentlyRunningTest
@@ -42,12 +41,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.io.File
 
 /**
  * Integration tests for [GradleProjectSystem]; contains tests that require a working gradle project.
  */
-abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
+abstract class GradleProjectSystemIntegrationTestCase {
 
   @RunWith(Parameterized::class)
   class CurrentAgp : GradleProjectSystemIntegrationTestCase() {
@@ -78,7 +76,7 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
   }
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
@@ -86,14 +84,6 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
   @JvmField
   @Parameterized.Parameter(0)
   var testDefinition: TestDefinition? = null
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
-  override fun getAdditionalRepos(): Collection<File> = listOf()
-
-  override fun getAgpVersionSoftwareEnvironmentDescriptor(): AgpVersionSoftwareEnvironmentDescriptor {
-    return testDefinition?.agpVersion ?: AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
-  }
 
   @Test
   fun testGetDependentLibraries() {
@@ -156,7 +146,7 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
 
   private fun runTestOn(testProject: TemplateBasedTestProject, test: (Project) -> Unit) {
     val testDefinition = testDefinition!!
-    outputCurrentlyRunningTest(testDefinition)
+    projectRule.outputCurrentlyRunningTest(testDefinition)
     if (!testDefinition.modelsV2) {
       StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false)
     }

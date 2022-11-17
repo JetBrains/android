@@ -21,9 +21,8 @@ import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectRe
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.gradleModule
-import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Expect
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
@@ -32,14 +31,14 @@ import org.junit.Test
 @RunsInEdt
 class KotlinSingleVariantSyncIntegrationTest {
   @get:Rule
-  var projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @get:Rule
   var expect: Expect = Expect.createAndEnableStackTrace()
 
   @Test
   fun kotlinAndKaptSingleVariantSync() {
-    registerTestHelperProjectResolver(CapturePlatformModelsProjectResolverExtension.IdeModels(), projectRule.fixture.testRootDisposable)
+    registerTestHelperProjectResolver(CapturePlatformModelsProjectResolverExtension.IdeModels(), projectRule.testRootDisposable)
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.KOTLIN_KAPT)
     preparedProject.open { project ->
       expect.that(getKotlinModel(project.gradleModule(":app")!!)?.testSourceSetNames().orEmpty())

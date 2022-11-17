@@ -27,8 +27,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.EdtAndroidProjectRule
-import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import org.junit.Before
@@ -39,7 +38,7 @@ import org.mockito.Mockito
 class CriticalPathAnalyzerTest {
 
   @get:Rule
-  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   private lateinit var studioProvidedInfo: StudioProvidedInfo
 

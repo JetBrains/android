@@ -31,6 +31,7 @@ import com.android.tools.idea.run.editor.AndroidJavaDebugger;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
 import com.android.tools.idea.testing.MakeBeforeRunTaskProviderTestUtilKt;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.Executor;
@@ -52,7 +53,7 @@ import org.junit.Test;
 
 public class AndroidLaunchTaskProviderTest {
   @Rule
-  public AndroidProjectRule projectRule = AndroidProjectRule.withAndroidModels();
+  public IntegrationTestEnvironmentRule projectRule = AndroidProjectRule.withIntegrationTestEnvironment();
 
   @NotNull
   private static String getDebuggerType() {
