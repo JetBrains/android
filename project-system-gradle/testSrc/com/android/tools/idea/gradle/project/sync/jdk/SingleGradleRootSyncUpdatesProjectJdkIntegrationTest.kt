@@ -21,7 +21,11 @@ import com.android.tools.idea.gradle.project.sync.constants.JDK_17
 import com.android.tools.idea.gradle.project.sync.constants.JDK_17_PATH
 import com.android.tools.idea.gradle.project.sync.constants.JDK_INVALID_PATH
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest
-import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils
+import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest.TestEnvironment
+import com.android.tools.idea.gradle.project.sync.snapshots.JdkTestProject.SimpleApplication
+import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils.Jdk
+import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils.JdkRootsType.DETACHED
+import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils.JdkRootsType.INVALID
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Expect
@@ -35,7 +39,7 @@ import org.junit.rules.TemporaryFolder
 import java.io.File
 
 @RunsInEdt
-class GradleSyncUpdatesProjectJdkIntegrationTest {
+class SingleGradleRootSyncUpdatesProjectJdkIntegrationTest {
 
   @get:Rule
   val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
@@ -50,12 +54,15 @@ class GradleSyncUpdatesProjectJdkIntegrationTest {
 
   @Test
   fun `Given gradleJdk #JAVA_HOME pointing to JDK_17 and not defined projectJdk When synced project successfully Then projectJdk is configured with JDK_17`() =
-    jdkIntegrationTest.run {
-      configEnvironment(
-        ideaGradleJdk = ExternalSystemJdkUtil.USE_JAVA_HOME,
-        jdkTable = JdkTableUtils.Jdk(JDK_17, JDK_17_PATH),
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
+        ideaGradleJdk = ExternalSystemJdkUtil.USE_JAVA_HOME
+      ),
+      environment = TestEnvironment(
+        jdkTable = listOf(Jdk(JDK_17, JDK_17_PATH)),
         environmentVariables = mapOf(ExternalSystemJdkUtil.JAVA_HOME to JDK_17_PATH)
       )
+    ) {
       syncWithAssertion(
         expectedGradleJdkName = ExternalSystemJdkUtil.USE_JAVA_HOME,
         expectedProjectJdkName = JDK_17,
@@ -65,13 +72,16 @@ class GradleSyncUpdatesProjectJdkIntegrationTest {
 
   @Test
   fun `Given gradleJdk #JAVA_HOME pointing to JDK_17 and invalid projectJdk When synced project successfully Then projectJdk is configured with JDK_17`() =
-    jdkIntegrationTest.run {
-      configEnvironment(
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
         ideaGradleJdk = ExternalSystemJdkUtil.USE_JAVA_HOME,
-        ideaProjectJdk = "any",
-        jdkTable = JdkTableUtils.Jdk(JDK_17, JDK_17_PATH),
+        ideaProjectJdk = "any"
+      ),
+      environment = TestEnvironment(
+        jdkTable = listOf(Jdk(JDK_17, JDK_17_PATH)),
         environmentVariables = mapOf(ExternalSystemJdkUtil.JAVA_HOME to JDK_17_PATH)
       )
+    ) {
       syncWithAssertion(
         expectedGradleJdkName = ExternalSystemJdkUtil.USE_JAVA_HOME,
         expectedProjectJdkName = JDK_17,
@@ -81,18 +91,21 @@ class GradleSyncUpdatesProjectJdkIntegrationTest {
 
   @Test
   fun `Given gradleJdk #JAVA_HOME pointing to JDK_17 and projectJdk JDK_11 When synced project successfully Then projectJdk is updated with JDK_17`() =
-    jdkIntegrationTest.run {
-      configEnvironment(
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
         ideaGradleJdk = ExternalSystemJdkUtil.USE_JAVA_HOME,
-        ideaProjectJdk = JDK_11,
+        ideaProjectJdk = JDK_11
+      ),
+      environment = TestEnvironment(
         jdkTable = listOf(
-          JdkTableUtils.Jdk(JDK_11, JDK_11_PATH),
-          JdkTableUtils.Jdk("another JDK_17", JDK_17_PATH),
-          JdkTableUtils.Jdk(JDK_17, JDK_17_PATH),
-          JdkTableUtils.Jdk("another JDK_17(2)", JDK_17_PATH)
+          Jdk(JDK_11, JDK_11_PATH),
+          Jdk("another JDK_17", JDK_17_PATH),
+          Jdk(JDK_17, JDK_17_PATH),
+          Jdk("another JDK_17(2)", JDK_17_PATH)
         ),
         environmentVariables = mapOf(ExternalSystemJdkUtil.JAVA_HOME to JDK_17_PATH)
       )
+    ) {
       syncWithAssertion(
         expectedGradleJdkName = ExternalSystemJdkUtil.USE_JAVA_HOME,
         expectedProjectJdkName = JDK_17,
@@ -102,13 +115,16 @@ class GradleSyncUpdatesProjectJdkIntegrationTest {
 
   @Test
   fun `Given gradleJdk #JAVA_HOME pointing to JDK_17 and projectJdk JDK_17 When synced project successfully Then projectJdk isn't modified`() =
-    jdkIntegrationTest.run {
-      configEnvironment(
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
         ideaGradleJdk = ExternalSystemJdkUtil.USE_JAVA_HOME,
-        ideaProjectJdk = JDK_17,
-        jdkTable = listOf(JdkTableUtils.Jdk(JDK_11, JDK_11_PATH), JdkTableUtils.Jdk(JDK_17, JDK_17_PATH)),
+        ideaProjectJdk = JDK_17
+      ),
+      environment = TestEnvironment(
+        jdkTable = listOf(Jdk(JDK_11, JDK_11_PATH), Jdk(JDK_17, JDK_17_PATH)),
         environmentVariables = mapOf(ExternalSystemJdkUtil.JAVA_HOME to JDK_17_PATH)
       )
+    ) {
       syncWithAssertion(
         expectedGradleJdkName = ExternalSystemJdkUtil.USE_JAVA_HOME,
         expectedProjectJdkName = JDK_17,
@@ -118,11 +134,14 @@ class GradleSyncUpdatesProjectJdkIntegrationTest {
 
   @Test
   fun `Given gradleJdk JDK_17 and not defined projectJdk When synced project successfully Then projectJdk is configured with JDK_17`() =
-    jdkIntegrationTest.run {
-      configEnvironment(
-        ideaGradleJdk = JDK_17,
-        jdkTable = JdkTableUtils.Jdk(JDK_17, JDK_17_PATH)
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
+        ideaGradleJdk = JDK_17
+      ),
+      environment = TestEnvironment(
+        jdkTable = listOf(Jdk(JDK_17, JDK_17_PATH))
       )
+    ) {
       syncWithAssertion(
         expectedGradleJdkName = JDK_17,
         expectedProjectJdkName = JDK_17,
@@ -132,12 +151,15 @@ class GradleSyncUpdatesProjectJdkIntegrationTest {
 
   @Test
   fun `Given gradleJdk JDK_17 and invalid projectJdk When synced project successfully Then projectJdk is configured with JDK_17`() =
-    jdkIntegrationTest.run {
-      configEnvironment(
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
         ideaGradleJdk = JDK_17,
-        ideaProjectJdk = "any",
-        jdkTable = JdkTableUtils.Jdk(JDK_17, JDK_17_PATH)
+        ideaProjectJdk = "any"
+      ),
+      environment = TestEnvironment(
+        jdkTable = listOf(Jdk(JDK_17, JDK_17_PATH))
       )
+    ) {
       syncWithAssertion(
         expectedGradleJdkName = JDK_17,
         expectedProjectJdkName = JDK_17,
@@ -147,17 +169,20 @@ class GradleSyncUpdatesProjectJdkIntegrationTest {
 
   @Test
   fun `Given gradleJdk JDK_17 and projectJdk JDK_11 When synced project successfully Then projectJdk is updated with JDK_17`() =
-    jdkIntegrationTest.run {
-      configEnvironment(
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
         ideaGradleJdk = JDK_17,
-        ideaProjectJdk = JDK_11,
+        ideaProjectJdk = JDK_11
+      ),
+      environment = TestEnvironment(
         jdkTable = listOf(
-          JdkTableUtils.Jdk(JDK_11, JDK_11_PATH),
-          JdkTableUtils.Jdk("another JDK_17", JDK_17_PATH),
-          JdkTableUtils.Jdk(JDK_17, JDK_17_PATH),
-          JdkTableUtils.Jdk("another JDK_17(2)", JDK_17_PATH)
+          Jdk(JDK_11, JDK_11_PATH),
+          Jdk("another JDK_17", JDK_17_PATH),
+          Jdk(JDK_17, JDK_17_PATH),
+          Jdk("another JDK_17(2)", JDK_17_PATH)
         )
       )
+    ) {
       syncWithAssertion(
         expectedGradleJdkName = JDK_17,
         expectedProjectJdkName = JDK_17,
@@ -166,13 +191,37 @@ class GradleSyncUpdatesProjectJdkIntegrationTest {
     }
 
   @Test
-  fun `Given gradleJdk and projectJdk JDK_17 When synced project successfully Then projectJdk isn't modified`() =
-    jdkIntegrationTest.run {
-      configEnvironment(
-        ideaGradleJdk = JDK_17,
-        ideaProjectJdk = JDK_17,
-        jdkTable = listOf(JdkTableUtils.Jdk(JDK_11, JDK_11_PATH), JdkTableUtils.Jdk(JDK_17, JDK_17_PATH))
+  fun `Given gradleJdk using non expected JDK_17 entry When synced project successfully Then projectJdk is updated with specific jdkTable entry created for JDK_17_PATH`() =
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
+        ideaGradleJdk = "jdk entry 1",
+        ideaProjectJdk = "any"
+      ),
+      environment = TestEnvironment(
+        jdkTable = listOf(
+          Jdk("jdk entry 1", JDK_17_PATH),
+          Jdk("jdk entry 2", JDK_17_PATH),
+        )
       )
+    ) {
+      syncWithAssertion(
+        expectedGradleJdkName = "jdk entry 1",
+        expectedProjectJdkName = JDK_17,
+        expectedJdkPath = JDK_17_PATH
+      )
+    }
+
+  @Test
+  fun `Given gradleJdk and projectJdk JDK_17 When synced project successfully Then projectJdk isn't modified`() =
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
+        ideaGradleJdk = JDK_17,
+        ideaProjectJdk = JDK_17
+      ),
+      environment = TestEnvironment(
+        jdkTable = listOf(Jdk(JDK_11, JDK_11_PATH), Jdk(JDK_17, JDK_17_PATH))
+      )
+    ) {
       syncWithAssertion(
         expectedGradleJdkName = JDK_17,
         expectedProjectJdkName = JDK_17,
@@ -182,15 +231,16 @@ class GradleSyncUpdatesProjectJdkIntegrationTest {
 
   @Test
   fun `Given gradleJdk JDK_17 with jdkTable entry but corrupted roots When synced project successfully Then jdkTable entry roots are fixed and projectJdk is updated with JDK_17`() =
-    jdkIntegrationTest.run {
-      configEnvironment(
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
         ideaGradleJdk = ExternalSystemJdkUtil.USE_JAVA_HOME,
-        ideaProjectJdk = JDK_17,
-        jdkTable = listOf(
-          JdkTableUtils.Jdk(JDK_17, JDK_17_PATH, rootsType = JdkTableUtils.JdkRootsType.INVALID)
-        ),
+        ideaProjectJdk = JDK_17
+      ),
+      environment = TestEnvironment(
+        jdkTable = listOf(Jdk(JDK_17, JDK_17_PATH, rootsType = INVALID)),
         environmentVariables = mapOf(ExternalSystemJdkUtil.JAVA_HOME to JDK_17_PATH)
       )
+    ) {
       syncWithAssertion(
         expectedGradleJdkName = ExternalSystemJdkUtil.USE_JAVA_HOME,
         expectedProjectJdkName = JDK_17,
@@ -200,15 +250,16 @@ class GradleSyncUpdatesProjectJdkIntegrationTest {
 
   @Test
   fun `Given gradleJdk JDK_17 with jdkTable entry but no roots When synced project successfully Then jdkTable entry roots are fixed and projectJdk is updated with JDK_17`() =
-    jdkIntegrationTest.run {
-      configEnvironment(
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
         ideaGradleJdk = ExternalSystemJdkUtil.USE_JAVA_HOME,
-        ideaProjectJdk = JDK_17,
-        jdkTable = listOf(
-          JdkTableUtils.Jdk(JDK_17, JDK_17_PATH, rootsType = JdkTableUtils.JdkRootsType.DETACHED)
-        ),
+        ideaProjectJdk = JDK_17
+      ),
+      environment = TestEnvironment(
+        jdkTable = listOf(Jdk(JDK_17, JDK_17_PATH, rootsType = DETACHED)),
         environmentVariables = mapOf(ExternalSystemJdkUtil.JAVA_HOME to JDK_17_PATH)
       )
+    ) {
       syncWithAssertion(
         expectedGradleJdkName = ExternalSystemJdkUtil.USE_JAVA_HOME,
         expectedProjectJdkName = JDK_17,
@@ -220,15 +271,18 @@ class GradleSyncUpdatesProjectJdkIntegrationTest {
   fun `Given gradleJdk JDK_17 with different path on jdkTable entry When synced project successfully Then projectJdk is updated always with jdk provider plus version without matter its path`() {
     val tmpJdkFolder = temporaryFolder.newFolder("tmp-jdk")
     FileUtil.copyDir(File(JDK_17_PATH), tmpJdkFolder)
-    jdkIntegrationTest.run {
-      configEnvironment(
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
         ideaGradleJdk = JDK_17,
-        ideaProjectJdk = "any",
+        ideaProjectJdk = "any"
+      ),
+      environment = TestEnvironment(
         jdkTable = listOf(
-          JdkTableUtils.Jdk(JDK_17, tmpJdkFolder.path),
-          JdkTableUtils.Jdk("other", JDK_17_PATH)
+          Jdk(JDK_17, tmpJdkFolder.path),
+          Jdk("other", JDK_17_PATH)
         )
       )
+    ) {
       syncWithAssertion(
         expectedGradleJdkName = JDK_17,
         expectedProjectJdkName = JDK_17,
@@ -239,19 +293,18 @@ class GradleSyncUpdatesProjectJdkIntegrationTest {
 
   @Test
   fun `Given gradleJdk JDK_17 with invalid jdkTable entry When sync project failed Then projectJdk isn't updated`() =
-    jdkIntegrationTest.run {
-      configEnvironment(
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
         ideaGradleJdk = JDK_17,
-        ideaProjectJdk = "any",
-        jdkTable = listOf(JdkTableUtils.Jdk(JDK_17, JDK_INVALID_PATH))
+        ideaProjectJdk = "any"
+      ),
+      environment = TestEnvironment(
+        jdkTable = listOf(Jdk(JDK_17, JDK_INVALID_PATH))
       )
+    ) {
       sync(
-        assertOnDiskConfig = {
-          assertProjectJdk("any")
-        },
-        assertOnFailure = {
-          assertException(ExternalSystemJdkException::class)
-        }
+        assertOnDiskConfig = { assertProjectJdk("any") },
+        assertOnFailure = { assertException(ExternalSystemJdkException::class) }
       )
     }
 }

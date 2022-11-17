@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.SdkConstants
+import com.android.tools.idea.gradle.project.sync.model.GradleRoot
 import com.android.tools.idea.gradle.project.sync.utils.ProjectIdeaConfigFilesUtils
+import com.android.tools.idea.gradle.project.sync.utils.ProjectJdkUtils
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.FileSubject
@@ -52,9 +54,25 @@ internal fun moveGradleRootUnderGradleProjectDirectory(root: File, makeSecondCop
   }
   Files.createDirectory(ideaDirectory.toPath())
 
-  val rootsName = if (makeSecondCopy) listOf(newRoot.name, newRoot2.name) else listOf(newRoot.name)
-  gradleXml.writeText(ProjectIdeaConfigFilesUtils.buildGradleXmlConfig(rootsName))
+  val gradleRoots = mutableListOf(GradleRoot(newRoot.name))
+  if (makeSecondCopy)
+    gradleRoots.add(GradleRoot(newRoot2.name))
+  gradleXml.writeText(ProjectIdeaConfigFilesUtils.buildGradleXmlConfig(gradleRoots))
   miscXml.writeText(ProjectIdeaConfigFilesUtils.buildMiscXmlConfig(testJdkName))
+}
+
+internal fun cloneProjectRootIntoMultipleGradleRoots(projectRoot: File, gradleRoots: List<GradleRoot>) {
+  val tempDir = File(projectRoot.path + "_tmp")
+  Files.move(projectRoot.toPath(), tempDir.toPath())
+  gradleRoots
+    .map { projectRoot.resolve(it.name) }
+    .forEach {
+      FileUtil.createDirectory(it)
+      FileUtils.copyDirectory(tempDir, it)
+    }
+  tempDir.delete()
+
+  ProjectJdkUtils.setProjectIdeaGradleJdk(projectRoot, gradleRoots)
 }
 
 internal fun patchMppProject(

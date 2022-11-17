@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.utils.environment
 
 import com.intellij.openapi.externalSystem.util.environment.Environment
 
-class TestEnvironment(
+class TestSystemEnvironment(
   private val fallbackEnvironment: Environment? = null
 ) : Environment {
 

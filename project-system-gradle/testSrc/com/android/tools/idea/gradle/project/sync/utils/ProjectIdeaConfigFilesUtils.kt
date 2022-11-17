@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.utils
 
+import com.android.tools.idea.gradle.project.sync.model.GradleRoot
+
 private const val PROJECT_DIR = "${'$'}PROJECT_DIR${'$'}"
 
 object ProjectIdeaConfigFilesUtils {
@@ -27,43 +29,40 @@ object ProjectIdeaConfigFilesUtils {
       |</project>
     """.trimMargin()
 
-  fun buildGradleXmlConfig(
-    rootsName: List<String> = listOf(""),
-    jdkName: String? = null,
-    projectModules: List<String>? = null) =
+  fun buildGradleXmlConfig(gradleRoots: List<GradleRoot>) =
     """
       |<?xml version="1.0" encoding="UTF-8"?>
       |<project version="4">
       |  <component name="GradleSettings">
       |    <option name="linkedExternalProjectsSettings">
-      |      ${buildGradleSettings(rootsName, jdkName, projectModules)}
+      |      ${buildGradleSettings(gradleRoots)}
       |    </option>
       |  </component>
       |</project>
     """.trimMargin()
 
-  private fun buildGradleSettings(rootName: List<String>, jdkName: String?, projectModules: List<String>?) = buildString {
-    rootName.forEach {
-      appendLine(buildGradleSettings(it, jdkName, projectModules))
+  private fun buildGradleSettings(gradleRoots: List<GradleRoot>) = buildString {
+    gradleRoots.forEach {
+      appendLine(buildGradleSettings(it))
     }
   }.trim()
 
-  private fun buildGradleSettings(rootName: String, jdkName: String?, projectModules: List<String>?) =
+  private fun buildGradleSettings(gradleRoot: GradleRoot) =
     """
       <GradleProjectSettings>
         <option name="testRunner" value="GRADLE" />
         <option name="distributionType" value="DEFAULT_WRAPPED" />
-        <option name="externalProjectPath" value="${getProjectPath(rootName)}" />
-        ${jdkName?.let { buildGradleJvmXml(it) } ?: run { "" }}
-        ${projectModules?.let { buildProjectModulesXml(it) } ?: run { "" }}
+        <option name="externalProjectPath" value="${getProjectPath(gradleRoot.name)}" />
+        ${gradleRoot.gradleJvm?.let { buildGradleJvmXml(it) } ?: run { "" }}
+        ${gradleRoot.modules?.let { buildProjectModulesXml(it) } ?: run { "" }}
       </GradleProjectSettings>
     """
 
   private fun getProjectPath(rootName: String) =
     if (rootName.isEmpty() || rootName.isBlank()) PROJECT_DIR else "$PROJECT_DIR/$rootName"
 
-  private fun buildGradleJvmXml(jdkName: String) =
-    "<option name=\"gradleJvm\" value=\"$jdkName\" />"
+  private fun buildGradleJvmXml(gradleJvm: String) =
+    "<option name=\"gradleJvm\" value=\"$gradleJvm\" />"
 
   private fun buildProjectModulesXml(modules: List<String>) =
     """

@@ -20,25 +20,31 @@ import com.android.tools.idea.gradle.project.sync.utils.ProjectJdkUtils
 import com.google.common.truth.Expect
 import com.intellij.openapi.project.Project
 import io.ktor.util.reflect.instanceOf
+import java.io.File
 import kotlin.reflect.KClass
 
 class AssertInMemoryConfig(
   private val syncedProject: Project,
-  private val projectJdkUtils: ProjectJdkUtils,
   private val expect: Expect
 ) {
   fun assertGradleJdk(expectedJdkName: String) {
-    val currentJdkName = projectJdkUtils.getGradleJdkNameInMemory(syncedProject)
+    val currentJdkName = ProjectJdkUtils.getGradleJdkNameInMemory(syncedProject)
     expect.that(currentJdkName).isEqualTo(expectedJdkName)
   }
 
+  fun assertProjectJdkAndValidateTableEntry(expectedJdkName: String, expectedJdkPath: String) {
+    assertProjectJdk(expectedJdkName)
+    assertProjectJdkTablePath(expectedJdkPath)
+    assertProjectJdkTableEntryIsValid(expectedJdkName)
+  }
+
   fun assertProjectJdk(expectedJdkName: String) {
-    val currentJdkName = projectJdkUtils.getProjectJdkNameInMemory(syncedProject)
+    val currentJdkName = ProjectJdkUtils.getProjectJdkNameInMemory(syncedProject)
     expect.that(currentJdkName).isEqualTo(expectedJdkName)
   }
 
   fun assertProjectJdkTablePath(expectedJdkPath: String) {
-    val currentJdkName = projectJdkUtils.getProjectJdkNameInMemory(syncedProject).orEmpty()
+    val currentJdkName = ProjectJdkUtils.getProjectJdkNameInMemory(syncedProject).orEmpty()
     val currentJdkPath = JdkTableUtils.getJdkPathFromJdkTable(currentJdkName)
     expect.that(currentJdkPath).isEqualTo(expectedJdkPath)
   }
@@ -49,22 +55,24 @@ class AssertInMemoryConfig(
   }
 
   fun assertGradleExecutionDaemon(expectedJdkPath: String) {
-    val currentJdkPath = projectJdkUtils.getGradleDaemonExecutionJdkPath(syncedProject)
+    val currentJdkPath = ProjectJdkUtils.getGradleDaemonExecutionJdkPath(syncedProject)
     expect.that(currentJdkPath).isEqualTo(expectedJdkPath)
   }
 }
 
 class AssertOnDiskConfig(
-  private val projectJdkUtils: ProjectJdkUtils,
+  private val syncedProject: Project,
   private val expect: Expect
 ) {
   fun assertGradleJdk(expectedJdkName: String) {
-    val currentJdkName = projectJdkUtils.getGradleJdkNameFromIdeaGradleXmlFile()
+    val projectRoot = File(syncedProject.basePath.orEmpty())
+    val currentJdkName = ProjectJdkUtils.getGradleJdkNameFromIdeaGradleXmlFile(projectRoot)
     expect.that(currentJdkName).isEqualTo(expectedJdkName)
   }
 
   fun assertProjectJdk(expectedJdkName: String) {
-    val currentJdkName = projectJdkUtils.getProjectJdkNameInIdeaXmlFile()
+    val projectRoot = File(syncedProject.basePath.orEmpty())
+    val currentJdkName = ProjectJdkUtils.getProjectJdkNameInIdeaXmlFile(projectRoot)
     expect.that(currentJdkName).isEqualTo(expectedJdkName)
   }
 }

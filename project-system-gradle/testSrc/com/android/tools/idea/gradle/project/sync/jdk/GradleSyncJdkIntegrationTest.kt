@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.project.sync.jdk
 
 import com.android.tools.idea.gradle.project.sync.constants.*
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest
+import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest.TestEnvironment
+import com.android.tools.idea.gradle.project.sync.snapshots.JdkTestProject.SimpleApplication
 import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils.Jdk
 import com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -48,41 +50,49 @@ class GradleSyncJdkIntegrationTest {
   private val jdkIntegrationTest = JdkIntegrationTest(projectRule, temporaryFolder, expect)
 
   @Test(expected = ExternalSystemJdkException::class)
-  fun `Given invalid gradlePropertiesUserHomeJdkPath When import project Then throw exception`() =
-    jdkIntegrationTest.run {
-      configEnvironment(
-        gradlePropertiesUserHomeJdkPath = "/invalid/jdk/path",
+  fun `Given invalid userHomeGradlePropertiesJdkPath When import project Then throw exception`() =
+    jdkIntegrationTest.run(
+      project = SimpleApplication(),
+      environment = TestEnvironment(
+        userHomeGradlePropertiesJdkPath = "/invalid/jdk/path"
       )
+    ) {
       sync()
     }
 
   @Test(expected = ExternalSystemJdkException::class)
-  fun `Given invalid gradlePropertiesProjectJdkPath When import project Then throw exception`() =
-    jdkIntegrationTest.run {
-      configEnvironment(
-        gradlePropertiesProjectJdkPath = "/invalid/jdk/path",
+  fun `Given invalid gradlePropertiesJdkPath When import project Then throw exception`() =
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
+        gradlePropertiesJdkPath = "/invalid/jdk/path"
       )
+    ) {
       sync()
     }
 
   @Test(expected = ExternalSystemJdkException::class)
   fun `Given invalid STUDIO_GRADLE_JDK env variable When import project Then throw exception`() =
-    jdkIntegrationTest.run {
-      configEnvironment(
+    jdkIntegrationTest.run(
+      project = SimpleApplication(),
+      environment = TestEnvironment(
         environmentVariables = mapOf(JDK_LOCATION_ENV_VARIABLE_NAME to "/invalid/jdk/path")
       )
+    ) {
       sync()
     }
 
   @Test
   fun `Given USE_JAVA_HOME gradleJdk macro When import project Then sync used JAVA_HOME`() =
-    jdkIntegrationTest.run {
-      configEnvironment(
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
         ideaGradleJdk = USE_JAVA_HOME,
-        ideaProjectJdk = JDK_17,
+        ideaProjectJdk = JDK_17
+      ),
+      environment = TestEnvironment(
         jdkTable = listOf(Jdk(JDK_11, JDK_11_PATH), Jdk(JDK_17, JDK_17_PATH)),
         environmentVariables = mapOf(JAVA_HOME to JDK_17_PATH)
       )
+    ) {
       syncWithAssertion(
         expectedGradleJdkName = USE_JAVA_HOME,
         expectedProjectJdkName = JDK_17,
@@ -92,12 +102,15 @@ class GradleSyncJdkIntegrationTest {
 
   @Test
   fun `Given USE_PROJECT_JDK gradleJdk macro When import project Then sync used PROJECT_JDK`() =
-    jdkIntegrationTest.run {
-      configEnvironment(
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
         ideaGradleJdk = USE_PROJECT_JDK,
-        ideaProjectJdk = JDK_17,
-        jdkTable = Jdk(JDK_17, JDK_17_PATH)
+        ideaProjectJdk = JDK_17
+      ),
+      environment = TestEnvironment(
+        jdkTable = listOf(Jdk(JDK_17, JDK_17_PATH))
       )
+    ) {
       syncWithAssertion(
         expectedGradleJdkName = USE_PROJECT_JDK,
         expectedProjectJdkName = JDK_17,
@@ -107,38 +120,47 @@ class GradleSyncJdkIntegrationTest {
 
   @Test(expected = ExternalSystemJdkException::class)
   fun `Given USE_GRADLE_JAVA_HOME gradleJdk macro without jdkPath defined When import project Then throw exception`() =
-    jdkIntegrationTest.run {
-      configEnvironment(
-        ideaGradleJdk = USE_GRADLE_JAVA_HOME,
-        jdkTable = Jdk(JDK_17, JDK_17_PATH)
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
+        ideaGradleJdk = USE_GRADLE_JAVA_HOME
+      ),
+      environment = TestEnvironment(
+        jdkTable = listOf(Jdk(JDK_17, JDK_17_PATH))
       )
+    ) {
       sync()
     }
 
   @Test(expected = ExternalSystemJdkException::class)
   fun `Given project without any configuration When import project Then throw exception`() =
-    jdkIntegrationTest.run {
+    jdkIntegrationTest.run(SimpleApplication()) {
       sync()
     }
 
   @Test(expected = ExternalSystemJdkException::class)
   fun `Given project with gradleJdk not present in jdkTable When import project Then throw exception`() =
-    jdkIntegrationTest.run {
-      configEnvironment(
-        ideaGradleJdk = "invalid",
-        jdkTable = Jdk(JDK_17, JDK_17_PATH)
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
+        ideaGradleJdk = "invalid"
+      ),
+      environment = TestEnvironment(
+        jdkTable = listOf(Jdk(JDK_17, JDK_17_PATH))
       )
+    ) {
       sync()
     }
 
   @Test(expected = ExternalSystemJdkException::class)
   fun `Given project with gradleJdk present in jdkTable but invalid path When import project Then throw exception`() =
-    jdkIntegrationTest.run {
-      configEnvironment(
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
         ideaGradleJdk = JDK_17,
-        ideaProjectJdk = "any",
-        jdkTable = Jdk(JDK_17, JDK_INVALID_PATH)
+        ideaProjectJdk = "any"
+      ),
+      environment = TestEnvironment(
+        jdkTable = listOf(Jdk(JDK_17, JDK_INVALID_PATH))
       )
+    ) {
       sync()
     }
 }
