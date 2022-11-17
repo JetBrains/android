@@ -63,6 +63,7 @@ import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.CodeOutOfDateTracker
+import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.isErrorResult
@@ -473,14 +474,14 @@ class ComposePreviewRepresentation(
           sceneComponentProvider.enabled = false
 
           // Open the animation inspection panel
-          composeWorkBench.bottomPanel =
-            ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, this) {
-                // Close this inspection panel, making all the necessary UI changes (e.g. changing
-                // background and refreshing the preview) before
-                // opening a new one.
-                animationInspectionPreviewElementInstance = null
-              }
-              .component
+          ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, this) {
+            // Close this inspection panel, making all the necessary UI changes (e.g. changing
+            // background and refreshing the preview) before
+            // opening a new one.
+            animationInspectionPreviewElementInstance = null
+            updateAnimationPanelVisiblity()
+          }
+          updateAnimationPanelVisiblity()
           surface.background = INTERACTIVE_BACKGROUND_COLOR
         } else {
           onAnimationInspectionStop()
@@ -499,8 +500,17 @@ class ComposePreviewRepresentation(
     // Close the animation inspection panel
     ComposePreviewAnimationManager.closeCurrentInspector()
     // Swap the components back
-    composeWorkBench.bottomPanel = null
+    updateAnimationPanelVisiblity()
     previewElementProvider.instanceFilter = null
+  }
+
+  private fun updateAnimationPanelVisiblity() {
+    composeWorkBench.bottomPanel =
+      when {
+        status().hasRuntimeErrors || project.needsBuild -> null
+        animationInspection.get() -> ComposePreviewAnimationManager.currentInspector?.component
+        else -> null
+      }
   }
 
   override val hasDesignInfoProviders: Boolean
@@ -635,6 +645,7 @@ class ComposePreviewRepresentation(
   private data class RefreshRequest(val quickRefresh: Boolean) {
     val requestId = UUID.randomUUID().toString().substring(0, 5)
   }
+
   // region Lifecycle handling
   @TestOnly
   fun needsRefreshOnSuccessfulBuild() = previewFreshnessTracker.needsRefreshOnSuccessfulBuild()
@@ -1055,6 +1066,7 @@ class ComposePreviewRepresentation(
 
   private fun requestVisibilityAndNotificationsUpdate() {
     launch(workerThread) { refreshNotificationsAndVisibilityFlow.emit(Unit) }
+    updateAnimationPanelVisiblity()
   }
 
   /**

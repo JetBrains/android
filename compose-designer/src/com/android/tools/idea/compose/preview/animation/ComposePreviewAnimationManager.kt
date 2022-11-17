@@ -45,7 +45,7 @@ private val LOG = Logger.getInstance(ComposePreviewAnimationManager::class.java)
  * tabs for newly subscribed animations and closing tabs corresponding to unsubscribed animations.
  */
 object ComposePreviewAnimationManager {
-  @get:VisibleForTesting
+
   internal var currentInspector: AnimationPreview? = null
     private set
 
