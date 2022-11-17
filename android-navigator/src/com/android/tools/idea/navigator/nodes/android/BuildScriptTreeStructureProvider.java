@@ -46,7 +46,7 @@ public class BuildScriptTreeStructureProvider implements TreeStructureProvider {
 
   @Nullable
   @Override
-  public Object getData(@NotNull Collection<AbstractTreeNode<?>> selected, @NotNull String dataName) {
+  public Object getData(@NotNull Collection<? extends AbstractTreeNode<?>> selected, @NotNull String dataName) {
     return myRealTreeStructureProvider.getData(selected, dataName);
   }
 
