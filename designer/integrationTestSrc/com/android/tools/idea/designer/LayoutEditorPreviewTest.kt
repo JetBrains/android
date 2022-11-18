@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose
+package com.android.tools.idea.designer
 
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
@@ -22,26 +22,26 @@ import java.nio.file.Path
 import org.junit.Rule
 import org.junit.Test
 
-/** Ensures that Compose Preview works for an XML file. */
-class ComposePreviewXml {
+/** Ensures that Layout Editor Preview works for an XML file. */
+class LayoutEditorPreviewTest {
 
   @get:Rule val system = AndroidSystem.standard()
 
   @Test
   fun basic() {
     // Create a new android project, and set a fixed distribution
-    val project = AndroidProject("tools/adt/idea/compose-designer/testData/projects/composepreview")
+    val project = AndroidProject("tools/adt/idea/designer/testData/projects/simpleApplication")
     project.setDistribution("tools/external/gradle/gradle-7.3.3-bin.zip")
 
     // Create a maven repo and set it up in the installation and environment
-    system.installRepo(MavenRepo("tools/adt/idea/compose-designer/compose_preview_deps.manifest"))
+    system.installRepo(MavenRepo("tools/adt/idea/designer/layout_preview_deps.manifest"))
     system.runStudio(project) { studio ->
       studio.waitForSync()
       studio.waitForIndex()
 
       val path: Path =
-        project.targetProject.resolve("app/src/main/res/drawable/ic_launcher_background.xml")
-      studio.openFile("ComposePreviewTest", path.toString())
+        project.targetProject.resolve("app/src/main/res/layout/activity_my.xml")
+      studio.openFile("simpleApplication", path.toString())
       studio.waitForComponentByClass("DesignSurfaceScrollPane", "JBViewport", "SceneViewPanel")
     }
   }

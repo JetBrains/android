@@ -232,13 +232,3 @@ iml_test(
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.compose.ComposePreviewKotlin",
 )
-
-iml_test(
-    name = "ComposePreviewXmlTest",
-    timeout = "long",
-    data = compose_preview_data,
-    module = ":intellij.android.compose-designer.integration",
-    tags_linux = ["block-network"],
-    tags_windows = ["block-network"],
-    test_class = "com.android.tools.idea.compose.ComposePreviewXml",
-)

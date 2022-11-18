@@ -167,6 +167,7 @@
       <module fileurl="file://$PROJECT_DIR$/deploy/intellij.android.deploy.iml" filepath="$PROJECT_DIR$/deploy/intellij.android.deploy.iml" />
       <module fileurl="file://$PROJECT_DIR$/design-plugin/intellij.android.design-plugin.iml" filepath="$PROJECT_DIR$/design-plugin/intellij.android.design-plugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/designer/intellij.android.designer.iml" filepath="$PROJECT_DIR$/designer/intellij.android.designer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/designer/intellij.android.designer.integration.iml" filepath="$PROJECT_DIR$/designer/intellij.android.designer.integration.iml" />
       <module fileurl="file://$PROJECT_DIR$/designer-perf-tests/intellij.android.designer-perf-tests.iml" filepath="$PROJECT_DIR$/designer-perf-tests/intellij.android.designer-perf-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/designer/customview/intellij.android.designer.customview.iml" filepath="$PROJECT_DIR$/designer/customview/intellij.android.designer.customview.iml" />
       <module fileurl="file://$PROJECT_DIR$/designer/customview/intellij.android.designer.customview.tests.iml" filepath="$PROJECT_DIR$/designer/customview/intellij.android.designer.customview.tests.iml" />
