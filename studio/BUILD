@@ -601,6 +601,11 @@ studio_plugin(
     ],
 )
 
+exports_files([
+    "codesign/entitlements.xml",
+    "codesign/filelist",
+])
+
 android_studio(
     name = "android-studio",
     codesign_entitlements = "codesign/entitlements.xml",
