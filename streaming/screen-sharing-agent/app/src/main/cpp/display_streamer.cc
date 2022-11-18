@@ -114,6 +114,7 @@ constexpr int BIT_RATE_REDUCED = 2000000;
 constexpr int I_FRAME_INTERVAL_SECONDS = 10;
 constexpr int REPEAT_FRAME_DELAY_MILLIS = 100;
 constexpr int CHANNEL_HEADER_LENGTH = 20;
+constexpr char* AMEDIACODEC_KEY_REQUEST_SYNC_FRAME = "request-sync";  // Introduced in API 31.
 
 bool IsCodecResolutionLessThanDisplayResolution(Size codec_resolution, Size display_resolution) {
   return max(codec_resolution.width, codec_resolution.height) < max(display_resolution.width, display_resolution.height);
@@ -345,6 +346,7 @@ void DisplayStreamer::Shutdown() {
 
 bool DisplayStreamer::ProcessFramesUntilStopped(AMediaCodec* codec, VideoPacketHeader* packet_header) {
   bool end_of_stream = false;
+  bool first_frame_after_start = true;
   while (!end_of_stream && IsCodecRunning()) {
     CodecOutputBuffer codec_buffer(codec);
     if (!codec_buffer.Deque(-1)) {
@@ -353,6 +355,15 @@ bool DisplayStreamer::ProcessFramesUntilStopped(AMediaCodec* codec, VideoPacketH
     end_of_stream = codec_buffer.IsEndOfStream();
     if (!IsCodecRunning()) {
       return false;
+    }
+    if (first_frame_after_start) {
+      // Request another sync frame to prevent a green bar that sometimes appears at the bottom
+      // of the first frame.
+      AMediaFormat* params = AMediaFormat_new();
+      AMediaFormat_setInt32(params, AMEDIACODEC_KEY_REQUEST_SYNC_FRAME, 0);
+      media_status_t status = AMediaCodec_setParameters(codec, params);
+      Log::D("AMediaCodec_setParameters returned %d", status);
+      first_frame_after_start = false;
     }
     int64_t delta = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count() - Agent::GetLastTouchEventTime();
     if (delta < 1000) {
