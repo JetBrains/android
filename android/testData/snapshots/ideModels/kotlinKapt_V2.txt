@@ -206,6 +206,10 @@ MODULE                        : MainActivity
                     localDebugAndroidTestAnnotationProcessorClasspath : <empty>
                     localDebugAndroidTestApi      : <empty>
                     localDebugAndroidTestApiDependenciesMetadata      : <empty>
+                    localDebugAndroidTestCompilationApi     : <empty>
+                    localDebugAndroidTestCompilationCompileOnly       : <empty>
+                    localDebugAndroidTestCompilationImplementation    : <empty>
+                    localDebugAndroidTestCompilationRuntimeOnly       : <empty>
                     localDebugAndroidTestCompileClasspath   : <empty>
                     localDebugAndroidTestCompileOnly        : <empty>
                     localDebugAndroidTestCompileOnlyDependenciesMetadata        : <empty>
@@ -220,6 +224,10 @@ MODULE                        : MainActivity
                     localDebugApi                 : <empty>
                     localDebugApiDependenciesMetadata       : <empty>
                     localDebugApiElements         : <empty>
+                    localDebugCompilationApi      : <empty>
+                    localDebugCompilationCompileOnly        : <empty>
+                    localDebugCompilationImplementation     : <empty>
+                    localDebugCompilationRuntimeOnly        : <empty>
                     localDebugCompileClasspath    : <empty>
                     localDebugCompileOnly         : <empty>
                     localDebugCompileOnlyDependenciesMetadata         : <empty>
@@ -234,6 +242,10 @@ MODULE                        : MainActivity
                     localDebugUnitTestAnnotationProcessorClasspath    : <empty>
                     localDebugUnitTestApi         : <empty>
                     localDebugUnitTestApiDependenciesMetadata         : <empty>
+                    localDebugUnitTestCompilationApi        : <empty>
+                    localDebugUnitTestCompilationCompileOnly          : <empty>
+                    localDebugUnitTestCompilationImplementation       : <empty>
+                    localDebugUnitTestCompilationRuntimeOnly          : <empty>
                     localDebugUnitTestCompileClasspath      : <empty>
                     localDebugUnitTestCompileOnly : <empty>
                     localDebugUnitTestCompileOnlyDependenciesMetadata : <empty>
@@ -253,6 +265,10 @@ MODULE                        : MainActivity
                     localReleaseApi               : <empty>
                     localReleaseApiDependenciesMetadata     : <empty>
                     localReleaseApiElements       : <empty>
+                    localReleaseCompilationApi    : <empty>
+                    localReleaseCompilationCompileOnly      : <empty>
+                    localReleaseCompilationImplementation   : <empty>
+                    localReleaseCompilationRuntimeOnly      : <empty>
                     localReleaseCompileClasspath  : <empty>
                     localReleaseCompileOnly       : <empty>
                     localReleaseCompileOnlyDependenciesMetadata       : <empty>
@@ -267,6 +283,10 @@ MODULE                        : MainActivity
                     localReleaseUnitTestAnnotationProcessorClasspath  : <empty>
                     localReleaseUnitTestApi       : <empty>
                     localReleaseUnitTestApiDependenciesMetadata       : <empty>
+                    localReleaseUnitTestCompilationApi      : <empty>
+                    localReleaseUnitTestCompilationCompileOnly        : <empty>
+                    localReleaseUnitTestCompilationImplementation     : <empty>
+                    localReleaseUnitTestCompilationRuntimeOnly        : <empty>
                     localReleaseUnitTestCompileClasspath    : <empty>
                     localReleaseUnitTestCompileOnly         : <empty>
                     localReleaseUnitTestCompileOnlyDependenciesMetadata         : <empty>
@@ -300,6 +320,10 @@ MODULE                        : MainActivity
                     remoteDebugAndroidTestAnnotationProcessorClasspath          : <empty>
                     remoteDebugAndroidTestApi     : <empty>
                     remoteDebugAndroidTestApiDependenciesMetadata     : <empty>
+                    remoteDebugAndroidTestCompilationApi    : <empty>
+                    remoteDebugAndroidTestCompilationCompileOnly      : <empty>
+                    remoteDebugAndroidTestCompilationImplementation   : <empty>
+                    remoteDebugAndroidTestCompilationRuntimeOnly      : <empty>
                     remoteDebugAndroidTestCompileClasspath  : <empty>
                     remoteDebugAndroidTestCompileOnly       : <empty>
                     remoteDebugAndroidTestCompileOnlyDependenciesMetadata       : <empty>
@@ -314,6 +338,10 @@ MODULE                        : MainActivity
                     remoteDebugApi                : <empty>
                     remoteDebugApiDependenciesMetadata      : <empty>
                     remoteDebugApiElements        : <empty>
+                    remoteDebugCompilationApi     : <empty>
+                    remoteDebugCompilationCompileOnly       : <empty>
+                    remoteDebugCompilationImplementation    : <empty>
+                    remoteDebugCompilationRuntimeOnly       : <empty>
                     remoteDebugCompileClasspath   : <empty>
                     remoteDebugCompileOnly        : <empty>
                     remoteDebugCompileOnlyDependenciesMetadata        : <empty>
@@ -328,6 +356,10 @@ MODULE                        : MainActivity
                     remoteDebugUnitTestAnnotationProcessorClasspath   : <empty>
                     remoteDebugUnitTestApi        : <empty>
                     remoteDebugUnitTestApiDependenciesMetadata        : <empty>
+                    remoteDebugUnitTestCompilationApi       : <empty>
+                    remoteDebugUnitTestCompilationCompileOnly         : <empty>
+                    remoteDebugUnitTestCompilationImplementation      : <empty>
+                    remoteDebugUnitTestCompilationRuntimeOnly         : <empty>
                     remoteDebugUnitTestCompileClasspath     : <empty>
                     remoteDebugUnitTestCompileOnly          : <empty>
                     remoteDebugUnitTestCompileOnlyDependenciesMetadata          : <empty>
@@ -347,6 +379,10 @@ MODULE                        : MainActivity
                     remoteReleaseApi              : <empty>
                     remoteReleaseApiDependenciesMetadata    : <empty>
                     remoteReleaseApiElements      : <empty>
+                    remoteReleaseCompilationApi   : <empty>
+                    remoteReleaseCompilationCompileOnly     : <empty>
+                    remoteReleaseCompilationImplementation  : <empty>
+                    remoteReleaseCompilationRuntimeOnly     : <empty>
                     remoteReleaseCompileClasspath : <empty>
                     remoteReleaseCompileOnly      : <empty>
                     remoteReleaseCompileOnlyDependenciesMetadata      : <empty>
@@ -361,6 +397,10 @@ MODULE                        : MainActivity
                     remoteReleaseUnitTestAnnotationProcessorClasspath : <empty>
                     remoteReleaseUnitTestApi      : <empty>
                     remoteReleaseUnitTestApiDependenciesMetadata      : <empty>
+                    remoteReleaseUnitTestCompilationApi     : <empty>
+                    remoteReleaseUnitTestCompilationCompileOnly       : <empty>
+                    remoteReleaseUnitTestCompilationImplementation    : <empty>
+                    remoteReleaseUnitTestCompilationRuntimeOnly       : <empty>
                     remoteReleaseUnitTestCompileClasspath   : <empty>
                     remoteReleaseUnitTestCompileOnly        : <empty>
                     remoteReleaseUnitTestCompileOnlyDependenciesMetadata        : <empty>
@@ -748,6 +788,10 @@ MODULE                        : MainActivity
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
                     debugAndroidTestApi           : <empty>
                     debugAndroidTestApiDependenciesMetadata : <empty>
+                    debugAndroidTestCompilationApi          : <empty>
+                    debugAndroidTestCompilationCompileOnly  : <empty>
+                    debugAndroidTestCompilationImplementation         : <empty>
+                    debugAndroidTestCompilationRuntimeOnly  : <empty>
                     debugAndroidTestCompileClasspath        : <empty>
                     debugAndroidTestCompileOnly   : <empty>
                     debugAndroidTestCompileOnlyDependenciesMetadata   : <empty>
@@ -764,6 +808,10 @@ MODULE                        : MainActivity
                     debugApiElements              : <empty>
                     - debugApiElements-published  : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                     - debugArchives               : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                    debugCompilationApi           : <empty>
+                    debugCompilationCompileOnly   : <empty>
+                    debugCompilationImplementation          : <empty>
+                    debugCompilationRuntimeOnly   : <empty>
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugCompileOnlyDependenciesMetadata    : <empty>
@@ -779,6 +827,10 @@ MODULE                        : MainActivity
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestApi              : <empty>
                     debugUnitTestApiDependenciesMetadata    : <empty>
+                    debugUnitTestCompilationApi   : <empty>
+                    debugUnitTestCompilationCompileOnly     : <empty>
+                    debugUnitTestCompilationImplementation  : <empty>
+                    debugUnitTestCompilationRuntimeOnly     : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestCompileOnly      : <empty>
                     debugUnitTestCompileOnlyDependenciesMetadata      : <empty>
@@ -811,6 +863,10 @@ MODULE                        : MainActivity
                     releaseApiElements            : <empty>
                     - releaseApiElements-published          : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                     - releaseArchives             : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                    releaseCompilationApi         : <empty>
+                    releaseCompilationCompileOnly : <empty>
+                    releaseCompilationImplementation        : <empty>
+                    releaseCompilationRuntimeOnly : <empty>
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseCompileOnlyDependenciesMetadata  : <empty>
@@ -826,6 +882,10 @@ MODULE                        : MainActivity
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestApi            : <empty>
                     releaseUnitTestApiDependenciesMetadata  : <empty>
+                    releaseUnitTestCompilationApi : <empty>
+                    releaseUnitTestCompilationCompileOnly   : <empty>
+                    releaseUnitTestCompilationImplementation          : <empty>
+                    releaseUnitTestCompilationRuntimeOnly   : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestCompileOnly    : <empty>
                     releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
@@ -1914,9 +1974,9 @@ MODULE                        : MainActivity.app
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
@@ -1964,7 +2024,7 @@ MODULE                        : MainActivity.app
                     - friendPaths                 : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
                     - friendPaths                 : <ROOT>/app/build/intermediates/compile_app_classes_jar/localDebug/classes.jar [-]
                     jvmDefault                    : disable
-                    moduleName                    : app_localDebug
+                    moduleName                    : app_localDebugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -1977,9 +2037,9 @@ MODULE                        : MainActivity.app
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
@@ -2016,7 +2076,7 @@ MODULE                        : MainActivity.app
                     - friendPaths                 : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
                     - friendPaths                 : <ROOT>/app/build/intermediates/compile_app_classes_jar/localDebug/classes.jar [-]
                     jvmDefault                    : disable
-                    moduleName                    : app_localDebug
+                    moduleName                    : app_localDebugUnitTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -2029,9 +2089,9 @@ MODULE                        : MainActivity.app
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
@@ -2127,11 +2187,11 @@ MODULE                        : MainActivity.javaLib
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
@@ -2153,7 +2213,7 @@ MODULE                        : MainActivity.javaLib
                     - friendPaths                 : <ROOT>/javaLib/build/tmp/kapt3/classes/main [-]
                     - friendPaths                 : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                     jvmDefault                    : disable
-                    moduleName                    : javaLib
+                    moduleName                    : javaLib_test
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2168,11 +2228,11 @@ MODULE                        : MainActivity.javaLib
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
@@ -3409,9 +3469,9 @@ MODULE                        : MainActivity.lib
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
@@ -3424,11 +3484,11 @@ MODULE                        : MainActivity.lib
                     backendThreads                : 1
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0-api.jar
@@ -3465,7 +3525,7 @@ MODULE                        : MainActivity.lib
                     - friendPaths                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    moduleName                    : lib_debug
+                    moduleName                    : lib_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -3477,9 +3537,9 @@ MODULE                        : MainActivity.lib
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
@@ -3492,11 +3552,11 @@ MODULE                        : MainActivity.lib
                     backendThreads                : 1
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0-api.jar
@@ -3533,7 +3593,7 @@ MODULE                        : MainActivity.lib
                     - friendPaths                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    moduleName                    : lib_debug
+                    moduleName                    : lib_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -3545,9 +3605,9 @@ MODULE                        : MainActivity.lib
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar

@@ -79,10 +79,10 @@ maven_repository(
     # keep sorted: for buildifier
     artifacts = [
         "@maven//:com.android.tools.build.gradle_7.1.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.7.20-Beta",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20-Beta",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20-Beta",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20-Beta",
+        "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.8.0-Beta",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.0-Beta",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.0-Beta",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.0-Beta",
     ],
 )
 

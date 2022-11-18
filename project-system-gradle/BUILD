@@ -207,7 +207,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-js_1.7.20-Beta",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-js_1.8.0-Beta",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.0.1",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.5.2",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.5.2",

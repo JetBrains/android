@@ -89,6 +89,10 @@ MODULE                        : project
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
                     debugAndroidTestApi           : <empty>
                     debugAndroidTestApiDependenciesMetadata : <empty>
+                    debugAndroidTestCompilationApi          : <empty>
+                    debugAndroidTestCompilationCompileOnly  : <empty>
+                    debugAndroidTestCompilationImplementation         : <empty>
+                    debugAndroidTestCompilationRuntimeOnly  : <empty>
                     debugAndroidTestCompileClasspath        : <empty>
                     debugAndroidTestCompileOnly   : <empty>
                     debugAndroidTestCompileOnlyDependenciesMetadata   : <empty>
@@ -105,6 +109,10 @@ MODULE                        : project
                     debugApiElements              : <empty>
                     - debugApiElements-published  : <ROOT>/ads-sdk-implementation/build/outputs/aar/ads-sdk-implementation-debug.aar [-]
                     - debugArchives               : <ROOT>/ads-sdk-implementation/build/outputs/aar/ads-sdk-implementation-debug.aar [-]
+                    debugCompilationApi           : <empty>
+                    debugCompilationCompileOnly   : <empty>
+                    debugCompilationImplementation          : <empty>
+                    debugCompilationRuntimeOnly   : <empty>
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugCompileOnlyDependenciesMetadata    : <empty>
@@ -120,6 +128,10 @@ MODULE                        : project
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestApi              : <empty>
                     debugUnitTestApiDependenciesMetadata    : <empty>
+                    debugUnitTestCompilationApi   : <empty>
+                    debugUnitTestCompilationCompileOnly     : <empty>
+                    debugUnitTestCompilationImplementation  : <empty>
+                    debugUnitTestCompilationRuntimeOnly     : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestCompileOnly      : <empty>
                     debugUnitTestCompileOnlyDependenciesMetadata      : <empty>
@@ -152,6 +164,10 @@ MODULE                        : project
                     releaseApiElements            : <empty>
                     - releaseApiElements-published          : <ROOT>/ads-sdk-implementation/build/outputs/aar/ads-sdk-implementation-release.aar [-]
                     - releaseArchives             : <ROOT>/ads-sdk-implementation/build/outputs/aar/ads-sdk-implementation-release.aar [-]
+                    releaseCompilationApi         : <empty>
+                    releaseCompilationCompileOnly : <empty>
+                    releaseCompilationImplementation        : <empty>
+                    releaseCompilationRuntimeOnly : <empty>
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseCompileOnlyDependenciesMetadata  : <empty>
@@ -167,6 +183,10 @@ MODULE                        : project
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestApi            : <empty>
                     releaseUnitTestApiDependenciesMetadata  : <empty>
+                    releaseUnitTestCompilationApi : <empty>
+                    releaseUnitTestCompilationCompileOnly   : <empty>
+                    releaseUnitTestCompilationImplementation          : <empty>
+                    releaseUnitTestCompilationRuntimeOnly   : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestCompileOnly    : <empty>
                     releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
@@ -309,6 +329,10 @@ MODULE                        : project
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
                     debugAndroidTestApi           : <empty>
                     debugAndroidTestApiDependenciesMetadata : <empty>
+                    debugAndroidTestCompilationApi          : <empty>
+                    debugAndroidTestCompilationCompileOnly  : <empty>
+                    debugAndroidTestCompilationImplementation         : <empty>
+                    debugAndroidTestCompilationRuntimeOnly  : <empty>
                     debugAndroidTestCompileClasspath        : <empty>
                     debugAndroidTestCompileOnly   : <empty>
                     debugAndroidTestCompileOnlyDependenciesMetadata   : <empty>
@@ -323,6 +347,10 @@ MODULE                        : project
                     debugApi                      : <empty>
                     debugApiDependenciesMetadata  : <empty>
                     debugApiElements              : <empty>
+                    debugCompilationApi           : <empty>
+                    debugCompilationCompileOnly   : <empty>
+                    debugCompilationImplementation          : <empty>
+                    debugCompilationRuntimeOnly   : <empty>
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugCompileOnlyDependenciesMetadata    : <empty>
@@ -337,6 +365,10 @@ MODULE                        : project
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestApi              : <empty>
                     debugUnitTestApiDependenciesMetadata    : <empty>
+                    debugUnitTestCompilationApi   : <empty>
+                    debugUnitTestCompilationCompileOnly     : <empty>
+                    debugUnitTestCompilationImplementation  : <empty>
+                    debugUnitTestCompilationRuntimeOnly     : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestCompileOnly      : <empty>
                     debugUnitTestCompileOnlyDependenciesMetadata      : <empty>
@@ -368,6 +400,10 @@ MODULE                        : project
                     releaseApi                    : <empty>
                     releaseApiDependenciesMetadata          : <empty>
                     releaseApiElements            : <empty>
+                    releaseCompilationApi         : <empty>
+                    releaseCompilationCompileOnly : <empty>
+                    releaseCompilationImplementation        : <empty>
+                    releaseCompilationRuntimeOnly : <empty>
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseCompileOnlyDependenciesMetadata  : <empty>
@@ -382,6 +418,10 @@ MODULE                        : project
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestApi            : <empty>
                     releaseUnitTestApiDependenciesMetadata  : <empty>
+                    releaseUnitTestCompilationApi : <empty>
+                    releaseUnitTestCompilationCompileOnly   : <empty>
+                    releaseUnitTestCompilationImplementation          : <empty>
+                    releaseUnitTestCompilationRuntimeOnly   : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestCompileOnly    : <empty>
                     releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
@@ -525,6 +565,10 @@ MODULE                        : project
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
                     debugAndroidTestApi           : <empty>
                     debugAndroidTestApiDependenciesMetadata : <empty>
+                    debugAndroidTestCompilationApi          : <empty>
+                    debugAndroidTestCompilationCompileOnly  : <empty>
+                    debugAndroidTestCompilationImplementation         : <empty>
+                    debugAndroidTestCompilationRuntimeOnly  : <empty>
                     debugAndroidTestCompileClasspath        : <empty>
                     debugAndroidTestCompileOnly   : <empty>
                     debugAndroidTestCompileOnlyDependenciesMetadata   : <empty>
@@ -539,6 +583,10 @@ MODULE                        : project
                     debugApi                      : <empty>
                     debugApiDependenciesMetadata  : <empty>
                     debugApiElements              : <empty>
+                    debugCompilationApi           : <empty>
+                    debugCompilationCompileOnly   : <empty>
+                    debugCompilationImplementation          : <empty>
+                    debugCompilationRuntimeOnly   : <empty>
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugCompileOnlyDependenciesMetadata    : <empty>
@@ -553,6 +601,10 @@ MODULE                        : project
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestApi              : <empty>
                     debugUnitTestApiDependenciesMetadata    : <empty>
+                    debugUnitTestCompilationApi   : <empty>
+                    debugUnitTestCompilationCompileOnly     : <empty>
+                    debugUnitTestCompilationImplementation  : <empty>
+                    debugUnitTestCompilationRuntimeOnly     : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestCompileOnly      : <empty>
                     debugUnitTestCompileOnlyDependenciesMetadata      : <empty>
@@ -584,6 +636,10 @@ MODULE                        : project
                     releaseApi                    : <empty>
                     releaseApiDependenciesMetadata          : <empty>
                     releaseApiElements            : <empty>
+                    releaseCompilationApi         : <empty>
+                    releaseCompilationCompileOnly : <empty>
+                    releaseCompilationImplementation        : <empty>
+                    releaseCompilationRuntimeOnly : <empty>
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseCompileOnlyDependenciesMetadata  : <empty>
@@ -598,6 +654,10 @@ MODULE                        : project
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestApi            : <empty>
                     releaseUnitTestApiDependenciesMetadata  : <empty>
+                    releaseUnitTestCompilationApi : <empty>
+                    releaseUnitTestCompilationCompileOnly   : <empty>
+                    releaseUnitTestCompilationImplementation          : <empty>
+                    releaseUnitTestCompilationRuntimeOnly   : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestCompileOnly    : <empty>
                     releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
@@ -741,6 +801,10 @@ MODULE                        : project
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
                     debugAndroidTestApi           : <empty>
                     debugAndroidTestApiDependenciesMetadata : <empty>
+                    debugAndroidTestCompilationApi          : <empty>
+                    debugAndroidTestCompilationCompileOnly  : <empty>
+                    debugAndroidTestCompilationImplementation         : <empty>
+                    debugAndroidTestCompilationRuntimeOnly  : <empty>
                     debugAndroidTestCompileClasspath        : <empty>
                     debugAndroidTestCompileOnly   : <empty>
                     debugAndroidTestCompileOnlyDependenciesMetadata   : <empty>
@@ -755,6 +819,10 @@ MODULE                        : project
                     debugApi                      : <empty>
                     debugApiDependenciesMetadata  : <empty>
                     debugApiElements              : <empty>
+                    debugCompilationApi           : <empty>
+                    debugCompilationCompileOnly   : <empty>
+                    debugCompilationImplementation          : <empty>
+                    debugCompilationRuntimeOnly   : <empty>
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugCompileOnlyDependenciesMetadata    : <empty>
@@ -769,6 +837,10 @@ MODULE                        : project
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestApi              : <empty>
                     debugUnitTestApiDependenciesMetadata    : <empty>
+                    debugUnitTestCompilationApi   : <empty>
+                    debugUnitTestCompilationCompileOnly     : <empty>
+                    debugUnitTestCompilationImplementation  : <empty>
+                    debugUnitTestCompilationRuntimeOnly     : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestCompileOnly      : <empty>
                     debugUnitTestCompileOnlyDependenciesMetadata      : <empty>
@@ -799,6 +871,10 @@ MODULE                        : project
                     releaseApi                    : <empty>
                     releaseApiDependenciesMetadata          : <empty>
                     releaseApiElements            : <empty>
+                    releaseCompilationApi         : <empty>
+                    releaseCompilationCompileOnly : <empty>
+                    releaseCompilationImplementation        : <empty>
+                    releaseCompilationRuntimeOnly : <empty>
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseCompileOnlyDependenciesMetadata  : <empty>
@@ -813,6 +889,10 @@ MODULE                        : project
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestApi            : <empty>
                     releaseUnitTestApiDependenciesMetadata  : <empty>
+                    releaseUnitTestCompilationApi : <empty>
+                    releaseUnitTestCompilationCompileOnly   : <empty>
+                    releaseUnitTestCompilationImplementation          : <empty>
+                    releaseUnitTestCompilationRuntimeOnly   : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestCompileOnly    : <empty>
                     releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
@@ -1376,11 +1456,11 @@ MODULE                        : project.ads-sdk-implementation
                     backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.3/kotlinx-coroutines-core-jvm-1.6.3.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/androidx/annotation/annotation/1.3.0/annotation-1.3.0.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <M2>/androidx/annotation/annotation/1.3.0/annotation-1.3.0.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-TiramisuPrivacySandbox/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debugAndroidTest
@@ -1388,7 +1468,7 @@ MODULE                        : project.ads-sdk-implementation
                     - friendPaths                 : <ROOT>/ads-sdk-implementation/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/ads-sdk-implementation/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    moduleName                    : ads-sdk-implementation_debug
+                    moduleName                    : ads-sdk-implementation_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -1405,11 +1485,11 @@ MODULE                        : project.ads-sdk-implementation
                     backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.3/kotlinx-coroutines-core-jvm-1.6.3.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/androidx/annotation/annotation/1.3.0/annotation-1.3.0.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <M2>/androidx/annotation/annotation/1.3.0/annotation-1.3.0.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-TiramisuPrivacySandbox/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debugUnitTest
@@ -1417,7 +1497,7 @@ MODULE                        : project.ads-sdk-implementation
                     - friendPaths                 : <ROOT>/ads-sdk-implementation/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/ads-sdk-implementation/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    moduleName                    : ads-sdk-implementation_debug
+                    moduleName                    : ads-sdk-implementation_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -2975,9 +3055,9 @@ MODULE                        : project.app
                     backendThreads                : 1
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0-api.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.3-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.3.6-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.4-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1-api.jar
@@ -3026,7 +3106,7 @@ MODULE                        : project.app
                     - friendPaths                 : <ROOT>/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
                     jvmTarget                     : 1.8
-                    moduleName                    : app_debug
+                    moduleName                    : app_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -3042,6 +3122,7 @@ MODULE                        : project.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.3-api.jar
                     - classpath                   : <M2>/junit/junit/4.13.2/junit-4.13.2.jar
                     - classpath                   : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
@@ -3049,7 +3130,6 @@ MODULE                        : project.app
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.3.6-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.4-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1-api.jar
@@ -3085,7 +3165,7 @@ MODULE                        : project.app
                     - friendPaths                 : <ROOT>/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
                     jvmTarget                     : 1.8
-                    moduleName                    : app_debug
+                    moduleName                    : app_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -4051,13 +4131,13 @@ MODULE                        : project.app-with-dynamic-feature
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0-api.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0-api.jar
                     - classpath                   : <M2>/junit/junit/4.12/junit-4.12.jar
                     - classpath                   : <M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar
                     - classpath                   : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
                     - classpath                   : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.4.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.3.6-api.jar
@@ -4101,7 +4181,7 @@ MODULE                        : project.app-with-dynamic-feature
                     - friendPaths                 : <ROOT>/app-with-dynamic-feature/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
                     jvmTarget                     : 1.8
-                    moduleName                    : app-with-dynamic-feature_debug
+                    moduleName                    : app-with-dynamic-feature_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -4117,6 +4197,7 @@ MODULE                        : project.app-with-dynamic-feature
                     assertionsMode                : legacy
                     backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.3-api.jar
                     - classpath                   : <M2>/junit/junit/4.13.2/junit-4.13.2.jar
                     - classpath                   : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
@@ -4124,7 +4205,6 @@ MODULE                        : project.app-with-dynamic-feature
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.3.6-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.4-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1-api.jar
@@ -4160,7 +4240,7 @@ MODULE                        : project.app-with-dynamic-feature
                     - friendPaths                 : <ROOT>/app-with-dynamic-feature/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
                     jvmTarget                     : 1.8
-                    moduleName                    : app-with-dynamic-feature_debug
+                    moduleName                    : app-with-dynamic-feature_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -4613,7 +4693,7 @@ MODULE                        : project.feature
                     - friendPaths                 : <ROOT>/feature/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/feature/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    moduleName                    : feature_debug
+                    moduleName                    : feature_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -4640,7 +4720,7 @@ MODULE                        : project.feature
                     - friendPaths                 : <ROOT>/feature/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/feature/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    moduleName                    : feature_debug
+                    moduleName                    : feature_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true

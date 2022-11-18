@@ -1,7 +1,6 @@
 plugins {
   id("com.android.application")
   kotlin("android")
-  kotlin("android.extensions")
 }
 apply(plugin = "com.android.application")
 
@@ -23,7 +22,7 @@ val testVariable = "com.android.support:design:+"
 
 dependencies {
   implementation(fileTree(mapOf("dir" to "libs", "include" to  listOf("*.jar"))))
-  implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:+")
+  implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.0-Beta") // TODO(263236464): Revert to `+` instead of `1.8.0-Beta`
   implementation(mapOf("group" to "com.android.support", "name" to "appcompat-v7", "version" to "+"))
   implementation("com.android.support.constraint:constraint-layout:+")
   implementation(testVariable)

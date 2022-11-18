@@ -86,6 +86,10 @@ MODULE                        : TestCompositeLib1
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
                     debugAndroidTestApi           : <empty>
                     debugAndroidTestApiDependenciesMetadata : <empty>
+                    debugAndroidTestCompilationApi          : <empty>
+                    debugAndroidTestCompilationCompileOnly  : <empty>
+                    debugAndroidTestCompilationImplementation         : <empty>
+                    debugAndroidTestCompilationRuntimeOnly  : <empty>
                     debugAndroidTestCompileClasspath        : <empty>
                     debugAndroidTestCompileOnly   : <empty>
                     debugAndroidTestCompileOnlyDependenciesMetadata   : <empty>
@@ -101,6 +105,10 @@ MODULE                        : TestCompositeLib1
                     debugApiDependenciesMetadata  : <empty>
                     debugApiElements              : <empty>
                     - debugApkPublication         : <ROOT>/TestCompositeLib1/app/build/outputs/apk-zips/debug/apks.zip [-]
+                    debugCompilationApi           : <empty>
+                    debugCompilationCompileOnly   : <empty>
+                    debugCompilationImplementation          : <empty>
+                    debugCompilationRuntimeOnly   : <empty>
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugCompileOnlyDependenciesMetadata    : <empty>
@@ -115,6 +123,10 @@ MODULE                        : TestCompositeLib1
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestApi              : <empty>
                     debugUnitTestApiDependenciesMetadata    : <empty>
+                    debugUnitTestCompilationApi   : <empty>
+                    debugUnitTestCompilationCompileOnly     : <empty>
+                    debugUnitTestCompilationImplementation  : <empty>
+                    debugUnitTestCompilationRuntimeOnly     : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestCompileOnly      : <empty>
                     debugUnitTestCompileOnlyDependenciesMetadata      : <empty>
@@ -148,6 +160,10 @@ MODULE                        : TestCompositeLib1
                     releaseApiDependenciesMetadata          : <empty>
                     releaseApiElements            : <empty>
                     - releaseApkPublication       : <ROOT>/TestCompositeLib1/app/build/outputs/apk-zips/release/apks.zip [-]
+                    releaseCompilationApi         : <empty>
+                    releaseCompilationCompileOnly : <empty>
+                    releaseCompilationImplementation        : <empty>
+                    releaseCompilationRuntimeOnly : <empty>
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseCompileOnlyDependenciesMetadata  : <empty>
@@ -162,6 +178,10 @@ MODULE                        : TestCompositeLib1
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestApi            : <empty>
                     releaseUnitTestApiDependenciesMetadata  : <empty>
+                    releaseUnitTestCompilationApi : <empty>
+                    releaseUnitTestCompilationCompileOnly   : <empty>
+                    releaseUnitTestCompilationImplementation          : <empty>
+                    releaseUnitTestCompilationRuntimeOnly   : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestCompileOnly    : <empty>
                     releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
@@ -307,6 +327,10 @@ MODULE                        : TestCompositeLib1
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
                     debugAndroidTestApi           : <empty>
                     debugAndroidTestApiDependenciesMetadata : <empty>
+                    debugAndroidTestCompilationApi          : <empty>
+                    debugAndroidTestCompilationCompileOnly  : <empty>
+                    debugAndroidTestCompilationImplementation         : <empty>
+                    debugAndroidTestCompilationRuntimeOnly  : <empty>
                     debugAndroidTestCompileClasspath        : <empty>
                     debugAndroidTestCompileOnly   : <empty>
                     debugAndroidTestCompileOnlyDependenciesMetadata   : <empty>
@@ -323,6 +347,10 @@ MODULE                        : TestCompositeLib1
                     debugApiElements              : <empty>
                     - debugApiElements-published  : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/composite1-debug.aar [-]
                     - debugArchives               : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/composite1-debug.aar [-]
+                    debugCompilationApi           : <empty>
+                    debugCompilationCompileOnly   : <empty>
+                    debugCompilationImplementation          : <empty>
+                    debugCompilationRuntimeOnly   : <empty>
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugCompileOnlyDependenciesMetadata    : <empty>
@@ -338,6 +366,10 @@ MODULE                        : TestCompositeLib1
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestApi              : <empty>
                     debugUnitTestApiDependenciesMetadata    : <empty>
+                    debugUnitTestCompilationApi   : <empty>
+                    debugUnitTestCompilationCompileOnly     : <empty>
+                    debugUnitTestCompilationImplementation  : <empty>
+                    debugUnitTestCompilationRuntimeOnly     : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestCompileOnly      : <empty>
                     debugUnitTestCompileOnlyDependenciesMetadata      : <empty>
@@ -374,6 +406,10 @@ MODULE                        : TestCompositeLib1
                     releaseApiElements            : <empty>
                     - releaseApiElements-published          : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/composite1-release.aar [-]
                     - releaseArchives             : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/composite1-release.aar [-]
+                    releaseCompilationApi         : <empty>
+                    releaseCompilationCompileOnly : <empty>
+                    releaseCompilationImplementation        : <empty>
+                    releaseCompilationRuntimeOnly : <empty>
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseCompileOnlyDependenciesMetadata  : <empty>
@@ -389,6 +425,10 @@ MODULE                        : TestCompositeLib1
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestApi            : <empty>
                     releaseUnitTestApiDependenciesMetadata  : <empty>
+                    releaseUnitTestCompilationApi : <empty>
+                    releaseUnitTestCompilationCompileOnly   : <empty>
+                    releaseUnitTestCompilationImplementation          : <empty>
+                    releaseUnitTestCompilationRuntimeOnly   : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestCompileOnly    : <empty>
                     releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
@@ -1861,9 +1901,9 @@ MODULE                        : TestCompositeLib1.app
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
@@ -1918,7 +1958,7 @@ MODULE                        : TestCompositeLib1.app
                     - friendPaths                 : <ROOT>/TestCompositeLib1/app/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/TestCompositeLib1/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    moduleName                    : app_debug
+                    moduleName                    : app_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -1930,9 +1970,9 @@ MODULE                        : TestCompositeLib1.app
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
@@ -1945,10 +1985,11 @@ MODULE                        : TestCompositeLib1.app
                     backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2-api.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0-api.jar
@@ -1978,7 +2019,6 @@ MODULE                        : TestCompositeLib1.app
                     - classpath                   : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0-api.jar
                     - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2-api.jar
                     - classpath                   : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
@@ -1987,7 +2027,7 @@ MODULE                        : TestCompositeLib1.app
                     - friendPaths                 : <ROOT>/TestCompositeLib1/app/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/TestCompositeLib1/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    moduleName                    : app_debug
+                    moduleName                    : app_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -1999,9 +2039,9 @@ MODULE                        : TestCompositeLib1.app
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
@@ -2874,9 +2914,9 @@ MODULE                        : TestCompositeLib1.lib
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
@@ -2888,11 +2928,11 @@ MODULE                        : TestCompositeLib1.lib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0-api.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0-api.jar
@@ -2930,7 +2970,7 @@ MODULE                        : TestCompositeLib1.lib
                     - friendPaths                 : <ROOT>/TestCompositeLib1/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     - friendPaths                 : <ROOT>/TestCompositeLib3/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    moduleName                    : composite1_debug
+                    moduleName                    : composite1_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -2942,9 +2982,9 @@ MODULE                        : TestCompositeLib1.lib
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
@@ -2955,7 +2995,9 @@ MODULE                        : TestCompositeLib1.lib
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0-api.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0-api.jar
@@ -2985,8 +3027,6 @@ MODULE                        : TestCompositeLib1.lib
                     - classpath                   : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0-api.jar
                     - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
@@ -2998,7 +3038,7 @@ MODULE                        : TestCompositeLib1.lib
                     - friendPaths                 : <ROOT>/TestCompositeLib1/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     - friendPaths                 : <ROOT>/TestCompositeLib3/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    moduleName                    : composite1_debug
+                    moduleName                    : composite1_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -3010,9 +3050,9 @@ MODULE                        : TestCompositeLib1.lib
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
@@ -3110,6 +3150,10 @@ MODULE                        : TestCompositeLib3
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
                     debugAndroidTestApi           : <empty>
                     debugAndroidTestApiDependenciesMetadata : <empty>
+                    debugAndroidTestCompilationApi          : <empty>
+                    debugAndroidTestCompilationCompileOnly  : <empty>
+                    debugAndroidTestCompilationImplementation         : <empty>
+                    debugAndroidTestCompilationRuntimeOnly  : <empty>
                     debugAndroidTestCompileClasspath        : <empty>
                     debugAndroidTestCompileOnly   : <empty>
                     debugAndroidTestCompileOnlyDependenciesMetadata   : <empty>
@@ -3125,6 +3169,10 @@ MODULE                        : TestCompositeLib3
                     debugApiDependenciesMetadata  : <empty>
                     debugApiElements              : <empty>
                     - debugApkPublication         : <ROOT>/TestCompositeLib3/app/build/outputs/apk-zips/debug/apks.zip [-]
+                    debugCompilationApi           : <empty>
+                    debugCompilationCompileOnly   : <empty>
+                    debugCompilationImplementation          : <empty>
+                    debugCompilationRuntimeOnly   : <empty>
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugCompileOnlyDependenciesMetadata    : <empty>
@@ -3139,6 +3187,10 @@ MODULE                        : TestCompositeLib3
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestApi              : <empty>
                     debugUnitTestApiDependenciesMetadata    : <empty>
+                    debugUnitTestCompilationApi   : <empty>
+                    debugUnitTestCompilationCompileOnly     : <empty>
+                    debugUnitTestCompilationImplementation  : <empty>
+                    debugUnitTestCompilationRuntimeOnly     : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestCompileOnly      : <empty>
                     debugUnitTestCompileOnlyDependenciesMetadata      : <empty>
@@ -3172,6 +3224,10 @@ MODULE                        : TestCompositeLib3
                     releaseApiDependenciesMetadata          : <empty>
                     releaseApiElements            : <empty>
                     - releaseApkPublication       : <ROOT>/TestCompositeLib3/app/build/outputs/apk-zips/release/apks.zip [-]
+                    releaseCompilationApi         : <empty>
+                    releaseCompilationCompileOnly : <empty>
+                    releaseCompilationImplementation        : <empty>
+                    releaseCompilationRuntimeOnly : <empty>
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseCompileOnlyDependenciesMetadata  : <empty>
@@ -3186,6 +3242,10 @@ MODULE                        : TestCompositeLib3
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestApi            : <empty>
                     releaseUnitTestApiDependenciesMetadata  : <empty>
+                    releaseUnitTestCompilationApi : <empty>
+                    releaseUnitTestCompilationCompileOnly   : <empty>
+                    releaseUnitTestCompilationImplementation          : <empty>
+                    releaseUnitTestCompilationRuntimeOnly   : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestCompileOnly    : <empty>
                     releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
@@ -4255,9 +4315,9 @@ MODULE                        : TestCompositeLib3.app
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
@@ -4312,7 +4372,7 @@ MODULE                        : TestCompositeLib3.app
                     - friendPaths                 : <ROOT>/TestCompositeLib3/app/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/TestCompositeLib3/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    moduleName                    : app_debug
+                    moduleName                    : app_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -4324,9 +4384,9 @@ MODULE                        : TestCompositeLib3.app
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
@@ -4339,10 +4399,11 @@ MODULE                        : TestCompositeLib3.app
                     backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2-api.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0-api.jar
@@ -4372,7 +4433,6 @@ MODULE                        : TestCompositeLib3.app
                     - classpath                   : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0-api.jar
                     - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2-api.jar
                     - classpath                   : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
@@ -4381,7 +4441,7 @@ MODULE                        : TestCompositeLib3.app
                     - friendPaths                 : <ROOT>/TestCompositeLib3/app/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/TestCompositeLib3/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    moduleName                    : app_debug
+                    moduleName                    : app_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -4393,9 +4453,9 @@ MODULE                        : TestCompositeLib3.app
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
@@ -5522,6 +5582,10 @@ MODULE                        : project
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
                     debugAndroidTestApi           : <empty>
                     debugAndroidTestApiDependenciesMetadata : <empty>
+                    debugAndroidTestCompilationApi          : <empty>
+                    debugAndroidTestCompilationCompileOnly  : <empty>
+                    debugAndroidTestCompilationImplementation         : <empty>
+                    debugAndroidTestCompilationRuntimeOnly  : <empty>
                     debugAndroidTestCompileClasspath        : <empty>
                     debugAndroidTestCompileOnly   : <empty>
                     debugAndroidTestCompileOnlyDependenciesMetadata   : <empty>
@@ -5537,6 +5601,10 @@ MODULE                        : project
                     debugApiDependenciesMetadata  : <empty>
                     debugApiElements              : <empty>
                     - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
+                    debugCompilationApi           : <empty>
+                    debugCompilationCompileOnly   : <empty>
+                    debugCompilationImplementation          : <empty>
+                    debugCompilationRuntimeOnly   : <empty>
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugCompileOnlyDependenciesMetadata    : <empty>
@@ -5551,6 +5619,10 @@ MODULE                        : project
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestApi              : <empty>
                     debugUnitTestApiDependenciesMetadata    : <empty>
+                    debugUnitTestCompilationApi   : <empty>
+                    debugUnitTestCompilationCompileOnly     : <empty>
+                    debugUnitTestCompilationImplementation  : <empty>
+                    debugUnitTestCompilationRuntimeOnly     : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestCompileOnly      : <empty>
                     debugUnitTestCompileOnlyDependenciesMetadata      : <empty>
@@ -5584,6 +5656,10 @@ MODULE                        : project
                     releaseApiDependenciesMetadata          : <empty>
                     releaseApiElements            : <empty>
                     - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
+                    releaseCompilationApi         : <empty>
+                    releaseCompilationCompileOnly : <empty>
+                    releaseCompilationImplementation        : <empty>
+                    releaseCompilationRuntimeOnly : <empty>
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseCompileOnlyDependenciesMetadata  : <empty>
@@ -5598,6 +5674,10 @@ MODULE                        : project
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestApi            : <empty>
                     releaseUnitTestApiDependenciesMetadata  : <empty>
+                    releaseUnitTestCompilationApi : <empty>
+                    releaseUnitTestCompilationCompileOnly   : <empty>
+                    releaseUnitTestCompilationImplementation          : <empty>
+                    releaseUnitTestCompilationRuntimeOnly   : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestCompileOnly    : <empty>
                     releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
@@ -5746,6 +5826,10 @@ MODULE                        : project
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
                     debugAndroidTestApi           : <empty>
                     debugAndroidTestApiDependenciesMetadata : <empty>
+                    debugAndroidTestCompilationApi          : <empty>
+                    debugAndroidTestCompilationCompileOnly  : <empty>
+                    debugAndroidTestCompilationImplementation         : <empty>
+                    debugAndroidTestCompilationRuntimeOnly  : <empty>
                     debugAndroidTestCompileClasspath        : <empty>
                     debugAndroidTestCompileOnly   : <empty>
                     debugAndroidTestCompileOnlyDependenciesMetadata   : <empty>
@@ -5762,6 +5846,10 @@ MODULE                        : project
                     debugApiElements              : <empty>
                     - debugApiElements-published  : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                     - debugArchives               : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                    debugCompilationApi           : <empty>
+                    debugCompilationCompileOnly   : <empty>
+                    debugCompilationImplementation          : <empty>
+                    debugCompilationRuntimeOnly   : <empty>
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugCompileOnlyDependenciesMetadata    : <empty>
@@ -5777,6 +5865,10 @@ MODULE                        : project
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestApi              : <empty>
                     debugUnitTestApiDependenciesMetadata    : <empty>
+                    debugUnitTestCompilationApi   : <empty>
+                    debugUnitTestCompilationCompileOnly     : <empty>
+                    debugUnitTestCompilationImplementation  : <empty>
+                    debugUnitTestCompilationRuntimeOnly     : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestCompileOnly      : <empty>
                     debugUnitTestCompileOnlyDependenciesMetadata      : <empty>
@@ -5813,6 +5905,10 @@ MODULE                        : project
                     releaseApiElements            : <empty>
                     - releaseApiElements-published          : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                     - releaseArchives             : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                    releaseCompilationApi         : <empty>
+                    releaseCompilationCompileOnly : <empty>
+                    releaseCompilationImplementation        : <empty>
+                    releaseCompilationRuntimeOnly : <empty>
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseCompileOnlyDependenciesMetadata  : <empty>
@@ -5828,6 +5924,10 @@ MODULE                        : project
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestApi            : <empty>
                     releaseUnitTestApiDependenciesMetadata  : <empty>
+                    releaseUnitTestCompilationApi : <empty>
+                    releaseUnitTestCompilationCompileOnly   : <empty>
+                    releaseUnitTestCompilationImplementation          : <empty>
+                    releaseUnitTestCompilationRuntimeOnly   : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestCompileOnly    : <empty>
                     releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
@@ -6819,9 +6919,9 @@ MODULE                        : project.app
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
@@ -6876,7 +6976,7 @@ MODULE                        : project.app
                     - friendPaths                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    moduleName                    : app_debug
+                    moduleName                    : app_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -6888,9 +6988,9 @@ MODULE                        : project.app
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
@@ -6903,10 +7003,11 @@ MODULE                        : project.app
                     backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2-api.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0-api.jar
@@ -6936,7 +7037,6 @@ MODULE                        : project.app
                     - classpath                   : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0-api.jar
                     - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2-api.jar
                     - classpath                   : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
@@ -6945,7 +7045,7 @@ MODULE                        : project.app
                     - friendPaths                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    moduleName                    : app_debug
+                    moduleName                    : app_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -6957,9 +7057,9 @@ MODULE                        : project.app
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
@@ -7796,9 +7896,9 @@ MODULE                        : project.lib
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
@@ -7810,11 +7910,11 @@ MODULE                        : project.lib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0-api.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0-api.jar
@@ -7851,7 +7951,7 @@ MODULE                        : project.lib
                     - friendPaths                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    moduleName                    : lib_debug
+                    moduleName                    : lib_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -7863,9 +7963,9 @@ MODULE                        : project.lib
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
@@ -7877,11 +7977,11 @@ MODULE                        : project.lib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0-api.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0-api.jar
@@ -7918,7 +8018,7 @@ MODULE                        : project.lib
                     - friendPaths                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
-                    moduleName                    : lib_debug
+                    moduleName                    : lib_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -7930,9 +8030,9 @@ MODULE                        : project.lib
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar

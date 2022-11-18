@@ -151,20 +151,20 @@ PROJECT                       : kotlinMultiPlatform
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.7
+            ApiLevel                      : 1.8
             CompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           : -Xallow-no-source-files -module-name app_debugAndroidTest
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.7
+            LanguageLevel                 : 1.8
             MergedCompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -356,20 +356,20 @@ PROJECT                       : kotlinMultiPlatform
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.7
+            ApiLevel                      : 1.8
             CompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             CompilerSettings
                 additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.7
+            LanguageLevel                 : 1.8
             MergedCompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -513,20 +513,20 @@ PROJECT                       : kotlinMultiPlatform
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.7
+            ApiLevel                      : 1.8
             CompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           : -Xallow-no-source-files -module-name app_debugUnitTest
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.7
+            LanguageLevel                 : 1.8
             MergedCompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -788,10 +788,10 @@ PROJECT                       : kotlinMultiPlatform
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.7
+            ApiLevel                      : 1.8
             CompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -800,16 +800,16 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           : -Xallow-no-source-files -module-name module2_debugAndroidTest
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
             IsTestModule                  : true
             Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
-            LanguageLevel                 : 1.7
+            LanguageLevel                 : 1.8
             MergedCompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -950,10 +950,10 @@ PROJECT                       : kotlinMultiPlatform
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.7
+            ApiLevel                      : 1.8
             CompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -968,10 +968,10 @@ PROJECT                       : kotlinMultiPlatform
             ExternalProjectId             : :module2
             IsTestModule                  : false
             Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
-            LanguageLevel                 : 1.7
+            LanguageLevel                 : 1.8
             MergedCompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1097,10 +1097,10 @@ PROJECT                       : kotlinMultiPlatform
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.7
+            ApiLevel                      : 1.8
             CompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1109,16 +1109,16 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           : -Xallow-no-source-files -module-name module2_debugUnitTest
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
             IsTestModule                  : true
             Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
-            LanguageLevel                 : 1.7
+            LanguageLevel                 : 1.8
             MergedCompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar

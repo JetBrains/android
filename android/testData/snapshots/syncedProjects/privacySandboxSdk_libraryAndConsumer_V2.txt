@@ -171,20 +171,20 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.7
+            ApiLevel                      : 1.8
             CompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           : -Xallow-no-source-files -module-name ads-sdk-implementation_debugAndroidTest
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.7
+            LanguageLevel                 : 1.8
             MergedCompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -298,20 +298,20 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.7
+            ApiLevel                      : 1.8
             CompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             CompilerSettings
                 additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.7
+            LanguageLevel                 : 1.8
             MergedCompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -418,20 +418,20 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.7
+            ApiLevel                      : 1.8
             CompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           : -Xallow-no-source-files -module-name ads-sdk-implementation_debugUnitTest
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.7
+            LanguageLevel                 : 1.8
             MergedCompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -710,20 +710,20 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.7
+            ApiLevel                      : 1.8
             CompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           : -Xallow-no-source-files -module-name app-with-dynamic-feature_debugAndroidTest
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.7
+            LanguageLevel                 : 1.8
             MergedCompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -927,20 +927,20 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.7
+            ApiLevel                      : 1.8
             CompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             CompilerSettings
                 additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.7
+            LanguageLevel                 : 1.8
             MergedCompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -1085,20 +1085,20 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.7
+            ApiLevel                      : 1.8
             CompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           : -Xallow-no-source-files -module-name app-with-dynamic-feature_debugUnitTest
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.7
+            LanguageLevel                 : 1.8
             MergedCompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -1279,20 +1279,20 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.7
+            ApiLevel                      : 1.8
             CompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           : -Xallow-no-source-files -module-name app_debugAndroidTest
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.7
+            LanguageLevel                 : 1.8
             MergedCompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -1494,20 +1494,20 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.7
+            ApiLevel                      : 1.8
             CompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             CompilerSettings
                 additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.7
+            LanguageLevel                 : 1.8
             MergedCompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -1652,20 +1652,20 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.7
+            ApiLevel                      : 1.8
             CompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           : -Xallow-no-source-files -module-name app_debugUnitTest
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.7
+            LanguageLevel                 : 1.8
             MergedCompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -1925,20 +1925,20 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.7
+            ApiLevel                      : 1.8
             CompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           : -Xallow-no-source-files -module-name feature_debugAndroidTest
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.7
+            LanguageLevel                 : 1.8
             MergedCompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -2054,20 +2054,20 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.7
+            ApiLevel                      : 1.8
             CompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             CompilerSettings
                 additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.7
+            LanguageLevel                 : 1.8
             MergedCompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -2177,20 +2177,20 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.7
+            ApiLevel                      : 1.8
             CompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           : -Xallow-no-source-files -module-name feature_debugUnitTest
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.7
+            LanguageLevel                 : 1.8
             MergedCompilerArguments
-                apiVersion                    : 1.7
-                languageVersion               : 1.7
+                apiVersion                    : 1.8
+                languageVersion               : 1.8
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
