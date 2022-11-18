@@ -98,7 +98,6 @@ class BuildAnalyzerComboBoxView(
 
     controlsPanel.add(dataSetCombo)
     controlsPanel.add(additionalControlsPanel)
-    controlsPanel.add(createToolbar(this))
     add(controlsPanel, BorderLayout.NORTH)
     add(pagesPanel, BorderLayout.CENTER)
   }

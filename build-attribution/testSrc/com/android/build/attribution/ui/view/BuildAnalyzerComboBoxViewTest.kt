@@ -23,13 +23,13 @@ import com.android.tools.adtui.TreeWalker
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.Separator
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.kotlin.utils.keysToMap
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -165,6 +165,7 @@ class BuildAnalyzerComboBoxViewTest {
 
   @Test
   @RunsInEdt
+  @Ignore("Re-enable once we have more settings for build analyzer history")
   fun testActionToolbarIsSetProperly() {
     val toolbar = TreeWalker(view.wholePanel).descendants().filterIsInstance<ActionToolbar>().single()
 
