@@ -35,7 +35,6 @@ import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
-import com.android.tools.idea.run.profiler.ProfilingMode;
 import com.android.tools.idea.run.tasks.LaunchContext;
 import com.android.tools.idea.run.tasks.LaunchResult;
 import com.android.tools.idea.run.tasks.LaunchTask;
@@ -127,13 +126,6 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       return "";
     }
 
-    AbstractProfilerExecutorGroup.AbstractProfilerSetting setting =
-      AbstractProfilerExecutorGroup.Companion.getExecutorSetting(executor.getId());
-    if (setting != null && setting.getProfilingMode() == ProfilingMode.PROFILEABLE) {
-      // If running as profileable, skip "attach-agent".
-      return "";
-    }
-
     TransportService transportService = TransportService.getInstance();
     ProfilerClient client = new ProfilerClient(TransportService.getChannelName());
     Common.Device profilerDevice;
@@ -149,7 +141,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
     TransportFileManager fileManager = new TransportFileManager(device, transportService.getMessageBus());
     pushStartupAgentConfig(fileManager, project);
-    String agentArgs = fileManager.configureStartupAgent(applicationId, STARTUP_AGENT_CONFIG_NAME);
+    String agentArgs = fileManager.configureStartupAgent(applicationId, STARTUP_AGENT_CONFIG_NAME, executor.getId());
     String startupProfilingResult = startStartupProfiling(profilerState, applicationId, project, client, device, profilerDevice);
     client.shutdownChannel();
     return String.format("%s %s", agentArgs, startupProfilingResult);

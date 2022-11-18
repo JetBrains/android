@@ -17,7 +17,10 @@ package com.android.tools.idea.profilers
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.DeviceImpl
+import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt
 import com.android.tools.idea.run.editor.ProfilerState
+import com.android.tools.idea.transport.TransportFileManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.Executor
 import com.intellij.execution.executors.DefaultRunExecutor
@@ -26,6 +29,7 @@ import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 
 class AndroidProfilerLaunchTaskContributorTest {
   @get:Rule
@@ -72,10 +76,17 @@ class AndroidProfilerLaunchTaskContributorTest {
     // Empty string for null ProfilerState.
     val profileExecutor = ProfileRunExecutor.getInstance()!!
     assertThat(AndroidProfilerLaunchTaskContributor.getAmStartOptions(projectRule.project, "app", null, device, profileExecutor)).isEmpty()
+  }
 
-    // Empty string for profileable executor.
-    val profileableExecutor = ProfileRunExecutorGroup.getInstance()!!.childExecutors()[0]
-    assertThat(AndroidProfilerLaunchTaskContributor.getAmStartOptions(projectRule.project, "app", profilerState, device,
-                                                                      profileableExecutor)).isEmpty()
+  @Test
+  fun testAgentConfigIsEmptyForProfileable() {
+    // Register Profiler Group as executors.
+    ExtensionTestUtil.maskExtensions(Executor.EXECUTOR_EXTENSION_NAME, listOf(ProfileRunExecutorGroup()), disposableRule.disposable)
+    val device = Mockito.mock(IDevice::class.java)
+    MockitoKt.whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.O_MR1))
+    val fileManager = TransportFileManager(device, projectRule.project.messageBus)
+
+    val result = fileManager.configureStartupAgent("com.example.app", "foo", ProfileRunExecutorGroup.getInstance()!!.childExecutors()[0].id)
+    assertThat(result).isEmpty()
   }
 }

@@ -27,6 +27,8 @@ import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup;
+import com.android.tools.idea.run.profiler.ProfilingMode;
 import com.android.tools.profiler.proto.Agent;
 import com.android.tools.profiler.proto.Common.CommonConfig;
 import com.android.tools.profiler.proto.Transport;
@@ -297,12 +299,20 @@ public final class TransportFileManager implements TransportFileCopier {
    * @param packageName The package to launch agent with.
    * @param configName  The agent config file name that should be passed along into the agent. This assumes it already existing under
    *                    {@link #DEVICE_DIR}, which can be done via {@link #pushAgentConfig(String, AndroidRunConfigurationBase)}.
+   * @param executorId  The executor ID is useful for determining whether the build is profileable.
    * @return the parameter needed to for the 'am start' command to launch an app with the startup agent, if the package's data folder is
    * accessible, empty string otherwise.
    */
-  public String configureStartupAgent(@NotNull String packageName, @NotNull String configName) {
+  public String configureStartupAgent(@NotNull String packageName, @NotNull String configName, @NotNull String executorId) {
     // Startup agent feature was introduced from android API level 27.
     if (myDevice.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O_MR1) {
+      return "";
+    }
+
+    // JVMTI agents are unsupported in profileable builds.
+    AbstractProfilerExecutorGroup.AbstractProfilerSetting setting =
+      AbstractProfilerExecutorGroup.Companion.getExecutorSetting(executorId);
+    if (setting != null && setting.getProfilingMode() == ProfilingMode.PROFILEABLE) {
       return "";
     }
 
