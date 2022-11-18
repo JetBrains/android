@@ -32,7 +32,7 @@ interface PsLibraryDependency : PsBaseDependency {
 interface PsDeclaredLibraryDependency: PsLibraryDependency, PsDeclaredDependency {
   var version: ParsedValue<String>
   val versionProperty: ModelSimpleProperty<Unit, String>
-
+  fun canExtractVariable(): Boolean
   override fun toKey() = spec.toString()
 }
 

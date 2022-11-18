@@ -51,11 +51,13 @@ import com.intellij.ui.components.JBTextField
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.CoreMatchers.not
+import org.hamcrest.Matchers.instanceOf
 import org.junit.After
 import org.junit.Assert.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.awt.event.KeyEvent
 import javax.swing.JPanel
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
@@ -1149,6 +1151,35 @@ class VariablesTableTest {
       assertThat(tableModel.getValueAt(newFirstElementNode, 0) as String, equalTo("0"))
       assertThat(tableModel.getValueAt(newFirstElementNode, 1), equalTo("proguard-rules2.txt".asParsed()))
       assertThat(newListNode.childCount, equalTo(childCount - 1))
+    }
+  }
+
+  // regression b/258712110
+  @Test
+  fun testVersionCatalogVariableEditorIsInputText() {
+    StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.override(true)
+    try {
+      val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_VERSION_CATALOG_SAMPLE_GROOVY)
+      preparedProject.open { project ->
+        val psProject = PsProjectImpl(project)
+        val variablesTable = VariablesTable(project, contextFor(psProject), psProject, projectRule.testRootDisposable)
+
+        val versionCatalogNode: VersionCatalogNode = (variablesTable.tableModel.root as DefaultMutableTreeNode).children().asSequence().find {
+          it.toString().contains("libs")
+        } as VersionCatalogNode
+        //create variable
+        variablesTable.selectNode(versionCatalogNode)
+        variablesTable.createAddVariableStrategy().addVariable(ValueType.STRING)
+
+        val rowIndex = variablesTable.getRowByNode(versionCatalogNode.lastChild as VariablesBaseNode)
+        variablesTable.simulateTextInput("newVersion")
+        variablesTable.editCellAt(rowIndex, 1)
+
+        assertThat(variablesTable.editorComponent, instanceOf(JBTextField::class.java))
+      }
+    }
+    finally {
+      StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.clearOverride()
     }
   }
 

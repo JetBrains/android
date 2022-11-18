@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.model.android.PsCollectionBase
 import com.android.tools.idea.gradle.structure.model.helpers.formatAny
 import com.android.tools.idea.gradle.structure.model.helpers.parseAny
+import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.GradleModelCoreProperty
 import com.android.tools.idea.gradle.structure.model.meta.KnownValues
@@ -35,6 +36,7 @@ import com.android.tools.idea.gradle.structure.model.meta.SimpleProperty
 import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.VariableMatchingStrategy
 import com.android.tools.idea.gradle.structure.model.meta.asAny
+import com.android.tools.idea.gradle.structure.model.meta.asString
 import com.android.tools.idea.gradle.structure.model.meta.listProperty
 import com.android.tools.idea.gradle.structure.model.meta.mapProperty
 import com.android.tools.idea.gradle.structure.model.meta.property
@@ -157,6 +159,19 @@ class PsVariable(
       parser = ::parseAny,
       formatter = ::formatAny,
       knownValuesGetter = ::variableKnownValues,
+      variableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
+    )
+
+
+    val variableStringValue: SimpleProperty<PsVariable, String> = property(
+      "Value",
+      defaultValueGetter = null,
+      resolvedValueGetter = { null },
+      parsedPropertyGetter = { this },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parser = ::parseString,
+      formatter = ::formatAny,
       variableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
     )
 

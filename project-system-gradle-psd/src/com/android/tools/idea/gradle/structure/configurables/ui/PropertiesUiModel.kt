@@ -16,15 +16,19 @@
 package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.StringPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.EditorExtensionAction
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ListPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.MapPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.SimplePropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.stringVariablePropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.simplePropertyEditor
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
+import com.android.tools.idea.gradle.structure.model.helpers.parseString
+import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.BrowseFilesExtension
 import com.android.tools.idea.gradle.structure.model.meta.ExtractNewVariableExtension
 import com.android.tools.idea.gradle.structure.model.meta.FileTypePropertyContext
@@ -35,6 +39,8 @@ import com.android.tools.idea.gradle.structure.model.meta.ModelMapPropertyCore
 import com.android.tools.idea.gradle.structure.model.meta.ModelProperty
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.PropertyContextStub
 import com.google.wireless.android.sdk.stats.PSDEvent
 import javax.swing.table.TableCellEditor
 
@@ -149,6 +155,54 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT
     isPropertyContext = true,
     cellEditor = cellEditor,
     logValueEdited = logValueEdited)
+}
+
+fun <ModelT, ModelPropertyT : ModelProperty<ModelT, String, String, ModelPropertyCore<String>>>
+  stringPropertyEditor(
+  project: PsProject,
+  module: PsModule?,
+  model:  ModelT,
+  property: ModelPropertyT,
+  variablesScope: PsVariablesScope? = null,
+  cellEditor: TableCellEditor?,
+  logValueEdited: () -> Unit
+): StringPropertyEditor<ModelPropertyCore<String>> {
+  val boundProperty = property.bind(model)
+  val boundContext =  object : PropertyContextStub<String>() {
+    @Suppress("UNCHECKED_CAST")
+    override fun parseEditorText(text: String): Annotated<ParsedValue<String>> =
+      parseString(text)
+  }
+  return stringVariablePropertyEditor(
+    boundProperty,
+    boundContext,
+    property.bindContext(model).createDefaultEditorExtensions(project, module),
+    isPropertyContext = true,
+    cellEditor = cellEditor,
+    logValueEdited = logValueEdited)
+}
+
+fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT, ModelPropertyCore<ValueT>>>
+  noExtractButtonPropertyEditor(
+  project: PsProject,
+  module: PsModule?,
+  model: ModelT,
+  property: ModelPropertyT,
+  variablesScope: PsVariablesScope? = null,
+  cellEditor: TableCellEditor?,
+  logValueEdited: () -> Unit
+): SimplePropertyEditor<ValueT, ModelPropertyCore<ValueT>>  {
+  val boundProperty = property.bind(model)
+  val boundContext = property.bindContext(model)
+  return simplePropertyEditor(
+    boundProperty,
+    boundContext,
+    variablesScope,
+    boundContext.createDefaultEditorExtensions(project, module),
+    isPropertyContext = true,
+    cellEditor = cellEditor,
+    logValueEdited = logValueEdited,
+    hideMiniButton = true)
 }
 
 @Suppress("UNUSED_PARAMETER")

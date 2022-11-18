@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.variables
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.structure.configurables.PsContext
+import com.android.tools.idea.gradle.structure.configurables.ui.stringPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.PropertyCellEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.renderAnyTo
@@ -504,7 +505,11 @@ class VariablesTable private constructor(
         is EmptyValueNode -> node.createVariable(ParsedValue.NotSet)
         else -> throw IllegalStateException()
       }
-      val uiProperty = uiProperty(PsVariable.Descriptors.variableValue, ::simplePropertyEditor, psdUsageLogFieldId = null)
+      val uiProperty = if ((node as DefaultMutableTreeNode).parent is VersionCatalogNode)
+        uiProperty(PsVariable.Descriptors.variableStringValue, ::stringPropertyEditor, psdUsageLogFieldId = null)
+      else
+        uiProperty(PsVariable.Descriptors.variableValue, ::simplePropertyEditor, psdUsageLogFieldId = null)
+
       val enterHandlingProxyCellEditor =
         object : TableCellEditor by this {
           override fun stopCellEditing(): Boolean {

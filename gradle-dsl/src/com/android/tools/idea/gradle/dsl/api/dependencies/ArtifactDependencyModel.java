@@ -67,4 +67,11 @@ public interface ArtifactDependencyModel extends DependencyModel {
    * Makes any change to this model through name/group/version/classifier/extension work on the property even if this overwrites variables.
    */
   void disableSetThrough();
+
+  /**
+   * Temporary property to indicate version catalog dependency vs build file dependency.
+   */
+  boolean isVersionCatalogDependency();
+
+  void markAsVersionCatalogDependency();
 }

@@ -50,7 +50,7 @@ class PsDeclaredLibraryJavaDependency(
   fun init(parsedModel: ArtifactDependencyModel) {
     this.parsedModel = parsedModel
   }
-
+  override fun canExtractVariable() = true
   override val descriptor by Descriptor
   override val spec: PsArtifactDependencySpec
     get() = PsArtifactDependencySpec.create(

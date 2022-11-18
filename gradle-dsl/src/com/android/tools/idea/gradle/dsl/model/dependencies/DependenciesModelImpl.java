@@ -108,12 +108,13 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
           return;
         }
       }
-
       if (resolved instanceof GradleDslExpressionMap) {
         ArtifactDependencyModel mapNotation = ArtifactDependencyModelImpl.MapNotation.create(
             configurationName, (GradleDslExpressionMap)resolved, configurationElement, maintainer, methodName);
         if (mapNotation != null) {
           dest.add(mapNotation);
+          // cannot do extract variables for version catalog dependencies for now
+          if(resolved.getDslFile() instanceof GradleVersionCatalogFile) mapNotation.markAsVersionCatalogDependency();
         }
       }
       else if (element instanceof GradleDslSimpleExpression) {

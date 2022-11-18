@@ -56,6 +56,8 @@ open class PsDeclaredLibraryAndroidDependency(
     this.parsedModel = parsedModel
   }
 
+  override fun canExtractVariable(): Boolean = !parsedModel.isVersionCatalogDependency
+
   override val isDeclared: Boolean = true
   final override val configurationName: String get() = parsedModel.configurationName()
   override val joinedConfigurationNames: String get() = configurationName

@@ -17,10 +17,13 @@ package com.android.tools.idea.gradle.structure.configurables.dependencies.detai
 
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertyUiModel
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertyUiModelImpl
+import com.android.tools.idea.gradle.structure.configurables.ui.noExtractButtonPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.simplePropertyEditor
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 
 object DeclaredLibraryDependencyUiProperties {
   fun makeVersionUiProperty(dependency: PsDeclaredLibraryDependency): PropertyUiModel<Unit, *> =
-    PropertyUiModelImpl(dependency.versionProperty, ::simplePropertyEditor, psdUsageLogFieldId = null)
+    PropertyUiModelImpl(dependency.versionProperty,
+                        if(dependency.canExtractVariable()) ::simplePropertyEditor else ::noExtractButtonPropertyEditor,
+                        psdUsageLogFieldId = null)
 }

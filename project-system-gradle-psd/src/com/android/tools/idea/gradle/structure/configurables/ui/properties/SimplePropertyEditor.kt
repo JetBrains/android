@@ -59,7 +59,7 @@ import javax.swing.table.TableCellEditor
  * A property editor [ModelPropertyEditor] for properties of simple (not complex) types.
  *
  * This is a [ComboBox] based editor allowing manual text entry as well as entry by selecting an item from the list of values provided by
- * [ModelSimpleProperty.getKnownValues]. Text free text input is parsed by [ModelSimpleProperty.parse].
+ * [ModelSimpleProperty.getKnownValues]. Text free text input is parsed by [ModelSimpleProperty.parseEditorText].
  */
 class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<PropertyT>>(
     property: ModelPropertyT,
@@ -68,7 +68,8 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
     private val extensions: List<EditorExtensionAction<PropertyT, ModelPropertyT>>,
     cellEditor: TableCellEditor? = null,
     private val isPropertyContext: Boolean = false,
-    private val logValueEdited: () -> Unit = {}
+    private val logValueEdited: () -> Unit = {},
+    private val hideMiniButton: Boolean = false
 ) :
     PropertyEditorBase<ModelPropertyT, PropertyT>(property, propertyContext, variablesScope),
     ModelPropertyEditor<PropertyT>,
@@ -254,7 +255,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
     init {
       isFocusable = false
       add(renderedComboBox)
-      add(createMiniButton(extensions.firstOrNull { it.isMainAction }), BorderLayout.EAST)
+      if(!hideMiniButton) add(createMiniButton(extensions.firstOrNull { it.isMainAction }), BorderLayout.EAST)
     }
 
     private fun createMiniButton(extensionAction: EditorExtensionAction<PropertyT, ModelPropertyT>?): JComponent {
@@ -356,7 +357,8 @@ fun <ModelPropertyT : ModelPropertyCore<PropertyT>, PropertyT : Any> simplePrope
     extensions: Collection<EditorExtensionAction<PropertyT, ModelPropertyT>>,
     isPropertyContext: Boolean,
     cellEditor: TableCellEditor?,
-    logValueEdited: () -> Unit = { /* no usage tracking */ }
+    logValueEdited: () -> Unit = { /* no usage tracking */ },
+    hideMiniButton: Boolean = false
 ): SimplePropertyEditor<PropertyT, ModelPropertyT> =
     SimplePropertyEditor(
         boundProperty,
@@ -365,4 +367,5 @@ fun <ModelPropertyT : ModelPropertyCore<PropertyT>, PropertyT : Any> simplePrope
         extensions.filter { it.isAvailableFor(boundProperty, isPropertyContext) },
         cellEditor,
         isPropertyContext,
-        logValueEdited)
+        logValueEdited,
+        hideMiniButton)

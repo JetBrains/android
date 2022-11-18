@@ -61,6 +61,7 @@ import static com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifact
 public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl implements ArtifactDependencyModel {
   @Nullable private GradleDslClosure myConfigurationElement;
   protected boolean mySetThrough = false;
+  protected boolean versionCatalogDependency = false;
 
   @NotNull private static final Pattern WRAPPED_VARIABLE_FORM = Pattern.compile("\\$\\{(.*)}");
   @NotNull private static final Pattern UNWRAPPED_VARIABLE_FORM = Pattern.compile("\\$(([a-zA-Z0-9_]\\w*)(\\.([a-zA-Z0-9_]\\w+))*)");
@@ -129,6 +130,17 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
   public void disableSetThrough() {
     mySetThrough = false;
   }
+
+  @Override
+  public boolean isVersionCatalogDependency(){
+    return versionCatalogDependency;
+  }
+
+  @Override
+  public void markAsVersionCatalogDependency(){
+    versionCatalogDependency = true;
+  }
+
 
   static void createNew(@NotNull GradlePropertiesDslElement parent,
                         @NotNull String configurationName,
