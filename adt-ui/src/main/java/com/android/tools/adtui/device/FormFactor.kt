@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.sdklib.AndroidVersion.VersionCodes.KITKAT_WATCH
 import com.android.sdklib.AndroidVersion.VersionCodes.LOLLIPOP
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API
+import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API_AUTO
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API_TV
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API_WEAR
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
@@ -32,6 +33,7 @@ import com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG
 import com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG
 import com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_TAG
 import com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG
+import com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_PLAY_STORE_TAG
 import com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG
 import com.android.sdklib.repository.targets.SystemImage.WEAR_TAG
 import icons.StudioIllustrations.FormFactors
@@ -45,6 +47,11 @@ enum class FormFactor(
   val id: String,
   val displayName: String,
   val defaultApi: Int,
+  /**
+   * The minimum API level supported by this form factor, as known at compile time.
+   * Only used if offline; if we are online, we will query SDK Manager for
+   * available system images.
+   */
   val minOfflineApiLevel: Int,
   maxOfflineApiLevel: Int,
   val icon: Icon,
@@ -57,9 +64,14 @@ enum class FormFactor(
        FormFactors.WEAR_LARGE, listOf(WEAR_TAG)),
   TV("TV", "Android TV", LOLLIPOP, LOWEST_ACTIVE_API_TV, HIGHEST_KNOWN_API_TV, FormFactors.TV,
      FormFactors.TV_LARGE, listOf(ANDROID_TV_TAG, GOOGLE_TV_TAG)),
-  AUTOMOTIVE("Automotive", "Automotive", VersionCodes.P, VersionCodes.P, HIGHEST_KNOWN_API, FormFactors.CAR,
-             FormFactors.CAR_LARGE, listOf(AUTOMOTIVE_TAG));
+  AUTOMOTIVE("Automotive", "Automotive", VersionCodes.P, VersionCodes.P, HIGHEST_KNOWN_API_AUTO, FormFactors.CAR,
+             FormFactors.CAR_LARGE, listOf(AUTOMOTIVE_TAG, AUTOMOTIVE_PLAY_STORE_TAG));
 
+  /**
+   * The maximum API level supported by this form factor, as known at compile time.
+   * Only used if offline; if we are online, we will query SDK Manager for
+   * available system images.
+   */
   val maxOfflineApiLevel: Int = min(maxOfflineApiLevel, HIGHEST_KNOWN_STABLE_API)
 
   override fun toString(): String = displayName
