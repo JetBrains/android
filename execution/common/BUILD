@@ -15,6 +15,7 @@ iml_module(
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
     ],
 )
 
