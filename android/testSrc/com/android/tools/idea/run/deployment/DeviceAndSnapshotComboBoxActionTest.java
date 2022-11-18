@@ -22,6 +22,7 @@ import static org.junit.Assert.assertFalse;
 
 import com.android.ddmlib.IDevice;
 import com.android.testutils.ImageDiffUtil;
+import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.deployment.DevicesSelectedService.PersistentStateComponent;
 import com.android.tools.idea.testing.AndroidProjectRule;

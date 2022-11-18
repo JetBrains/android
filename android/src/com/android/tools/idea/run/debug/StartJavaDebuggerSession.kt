@@ -17,7 +17,7 @@ package com.android.tools.idea.run.debug
 
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.run.AndroidSessionInfo
+import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.intellij.debugger.DebuggerManagerEx
 import com.intellij.debugger.impl.DebuggerSession
 import com.intellij.execution.ExecutionException

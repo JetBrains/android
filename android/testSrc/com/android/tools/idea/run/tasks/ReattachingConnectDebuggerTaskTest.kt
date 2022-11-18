@@ -21,8 +21,8 @@ import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.fakeadbserver.DeviceState
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.logcat.AndroidLogcatService
-import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.debug.createFakeExecutionEnvironment
 import com.android.tools.idea.run.editor.AndroidDebuggerState
 import com.android.tools.idea.run.editor.AndroidJavaDebugger

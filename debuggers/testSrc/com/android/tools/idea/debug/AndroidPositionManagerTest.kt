@@ -26,8 +26,8 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.debug.AndroidPositionManager.Companion.changeClassExtensionToJava
 import com.android.tools.idea.debug.AndroidPositionManager.MyXDebugSessionListener
 import com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider
+import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.run.AndroidSessionInfo
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.withSdk
 import com.google.common.truth.Truth.assertThat

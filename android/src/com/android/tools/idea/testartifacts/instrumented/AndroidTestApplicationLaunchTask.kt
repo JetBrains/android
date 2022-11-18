@@ -21,8 +21,8 @@ import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner.StatusReporterMode
 import com.android.ddmlib.testrunner.TestIdentifier
+import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.model.TestExecutionOption
-import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.AppLaunchTask
 import com.android.tools.idea.run.tasks.LaunchContext
@@ -251,7 +251,7 @@ class AndroidTestApplicationLaunchTask(
 
         (launchStatus.processHandler as? AndroidProcessHandler)?.let { androidProcessHandler ->
           // runner.cancel() may leave application keep running (b/170232723).
-          device.forceStop(androidProcessHandler.targetApplicationId)
+          device.forceStop(myTestApplicationId)
 
           // Detach the device from the android process handler manually as soon as "am instrument" command finishes.
           androidProcessHandler.detachDevice(device)

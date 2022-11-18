@@ -12,5 +12,6 @@
     <orderEntry type="module" module-name="android.sdktools.deployer" />
     <orderEntry type="module" module-name="android.sdktools.ddmlib" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="module" module-name="intellij.android.deploy" />
   </component>
 </module>

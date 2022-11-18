@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;

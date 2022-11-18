@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.tools.idea.execution.common.AndroidExecutionTarget;
+import com.android.tools.idea.execution.common.AndroidSessionInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner;
-import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.google.common.annotations.VisibleForTesting;

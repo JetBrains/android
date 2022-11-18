@@ -31,6 +31,7 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/base/threading-agent-callback:studio.android.sdktools.threading-agent-callback[module]",
+        "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
     ],
 )
 

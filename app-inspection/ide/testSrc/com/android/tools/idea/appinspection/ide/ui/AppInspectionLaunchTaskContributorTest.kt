@@ -20,8 +20,8 @@ import com.android.ddmlib.internal.DeviceImpl
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.run.AndroidLaunchTasksProvider
-import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.AndroidRemoteDebugProcessHandler
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
@@ -53,7 +53,7 @@ class AppInspectionLaunchTaskContributorTest {
     val runner = DefaultStudioProgramRunner()
     val env = ExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance(), runner, mock(), project)
     val applicationIdProvider: ApplicationIdProvider = object : ApplicationIdProvider {
-      override fun getPackageName(): String = "com.example"
+      override fun getPackageName(): String = "com.example.p1"
       override fun getTestPackageName(): String? = null
     }
 
@@ -62,6 +62,8 @@ class AppInspectionLaunchTaskContributorTest {
       .build()
 
     val config = AndroidRunConfigurationType.getInstance().factory.createTemplateConfiguration(project) as AndroidRunConfiguration
+    // Start process "p1"
+
     val launchTaskProvider = AndroidLaunchTasksProvider(
       config,
       env,
@@ -71,39 +73,51 @@ class AppInspectionLaunchTaskContributorTest {
       launchOptions
     )
 
-    val tasks = launchTaskProvider.getTasks(device, mock(), mock())
-      .filterIsInstance(AppInspectionLaunchTask::class.java)
+    val task1 = launchTaskProvider.getTasks(device, mock(), mock()).filterIsInstance(AppInspectionLaunchTask::class.java).single()
 
-    // Make sure the LayoutInspectorLaunchTaskContributor is registered:
-    assertThat(tasks).hasSize(1)
-    val task = tasks.single()
-
-    // Start process "p1"
-    val handler1 = AndroidProcessHandler(project, "p1")
+    val handler1 = AndroidProcessHandler(project, "com.example.p1")
     val status1 = ProcessHandlerLaunchStatus(handler1)
     val launchContext1 = LaunchContext(project, DefaultRunExecutor(), device, status1, mock(), handler1, mock())
-    task.run(launchContext1)
+    task1.run(launchContext1)
     handler1.startNotify()
+
 
     // Make sure that the process p1 is recorded as the recent process:
     assertThat(RecentProcess.get(project)!!.device).isSameAs(device)
-    assertThat(RecentProcess.get(project)!!.packageName).isEqualTo("p1")
+    assertThat(RecentProcess.get(project)!!.packageName).isEqualTo("com.example.p1")
 
     // Start process "p2"
-    val handler2 = AndroidProcessHandler(project, "p2")
+
+    val applicationIdProvider2: ApplicationIdProvider = object : ApplicationIdProvider {
+      override fun getPackageName(): String = "com.example.p2"
+      override fun getTestPackageName(): String? = null
+    }
+    val launchTaskProvider2 = AndroidLaunchTasksProvider(
+      config,
+      env,
+      AndroidFacet.getInstance(projectRule.module)!!,
+      applicationIdProvider2,
+      mock(),
+      launchOptions
+    )
+    val task2 = launchTaskProvider2.getTasks(device, mock(), mock()).filterIsInstance(AppInspectionLaunchTask::class.java).single()
+
+
+    val handler2 = AndroidProcessHandler(project, "com.example.p2")
     val status2 = ProcessHandlerLaunchStatus(handler2)
     val launchContext2 = LaunchContext(project, DefaultRunExecutor(), device, status2, mock(), handler2, mock())
-    task.run(launchContext2)
+    task2.run(launchContext2)
     handler2.startNotify()
+
 
     // Make sure that the process p2 is now recorded as the recent process:
     assertThat(RecentProcess.get(project)!!.device).isSameAs(device)
-    assertThat(RecentProcess.get(project)!!.packageName).isEqualTo("p2")
+    assertThat(RecentProcess.get(project)!!.packageName).isEqualTo("com.example.p2")
 
     // Kill process p1 and check that the recent process is still p2:
     handler1.killProcess()
     assertThat(RecentProcess.get(project)!!.device).isSameAs(device)
-    assertThat(RecentProcess.get(project)!!.packageName).isEqualTo("p2")
+    assertThat(RecentProcess.get(project)!!.packageName).isEqualTo("com.example.p2")
 
     // Simulate that process2 was started in the debugger.
     // The ProcessHandler will be switched See ConnectJavaDebuggerTask.launchDebugger.
@@ -115,7 +129,7 @@ class AppInspectionLaunchTaskContributorTest {
     status2.processHandler = debugHandler2
     handler2.killProcess()
     assertThat(RecentProcess.get(project)!!.device).isSameAs(device)
-    assertThat(RecentProcess.get(project)!!.packageName).isEqualTo("p2")
+    assertThat(RecentProcess.get(project)!!.packageName).isEqualTo("com.example.p2")
 
     // Destroy process p2 and check that there are no recent processes since p2 is gone:
     debugHandler2.destroyProcess()

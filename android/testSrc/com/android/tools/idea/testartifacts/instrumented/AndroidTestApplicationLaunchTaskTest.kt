@@ -20,7 +20,7 @@ import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.run.AndroidProcessHandler
+import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchResult

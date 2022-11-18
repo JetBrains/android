@@ -14,6 +14,7 @@ iml_module(
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/deploy:intellij.android.deploy[module]",
     ],
 )
 
@@ -22,6 +23,12 @@ iml_module(
     name = "intellij.android.execution.common.tests",
     iml_files = ["intellij.android.execution.common.tests.iml"],
     test_class = "com.android.tools.idea.execution.common.AndroidExecutionCommonTestSuite",
+    # keep sorted
+    test_data = [
+        "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/android/testData",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     runtime_deps = ["//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions"],
@@ -35,5 +42,9 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
+        "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module, test]",
+        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
+        "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
     ],
 )

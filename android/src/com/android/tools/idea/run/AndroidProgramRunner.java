@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
+import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunProfile;

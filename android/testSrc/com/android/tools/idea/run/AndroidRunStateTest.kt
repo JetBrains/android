@@ -16,8 +16,9 @@
 package com.android.tools.idea.run
 
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.execution.common.AndroidExecutionTarget
+import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.model.TestExecutionOption
-import com.android.tools.idea.run.deployment.AndroidExecutionTarget
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
 import com.google.common.truth.Truth.assertThat

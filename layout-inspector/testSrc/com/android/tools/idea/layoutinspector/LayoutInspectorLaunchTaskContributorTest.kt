@@ -21,13 +21,13 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
+import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
 import com.android.tools.idea.layoutinspector.pipeline.adb.findDevice
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.run.AndroidLaunchTasksProvider
-import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.AndroidRemoteDebugProcessHandler
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunProfile;

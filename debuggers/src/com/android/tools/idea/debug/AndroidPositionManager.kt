@@ -20,8 +20,8 @@ import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider
+import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.run.AndroidSessionInfo
 import com.android.tools.idea.sdk.AndroidSdks
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Joiner

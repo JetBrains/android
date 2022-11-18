@@ -19,7 +19,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
+import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import java.util.Collection;

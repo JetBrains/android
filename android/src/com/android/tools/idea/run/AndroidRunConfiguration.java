@@ -22,6 +22,7 @@ import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSy
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.deployer.model.component.ComponentType;
+import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.android.tools.idea.execution.common.AppRunConfiguration;
 import com.android.tools.idea.execution.common.AppRunSettings;
 import com.android.tools.idea.execution.common.ComponentLaunchOptions;
@@ -39,7 +40,6 @@ import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunne
 import com.android.tools.idea.run.configuration.execution.AndroidActivityConfigurationExecutor;
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor;
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorRunProfileState;
-import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.ApplicationRunParameters;
 import com.android.tools.idea.run.editor.DeployTargetProvider;

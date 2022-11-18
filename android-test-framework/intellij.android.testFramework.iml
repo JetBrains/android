@@ -31,5 +31,6 @@
     <orderEntry type="module" module-name="intellij.android.navigator" />
     <orderEntry type="module" module-name="android.sdktools.lint-api" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.threading-agent-callback" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.execution.common" scope="TEST" />
   </component>
 </module>

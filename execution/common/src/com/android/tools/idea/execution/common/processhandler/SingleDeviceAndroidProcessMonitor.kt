@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run
+package com.android.tools.idea.execution.common.processhandler
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitor.Companion.APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS
-import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitor.Companion.POLLING_INTERVAL_MILLIS
-import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_DETACHED
-import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_FINISHED
-import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_IS_RUNNING
-import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_NOT_FOUND
-import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.WAITING_FOR_PROCESS
+import com.android.tools.idea.execution.common.processhandler.SingleDeviceAndroidProcessMonitor.Companion.APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS
+import com.android.tools.idea.execution.common.processhandler.SingleDeviceAndroidProcessMonitor.Companion.POLLING_INTERVAL_MILLIS
+import com.android.tools.idea.execution.common.processhandler.SingleDeviceAndroidProcessMonitorState.PROCESS_DETACHED
+import com.android.tools.idea.execution.common.processhandler.SingleDeviceAndroidProcessMonitorState.PROCESS_FINISHED
+import com.android.tools.idea.execution.common.processhandler.SingleDeviceAndroidProcessMonitorState.PROCESS_IS_RUNNING
+import com.android.tools.idea.execution.common.processhandler.SingleDeviceAndroidProcessMonitorState.PROCESS_NOT_FOUND
+import com.android.tools.idea.execution.common.processhandler.SingleDeviceAndroidProcessMonitorState.WAITING_FOR_PROCESS
+import com.android.tools.idea.run.DeploymentApplicationService
 import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.io.Closeable
@@ -117,7 +118,7 @@ class SingleDeviceAndroidProcessMonitor(
     fun startLogcatOutputCapture() {
       clients.forEach { client ->
         myMonitoringPids.computeIfAbsent(client.clientData.pid) { pid ->
-          textEmitter.emit("Connected to process ${pid} on device '${targetDevice.name}'.\n", ProcessOutputTypes.STDOUT)
+          textEmitter.emit("Connected to process $pid on device '${targetDevice.name}'.\n", ProcessOutputTypes.STDOUT)
         }
       }
     }
@@ -168,7 +169,7 @@ class SingleDeviceAndroidProcessMonitor(
     }
   }
 
-  @Synchronized()
+  @Synchronized
   fun replaceListenerAndClose(newListener: SingleDeviceAndroidProcessMonitorStateListener?) {
     listener = newListener ?: object : SingleDeviceAndroidProcessMonitorStateListener {
       // dummy listener

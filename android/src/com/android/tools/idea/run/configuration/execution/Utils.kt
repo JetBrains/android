@@ -24,7 +24,7 @@ import com.android.ddmlib.NullOutputReceiver
 import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.model.component.WearComponent
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
-import com.android.tools.idea.run.AndroidProcessHandler
+import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment

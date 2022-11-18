@@ -72,5 +72,6 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.adblib" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.adblib.tools" />
+    <orderEntry type="module" module-name="intellij.android.execution.common" scope="TEST" />
   </component>
 </module>

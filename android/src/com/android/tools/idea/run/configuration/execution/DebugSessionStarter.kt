@@ -19,12 +19,11 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.run.AndroidProcessHandler
-import com.android.tools.idea.run.AndroidSessionInfo
+import com.android.tools.idea.execution.common.AndroidSessionInfo
+import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.run.ApplicationTerminator
 import com.android.tools.idea.run.debug.ReattachingDebuggerListener
 import com.android.tools.idea.run.debug.ReattachingProcessHandler
-import com.android.tools.idea.run.debug.captureLogcatOutputToProcessHandler
 import com.android.tools.idea.run.debug.showError
 import com.android.tools.idea.run.debug.waitForClientReadyForDebug
 import com.android.tools.idea.run.editor.AndroidDebugger

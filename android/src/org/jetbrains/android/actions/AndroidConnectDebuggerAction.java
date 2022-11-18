@@ -6,7 +6,7 @@ import static com.android.tools.idea.run.debug.UtilsKt.showError;
 import com.android.annotations.concurrency.Slow;
 import com.android.ddmlib.Client;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.run.AndroidProcessHandler;
+import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
 import com.android.tools.idea.run.editor.RunConfigurationWithDebugger;

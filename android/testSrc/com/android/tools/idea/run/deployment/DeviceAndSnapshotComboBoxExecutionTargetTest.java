@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;

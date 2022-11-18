@@ -24,7 +24,7 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.run.AndroidSessionInfo
+import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.run.DeploymentApplicationService
 import com.android.tools.idea.run.configuration.execution.DebugSessionStarter
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
