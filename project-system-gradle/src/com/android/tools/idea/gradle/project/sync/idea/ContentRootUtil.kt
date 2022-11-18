@@ -53,7 +53,8 @@ private fun IdeSourceProvider.processAll(
   forTest: Boolean = false,
   processor: (String, ExternalSystemSourceType?) -> Unit
 ) {
-  (resourcesDirectories + resDirectories + assetsDirectories + mlModelsDirectories).forEach {
+  val allResources = resourcesDirectories + resDirectories + assetsDirectories + mlModelsDirectories + baselineProfileDirectories
+  allResources.forEach {
     processor(it.absolutePath, if (forTest) TEST_RESOURCE else RESOURCE)
   }
   customSourceDirectories.forEach {

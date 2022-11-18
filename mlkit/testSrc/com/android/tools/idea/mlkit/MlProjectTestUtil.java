@@ -64,6 +64,7 @@ public class MlProjectTestUtil {
             emptyList(),
             emptyList(),
             ImmutableList.of("ml"),
+            emptyList(),
             emptyList())
           )));
   }

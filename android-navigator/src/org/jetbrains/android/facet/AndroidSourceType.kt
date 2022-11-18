@@ -61,6 +61,7 @@ sealed class AndroidSourceType(
         GENERATED_RES,
         RESOURCES,
         ML,
+        BASELINE_PROFILES,
       )
 
     private const val JAVA_NAME = "java"
@@ -175,6 +176,13 @@ sealed class AndroidSourceType(
     AllIcons.Modules.ResourcesRoot,
   ) {
     override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = copyOf(provider.mlModelsDirectories)
+  }
+
+  object BASELINE_PROFILES : AndroidSourceType(
+    "baselineProfiles",
+    AllIcons.Modules.SourceRoot,
+  ) {
+    override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = copyOf(provider.baselineProfileDirectories)
   }
 
   class Custom(name: String) : AndroidSourceType(

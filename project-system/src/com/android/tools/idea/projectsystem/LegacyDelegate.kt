@@ -128,6 +128,9 @@ class LegacyDelegate constructor(private val facet: AndroidFacet) : NamedIdeaSou
 
   override val custom: Map<String, IdeaSourceProvider.Custom> get() = emptyMap()
 
+  override val baselineProfileDirectoryUrls: Iterable<String> get() = emptySet()
+  override val baselineProfileDirectories: Iterable<VirtualFile> get() = emptySet()
+
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (other == null || javaClass != other.javaClass) return false

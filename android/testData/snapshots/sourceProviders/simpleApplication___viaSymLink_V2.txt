@@ -50,6 +50,8 @@ MODULE: project_sm_src.app
                 ._sm_src/app/src/main/resources
             ShadersDirectories:
                 ._sm_src/app/src/main/shaders
+            BaselineProfileDirectories:
+                ._sm_src/app/src/main/baselineProfiles
         Active:
             main
                 Manifest:
@@ -69,6 +71,8 @@ MODULE: project_sm_src.app
                     ._sm_src/app/src/main/resources
                 ShadersDirectories:
                     ._sm_src/app/src/main/shaders
+                BaselineProfileDirectories:
+                    ._sm_src/app/src/main/baselineProfiles
             debug
                 Manifest:
                     ._sm_src/app/src/debug/AndroidManifest.xml
@@ -87,6 +91,8 @@ MODULE: project_sm_src.app
                     ._sm_src/app/src/debug/resources
                 ShadersDirectories:
                     ._sm_src/app/src/debug/shaders
+                BaselineProfileDirectories:
+                    ._sm_src/app/src/debug/baselineProfiles
         All:
             main
                 Manifest:
@@ -106,6 +112,8 @@ MODULE: project_sm_src.app
                     ._sm_src/app/src/main/resources
                 ShadersDirectories:
                     ._sm_src/app/src/main/shaders
+                BaselineProfileDirectories:
+                    ._sm_src/app/src/main/baselineProfiles
             debug
                 Manifest:
                     ._sm_src/app/src/debug/AndroidManifest.xml
@@ -124,6 +132,8 @@ MODULE: project_sm_src.app
                     ._sm_src/app/src/debug/resources
                 ShadersDirectories:
                     ._sm_src/app/src/debug/shaders
+                BaselineProfileDirectories:
+                    ._sm_src/app/src/debug/baselineProfiles
             release
                 Manifest:
                     ._sm_src/app/src/release/AndroidManifest.xml
@@ -142,6 +152,8 @@ MODULE: project_sm_src.app
                     ._sm_src/app/src/release/resources
                 ShadersDirectories:
                     ._sm_src/app/src/release/shaders
+                BaselineProfileDirectories:
+                    ._sm_src/app/src/release/baselineProfiles
         UnitTest:
             test
                 Manifest:
@@ -161,6 +173,8 @@ MODULE: project_sm_src.app
                     ._sm_src/app/src/test/resources
                 ShadersDirectories:
                     ._sm_src/app/src/test/shaders
+                BaselineProfileDirectories:
+                    ._sm_src/app/src/test/baselineProfiles
             testDebug
                 Manifest:
                     ._sm_src/app/src/testDebug/AndroidManifest.xml
@@ -179,6 +193,8 @@ MODULE: project_sm_src.app
                     ._sm_src/app/src/testDebug/resources
                 ShadersDirectories:
                     ._sm_src/app/src/testDebug/shaders
+                BaselineProfileDirectories:
+                    ._sm_src/app/src/testDebug/baselineProfiles
         AndroidTest:
             androidTest
                 Manifest:
@@ -198,6 +214,8 @@ MODULE: project_sm_src.app
                     ._sm_src/app/src/androidTest/resources
                 ShadersDirectories:
                     ._sm_src/app/src/androidTest/shaders
+                BaselineProfileDirectories:
+                    ._sm_src/app/src/androidTest/baselineProfiles
             androidTestDebug
                 Manifest:
                     ._sm_src/app/src/androidTestDebug/AndroidManifest.xml
@@ -216,6 +234,8 @@ MODULE: project_sm_src.app
                     ._sm_src/app/src/androidTestDebug/resources
                 ShadersDirectories:
                     ._sm_src/app/src/androidTestDebug/shaders
+                BaselineProfileDirectories:
+                    ._sm_src/app/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:

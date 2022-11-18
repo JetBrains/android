@@ -93,6 +93,7 @@ fun Project.dumpSourceProviders(): String {
         dumpPaths("ResourcesDirectories") { it.resourcesDirectories }
         dumpPaths("ShadersDirectories") { it.shadersDirectories }
         dumpPaths("MlModelsDirectories") { it.mlModelsDirectories }
+        dumpPaths("BaselineProfileDirectories") { it.baselineProfileDirectories }
         customSourceDirectories.forEach { it.dump() }
       }
     }

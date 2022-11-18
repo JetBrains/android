@@ -34,7 +34,8 @@ data class IdeSourceProviderImpl(
   private val myJniLibsDirectories: Collection<String>,
   private val myShadersDirectories: Collection<String>,
   private val myMlModelsDirectories: Collection<String>,
-  private val myCustomSourceDirectories: Collection<IdeCustomSourceDirectory>
+  private val myCustomSourceDirectories: Collection<IdeCustomSourceDirectory>,
+  private val myBaselineProfileDirectories: Collection<String>,
 ) : Serializable, IdeSourceProvider {
   private fun String.translate(): File = (myFolder?.resolve(this) ?: File(this)).normalize()
   private fun Collection<String>.translate(): Collection<File> = map { it.translate() }
@@ -55,6 +56,7 @@ data class IdeSourceProviderImpl(
     myShadersDirectories = mutableListOf(),
     myMlModelsDirectories = mutableListOf(),
     myCustomSourceDirectories = mutableListOf(),
+    myBaselineProfileDirectories = mutableListOf(),
   )
 
   fun appendDirectories(
@@ -68,6 +70,7 @@ data class IdeSourceProviderImpl(
     jniLibsDirectories: Collection<File> = emptyList(),
     shadersDirectories: Collection<File> = emptyList(),
     mlModelsDirectories: Collection<File> = emptyList(),
+    baselineProfileDirectories: Collection<File> = emptyList(),
   ): IdeSourceProviderImpl = copy(
     myJavaDirectories = myJavaDirectories + javaDirectories.map { normalize(it) },
     myKotlinDirectories = myKotlinDirectories + kotlinDirectories.map { normalize(it) },
@@ -79,6 +82,7 @@ data class IdeSourceProviderImpl(
     myJniLibsDirectories = myJniLibsDirectories + jniLibsDirectories.map { normalize(it) },
     myShadersDirectories = myShadersDirectories + shadersDirectories.map { normalize(it) },
     myMlModelsDirectories = myMlModelsDirectories + mlModelsDirectories.map { normalize(it) },
+    myBaselineProfileDirectories = myBaselineProfileDirectories + baselineProfileDirectories.map { normalize(it) },
   )
 
   private fun normalize(it: File) = if (myFolder != null) it.relativeToOrSelf(myFolder).path else it.path
@@ -97,4 +101,6 @@ data class IdeSourceProviderImpl(
   override val mlModelsDirectories: Collection<File> get() = myMlModelsDirectories.translate()
   override val customSourceDirectories: Collection<IdeCustomSourceDirectory>
     get() = myCustomSourceDirectories
+  override val baselineProfileDirectories: Collection<File>
+    get() = myBaselineProfileDirectories.translate()
 }

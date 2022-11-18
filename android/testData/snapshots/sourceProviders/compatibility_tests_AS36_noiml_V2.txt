@@ -50,6 +50,8 @@ MODULE: AS36_noiml.app
                 ./app/src/main/resources
             ShadersDirectories:
                 ./app/src/main/shaders
+            BaselineProfileDirectories:
+                ./app/src/main/baselineProfiles
         Active:
             main
                 Manifest:
@@ -69,6 +71,8 @@ MODULE: AS36_noiml.app
                     ./app/src/main/resources
                 ShadersDirectories:
                     ./app/src/main/shaders
+                BaselineProfileDirectories:
+                    ./app/src/main/baselineProfiles
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -87,6 +91,8 @@ MODULE: AS36_noiml.app
                     ./app/src/debug/resources
                 ShadersDirectories:
                     ./app/src/debug/shaders
+                BaselineProfileDirectories:
+                    ./app/src/debug/baselineProfiles
         All:
             main
                 Manifest:
@@ -106,6 +112,8 @@ MODULE: AS36_noiml.app
                     ./app/src/main/resources
                 ShadersDirectories:
                     ./app/src/main/shaders
+                BaselineProfileDirectories:
+                    ./app/src/main/baselineProfiles
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -124,6 +132,8 @@ MODULE: AS36_noiml.app
                     ./app/src/debug/resources
                 ShadersDirectories:
                     ./app/src/debug/shaders
+                BaselineProfileDirectories:
+                    ./app/src/debug/baselineProfiles
             release
                 Manifest:
                     ./app/src/release/AndroidManifest.xml
@@ -142,6 +152,8 @@ MODULE: AS36_noiml.app
                     ./app/src/release/resources
                 ShadersDirectories:
                     ./app/src/release/shaders
+                BaselineProfileDirectories:
+                    ./app/src/release/baselineProfiles
         UnitTest:
             test
                 Manifest:
@@ -161,6 +173,8 @@ MODULE: AS36_noiml.app
                     ./app/src/test/resources
                 ShadersDirectories:
                     ./app/src/test/shaders
+                BaselineProfileDirectories:
+                    ./app/src/test/baselineProfiles
             testDebug
                 Manifest:
                     ./app/src/testDebug/AndroidManifest.xml
@@ -179,6 +193,8 @@ MODULE: AS36_noiml.app
                     ./app/src/testDebug/resources
                 ShadersDirectories:
                     ./app/src/testDebug/shaders
+                BaselineProfileDirectories:
+                    ./app/src/testDebug/baselineProfiles
         AndroidTest:
             androidTest
                 Manifest:
@@ -198,6 +214,8 @@ MODULE: AS36_noiml.app
                     ./app/src/androidTest/resources
                 ShadersDirectories:
                     ./app/src/androidTest/shaders
+                BaselineProfileDirectories:
+                    ./app/src/androidTest/baselineProfiles
             androidTestDebug
                 Manifest:
                     ./app/src/androidTestDebug/AndroidManifest.xml
@@ -216,6 +234,8 @@ MODULE: AS36_noiml.app
                     ./app/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./app/src/androidTestDebug/shaders
+                BaselineProfileDirectories:
+                    ./app/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -635,6 +655,8 @@ MODULE: AS36_noiml.features.dynamicfeature
                 ./features/dynamicfeature/src/main/resources
             ShadersDirectories:
                 ./features/dynamicfeature/src/main/shaders
+            BaselineProfileDirectories:
+                ./features/dynamicfeature/src/main/baselineProfiles
         Active:
             main
                 Manifest:
@@ -654,6 +676,8 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/main/resources
                 ShadersDirectories:
                     ./features/dynamicfeature/src/main/shaders
+                BaselineProfileDirectories:
+                    ./features/dynamicfeature/src/main/baselineProfiles
             debug
                 Manifest:
                     ./features/dynamicfeature/src/debug/AndroidManifest.xml
@@ -672,6 +696,8 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/debug/resources
                 ShadersDirectories:
                     ./features/dynamicfeature/src/debug/shaders
+                BaselineProfileDirectories:
+                    ./features/dynamicfeature/src/debug/baselineProfiles
         All:
             main
                 Manifest:
@@ -691,6 +717,8 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/main/resources
                 ShadersDirectories:
                     ./features/dynamicfeature/src/main/shaders
+                BaselineProfileDirectories:
+                    ./features/dynamicfeature/src/main/baselineProfiles
             debug
                 Manifest:
                     ./features/dynamicfeature/src/debug/AndroidManifest.xml
@@ -709,6 +737,8 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/debug/resources
                 ShadersDirectories:
                     ./features/dynamicfeature/src/debug/shaders
+                BaselineProfileDirectories:
+                    ./features/dynamicfeature/src/debug/baselineProfiles
             release
                 Manifest:
                     ./features/dynamicfeature/src/release/AndroidManifest.xml
@@ -727,6 +757,8 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/release/resources
                 ShadersDirectories:
                     ./features/dynamicfeature/src/release/shaders
+                BaselineProfileDirectories:
+                    ./features/dynamicfeature/src/release/baselineProfiles
         UnitTest:
             test
                 Manifest:
@@ -746,6 +778,8 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/test/resources
                 ShadersDirectories:
                     ./features/dynamicfeature/src/test/shaders
+                BaselineProfileDirectories:
+                    ./features/dynamicfeature/src/test/baselineProfiles
             testDebug
                 Manifest:
                     ./features/dynamicfeature/src/testDebug/AndroidManifest.xml
@@ -764,6 +798,8 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/testDebug/resources
                 ShadersDirectories:
                     ./features/dynamicfeature/src/testDebug/shaders
+                BaselineProfileDirectories:
+                    ./features/dynamicfeature/src/testDebug/baselineProfiles
         AndroidTest:
             androidTest
                 Manifest:
@@ -783,6 +819,8 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/androidTest/resources
                 ShadersDirectories:
                     ./features/dynamicfeature/src/androidTest/shaders
+                BaselineProfileDirectories:
+                    ./features/dynamicfeature/src/androidTest/baselineProfiles
             androidTestDebug
                 Manifest:
                     ./features/dynamicfeature/src/androidTestDebug/AndroidManifest.xml
@@ -801,6 +839,8 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./features/dynamicfeature/src/androidTestDebug/shaders
+                BaselineProfileDirectories:
+                    ./features/dynamicfeature/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -1178,6 +1218,8 @@ MODULE: AS36_noiml.features.dynamicfeature2
                 ./features/dynamicfeature2/src/main/resources
             ShadersDirectories:
                 ./features/dynamicfeature2/src/main/shaders
+            BaselineProfileDirectories:
+                ./features/dynamicfeature2/src/main/baselineProfiles
         Active:
             main
                 Manifest:
@@ -1197,6 +1239,8 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/main/resources
                 ShadersDirectories:
                     ./features/dynamicfeature2/src/main/shaders
+                BaselineProfileDirectories:
+                    ./features/dynamicfeature2/src/main/baselineProfiles
             debug
                 Manifest:
                     ./features/dynamicfeature2/src/debug/AndroidManifest.xml
@@ -1215,6 +1259,8 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/debug/resources
                 ShadersDirectories:
                     ./features/dynamicfeature2/src/debug/shaders
+                BaselineProfileDirectories:
+                    ./features/dynamicfeature2/src/debug/baselineProfiles
         All:
             main
                 Manifest:
@@ -1234,6 +1280,8 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/main/resources
                 ShadersDirectories:
                     ./features/dynamicfeature2/src/main/shaders
+                BaselineProfileDirectories:
+                    ./features/dynamicfeature2/src/main/baselineProfiles
             debug
                 Manifest:
                     ./features/dynamicfeature2/src/debug/AndroidManifest.xml
@@ -1252,6 +1300,8 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/debug/resources
                 ShadersDirectories:
                     ./features/dynamicfeature2/src/debug/shaders
+                BaselineProfileDirectories:
+                    ./features/dynamicfeature2/src/debug/baselineProfiles
             release
                 Manifest:
                     ./features/dynamicfeature2/src/release/AndroidManifest.xml
@@ -1270,6 +1320,8 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/release/resources
                 ShadersDirectories:
                     ./features/dynamicfeature2/src/release/shaders
+                BaselineProfileDirectories:
+                    ./features/dynamicfeature2/src/release/baselineProfiles
         UnitTest:
             test
                 Manifest:
@@ -1289,6 +1341,8 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/test/resources
                 ShadersDirectories:
                     ./features/dynamicfeature2/src/test/shaders
+                BaselineProfileDirectories:
+                    ./features/dynamicfeature2/src/test/baselineProfiles
             testDebug
                 Manifest:
                     ./features/dynamicfeature2/src/testDebug/AndroidManifest.xml
@@ -1307,6 +1361,8 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/testDebug/resources
                 ShadersDirectories:
                     ./features/dynamicfeature2/src/testDebug/shaders
+                BaselineProfileDirectories:
+                    ./features/dynamicfeature2/src/testDebug/baselineProfiles
         AndroidTest:
             androidTest
                 Manifest:
@@ -1326,6 +1382,8 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/androidTest/resources
                 ShadersDirectories:
                     ./features/dynamicfeature2/src/androidTest/shaders
+                BaselineProfileDirectories:
+                    ./features/dynamicfeature2/src/androidTest/baselineProfiles
             androidTestDebug
                 Manifest:
                     ./features/dynamicfeature2/src/androidTestDebug/AndroidManifest.xml
@@ -1344,6 +1402,8 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./features/dynamicfeature2/src/androidTestDebug/shaders
+                BaselineProfileDirectories:
+                    ./features/dynamicfeature2/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -1727,6 +1787,8 @@ MODULE: AS36_noiml.libs.android_library
                 ./libs/android_library/src/main/resources
             ShadersDirectories:
                 ./libs/android_library/src/main/shaders
+            BaselineProfileDirectories:
+                ./libs/android_library/src/main/baselineProfiles
         Active:
             main
                 Manifest:
@@ -1746,6 +1808,8 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/main/resources
                 ShadersDirectories:
                     ./libs/android_library/src/main/shaders
+                BaselineProfileDirectories:
+                    ./libs/android_library/src/main/baselineProfiles
             debug
                 Manifest:
                     ./libs/android_library/src/debug/AndroidManifest.xml
@@ -1764,6 +1828,8 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/debug/resources
                 ShadersDirectories:
                     ./libs/android_library/src/debug/shaders
+                BaselineProfileDirectories:
+                    ./libs/android_library/src/debug/baselineProfiles
         All:
             main
                 Manifest:
@@ -1783,6 +1849,8 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/main/resources
                 ShadersDirectories:
                     ./libs/android_library/src/main/shaders
+                BaselineProfileDirectories:
+                    ./libs/android_library/src/main/baselineProfiles
             debug
                 Manifest:
                     ./libs/android_library/src/debug/AndroidManifest.xml
@@ -1801,6 +1869,8 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/debug/resources
                 ShadersDirectories:
                     ./libs/android_library/src/debug/shaders
+                BaselineProfileDirectories:
+                    ./libs/android_library/src/debug/baselineProfiles
             release
                 Manifest:
                     ./libs/android_library/src/release/AndroidManifest.xml
@@ -1819,6 +1889,8 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/release/resources
                 ShadersDirectories:
                     ./libs/android_library/src/release/shaders
+                BaselineProfileDirectories:
+                    ./libs/android_library/src/release/baselineProfiles
         UnitTest:
             test
                 Manifest:
@@ -1838,6 +1910,8 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/test/resources
                 ShadersDirectories:
                     ./libs/android_library/src/test/shaders
+                BaselineProfileDirectories:
+                    ./libs/android_library/src/test/baselineProfiles
             testDebug
                 Manifest:
                     ./libs/android_library/src/testDebug/AndroidManifest.xml
@@ -1856,6 +1930,8 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/testDebug/resources
                 ShadersDirectories:
                     ./libs/android_library/src/testDebug/shaders
+                BaselineProfileDirectories:
+                    ./libs/android_library/src/testDebug/baselineProfiles
         AndroidTest:
             androidTest
                 Manifest:
@@ -1875,6 +1951,8 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/androidTest/resources
                 ShadersDirectories:
                     ./libs/android_library/src/androidTest/shaders
+                BaselineProfileDirectories:
+                    ./libs/android_library/src/androidTest/baselineProfiles
             androidTestDebug
                 Manifest:
                     ./libs/android_library/src/androidTestDebug/AndroidManifest.xml
@@ -1893,6 +1971,8 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./libs/android_library/src/androidTestDebug/shaders
+                BaselineProfileDirectories:
+                    ./libs/android_library/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:

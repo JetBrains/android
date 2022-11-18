@@ -143,7 +143,8 @@ class SourceProviderUtilTest {
     assetsDirectories: List<File> = listOf(File("assets")),
     shadersDirectories: List<File> = listOf(File("shaders")),
     mlModelsDirectories: List<File> = listOf(File("ml")),
-    customSourceDirectories: Map<String, List<File>> = mapOf("toml" to listOf(File("toml")))
+    customSourceDirectories: Map<String, List<File>> = mapOf("toml" to listOf(File("toml"))),
+    baselineProfileDirectories: List<File> = listOf(File("baslineProfiles")),
   ) =
     NamedIdeaSourceProviderImpl(
       name,
@@ -162,6 +163,7 @@ class SourceProviderUtilTest {
         override val mlModelsDirectoryUrls: Sequence<String> get() = mlModelsDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
         override val customSourceDirectories: Map<String, Sequence<String>>
           get() = customSourceDirectories.mapValues { entry -> entry.value.map { root.resolve(it).toIdeaUrl() }.asSequence() }
+        override val baselineProfileDirectoryUrls: Sequence<String> get() = baselineProfileDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
       }
     )
 }

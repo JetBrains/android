@@ -379,6 +379,7 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/main/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/app/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -393,6 +394,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTest/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -406,6 +408,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -426,6 +429,7 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/debug/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/app/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -440,6 +444,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTestDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -454,6 +459,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
             IsDebuggable                  : false
@@ -473,6 +479,7 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/release/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -487,6 +494,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
         BuildType
             Name                          : benchmark
             IsDebuggable                  : false
@@ -506,6 +514,7 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/benchmark/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/benchmark/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/benchmark/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/app/src/benchmark/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -520,6 +529,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testBenchmark/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testBenchmark/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testBenchmark/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/testBenchmark/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -750,6 +760,7 @@ MODULE                        : project.benchmark
             AssetsDirectories             : <ROOT>/benchmark/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/benchmark/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/benchmark/src/main/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/benchmark/src/main/baselineProfiles [-]
         ExtraSourceProviders
     BuildTypes
         BuildType
@@ -780,6 +791,7 @@ MODULE                        : project.benchmark
             AssetsDirectories             : <ROOT>/benchmark/src/benchmark/assets [-]
             JniLibsDirectories            : <ROOT>/benchmark/src/benchmark/jniLibs [-]
             ShadersDirectories            : <ROOT>/benchmark/src/benchmark/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/benchmark/src/benchmark/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -1604,6 +1616,7 @@ MODULE                        : project.test
             AssetsDirectories             : <ROOT>/test/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/test/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/test/src/main/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/test/src/main/baselineProfiles [-]
         ExtraSourceProviders
     BuildTypes
         BuildType
@@ -1625,6 +1638,7 @@ MODULE                        : project.test
             AssetsDirectories             : <ROOT>/test/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/test/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/test/src/debug/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/test/src/debug/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -1944,6 +1958,7 @@ MODULE                        : project.test2
             AssetsDirectories             : <ROOT>/test2/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/test2/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/test2/src/main/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/test2/src/main/baselineProfiles [-]
         ExtraSourceProviders
     BuildTypes
         BuildType
@@ -1965,6 +1980,7 @@ MODULE                        : project.test2
             AssetsDirectories             : <ROOT>/test2/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/test2/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/test2/src/debug/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/test2/src/debug/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

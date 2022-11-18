@@ -536,6 +536,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
           prop("Directory") { it.directory.path.toPrintablePath() }
         }
       }
+      ideSourceProvider.baselineProfileDirectories.forEach { prop("BaselineProfileDirectories") { it.path.toPrintablePath() } }
     }
 
     private fun dump(extraSourceProvider: IdeSourceProviderContainer) {

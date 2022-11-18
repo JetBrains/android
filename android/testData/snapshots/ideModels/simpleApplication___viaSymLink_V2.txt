@@ -229,6 +229,7 @@ MODULE                        : project_sm_src.app
             AssetsDirectories             : <ROOT>_sm_src/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>_sm_src/app/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>_sm_src/app/src/main/shaders [-]
+            BaselineProfileDirectories    : <ROOT>_sm_src/app/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -243,6 +244,7 @@ MODULE                        : project_sm_src.app
                     AssetsDirectories             : <ROOT>_sm_src/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>_sm_src/app/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>_sm_src/app/src/androidTest/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>_sm_src/app/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -256,6 +258,7 @@ MODULE                        : project_sm_src.app
                     AssetsDirectories             : <ROOT>_sm_src/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>_sm_src/app/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>_sm_src/app/src/test/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>_sm_src/app/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -276,6 +279,7 @@ MODULE                        : project_sm_src.app
             AssetsDirectories             : <ROOT>_sm_src/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>_sm_src/app/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>_sm_src/app/src/debug/shaders [-]
+            BaselineProfileDirectories    : <ROOT>_sm_src/app/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -290,6 +294,7 @@ MODULE                        : project_sm_src.app
                     AssetsDirectories             : <ROOT>_sm_src/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>_sm_src/app/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>_sm_src/app/src/androidTestDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>_sm_src/app/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -304,6 +309,7 @@ MODULE                        : project_sm_src.app
                     AssetsDirectories             : <ROOT>_sm_src/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>_sm_src/app/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>_sm_src/app/src/testDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>_sm_src/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
             ProguardFiles                 : <ROOT>_sm_src/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
@@ -325,6 +331,7 @@ MODULE                        : project_sm_src.app
             AssetsDirectories             : <ROOT>_sm_src/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>_sm_src/app/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>_sm_src/app/src/release/shaders [-]
+            BaselineProfileDirectories    : <ROOT>_sm_src/app/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -339,6 +346,7 @@ MODULE                        : project_sm_src.app
                     AssetsDirectories             : <ROOT>_sm_src/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>_sm_src/app/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>_sm_src/app/src/testRelease/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>_sm_src/app/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

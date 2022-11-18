@@ -1033,7 +1033,8 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         provider.aidlDirectories,
         provider.renderscriptDirectories,
         provider.assetsDirectories,
-        provider.jniLibsDirectories
+        provider.jniLibsDirectories,
+        provider.baselineProfileDirectories,
       ).flatten()
     }
 

@@ -48,6 +48,8 @@ MODULE: kotlinMultiPlatform.app
                 ./app/src/main/resources
             ShadersDirectories:
                 ./app/src/main/shaders
+            BaselineProfileDirectories:
+                ./app/src/main/baselineProfiles
         Active:
             main
                 Manifest:
@@ -67,6 +69,8 @@ MODULE: kotlinMultiPlatform.app
                     ./app/src/main/resources
                 ShadersDirectories:
                     ./app/src/main/shaders
+                BaselineProfileDirectories:
+                    ./app/src/main/baselineProfiles
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -85,6 +89,8 @@ MODULE: kotlinMultiPlatform.app
                     ./app/src/debug/resources
                 ShadersDirectories:
                     ./app/src/debug/shaders
+                BaselineProfileDirectories:
+                    ./app/src/debug/baselineProfiles
         All:
             main
                 Manifest:
@@ -104,6 +110,8 @@ MODULE: kotlinMultiPlatform.app
                     ./app/src/main/resources
                 ShadersDirectories:
                     ./app/src/main/shaders
+                BaselineProfileDirectories:
+                    ./app/src/main/baselineProfiles
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -122,6 +130,8 @@ MODULE: kotlinMultiPlatform.app
                     ./app/src/debug/resources
                 ShadersDirectories:
                     ./app/src/debug/shaders
+                BaselineProfileDirectories:
+                    ./app/src/debug/baselineProfiles
             release
                 Manifest:
                     ./app/src/release/AndroidManifest.xml
@@ -140,6 +150,8 @@ MODULE: kotlinMultiPlatform.app
                     ./app/src/release/resources
                 ShadersDirectories:
                     ./app/src/release/shaders
+                BaselineProfileDirectories:
+                    ./app/src/release/baselineProfiles
         UnitTest:
             test
                 Manifest:
@@ -159,6 +171,8 @@ MODULE: kotlinMultiPlatform.app
                     ./app/src/test/resources
                 ShadersDirectories:
                     ./app/src/test/shaders
+                BaselineProfileDirectories:
+                    ./app/src/test/baselineProfiles
             testDebug
                 Manifest:
                     ./app/src/testDebug/AndroidManifest.xml
@@ -177,6 +191,8 @@ MODULE: kotlinMultiPlatform.app
                     ./app/src/testDebug/resources
                 ShadersDirectories:
                     ./app/src/testDebug/shaders
+                BaselineProfileDirectories:
+                    ./app/src/testDebug/baselineProfiles
         AndroidTest:
             androidTest
                 Manifest:
@@ -196,6 +212,8 @@ MODULE: kotlinMultiPlatform.app
                     ./app/src/androidTest/resources
                 ShadersDirectories:
                     ./app/src/androidTest/shaders
+                BaselineProfileDirectories:
+                    ./app/src/androidTest/baselineProfiles
             androidTestDebug
                 Manifest:
                     ./app/src/androidTestDebug/AndroidManifest.xml
@@ -214,6 +232,8 @@ MODULE: kotlinMultiPlatform.app
                     ./app/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./app/src/androidTestDebug/shaders
+                BaselineProfileDirectories:
+                    ./app/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -641,6 +661,8 @@ MODULE: kotlinMultiPlatform.module2
             ShadersDirectories:
                 ./module2/src/main/shaders
                 ./module2/src/androidMain/shaders
+            BaselineProfileDirectories:
+                ./module2/src/main/baselineProfiles
         Active:
             main
                 Manifest:
@@ -666,6 +688,8 @@ MODULE: kotlinMultiPlatform.module2
                 ShadersDirectories:
                     ./module2/src/main/shaders
                     ./module2/src/androidMain/shaders
+                BaselineProfileDirectories:
+                    ./module2/src/main/baselineProfiles
             debug
                 Manifest:
                     ./module2/src/debug/AndroidManifest.xml
@@ -690,6 +714,8 @@ MODULE: kotlinMultiPlatform.module2
                 ShadersDirectories:
                     ./module2/src/debug/shaders
                     ./module2/src/androidDebug/shaders
+                BaselineProfileDirectories:
+                    ./module2/src/debug/baselineProfiles
         All:
             main
                 Manifest:
@@ -715,6 +741,8 @@ MODULE: kotlinMultiPlatform.module2
                 ShadersDirectories:
                     ./module2/src/main/shaders
                     ./module2/src/androidMain/shaders
+                BaselineProfileDirectories:
+                    ./module2/src/main/baselineProfiles
             debug
                 Manifest:
                     ./module2/src/debug/AndroidManifest.xml
@@ -739,6 +767,8 @@ MODULE: kotlinMultiPlatform.module2
                 ShadersDirectories:
                     ./module2/src/debug/shaders
                     ./module2/src/androidDebug/shaders
+                BaselineProfileDirectories:
+                    ./module2/src/debug/baselineProfiles
             release
                 Manifest:
                     ./module2/src/release/AndroidManifest.xml
@@ -763,6 +793,8 @@ MODULE: kotlinMultiPlatform.module2
                 ShadersDirectories:
                     ./module2/src/release/shaders
                     ./module2/src/androidRelease/shaders
+                BaselineProfileDirectories:
+                    ./module2/src/release/baselineProfiles
         UnitTest:
             test
                 Manifest:
@@ -788,6 +820,8 @@ MODULE: kotlinMultiPlatform.module2
                 ShadersDirectories:
                     ./module2/src/test/shaders
                     ./module2/src/androidTest/shaders
+                BaselineProfileDirectories:
+                    ./module2/src/test/baselineProfiles
             testDebug
                 Manifest:
                     ./module2/src/testDebug/AndroidManifest.xml
@@ -812,6 +846,8 @@ MODULE: kotlinMultiPlatform.module2
                 ShadersDirectories:
                     ./module2/src/testDebug/shaders
                     ./module2/src/androidTestDebug/shaders
+                BaselineProfileDirectories:
+                    ./module2/src/testDebug/baselineProfiles
             debug_KotlinMPP
                 Manifest:
                     ./module2/src/test/__KotlinMPP__/AndroidManifest.xml
@@ -843,6 +879,8 @@ MODULE: kotlinMultiPlatform.module2
                 ShadersDirectories:
                     ./module2/src/androidTest/shaders
                     ./module2/src/androidAndroidTest/shaders
+                BaselineProfileDirectories:
+                    ./module2/src/androidTest/baselineProfiles
             androidTestDebug
                 Manifest:
                     ./module2/src/androidTestDebug/AndroidManifest.xml
@@ -866,6 +904,8 @@ MODULE: kotlinMultiPlatform.module2
                 ShadersDirectories:
                     ./module2/src/androidTestDebug/shaders
                     ./module2/src/androidAndroidTestDebug/shaders
+                BaselineProfileDirectories:
+                    ./module2/src/androidTestDebug/baselineProfiles
             debug_KotlinMPP
                 Manifest:
                     ./module2/src/androidTest/__KotlinMPP__/AndroidManifest.xml

@@ -163,6 +163,10 @@ internal fun modelCacheV2Impl(
       myCustomSourceDirectories = provider.customDirectories?.map {
         IdeCustomSourceDirectoryImpl(it.sourceTypeName, folder, it.directory.makeRelativeAndDeduplicate())
       } ?: emptyList(),
+      myBaselineProfileDirectories = if (agpVersion.isAtLeast(8, 0, 0, "beta", 1, false))
+        provider.baselineProfileDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf()
+      else
+        mutableListOf()
     )
   }
 

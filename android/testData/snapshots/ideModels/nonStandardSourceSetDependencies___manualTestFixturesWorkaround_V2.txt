@@ -1809,6 +1809,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
             AssetsDirectories             : <ROOT>/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/main/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/app/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -1823,6 +1824,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTest/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -1836,6 +1838,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -1856,6 +1859,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
             AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/debug/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/app/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -1870,6 +1874,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTestDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -1884,6 +1889,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
             ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
@@ -1905,6 +1911,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/release/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -1919,6 +1926,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -3416,6 +3424,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
             AssetsDirectories             : <ROOT>/feature-a/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/feature-a/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/feature-a/src/main/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/feature-a/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -3430,6 +3439,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     AssetsDirectories             : <ROOT>/feature-a/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/feature-a/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/feature-a/src/androidTest/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/feature-a/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -3443,6 +3453,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     AssetsDirectories             : <ROOT>/feature-a/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/feature-a/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/feature-a/src/test/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/feature-a/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -3463,6 +3474,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
             AssetsDirectories             : <ROOT>/feature-a/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/feature-a/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/feature-a/src/debug/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/feature-a/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -3477,6 +3489,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     AssetsDirectories             : <ROOT>/feature-a/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/feature-a/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/feature-a/src/androidTestDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/feature-a/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -3491,6 +3504,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     AssetsDirectories             : <ROOT>/feature-a/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/feature-a/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/feature-a/src/testDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/feature-a/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
             IsDebuggable                  : false
@@ -3510,6 +3524,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
             AssetsDirectories             : <ROOT>/feature-a/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/feature-a/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/feature-a/src/release/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/feature-a/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -3524,6 +3539,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     AssetsDirectories             : <ROOT>/feature-a/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/feature-a/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/feature-a/src/testRelease/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/feature-a/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -4305,6 +4321,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
             JniLibsDirectories            : <ROOT>/feature-b/src/androidMain/jniLibs [-]
             ShadersDirectories            : <ROOT>/feature-b/src/main/shaders [-]
             ShadersDirectories            : <ROOT>/feature-b/src/androidMain/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/feature-b/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -4324,6 +4341,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     JniLibsDirectories            : <ROOT>/feature-b/src/androidAndroidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/feature-b/src/androidTest/shaders [-]
                     ShadersDirectories            : <ROOT>/feature-b/src/androidAndroidTest/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/feature-b/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -4343,6 +4361,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     JniLibsDirectories            : <ROOT>/feature-b/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/feature-b/src/test/shaders [-]
                     ShadersDirectories            : <ROOT>/feature-b/src/androidTest/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/feature-b/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -4369,6 +4388,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
             JniLibsDirectories            : <ROOT>/feature-b/src/androidDebug/jniLibs [-]
             ShadersDirectories            : <ROOT>/feature-b/src/debug/shaders [-]
             ShadersDirectories            : <ROOT>/feature-b/src/androidDebug/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/feature-b/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -4388,6 +4408,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     JniLibsDirectories            : <ROOT>/feature-b/src/androidAndroidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/feature-b/src/androidTestDebug/shaders [-]
                     ShadersDirectories            : <ROOT>/feature-b/src/androidAndroidTestDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/feature-b/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -4408,6 +4429,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     JniLibsDirectories            : <ROOT>/feature-b/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/feature-b/src/testDebug/shaders [-]
                     ShadersDirectories            : <ROOT>/feature-b/src/androidTestDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/feature-b/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
             IsDebuggable                  : false
@@ -4433,6 +4455,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
             JniLibsDirectories            : <ROOT>/feature-b/src/androidRelease/jniLibs [-]
             ShadersDirectories            : <ROOT>/feature-b/src/release/shaders [-]
             ShadersDirectories            : <ROOT>/feature-b/src/androidRelease/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/feature-b/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -4453,6 +4476,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     JniLibsDirectories            : <ROOT>/feature-b/src/androidTestRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/feature-b/src/testRelease/shaders [-]
                     ShadersDirectories            : <ROOT>/feature-b/src/androidTestRelease/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/feature-b/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -5696,6 +5720,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
             AssetsDirectories             : <ROOT>/kmp-java/sample-test/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/kmp-java/sample-test/src/main/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/kmp-java/sample-test/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -5710,6 +5735,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     AssetsDirectories             : <ROOT>/kmp-java/sample-test/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/kmp-java/sample-test/src/androidTest/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/kmp-java/sample-test/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -5723,6 +5749,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     AssetsDirectories             : <ROOT>/kmp-java/sample-test/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/kmp-java/sample-test/src/test/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/kmp-java/sample-test/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -5743,6 +5770,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
             AssetsDirectories             : <ROOT>/kmp-java/sample-test/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/kmp-java/sample-test/src/debug/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/kmp-java/sample-test/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -5757,6 +5785,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     AssetsDirectories             : <ROOT>/kmp-java/sample-test/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/kmp-java/sample-test/src/androidTestDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/kmp-java/sample-test/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -5771,6 +5800,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     AssetsDirectories             : <ROOT>/kmp-java/sample-test/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/kmp-java/sample-test/src/testDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/kmp-java/sample-test/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
             IsDebuggable                  : false
@@ -5790,6 +5820,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
             AssetsDirectories             : <ROOT>/kmp-java/sample-test/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/kmp-java/sample-test/src/release/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/kmp-java/sample-test/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -5804,6 +5835,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     AssetsDirectories             : <ROOT>/kmp-java/sample-test/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/kmp-java/sample-test/src/testRelease/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/kmp-java/sample-test/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -6008,6 +6040,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
             AssetsDirectories             : <ROOT>/lib/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/lib/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/lib/src/main/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/lib/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -6022,6 +6055,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     AssetsDirectories             : <ROOT>/lib/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/androidTest/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/lib/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -6035,6 +6069,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     AssetsDirectories             : <ROOT>/lib/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/test/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/lib/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -6055,6 +6090,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
             AssetsDirectories             : <ROOT>/lib/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/lib/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/lib/src/debug/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/lib/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -6069,6 +6105,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     AssetsDirectories             : <ROOT>/lib/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/androidTestDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/lib/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -6083,6 +6120,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     AssetsDirectories             : <ROOT>/lib/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/testDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/lib/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
             ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
@@ -6104,6 +6142,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
             AssetsDirectories             : <ROOT>/lib/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/lib/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/lib/src/release/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/lib/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -6118,6 +6157,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     AssetsDirectories             : <ROOT>/lib/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/testRelease/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/lib/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

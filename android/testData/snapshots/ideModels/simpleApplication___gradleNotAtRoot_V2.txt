@@ -225,6 +225,7 @@ MODULE                        : gradle_project.app
             AssetsDirectories             : <ROOT>/gradle_project/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/gradle_project/app/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/gradle_project/app/src/main/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/gradle_project/app/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -239,6 +240,7 @@ MODULE                        : gradle_project.app
                     AssetsDirectories             : <ROOT>/gradle_project/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project/app/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/gradle_project/app/src/androidTest/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/gradle_project/app/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -252,6 +254,7 @@ MODULE                        : gradle_project.app
                     AssetsDirectories             : <ROOT>/gradle_project/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project/app/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/gradle_project/app/src/test/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/gradle_project/app/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -272,6 +275,7 @@ MODULE                        : gradle_project.app
             AssetsDirectories             : <ROOT>/gradle_project/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/gradle_project/app/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/gradle_project/app/src/debug/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/gradle_project/app/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -286,6 +290,7 @@ MODULE                        : gradle_project.app
                     AssetsDirectories             : <ROOT>/gradle_project/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project/app/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/gradle_project/app/src/androidTestDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/gradle_project/app/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -300,6 +305,7 @@ MODULE                        : gradle_project.app
                     AssetsDirectories             : <ROOT>/gradle_project/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project/app/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/gradle_project/app/src/testDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/gradle_project/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
             ProguardFiles                 : <ROOT>/gradle_project/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
@@ -321,6 +327,7 @@ MODULE                        : gradle_project.app
             AssetsDirectories             : <ROOT>/gradle_project/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/gradle_project/app/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/gradle_project/app/src/release/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/gradle_project/app/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -335,6 +342,7 @@ MODULE                        : gradle_project.app
                     AssetsDirectories             : <ROOT>/gradle_project/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project/app/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/gradle_project/app/src/testRelease/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/gradle_project/app/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

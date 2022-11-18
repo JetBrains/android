@@ -52,6 +52,8 @@ MODULE: project.app
                 ./app/src/main/resources
             ShadersDirectories:
                 ./app/src/main/shaders
+            BaselineProfileDirectories:
+                ./app/src/main/baselineProfiles
         Active:
             main
                 Manifest:
@@ -71,6 +73,8 @@ MODULE: project.app
                     ./app/src/main/resources
                 ShadersDirectories:
                     ./app/src/main/shaders
+                BaselineProfileDirectories:
+                    ./app/src/main/baselineProfiles
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -89,6 +93,8 @@ MODULE: project.app
                     ./app/src/debug/resources
                 ShadersDirectories:
                     ./app/src/debug/shaders
+                BaselineProfileDirectories:
+                    ./app/src/debug/baselineProfiles
         All:
             main
                 Manifest:
@@ -108,6 +114,8 @@ MODULE: project.app
                     ./app/src/main/resources
                 ShadersDirectories:
                     ./app/src/main/shaders
+                BaselineProfileDirectories:
+                    ./app/src/main/baselineProfiles
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -126,6 +134,8 @@ MODULE: project.app
                     ./app/src/debug/resources
                 ShadersDirectories:
                     ./app/src/debug/shaders
+                BaselineProfileDirectories:
+                    ./app/src/debug/baselineProfiles
             release
                 Manifest:
                     ./app/src/release/AndroidManifest.xml
@@ -144,6 +154,8 @@ MODULE: project.app
                     ./app/src/release/resources
                 ShadersDirectories:
                     ./app/src/release/shaders
+                BaselineProfileDirectories:
+                    ./app/src/release/baselineProfiles
         UnitTest:
             test
                 Manifest:
@@ -163,6 +175,8 @@ MODULE: project.app
                     ./app/src/test/resources
                 ShadersDirectories:
                     ./app/src/test/shaders
+                BaselineProfileDirectories:
+                    ./app/src/test/baselineProfiles
             testDebug
                 Manifest:
                     ./app/src/testDebug/AndroidManifest.xml
@@ -181,6 +195,8 @@ MODULE: project.app
                     ./app/src/testDebug/resources
                 ShadersDirectories:
                     ./app/src/testDebug/shaders
+                BaselineProfileDirectories:
+                    ./app/src/testDebug/baselineProfiles
         AndroidTest:
             androidTest
                 Manifest:
@@ -200,6 +216,8 @@ MODULE: project.app
                     ./app/src/androidTest/resources
                 ShadersDirectories:
                     ./app/src/androidTest/shaders
+                BaselineProfileDirectories:
+                    ./app/src/androidTest/baselineProfiles
             androidTestDebug
                 Manifest:
                     ./app/src/androidTestDebug/AndroidManifest.xml
@@ -218,6 +236,8 @@ MODULE: project.app
                     ./app/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./app/src/androidTestDebug/shaders
+                BaselineProfileDirectories:
+                    ./app/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -661,6 +681,8 @@ MODULE: project.lib
                 ./lib/src/main/resources
             ShadersDirectories:
                 ./lib/src/main/shaders
+            BaselineProfileDirectories:
+                ./lib/src/main/baselineProfiles
         Active:
             main
                 Manifest:
@@ -680,6 +702,8 @@ MODULE: project.lib
                     ./lib/src/main/resources
                 ShadersDirectories:
                     ./lib/src/main/shaders
+                BaselineProfileDirectories:
+                    ./lib/src/main/baselineProfiles
             debug
                 Manifest:
                     ./lib/src/debug/AndroidManifest.xml
@@ -698,6 +722,8 @@ MODULE: project.lib
                     ./lib/src/debug/resources
                 ShadersDirectories:
                     ./lib/src/debug/shaders
+                BaselineProfileDirectories:
+                    ./lib/src/debug/baselineProfiles
         All:
             main
                 Manifest:
@@ -717,6 +743,8 @@ MODULE: project.lib
                     ./lib/src/main/resources
                 ShadersDirectories:
                     ./lib/src/main/shaders
+                BaselineProfileDirectories:
+                    ./lib/src/main/baselineProfiles
             debug
                 Manifest:
                     ./lib/src/debug/AndroidManifest.xml
@@ -735,6 +763,8 @@ MODULE: project.lib
                     ./lib/src/debug/resources
                 ShadersDirectories:
                     ./lib/src/debug/shaders
+                BaselineProfileDirectories:
+                    ./lib/src/debug/baselineProfiles
             release
                 Manifest:
                     ./lib/src/release/AndroidManifest.xml
@@ -753,6 +783,8 @@ MODULE: project.lib
                     ./lib/src/release/resources
                 ShadersDirectories:
                     ./lib/src/release/shaders
+                BaselineProfileDirectories:
+                    ./lib/src/release/baselineProfiles
         UnitTest:
             test
                 Manifest:
@@ -772,6 +804,8 @@ MODULE: project.lib
                     ./lib/src/test/resources
                 ShadersDirectories:
                     ./lib/src/test/shaders
+                BaselineProfileDirectories:
+                    ./lib/src/test/baselineProfiles
             testDebug
                 Manifest:
                     ./lib/src/testDebug/AndroidManifest.xml
@@ -790,6 +824,8 @@ MODULE: project.lib
                     ./lib/src/testDebug/resources
                 ShadersDirectories:
                     ./lib/src/testDebug/shaders
+                BaselineProfileDirectories:
+                    ./lib/src/testDebug/baselineProfiles
         AndroidTest:
             androidTest
                 Manifest:
@@ -809,6 +845,8 @@ MODULE: project.lib
                     ./lib/src/androidTest/resources
                 ShadersDirectories:
                     ./lib/src/androidTest/shaders
+                BaselineProfileDirectories:
+                    ./lib/src/androidTest/baselineProfiles
             androidTestDebug
                 Manifest:
                     ./lib/src/androidTestDebug/AndroidManifest.xml
@@ -827,6 +865,8 @@ MODULE: project.lib
                     ./lib/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./lib/src/androidTestDebug/shaders
+                BaselineProfileDirectories:
+                    ./lib/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:

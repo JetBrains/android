@@ -586,6 +586,7 @@ fun AndroidProjectStubBuilder.createMainSourceProviderForDefaultTestProjectStruc
     myMlModelsDirectories = emptyList(),
     myShadersDirectories = emptyList(),
     myCustomSourceDirectories = emptyList(),
+    myBaselineProfileDirectories = emptyList(),
   )
 }
 
@@ -646,6 +647,7 @@ private fun sourceProvider(
     myMlModelsDirectories = listOf(),
     myShadersDirectories = listOf("shaders"),
     myCustomSourceDirectories = listOf(/*IdeCustomSourceDirectoryImpl("custom", rootDir, "custom")*/),
+    myBaselineProfileDirectories = listOf("baselineProfiles"),
   )
 }
 

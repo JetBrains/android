@@ -50,6 +50,8 @@ MODULE: gradle_project_1.app
                 ./gradle_project_1/app/src/main/resources
             ShadersDirectories:
                 ./gradle_project_1/app/src/main/shaders
+            BaselineProfileDirectories:
+                ./gradle_project_1/app/src/main/baselineProfiles
         Active:
             main
                 Manifest:
@@ -69,6 +71,8 @@ MODULE: gradle_project_1.app
                     ./gradle_project_1/app/src/main/resources
                 ShadersDirectories:
                     ./gradle_project_1/app/src/main/shaders
+                BaselineProfileDirectories:
+                    ./gradle_project_1/app/src/main/baselineProfiles
             debug
                 Manifest:
                     ./gradle_project_1/app/src/debug/AndroidManifest.xml
@@ -87,6 +91,8 @@ MODULE: gradle_project_1.app
                     ./gradle_project_1/app/src/debug/resources
                 ShadersDirectories:
                     ./gradle_project_1/app/src/debug/shaders
+                BaselineProfileDirectories:
+                    ./gradle_project_1/app/src/debug/baselineProfiles
         All:
             main
                 Manifest:
@@ -106,6 +112,8 @@ MODULE: gradle_project_1.app
                     ./gradle_project_1/app/src/main/resources
                 ShadersDirectories:
                     ./gradle_project_1/app/src/main/shaders
+                BaselineProfileDirectories:
+                    ./gradle_project_1/app/src/main/baselineProfiles
             debug
                 Manifest:
                     ./gradle_project_1/app/src/debug/AndroidManifest.xml
@@ -124,6 +132,8 @@ MODULE: gradle_project_1.app
                     ./gradle_project_1/app/src/debug/resources
                 ShadersDirectories:
                     ./gradle_project_1/app/src/debug/shaders
+                BaselineProfileDirectories:
+                    ./gradle_project_1/app/src/debug/baselineProfiles
             release
                 Manifest:
                     ./gradle_project_1/app/src/release/AndroidManifest.xml
@@ -142,6 +152,8 @@ MODULE: gradle_project_1.app
                     ./gradle_project_1/app/src/release/resources
                 ShadersDirectories:
                     ./gradle_project_1/app/src/release/shaders
+                BaselineProfileDirectories:
+                    ./gradle_project_1/app/src/release/baselineProfiles
         UnitTest:
             test
                 Manifest:
@@ -161,6 +173,8 @@ MODULE: gradle_project_1.app
                     ./gradle_project_1/app/src/test/resources
                 ShadersDirectories:
                     ./gradle_project_1/app/src/test/shaders
+                BaselineProfileDirectories:
+                    ./gradle_project_1/app/src/test/baselineProfiles
             testDebug
                 Manifest:
                     ./gradle_project_1/app/src/testDebug/AndroidManifest.xml
@@ -179,6 +193,8 @@ MODULE: gradle_project_1.app
                     ./gradle_project_1/app/src/testDebug/resources
                 ShadersDirectories:
                     ./gradle_project_1/app/src/testDebug/shaders
+                BaselineProfileDirectories:
+                    ./gradle_project_1/app/src/testDebug/baselineProfiles
         AndroidTest:
             androidTest
                 Manifest:
@@ -198,6 +214,8 @@ MODULE: gradle_project_1.app
                     ./gradle_project_1/app/src/androidTest/resources
                 ShadersDirectories:
                     ./gradle_project_1/app/src/androidTest/shaders
+                BaselineProfileDirectories:
+                    ./gradle_project_1/app/src/androidTest/baselineProfiles
             androidTestDebug
                 Manifest:
                     ./gradle_project_1/app/src/androidTestDebug/AndroidManifest.xml
@@ -216,6 +234,8 @@ MODULE: gradle_project_1.app
                     ./gradle_project_1/app/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./gradle_project_1/app/src/androidTestDebug/shaders
+                BaselineProfileDirectories:
+                    ./gradle_project_1/app/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -641,6 +661,8 @@ MODULE: gradle_project_name.app
                 ./gradle_project_2/app/src/main/resources
             ShadersDirectories:
                 ./gradle_project_2/app/src/main/shaders
+            BaselineProfileDirectories:
+                ./gradle_project_2/app/src/main/baselineProfiles
         Active:
             main
                 Manifest:
@@ -660,6 +682,8 @@ MODULE: gradle_project_name.app
                     ./gradle_project_2/app/src/main/resources
                 ShadersDirectories:
                     ./gradle_project_2/app/src/main/shaders
+                BaselineProfileDirectories:
+                    ./gradle_project_2/app/src/main/baselineProfiles
             debug
                 Manifest:
                     ./gradle_project_2/app/src/debug/AndroidManifest.xml
@@ -678,6 +702,8 @@ MODULE: gradle_project_name.app
                     ./gradle_project_2/app/src/debug/resources
                 ShadersDirectories:
                     ./gradle_project_2/app/src/debug/shaders
+                BaselineProfileDirectories:
+                    ./gradle_project_2/app/src/debug/baselineProfiles
         All:
             main
                 Manifest:
@@ -697,6 +723,8 @@ MODULE: gradle_project_name.app
                     ./gradle_project_2/app/src/main/resources
                 ShadersDirectories:
                     ./gradle_project_2/app/src/main/shaders
+                BaselineProfileDirectories:
+                    ./gradle_project_2/app/src/main/baselineProfiles
             debug
                 Manifest:
                     ./gradle_project_2/app/src/debug/AndroidManifest.xml
@@ -715,6 +743,8 @@ MODULE: gradle_project_name.app
                     ./gradle_project_2/app/src/debug/resources
                 ShadersDirectories:
                     ./gradle_project_2/app/src/debug/shaders
+                BaselineProfileDirectories:
+                    ./gradle_project_2/app/src/debug/baselineProfiles
             release
                 Manifest:
                     ./gradle_project_2/app/src/release/AndroidManifest.xml
@@ -733,6 +763,8 @@ MODULE: gradle_project_name.app
                     ./gradle_project_2/app/src/release/resources
                 ShadersDirectories:
                     ./gradle_project_2/app/src/release/shaders
+                BaselineProfileDirectories:
+                    ./gradle_project_2/app/src/release/baselineProfiles
         UnitTest:
             test
                 Manifest:
@@ -752,6 +784,8 @@ MODULE: gradle_project_name.app
                     ./gradle_project_2/app/src/test/resources
                 ShadersDirectories:
                     ./gradle_project_2/app/src/test/shaders
+                BaselineProfileDirectories:
+                    ./gradle_project_2/app/src/test/baselineProfiles
             testDebug
                 Manifest:
                     ./gradle_project_2/app/src/testDebug/AndroidManifest.xml
@@ -770,6 +804,8 @@ MODULE: gradle_project_name.app
                     ./gradle_project_2/app/src/testDebug/resources
                 ShadersDirectories:
                     ./gradle_project_2/app/src/testDebug/shaders
+                BaselineProfileDirectories:
+                    ./gradle_project_2/app/src/testDebug/baselineProfiles
         AndroidTest:
             androidTest
                 Manifest:
@@ -789,6 +825,8 @@ MODULE: gradle_project_name.app
                     ./gradle_project_2/app/src/androidTest/resources
                 ShadersDirectories:
                     ./gradle_project_2/app/src/androidTest/shaders
+                BaselineProfileDirectories:
+                    ./gradle_project_2/app/src/androidTest/baselineProfiles
             androidTestDebug
                 Manifest:
                     ./gradle_project_2/app/src/androidTestDebug/AndroidManifest.xml
@@ -807,6 +845,8 @@ MODULE: gradle_project_name.app
                     ./gradle_project_2/app/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./gradle_project_2/app/src/androidTestDebug/shaders
+                BaselineProfileDirectories:
+                    ./gradle_project_2/app/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:

@@ -127,6 +127,7 @@ MODULE                        : project
             AssetsDirectories             : <ROOT>/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/src/main/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -141,6 +142,7 @@ MODULE                        : project
                     AssetsDirectories             : <ROOT>/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/src/androidTest/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -154,6 +156,7 @@ MODULE                        : project
                     AssetsDirectories             : <ROOT>/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/src/test/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -177,6 +180,7 @@ MODULE                        : project
             AssetsDirectories             : <ROOT>/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/src/debug/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -191,6 +195,7 @@ MODULE                        : project
                     AssetsDirectories             : <ROOT>/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/src/androidTestDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -205,6 +210,7 @@ MODULE                        : project
                     AssetsDirectories             : <ROOT>/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/src/testDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
             IsDebuggable                  : false
@@ -224,6 +230,7 @@ MODULE                        : project
             AssetsDirectories             : <ROOT>/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/src/release/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -238,6 +245,7 @@ MODULE                        : project
                     AssetsDirectories             : <ROOT>/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/src/testRelease/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

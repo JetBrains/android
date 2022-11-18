@@ -62,6 +62,8 @@ MODULE: project.app
                 ./app/src/main/shaders
             MlModelsDirectories:
                 ./app/src/main/ml
+            BaselineProfileDirectories:
+                ./app/src/main/baselineProfiles
         Active:
             main
                 Manifest:
@@ -87,6 +89,8 @@ MODULE: project.app
                     ./app/src/main/shaders
                 MlModelsDirectories:
                     ./app/src/main/ml
+                BaselineProfileDirectories:
+                    ./app/src/main/baselineProfiles
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -111,6 +115,8 @@ MODULE: project.app
                     ./app/src/debug/shaders
                 MlModelsDirectories:
                     ./app/src/debug/ml
+                BaselineProfileDirectories:
+                    ./app/src/debug/baselineProfiles
         All:
             main
                 Manifest:
@@ -136,6 +142,8 @@ MODULE: project.app
                     ./app/src/main/shaders
                 MlModelsDirectories:
                     ./app/src/main/ml
+                BaselineProfileDirectories:
+                    ./app/src/main/baselineProfiles
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -160,6 +168,8 @@ MODULE: project.app
                     ./app/src/debug/shaders
                 MlModelsDirectories:
                     ./app/src/debug/ml
+                BaselineProfileDirectories:
+                    ./app/src/debug/baselineProfiles
             release
                 Manifest:
                     ./app/src/release/AndroidManifest.xml
@@ -184,6 +194,8 @@ MODULE: project.app
                     ./app/src/release/shaders
                 MlModelsDirectories:
                     ./app/src/release/ml
+                BaselineProfileDirectories:
+                    ./app/src/release/baselineProfiles
         UnitTest:
             test
                 Manifest:
@@ -209,6 +221,8 @@ MODULE: project.app
                     ./app/src/test/shaders
                 MlModelsDirectories:
                     ./app/src/test/ml
+                BaselineProfileDirectories:
+                    ./app/src/test/baselineProfiles
             testDebug
                 Manifest:
                     ./app/src/testDebug/AndroidManifest.xml
@@ -233,6 +247,8 @@ MODULE: project.app
                     ./app/src/testDebug/shaders
                 MlModelsDirectories:
                     ./app/src/testDebug/ml
+                BaselineProfileDirectories:
+                    ./app/src/testDebug/baselineProfiles
         AndroidTest:
             androidTest
                 Manifest:
@@ -258,6 +274,8 @@ MODULE: project.app
                     ./app/src/androidTest/shaders
                 MlModelsDirectories:
                     ./app/src/androidTest/ml
+                BaselineProfileDirectories:
+                    ./app/src/androidTest/baselineProfiles
             androidTestDebug
                 Manifest:
                     ./app/src/androidTestDebug/AndroidManifest.xml
@@ -282,6 +300,8 @@ MODULE: project.app
                     ./app/src/androidTestDebug/shaders
                 MlModelsDirectories:
                     ./app/src/androidTestDebug/ml
+                BaselineProfileDirectories:
+                    ./app/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:

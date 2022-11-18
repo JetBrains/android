@@ -278,6 +278,7 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/main/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/app/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -292,6 +293,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTest/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -305,6 +307,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -325,6 +328,7 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/debug/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/app/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -339,6 +343,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTestDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -353,6 +358,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
             ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
@@ -374,6 +380,7 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/release/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -388,6 +395,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
     ProductFlavors
         ProductFlavor
             Name                          : example
@@ -404,6 +412,7 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/example/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/example/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/example/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/app/src/example/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -418,6 +427,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestExample/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestExample/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTestExample/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/androidTestExample/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -431,6 +441,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testExample/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testExample/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testExample/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/testExample/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -492,6 +503,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/exampleDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/exampleDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/exampleDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/exampleDebug/resources [-]
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
                         - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
@@ -1108,6 +1120,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestExampleDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestExampleDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTestExampleDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/androidTestExampleDebug/resources [-]
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
                         - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
@@ -1377,6 +1390,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testExampleDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testExampleDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testExampleDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/testExampleDebug/resources [-]
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
                         - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
