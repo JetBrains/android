@@ -117,29 +117,13 @@ class TasksDataPageModelImpl(
     get() = selectedPageId.grouping
 
   override val treeHeaderText: String
-    get() = when (selectedGrouping) {
-      TasksDataPageModel.Grouping.UNGROUPED -> "Tasks determining build duration" +
-                                               " - Total: $totalTimeString, Filtered: $filteredTimeString" +
-                                               warningsSuffixFromCount(treeStructure.treeStats.visibleWarnings)
-      TasksDataPageModel.Grouping.BY_PLUGIN -> "Plugins with tasks determining build duration" +
-                                               " - Total: $totalTimeString, Filtered: $filteredTimeString" +
-                                               warningsSuffixFromCount(treeStructure.treeStats.visibleWarnings)
-      TasksDataPageModel.Grouping.BY_TASK_CATEGORY -> "Tasks determining build duration grouped by task execution category" +
-                                                      " - Total: $totalTimeString, Filtered: $filteredTimeString" +
-                                                      warningsSuffixFromCount(treeStructure.treeStats.visibleWarnings)
-    }
+    get() = "Build duration - Total: $totalTimeString, Filtered tasks: $filteredTimeString"
 
   private val totalTimeString: String
     get() = durationString(treeStructure.treeStats.totalTasksTimeMs)
 
   private val filteredTimeString: String
     get() = durationString(treeStructure.treeStats.filteredTasksTimeMs)
-
-  private fun warningsSuffixFromCount(warningCount: Int): String = when (warningCount) {
-    0 -> ""
-    1 -> " - 1 Warning"
-    else -> " - $warningCount Warnings"
-  }
 
   override val treeRoot: DefaultMutableTreeNode
     get() = treeStructure.treeRoot
@@ -262,7 +246,6 @@ private class TasksTreeStructure(
       .filter { filter.acceptTask(it, TasksDataPageModel.Grouping.UNGROUPED) }
       .map { TaskDetailsNodeDescriptor(it, TasksDataPageModel.Grouping.UNGROUPED, treeStats.filteredTaskTimesDistribution) }
       .forEach {
-        if (it.taskData.hasWarning) treeStats.visibleWarnings++
         treeRoot.add(treeNode(it))
       }
   }
@@ -274,11 +257,7 @@ private class TasksTreeStructure(
       val filteredTasksForEntry = entryUiData.criticalPathTasks.filter { filter.acceptTask(it, grouping) }
       if (filteredTasksForEntry.isNotEmpty()) {
         val entryNode = treeNode(EntryDetailsNodeDescriptor(entryUiData, filteredTasksForEntry, filteredEntryTimesDistribution))
-        if (entryUiData is CriticalPathTaskCategoryUiData) {
-          treeStats.visibleWarnings += entryUiData.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = false).size
-        }
         filteredTasksForEntry.forEach {
-          if (it.hasWarning) treeStats.visibleWarnings++
           entryNode.add(
             treeNode(TaskDetailsNodeDescriptor(it, entryUiData.modelGrouping, treeStats.filteredTaskTimesDistribution)))
         }
@@ -289,7 +268,6 @@ private class TasksTreeStructure(
   }
 
   class TreeStats {
-    var visibleWarnings: Int = 0
     var totalTasksTimeMs: Long = 0
     val filteredTaskTimesDistribution = TimeDistributionBuilder()
     val filteredTasksTimeMs: Long
