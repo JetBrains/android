@@ -33,16 +33,26 @@ object ForegroundProcessDetectionMetrics {
    * Used to log the result of a handshake. SUPPORTED, NOT_SUPPORTED or UNKNOWN.
    * In case of NOT_SUPPORTED we also log the reason why.
    */
-  fun logHandshakeResult(handshakeInfo: LayoutInspector.TrackingForegroundProcessSupported, device: DeviceDescriptor) {
-    val event = buildLayoutInspectorEvent(buildAutoConnectInfo(handshakeInfo), device)
+  fun logHandshakeResult(
+    handshakeInfo: LayoutInspector.TrackingForegroundProcessSupported,
+    device: DeviceDescriptor,
+    isRecoveryHandshake: Boolean
+  ) {
+    val autoConnectInfo = getAutoConnectInfoBuilder(isRecoveryHandshake).buildAutoConnectInfo(handshakeInfo)
+    val event = buildLayoutInspectorEvent(autoConnectInfo, device)
     UsageTracker.log(event)
   }
 
   /**
    * Used to log the conversion of a device with UNKNOWN support to SUPPORTED or NOT_SUPPORTED.
    */
-  fun logHandshakeConversion(conversion: DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion, device: DeviceDescriptor) {
-    val event = buildLayoutInspectorEvent(buildAutoConnectInfo(conversion), device)
+  fun logHandshakeConversion(
+    conversion: DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion,
+    device: DeviceDescriptor,
+    isRecoveryHandshake: Boolean
+  ) {
+    val autoConnectInfo = getAutoConnectInfoBuilder(isRecoveryHandshake).buildAutoConnectInfo(conversion)
+    val event = buildLayoutInspectorEvent(autoConnectInfo, device)
     UsageTracker.log(event)
   }
 
@@ -60,27 +70,31 @@ object ForegroundProcessDetectionMetrics {
     }
   }
 
-  private fun buildAutoConnectInfo(
-    supportInfo: LayoutInspector.TrackingForegroundProcessSupported
+  private fun DynamicLayoutInspectorAutoConnectInfo.Builder.buildAutoConnectInfo(
+    supportInfo: LayoutInspector.TrackingForegroundProcessSupported,
   ): DynamicLayoutInspectorAutoConnectInfo {
-    val builder = DynamicLayoutInspectorAutoConnectInfo.newBuilder()
     val supportType = supportInfo.supportType
     if (supportType != null) {
-      builder.handshakeResult = supportType.toHandshakeResult()
+      handshakeResult = supportType.toHandshakeResult()
     }
 
     if (supportType == LayoutInspector.TrackingForegroundProcessSupported.SupportType.NOT_SUPPORTED) {
-      val reasonNotSupported = supportInfo.reasonNotSupported.toAutoConnectReasonNotSupported()
-      builder.reasonNotSupported = reasonNotSupported
+      reasonNotSupported = supportInfo.reasonNotSupported.toAutoConnectReasonNotSupported()
     }
 
-    return builder.build()
+    return build()
   }
 
-  private fun buildAutoConnectInfo(
-    handshakeUnknownConversion: DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion
+  private fun DynamicLayoutInspectorAutoConnectInfo.Builder.buildAutoConnectInfo(
+    handshakeConversion: DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion,
   ): DynamicLayoutInspectorAutoConnectInfo {
-    return DynamicLayoutInspectorAutoConnectInfo.newBuilder().setHandshakeConversionInfo(handshakeUnknownConversion).build()
+    return apply {
+      handshakeConversionInfo = handshakeConversion
+    }.build()
+  }
+
+  private fun getAutoConnectInfoBuilder(isRecoveryHandshake: Boolean): DynamicLayoutInspectorAutoConnectInfo.Builder {
+    return DynamicLayoutInspectorAutoConnectInfo.newBuilder().setIsRecoveryHandshake(isRecoveryHandshake)
   }
 
   private fun LayoutInspector.TrackingForegroundProcessSupported.SupportType.toHandshakeResult()

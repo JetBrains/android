@@ -124,7 +124,6 @@ class HandshakeExecutor(private val device: DeviceDescriptor,
       field = value
     }
 
-  // TODO log recovery handshake in metrics
   private var isRecoveryHandshake = false
 
   suspend fun post(state: HandshakeState) = withContext(workDispatcher) {
@@ -158,22 +157,28 @@ class HandshakeExecutor(private val device: DeviceDescriptor,
       is HandshakeState.UnknownSupported -> {
         if (previousState !is HandshakeState.UnknownSupported) {
           // log UNKNOWN state only once
-          metrics.logHandshakeResult(state.transportEvent, device)
+          metrics.logHandshakeResult(state.transportEvent, device, isRecoveryHandshake)
         }
       }
       is HandshakeState.Supported -> {
-        metrics.logHandshakeResult(state.transportEvent, device)
+        metrics.logHandshakeResult(state.transportEvent, device, isRecoveryHandshake)
         if (previousState is HandshakeState.UnknownSupported) {
-          metrics.logHandshakeConversion(DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_SUPPORTED, device)
+          metrics.logHandshakeConversion(
+            DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_SUPPORTED, device, isRecoveryHandshake
+          )
         }
         if (wasNotSupported) {
-          metrics.logHandshakeConversion(DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_NOT_SUPPORTED_TO_SUPPORTED, device)
+          metrics.logHandshakeConversion(
+            DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_NOT_SUPPORTED_TO_SUPPORTED, device, isRecoveryHandshake
+          )
         }
       }
       is HandshakeState.NotSupported -> {
-        metrics.logHandshakeResult(state.transportEvent, device)
+        metrics.logHandshakeResult(state.transportEvent, device, isRecoveryHandshake)
         if (previousState is HandshakeState.UnknownSupported) {
-          metrics.logHandshakeConversion(DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_NOT_SUPPORTED, device)
+          metrics.logHandshakeConversion(
+            DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_NOT_SUPPORTED, device, isRecoveryHandshake
+          )
         }
       }
       is HandshakeState.Disconnected -> {
@@ -182,7 +187,9 @@ class HandshakeExecutor(private val device: DeviceDescriptor,
           // This could happen if there are issues in the handshake or if a device was disconnected
           // before the UNKNOWN state had time to resolve.
           // For example if a device was plugged in while locked and unplugged before ever being unlocked.
-          metrics.logHandshakeConversion(DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_DISCONNECTED, device)
+          metrics.logHandshakeConversion(
+            DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_DISCONNECTED, device, isRecoveryHandshake
+          )
         }
       }
     }
