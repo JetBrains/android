@@ -21,6 +21,7 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.ProjectJdkTable
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.projectRoots.impl.SdkVersionUtil
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiElement
@@ -40,35 +41,31 @@ class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
   override val necessityInfo = AlwaysNeeded
 
-  data class JdkInfo(val path: String, val javaVersion: JavaVersion)
+  data class CurrentJdkInfo(val path: String, val javaVersion: JavaVersion)
+  data class NewJdkInfo(val sdk: Sdk, val path: String?, val javaVersion: JavaVersion)
 
-  private val currentJdkInfo: JdkInfo?
-  private val newJdkInfo: JdkInfo?
+  private val currentJdkInfo: CurrentJdkInfo?
+  var newJdkInfo: NewJdkInfo? = null
 
   init {
     val installationManager = GradleInstallationManager.getInstance()
     currentJdkInfo = project.basePath?.let { basePath -> installationManager.getGradleJvmPath(project, basePath) }
       ?.let { gradleJvmPath ->
         SdkVersionUtil.getJdkVersionInfo(gradleJvmPath)
-          ?.let { JdkInfo(gradleJvmPath, it.version) }
+          ?.let { CurrentJdkInfo(gradleJvmPath, it.version) }
       }
 
     val jdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance())
     val newCompatibleJdk = CompatibleJdkVersion.getCompatibleJdkVersion(new)
-    // TODO(b/257037405): if there is more than one applicable JDK, we should allow the user to choose which gets used.
     newJdkInfo = jdks
       .firstOrNull { JavaSdk.getInstance().getVersion(it)?.maxLanguageLevel == newCompatibleJdk.languageLevel }
-      ?.homePath
-      ?.let { JdkInfo(it, newCompatibleJdk.languageLevel.toJavaVersion()) }
+      ?.let { NewJdkInfo(it, it.homePath, newCompatibleJdk.languageLevel.toJavaVersion()) }
   }
 
-  class RequiredJdkNotAvailable(languageLevel: LanguageLevel, new: AgpVersion): BlockReason(
-    shortDescription = "Required JDK not available",
-    description = "Android Gradle Plugin version $new requires running with JDK ${languageLevel.toJavaVersion().feature}, \n" +
-                  "which is not available on this platform.  To continue this upgrade, install \n" +
-                  // TODO(b/257037847): provide UI to allow the user to perform this easily.
-                  "JDK $languageLevel on this machine and make it available to Studio somehow.",
-    readMoreUrl = ReadMoreUrlRedirect("required-jdk-not-available"),
+  class RequiredJdkNotSelected(languageLevel: LanguageLevel, new: AgpVersion): BlockReason(
+    shortDescription = "Required JDK not selected",
+    description = "Android Gradle Plugin version $new requires running with JDK ${languageLevel.toJavaVersion().feature}." +
+                  "Select a suitable JDK from the combo box.",
   )
 
   private val isCurrentJdkNewEnough: Boolean
@@ -85,12 +82,12 @@ class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
     if (currentCompatibleJdk == newCompatibleJdk) return listOf()
 
     // If we have found a JDK of the right version already configured for Studio, don't block.
-    if (newJdkInfo != null) return listOf()
+    if (newJdkInfo?.javaVersion?.feature == newCompatibleJdk.languageLevel.toJavaVersion().feature) return listOf()
 
     // If the project is already using a new enough version of the JDK (or we can't tell), don't block.
     if (isCurrentJdkNewEnough) return listOf()
 
-    return listOf(RequiredJdkNotAvailable(newCompatibleJdk.languageLevel, new))
+    return listOf(RequiredJdkNotSelected(newCompatibleJdk.languageLevel, new))
   }
 
   override fun findComponentUsages(): Array<out UsageInfo> {
@@ -103,7 +100,7 @@ class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
     if (isCurrentJdkNewEnough) return usages.toTypedArray() // The user was already using a newer JDK; leave it alone.
 
     newJdkInfo?.let { info ->
-      val newJdkPath = info.path
+      val newJdkPath = info.path ?: return usages.toTypedArray()
       val gradleJvmPath = currentJdkInfo?.path ?: return usages.toTypedArray()
       // we need a PsiElement, but what?
       //

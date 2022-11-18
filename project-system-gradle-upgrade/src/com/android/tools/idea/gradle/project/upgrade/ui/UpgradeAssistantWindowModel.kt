@@ -19,6 +19,7 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
@@ -29,6 +30,8 @@ import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeRefactoringProces
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginsRefactoringProcessor
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor
 import com.android.tools.idea.gradle.project.upgrade.LOG_CATEGORY
+import com.android.tools.idea.gradle.project.upgrade.ProjectJdkRefactoringProcessor
+import com.android.tools.idea.gradle.project.upgrade.ProjectJdkRefactoringProcessor.NewJdkInfo
 import com.android.tools.idea.gradle.project.upgrade.R8FullModeDefaultRefactoringProcessor
 import com.android.tools.idea.gradle.project.upgrade.RefactoringProcessorInstantiator
 import com.android.tools.idea.gradle.project.upgrade.WellKnownGradlePluginDependencyUsageInfo
@@ -50,11 +53,20 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.projectRoots.JavaSdk
+import com.intellij.openapi.projectRoots.Sdk
+import com.intellij.openapi.projectRoots.impl.SdkVersionUtil
+import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable
+import com.intellij.openapi.roots.ui.configuration.SdkComboBox
+import com.intellij.openapi.roots.ui.configuration.SdkComboBoxModel
+import com.intellij.openapi.roots.ui.configuration.SdkListItem
+import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.CheckboxTreeHelper
@@ -62,6 +74,7 @@ import com.intellij.ui.CheckboxTreeListener
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.util.ui.UIUtil
 import java.awt.event.ActionEvent
+import java.util.function.Predicate
 import javax.swing.AbstractAction
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -614,6 +627,67 @@ class UpgradeAssistantWindowModel(
       init {
         selectedValue = R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction.ACCEPT_NEW_DEFAULT
       }
+    }
+    is ProjectJdkRefactoringProcessor -> object : DefaultStepPresentation(processor), StepUiWithUserSelection {
+      val comboBox: SdkComboBox
+
+      init {
+        fun setupProjectSdksModel(sdksModel: ProjectSdksModel, project: Project, projectSdk: Sdk?) {
+          // TODO copied from AndroidGradleProjectSettingsControlBuilder.kt. If works - try to reuse instead.
+          var resolvedProjectSdk = projectSdk
+          sdksModel.reset(project)
+          //TODO removed for now to test
+          //deduplicateSdkNames(sdksModel)
+          if (resolvedProjectSdk == null) {
+            resolvedProjectSdk = sdksModel.projectSdk
+            // Find real sdk
+            // see ProjectSdksModel#getProjectSdk for details
+            resolvedProjectSdk = sdksModel.findSdk(resolvedProjectSdk)
+          }
+          if (resolvedProjectSdk != null) {
+            // resolves executable JDK
+            // e.g: for Android projects
+            resolvedProjectSdk = ExternalSystemJdkUtil.resolveDependentJdk(resolvedProjectSdk)
+            // Find editable sdk
+            // see ProjectSdksModel#getProjectSdk for details
+            resolvedProjectSdk = sdksModel.findSdk(resolvedProjectSdk.name)
+          }
+          sdksModel.projectSdk = resolvedProjectSdk
+          sdksModel.apply()
+        }
+        // Setting up the same way as in AndroidGradleProjectSettingsControlBuilder.kt
+        val sdksModel: ProjectSdksModel = ProjectStructureConfigurable.getInstance(project).projectJdksModel
+
+        setupProjectSdksModel(sdksModel, project, null)
+
+        //TODO not sure why we need to 'hide' project sdk from the model.
+        val projectJdk = sdksModel.projectSdk
+        sdksModel.projectSdk = null
+        val gradleJdkBoxModel = SdkComboBoxModel.createJdkComboBoxModel(project, sdksModel)
+        sdksModel.projectSdk = projectJdk
+
+        comboBox = SdkComboBox(gradleJdkBoxModel).apply { name = "selection" }
+        comboBox.renderer = AndroidGradleProjectSettingsControlBuilder.SdkListPathPresenter { comboBox.model.listModel }
+        processor.newJdkInfo?.let { newJdkInfo ->
+          val sdkItem = comboBox.model.listModel.findSdkItem(newJdkInfo.sdk) ?: return@let
+          comboBox.model.selectedItem = sdkItem
+        }
+        comboBox.addActionListener { e ->
+          val item = comboBox.model.selectedItem
+          (item as? SdkListItem.SdkItem)?.sdk?.let { sdk ->
+            sdk.homePath?.let { homePath ->
+              SdkVersionUtil.getJdkVersionInfo(homePath)?.version?.let { version ->
+                processor.newJdkInfo = NewJdkInfo(sdk, homePath, version)
+              }
+            }
+          } ?: run { processor.newJdkInfo = null }
+          notifyUiNeedsToRefresh()
+          recheckBlockageState()
+        }
+      }
+
+      override fun createUiSelector(): JComponent = comboBox
+
     }
     is GradlePluginsRefactoringProcessor -> object : DefaultStepPresentation(processor) {
       override val additionalInfo =

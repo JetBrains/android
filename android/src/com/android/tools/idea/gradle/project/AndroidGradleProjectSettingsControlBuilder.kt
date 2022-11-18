@@ -222,7 +222,7 @@ class AndroidGradleProjectSettingsControlBuilder(val myInitialSettings: GradlePr
     myGradleJdkComboBoxWrapper!!.add(myGradleJdkComboBox!!, BorderLayout.CENTER)
   }
 
-  private class SdkListPathPresenter(getSdkListModel: Producer<SdkListModel>) : SdkListPresenter(getSdkListModel) {
+  class SdkListPathPresenter(getSdkListModel: Producer<SdkListModel>) : SdkListPresenter(getSdkListModel) {
     override fun customizeCellRenderer(list: JList<out SdkListItem>,
                                        value: SdkListItem?,
                                        index: Int,

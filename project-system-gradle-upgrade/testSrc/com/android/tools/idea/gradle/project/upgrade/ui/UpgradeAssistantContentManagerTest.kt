@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project.upgrade.ui
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.TreeWalker
@@ -23,6 +25,7 @@ import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
+import com.android.tools.idea.gradle.project.sync.constants.JDK_11_PATH
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT
@@ -56,6 +59,7 @@ import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ui.configuration.SdkListItem
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiDocumentManager
@@ -66,9 +70,11 @@ import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.components.BrowserLink
 import com.intellij.ui.components.JBLabel
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.mock
 
 @RunsInEdt
 class ContentManagerImplTest {
@@ -557,6 +563,52 @@ class ContentManagerImplTest {
     val stepPresentation = (gradleVersionProcessorPath.lastPathComponent as CheckedTreeNode)
       .userObject as UpgradeAssistantWindowModel.StepUiPresentation
     assertThat(stepPresentation.treeText).doesNotContain("Upgrade Gradle plugins")
+  }
+
+  @Test
+  fun testToolWindowViewDetailsPanelWithOldJdk() {
+    projectRule.fixture.addFileToProject(
+      "build.gradle",
+      """
+        buildscript {
+          dependencies {
+            classpath 'com.android.tools.build:gradle:7.3.0'
+          }
+        }
+      """.trimIndent()
+    )
+    mock(GradleInstallationManager::class.java).let {
+      whenever(it.getGradleJvmPath(any(), any())).thenReturn(JDK_11_PATH)
+      projectRule.projectRule.replaceService(GradleInstallationManager::class.java, it)
+    }
+    val contentManager = ContentManagerImpl(project)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
+    val model = UpgradeAssistantWindowModel(project, { AgpVersion.parse("7.3.0") }, AgpVersion.parse("8.0.0"))
+    val view = UpgradeAssistantView(model, toolWindow.contentManager)
+
+    assertThat(treeString(view.tree)).isEqualTo(
+      """
+        Upgrade
+          Upgrade project JDK for running Gradle
+          Accept the new R8 default of full mode
+          Preserve transitive R classes
+          Upgrade AGP dependency from 7.3.0 to 8.0.0
+      """.trimIndent()
+    )
+
+    val projectJdkProcessorPath = view.tree.getPathForRow(1)
+    view.tree.selectionPath = projectJdkProcessorPath
+    val stepPresentation = (projectJdkProcessorPath.lastPathComponent as CheckedTreeNode).userObject as UpgradeAssistantWindowModel.StepUiPresentation
+    assertThat(stepPresentation.treeText).isEqualTo("Upgrade project JDK for running Gradle")
+    assertThat(stepPresentation.isBlocked).isFalse()
+    val detailsPanelContent = TreeWalker(view.detailsPanel).descendants().first { it.name == "content" } as HtmlLabel
+    assertThat(detailsPanelContent.text).contains("<b>Upgrade project JDK for running Gradle</b>")
+    assertThat(detailsPanelContent.text).contains("JDK version 17")
+    val comboBox = TreeWalker(view.detailsPanel).descendants().first { it.name == "selection" } as ComboBox<*>
+    assertThat((comboBox.selectedItem as SdkListItem.SdkItem).sdk.name).isEqualTo("jbr-17")
+    comboBox.selectedItem = comboBox.getItemAt(0) // "app_jdk" which is, oddly, Java 1.5
+    assertThat(stepPresentation.treeText).isEqualTo("Upgrade project JDK for running Gradle")
+    assertThat(stepPresentation.isBlocked).isTrue()
   }
 
   @Test
