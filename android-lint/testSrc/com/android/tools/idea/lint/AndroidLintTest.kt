@@ -1201,7 +1201,7 @@ class AndroidLintTest : AndroidTestCase() {
     doTestWithFix(
       AndroidLintNewApiInspection(),
       "Surround with if (SdkExtensions.getExtensionVersion(R)) >= 4) { ... }",
-      "/src/androidx/annotation/RequiresSdkVersion.java", "java")
+      "/src/androidx/annotation/RequiresExtension.java", "java")
   }
 
   fun testExtensionSuppressKotlin() {
@@ -1209,7 +1209,7 @@ class AndroidLintTest : AndroidTestCase() {
     doTestWithFix(
       AndroidLintNewApiInspection(),
       "Surround with if (SdkExtensions.getExtensionVersion(R)) >= 1) { ... }",
-      "/src/androidx/annotation/RequiresSdkVersion.kt", "kt")
+      "/src/androidx/annotation/RequiresExtension.kt", "kt")
   }
 
   fun testExtensionSuppressKotlinOnR() {
@@ -1217,47 +1217,47 @@ class AndroidLintTest : AndroidTestCase() {
     doTestWithFix(
       AndroidLintNewApiInspection(),
       "Surround with if (SdkExtensions.getExtensionVersion(R)) >= 4) { ... }",
-      "/src/androidx/annotation/RequiresSdkVersion.kt", "kt")
+      "/src/androidx/annotation/RequiresExtension.kt", "kt")
   }
 
-  fun testRequiresSdkVersionKotlin() {
+  fun testRequiresExtensionKotlin() {
     createManifest()
     doTestWithFix(
       AndroidLintNewApiInspection(),
-      "Add @RequiresSdkVersion(sdk=R, version=4) Annotation",
-      "/src/androidx/annotation/RequiresSdkVersion.kt", "kt")
+      "Add @RequiresExtension(extension=R, version=4) Annotation",
+      "/src/androidx/annotation/RequiresExtension.kt", "kt")
   }
 
-  fun testRequiresSdkVersionKotlinSingle() {
+  fun testRequiresExtensionKotlinSingle() {
     createManifest()
     doTestWithFix(
       AndroidLintNewApiInspection(),
-      "Add @RequiresSdkVersion(sdk=R, version=4) Annotation",
-      "/src/androidx/annotation/RequiresSdkVersion.kt", "kt")
+      "Add @RequiresExtension(extension=R, version=4) Annotation",
+      "/src/androidx/annotation/RequiresExtension.kt", "kt")
   }
 
-  fun testRequiresSdkVersionJava() {
+  fun testRequiresExtensionJava() {
     createManifest()
     doTestWithFix(
       AndroidLintNewApiInspection(),
-      "Add @RequiresSdkVersion(sdk=R, version=4) Annotation",
-      "/src/androidx/annotation/RequiresSdkVersion.java", "java")
+      "Add @RequiresExtension(extension=R, version=4) Annotation",
+      "/src/androidx/annotation/RequiresExtension.java", "java")
   }
 
-  fun testRequiresSdkVersionJavaSingle() {
+  fun testRequiresExtensionJavaSingle() {
     createManifest()
     doTestWithFix(
       AndroidLintNewApiInspection(),
-      "Add @RequiresSdkVersion(sdk=R, version=4) Annotation",
-      "/src/androidx/annotation/RequiresSdkVersion.java", "java")
+      "Add @RequiresExtension(extension=R, version=4) Annotation",
+      "/src/androidx/annotation/RequiresExtension.java", "java")
   }
 
   fun testMissingExtension() {
     createManifest()
     doTestWithFix(
       AndroidLintNewApiInspection(),
-      "Add @RequiresSdkVersion(sdk=1000000, version=4) Annotation",
-      "/src/androidx/annotation/RequiresSdkVersion.kt", "kt")
+      "Add @RequiresExtension(extension=1000000, version=4) Annotation",
+      "/src/androidx/annotation/RequiresExtension.kt", "kt")
   }
 
   fun testApiCheck1f() { // Check adding a version-check conditional in a Java file

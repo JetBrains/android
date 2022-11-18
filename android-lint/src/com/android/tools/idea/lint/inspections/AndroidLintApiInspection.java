@@ -94,7 +94,7 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
         // Just pick the first one: the order is significant and the first item is supposed
         // to be the recommended one. We don't currently have an annotation mechanism to
         // declare "you must have *all* of these APIs".
-        if (requiresSdkVersionAvailable(project)) {
+        if (requiresExtensionAvailable(project)) {
           list.add(new AddTargetApiQuickFix(Collections.singletonList(first), true, startElement, requireClass));
         }
       } else {
@@ -108,7 +108,7 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
             // https://android-review.googlesource.com/c/platform/frameworks/support/+/843915/
             list.add(new AddTargetApiQuickFix(constraints, false, startElement, requireClass));
           }
-        } else if (!isXml && requiresSdkVersionAvailable(project)) {
+        } else if (!isXml && requiresExtensionAvailable(project)) {
           list.add(new AddTargetApiQuickFix(constraints, true, startElement, requireClass));
         }
       }
@@ -126,7 +126,7 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
            facade.findClass(REQUIRES_API_ANNOTATION.newName(), scope) != null;
   }
 
-  public static boolean requiresSdkVersionAvailable(Project project) {
+  public static boolean requiresExtensionAvailable(Project project) {
     JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
     GlobalSearchScope scope = GlobalSearchScope.allScope(project);
     return facade.findClass(REQUIRES_EXTENSION_ANNOTATION, scope) != null;

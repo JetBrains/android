@@ -2,8 +2,8 @@ package androidx.annotation;
 
 import android.os.Build;
 
-public @interface RequiresSdkVersion {
-    int sdk();
+public @interface RequiresExtension {
+    int extension();
     int version();
 }
 
@@ -14,7 +14,7 @@ class SdkExtensionsTest {
         }
     }
 
-    @RequiresSdkVersion(sdk= Build.VERSION_CODES.R, version=4)
+    @RequiresExtension(extension= Build.VERSION_CODES.R, version=4)
     public void requiresExtRv4() {
     }
 }

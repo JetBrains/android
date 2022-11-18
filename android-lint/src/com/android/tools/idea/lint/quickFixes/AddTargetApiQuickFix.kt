@@ -156,7 +156,7 @@ class AddTargetApiQuickFix(private val requirements: List<SdkApiConstraint>,
         annotationText = "@" + fqcn + "(api=" + getSdkApiString(api, true) + ")"
       } else if (requiresApi) {
         fqcn = REQUIRES_EXTENSION_ANNOTATION
-        annotationText = "@$fqcn(sdk=${getSdkId(container.project, sdkId)}, version=$api)"
+        annotationText = "@$fqcn(extension=${getSdkId(container.project, sdkId)}, version=$api)"
       }
       else {
         fqcn = FQCN_TARGET_API
@@ -216,7 +216,7 @@ class AddTargetApiQuickFix(private val requirements: List<SdkApiConstraint>,
         FQCN_TARGET_API
       }
     val inner = if (requiresApi && sdkId != ANDROID_SDK_ID) {
-      "sdk=${getSdkId(annotationContainer.project, sdkId)}, version=$api"
+      "extension=${getSdkId(annotationContainer.project, sdkId)}, version=$api"
     } else {
       AddTargetVersionCheckQuickFix.getVersionField(api, true)
     }
