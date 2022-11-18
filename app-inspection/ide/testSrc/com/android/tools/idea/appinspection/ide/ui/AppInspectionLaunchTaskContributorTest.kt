@@ -21,8 +21,8 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
+import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebugProcessHandler
 import com.android.tools.idea.run.AndroidLaunchTasksProvider
-import com.android.tools.idea.run.AndroidRemoteDebugProcessHandler
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.ApplicationIdProvider
@@ -124,7 +124,9 @@ class AppInspectionLaunchTaskContributorTest {
     // Assert that the recent process is still p2.
     val debugManager = projectRule.mockProjectService(DebuggerManager::class.java)
     whenever(debugManager.getDebugProcess(any(ProcessHandler::class.java))).thenReturn(mock())
-    val debugHandler2 = AndroidRemoteDebugProcessHandler(project, mock(), false)
+    val debugHandler2 = AndroidRemoteDebugProcessHandler(project,
+                                                         mock(),
+                                                         false)
     debugHandler2.startNotify()
     status2.processHandler = debugHandler2
     handler2.killProcess()

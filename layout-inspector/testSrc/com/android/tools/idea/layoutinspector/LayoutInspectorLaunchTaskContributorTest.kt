@@ -22,13 +22,13 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
+import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebugProcessHandler
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
 import com.android.tools.idea.layoutinspector.pipeline.adb.findDevice
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.run.AndroidLaunchTasksProvider
-import com.android.tools.idea.run.AndroidRemoteDebugProcessHandler
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.ApplicationIdProvider
@@ -173,7 +173,8 @@ class LayoutInspectorLaunchTaskContributorTest {
     // The ProcessHandler will be switched See ConnectJavaDebuggerTask.launchDebugger.
     val debugManager = projectRule.mockProjectService(DebuggerManager::class.java)
     whenever(debugManager.getDebugProcess(any(ProcessHandler::class.java))).thenReturn(mock())
-    val debugHandler = AndroidRemoteDebugProcessHandler(project, mock(), false)
+    val debugHandler =
+      AndroidRemoteDebugProcessHandler(project, mock(), false)
     debugHandler.startNotify()
     status.processHandler = debugHandler
     handler.killProcess()

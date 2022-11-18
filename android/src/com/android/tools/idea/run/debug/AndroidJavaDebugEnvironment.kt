@@ -17,7 +17,7 @@ package com.android.tools.idea.run.debug
 
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.run.AndroidRemoteDebugProcessHandler
+import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebugProcessHandler
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.intellij.debugger.DebugEnvironment
 import com.intellij.debugger.DebuggerGlobalSearchScope
@@ -54,7 +54,12 @@ internal class AndroidJavaDebugEnvironment(
   override fun createExecutionResult(): ExecutionResult {
     val console = consoleViewToReuse ?: TextConsoleBuilderFactory.getInstance().createBuilder(project).console
     Disposer.register(project, console)
-    val debugProcessHandler = AndroidRemoteDebugProcessHandler(project, client, detachIsDefault, onDebugProcessDestroyed)
+    val debugProcessHandler = AndroidRemoteDebugProcessHandler(
+      project,
+      client,
+      detachIsDefault,
+      onDebugProcessDestroyed
+    )
     console.attachToProcess(debugProcessHandler)
 
     return DefaultExecutionResult(console, debugProcessHandler)

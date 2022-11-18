@@ -23,8 +23,8 @@ import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.services.ServiceOutput
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebugProcessHandler
 import com.android.tools.idea.logcat.AndroidLogcatService
-import com.android.tools.idea.run.AndroidRemoteDebugProcessHandler
 import com.android.tools.idea.run.configuration.execution.DebugSessionStarter
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.google.common.truth.Truth.assertThat
@@ -96,7 +96,8 @@ class StartReattachingDebuggerTest {
 
     assertThat(firstSession).isNotNull()
     assertThat(firstSession!!.sessionName).isEqualTo("myTestConfiguration")
-    assertThat(firstSession.debugProcess.processHandler).isInstanceOf(AndroidRemoteDebugProcessHandler::class.java)
+    assertThat(firstSession.debugProcess.processHandler).isInstanceOf(
+      AndroidRemoteDebugProcessHandler::class.java)
   }
 
 
