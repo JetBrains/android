@@ -102,11 +102,13 @@ import javax.swing.KeyStroke
 import kotlin.math.min
 
 /**
- * A view of the Emulator display optionally encased in the device frame.
+ * A view of a mirrored device display.
  *
  * @param disposableParent the disposable parent determining the lifespan of the view
  * @param deviceSerialNumber the serial number of the device
  * @param deviceAbi the application binary interface of the device
+ * @param deviceName the name of the device to be used in user-facing messages
+ * @param initialDisplayOrientation initial orientation of the device display in quadrants counterclockwise
  * @param project the project associated with the view
  */
 internal class DeviceView(
