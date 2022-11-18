@@ -66,6 +66,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiForeachStatement
 import com.intellij.psi.PsiLambdaExpression
 import com.intellij.psi.PsiLocalVariable
+import com.intellij.psi.PsiMember
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiModifierListOwner
@@ -80,8 +81,6 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.usageView.UsageInfo
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.analysis.decompiled.light.classes.KtLightFieldForDecompiledDeclaration
-import org.jetbrains.kotlin.analysis.decompiled.light.classes.KtLightMethodForDecompiledDeclaration
 import org.jetbrains.kotlin.asJava.unwrapped
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.idea.util.findAnnotation
@@ -729,16 +728,14 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
     }
 
     fun PsiElement.isGeneralCode(): Boolean {
-      when (this) {
-        is PsiCompiledElement -> {
-          val clz = getParentOfType<PsiClass>(true)?.qualifiedName ?: return false
-          return clz.startsWith("kotlin.") || clz.startsWith("java.") || clz.startsWith("android.") ||
-            clz.contains(".math.") || clz.contains(".Math")
-        }
-        is KtLightMethodForDecompiledDeclaration -> return clsDelegate.isGeneralCode()
-        is KtLightFieldForDecompiledDeclaration -> return clsDelegate.isGeneralCode()
-        else -> return false
+      val psiClass = when (this) {
+        is PsiClass -> this
+        is PsiMember -> containingClass
+        else -> null
       }
+      val className = psiClass?.qualifiedName ?: return false
+      return className.startsWith("kotlin.") || className.startsWith("java.") || className.startsWith("android.") ||
+             className.contains(".math.") || className.contains(".Math")
     }
 
     fun isResourceField(field: PsiField?): Boolean {
