@@ -114,7 +114,7 @@ constexpr int BIT_RATE_REDUCED = 2000000;
 constexpr int I_FRAME_INTERVAL_SECONDS = 10;
 constexpr int REPEAT_FRAME_DELAY_MILLIS = 100;
 constexpr int CHANNEL_HEADER_LENGTH = 20;
-constexpr char* AMEDIACODEC_KEY_REQUEST_SYNC_FRAME = "request-sync";  // Introduced in API 31.
+constexpr char const* AMEDIACODEC_KEY_REQUEST_SYNC_FRAME = "request-sync";  // Introduced in API 31.
 
 bool IsCodecResolutionLessThanDisplayResolution(Size codec_resolution, Size display_resolution) {
   return max(codec_resolution.width, codec_resolution.height) < max(display_resolution.width, display_resolution.height);
@@ -194,10 +194,10 @@ DisplayStreamer::DisplayStreamer(int32_t display_id, string codec_name, Size max
       socket_fd_(socket_fd),
       presentation_timestamp_offset_(0),
       stopped_(),
+      max_bit_rate_(max_bit_rate),
       display_info_(),
       max_video_resolution_(max_video_resolution),
       video_orientation_(initial_video_orientation),
-      max_bit_rate_(max_bit_rate),
       running_codec_() {
   assert(socket_fd > 0);
 }
@@ -258,10 +258,9 @@ void DisplayStreamer::Run() {
       scoped_lock lock(mutex_);
       display_info_ = display_info;
       int32_t rotation_correction = video_orientation_ >= 0 ? NormalizeRotation(video_orientation_ - display_info.rotation) : 0;
-      media_status_t status;
       Size video_size = ConfigureCodec(codec, *codec_info, max_video_resolution_, media_format, display_info);
       Log::D("rotation_correction = %d video_size = %dx%d", rotation_correction, video_size.width, video_size.height);
-      status = AMediaCodec_createInputSurface(codec, &surface);  // Requires API 26.
+      media_status_t status = AMediaCodec_createInputSurface(codec, &surface);  // Requires API 26.
       if (status != AMEDIA_OK) {
         Log::Fatal("AMediaCodec_createInputSurface returned %d", status);
       }
@@ -362,7 +361,9 @@ bool DisplayStreamer::ProcessFramesUntilStopped(AMediaCodec* codec, VideoPacketH
       AMediaFormat* params = AMediaFormat_new();
       AMediaFormat_setInt32(params, AMEDIACODEC_KEY_REQUEST_SYNC_FRAME, 0);
       media_status_t status = AMediaCodec_setParameters(codec, params);
-      Log::D("AMediaCodec_setParameters returned %d", status);
+      if (status != AMEDIA_OK) {
+        Log::E("AMediaCodec_setParameters returned %d", status);
+      }
       first_frame_after_start = false;
     }
     int64_t delta = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count() - Agent::GetLastTouchEventTime();
@@ -431,4 +432,3 @@ void DisplayStreamer::DisplayRotationWatcher::OnRotationChanged(int32_t new_rota
 }
 
 }  // namespace screensharing
-
