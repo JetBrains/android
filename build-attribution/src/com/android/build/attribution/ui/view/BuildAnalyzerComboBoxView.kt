@@ -87,6 +87,7 @@ class BuildAnalyzerComboBoxView(
     background = JBUI.CurrentTheme.ToolWindow.headerBorderBackground()
     val controlsPanel = JBPanel<JBPanel<*>>(HorizontalLayout(10)).apply {
       border = JBUI.Borders.emptyLeft(4)
+      withPreferredHeight(35)
     }
     isFocusTraversalPolicyProvider = true
     focusTraversalPolicy = object : LayoutFocusTraversalPolicy() {
