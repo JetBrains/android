@@ -58,7 +58,6 @@
     <group id="Android.LiveEdit">
       <action id="android.deploy.livedit.recompose" class="com.android.tools.idea.editors.literals.ManualLiveEditReset"
         description="Trigger @Composable recompose via LiveEDit">
-        <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift S"/>
       </action>
     </group>
 
