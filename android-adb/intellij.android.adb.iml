@@ -25,5 +25,6 @@
     <orderEntry type="module" module-name="android.sdktools.adblib.tools" />
     <orderEntry type="module" module-name="android.sdktools.adblib.ddmlibcompatibility" />
     <orderEntry type="module" module-name="android.sdktools.jdwptracer" />
+    <orderEntry type="module" module-name="android.sdktools.jdwpscache" />
   </component>
 </module>

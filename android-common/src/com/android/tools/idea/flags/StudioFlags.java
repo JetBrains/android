@@ -523,6 +523,13 @@ public final class StudioFlags {
     "Enables capture of JDWP traffic and generate a perfetto report",
     false);
 
+  public static final Flag<Boolean> JDWP_SCACHE = Flag.create(
+    RUNDEBUG,
+    "adb.jdwp.scache.enabled",
+    "Enable JDWP SCache",
+    "Enables JDWP Speculative Cache (SCache). Requires restart",
+    false);
+
   public static final Flag<Boolean> SUPPORT_FEATURE_ON_FEATURE_DEPS = Flag.create(
     RUNDEBUG,
     "feature.on.feature",

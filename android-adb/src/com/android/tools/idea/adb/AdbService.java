@@ -16,6 +16,7 @@
 package com.android.tools.idea.adb;
 
 import static com.android.ddmlib.AndroidDebugBridge.DEFAULT_START_ADB_TIMEOUT_MILLIS;
+import static com.android.tools.idea.flags.StudioFlags.JDWP_SCACHE;
 import static com.google.common.util.concurrent.Futures.immediateFuture;
 
 import com.android.adblib.AdbSession;
@@ -346,6 +347,8 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
     // TODO Also connect to adblib
     AndroidDebugBridge.setJdwpTracerFactory(() -> new StudioDDMLibJdwpTracer(StudioFlags.JDWP_TRACER.get()) {});
     StudioAdbLibJdwpTracerFactory.install(AdbLibApplicationService.getInstance().getSession(), StudioFlags.JDWP_TRACER::get);
+
+    AndroidDebugBridge.setJdwpProcessorFactory(() -> new StudioDDMLibSCache(JDWP_SCACHE.get(), new StudioSCacheLogger()));
 
     // Ensure ADB is terminated when there are no more open projects.
     ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectCloseListener.TOPIC, new ProjectCloseListener() {
