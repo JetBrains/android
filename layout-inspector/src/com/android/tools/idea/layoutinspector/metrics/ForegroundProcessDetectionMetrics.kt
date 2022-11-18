@@ -41,7 +41,7 @@ object ForegroundProcessDetectionMetrics {
   /**
    * Used to log the conversion of a device with UNKNOWN support to SUPPORTED or NOT_SUPPORTED.
    */
-  fun logHandshakeConversion(conversion: DynamicLayoutInspectorAutoConnectInfo.HandshakeUnknownConversion, device: DeviceDescriptor) {
+  fun logHandshakeConversion(conversion: DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion, device: DeviceDescriptor) {
     val event = buildLayoutInspectorEvent(buildAutoConnectInfo(conversion), device)
     UsageTracker.log(event)
   }
@@ -78,9 +78,9 @@ object ForegroundProcessDetectionMetrics {
   }
 
   private fun buildAutoConnectInfo(
-    handshakeUnknownConversion: DynamicLayoutInspectorAutoConnectInfo.HandshakeUnknownConversion
+    handshakeUnknownConversion: DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion
   ): DynamicLayoutInspectorAutoConnectInfo {
-    return DynamicLayoutInspectorAutoConnectInfo.newBuilder().setHandshakeConversion(handshakeUnknownConversion).build()
+    return DynamicLayoutInspectorAutoConnectInfo.newBuilder().setHandshakeConversionInfo(handshakeUnknownConversion).build()
   }
 
   private fun LayoutInspector.TrackingForegroundProcessSupported.SupportType.toHandshakeResult()

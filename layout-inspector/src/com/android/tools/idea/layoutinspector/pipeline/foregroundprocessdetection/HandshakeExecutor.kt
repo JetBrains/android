@@ -164,7 +164,7 @@ class HandshakeExecutor(private val device: DeviceDescriptor,
       is HandshakeState.Supported -> {
         metrics.logHandshakeResult(state.transportEvent, device)
         if (previousState is HandshakeState.UnknownSupported) {
-          metrics.logHandshakeConversion(DynamicLayoutInspectorAutoConnectInfo.HandshakeUnknownConversion.UNKNOWN_TO_SUPPORTED, device)
+          metrics.logHandshakeConversion(DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_SUPPORTED, device)
         }
         if (wasNotSupported) {
           // TODO log to metrics, handshake conversion from NOT_SUPPORTED to SUPPORTED
@@ -173,7 +173,7 @@ class HandshakeExecutor(private val device: DeviceDescriptor,
       is HandshakeState.NotSupported -> {
         metrics.logHandshakeResult(state.transportEvent, device)
         if (previousState is HandshakeState.UnknownSupported) {
-          metrics.logHandshakeConversion(DynamicLayoutInspectorAutoConnectInfo.HandshakeUnknownConversion.UNKNOWN_TO_NOT_SUPPORTED, device)
+          metrics.logHandshakeConversion(DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_NOT_SUPPORTED, device)
         }
       }
       is HandshakeState.Disconnected -> {
@@ -182,7 +182,7 @@ class HandshakeExecutor(private val device: DeviceDescriptor,
           // This could happen if there are issues in the handshake or if a device was disconnected
           // before the UNKNOWN state had time to resolve.
           // For example if a device was plugged in while locked and unplugged before ever being unlocked.
-          metrics.logHandshakeConversion(DynamicLayoutInspectorAutoConnectInfo.HandshakeUnknownConversion.UNKNOWN_NOT_RESOLVED, device)
+          metrics.logHandshakeConversion(DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_DISCONNECTED, device)
         }
       }
     }

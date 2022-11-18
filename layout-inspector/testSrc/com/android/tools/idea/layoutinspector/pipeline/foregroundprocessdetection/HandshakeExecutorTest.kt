@@ -226,7 +226,9 @@ class HandshakeExecutorTest {
     verify(mockMetrics).logHandshakeResult(createTrackingForegroundProcessSupportedEvent(SupportType.UNKNOWN), deviceDescriptor)
     // supported
     verify(mockMetrics).logHandshakeResult(createTrackingForegroundProcessSupportedEvent(SupportType.SUPPORTED), deviceDescriptor)
-    verify(mockMetrics).logHandshakeConversion(DynamicLayoutInspectorAutoConnectInfo.HandshakeUnknownConversion.UNKNOWN_TO_SUPPORTED, deviceDescriptor)
+    verify(mockMetrics).logHandshakeConversion(
+      DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_SUPPORTED, deviceDescriptor
+    )
     verifyNoMoreInteractions(mockMetrics)
   }
 
@@ -254,7 +256,9 @@ class HandshakeExecutorTest {
     verify(mockMetrics).logHandshakeResult(createTrackingForegroundProcessSupportedEvent(SupportType.UNKNOWN), deviceDescriptor)
     // not supported
     verify(mockMetrics).logHandshakeResult(createTrackingForegroundProcessSupportedEvent(SupportType.NOT_SUPPORTED), deviceDescriptor)
-    verify(mockMetrics).logHandshakeConversion(DynamicLayoutInspectorAutoConnectInfo.HandshakeUnknownConversion.UNKNOWN_TO_NOT_SUPPORTED, deviceDescriptor)
+    verify(mockMetrics).logHandshakeConversion(
+      DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_NOT_SUPPORTED, deviceDescriptor
+    )
     verifyNoMoreInteractions(mockMetrics)
   }
 
@@ -281,7 +285,9 @@ class HandshakeExecutorTest {
     // unknown
     verify(mockMetrics).logHandshakeResult(createTrackingForegroundProcessSupportedEvent(SupportType.UNKNOWN), deviceDescriptor)
     // unknown not resolved
-    verify(mockMetrics).logHandshakeConversion(DynamicLayoutInspectorAutoConnectInfo.HandshakeUnknownConversion.UNKNOWN_NOT_RESOLVED, deviceDescriptor)
+    verify(mockMetrics).logHandshakeConversion(
+      DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_DISCONNECTED, deviceDescriptor
+    )
     verifyNoMoreInteractions(mockMetrics)
   }
 
@@ -314,7 +320,9 @@ class HandshakeExecutorTest {
     // unknown
     verify(mockMetrics).logHandshakeResult(createTrackingForegroundProcessSupportedEvent(SupportType.UNKNOWN), deviceDescriptor)
     // unknown not resolved
-    verify(mockMetrics).logHandshakeConversion(DynamicLayoutInspectorAutoConnectInfo.HandshakeUnknownConversion.UNKNOWN_NOT_RESOLVED, deviceDescriptor)
+    verify(mockMetrics).logHandshakeConversion(
+      DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_DISCONNECTED, deviceDescriptor
+    )
     verifyNoMoreInteractions(mockMetrics)
   }
 
