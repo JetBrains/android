@@ -167,7 +167,7 @@ class HandshakeExecutor(private val device: DeviceDescriptor,
           metrics.logHandshakeConversion(DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_SUPPORTED, device)
         }
         if (wasNotSupported) {
-          // TODO log to metrics, handshake conversion from NOT_SUPPORTED to SUPPORTED
+          metrics.logHandshakeConversion(DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_NOT_SUPPORTED_TO_SUPPORTED, device)
         }
       }
       is HandshakeState.NotSupported -> {

@@ -326,6 +326,46 @@ class HandshakeExecutorTest {
     verifyNoMoreInteractions(mockMetrics)
   }
 
+  @Test
+  fun testNotSupportedToSupportedLogsMetrics() {
+    val expectedRequest = createHandshakeExecuteRequest(1)
+    val handshakeExecutor = HandshakeExecutor(deviceDescriptor, stream, scope, workDispatcher, mockClient, mockMetrics, pollingIntervalMs)
+    runBlocking {
+      handshakeExecutor.post(HandshakeState.Connected)
+      val executeRequest1 = syncChannel.receive()
+      assertThat(executeRequest1).isEqualTo(expectedRequest)
+
+      handshakeExecutor.post(HandshakeState.UnknownSupported(createTrackingForegroundProcessSupportedEvent(SupportType.UNKNOWN)))
+      val executeRequest2 = syncChannel.receive()
+      assertThat(executeRequest2).isEqualTo(expectedRequest)
+
+      val executeRequest3 = syncChannel.receive()
+      assertThat(executeRequest3).isEqualTo(expectedRequest)
+
+      handshakeExecutor.post(HandshakeState.NotSupported(createTrackingForegroundProcessSupportedEvent(SupportType.NOT_SUPPORTED)))
+
+      handshakeExecutor.post(HandshakeState.Connected)
+      val executeRequest4 = syncChannel.receive()
+      assertThat(executeRequest4).isEqualTo(expectedRequest)
+
+      handshakeExecutor.post(HandshakeState.Supported(createTrackingForegroundProcessSupportedEvent(SupportType.SUPPORTED)))
+      verifyNoMoreRequests()
+    }
+
+    // unknown
+    verify(mockMetrics).logHandshakeResult(createTrackingForegroundProcessSupportedEvent(SupportType.UNKNOWN), deviceDescriptor)
+    // unknown not resolved
+    verify(mockMetrics).logHandshakeConversion(
+      DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_NOT_SUPPORTED, deviceDescriptor
+    )
+    verify(mockMetrics).logHandshakeResult(createTrackingForegroundProcessSupportedEvent(SupportType.NOT_SUPPORTED), deviceDescriptor)
+    verify(mockMetrics).logHandshakeResult(createTrackingForegroundProcessSupportedEvent(SupportType.SUPPORTED), deviceDescriptor)
+    verify(mockMetrics).logHandshakeConversion(
+      DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_NOT_SUPPORTED_TO_SUPPORTED, deviceDescriptor
+    )
+    verifyNoMoreInteractions(mockMetrics)
+  }
+
   private fun createTrackingForegroundProcessSupportedEvent(supportType: SupportType): LayoutInspector.TrackingForegroundProcessSupported {
     return LayoutInspector.TrackingForegroundProcessSupported.newBuilder().setSupportType(supportType).build()
   }
