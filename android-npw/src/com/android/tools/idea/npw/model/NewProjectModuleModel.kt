@@ -121,7 +121,13 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
   }
 }
 
-internal const val EMPTY_ACTIVITY = "Empty Activity"
+/**
+ * The name of the template to use to construct a companion module.
+ *
+ * TODO: Consider updating this to the Compose/Material3 "Empty Activity" template
+ * if the project is Kotlin-based
+ */
+internal const val COMPANION_MODULE_TEMPLATE_NAME = "Empty Views Activity"
 
 private fun createCompanionModuleModel(projectModel: NewProjectModel): NewAndroidModuleModel {
   // Note: The companion Module is always a Mobile app
@@ -143,9 +149,8 @@ private fun createCompanionModuleModel(projectModel: NewProjectModel): NewAndroi
 }
 
 private fun createCompanionRenderModel(moduleModel: NewAndroidModuleModel, packageName: String): RenderTemplateModel {
-  // Note: The companion Render is always a "Empty Activity"
   val companionRenderModel = RenderTemplateModel.fromModuleModel(moduleModel).apply {
-    newTemplate = TemplateResolver.getAllTemplates().first { it.name == EMPTY_ACTIVITY }
+    newTemplate = TemplateResolver.getAllTemplates().first { it.name == COMPANION_MODULE_TEMPLATE_NAME }
   }
   addRenderDefaultTemplateValues(companionRenderModel, packageName)
 
