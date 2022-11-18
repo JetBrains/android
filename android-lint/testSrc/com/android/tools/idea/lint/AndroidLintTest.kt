@@ -1718,8 +1718,8 @@ class AndroidLintTest : AndroidTestCase() {
 
   fun testLintNonAndroid() { // See LintIdeTest; this is the opposite check
     // Make sure that we don't include the non-Android lint checks here.
-    val issues: IssueRegistry = LintIdeIssueRegistry()
-    assertNull(issues.getIssue("LintImplDollarEscapes"))
+    val support = AndroidLintIdeSupport()
+    assertNull(support.getIssueRegistry().getIssue("LintImplDollarEscapes"))
   }
 
   fun testOldBetaPlugin() {
