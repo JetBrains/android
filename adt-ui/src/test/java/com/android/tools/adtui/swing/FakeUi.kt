@@ -42,6 +42,7 @@ import java.awt.Window
 import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
 import java.awt.image.ColorModel
+import java.lang.AssertionError
 import java.util.function.Predicate
 import javax.swing.JLabel
 import javax.swing.JRootPane
@@ -82,7 +83,9 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
     if (screenScale != 1.0) {
       ComponentAccessor.setGraphicsConfiguration(getTopLevelComponent(root), FakeGraphicsConfiguration(screenScale))
     }
-    root.preferredSize = root.size
+    if (!root.isPreferredSizeSet) {
+      root.preferredSize = root.size
+    }
     layout()
     if (SwingUtilities.isEventDispatchThread()) {
       // Allow resizing events to propagate.
