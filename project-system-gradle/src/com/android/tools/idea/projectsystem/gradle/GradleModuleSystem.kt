@@ -173,7 +173,7 @@ class GradleModuleSystem(
   }
 
   override fun getResourceModuleDependencies() =
-    AndroidDependenciesCache.getAllAndroidDependencies(module, true).map(AndroidFacet::getModule)
+    AndroidDependenciesCache.getAllAndroidDependencies(module.getMainModule(), true).map(AndroidFacet::getModule)
 
   override fun getAndroidTestDirectResourceModuleDependencies(): List<Module> {
     val dependencies = GradleAndroidModel.get(this.module)?.selectedAndroidTestCompileDependencies
