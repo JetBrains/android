@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.run.editor.AndroidDebugger;
+import com.android.tools.idea.execution.common.debug.AndroidDebugger;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.ui.DialogWrapper;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import org.fest.swing.cell.JComboBoxCellReader;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JComboBoxFixture;
-import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class ChooseProcessDialogFixture extends IdeaDialogFixture<DialogWrapper> {
 

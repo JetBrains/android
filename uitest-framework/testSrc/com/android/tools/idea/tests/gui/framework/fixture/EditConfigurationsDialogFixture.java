@@ -19,9 +19,8 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickLa
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitTreeForPopup;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
-import static com.intellij.psi.impl.DebugUtil.sleep;
 
-import com.android.tools.idea.run.editor.AndroidDebugger;
+import com.android.tools.idea.execution.common.debug.AndroidDebugger;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.execution.impl.EditConfigurationsDialog;
@@ -33,14 +32,12 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JTextField;
 import org.fest.swing.cell.JComboBoxCellReader;
-import org.fest.swing.cell.JListCellReader;
 import org.fest.swing.cell.JTreeCellReader;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
-import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.jetbrains.annotations.NotNull;

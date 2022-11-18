@@ -19,9 +19,10 @@ import com.android.ddmlib.IDevice
 import com.android.tools.deployer.model.component.WatchFace
 import com.android.tools.deployer.model.component.WearComponent
 import com.android.tools.idea.execution.common.AppRunSettings
+import com.android.tools.idea.execution.common.debug.DebugSessionStarter
+import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView

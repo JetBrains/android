@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.execution.common.debug.AndroidDebuggerContext;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.AndroidRunConfigurationModule;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
@@ -47,7 +47,6 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

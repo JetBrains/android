@@ -16,8 +16,8 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.execution.common.ApplicationTerminator;
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler;
-import com.android.tools.idea.run.ApplicationTerminator;
 import com.android.tools.idea.run.ui.DeployAction;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.executors.DefaultDebugExecutor;

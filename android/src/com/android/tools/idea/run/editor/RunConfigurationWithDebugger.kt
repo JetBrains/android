@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.editor
 
+import com.android.tools.idea.execution.common.debug.AndroidDebuggerContext
 import com.intellij.execution.configurations.ModuleRunConfiguration
 
 interface RunConfigurationWithDebugger : ModuleRunConfiguration {

@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.debug;
+package com.android.tools.idea.execution.common.debug;
 
 import static org.mockito.Mockito.mock;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.execution.common.debug.ProcessNameReader;
+import com.android.tools.idea.execution.common.debug.utils.ProcessNameReader;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;

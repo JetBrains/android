@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.debug
+package com.android.tools.idea.execution.common.debug
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener
@@ -23,17 +23,13 @@ import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.services.ServiceOutput
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
 import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebugProcessHandler
-import com.android.tools.idea.logcat.AndroidLogcatService
-import com.android.tools.idea.run.configuration.execution.DebugSessionStarter
-import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentManager
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.registerServiceInstance
-import com.intellij.testFramework.replaceService
 import com.intellij.xdebugger.XDebuggerManager
 import org.junit.After
 import org.junit.Assert.fail
@@ -67,9 +63,6 @@ class StartReattachingDebuggerTest {
 
   @Before
   fun setUp() {
-    val emptyLogcatService = Mockito.mock(AndroidLogcatService::class.java)
-    ApplicationManager.getApplication().replaceService(AndroidLogcatService::class.java, emptyLogcatService, project)
-
     deviceState = fakeAdbRule.connectAndWaitForDevice()
     device = AndroidDebugBridge.getBridge()!!.devices.single()
     executionEnvironment = createFakeExecutionEnvironment(project, "myTestConfiguration")

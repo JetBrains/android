@@ -18,6 +18,8 @@ package com.android.tools.idea.run.configuration
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.execution.common.WearSurfaceLaunchOptions
+import com.android.tools.idea.execution.common.debug.AndroidDebuggerContext
+import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
 import com.android.tools.idea.projectsystem.getAndroidModulesForDisplay
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -30,8 +32,6 @@ import com.android.tools.idea.run.configuration.editors.AndroidWearConfiguration
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorRunProfileState
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider
-import com.android.tools.idea.run.editor.AndroidDebuggerContext
-import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.editor.RunConfigurationWithDebugger
 import com.android.tools.idea.stats.RunStats
@@ -62,7 +62,8 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
     const val DEPLOY_OPTIONS_ELEMENT_NAME = "DeployOptions"
   }
 
-  override val androidDebuggerContext: AndroidDebuggerContext = AndroidDebuggerContext(AndroidJavaDebugger.ID)
+  override val androidDebuggerContext: AndroidDebuggerContext = AndroidDebuggerContext(
+    AndroidJavaDebugger.ID)
 
   abstract val componentLaunchOptions: WearSurfaceLaunchOptions
 

@@ -21,11 +21,11 @@ import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LIN
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.deploy.DeploymentConfiguration;
 import com.android.tools.idea.editors.literals.LiveEditService;
+import com.android.tools.idea.execution.common.debug.AndroidDebuggerContext;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
-import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.tasks.ApplyChangesTask;
 import com.android.tools.idea.run.tasks.ApplyCodeChangesTask;

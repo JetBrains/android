@@ -731,7 +731,7 @@
     <extensionPoint qualifiedName="com.android.run.deployTargetProvider" interface="com.android.tools.idea.run.editor.DeployTargetProvider" />
     <extensionPoint qualifiedName="com.android.ide.androidConfigurableContributor"
                     interface="com.android.tools.idea.structure.dialog.AndroidConfigurableContributor"/>
-    <extensionPoint qualifiedName="com.android.run.androidDebugger" interface="com.android.tools.idea.run.editor.AndroidDebugger" />
+    <extensionPoint qualifiedName="com.android.run.androidDebugger" interface="com.android.tools.idea.execution.common.debug.AndroidDebugger" />
     <extensionPoint qualifiedName="com.android.tools.idea.run.editor.androidDebuggerInfoProvider"
                     interface="com.android.tools.idea.run.editor.AndroidDebuggerInfoProvider" />
     <extensionPoint qualifiedName="com.android.tools.idea.sendFeedbackDescriptionProvider"
@@ -787,7 +787,7 @@
   <xi:include href="new-deployment-target-selection.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
   <extensions defaultExtensionNs="com.android.run">
-    <androidDebugger implementation="com.android.tools.idea.run.editor.AndroidJavaDebugger"/>
+    <androidDebugger implementation="com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.run.editor">

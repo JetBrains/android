@@ -25,14 +25,14 @@ import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder
+import com.android.tools.idea.execution.common.debug.AndroidDebugger
+import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
 import com.android.tools.idea.io.grpc.stub.ClientCallStreamObserver
 import com.android.tools.idea.io.grpc.stub.ClientResponseObserver
 import com.android.tools.idea.io.grpc.stub.StreamObserver
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.run.DeploymentApplicationService
-import com.android.tools.idea.run.editor.AndroidDebugger
-import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog

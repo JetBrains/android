@@ -10,12 +10,12 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.execution.common.debug.AndroidDebugger;
+import com.android.tools.idea.execution.common.debug.AndroidDebuggerContext;
+import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
+import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.run.editor.AndroidDebugger;
-import com.android.tools.idea.run.editor.AndroidDebuggerContext;
-import com.android.tools.idea.run.editor.AndroidDebuggerState;
-import com.android.tools.idea.run.editor.AndroidJavaDebugger;
 import com.android.tools.idea.run.editor.DeployTarget;
 import com.android.tools.idea.run.editor.DeployTargetContext;
 import com.android.tools.idea.run.editor.DeployTargetProvider;

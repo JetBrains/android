@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 import static com.android.tools.idea.run.debug.CaptureLogcatOutputToProcessHandlerKt.captureLogcatOutputToProcessHandler;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.execution.common.ApplicationTerminator;
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask;

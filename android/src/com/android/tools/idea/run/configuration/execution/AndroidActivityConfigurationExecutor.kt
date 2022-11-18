@@ -20,13 +20,14 @@ import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.model.App
 import com.android.tools.idea.execution.common.AppRunSettings
+import com.android.tools.idea.execution.common.debug.DebugSessionStarter
+import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider
 import com.android.tools.idea.run.activity.launch.ActivityLaunchOptionState
-import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -51,7 +52,8 @@ class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment,
   }
 
   public override fun startDebugSession(device: IDevice, console: ConsoleView): Promise<XDebugSessionImpl> {
-    return DebugSessionStarter.attachDebuggerToStartedProcess(device, appId, environment, AndroidJavaDebugger(), AndroidJavaDebugger().createState(),  { it.forceStop(appId) }, console)
+    return DebugSessionStarter.attachDebuggerToStartedProcess(device, appId, environment, AndroidJavaDebugger(),
+                                                              AndroidJavaDebugger().createState(), { it.forceStop(appId) }, console)
   }
 
   override fun runAsInstantApp(): Promise<RunContentDescriptor> {

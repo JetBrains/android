@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.debug
+package com.android.tools.idea.execution.common.debug
 
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.execution.common.AndroidSessionInfo
+import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugEnvironment
 import com.intellij.debugger.DebuggerManagerEx
 import com.intellij.debugger.impl.DebuggerSession
 import com.intellij.execution.ExecutionException

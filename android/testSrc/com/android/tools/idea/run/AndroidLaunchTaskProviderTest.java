@@ -25,9 +25,9 @@ import static org.mockito.Mockito.mock;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.devices.Abi;
+import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger;
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
-import com.android.tools.idea.run.editor.AndroidJavaDebugger;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.testing.AndroidProjectRule;

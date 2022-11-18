@@ -17,6 +17,7 @@ package com.android.tools.idea.run.editor;
 
 import static org.junit.Assert.assertEquals;
 
+import com.android.tools.idea.execution.common.debug.AndroidDebuggerContext;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider;

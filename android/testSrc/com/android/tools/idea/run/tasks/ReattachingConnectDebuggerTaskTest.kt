@@ -21,12 +21,15 @@ import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.fakeadbserver.DeviceState
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
+import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.logcat.AndroidLogcatService
-import com.android.tools.idea.run.debug.createFakeExecutionEnvironment
-import com.android.tools.idea.run.editor.AndroidDebuggerState
-import com.android.tools.idea.run.editor.AndroidJavaDebugger
+import com.android.tools.idea.run.AndroidRunConfigurationType
+import com.android.tools.idea.run.DefaultStudioProgramRunner
 import com.google.common.truth.Truth.assertThat
+import com.intellij.execution.RunManager
+import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.application.ApplicationManager
@@ -74,7 +77,10 @@ class ReattachingConnectDebuggerTaskTest {
 
     deviceState = fakeAdbRule.connectAndWaitForDevice()
     device = AndroidDebugBridge.getBridge()!!.devices.single()
-    executionEnvironment = createFakeExecutionEnvironment(project, "myTestConfiguration")
+    val configSettings = RunManager.getInstance(project).createConfiguration(
+      "app", AndroidRunConfigurationType().configurationFactories.single())
+    executionEnvironment = ExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance(), DefaultStudioProgramRunner(),
+                                                configSettings, project)
   }
 
   @After
@@ -97,8 +103,10 @@ class ReattachingConnectDebuggerTaskTest {
     var pid = Random.nextInt()
     FakeAdbTestRule.launchAndWaitForProcess(deviceState, pid, FakeAdbTestRule.CLIENT_PACKAGE_NAME, true)
 
-    val reattachingDebuggerTask = ReattachingConnectDebuggerTask(AndroidJavaDebugger(), AndroidDebuggerState(),
-                                                                 MASTER_PROCESS_NAME, 15)
+    val reattachingDebuggerTask = ReattachingConnectDebuggerTask(
+      AndroidJavaDebugger(),
+      AndroidDebuggerState(),
+      MASTER_PROCESS_NAME, 15)
 
     val androidProcessHandler = AndroidProcessHandler(project, APP_ID)
 

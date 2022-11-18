@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.tools.idea.execution.common.debug.AndroidDebugger;
+import com.android.tools.idea.execution.common.debug.AndroidDebuggerConfigurable;
+import com.android.tools.idea.execution.common.debug.AndroidDebuggerContext;
+import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
 import com.google.common.collect.Maps;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.ui.CollectionComboBoxModel;

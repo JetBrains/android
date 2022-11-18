@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.debug
+package com.android.tools.idea.execution.common.debug.utils
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.Client
@@ -102,7 +102,7 @@ private fun getClientWithAppId(device: IDevice, appId: String): Client? {
 /**
  * Shows [ExecutionException] in Debug Tool Window.
  */
-internal fun showError(project: Project, e: ExecutionException, sessionName: String) {
+fun showError(project: Project, e: ExecutionException, sessionName: String) {
   ExecutionUtil.handleExecutionError(project, ToolWindowId.DEBUG, e,
                                      ExecutionBundle.message("error.running.configuration.message", sessionName),
                                      e.message, Function.identity(), null)

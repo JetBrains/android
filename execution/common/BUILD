@@ -16,6 +16,7 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
     ],
 )
 
@@ -47,5 +48,7 @@ iml_module(
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module, test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
     ],
 )

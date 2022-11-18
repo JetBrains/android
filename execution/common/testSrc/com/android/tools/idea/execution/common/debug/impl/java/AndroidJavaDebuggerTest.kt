@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.debug
+package com.android.tools.idea.execution.common.debug.impl.java
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener
 import com.android.ddmlib.Client
@@ -25,9 +25,9 @@ import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.AndroidSessionInfo
+import com.android.tools.idea.execution.common.debug.DebugSessionStarter
+import com.android.tools.idea.execution.common.debug.createFakeExecutionEnvironment
 import com.android.tools.idea.run.DeploymentApplicationService
-import com.android.tools.idea.run.configuration.execution.DebugSessionStarter
-import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.google.common.truth.Truth.assertThat
 import com.intellij.debugger.DebuggerManager
 import com.intellij.debugger.DebuggerManagerEx

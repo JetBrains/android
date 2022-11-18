@@ -13,22 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.configuration.execution
+package com.android.tools.idea.execution.common.debug
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.execution.common.AndroidSessionInfo
+import com.android.tools.idea.execution.common.ApplicationTerminator
+import com.android.tools.idea.execution.common.debug.utils.showError
+import com.android.tools.idea.execution.common.debug.utils.waitForClientReadyForDebug
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
-import com.android.tools.idea.run.ApplicationTerminator
-import com.android.tools.idea.run.debug.ReattachingDebuggerListener
-import com.android.tools.idea.run.debug.ReattachingProcessHandler
-import com.android.tools.idea.run.debug.showError
-import com.android.tools.idea.run.debug.waitForClientReadyForDebug
-import com.android.tools.idea.run.editor.AndroidDebugger
-import com.android.tools.idea.run.editor.AndroidDebuggerState
-import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionTargetManager
 import com.intellij.execution.configurations.RunConfiguration
@@ -60,7 +55,7 @@ object DebugSessionStarter {
 
   /**
    * Starts a new debugging session for given [Client].
-   * Use this method only if debugging is started by using 'Debug' on configuration, otherwise use [AndroidJavaDebugger.attachToClient]
+   * Use this method only if debugging is started by using 'Debug' on configuration, otherwise use [AndroidDebugger.attachToClient]
    */
   @AnyThread
   fun <S : AndroidDebuggerState> attachDebuggerToStartedProcess(

@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.debug
+package com.android.tools.idea.execution.common.debug.impl.java
 
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebugProcessHandler
-import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.intellij.debugger.DebugEnvironment
 import com.intellij.debugger.DebuggerGlobalSearchScope
 import com.intellij.debugger.DebuggerManagerEx
@@ -33,7 +32,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.search.GlobalSearchScope
 
 /**
- * Describes Java debug process that we are about to start for any [Client]. It is used by Java debugger [AndroidJavaDebugger].
+ * Describes Java debug process that we are about to start for any [Client]. It is used by Java debugger [StartJavaDebuggerSession.kt].
  *
  * This class is needed by the platform to create a debug session. See [DebuggerManagerEx.attachVirtualMachine]
  */

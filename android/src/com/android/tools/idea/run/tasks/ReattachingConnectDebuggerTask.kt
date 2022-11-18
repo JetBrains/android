@@ -16,10 +16,10 @@
 package com.android.tools.idea.run.tasks
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.run.configuration.execution.DebugSessionStarter
-import com.android.tools.idea.run.debug.showError
-import com.android.tools.idea.run.editor.AndroidDebugger
-import com.android.tools.idea.run.editor.AndroidDebuggerState
+import com.android.tools.idea.execution.common.debug.AndroidDebugger
+import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
+import com.android.tools.idea.execution.common.debug.DebugSessionStarter
+import com.android.tools.idea.execution.common.debug.utils.showError
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.process.ProcessHandler

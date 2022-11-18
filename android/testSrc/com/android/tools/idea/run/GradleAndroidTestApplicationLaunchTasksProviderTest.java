@@ -22,8 +22,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
-import com.android.tools.idea.run.editor.AndroidJavaDebugger;
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
 import com.android.tools.idea.run.tasks.DefaultConnectDebuggerTask;
 import com.android.tools.idea.run.tasks.LaunchTask;

@@ -16,6 +16,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:emulator-proto",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
+        "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
     ],
 )
 
