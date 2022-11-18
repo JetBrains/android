@@ -515,13 +515,18 @@ private class ParametrizedComposePreviewElementInstance(
   private val basePreviewElement: ComposePreviewElement,
   parameterName: String,
   val providerClassFqn: String,
-  val index: Int
+  val index: Int,
+  val maxIndex: Int
 ) : ComposePreviewElementInstance(), ComposePreviewElement by basePreviewElement {
   override val instanceId: String = "$composableMethodFqn#$parameterName$index"
 
   override val displaySettings: PreviewDisplaySettings =
     PreviewDisplaySettings(
-      "${basePreviewElement.displaySettings.name} ($parameterName $index)",
+      "${basePreviewElement.displaySettings.name} ($parameterName ${
+        // Make all index numbers to use the same number of digits,
+        // so that they can be properly sorted later.
+        index.toString().padStart(maxIndex.toString().length, '0')
+      })",
       basePreviewElement.displaySettings.group,
       basePreviewElement.displaySettings.showDecoration,
       basePreviewElement.displaySettings.showBackground,
@@ -601,6 +606,7 @@ class ParametrizedComposePreviewElementTemplate(
                   basePreviewElement = basePreviewElement,
                   parameterName = previewParameter.name,
                   index = index,
+                  maxIndex = providerCount - 1,
                   providerClassFqn = previewParameter.providerClassFqn
                 )
               }

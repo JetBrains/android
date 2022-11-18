@@ -183,5 +183,34 @@ class ParametrizedPreviewTest {
         assertNull(renderPreviewElementForResult(projectRule.androidFacet(":app"), it).get())
       }
     }
+
+    // Test handling provider with 11 values
+    run {
+      val elements =
+        PreviewElementTemplateInstanceProvider(
+            StaticPreviewProvider(
+              AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+                .filter { it.displaySettings.name == "TestLargeProvider" }
+            )
+          )
+          .previewElements()
+          .toList()
+      assertEquals(11, elements.count())
+
+      assertEquals(
+        listOf("00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10"),
+        elements.map { it.displaySettings.name.removeSuffix(")").substringAfterLast(' ') }
+      )
+
+      elements.forEach {
+        assertTrue(
+          renderPreviewElementForResult(projectRule.androidFacet(":app"), it)
+            .get()
+            ?.renderResult
+            ?.isSuccess
+            ?: false
+        )
+      }
+    }
   }
 }
