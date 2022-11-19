@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.executeDeviceAction
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.Disposable

@@ -21,7 +21,7 @@ import com.android.fakeadbserver.ShellV2Protocol
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.streaming.emulator.PRIMARY_DISPLAY_ID
+import com.android.tools.idea.streaming.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.interpolate
 import com.android.tools.idea.streaming.rotatedByQuadrants
 import com.android.utils.Base128InputStream

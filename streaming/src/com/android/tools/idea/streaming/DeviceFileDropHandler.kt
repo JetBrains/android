@@ -25,7 +25,6 @@ import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.log.LogWrapper
-import com.android.tools.idea.streaming.emulator.RUNNING_DEVICES_NOTIFICATION_GROUP
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.ide.dnd.DnDDropHandler

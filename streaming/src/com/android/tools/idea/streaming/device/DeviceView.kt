@@ -22,12 +22,12 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.streaming.AbstractDisplayView
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
+import com.android.tools.idea.streaming.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.constrainInside
 import com.android.tools.idea.streaming.contains
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.DeviceClient.AgentTerminationListener
-import com.android.tools.idea.streaming.emulator.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.location
 import com.android.tools.idea.streaming.rotatedByQuadrants
 import com.android.tools.idea.streaming.scaled

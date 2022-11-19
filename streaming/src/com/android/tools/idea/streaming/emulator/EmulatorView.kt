@@ -41,6 +41,8 @@ import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_NOTIFICA
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
 import com.android.tools.idea.streaming.AbstractDisplayView
 import com.android.tools.idea.streaming.EmulatorSettings
+import com.android.tools.idea.streaming.PRIMARY_DISPLAY_ID
+import com.android.tools.idea.streaming.RUNNING_DEVICES_NOTIFICATION_GROUP
 import com.android.tools.idea.streaming.createHardwareKeyEvent
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.DisplayMode
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState

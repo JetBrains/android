@@ -26,6 +26,8 @@ import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.AbstractDisplayPanel
 import com.android.tools.idea.streaming.DeviceId
 import com.android.tools.idea.streaming.EmulatorSettings
+import com.android.tools.idea.streaming.NUMBER_OF_DISPLAYS
+import com.android.tools.idea.streaming.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.RunningDevicePanel
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener

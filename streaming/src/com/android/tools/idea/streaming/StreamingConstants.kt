@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:JvmName("EmulatorConstants")
-package com.android.tools.idea.streaming.emulator
+@file:JvmName("StreamingConstants")
+package com.android.tools.idea.streaming
 
+import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationGroup.Companion.findRegisteredGroup
 import com.intellij.openapi.actionSystem.DataKey
 
-/** Embedded Emulator constants. */
+/** Constants for the Running Devices tool window. */
 
-@JvmField val EMULATOR_CONTROLLER_KEY = DataKey.create<EmulatorController>("EmulatorController")
+@JvmField internal val NUMBER_OF_DISPLAYS = DataKey.create<Int>("NumberOfDisplays")
 
-@JvmField val EMULATOR_VIEW_KEY = DataKey.create<EmulatorView>("EmulatorView")
+internal val RUNNING_DEVICES_NOTIFICATION_GROUP: NotificationGroup
+  get() = findRegisteredGroup("Running Devices Messages")!!
 
-internal const val EMULATOR_MAIN_TOOLBAR_ID = "EmulatorToolbar"
-
-internal const val EMULATOR_SECONDARY_TOOLBAR_ID = "EmulatorToolbarSecondary"
+internal const val PRIMARY_DISPLAY_ID = 0
