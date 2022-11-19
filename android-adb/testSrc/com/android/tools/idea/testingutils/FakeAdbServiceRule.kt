@@ -50,9 +50,7 @@ class FakeAdbServiceRule(
     val adbFile: File = MockitoKt.mock()
     val bridge: AndroidDebugBridge = Mockito.spy(adbRule.bridge)
     val disposable = Disposer.newDisposable().also { serviceDisposable = it }
-    val adbFileProvider = object : AdbFileProvider {
-      override fun get(): File = adbFile
-    }
+    val adbFileProvider = AdbFileProvider { adbFile }
     projectSupplier().registerServiceInstance(AdbFileProvider::class.java, adbFileProvider, disposable)
     val service: AdbService = MockitoKt.mock()
     ApplicationManager.getApplication().replaceService(AdbService::class.java, service, disposable)
