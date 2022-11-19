@@ -47,6 +47,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.LiveEditEvent;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.execution.executors.DefaultDebugExecutor;
+import com.intellij.ide.ActivityTracker;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -540,10 +541,14 @@ public class AndroidLiveEditDeployMonitor {
 
   private void updateEditStatus(@NotNull IDevice device, @NotNull EditStatus status) {
     editStatus.put(device, status);
+    // Force the UI to redraw with the new status. See com.intellij.openapi.actionSystem.AnAction#update().
+    ActivityTracker.getInstance().inc();
   }
 
   private void updateEditStatus(@NotNull EditStatus status) {
     editStatus.replaceAll((device, oldStatus) -> status);
+    // Force the UI to redraw with the new status. See com.intellij.openapi.actionSystem.AnAction#update().
+    ActivityTracker.getInstance().inc();
   }
 
   @NotNull
