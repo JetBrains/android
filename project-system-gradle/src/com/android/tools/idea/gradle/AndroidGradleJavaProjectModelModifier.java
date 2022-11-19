@@ -272,6 +272,9 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
         }
       }
     }
+    if (version == null) {
+      version = descriptor.getPreferredVersion();
+    }
     return version;
   }
 
