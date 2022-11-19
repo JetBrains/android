@@ -35,6 +35,15 @@ public class StudioIcons {
     public static final Icon SEND = load("/studio/icons/app-quality-insights/send.svg"); // 16x16
   }
 
+  public static class Assistant {
+    public static class AppLinks {
+      public static final Icon STEP_1_LARGE = load("/studio/icons/assistant/app-links/step-1-large.svg"); // 50x50
+      public static final Icon STEP_2_LARGE = load("/studio/icons/assistant/app-links/step-2-large.svg"); // 50x50
+      public static final Icon STEP_3_LARGE = load("/studio/icons/assistant/app-links/step-3-large.svg"); // 50x50
+      public static final Icon STEP_4_LARGE = load("/studio/icons/assistant/app-links/step-4-large.svg"); // 50x50
+    }
+  }
+
   public static class Avd {
     public static final Icon CONNECTION_GENERIC = load("/studio/icons/avd/connection-generic.svg"); // 16x16
     public static final Icon CONNECTION_USB = load("/studio/icons/avd/connection-usb.svg"); // 16x16
