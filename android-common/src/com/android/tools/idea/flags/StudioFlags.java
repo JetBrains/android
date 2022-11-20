@@ -806,6 +806,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> GRADLE_DSL_TOML_WRITE_SUPPORT = Flag.create(
     GRADLE_IDE, "gradle.dsl.toml.write", "Write TOML files", "Write changes to TOML Version Catalog files.", true);
 
+  public static final Flag<Boolean> GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT = Flag.create(
+    GRADLE_IDE, "gradle.extended.version.catalog", "Gradle version catalog support", "Multiple TOML files, catalog variables in PSD", false);
+
   public static final Flag<Boolean> GRADLE_SAVE_LOG_TO_FILE = Flag.create(
     GRADLE_IDE, "save.log.to.file", "Save log to file", "Appends the build log to the given file", false);
 

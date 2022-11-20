@@ -11,6 +11,8 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
     ],
 )
 

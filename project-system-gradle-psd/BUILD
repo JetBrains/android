@@ -115,6 +115,8 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy[test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
     ],
 )
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
 import com.android.utils.FileUtils
 import com.intellij.openapi.application.runWriteAction
@@ -262,35 +263,54 @@ class AgpVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
 
   @Test
   fun testVersionInVersionCatalogLiteral() {
-    writeToBuildFile(TestFileName("AgpVersion/VersionInVersionCatalog"))
-    writeToVersionCatalogFile(TestFileName("AgpVersion/VersionCatalogLiteral"))
-    val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("7.2.0"), AgpVersion.parse("8.0.0"))
-    assertFalse(processor.isBlocked)
-    processor.run()
-    verifyFileContents(buildFile, TestFileName("AgpVersion/VersionInVersionCatalog"))
-    verifyVersionCatalogFileContents(versionCatalogFile, TestFileName("AgpVersion/VersionCatalogLiteralExpected"))
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile(TestFileName("AgpVersion/VersionInVersionCatalog"))
+      writeToVersionCatalogFile(TestFileName("AgpVersion/VersionCatalogLiteral"))
+      val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("7.2.0"), AgpVersion.parse("8.0.0"))
+      assertFalse(processor.isBlocked)
+      processor.run()
+      verifyFileContents(buildFile, TestFileName("AgpVersion/VersionInVersionCatalog"))
+      verifyVersionCatalogFileContents(versionCatalogFile, TestFileName("AgpVersion/VersionCatalogLiteralExpected"))
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
   }
 
   @Test
   fun testVersionInVersionCatalogMap() {
-    writeToBuildFile(TestFileName("AgpVersion/VersionInVersionCatalog"))
-    writeToVersionCatalogFile(TestFileName("AgpVersion/VersionCatalogMap"))
-    val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("7.2.0"), AgpVersion.parse("8.0.0"))
-    assertFalse(processor.isBlocked)
-    processor.run()
-    verifyFileContents(buildFile, TestFileName("AgpVersion/VersionInVersionCatalog"))
-    verifyVersionCatalogFileContents(versionCatalogFile, TestFileName("AgpVersion/VersionCatalogMapExpected"))
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile(TestFileName("AgpVersion/VersionInVersionCatalog"))
+      writeToVersionCatalogFile(TestFileName("AgpVersion/VersionCatalogMap"))
+      val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("7.2.0"), AgpVersion.parse("8.0.0"))
+      assertFalse(processor.isBlocked)
+      processor.run()
+      verifyFileContents(buildFile, TestFileName("AgpVersion/VersionInVersionCatalog"))
+      verifyVersionCatalogFileContents(versionCatalogFile, TestFileName("AgpVersion/VersionCatalogMapExpected"))
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
   }
 
   @Test
   fun testVersionInVersionCatalogVersionRef() {
-    writeToBuildFile(TestFileName("AgpVersion/VersionInVersionCatalog"))
-    writeToVersionCatalogFile(TestFileName("AgpVersion/VersionCatalogVersionRef"))
-    val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("7.2.0"), AgpVersion.parse("8.0.0"))
-    assertFalse(processor.isBlocked)
-    processor.run()
-    verifyFileContents(buildFile, TestFileName("AgpVersion/VersionInVersionCatalog"))
-    verifyVersionCatalogFileContents(versionCatalogFile, TestFileName("AgpVersion/VersionCatalogVersionRefExpected"))
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+
+      writeToBuildFile(TestFileName("AgpVersion/VersionInVersionCatalog"))
+      writeToVersionCatalogFile(TestFileName("AgpVersion/VersionCatalogVersionRef"))
+      val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("7.2.0"), AgpVersion.parse("8.0.0"))
+      assertFalse(processor.isBlocked)
+      processor.run()
+      verifyFileContents(buildFile, TestFileName("AgpVersion/VersionInVersionCatalog"))
+      verifyVersionCatalogFileContents(versionCatalogFile, TestFileName("AgpVersion/VersionCatalogVersionRefExpected"))
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
   }
 
   @Test

@@ -56,7 +56,7 @@ public class GradleSpecificInitializerTest extends AndroidGradleTestCase {
     assertThat(buildResourcesAction).isInstanceOf(EmptyAction.class);
   }
 
-  public void testJetBrainsVersionCatalogIsActivated() {
-    assertTrue(Registry.get(CommonGradleProjectResolverExtension.GRADLE_VERSION_CATALOGS_DYNAMIC_SUPPORT).asBoolean());
+  public void testJetBrainsVersionCatalogActivation() {
+    assertFalse(Registry.get(CommonGradleProjectResolverExtension.GRADLE_VERSION_CATALOGS_DYNAMIC_SUPPORT).asBoolean());
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.structure.model.android.asParsed
@@ -53,8 +54,10 @@ class PsVersionCatalogTest {
 
   @Test
   fun testGetBuildScriptVariablesMultiCatalogs() {
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_VERSION_CATALOG_SAMPLE_GROOVY)
-    preparedProject.root.resolve("settings.gradle").appendText("""
+    StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.override(true)
+    try {
+      val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_VERSION_CATALOG_SAMPLE_GROOVY)
+      preparedProject.root.resolve("settings.gradle").appendText("""
       dependencyResolutionManagement {
           versionCatalogs {
               libs2 {
@@ -63,26 +66,30 @@ class PsVersionCatalogTest {
           }
       }
     """.trimIndent())
-    preparedProject.root.resolve("addition.versions.toml").writeText("""
+      preparedProject.root.resolve("addition.versions.toml").writeText("""
       [versions]
       log4j = "2.17"
       [libraries]
       log4j-core = {module ="org.apache.logging.log4j:log4j-core", version.ref = "log4j"}
     """.trimIndent())
-    preparedProject.open { project ->
-      val psProject = PsProjectImpl(project)
-      val catalogs = psProject.versionCatalogs
-      MatcherAssert.assertThat(
-        catalogs.items.map{it.variables.map {v -> v.name to v.value } }.flatten(),
-        CoreMatchers.equalTo(
-          listOf(
-            "constraint-layout" to "1.0.2".asParsed(),
-            "guava" to "19.0".asParsed(),
-            "junit" to "4.12".asParsed(),
-            "log4j" to "2.17".asParsed()
+      preparedProject.open { project ->
+        val psProject = PsProjectImpl(project)
+        val catalogs = psProject.versionCatalogs
+        MatcherAssert.assertThat(
+          catalogs.items.map { it.variables.map { v -> v.name to v.value } }.flatten(),
+          CoreMatchers.equalTo(
+            listOf(
+              "constraint-layout" to "1.0.2".asParsed(),
+              "guava" to "19.0".asParsed(),
+              "junit" to "4.12".asParsed(),
+              "log4j" to "2.17".asParsed()
+            )
           )
         )
-      )
+      }
+    }
+    finally {
+      StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.clearOverride()
     }
   }
 }

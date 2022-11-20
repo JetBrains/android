@@ -21,6 +21,7 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndex;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -91,7 +92,8 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
     useIdeGooglePlaySdkIndexInGradleDetector();
 
     //Switch on Idea native navigation/suggestion for version catalog/gradle
-    Registry.get(CommonGradleProjectResolverExtension.GRADLE_VERSION_CATALOGS_DYNAMIC_SUPPORT).setValue(true);
+    Registry.get(CommonGradleProjectResolverExtension.GRADLE_VERSION_CATALOGS_DYNAMIC_SUPPORT)
+      .setValue(StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.get());
   }
 
   /**

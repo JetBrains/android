@@ -895,6 +895,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
   @Test
   fun testUpdateFromMultipleVCModels() {
     StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.override(true)
     try {
       writeToBuildFile("")
       writeToVersionCatalogFile("""
@@ -920,6 +921,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     }
     finally {
       StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+      StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.clearOverride()
     }
   }
 
@@ -1067,6 +1069,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
   @Test
   fun testTwoTomlFilesVisibility() {
     StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.override(true)
     try {
       val gradlePath = myProjectBasePath.findChild("gradle")!!
       var myVersionCatalogFile: VirtualFile? = null
@@ -1110,6 +1113,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     }
     finally {
       StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+      StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.clearOverride()
     }
   }
 
