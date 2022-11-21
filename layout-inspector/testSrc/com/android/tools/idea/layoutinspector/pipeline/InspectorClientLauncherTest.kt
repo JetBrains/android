@@ -24,7 +24,7 @@ import com.android.tools.idea.layoutinspector.AdbServiceRule
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
-import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.MetricsTrackerRule
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
@@ -411,7 +411,7 @@ class InspectorClientLauncherMetricsTest {
   @Test
   fun attachRequestOnlyLoggedOnce() {
     val processes = ProcessesModel(TestProcessDiscovery())
-    val metrics = LayoutInspectorMetrics(projectRule.project)
+    val metrics = LayoutInspectorSessionMetrics(projectRule.project)
     val launcher = InspectorClientLauncher(
       processes,
       listOf(
@@ -463,7 +463,7 @@ class InspectorClientLauncherMetricsTest {
     val process1 = MODERN_DEVICE.createProcess()
     val process2 = MODERN_DEVICE.createProcess(pid = 2)
     val processes = ProcessesModel(TestProcessDiscovery())
-    val metrics = LayoutInspectorMetrics(projectRule.project)
+    val metrics = LayoutInspectorSessionMetrics(projectRule.project)
     val changedProcessLatch = ReportingCountDownLatch(1)
     val startedWaitingLatch = ReportingCountDownLatch(1)
     InspectorClientLauncher(

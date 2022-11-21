@@ -31,7 +31,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
-import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -111,7 +111,7 @@ DONE.
   private fun createSimpleLegacyClient(): LegacyClient {
     val model = model {}
     val process = LEGACY_DEVICE.createProcess()
-    return LegacyClient(process, isInstantlyAutoConnected = false, model, LayoutInspectorMetrics(model.project, process),
+    return LegacyClient(process, isInstantlyAutoConnected = false, model, LayoutInspectorSessionMetrics(model.project, process),
                         disposableRule.disposable).apply {
       launchMonitor = mock()
     }

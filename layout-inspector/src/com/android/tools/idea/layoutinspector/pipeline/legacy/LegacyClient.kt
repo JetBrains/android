@@ -17,7 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
@@ -39,7 +39,7 @@ class LegacyClient(
   process: ProcessDescriptor,
   isInstantlyAutoConnected: Boolean,
   val model: InspectorModel,
-  private val metrics: LayoutInspectorMetrics,
+  private val metrics: LayoutInspectorSessionMetrics,
   parentDisposable: Disposable,
   treeLoaderForTest: LegacyTreeLoader? = null
 ) : AbstractInspectorClient(LEGACY_CLIENT, model.project, process, isInstantlyAutoConnected, SessionStatisticsImpl(LEGACY_CLIENT),
@@ -121,7 +121,7 @@ class LegacyClient(
     val snapshotMetadata = saveLegacySnapshot(path, latestData, latestScreenshots, process, model)
     snapshotMetadata.saveDuration = System.currentTimeMillis() - startTime
     // Use a separate metrics instance since we don't want the snapshot metadata to hang around
-    val saveMetrics = LayoutInspectorMetrics(model.project, process, snapshotMetadata = snapshotMetadata)
+    val saveMetrics = LayoutInspectorSessionMetrics(model.project, process, snapshotMetadata = snapshotMetadata)
     saveMetrics.logEvent(DynamicLayoutInspectorEventType.SNAPSHOT_CAPTURED, stats)
   }
 

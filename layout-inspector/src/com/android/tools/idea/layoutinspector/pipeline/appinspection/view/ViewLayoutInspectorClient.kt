@@ -21,7 +21,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
@@ -361,7 +361,7 @@ class ViewLayoutInspectorClient(
     }
     catch (cancellationException: CancellationException) {
       snapshotMetadata.saveDuration = System.currentTimeMillis() - start
-      LayoutInspectorMetrics(project, processDescriptor, snapshotMetadata)
+      LayoutInspectorSessionMetrics(project, processDescriptor, snapshotMetadata)
         .logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_CANCELLED, stats)
       // Delete the file in case we wrote out partial data
       Files.delete(path)

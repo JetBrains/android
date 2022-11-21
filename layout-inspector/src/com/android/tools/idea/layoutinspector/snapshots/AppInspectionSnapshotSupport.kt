@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.snapshots
 
-import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -72,7 +72,7 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
       val allWindows = response.windowSnapshotsList.associateBy { it.layout.rootView.id }
       val rootIds = response.windowRoots.idsList
       val allComposeInfo = snapshot.composeInfoList.associateBy { it.viewId }
-      val metrics = LayoutInspectorMetrics(model.project, processDescriptor, snapshotMetadata = metadata)
+      val metrics = LayoutInspectorSessionMetrics(model.project, processDescriptor, snapshotMetadata = metadata)
       fun logEvent(eventType: DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType) = metrics.logEvent(eventType, stats)
       rootIds.map { allWindows[it] }.forEach { windowInfo ->
         // should always be true

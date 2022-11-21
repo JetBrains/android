@@ -25,7 +25,7 @@ import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.createResponse
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
-import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_LAYOUT_INSPECTOR_ID
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeComposeLayoutInspector
@@ -59,7 +59,7 @@ fun AppInspectionClientProvider(
   val apiServices = getApiServices()
 
   AppInspectionInspectorClient(params.process, params.isInstantlyAutoConnected,
-                               inspector.layoutInspectorModel, LayoutInspectorMetrics(inspector.layoutInspectorModel.project, params.process),
+                               inspector.layoutInspectorModel, LayoutInspectorSessionMetrics(inspector.layoutInspectorModel.project, params.process),
                                inspector.treeSettings, parentDisposable, apiServices).apply {
     launchMonitor = getMonitor()
   }

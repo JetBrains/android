@@ -16,7 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
-import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.errorCode
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.util.ListenerCollection
@@ -100,7 +100,7 @@ class InspectorClientLaunchMonitor(
 
   private fun logAttachError(errorCode: AttachErrorCode) {
     val stats = client?.stats ?: DisconnectedClient.stats
-    LayoutInspectorMetrics(null, client?.process, null).logEvent(
+    LayoutInspectorSessionMetrics(null, client?.process, null).logEvent(
       DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_ERROR, stats, currentProgress, errorCode)
   }
 

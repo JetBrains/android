@@ -29,7 +29,7 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.createChildScope
-import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -94,7 +94,7 @@ class AppInspectionInspectorClient(
   process: ProcessDescriptor,
   isInstantlyAutoConnected: Boolean,
   private val model: InspectorModel,
-  private val metrics: LayoutInspectorMetrics,
+  private val metrics: LayoutInspectorSessionMetrics,
   private val treeSettings: TreeSettings,
   parentDisposable: Disposable,
   @TestOnly private val apiServices: AppInspectionApiServices = AppInspectionDiscoveryService.instance.apiServices,
@@ -289,7 +289,7 @@ class AppInspectionInspectorClient(
     val metadata = viewInspector?.saveSnapshot(path)
     metadata?.saveDuration = System.currentTimeMillis() - startTime
     // Use a separate metrics instance since we don't want the snapshot metadata to hang around
-    val saveMetrics = LayoutInspectorMetrics(model.project, snapshotMetadata = metadata)
+    val saveMetrics = LayoutInspectorSessionMetrics(model.project, snapshotMetadata = metadata)
     saveMetrics.logEvent(DynamicLayoutInspectorEventType.SNAPSHOT_CAPTURED, stats)
   }
 
