@@ -17,41 +17,73 @@ package com.android.tools.idea.appinspection.ide.resolver.http
 
 import com.android.repository.api.ConsoleProgressIndicator
 import com.android.repository.api.Downloader
+import com.android.tools.idea.appinspection.ide.resolver.AppInspectorArtifactPaths
+import com.android.tools.idea.appinspection.ide.resolver.INSPECTOR_JAR
+import com.android.tools.idea.appinspection.ide.resolver.createRandomTempDir
+import com.android.tools.idea.appinspection.ide.resolver.extractZipIfNeeded
+import com.android.tools.idea.appinspection.ide.resolver.resolveExistsOrNull
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.io.FileService
 import com.android.tools.idea.sdk.StudioDownloader
+import com.intellij.util.io.createDirectories
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.URL
 import java.nio.file.Path
 
 class HttpArtifactResolver(
-  fileService: FileService,
+  private val fileService: FileService,
+  private val artifactPaths: AppInspectorArtifactPaths,
   private val downloader: Downloader = StudioDownloader()
 ) : ArtifactResolver {
-  private val tmpDir = fileService.getOrCreateTempDir("http-tmp")
-  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path {
-    return withContext(AndroidDispatchers.diskIoThread) {
-      try {
-        downloader.downloadFullyWithCaching(artifactCoordinate.toGMavenUrl(), artifactCoordinate.getTmpFile(), null,
-                                            ConsoleProgressIndicator())
-        artifactCoordinate.getTmpFile()
-      } catch (e: IOException) {
-        throw throw AppInspectionArtifactNotFoundException("Artifact $artifactCoordinate could not be resolved on maven.google.com.",
-                                                           artifactCoordinate, e)
+  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate) =
+    artifactPaths.getInspectorArchive(artifactCoordinate) ?: run {
+      val tmpArtifactDir = fileService.createRandomTempDir()
+      val downloadDir = tmpArtifactDir.resolve("download").createDirectories()
+      val downloadedLibraryPath = downloadLibrary(downloadDir, artifactCoordinate)
+      val unzipDir = tmpArtifactDir.resolve("unzip").createDirectories()
+      extractInspector(unzipDir, downloadedLibraryPath, artifactCoordinate).also {
+        artifactPaths.populateInspectorArchive(artifactCoordinate, it)
       }
     }
+
+  private suspend fun downloadLibrary(targetDir: Path, artifactCoordinate: ArtifactCoordinate) = withContext(
+    AndroidDispatchers.diskIoThread) {
+    try {
+      val targetPath = targetDir.resolve(artifactCoordinate.fileName)
+      downloader.downloadFullyWithCaching(
+        artifactCoordinate.toGMavenUrl(),
+        targetPath,
+        null,
+        ConsoleProgressIndicator()
+      )
+      targetPath
+    }
+    catch (e: IOException) {
+      throw throw AppInspectionArtifactNotFoundException(
+        "Artifact $artifactCoordinate could not be resolved on maven.google.com.",
+        artifactCoordinate, e)
+    }
+  }
+
+  private suspend fun extractInspector(targetDir: Path, libraryPath: Path, artifactCoordinate: ArtifactCoordinate): Path {
+    val artifactDir = try {
+      extractZipIfNeeded(targetDir, libraryPath)
+    }
+    catch (e: IOException) {
+      throw throw AppInspectionArtifactNotFoundException("Error happened while unzipping $libraryPath to $targetDir", artifactCoordinate, e)
+    }
+    return artifactDir.resolveExistsOrNull(INSPECTOR_JAR) ?: throw throw AppInspectionArtifactNotFoundException(
+      "inspector.jar was not found in $artifactDir", artifactCoordinate)
   }
 
   /**
    * The file name of the artifact in question.
    */
   private val ArtifactCoordinate.fileName get() = "${artifactId}-${version}.${type}"
-
-  private fun ArtifactCoordinate.getTmpFile() = tmpDir.resolve(fileName)
 
   private fun ArtifactCoordinate.toGMavenUrl() = URL(
     "http://maven.google.com/${groupId.replace('.', '/')}/${artifactId}/${version}/${fileName}")

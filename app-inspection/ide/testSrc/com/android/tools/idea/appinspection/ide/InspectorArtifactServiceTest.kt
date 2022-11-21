@@ -51,8 +51,7 @@ class InspectorArtifactServiceTest {
     }
     val artifactService = InspectorArtifactServiceImpl(
       fileService,
-      artifactResolverFactory,
-      AppInspectorArtifactPaths(fileService)
+      artifactResolverFactory
     )
 
     val resolvedArtifactPath = artifactService.getOrResolveInspectorArtifact(
@@ -61,6 +60,6 @@ class InspectorArtifactServiceTest {
     )
 
     assertThat(resolvedArtifactPath).isNotNull()
-    assertThat(resolvedArtifactPath.fileName.toString()).isEqualTo("androidx.work-work-runtime-2.5.0-beta01-inspector.jar")
+    assertThat(resolvedArtifactPath.fileName.toString()).isEqualTo("work-runtime-2.5.0-beta01.aar")
   }
 }

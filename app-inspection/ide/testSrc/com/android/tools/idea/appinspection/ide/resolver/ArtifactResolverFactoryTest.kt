@@ -15,51 +15,51 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver
 
-import com.android.tools.idea.apk.ApkFacet
+import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.idea.appinspection.ide.resolver.blaze.BlazeArtifactResolver
 import com.android.tools.idea.appinspection.ide.resolver.http.HttpArtifactResolver
+import com.android.tools.idea.appinspection.ide.resolver.moduleSystem.ModuleSystemArtifactResolver
 import com.android.tools.idea.appinspection.inspector.api.service.TestFileService
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
+import com.android.tools.idea.flags.StudioFlags.APP_INSPECTION_USE_SNAPSHOT_JAR
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.IdeBrand
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-enum class Variation {
-  GRADLE,
-  APK,
-  BLAZE,
-}
 
 @RunWith(Parameterized::class)
-class ArtifactResolverFactoryTest(private val variation: Variation) {
+class ArtifactResolverFactoryTest(private val ideBrand: IdeBrand) {
   companion object {
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
     @get:Parameterized.Parameters(name = "{0}")
-    val variations = listOf(Variation.APK, Variation.GRADLE, Variation.BLAZE)
+    val variations = listOf(IdeBrand.ANDROID_STUDIO, IdeBrand.ANDROID_STUDIO_WITH_BLAZE)
   }
 
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
+  @get:Rule
+  val restoreFlagRule = RestoreFlagRule(APP_INSPECTION_USE_SNAPSHOT_JAR)
+
   @Test
   fun createResolver() {
-    when (variation) {
-      Variation.GRADLE -> run {
-        projectRule.addFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName())
-        assertThat(ArtifactResolverFactory(TestFileService()).getArtifactResolver(projectRule.project))
+    when (ideBrand) {
+      IdeBrand.ANDROID_STUDIO -> run {
+        assertThat(ArtifactResolverFactory(TestFileService()) { ideBrand }.getArtifactResolver(projectRule.project))
           .isInstanceOf(HttpArtifactResolver::class.java)
+
+        APP_INSPECTION_USE_SNAPSHOT_JAR.override(true)
+
+        assertThat(ArtifactResolverFactory(TestFileService()) { ideBrand }.getArtifactResolver(projectRule.project))
+          .isInstanceOf(ModuleSystemArtifactResolver::class.java)
       }
-      Variation.APK -> run {
-        projectRule.addFacet(ApkFacet.getFacetType(), ApkFacet.getFacetName())
-        assertThat(ArtifactResolverFactory(TestFileService()).getArtifactResolver(projectRule.project))
-          .isInstanceOf(HttpArtifactResolver::class.java)
-      }
-      Variation.BLAZE -> run {
-        assertThat(ArtifactResolverFactory(TestFileService()).getArtifactResolver(projectRule.project))
+
+      IdeBrand.ANDROID_STUDIO_WITH_BLAZE -> run {
+        assertThat(ArtifactResolverFactory(TestFileService()) { ideBrand }.getArtifactResolver(projectRule.project))
           .isInstanceOf(BlazeArtifactResolver::class.java)
       }
     }

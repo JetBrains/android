@@ -15,32 +15,30 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver
 
+import com.android.tools.idea.analytics.currentIdeBrand
 import com.android.tools.idea.appinspection.ide.resolver.blaze.BlazeArtifactResolver
 import com.android.tools.idea.appinspection.ide.resolver.http.HttpArtifactResolver
 import com.android.tools.idea.appinspection.ide.resolver.moduleSystem.ModuleSystemArtifactResolver
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverFactory
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.io.FileService
-import com.android.tools.idea.project.AndroidProjectInfo
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.project.Project
 
-class ArtifactResolverFactory(
-  private val fileService: FileService
-) : ArtifactResolverFactory {
-  override fun getArtifactResolver(project: Project): ArtifactResolver {
-    return if (GradleProjectInfo.getInstance(project).isBuildWithGradle
-               || AndroidProjectInfo.getInstance(project).isApkProject) {
-      if (StudioFlags.APP_INSPECTION_USE_SNAPSHOT_JAR.get()) {
-        ModuleSystemArtifactResolver(project)
-      }
-      else {
-        HttpArtifactResolver(fileService)
-      }
+class ArtifactResolverFactory(private val fileService: FileService,
+                              private val getIdeBrand: () -> AndroidStudioEvent.IdeBrand = { currentIdeBrand() }) : ArtifactResolverFactory {
+  private val httpArtifactResolver = HttpArtifactResolver(fileService, AppInspectorArtifactPaths(fileService))
+  override fun getArtifactResolver(project: Project): ArtifactResolver =
+    if (getIdeBrand() == AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE) {
+      BlazeArtifactResolver(fileService, ModuleSystemArtifactFinder(project))
     }
     else {
-      BlazeArtifactResolver(fileService, project)
+      if (StudioFlags.APP_INSPECTION_USE_SNAPSHOT_JAR.get()) {
+        ModuleSystemArtifactResolver(fileService, ModuleSystemArtifactFinder(project))
+      }
+      else {
+        httpArtifactResolver
+      }
     }
-  }
 }

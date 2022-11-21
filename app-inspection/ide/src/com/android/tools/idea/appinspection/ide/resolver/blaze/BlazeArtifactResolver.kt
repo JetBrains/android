@@ -17,15 +17,16 @@ package com.android.tools.idea.appinspection.ide.resolver.blaze
 
 import com.android.tools.idea.appinspection.api.blazeFileName
 import com.android.tools.idea.appinspection.ide.resolver.INSPECTOR_JAR
-import com.android.tools.idea.appinspection.ide.resolver.http.HttpArtifactResolver
-import com.android.tools.idea.appinspection.ide.resolver.moduleSystem.ModuleSystemArtifactResolver
+import com.android.tools.idea.appinspection.ide.resolver.ModuleSystemArtifactFinder
+import com.android.tools.idea.appinspection.ide.resolver.createRandomTempDir
+import com.android.tools.idea.appinspection.ide.resolver.extractZipIfNeeded
+import com.android.tools.idea.appinspection.ide.resolver.resolveExistsOrNull
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.io.FileService
-import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.project.Project
-import com.intellij.util.io.exists
+import kotlinx.coroutines.withContext
 import java.nio.file.Path
 
 /**
@@ -49,34 +50,14 @@ import java.nio.file.Path
  * The file name is then computed from the maven coordinate, yielding:
  *   ${WORKSPACE_ROOT}/third_party/java/androidx/work/runtime/work-runtime.aar
  */
-class BlazeArtifactResolver @VisibleForTesting constructor(
-  private val httpArtifactResolver: ArtifactResolver,
-  private val moduleSystemArtifactResolver: ArtifactResolver
+class BlazeArtifactResolver constructor(
+  private val fileService: FileService,
+  private val moduleSystemArtifactFinder: ModuleSystemArtifactFinder
 ) : ArtifactResolver {
-  constructor(
-    fileService: FileService,
-    project: Project
-  ) : this(HttpArtifactResolver(fileService), ModuleSystemArtifactResolver(project))
-
-  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path {
-    return try {
-      val artifactDir = moduleSystemArtifactResolver.resolveArtifact(artifactCoordinate)
-      artifactDir.resolve(INSPECTOR_JAR).takeIf { it.exists() } ?: artifactDir.resolve(
-        artifactCoordinate.blazeFileName).takeIf { it.exists() } ?: throw AppInspectionArtifactNotFoundException(
-        "Artifact not found in blaze module system.", artifactCoordinate)
-    }
-    catch (e: AppInspectionArtifactNotFoundException) {
-      if (artifactCoordinate.matchesAnyVersion()) {
-        // We can't download a zip from GMaven if we don't know the exact version number.
-        throw e
-      }
-      try {
-        httpArtifactResolver.resolveArtifact(artifactCoordinate)
-      }
-      catch (e: AppInspectionArtifactNotFoundException) {
-        throw AppInspectionArtifactNotFoundException("Artifact $artifactCoordinate not found in blaze module system and on maven.",
-                                                     artifactCoordinate)
-      }
-    }
+  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path = withContext(AndroidDispatchers.diskIoThread) {
+    moduleSystemArtifactFinder.findLibrary(artifactCoordinate)?.let { libraryPath ->
+      val unzippedDir = extractZipIfNeeded(fileService.createRandomTempDir(), libraryPath)
+      unzippedDir.resolveExistsOrNull(INSPECTOR_JAR) ?: unzippedDir.resolveExistsOrNull(artifactCoordinate.blazeFileName)
+    } ?: throw AppInspectionArtifactNotFoundException("Artifact not found in blaze module system.", artifactCoordinate)
   }
 }
