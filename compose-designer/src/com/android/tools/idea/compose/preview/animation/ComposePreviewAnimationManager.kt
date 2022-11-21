@@ -19,6 +19,7 @@ import androidx.compose.animation.tooling.ComposeAnimation
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.compose.preview.Preview
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationSubscribed
@@ -32,6 +33,9 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiManager
+import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.UIUtil
 
@@ -68,6 +72,7 @@ object ComposePreviewAnimationManager {
   fun createAnimationInspectorPanel(
     surface: DesignSurface<LayoutlibSceneManager>,
     parent: Disposable,
+    psiFilePointer: SmartPsiElementPointer<PsiFile>,
     onNewInspectorOpen: () -> Unit
   ): AnimationPreview {
     newInspectorOpenedCallback = onNewInspectorOpen
@@ -78,7 +83,7 @@ object ComposePreviewAnimationManager {
         )
       )
     return invokeAndWaitIfNeeded {
-      val animationInspectorPanel = AnimationPreview(surface)
+      val animationInspectorPanel = AnimationPreview(surface, psiFilePointer)
       Disposer.register(parent, animationInspectorPanel)
       currentInspector = animationInspectorPanel
       animationInspectorPanel
@@ -161,9 +166,19 @@ object ComposePreviewAnimationManager {
   /** Whether the animation inspector is open. */
   fun isInspectorOpen() = currentInspector != null
 
-  /** Invalidates the current animation inspector, so it doesn't display animations out-of-date. */
-  fun invalidate() {
-    currentInspector?.let { UIUtil.invokeLaterIfNeeded { it.invalidatePanel() } }
+  /**
+   * Invalidates the current animation inspector, so it doesn't display animations out-of-date. Only
+   * invalidate for the same [psiFilePointer] as [invalidate] could be called from [Preview] without
+   * [AnimationPreview].
+   */
+  fun invalidate(psiFilePointer: SmartPsiElementPointer<PsiFile>) {
+    currentInspector?.let {
+      if (PsiManager.getInstance(it.psiFilePointer.project)
+          .areElementsEquivalent(psiFilePointer.element, it.psiFilePointer.element)
+      ) {
+        UIUtil.invokeLaterIfNeeded { it.invalidatePanel() }
+      }
+    }
   }
 }
 

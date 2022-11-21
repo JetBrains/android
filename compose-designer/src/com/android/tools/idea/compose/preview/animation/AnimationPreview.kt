@@ -47,6 +47,8 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.psi.PsiFile
+import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
@@ -86,8 +88,13 @@ typealias ComposeAnimationEventTracker =
  * `TransitionAnimation`, `AnimatedValue`). In addition, [Timeline] is a timeline view that can be
  * controlled by scrubbing or through a set of controllers, such as play/pause and jump to end. The
  * [AnimationPreview] therefore allows a detailed inspection of Compose animations.
+ * @param psiFilePointer a pointer to a [PsiFile] for current Preview in which Animation Preview is
+ * opened.
  */
-class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disposable {
+class AnimationPreview(
+  val surface: DesignSurface<LayoutlibSceneManager>,
+  val psiFilePointer: SmartPsiElementPointer<PsiFile>
+) : Disposable {
 
   private val animationPreviewPanel =
     JPanel(TabularLayout("*", "*,30px")).apply { name = "Animation Preview" }

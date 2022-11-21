@@ -45,6 +45,9 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.psi.PsiFile
+import com.intellij.psi.SmartPointerManager
+import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.assertInstanceOf
 import com.intellij.testFramework.runInEdtAndGet
@@ -72,6 +75,8 @@ import org.mockito.Mockito
 
 @RunWith(Parameterized::class)
 class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
+
+  lateinit var psiFilePointer: SmartPsiElementPointer<PsiFile>
 
   enum class ClockType {
     DEFAULT,
@@ -121,6 +126,15 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
     surface = NlDesignSurface.builder(projectRule.project, parentDisposable).build()
     surface.addModelWithoutRender(model)
     COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE.override(false)
+
+    val psiFile =
+      projectRule.fixture.addFileToProject(
+        "src/main/Test.kt",
+        """
+      fun main() {}
+    """.trimIndent()
+      )
+    invokeAndWaitIfNeeded { psiFilePointer = SmartPointerManager.createPointer(psiFile) }
   }
 
   @After
@@ -255,9 +269,11 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
   @Test
   fun onOpenNewInspectorCallbackClearedWhenClosingInspector() {
     var callbackCalls = 0
-    ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, parentDisposable) {
-      callbackCalls++
-    }
+    ComposePreviewAnimationManager.createAnimationInspectorPanel(
+      surface,
+      parentDisposable,
+      psiFilePointer
+    ) { callbackCalls++ }
     ComposePreviewAnimationManager.onAnimationInspectorOpened()
     ComposePreviewAnimationManager.onAnimationInspectorOpened()
     assertEquals(2, callbackCalls)
@@ -592,6 +608,60 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
   }
 
   @Test
+  fun invalidateInspector() {
+    val psiFile =
+      projectRule.fixture.addFileToProject(
+        "src/main/NewTest.kt",
+        """
+      fun main() {}
+    """.trimIndent()
+      )
+    val anotherPsiFile =
+      projectRule.fixture.addFileToProject(
+        "src/main/AnotherTest.kt",
+        """
+      fun main() {}
+    """.trimIndent()
+      )
+
+    lateinit var psiPointerOne: SmartPsiElementPointer<PsiFile>
+    lateinit var psiPointerTwo: SmartPsiElementPointer<PsiFile>
+    lateinit var anotherPsiPointer: SmartPsiElementPointer<PsiFile>
+
+    invokeAndWaitIfNeeded {
+      psiPointerOne = SmartPointerManager.createPointer(psiFile)
+      psiPointerTwo = SmartPointerManager.createPointer(psiFile)
+      anotherPsiPointer = SmartPointerManager.createPointer(anotherPsiFile)
+    }
+
+    ComposePreviewAnimationManager.createAnimationInspectorPanel(
+      surface,
+      parentDisposable,
+      psiPointerOne
+    ) {}
+
+    val clock = getClock()
+    animations.forEach { ComposePreviewAnimationManager.onAnimationSubscribed(clock, it) }
+
+    UIUtil.pump() // Wait for the UI to be updated.
+    assertNotNull(ComposePreviewAnimationManager.currentInspector)
+    assertEquals(11, ComposePreviewAnimationManager.currentInspector!!.tabCount())
+    assertNull(ComposePreviewAnimationManager.currentInspector!!.noAnimationsPanel())
+
+    ComposePreviewAnimationManager.invalidate(anotherPsiPointer)
+    UIUtil.pump() // Wait for the UI to be updated.
+    assertNotNull(ComposePreviewAnimationManager.currentInspector)
+    assertEquals(11, ComposePreviewAnimationManager.currentInspector!!.tabCount())
+    assertNull(ComposePreviewAnimationManager.currentInspector!!.noAnimationsPanel())
+
+    ComposePreviewAnimationManager.invalidate(psiPointerTwo)
+    UIUtil.pump() // Wait for the UI to be updated.
+    assertNotNull(ComposePreviewAnimationManager.currentInspector)
+    assertEquals(0, ComposePreviewAnimationManager.currentInspector!!.tabCount())
+    assertNotNull(ComposePreviewAnimationManager.currentInspector!!.noAnimationsPanel())
+  }
+
+  @Test
   fun invalidateInspectorShouldClearTabsAndShowNoAnimationsPanel() {
     val inspector = createAndOpenInspector()
     ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), createComposeAnimation())
@@ -601,7 +671,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
     assertNull(inspector.noAnimationsPanel())
     assertEquals(1, inspector.animationPreviewCardsCount())
 
-    ComposePreviewAnimationManager.invalidate()
+    ComposePreviewAnimationManager.invalidate(psiFilePointer)
     UIUtil.pump() // Wait for the tab to be added on the UI
     assertNotNull(inspector.noAnimationsPanel())
     assertNull(inspector.tabbedPane.parent)
@@ -677,7 +747,11 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
 
   private fun createAndOpenInspector(): AnimationPreview {
     assertFalse(ComposePreviewAnimationManager.isInspectorOpen())
-    ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, parentDisposable) {}
+    ComposePreviewAnimationManager.createAnimationInspectorPanel(
+      surface,
+      parentDisposable,
+      psiFilePointer
+    ) {}
     assertTrue(ComposePreviewAnimationManager.isInspectorOpen())
     return ComposePreviewAnimationManager.currentInspector!!
   }

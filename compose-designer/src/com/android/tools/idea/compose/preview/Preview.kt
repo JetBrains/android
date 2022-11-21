@@ -474,7 +474,11 @@ class ComposePreviewRepresentation(
           sceneComponentProvider.enabled = false
 
           // Open the animation inspection panel
-          ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, this) {
+          ComposePreviewAnimationManager.createAnimationInspectorPanel(
+            surface,
+            this,
+            psiFilePointer
+          ) {
             // Close this inspection panel, making all the necessary UI changes (e.g. changing
             // background and refreshing the preview) before
             // opening a new one.
@@ -746,7 +750,7 @@ class ComposePreviewRepresentation(
     // When building, invalidate the Animation Inspector, since the animations are now obsolete and
     // new ones will be subscribed once
     // build is complete and refresh is triggered.
-    ComposePreviewAnimationManager.invalidate()
+    ComposePreviewAnimationManager.invalidate(psiFilePointer)
     requestVisibilityAndNotificationsUpdate()
   }
 
