@@ -47,8 +47,7 @@ import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.documentChangeFlow
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
-import com.android.tools.idea.editors.fast.fastCompile
+import com.android.tools.idea.editors.fast.requestFastPreviewRefreshAndTrack
 import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
@@ -115,9 +114,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
@@ -292,7 +289,10 @@ class ComposePreviewRepresentation(
    * [UniqueTaskCoroutineLauncher] for ensuring that only one fast preview request is launched at a
    * time.
    */
-  private var fastPreviewCompilationLauncher: UniqueTaskCoroutineLauncher? = null
+  private val fastPreviewCompilationLauncher: UniqueTaskCoroutineLauncher by
+    lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+      UniqueTaskCoroutineLauncher(this, "Compilation Launcher")
+    }
 
   init {
     val project = psiFile.project
@@ -819,7 +819,13 @@ class ComposePreviewRepresentation(
           .collect {
             if (FastPreviewManager.getInstance(project).isEnabled) {
               try {
-                requestFastPreviewRefresh()
+                requestFastPreviewRefreshAndTrack(
+                  this@ComposePreviewRepresentation,
+                  psiFilePointer.element ?: return@collect,
+                  status(),
+                  fastPreviewCompilationLauncher,
+                  ::forceRefresh
+                )
               } catch (_: Throwable) {
                 // Ignore any cancellation exceptions
               }
@@ -1230,120 +1236,18 @@ class ComposePreviewRepresentation(
    */
   private fun shouldQuickRefresh() = renderedElements.count() == 1
 
-  private suspend fun requestFastPreviewRefresh(): CompilationResult? {
-    val currentStatus = status()
-    val launcher =
-      fastPreviewCompilationLauncher
-        ?: UniqueTaskCoroutineLauncher(this, "Compilation Launcher").also {
-          fastPreviewCompilationLauncher = it
-        }
-
-    // We delay the reporting of compilationSucceded until we have the amount of time the refresh
-    // took. Either refreshSucceeded or
-    // refreshFailed should be called.
-    val delegateRequestTracker = FastPreviewTrackerManager.getInstance(project).trackRequest()
-    val requestTracker =
-      object : FastPreviewTrackerManager.Request by delegateRequestTracker {
-        private var compilationDurationMs: Long = -1
-        private var compiledFiles: Int = -1
-        private var compilationSuccess: Boolean? = null
-        override fun compilationSucceeded(
-          compilationDurationMs: Long,
-          compiledFiles: Int,
-          refreshTimeMs: Long
-        ) {
-          compilationSuccess = true
-          this.compilationDurationMs = compilationDurationMs
-          this.compiledFiles = compiledFiles
-        }
-
-        override fun compilationFailed(compilationDurationMs: Long, compiledFiles: Int) {
-          compilationSuccess = false
-          this.compilationDurationMs = compilationDurationMs
-          this.compiledFiles = compiledFiles
-        }
-
-        /**
-         * Reports that the refresh has completed. If [refreshTimeMs] is -1, the refresh has failed.
-         */
-        private fun reportRefresh(refreshTimeMs: Long = -1) {
-          when (compilationSuccess) {
-            true ->
-              delegateRequestTracker.compilationSucceeded(
-                compilationDurationMs,
-                compiledFiles,
-                refreshTimeMs
-              )
-            false -> delegateRequestTracker.compilationFailed(compilationDurationMs, compiledFiles)
-            null -> Unit
-          }
-        }
-
-        fun refreshSucceeded(refreshTimeMs: Long) {
-          reportRefresh(refreshTimeMs)
-        }
-
-        fun refreshFailed() {
-          reportRefresh()
-        }
-      }
-
-    // We only want the first result sent through the channel
-    val deferredCompilationResult = CompletableDeferred<CompilationResult?>(null)
-
-    launcher.launch {
-      var refreshJob: Job? = null
-      try {
-        if (!currentStatus.hasSyntaxErrors) {
-          psiFilePointer.element?.let {
-            val result =
-              fastCompile(this@ComposePreviewRepresentation, it, requestTracker = requestTracker)
-            deferredCompilationResult.complete(result)
-            if (result is CompilationResult.Success) {
-              val refreshStartMs = System.currentTimeMillis()
-              refreshJob = forceRefresh()
-              refreshJob?.invokeOnCompletion { throwable ->
-                when (throwable) {
-                  null ->
-                    requestTracker.refreshSucceeded(System.currentTimeMillis() - refreshStartMs)
-                  is CancellationException ->
-                    requestTracker.refreshCancelled(compilationCompleted = true)
-                  else -> requestTracker.refreshFailed()
-                }
-                requestVisibilityAndNotificationsUpdate()
-              }
-              refreshJob?.join()
-            } else {
-              if (result is CompilationResult.CompilationAborted) {
-                requestTracker.refreshCancelled(compilationCompleted = false)
-              } else {
-                // Compilation failed, report the refresh as failed too
-                requestTracker.refreshFailed()
-              }
-            }
-          }
-        }
-        // At this point, the compilation result should have already been sent if any compilation
-        // was done. So, send null result, that will only succeed when fastCompile was not called.
-        deferredCompilationResult.complete(null)
-      } catch (e: CancellationException) {
-        // Any cancellations during the compilation step are handled by fastCompile, so at
-        // this point, the compilation was completed or no compilation was done. Either way,
-        // a compilation result was already sent through the channel. However, the refresh
-        // may still need to be cancelled.
-        // Use NonCancellable to make sure to wait until the cancellation is completed.
-        withContext(NonCancellable) {
-          deferredCompilationResult.complete(CompilationResult.CompilationAborted())
-          refreshJob?.cancelAndJoin()
-          throw e
-        }
+  override fun requestFastPreviewRefreshAsync(): Deferred<CompilationResult> =
+    lifecycleManager.executeIfActive {
+      async {
+        requestFastPreviewRefreshAndTrack(
+          this@ComposePreviewRepresentation,
+          psiFilePointer.element
+            ?: return@async CompilationResult.CompilationError(Throwable("File has been removed")),
+          status(),
+          fastPreviewCompilationLauncher,
+          ::forceRefresh
+        )
       }
     }
-    // wait only for the compilation to finish, not for the whole refresh
-    return deferredCompilationResult.await()
-  }
-
-  override fun requestFastPreviewRefreshAsync(): Deferred<CompilationResult?> =
-    lifecycleManager.executeIfActive { async { requestFastPreviewRefresh() } }
-      ?: CompletableDeferred(null)
+      ?: CompletableDeferred(CompilationResult.CompilationAborted())
 }

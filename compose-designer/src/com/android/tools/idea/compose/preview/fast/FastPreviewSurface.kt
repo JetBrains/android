@@ -22,8 +22,8 @@ import kotlinx.coroutines.Deferred
 interface FastPreviewSurface {
   /**
    * Request a fast preview refresh. The result [Deferred] will contain the result of the
-   * compilation or the method will return null if the compilation request could not be scheduled
-   * (e.g. the code has syntax errors).
+   * compilation or the method will return [CompilationResult.CompilationAborted] if the compilation
+   * request could not be scheduled (e.g. the code has syntax errors).
    */
-  fun requestFastPreviewRefreshAsync(): Deferred<CompilationResult?>
+  fun requestFastPreviewRefreshAsync(): Deferred<CompilationResult>
 }

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.editors.fast
 
+import com.android.tools.idea.compose.preview.ComposePreviewManager
+import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.concurrency.runWriteActionAndWait
 import com.android.tools.idea.editors.fast.FastPreviewBundle.message
 import com.intellij.openapi.Disposable
@@ -26,8 +28,13 @@ import com.intellij.psi.PsiFile
 import java.io.File
 import java.time.Duration
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.time.withTimeout
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.kotlin.idea.util.module
 
@@ -47,7 +54,7 @@ private suspend fun PsiFile.saveIfNeeded() {
  * Starts a new fast compilation for the current file in the Preview and returns the result of the
  * compilation.
  */
-suspend fun fastCompile(
+internal suspend fun fastCompile(
   parentDisposable: Disposable,
   file: PsiFile,
   fastPreviewManager: FastPreviewManager = FastPreviewManager.getInstance(file.project),
@@ -85,4 +92,121 @@ suspend fun fastCompile(
     compileProgressIndicator.stop()
     compileProgressIndicator.processFinish()
   }
+}
+
+/**
+ * Requests a "Fast Preview" compilation and invokes the [trackedForceRefresh] if successful. This
+ * method tracks the time that the compilation and the execution of the [trackedForceRefresh] call
+ * take in order to do statistics reporting.
+ */
+internal suspend fun requestFastPreviewRefreshAndTrack(
+  parentDisposable: Disposable,
+  file: PsiFile,
+  currentStatus: ComposePreviewManager.Status,
+  launcher: UniqueTaskCoroutineLauncher,
+  trackedForceRefresh: () -> Job?
+): CompilationResult = coroutineScope {
+  // We delay the reporting of compilationSucceded until we have the amount of time the refresh
+  // took. Either refreshSucceeded or
+  // refreshFailed should be called.
+  val delegateRequestTracker = FastPreviewTrackerManager.getInstance(file.project).trackRequest()
+  val requestTracker =
+    object : FastPreviewTrackerManager.Request by delegateRequestTracker {
+      private var compilationDurationMs: Long = -1
+      private var compiledFiles: Int = -1
+      private var compilationSuccess: Boolean? = null
+      override fun compilationSucceeded(
+        compilationDurationMs: Long,
+        compiledFiles: Int,
+        refreshTimeMs: Long
+      ) {
+        compilationSuccess = true
+        this.compilationDurationMs = compilationDurationMs
+        this.compiledFiles = compiledFiles
+      }
+
+      override fun compilationFailed(compilationDurationMs: Long, compiledFiles: Int) {
+        compilationSuccess = false
+        this.compilationDurationMs = compilationDurationMs
+        this.compiledFiles = compiledFiles
+      }
+
+      /**
+       * Reports that the refresh has completed. If [refreshTimeMs] is -1, the refresh has failed.
+       */
+      /**
+       * Reports that the refresh has completed. If [refreshTimeMs] is -1, the refresh has failed.
+       */
+      private fun reportRefresh(refreshTimeMs: Long = -1) {
+        when (compilationSuccess) {
+          true ->
+            delegateRequestTracker.compilationSucceeded(
+              compilationDurationMs,
+              compiledFiles,
+              refreshTimeMs
+            )
+          false -> delegateRequestTracker.compilationFailed(compilationDurationMs, compiledFiles)
+          null -> Unit
+        }
+      }
+
+      fun refreshSucceeded(refreshTimeMs: Long) {
+        reportRefresh(refreshTimeMs)
+      }
+
+      fun refreshFailed() {
+        reportRefresh()
+      }
+    }
+
+  // We only want the first result sent through the channel
+  val deferredCompilationResult =
+    CompletableDeferred<CompilationResult>(CompilationResult.CompilationError())
+
+  launcher.launch {
+    var refreshJob: Job? = null
+    try {
+      if (!currentStatus.hasSyntaxErrors) {
+        val result = fastCompile(parentDisposable, file, requestTracker = requestTracker)
+        deferredCompilationResult.complete(result)
+        if (result is CompilationResult.Success) {
+          val refreshStartMs = System.currentTimeMillis()
+          refreshJob = trackedForceRefresh()
+          refreshJob?.invokeOnCompletion { throwable ->
+            when (throwable) {
+              null -> requestTracker.refreshSucceeded(System.currentTimeMillis() - refreshStartMs)
+              is CancellationException ->
+                requestTracker.refreshCancelled(compilationCompleted = true)
+              else -> requestTracker.refreshFailed()
+            }
+          }
+          refreshJob?.join()
+        } else {
+          if (result is CompilationResult.CompilationAborted) {
+            requestTracker.refreshCancelled(compilationCompleted = false)
+          } else {
+            // Compilation failed, report the refresh as failed too
+            requestTracker.refreshFailed()
+          }
+        }
+      } else {
+        // At this point, the compilation result should have already been sent if any compilation
+        // was done. So, send CompilationAborted result.
+        deferredCompilationResult.complete(CompilationResult.CompilationAborted())
+      }
+    } catch (e: CancellationException) {
+      // Any cancellations during the compilation step are handled by fastCompile, so at
+      // this point, the compilation was completed or no compilation was done. Either way,
+      // a compilation result was already sent through the channel. However, the refresh
+      // may still need to be cancelled.
+      // Use NonCancellable to make sure to wait until the cancellation is completed.
+      withContext(NonCancellable) {
+        deferredCompilationResult.complete(CompilationResult.CompilationAborted())
+        refreshJob?.cancelAndJoin()
+        throw e
+      }
+    }
+  }
+  // wait only for the compilation to finish, not for the whole refresh
+  return@coroutineScope deferredCompilationResult.await()
 }
