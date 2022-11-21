@@ -16,9 +16,11 @@
 package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorTransportError
 import com.intellij.testFramework.ProjectRule
@@ -27,6 +29,18 @@ import org.junit.Test
 import org.mockito.Mockito.verify
 
 class TransportErrorListenerTest {
+
+  private val device1 = Common.Device.newBuilder()
+    .setDeviceId(1)
+    .setManufacturer("man1")
+    .setModel("mod1")
+    .setSerial("serial1")
+    .setIsEmulator(false)
+    .setApiLevel(1)
+    .setVersion("version1")
+    .setCodename("codename1")
+    .setState(Common.Device.State.ONLINE)
+    .build()
 
   @get:Rule
   val projectRule = ProjectRule()
@@ -37,11 +51,14 @@ class TransportErrorListenerTest {
     val mockMetrics = mock<LayoutInspectorMetrics>()
     val transportErrorListener = TransportErrorListener(projectRule.project, mockMetrics)
 
-    transportErrorListener.onStartTransportDaemonServerFail(mock(), mock())
+    transportErrorListener.onStartTransportDaemonServerFail(device1, mock())
 
     assertThat(bannerService.notification?.message).isEqualTo(LayoutInspectorBundle.message("two.versions.of.studio.running"))
     assertThat(bannerService.notification?.actions).isEmpty()
-    verify(mockMetrics).logTransportError(DynamicLayoutInspectorTransportError.Type.TRANSPORT_FAILED_TO_START_DAEMON)
+    verify(mockMetrics).logTransportError(
+      DynamicLayoutInspectorTransportError.Type.TRANSPORT_FAILED_TO_START_DAEMON,
+      device1.toDeviceDescriptor()
+    )
 
     transportErrorListener.onPreTransportDaemonStart(mock())
 
