@@ -105,6 +105,10 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     )
   }
 
+  override fun getBootClasspath(module: Module): Collection<String> {
+    return GradleAndroidModel.get(module)?.androidProject?.bootClasspath ?: emptyList()
+  }
+
   override fun getSyncManager(): ProjectSystemSyncManager = mySyncManager
   override fun getBuildManager(): ProjectSystemBuildManager = myBuildManager
 

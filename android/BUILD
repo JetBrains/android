@@ -127,6 +127,7 @@ iml_module(
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
+        "//prebuilts/r8",
     ],
 )
 

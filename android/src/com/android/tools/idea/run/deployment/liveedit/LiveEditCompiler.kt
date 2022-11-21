@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.annotations.Trace
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonPrivateInlineFunctionFailure
@@ -34,6 +35,7 @@ import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.containingPackage
 import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil.getFileClassInfoNoResolve
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
+import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
 import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.name.FqName
@@ -50,10 +52,15 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import java.util.Optional
 
+// Delete once b/268928663 comes to a resolution
+private val DESUGARING_ENABLED = false
+
 class LiveEditCompiler(val project: Project) {
 
   // Cache of fully-qualified class name to inlineable bytecode on disk or in memory
   var inlineCandidateCache = SourceInlineCandidateCache()
+
+  private val desugarer = LiveEditDesugar()
 
   /**
    * Compile a given set of MethodReferences to Java .class files and populates the output list with the compiled code.
@@ -65,8 +72,6 @@ class LiveEditCompiler(val project: Project) {
    */
   @Trace
   fun compile(inputs: List<LiveEditCompilerInput>, giveWritePriority : Boolean = true) : Optional<LiveEditCompilerOutput> {
-    val output = LiveEditCompilerOutput.Builder()
-
     // Bundle changes per-file to prevent wasted recompilation of the same file. The most common
     // scenario is multiple pending changes in the same file, so this is somewhat important.
     val changedFiles = HashMultimap.create<KtFile, LiveEditCompilerInput>()
@@ -80,9 +85,18 @@ class LiveEditCompiler(val project: Project) {
     // which prevents the UI from freezing during compilation if the user continues typing.
     val progressManager = ProgressManager.getInstance()
 
+    var outputs : LiveEditCompilerOutput = LiveEditCompilerOutput.Builder().build()
     val compileCmd = {
+      var outputBuilder = LiveEditCompilerOutput.Builder()
       for ((file, input) in changedFiles.asMap()) {
-        compileKtFile(file, input, output)
+        // Compiler pass
+        compileKtFile(file, input, outputBuilder)
+        outputs = outputBuilder.build()
+
+        // Desugaring pass
+        if (DESUGARING_ENABLED && StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_R8_DESUGAR.get()) {
+          desugarer.desugar(outputs)
+        }
       }
     }
 
@@ -101,7 +115,7 @@ class LiveEditCompiler(val project: Project) {
       ApplicationManager.getApplication().runReadAction(compileCmd)
     }
 
-    return if (success) Optional.of(output.build()) else Optional.empty()
+    return if (success) Optional.of(outputs) else Optional.empty()
   }
 
   private fun compileKtFile(file: KtFile, inputs: Collection<LiveEditCompilerInput>, output: LiveEditCompilerOutput.Builder) {

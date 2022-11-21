@@ -17,7 +17,7 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.intellij.openapi.module.Module
 
-class LiveEditCompiledClass(val name: String, val data: ByteArray, val module: Module?)
+class LiveEditCompiledClass(val name: String, var data: ByteArray, val module: Module?)
 
 data class LiveEditCompilerOutput private constructor (val classes: List<LiveEditCompiledClass>,
                                                        val supportClasses: List<LiveEditCompiledClass>,

@@ -63,6 +63,7 @@ private fun Throwable?.isCompilationError(): Boolean =
     LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
     LiveEditUpdateException.Error.UNSUPPORTED_BUILD_SRC_CHANGE,
     LiveEditUpdateException.Error.UNSUPPORTED_TEST_SRC_CHANGE,
+    LiveEditUpdateException.Error.UNABLE_TO_DESUGAR,
     LiveEditUpdateException.Error.KNOWN_ISSUE -> false
   }
 

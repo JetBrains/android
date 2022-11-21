@@ -70,6 +70,11 @@ import java.util.IdentityHashMap
  * recognized. It provides a minimal set of capabilities and opts out of most optional behaviors.
  */
 class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, AndroidProjectSystemProvider {
+
+  override fun getBootClasspath(module: Module): Collection<String> {
+    throw IllegalStateException("Not implemented")
+  }
+
   override val id: String = ""
 
   override fun getDefaultApkFile(): VirtualFile? = null

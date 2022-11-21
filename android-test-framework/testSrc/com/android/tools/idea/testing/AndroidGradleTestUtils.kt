@@ -1276,6 +1276,10 @@ fun setupTestProjectFromAndroidModel(
     override fun getAndroidFacetsWithPackageName(project: Project, packageName: String): Collection<AndroidFacet> =
       gradleProjectSystem.getAndroidFacetsWithPackageName(project, packageName)
 
+    override fun getBootClasspath(module: Module): Collection<String> {
+      return emptyList()
+    }
+
     override fun getDefaultApkFile(): VirtualFile? = gradleProjectSystem.getDefaultApkFile()
 
     override fun getPathToAapt(): Path = gradleProjectSystem.getPathToAapt()

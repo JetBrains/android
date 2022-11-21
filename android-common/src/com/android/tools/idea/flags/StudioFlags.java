@@ -1160,6 +1160,13 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_R8_DESUGAR = Flag.create(
+    COMPOSE, "deploy.live.edit.deploy.desugar.r8",
+    "Desugar kotlinc outputs with R8",
+    "If enabled, the outputs of kotlinc are desugared to improve the odds of matching what was produced by the Build system",
+    false
+  );
+
   public static final Flag<Integer> COMPOSE_LIVE_LITERALS_UPDATE_RATE = Flag.create(
     COMPOSE, "deploy.live.literals.updaterate",
     "Update rate of live literals edits",
