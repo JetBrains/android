@@ -80,7 +80,10 @@ class AppInspectionPropertiesProviderTest {
   private val disposableRule = DisposableRule()
   private val projectRule = AndroidProjectRule.withSdk()
   private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable, projectRule)
-  private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider()), projectRule) {
+  private lateinit var inspectorClientSettings: InspectorClientSettings
+  private val inspectorRule = LayoutInspectorRule(
+    listOf(inspectionRule.createInspectorClientProvider(getClientSettings = { inspectorClientSettings })), projectRule
+  ) {
     it.name == MODERN_PROCESS.name
   }
 
@@ -91,13 +94,14 @@ class AppInspectionPropertiesProviderTest {
 
   @Before
   fun setUp() {
+    inspectorClientSettings = InspectorClientSettings(projectRule.project)
     val propertiesComponent = PropertiesComponentMock()
     projectRule.replaceService(PropertiesComponent::class.java, propertiesComponent)
     PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
 
     // Check that generated getComposablesCommands has the `extractAllParameters` set in snapshot mode.
     inspectionRule.composeInspector.listenWhen({it.hasGetComposablesCommand()}) { command ->
-      assertThat(command.getComposablesCommand.extractAllParameters).isEqualTo(!InspectorClientSettings.isCapturingModeOn)
+      assertThat(command.getComposablesCommand.extractAllParameters).isEqualTo(!inspectorClientSettings.isCapturingModeOn)
     }
 
     inspectorState = FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
@@ -112,7 +116,7 @@ class AppInspectionPropertiesProviderTest {
 
   @Test
   fun canQueryPropertiesForViewsWithResourceResolver() {
-    InspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
+    inspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
 
     val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
     inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
@@ -183,7 +187,7 @@ class AppInspectionPropertiesProviderTest {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     AndroidModel.set(facet, TestAndroidModel(applicationId = "com.nonmatching.app"))
 
-    InspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
+    inspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
 
     val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
     inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
@@ -215,7 +219,7 @@ class AppInspectionPropertiesProviderTest {
 
   @Test
   fun syntheticPropertiesAlwaysAdded() {
-    InspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
+    inspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
 
     val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
     inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
@@ -249,7 +253,7 @@ class AppInspectionPropertiesProviderTest {
 
   @Test
   fun propertiesAreCachedUntilNextLayoutEvent() {
-    InspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
+    inspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
 
     val modelUpdatedSignal = ArrayBlockingQueue<Unit>(2) // We should get no more than two updates before continuing
     inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
@@ -305,7 +309,7 @@ class AppInspectionPropertiesProviderTest {
 
   @Test
   fun snapshotModeSendsAllPropertiesAtOnce() {
-    InspectorClientSettings.isCapturingModeOn = false // i.e. snapshot mode
+    inspectorClientSettings.isCapturingModeOn = false // i.e. snapshot mode
 
     val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
     inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
@@ -337,7 +341,7 @@ class AppInspectionPropertiesProviderTest {
 
   @Test
   fun canQueryParametersForComposables() {
-    InspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
+    inspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
 
     val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
     inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
@@ -515,7 +519,7 @@ class AppInspectionPropertiesProviderTest {
 
   @Test
   fun parametersAreCachedUntilNextLayoutEvent() {
-    InspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
+    inspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
 
     val modelUpdatedSignal = ArrayBlockingQueue<Unit>(2) // We should get no more than two updates before continuing
     inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
@@ -562,7 +566,7 @@ class AppInspectionPropertiesProviderTest {
 
   @Test
   fun snapshotModeSendsAllParametersAtOnce() {
-    InspectorClientSettings.isCapturingModeOn = false // i.e. snapshot mode
+    inspectorClientSettings.isCapturingModeOn = false // i.e. snapshot mode
 
     val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
     inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->

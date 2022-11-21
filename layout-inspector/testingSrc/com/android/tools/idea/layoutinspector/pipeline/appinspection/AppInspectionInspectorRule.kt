@@ -27,6 +27,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_LAYOUT_INSPECTOR_ID
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeComposeLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeInspector
@@ -54,13 +55,20 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as Comp
 fun AppInspectionClientProvider(
   getApiServices: () -> AppInspectionApiServices,
   getMonitor: () -> InspectorClientLaunchMonitor,
+  getClientSettings: () -> InspectorClientSettings,
   parentDisposable: Disposable
 ) = InspectorClientProvider { params, inspector ->
   val apiServices = getApiServices()
 
-  AppInspectionInspectorClient(params.process, params.isInstantlyAutoConnected,
-                               inspector.layoutInspectorModel, LayoutInspectorSessionMetrics(inspector.layoutInspectorModel.project, params.process),
-                               inspector.treeSettings, parentDisposable, apiServices).apply {
+  AppInspectionInspectorClient(
+    process = params.process,
+    isInstantlyAutoConnected = params.isInstantlyAutoConnected,
+    model = inspector.layoutInspectorModel,
+    metrics = LayoutInspectorSessionMetrics(inspector.layoutInspectorModel.project, params.process),
+    treeSettings = inspector.treeSettings,
+    inspectorClientSettings = getClientSettings(),
+    parentDisposable = parentDisposable,
+    apiServices = apiServices).apply {
     launchMonitor = getMonitor()
   }
 }
@@ -133,12 +141,19 @@ class AppInspectionInspectorRule(
   /**
    * Convenience method so users don't have to manually create an [AppInspectionClientProvider].
    */
-  fun createInspectorClientProvider(getMonitor: () -> InspectorClientLaunchMonitor = { defaultMonitor() }): InspectorClientProvider {
-    return AppInspectionClientProvider({ inspectionService.apiServices }, getMonitor, parentDisposable)
+  fun createInspectorClientProvider(
+    getMonitor: () -> InspectorClientLaunchMonitor = { defaultMonitor() },
+    getClientSettings: () -> InspectorClientSettings = { defaultInspectorClientSettings() }
+  ): InspectorClientProvider {
+    return AppInspectionClientProvider({ inspectionService.apiServices }, getMonitor, getClientSettings, parentDisposable)
   }
 
   private fun defaultMonitor(): InspectorClientLaunchMonitor {
     return InspectorClientLaunchMonitor(projectRule.project, ListenerCollection.createWithDirectExecutor(), mock())
+  }
+
+  private fun defaultInspectorClientSettings(): InspectorClientSettings {
+    return InspectorClientSettings(projectRule.project)
   }
 
   override fun apply(base: Statement, description: Description): Statement {

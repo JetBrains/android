@@ -120,6 +120,7 @@ class DeviceViewPanel(
   val onStopInspector: () -> Unit,
   private val layoutInspector: LayoutInspector,
   private val viewSettings: RenderSettings,
+  private val inspectorClientSettings: InspectorClientSettings,
   disposableParent: Disposable,
   @TestOnly private val backgroundExecutor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
 ) : JPanel(BorderLayout()), Zoomable, DataProvider, Pannable {
@@ -591,7 +592,7 @@ class DeviceViewPanel(
     leftGroup.add(AlphaSliderAction)
     if (!layoutInspector.isSnapshot) {
       leftGroup.add(Separator.getInstance())
-      leftGroup.add(PauseLayoutInspectorAction)
+      leftGroup.add(PauseLayoutInspectorAction(inspectorClientSettings))
       leftGroup.add(RefreshAction)
     }
     leftGroup.add(Separator.getInstance())
@@ -614,7 +615,9 @@ class DeviceViewPanel(
     return panel
   }
 
-  object PauseLayoutInspectorAction : ToggleAction({ "Live Updates" }, LIVE_UPDATES), TooltipDescriptionProvider, TooltipLinkProvider {
+  inner class PauseLayoutInspectorAction(
+    private val inspectorClientSettings: InspectorClientSettings
+  ) : ToggleAction({ "Live Updates" }, LIVE_UPDATES), TooltipDescriptionProvider, TooltipLinkProvider {
 
     override fun update(event: AnActionEvent) {
       val currentClient = client(event)
@@ -637,7 +640,7 @@ class DeviceViewPanel(
 
     // When disconnected: display the default value after the inspector is connected to the device.
     override fun isSelected(event: AnActionEvent): Boolean {
-      return InspectorClientSettings.isCapturingModeOn
+      return inspectorClientSettings.isCapturingModeOn
     }
 
     override fun setSelected(event: AnActionEvent, state: Boolean) {
@@ -649,7 +652,7 @@ class DeviceViewPanel(
           false -> currentClient.stopFetching()
         }
       }
-      InspectorClientSettings.isCapturingModeOn = state
+      inspectorClientSettings.isCapturingModeOn = state
     }
 
     private fun client(event: AnActionEvent): InspectorClient =

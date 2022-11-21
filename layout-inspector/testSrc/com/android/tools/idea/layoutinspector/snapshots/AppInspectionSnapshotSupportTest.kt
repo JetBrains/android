@@ -58,7 +58,10 @@ class AppInspectionSnapshotSupportTest {
 
   private val projectRule = AndroidProjectRule.withSdk()
   private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable, projectRule)
-  private val inspectorRule = LayoutInspectorRule(listOf(appInspectorRule.createInspectorClientProvider()), projectRule) {
+  private lateinit var inspectorClientSettings: InspectorClientSettings
+  private val inspectorRule = LayoutInspectorRule(
+    listOf(appInspectorRule.createInspectorClientProvider(getClientSettings = { inspectorClientSettings })), projectRule
+  ) {
     it.name == PROCESS.name
   }
 
@@ -67,6 +70,7 @@ class AppInspectionSnapshotSupportTest {
 
   @Before
   fun setUp() {
+    inspectorClientSettings = InspectorClientSettings(projectRule.project)
     inspectorRule.attachDevice(MODERN_DEVICE)
   }
 
@@ -74,7 +78,7 @@ class AppInspectionSnapshotSupportTest {
 
   @Test
   fun saveAndLoadLiveSnapshot() {
-    InspectorClientSettings.isCapturingModeOn = true
+    inspectorClientSettings.isCapturingModeOn = true
     inspectorRule.inspectorModel.resourceLookup.updateConfiguration(640, 2f, Dimension(800, 1600))
     appInspectorRule.viewInspector.interceptWhen ({ it.hasCaptureSnapshotCommand() }) {
       LayoutInspectorViewProtocol.Response.newBuilder().apply {
@@ -110,7 +114,7 @@ class AppInspectionSnapshotSupportTest {
 
   @Test
   fun saveAndLoadLiveSnapshotWithDeepComposeNesting() {
-    InspectorClientSettings.isCapturingModeOn = true
+    inspectorClientSettings.isCapturingModeOn = true
     val inspectorState = FakeInspectorState(appInspectorRule.viewInspector, appInspectorRule.composeInspector)
     inspectorState.createFakeViewTree()
     inspectorState.createFakeViewTreeAsSnapshot()
@@ -138,7 +142,7 @@ class AppInspectionSnapshotSupportTest {
 
   @Test
   fun saveAndLoadNonLiveSnapshot() {
-    InspectorClientSettings.isCapturingModeOn = false
+    inspectorClientSettings.isCapturingModeOn = false
     inspectorRule.inspectorClient.stopFetching()
     appInspectorRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
       appInspectorRule.viewInspector.connection.sendEvent {
@@ -172,7 +176,7 @@ class AppInspectionSnapshotSupportTest {
   @Test
   fun saveNonLiveSnapshotImmediately() {
     // Connect initially in live mode
-    InspectorClientSettings.isCapturingModeOn = true
+    inspectorClientSettings.isCapturingModeOn = true
     appInspectorRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
       appInspectorRule.viewInspector.connection.sendEvent {
         rootsEventBuilder.apply {
@@ -216,7 +220,7 @@ class AppInspectionSnapshotSupportTest {
     inspectorRule.processes.selectedProcess = PROCESS
 
     // Now switch to non-live
-    InspectorClientSettings.isCapturingModeOn = false
+    inspectorClientSettings.isCapturingModeOn = false
     inspectorRule.inspectorClient.stopFetching().get()
 
     val startedLatch = CountDownLatch(1)

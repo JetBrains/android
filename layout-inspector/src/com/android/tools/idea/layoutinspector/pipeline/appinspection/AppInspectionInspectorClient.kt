@@ -96,6 +96,7 @@ class AppInspectionInspectorClient(
   private val model: InspectorModel,
   private val metrics: LayoutInspectorSessionMetrics,
   private val treeSettings: TreeSettings,
+  private val inspectorClientSettings: InspectorClientSettings,
   parentDisposable: Disposable,
   @TestOnly private val apiServices: AppInspectionApiServices = AppInspectionDiscoveryService.instance.apiServices,
   @TestOnly private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
@@ -154,7 +155,7 @@ class AppInspectionInspectorClient(
   override val provider: PropertiesProvider
     get() = propertiesProvider
   override val isCapturing: Boolean
-    get() = InspectorClientSettings.isCapturingModeOn
+    get() = inspectorClientSettings.isCapturingModeOn
 
   override fun doConnect(): ListenableFuture<Nothing> {
     val future = SettableFuture.create<Nothing>()

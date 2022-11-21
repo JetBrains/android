@@ -132,11 +132,15 @@ class AppInspectionInspectorClientTest {
   private val monitor = mock<InspectorClientLaunchMonitor>()
   private var preferredProcess: ProcessDescriptor? = MODERN_PROCESS
 
+  private lateinit var inspectorClientSettings: InspectorClientSettings
+
   private val disposableRule = DisposableRule()
   private val treeRule = SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true)
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable, projectRule)
-  private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider { monitor }), projectRule) {
+  private val inspectorRule = LayoutInspectorRule(
+    listOf(inspectionRule.createInspectorClientProvider({ monitor }, { inspectorClientSettings })), projectRule
+  ) {
     it == preferredProcess
   }
   private val usageRule = MetricsTrackerRule()
@@ -151,6 +155,7 @@ class AppInspectionInspectorClientTest {
 
   @Before
   fun before() {
+    inspectorClientSettings = InspectorClientSettings(projectRule.project)
     inspectorRule.attachDevice(MODERN_DEVICE)
   }
 
@@ -255,7 +260,7 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun inspectorStartsFetchingContinuouslyOnConnectIfLiveMode() = runBlocking {
-    InspectorClientSettings.isCapturingModeOn = true
+    inspectorClientSettings.isCapturingModeOn = true
 
     val startFetchReceived = ReportingCountDownLatch(1)
     inspectionRule.viewInspector.listenWhen({ it.hasStartFetchCommand() }) { command ->
@@ -341,7 +346,7 @@ class AppInspectionInspectorClientTest {
     val inspectorState = FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
     inspectorState.simulateComposeVersionWithoutUpdateSettingsCommand()
 
-    InspectorClientSettings.isCapturingModeOn = true
+    inspectorClientSettings.isCapturingModeOn = true
     inspectorRule.inspector.treeSettings.showRecompositions = true
 
     val startFetchReceived = ReportingCountDownLatch(1)
@@ -375,7 +380,7 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun inspectorRequestsSingleFetchIfSnapshotMode() = runBlocking {
-    InspectorClientSettings.isCapturingModeOn = false
+    inspectorClientSettings.isCapturingModeOn = false
 
     val startFetchReceived = ReportingCountDownLatch(1)
     inspectionRule.viewInspector.listenWhen({ it.hasStartFetchCommand() }) { command ->
@@ -796,7 +801,7 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun errorShownOnConnectException() {
-    InspectorClientSettings.isCapturingModeOn = true
+    inspectorClientSettings.isCapturingModeOn = true
     val banner = InspectorBanner(inspectorRule.project)
     inspectionRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
       com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response.newBuilder().apply {
@@ -811,7 +816,7 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun errorShownOnRefreshException() {
-    InspectorClientSettings.isCapturingModeOn = false
+    inspectorClientSettings.isCapturingModeOn = false
     val banner = InspectorBanner(inspectorRule.project)
     inspectionRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
       com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response.newBuilder().apply {
@@ -1045,10 +1050,17 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     assertThat(banner.isVisible).isFalse()
 
     setUpAvdManagerAndRun(sdkHandler, avdInfo, suspend {
-      val client = AppInspectionInspectorClient(processDescriptor2,
-                                                isInstantlyAutoConnected = false, model(inspectorRule.project) {}, mock(), mock(),
-                                                disposableRule.disposable, inspectionRule.inspectionService.apiServices,
-                                                sdkHandler = sdkHandler)
+      val client = AppInspectionInspectorClient(
+        process = processDescriptor2,
+        isInstantlyAutoConnected = false,
+        model = model(inspectorRule.project) {},
+        metrics = mock(),
+        treeSettings = mock(),
+        inspectorClientSettings = InspectorClientSettings(projectRule.project),
+        parentDisposable = disposableRule.disposable,
+        apiServices = inspectionRule.inspectionService.apiServices,
+        sdkHandler = sdkHandler
+      )
       // shouldn't get an exception
       client.connect(inspectorRule.project)
     })
@@ -1073,10 +1085,17 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     assertThat(banner.isVisible).isFalse()
 
     setUpAvdManagerAndRun(sdkHandler, avdInfo, suspend {
-      val client = AppInspectionInspectorClient(processDescriptor,
-                                                isInstantlyAutoConnected = false, model(inspectorRule.project) {}, mock(), mock(),
-                                                disposableRule.disposable, inspectionRule.inspectionService.apiServices,
-                                                sdkHandler = sdkHandler)
+      val client = AppInspectionInspectorClient(
+        process = processDescriptor,
+        isInstantlyAutoConnected = false,
+        model = model(inspectorRule.project) {},
+        metrics = mock(),
+        treeSettings = mock(),
+        inspectorClientSettings = InspectorClientSettings(projectRule.project),
+        parentDisposable = disposableRule.disposable,
+        apiServices = inspectionRule.inspectionService.apiServices,
+        sdkHandler = sdkHandler
+      )
       client.connect(inspectorRule.project)
       waitForCondition(1, TimeUnit.SECONDS) { client.state == InspectorClient.State.DISCONNECTED }
       invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
@@ -1093,10 +1112,17 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     val remotePackage = setUpSdkPackage(sdkRoot, minRevision, 29, tag, true) as RemotePackage
     packages.setRemotePkgInfos(listOf(remotePackage))
     setUpAvdManagerAndRun(sdkHandler, avdInfo, suspend {
-      val client = AppInspectionInspectorClient(processDescriptor,
-                                                isInstantlyAutoConnected = false, model(inspectorRule.project) {}, mock(), mock(),
-                                                disposableRule.disposable, inspectionRule.inspectionService.apiServices,
-                                                sdkHandler = sdkHandler)
+      val client = AppInspectionInspectorClient(
+        process = processDescriptor,
+        isInstantlyAutoConnected = false,
+        model = model(inspectorRule.project) {},
+        metrics = mock(),
+        treeSettings = mock(),
+        inspectorClientSettings = InspectorClientSettings(projectRule.project),
+        parentDisposable = disposableRule.disposable,
+        apiServices = inspectionRule.inspectionService.apiServices,
+        sdkHandler = sdkHandler
+      )
       client.connect(inspectorRule.project)
       waitForCondition(1, TimeUnit.SECONDS) { client.state == InspectorClient.State.DISCONNECTED }
       invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
@@ -1198,12 +1224,22 @@ class AppInspectionInspectorClientWithFailingClientTest {
     }
   }
 
-  private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider(getMonitor)), projectRule) {
+  private lateinit var inspectorClientSettings: InspectorClientSettings
+
+  private val inspectorRule = LayoutInspectorRule(
+    listOf(inspectionRule.createInspectorClientProvider(getMonitor, { inspectorClientSettings })),
+    projectRule
+  ) {
     it.name == MODERN_PROCESS.name
   }
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule).around(usageTrackerRule).around(disposableRule)!!
+
+  @Before
+  fun setUp() {
+    inspectorClientSettings = InspectorClientSettings(projectRule.project)
+  }
 
   @Test
   fun errorShownOnNoAgentWithApi29() {

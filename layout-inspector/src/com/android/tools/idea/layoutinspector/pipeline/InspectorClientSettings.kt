@@ -16,19 +16,20 @@
 package com.android.tools.idea.layoutinspector.pipeline
 
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.project.Project
 
 private const val IS_CAPTURING_KEY = "live.layout.inspector.capturing"
 
 /**
- * Inspector pipeline settings that should be considered global and preserved across multiple
+ * Inspector pipeline settings that should be considered global within a project and preserved across multiple
  * inspector clients.
  */
-object InspectorClientSettings {
+class InspectorClientSettings(private val project: Project) {
   /**
    * The user's preference to use continuous capturing mode in the layout inspector, whenever
    * supported by the current client.
    */
-  var isCapturingModeOn: Boolean
-    get() = PropertiesComponent.getInstance().getBoolean(IS_CAPTURING_KEY, true)
-    set(value) = PropertiesComponent.getInstance().setValue(IS_CAPTURING_KEY, value, true)
+  var isCapturingModeOn
+    get() = PropertiesComponent.getInstance(project).getBoolean(IS_CAPTURING_KEY, true)
+    set(value) = PropertiesComponent.getInstance(project).setValue(IS_CAPTURING_KEY, value, true)
 }

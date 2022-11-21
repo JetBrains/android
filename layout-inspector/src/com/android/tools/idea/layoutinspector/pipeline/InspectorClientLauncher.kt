@@ -66,6 +66,7 @@ class InspectorClientLauncher(
       model: InspectorModel,
       metrics: LayoutInspectorSessionMetrics,
       treeSettings: TreeSettings,
+      inspectorClientSettings: InspectorClientSettings,
       parentDisposable: Disposable
     ): InspectorClientLauncher {
       return InspectorClientLauncher(
@@ -80,6 +81,7 @@ class InspectorClientLauncher(
                 model,
                 metrics,
                 treeSettings,
+                inspectorClientSettings,
                 parentDisposable
               )
             }

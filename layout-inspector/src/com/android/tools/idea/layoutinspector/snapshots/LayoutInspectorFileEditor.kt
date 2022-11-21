@@ -26,6 +26,7 @@ import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.tree.EditorTreeSettings
@@ -123,8 +124,19 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
 
       // TODO: persisted tree setting scoped to file
       val treeSettings = EditorTreeSettings(client.capabilities)
+      val inspectorClientSettings = InspectorClientSettings(project)
       val layoutInspector = LayoutInspector(client, model, treeSettings)
-      val deviceViewPanel = DeviceViewPanel(null, null, { }, { }, { }, layoutInspector, viewSettings, workbench)
+      val deviceViewPanel = DeviceViewPanel(
+        deviceModel = null,
+        processesModel = null,
+        onDeviceSelected = { },
+        onProcessSelected = { },
+        onStopInspector = { },
+        layoutInspector = layoutInspector,
+        viewSettings = viewSettings,
+        inspectorClientSettings = inspectorClientSettings,
+        disposableParent = workbench
+      )
       DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector, deviceViewPanel))
       workbench.init(deviceViewPanel, layoutInspector, listOf(
         LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)

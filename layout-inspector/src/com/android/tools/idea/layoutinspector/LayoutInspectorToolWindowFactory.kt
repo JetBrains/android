@@ -34,6 +34,7 @@ import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetectio
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetectionInitializer
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessListener
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.TransportErrorListener
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.stopInspector
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
@@ -93,6 +94,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, project)
     val viewSettings = InspectorRenderSettings()
+    val inspectorClientSettings = InspectorClientSettings(project)
 
     val edtExecutor = EdtExecutorService.getInstance()
 
@@ -135,6 +137,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
           model,
           metrics,
           treeSettings,
+          inspectorClientSettings,
           workbench
         )
         val layoutInspector = LayoutInspector(launcher, model, treeSettings)
@@ -150,6 +153,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
           onStopInspector = { stopInspector(project, deviceModel, processesModel, foregroundProcessDetection) },
           layoutInspector = layoutInspector,
           viewSettings = viewSettings,
+          inspectorClientSettings = inspectorClientSettings,
           disposableParent = workbench
         )
 
