@@ -65,11 +65,8 @@ class AndroidRunConfigurations {
     if (facet.configuration.projectType == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP) {
       configuration.setLaunchUrl(InstantApps.getDefaultInstantAppUrl(facet))
     }
-    else if (hasDefaultLauncherActivity(facet)) {
-      configuration.MODE = AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY
-    }
     else {
-      configuration.MODE = AndroidRunConfiguration.DO_NOTHING
+      configuration.MODE = AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY
     }
 
     configuration.deployTargetContext.targetSelectionMode = TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX
