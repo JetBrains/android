@@ -73,7 +73,6 @@ internal class FakeScreenSharingAgentRule : TestRule {
 
   init {
     fakeAdbRule = FakeAdbRule().apply {
-      withDeviceCommandHandler(DeviceCommandHandler("sync"))
       withDeviceCommandHandler(object: DeviceCommandHandler("shell,v2") {
         override fun invoke(server: FakeAdbServer, socket: Socket, deviceState: DeviceState, args: String) {
           if (args.contains("$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME")) {
