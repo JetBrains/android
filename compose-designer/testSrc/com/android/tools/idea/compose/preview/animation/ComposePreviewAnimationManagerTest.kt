@@ -176,13 +176,35 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
     assertNotNull(inspector.tabbedPane.parent)
     assertEquals(1, inspector.tabCount())
 
+    // After subscribing an animation, we should display the tabbedPane
+    val anotherAnimation = createComposeAnimation()
+    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), anotherAnimation)
+    UIUtil.pump() // Wait for the tab to be added on the UI thread
+    assertNull(inspector.noAnimationsPanel())
+    assertNotNull(inspector.tabbedPane.parent)
+    assertEquals(1, inspector.tabCount())
+
+    // After unsubscribing from one animation, animation panel still shown.
+    ComposePreviewAnimationManager.onAnimationUnsubscribed(animation)
+    UIUtil.pump() // Wait for the tab to be removed on the UI thread
+    assertNull(inspector.noAnimationsPanel())
+    assertNotNull(inspector.tabbedPane.parent)
+    assertEquals(1, inspector.tabCount())
+
     // After unsubscribing all animations, we should hide the tabbed panel and again display the no
     // animations panel
-    ComposePreviewAnimationManager.onAnimationUnsubscribed(animation)
+    ComposePreviewAnimationManager.onAnimationUnsubscribed(anotherAnimation)
     UIUtil.pump() // Wait for the tab to be removed on the UI thread
     assertNotNull(inspector.noAnimationsPanel())
     assertNull(inspector.tabbedPane.parent)
     assertEquals(0, inspector.tabCount())
+
+    // After subscribing again to the animation, we should display the tabbedPane
+    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), animation)
+    UIUtil.pump() // Wait for the tab to be added on the UI thread
+    assertNull(inspector.noAnimationsPanel())
+    assertNotNull(inspector.tabbedPane.parent)
+    assertEquals(1, inspector.tabCount())
   }
 
   @Test

@@ -89,7 +89,8 @@ typealias ComposeAnimationEventTracker =
  */
 class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disposable {
 
-  private val animationPreviewPanel = JPanel(TabularLayout("Fit,*", "Fit,*,30px"))
+  private val animationPreviewPanel =
+    JPanel(TabularLayout("*", "*,30px")).apply { name = "Animation Preview" }
 
   val component = TooltipLayeredPane(animationPreviewPanel)
 
@@ -160,6 +161,27 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
     JBLoadingPanel(BorderLayout(), this).apply {
       name = "Loading Animations Panel"
       setLoadingText(message("animation.inspector.loading.animations.panel.message"))
+    }
+
+  /**
+   * If [loadingPanelVisible] is true - [noAnimationsPanel] is added to layout and animation tabs
+   * are removed. If [loadingPanelVisible] is false - [noAnimationsPanel] is removed from layout and
+   * animation tabs are added.
+   */
+  private var loadingPanelVisible: Boolean = false
+    set(value) {
+      field = value
+      if (value) {
+        noAnimationsPanel.startLoading()
+        animationPreviewPanel.add(noAnimationsPanel, TabularLayout.Constraint(0, 0))
+        animationPreviewPanel.remove(tabbedPane.component)
+        animationPreviewPanel.remove(bottomPanel)
+      } else {
+        noAnimationsPanel.stopLoading()
+        animationPreviewPanel.remove(noAnimationsPanel)
+        animationPreviewPanel.add(tabbedPane.component, TabularLayout.Constraint(0, 0))
+        animationPreviewPanel.add(bottomPanel, TabularLayout.Constraint(1, 0))
+      }
     }
 
   private val timeline = Timeline()
@@ -311,10 +333,7 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
 
   /** Replaces the [tabbedPane] with [noAnimationsPanel]. */
   private fun showNoAnimationsPanel() {
-    animationPreviewPanel.remove(tabbedPane.component)
-    animationPreviewPanel.remove(bottomPanel)
-    noAnimationsPanel.startLoading()
-    animationPreviewPanel.add(noAnimationsPanel, TabularLayout.Constraint(1, 0, 2))
+    loadingPanelVisible = true
     // Reset tab names, so when new tabs are added they start as #1
     tabNames.clear()
     timeline.cachedVal =
@@ -369,8 +388,7 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
     if (isAddingFirstTab) {
       // There are no tabs and we're about to add one. Replace the placeholder panel with the
       // TabbedPane.
-      noAnimationsPanel.stopLoading()
-      animationPreviewPanel.remove(noAnimationsPanel)
+      loadingPanelVisible = false
       tabbedPane.addTab(
         TabInfo(coordinationTab).apply {
           text = "${message("animation.inspector.tab.all.title")}  "
@@ -378,8 +396,6 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
         0
       )
       coordinationTab.addTimeline(timeline)
-      animationPreviewPanel.add(tabbedPane.component, TabularLayout.Constraint(1, 0, 2))
-      animationPreviewPanel.add(bottomPanel, TabularLayout.Constraint(2, 0, 2))
     }
   }
 
@@ -396,8 +412,8 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
     }
     animationsMap.remove(animation)
 
-    if (tabbedPane.tabCount == 1) {
-      tabbedPane.removeTab(tabbedPane.getTabAt(0))
+    if (animations.size == 0) {
+      tabbedPane.removeAllTabs()
       // There are no more tabs. Replace the TabbedPane with the placeholder panel.
       showNoAnimationsPanel()
     } else if (tabbedPane.tabCount != 0) {
@@ -426,9 +442,7 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
   }
 
   init {
-    animationPreviewPanel.name = "Animation Preview"
-    noAnimationsPanel.startLoading()
-    animationPreviewPanel.add(noAnimationsPanel, TabularLayout.Constraint(1, 0, 2))
+    loadingPanelVisible = true
   }
 
   private inner class TransitionAnimationManager(animation: ComposeAnimation) :
