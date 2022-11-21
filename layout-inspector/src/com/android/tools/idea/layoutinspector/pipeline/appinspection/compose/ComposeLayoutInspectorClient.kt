@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
+import com.android.tools.idea.analytics.IdeBrandProvider
+import com.android.tools.idea.analytics.currentIdeBrand
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.checkVersion
 import com.android.tools.idea.appinspection.ide.InspectorArtifactService
@@ -41,6 +43,7 @@ import com.android.tools.idea.protobuf.CodedInputStream
 import com.android.tools.idea.transport.TransportException
 import com.android.tools.idea.util.StudioPathManager
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.intellij.openapi.actionSystem.AnAction
@@ -151,6 +154,16 @@ class ComposeLayoutInspectorClient(
           developmentDirectory = resolveFolder(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER.get()),
           releaseDirectory = resolveFolder(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER.get())
         )
+      }
+      else if (currentIdeBrand() == AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE) {
+        requiredCompatibility = COMPOSE_INSPECTION_COMPATIBILITY.copy(
+          coordinate = COMPOSE_INSPECTION_COMPATIBILITY.coordinate.copy(version = "+"))
+        try {
+          InspectorArtifactService.instance.getOrResolveInspectorJar(project, requiredCompatibility.coordinate)
+        }
+        catch (exception: AppInspectionArtifactNotFoundException) {
+          return handleError(project, logErrorToMetrics, isRunningFromSourcesInTests, exception.errorCode)
+        }
       }
       else {
         requiredCompatibility = COMPOSE_INSPECTION_COMPATIBILITY

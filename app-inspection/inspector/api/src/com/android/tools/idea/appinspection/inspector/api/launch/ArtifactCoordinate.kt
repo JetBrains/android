@@ -21,6 +21,9 @@ import com.android.tools.app.inspection.AppInspection
  * Contains information that uniquely identifies the library.
  *
  * This normally refers to the maven/gradle coordinate of the artifact.
+ *
+ * [version] can optionally be '+' to match any version of the artifact, when used
+ * in the context of compatibility checks.
  */
 data class ArtifactCoordinate(
   val groupId: String,
@@ -52,4 +55,6 @@ data class ArtifactCoordinate(
     .setArtifactId(artifactId)
     .setVersion(version)
     .build()
+
+  fun matchesAnyVersion() = version == "+"
 }

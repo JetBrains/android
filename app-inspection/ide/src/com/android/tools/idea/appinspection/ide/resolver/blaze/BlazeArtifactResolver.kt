@@ -66,6 +66,10 @@ class BlazeArtifactResolver @VisibleForTesting constructor(
         "Artifact not found in blaze module system.", artifactCoordinate)
     }
     catch (e: AppInspectionArtifactNotFoundException) {
+      if (artifactCoordinate.matchesAnyVersion()) {
+        // We can't download a zip from GMaven if we don't know the exact version number.
+        throw e
+      }
       try {
         httpArtifactResolver.resolveArtifact(artifactCoordinate)
       }
