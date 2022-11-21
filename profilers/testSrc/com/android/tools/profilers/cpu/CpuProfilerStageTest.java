@@ -58,6 +58,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import perfetto.protos.PerfettoConfig;
 
 public final class CpuProfilerStageTest extends AspectObserver {
   private static final int FAKE_PID = 20;
@@ -452,7 +453,9 @@ public final class CpuProfilerStageTest extends AspectObserver {
       .setInitiationType(Trace.TraceInitiationType.INITIATED_BY_STARTUP)
       .setUserOptions(Trace.UserOptions.newBuilder()
                         .setName(FakeIdeProfilerServices.FAKE_ATRACE_NAME)
-                        .setTraceType(Trace.UserOptions.TraceType.PERFETTO))
+                        .setTraceType(Trace.UserOptions.TraceType.PERFETTO)
+      )
+      .setPerfettoOptions(PerfettoConfig.TraceConfig.getDefaultInstance())
       .build();
     addTraceInfoHelper(1, FAKE_DEVICE_ID, FAKE_PROCESS.getPid(), 100, -1, startUpTracingConfig);
 
@@ -461,7 +464,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getCaptureInitiationType()).isEqualTo(Trace.TraceInitiationType.INITIATED_BY_STARTUP);
     assertThat(myStage.getRecordingModel().isRecording()).isTrue();
     assertThat(myStage.getRecordingModel().getSelectedOption()).isNotNull();
-    assertThat(myStage.getRecordingModel().getSelectedOption().getTitle()).isEqualTo(FakeIdeProfilerServices.FAKE_ATRACE_NAME);
   }
 
   @Test
@@ -485,10 +487,14 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void configurationShouldBeTheOnGoingProfilingAfterExitAndEnter() throws InterruptedException {
-    ProfilingConfiguration testConfig = new SimpleperfConfiguration(FakeIdeProfilerServices.FAKE_SIMPLEPERF_NAME);
+    SimpleperfConfiguration testConfig = new SimpleperfConfiguration(FakeIdeProfilerServices.FAKE_SIMPLEPERF_NAME);
     myStage.getProfilerConfigModel().setProfilingConfiguration(testConfig);
     CpuProfilerTestUtils.startCapturing(myStage, myTransportService, true);
-    assertThat(myStage.getProfilerConfigModel().getProfilingConfiguration()).isEqualTo(testConfig);
+    ProfilingConfiguration beforeExitProfilingConfiguration = myStage.getProfilerConfigModel().getProfilingConfiguration();
+    assertThat(beforeExitProfilingConfiguration.getTraceType()).isEqualTo(testConfig.getTraceType());
+    assertThat(((SimpleperfConfiguration)beforeExitProfilingConfiguration).getProfilingSamplingIntervalUs()).isEqualTo(
+      testConfig.getProfilingSamplingIntervalUs());
+
     myStage.exit();
 
     // Enter CpuProfilerStage again.
@@ -499,7 +505,10 @@ public final class CpuProfilerStageTest extends AspectObserver {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     assertThat(newStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
-    assertThat(newStage.getProfilerConfigModel().getProfilingConfiguration()).isEqualTo(testConfig);
+    ProfilingConfiguration afterEnterProfilingConfiguration = newStage.getProfilerConfigModel().getProfilingConfiguration();
+    assertThat(afterEnterProfilingConfiguration.getTraceType()).isEqualTo(testConfig.getTraceType());
+    assertThat(((SimpleperfConfiguration)afterEnterProfilingConfiguration).getProfilingSamplingIntervalUs()).isEqualTo(
+      testConfig.getProfilingSamplingIntervalUs());
   }
 
   @Test

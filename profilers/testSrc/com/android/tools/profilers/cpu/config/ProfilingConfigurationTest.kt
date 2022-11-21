@@ -32,24 +32,28 @@ class ProfilingConfigurationTest {
 
   @Test
   fun fromProto() {
-    val userOptions = Trace.UserOptions.newBuilder()
-      .setName("MyConfiguration")
-      .setTraceMode(Trace.TraceMode.SAMPLED)
-      .setTraceType(Trace.UserOptions.TraceType.ART)
-      .setSamplingIntervalUs(123)
-      .setBufferSizeInMb(12)
-      .build()
-    val proto = Trace.TraceConfiguration.newBuilder()
-      .setUserOptions(userOptions)
+    val proto = TraceConfiguration.newBuilder()
+      .setArtOptions(Trace.ArtOptions.newBuilder().setTraceMode(TraceMode.SAMPLED).setSamplingIntervalUs(123).setBufferSizeInMb(12))
       .build()
     val config = ProfilingConfiguration.fromProto(proto)
     assertThat(config).isInstanceOf(ArtSampledConfiguration::class.java)
-    val art = config as ArtSampledConfiguration
-    assertThat(config.name).isEqualTo("MyConfiguration")
+    config as ArtSampledConfiguration
+    assertThat(config.name).isEqualTo("")
     assertThat(config).isInstanceOf(ArtSampledConfiguration::class.java)
     assertThat(config.traceType).isEqualTo(TraceType.ART)
     assertThat(config.profilingSamplingIntervalUs).isEqualTo(123)
     assertThat(config.profilingBufferSizeInMb).isEqualTo(12)
+  }
+
+  @Test
+  fun fromProtoOptionsNotSet() {
+    val proto = TraceConfiguration.getDefaultInstance()
+    val config = ProfilingConfiguration.fromProto(proto)
+    assertThat(config).isInstanceOf(UnspecifiedConfiguration::class.java)
+    config as UnspecifiedConfiguration
+    assertThat(config.name).isEqualTo("Unnamed")
+    assertThat(config).isInstanceOf(UnspecifiedConfiguration::class.java)
+    assertThat(config.traceType).isEqualTo(TraceType.UNSPECIFIED)
   }
 
   @Test

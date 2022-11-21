@@ -119,37 +119,39 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
   @NotNull
   public static ProfilingConfiguration fromProto(@NotNull Trace.TraceConfiguration proto) {
     ProfilingConfiguration configuration = null;
-    switch (proto.getUserOptions().getTraceType()) {
-      case ART:
-        if (proto.getUserOptions().getTraceMode() == Trace.TraceMode.SAMPLED) {
-          ArtSampledConfiguration artSampled = new ArtSampledConfiguration(proto.getUserOptions().getName());
-          artSampled.setProfilingSamplingIntervalUs(proto.getUserOptions().getSamplingIntervalUs());
-          artSampled.setProfilingBufferSizeInMb(proto.getUserOptions().getBufferSizeInMb());
+    switch (proto.getUnionCase()) {
+      case ART_OPTIONS:
+        if (proto.getArtOptions().getTraceMode() == Trace.TraceMode.SAMPLED) {
+          ArtSampledConfiguration artSampled = new ArtSampledConfiguration("");
+          artSampled.setProfilingSamplingIntervalUs(proto.getArtOptions().getSamplingIntervalUs());
+          artSampled.setProfilingBufferSizeInMb(proto.getArtOptions().getBufferSizeInMb());
           configuration = artSampled;
         }
         else {
-          ArtInstrumentedConfiguration art = new ArtInstrumentedConfiguration(proto.getUserOptions().getName());
-          art.setProfilingBufferSizeInMb(proto.getUserOptions().getBufferSizeInMb());
-          configuration = art;
+          ArtInstrumentedConfiguration artInstrumented = new ArtInstrumentedConfiguration("");
+          artInstrumented.setProfilingBufferSizeInMb(proto.getArtOptions().getBufferSizeInMb());
+          configuration = artInstrumented;
         }
         break;
-      case PERFETTO:
-        PerfettoConfiguration perfetto = new PerfettoConfiguration(proto.getUserOptions().getName());
-        perfetto.setProfilingBufferSizeInMb(proto.getUserOptions().getBufferSizeInMb());
+      case PERFETTO_OPTIONS:
+        PerfettoConfiguration perfetto = new PerfettoConfiguration("");
+        if (proto.getPerfettoOptions().getBuffersCount() > 0) {
+          // Perfetto buffer size is configured for the first buffer always. Value is fetched as Kb, so we convert to Mb.
+          perfetto.setProfilingBufferSizeInMb(proto.getPerfettoOptions().getBuffers(0).getSizeKb() / 1024);
+        }
         configuration = perfetto;
         break;
-      case ATRACE:
-        AtraceConfiguration atrace = new AtraceConfiguration(proto.getUserOptions().getName());
-        atrace.setProfilingBufferSizeInMb(proto.getUserOptions().getBufferSizeInMb());
+      case ATRACE_OPTIONS:
+        AtraceConfiguration atrace = new AtraceConfiguration("");
+        atrace.setProfilingBufferSizeInMb(proto.getAtraceOptions().getBufferSizeInMb());
         configuration = atrace;
         break;
-      case SIMPLEPERF:
-        SimpleperfConfiguration simpleperf = new SimpleperfConfiguration(proto.getUserOptions().getName());
-        simpleperf.setProfilingSamplingIntervalUs(proto.getUserOptions().getSamplingIntervalUs());
+      case SIMPLEPERF_OPTIONS:
+        SimpleperfConfiguration simpleperf = new SimpleperfConfiguration("");
+        simpleperf.setProfilingSamplingIntervalUs(proto.getSimpleperfOptions().getSamplingIntervalUs());
         configuration = simpleperf;
         break;
-      case UNRECOGNIZED:
-      case UNSPECIFIED_TYPE:
+      case UNION_NOT_SET:
         return new UnspecifiedConfiguration(DEFAULT_CONFIGURATION_NAME);
     }
     return configuration;
