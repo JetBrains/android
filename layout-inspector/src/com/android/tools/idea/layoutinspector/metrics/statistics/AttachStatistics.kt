@@ -24,7 +24,8 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.Att
  * Attachment information for the current session.
  */
 class AttachStatistics(
-  private val clientType: ClientType
+  private val clientType: ClientType,
+  private val multipleProjectsOpen: () -> Boolean
 ) {
   private var success = false
   private var error = false
@@ -49,6 +50,7 @@ class AttachStatistics(
         error.attachErrorState = errorState
       }
       it.composeErrorCode = composeErrorCode
+      it.multipleProjectsOpen = multipleProjectsOpen.invoke()
     }
   }
 

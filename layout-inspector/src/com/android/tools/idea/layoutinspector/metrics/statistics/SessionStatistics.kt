@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.metrics.statistics
 
+import com.android.tools.idea.layoutinspector.LayoutInspectorOpenProjectsTracker
 import com.android.tools.idea.layoutinspector.model.RecompositionData
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
@@ -123,8 +124,11 @@ interface SessionStatistics {
   var recompositionHighlightColor: Int
 }
 
-class SessionStatisticsImpl(clientType: ClientType) : SessionStatistics {
-  private val attach = AttachStatistics(clientType)
+class SessionStatisticsImpl(
+  clientType: ClientType,
+  areMultipleProjectsOpen: () -> Boolean = { LayoutInspectorOpenProjectsTracker.areMultipleProjectsOpen() }
+) : SessionStatistics {
+  private val attach = AttachStatistics(clientType, areMultipleProjectsOpen)
   private val live = LiveModeStatistics()
   private val rotation = RotationStatistics()
   private val compose = ComposeStatistics()

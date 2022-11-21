@@ -37,7 +37,7 @@ class SessionStatisticsTest {
 
   @Test
   fun doNotSaveEmptyData() {
-    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
+    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT) { false }
     val data = DynamicLayoutInspectorSession.newBuilder()
     stats.frameReceived()
     stats.save(data)
@@ -50,6 +50,7 @@ class SessionStatisticsTest {
     assertThat(result.hasGotoDeclaration()).isFalse()
     assertThat(result.hasAttach()).isTrue() // except for attach data
     assertThat(result.attach.clientType).isEqualTo(APP_INSPECTION_CLIENT)
+    assertThat(result.attach.multipleProjectsOpen).isFalse()
   }
 
   @Test
@@ -61,7 +62,7 @@ class SessionStatisticsTest {
         }
       }
     }
-    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
+    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT) { true }
     val compose1 = model[COMPOSE1]
     stats.start()
     model.notifyModified(structuralChange = true)
@@ -93,5 +94,27 @@ class SessionStatisticsTest {
     assertThat(result.gotoDeclaration.doubleClicks).isEqualTo(1)
     assertThat(result.attach.clientType).isEqualTo(APP_INSPECTION_CLIENT)
     assertThat(result.attach.success).isTrue()
+    assertThat(result.attach.multipleProjectsOpen).isTrue()
+  }
+
+  @Test
+  fun testHasMultipleProjectsIsUpdated() {
+    var hasMultipleProjects = false
+    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT) { hasMultipleProjects }
+
+    stats.start()
+
+    val data1 = DynamicLayoutInspectorSession.newBuilder()
+    stats.save(data1)
+    val result1 = data1.build()
+    assertThat(result1.attach.multipleProjectsOpen).isFalse()
+
+    hasMultipleProjects = true
+    stats.start()
+
+    val data2 = DynamicLayoutInspectorSession.newBuilder()
+    stats.save(data2)
+    val result2 = data2.build()
+    assertThat(result2.attach.multipleProjectsOpen).isTrue()
   }
 }

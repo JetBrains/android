@@ -74,11 +74,23 @@ fun dataProviderForLayoutInspector(layoutInspector: LayoutInspector, deviceViewP
   DataProvider { dataId -> if (LAYOUT_INSPECTOR_DATA_KEY.`is`(dataId)) layoutInspector else deviceViewPanel.getData(dataId) }
 
 /**
+ * Class used to keep track of open projects, for metrics purposes
+ */
+object LayoutInspectorOpenProjectsTracker {
+  internal var openProjects = 0
+
+  fun areMultipleProjectsOpen(): Boolean = openProjects > 1
+}
+
+/**
  * ToolWindowFactory: For creating a layout inspector tool window for the project.
  */
 class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
+    LayoutInspectorOpenProjectsTracker.openProjects += 1
+    Disposer.register(toolWindow.disposable) { LayoutInspectorOpenProjectsTracker.openProjects -= 1 }
+
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, project)
     val viewSettings = InspectorRenderSettings()
 
