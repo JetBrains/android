@@ -19,9 +19,9 @@ import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.TransportBytesPreprocessor;
 import com.android.tools.idea.transport.TransportEventPreprocessor;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.cpu.TracePreProcessor;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -47,8 +47,8 @@ public class SimpleperfPipelinePreprocessor implements TransportEventPreprocesso
   public boolean shouldPreprocess(Common.Event event) {
     return event.hasCpuTrace() &&
            event.getCpuTrace().hasTraceStarted() &&
-           event.getCpuTrace().getTraceStarted().getTraceInfo().getConfiguration().getUserOptions().getTraceType() ==
-           Trace.UserOptions.TraceType.SIMPLEPERF;
+           TraceType.from(event.getCpuTrace().getTraceStarted().getTraceInfo().getConfiguration()) ==
+           TraceType.SIMPLEPERF;
   }
 
   /**
