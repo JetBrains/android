@@ -20,13 +20,11 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.SceneViewErrorsPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
-import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
-import com.android.tools.idea.compose.preview.util.ComposePreviewElement
-import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
@@ -40,8 +38,14 @@ import java.awt.Dimension
 import javax.swing.JPanel
 import junit.framework.Assert.assertFalse
 import junit.framework.Assert.assertTrue
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.ExperimentalTime
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.junit.Rule
 import org.junit.Test
 
@@ -54,6 +58,30 @@ class RenderErrorTest {
   private val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
 
+  /** Activates the [ComposePreviewRepresentation] and waits for scenes to complete rendering. */
+  @OptIn(ExperimentalTime::class)
+  suspend fun ComposePreviewRepresentation.activateAndWaitForRender(fakeUi: FakeUi) =
+    withTimeout(timeout = 30.seconds) {
+      onActivate()
+
+      val sceneViewPeerPanels = mutableSetOf<SceneViewPeerPanel>()
+      while (isActive && sceneViewPeerPanels.isEmpty()) {
+        withContext(Dispatchers.Main) {
+          delay(250)
+          invokeAndWaitIfNeeded { fakeUi.root.validate() }
+          sceneViewPeerPanels.addAll(fakeUi.findAllComponents())
+        }
+      }
+
+      // Now wait for them to be rendered
+      while (isActive &&
+        sceneViewPeerPanels.any {
+          (it.sceneView.sceneManager as? LayoutlibSceneManager)?.renderResult == null
+        }) {
+        delay(250)
+      }
+    }
+
   @Test
   fun testSceneViewHasRenderErrors() {
     val mainFile =
@@ -65,15 +93,9 @@ class RenderErrorTest {
 
     val previewView = TestComposePreviewView(fixture.testRootDisposable, project)
     composePreviewRepresentation =
-      ComposePreviewRepresentation(
-        psiMainFile,
-        object : PreviewElementProvider<ComposePreviewElement> {
-          override suspend fun previewElements(): Sequence<ComposePreviewElement> =
-            AnnotationFilePreviewElementFinder.findPreviewMethods(project, psiMainFile.virtualFile)
-              .asSequence()
-        },
-        PreferredVisibility.SPLIT
-      ) { _, _, _, _, _, _ -> previewView }
+      ComposePreviewRepresentation(psiMainFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
+        previewView
+      }
     Disposer.register(fixture.testRootDisposable, composePreviewRepresentation)
 
     lateinit var fakeUi: FakeUi
@@ -92,13 +114,7 @@ class RenderErrorTest {
     }
     composePreviewRepresentation.onActivate()
 
-    runBlocking {
-      composePreviewRepresentation.forceRefresh()!!.join()
-      previewView.updateVisibilityAndNotifications()
-      while (composePreviewRepresentation.status().isRefreshing) delay(500)
-    }
-
-    invokeAndWaitIfNeeded { fakeUi.root.validate() }
+    runBlocking { composePreviewRepresentation.activateAndWaitForRender(fakeUi) }
 
     val panels = fakeUi.findAllComponents<SceneViewPeerPanel>()
 

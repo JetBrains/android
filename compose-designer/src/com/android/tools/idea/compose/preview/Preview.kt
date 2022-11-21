@@ -35,6 +35,7 @@ import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.FpsCalculator
 import com.android.tools.idea.compose.preview.util.containsOffset
+import com.android.tools.idea.compose.preview.util.previewElementFlowForFile
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -52,7 +53,6 @@ import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LoggerWithFixedInfo
-import com.android.tools.idea.preview.MemoizedPreviewElementProvider
 import com.android.tools.idea.preview.NavigatingInteractionHandler
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElementProvider
@@ -117,6 +117,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.conflate
@@ -220,12 +221,11 @@ private const val LAYOUT_KEY = "previewLayout"
  * `@Composable` functions.
  *
  * @param psiFile [PsiFile] pointing to the Kotlin source containing the code to preview.
- * @param previewProvider [PreviewElementProvider] to obtain the [ComposePreviewElement]s.
  * @param preferredInitialVisibility preferred [PreferredVisibility] for this representation.
+ * @param composePreviewViewProvider [ComposePreviewView] provider.
  */
 class ComposePreviewRepresentation(
   psiFile: PsiFile,
-  previewProvider: PreviewElementProvider<ComposePreviewElement>,
   override val preferredInitialVisibility: PreferredVisibility,
   composePreviewViewProvider: ComposePreviewViewProvider
 ) :
@@ -265,6 +265,9 @@ class ComposePreviewRepresentation(
   private val project = psiFile.project
   private val module = runReadAction { psiFile.module }
   private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
+
+  private val previewElementsFlow: MutableStateFlow<Set<ComposePreviewElement>> =
+    MutableStateFlow(emptySet())
 
   private val projectBuildStatusManager =
     ProjectBuildStatusManager.create(
@@ -334,14 +337,13 @@ class ComposePreviewRepresentation(
       requestRefresh()
     }
 
-  /**
-   * [PreviewElementProvider] used to save the result of a call to `previewProvider`. Calls to
-   * `previewProvider` can potentially be slow. This saves the last result and it is refreshed on
-   * demand when we know is not running on the UI thread.
-   */
-  private val memoizedElementsProvider =
-    MemoizedPreviewElementProvider(previewProvider, previewFreshnessTracker)
-  private val previewElementProvider = PreviewFilters(memoizedElementsProvider)
+  private val previewElementProvider =
+    PreviewFilters(
+      object : PreviewElementProvider<ComposePreviewElement> {
+        override suspend fun previewElements(): Sequence<ComposePreviewElement> =
+          previewElementsFlow.value.asSequence()
+      }
+    )
 
   override var groupFilter: PreviewGroup by
     Delegates.observable(ALL_PREVIEW_GROUP) { _, oldValue, newValue ->
@@ -761,6 +763,15 @@ class ComposePreviewRepresentation(
     with(this@initializeFlows) {
       // Launch all the listeners that are bound to the current activation.
 
+      // Flow for Preview changes
+      launch(workerThread) {
+        previewElementFlowForFile(this@ComposePreviewRepresentation, psiFilePointer).collect {
+          LOG.debug("PreviewElements updated $it")
+          previewElementsFlow.value = it
+          requestRefresh(true)
+        }
+      }
+
       // Flow to collate and process requestRefresh requests.
       launch(workerThread) {
         refreshFlow.conflate().collect {
@@ -894,8 +905,7 @@ class ComposePreviewRepresentation(
 
     lifecycleManager.executeIfActive {
       launch(uiThread) {
-        val filePreviewElements =
-          withContext(workerThread) { memoizedElementsProvider.previewElements() }
+        val filePreviewElements = withContext(workerThread) { previewElementsFlow.value }
         // Workaround for b/238735830: The following withContext(uiThread) should not be needed but
         // the code below ends up being executed
         // in a worker thread under some circumstances so we need to prevent that from happening by
@@ -1126,7 +1136,7 @@ class ComposePreviewRepresentation(
           refreshProgressIndicator.text = message("refresh.progress.indicator.finding.previews")
           val filePreviewElements =
             withContext(workerThread) {
-              memoizedElementsProvider.previewElements().toList().sortByDisplayAndSourcePosition()
+              previewElementsFlow.value.toList().sortByDisplayAndSourcePosition()
             }
 
           val needsFullRefresh =

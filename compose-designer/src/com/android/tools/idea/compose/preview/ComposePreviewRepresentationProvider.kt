@@ -197,7 +197,6 @@ class ComposePreviewRepresentationProvider(
 
     return ComposePreviewRepresentation(
       psiFile,
-      previewProvider,
       if (isComposableEditor) globalState.preferredComposableEditorVisibility()
       else globalState.preferredKotlinEditorVisibility(),
       ::ComposePreviewViewImpl

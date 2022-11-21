@@ -20,11 +20,9 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
-import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
@@ -145,18 +143,9 @@ class ComposePreviewRepresentationTest {
 
       val composeView = TestComposePreviewView(mainSurface)
       val preview =
-        ComposePreviewRepresentation(
-          composeTest,
-          object : PreviewElementProvider<ComposePreviewElement> {
-            override suspend fun previewElements(): Sequence<ComposePreviewElement> =
-              AnnotationFilePreviewElementFinder.findPreviewMethods(
-                  project,
-                  composeTest.virtualFile
-                )
-                .asSequence()
-          },
-          PreferredVisibility.SPLIT
-        ) { _, _, _, _, _, _ -> composeView }
+        ComposePreviewRepresentation(composeTest, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
+          composeView
+        }
       Disposer.register(fixture.testRootDisposable, preview)
       withContext(Dispatchers.IO) {
         logger.info("compile")

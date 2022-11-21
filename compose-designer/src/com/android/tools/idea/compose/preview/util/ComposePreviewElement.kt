@@ -32,7 +32,11 @@ import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.compose.pickers.preview.utils.findOrParseFromDefinition
 import com.android.tools.idea.compose.pickers.preview.utils.getDefaultPreviewDevice
+import com.android.tools.idea.compose.preview.defaultFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.hasPreviewElements
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.concurrency.psiFileChangeFlow
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.Wallpaper
 import com.android.tools.idea.preview.DisplayPositioning
@@ -46,18 +50,32 @@ import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.parentOfType
 import java.awt.Dimension
 import java.util.Objects
+import kotlin.coroutines.coroutineContext
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.full.functions
 import kotlin.reflect.jvm.isAccessible
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.sdk.CompatibilityRenderTarget
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager
 import org.jetbrains.android.uipreview.ModuleRenderContext
@@ -716,4 +734,45 @@ interface FilePreviewElementFinder {
     project: Project,
     vFile: VirtualFile
   ): Collection<ComposePreviewElement>
+}
+
+/**
+ * Creates a new [StateFlow] containing all the [ComposePreviewElement]s contained in the given
+ * [psiFilePointer]. The given [FilePreviewElementFinder] is used to parse the file and obtain the
+ * [ComposePreviewElement]s.
+ */
+@OptIn(FlowPreview::class)
+suspend fun previewElementFlowForFile(
+  parentDisposable: Disposable,
+  psiFilePointer: SmartPsiElementPointer<PsiFile>,
+  filePreviewElementProvider: () -> FilePreviewElementFinder = ::defaultFilePreviewElementFinder
+): StateFlow<Set<ComposePreviewElement>> {
+  val scope = AndroidCoroutineScope(parentDisposable, coroutineContext)
+  val state = MutableStateFlow<Set<ComposePreviewElement>>(emptySet())
+
+  val previewProvider =
+    object : PreviewElementProvider<ComposePreviewElement> {
+      override suspend fun previewElements(): Sequence<ComposePreviewElement> =
+        withContext(workerThread) {
+          filePreviewElementProvider()
+            .findPreviewMethods(psiFilePointer.project, psiFilePointer.virtualFile)
+            .asSequence()
+        }
+    }
+
+  scope.launch(workerThread) {
+    psiFileChangeFlow(psiFilePointer.project, parentDisposable)
+      // filter only for the file we care about
+      .filter {
+        PsiManager.getInstance(psiFilePointer.project)
+          .areElementsEquivalent(psiFilePointer.element, it)
+      }
+      // debounce to avoid many equality comparisons of the set
+      .debounce(250)
+      .collect { state.update { previewProvider.previewElements().toSet() } }
+  }
+
+  // Set the initial state to the first elements found
+  state.update { previewProvider.previewElements().toSet() }
+  return state
 }

@@ -20,18 +20,15 @@ import com.android.testutils.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
-import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
-import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
 import com.android.tools.idea.editors.fast.TestFastPreviewTrackerManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
-import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.testing.deleteLine
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
@@ -678,15 +675,7 @@ class ComposePreviewRepresentationGradleTest {
     view: TestComposePreviewView
   ): ComposePreviewRepresentation {
     val previewRepresentation =
-      ComposePreviewRepresentation(
-        psiFile,
-        object : PreviewElementProvider<ComposePreviewElement> {
-          override suspend fun previewElements(): Sequence<ComposePreviewElement> =
-            AnnotationFilePreviewElementFinder.findPreviewMethods(project, psiFile.virtualFile)
-              .asSequence()
-        },
-        PreferredVisibility.SPLIT
-      ) { _, _, _, _, _, _ -> view }
+      ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> view }
     Disposer.register(fixture.testRootDisposable, previewRepresentation)
     return previewRepresentation
   }
