@@ -17,11 +17,14 @@ package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorTransportError
 import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.verify
 
 class TransportErrorListenerTest {
 
@@ -31,12 +34,14 @@ class TransportErrorListenerTest {
   @Test
   fun testErrorShowsBanner() {
     val bannerService = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
-    val transportErrorListener = TransportErrorListener(projectRule.project)
+    val mockMetrics = mock<LayoutInspectorMetrics>()
+    val transportErrorListener = TransportErrorListener(projectRule.project, mockMetrics)
 
     transportErrorListener.onStartTransportDaemonServerFail(mock(), mock())
 
     assertThat(bannerService.notification?.message).isEqualTo(LayoutInspectorBundle.message("two.versions.of.studio.running"))
     assertThat(bannerService.notification?.actions).isEmpty()
+    verify(mockMetrics).logTransportError(DynamicLayoutInspectorTransportError.Type.TRANSPORT_FAILED_TO_START_DAEMON)
 
     transportErrorListener.onPreTransportDaemonStart(mock())
 

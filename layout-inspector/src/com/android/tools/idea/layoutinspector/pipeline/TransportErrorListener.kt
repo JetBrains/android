@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.transport.FailedToStartServerException
@@ -24,13 +25,17 @@ import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.profiler.proto.Agent
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorTransportError
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 
 /**
  * Class responsible for listening to events published by the transport.
  */
-class TransportErrorListener(private val project: Project) : TransportDeviceManager.TransportDeviceManagerListener {
+class TransportErrorListener(
+  private val project: Project,
+  private val layoutInspectorMetrics: LayoutInspectorMetrics
+  ) : TransportDeviceManager.TransportDeviceManagerListener {
   val errorMessage = LayoutInspectorBundle.message("two.versions.of.studio.running")
 
   private var hasStartServerFailed = false
@@ -63,6 +68,7 @@ class TransportErrorListener(private val project: Project) : TransportDeviceMana
     // this happens if the transport can't start the server on the designated port.
     // for example if multiple versions of Studio are running.
     hasStartServerFailed = true
+    layoutInspectorMetrics.logTransportError(DynamicLayoutInspectorTransportError.Type.TRANSPORT_FAILED_TO_START_DAEMON)
   }
 
   override fun customizeProxyService(proxy: TransportProxy) { }
