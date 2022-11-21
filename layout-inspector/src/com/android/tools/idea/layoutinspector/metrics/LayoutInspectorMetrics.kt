@@ -22,7 +22,6 @@ import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisti
 import com.android.tools.idea.layoutinspector.snapshots.SnapshotMetadata
 import com.android.tools.idea.stats.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAutoConnectInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
@@ -40,6 +39,19 @@ class LayoutInspectorMetrics(
   fun setProcess(process: ProcessDescriptor) {
     this.process = process
     loggedInitialConnect = false
+  }
+
+  companion object {
+    fun logEvent(eventType: DynamicLayoutInspectorEventType) {
+      val builder = AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT
+        dynamicLayoutInspectorEventBuilder.apply {
+          type = eventType
+        }
+      }
+
+      UsageTracker.log(builder)
+    }
   }
 
   fun logEvent(

@@ -208,7 +208,7 @@ class LayoutInspectorToolWindowManagerListener @VisibleForTesting constructor(pr
     wasWindowVisible = isWindowVisible
     if (windowVisibilityChanged) {
       if (isWindowVisible) {
-        LayoutInspectorMetrics(project).logEvent(DynamicLayoutInspectorEventType.OPEN, DisconnectedClient.stats)
+        LayoutInspectorMetrics.logEvent(DynamicLayoutInspectorEventType.OPEN)
       }
       else if (clientLauncher.activeClient.isConnected) {
         toolWindowManager.notifyByBalloon(
