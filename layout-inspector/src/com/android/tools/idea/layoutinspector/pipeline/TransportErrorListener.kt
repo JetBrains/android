@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline
 
+import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
@@ -68,7 +69,10 @@ class TransportErrorListener(
     // this happens if the transport can't start the server on the designated port.
     // for example if multiple versions of Studio are running.
     hasStartServerFailed = true
-    layoutInspectorMetrics.logTransportError(DynamicLayoutInspectorTransportError.Type.TRANSPORT_FAILED_TO_START_DAEMON)
+    layoutInspectorMetrics.logTransportError(
+      DynamicLayoutInspectorTransportError.Type.TRANSPORT_FAILED_TO_START_DAEMON,
+      device.toDeviceDescriptor()
+    )
   }
 
   override fun customizeProxyService(proxy: TransportProxy) { }

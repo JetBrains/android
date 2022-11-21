@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
@@ -207,12 +208,20 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
   }
 
   public void addDevice(Common.Device device) {
+    addDevice(device, myTimer::getCurrentTimeNs);
+  }
+
+  public void addDevice(Common.Device device, long timestamp) {
+    addDevice(device, () -> timestamp);
+  }
+
+  private void addDevice(Common.Device device, Supplier<Long> timestampSupplier) {
     myDevices.put(device.getDeviceId(), device);
     // The event pipeline expects devices are connected via streams. So when a new devices is added we create a stream connected event.
     // likewise when a device is taken offline we create a stream disconnected event.
     if (device.getState() == Common.Device.State.ONLINE) {
       addEventToStream(DataStoreService.DATASTORE_RESERVED_STREAM_ID, Common.Event.newBuilder()
-        .setTimestamp(myTimer.getCurrentTimeNs())
+        .setTimestamp(timestampSupplier.get())
         .setKind(Common.Event.Kind.STREAM)
         .setGroupId(device.getDeviceId())
         .setStream(Common.StreamData.newBuilder().setStreamConnected(Common.StreamData.StreamConnected.newBuilder().setStream(
@@ -224,7 +233,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     }
     if (device.getState() == Common.Device.State.OFFLINE || device.getState() == Common.Device.State.DISCONNECTED) {
       addEventToStream(DataStoreService.DATASTORE_RESERVED_STREAM_ID, Common.Event.newBuilder()
-        .setTimestamp(myTimer.getCurrentTimeNs())
+        .setTimestamp(timestampSupplier.get())
         .setGroupId(device.getDeviceId())
         .setKind(Common.Event.Kind.STREAM)
         .setIsEnded(true)
