@@ -27,18 +27,19 @@ import java.util.concurrent.TimeUnit
  *
  * JfrReportManagers should be initialized in [RecordingManager.createReportManagers]
  */
-sealed class JfrReportManager(val generatorSupplier: () -> JfrReportGenerator) {
-  var currentReportGenerator: JfrReportGenerator? = null
+sealed class JfrReportManager<T : JfrReportGenerator>(val generatorSupplier: () -> T) {
+  var currentReportGenerator: T? = null
   abstract fun startCapture()
   abstract fun stopCapture()
 
   companion object {
-    fun create(generatorSupplier: () -> JfrReportGenerator,
-               aggregation: Duration? = null, // null means no aggregation
-               setupTask: JfrReportManager.() -> Unit): JfrReportManager {
+    fun <T : JfrReportGenerator> create(generatorSupplier: () -> T,
+                                        aggregation: Duration? = null, // null means no aggregation
+                                        setupTask: JfrReportManager<T>.() -> Unit): JfrReportManager<T> {
       val manager = if (aggregation == null) {
         ReportPerCaptureJfrReportManager(generatorSupplier)
-      } else {
+      }
+      else {
         AggregatingJfrReportManager(aggregation, generatorSupplier)
       }
       manager.setupTask();
@@ -47,7 +48,7 @@ sealed class JfrReportManager(val generatorSupplier: () -> JfrReportGenerator) {
   }
 }
 
-private class ReportPerCaptureJfrReportManager(generatorSupplier: () -> JfrReportGenerator): JfrReportManager(generatorSupplier) {
+private class ReportPerCaptureJfrReportManager<T : JfrReportGenerator>(generatorSupplier: () -> T): JfrReportManager<T>(generatorSupplier) {
   override fun startCapture() {
     if (currentReportGenerator != null) {
       throw IllegalStateException("Overlapping JFR capture intervals not permitted.")
@@ -65,8 +66,8 @@ private class ReportPerCaptureJfrReportManager(generatorSupplier: () -> JfrRepor
   }
 }
 
-private class AggregatingJfrReportManager(aggregationPeriod: Duration,
-                                          generatorSupplier: () -> JfrReportGenerator): JfrReportManager(generatorSupplier) {
+private class AggregatingJfrReportManager<T : JfrReportGenerator>(aggregationPeriod: Duration,
+                                                                  generatorSupplier: () -> T): JfrReportManager<T>(generatorSupplier) {
   init {
     currentReportGenerator = generatorSupplier()
     JobScheduler.getScheduler().scheduleWithFixedDelay({

@@ -44,7 +44,7 @@ class JfrFreezeReports {
         application.messageBus.connect(application).subscribe(IdePerformanceListener.TOPIC, object : IdePerformanceListener {
           override fun uiFreezeStarted() {
             startCapture()
-            (currentReportGenerator as JfrFreezeReportGenerator).edtStackForCrash =
+            currentReportGenerator!!.edtStackForCrash =
               ThreadDumper.getEdtStackForCrash(ThreadDumper.dumpThreadsToString(), EXCEPTION_TYPE) ?: EMPTY_ANR_STACKTRACE
           }
 
