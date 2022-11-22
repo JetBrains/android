@@ -15,4 +15,7 @@
  */
 package com.android.tools.idea.diagnostics.jfr.reports
 
-val typesToFields = mapOf(JfrFreezeReports.REPORT_TYPE to JfrFreezeReports.FIELDS)
+val typesToFields = mapOf(
+  JfrFreezeReports.REPORT_TYPE to JfrFreezeReports.FIELDS,
+  JfrTypingLatencyReports.REPORT_TYPE to JfrTypingLatencyReports.FIELDS
+)
