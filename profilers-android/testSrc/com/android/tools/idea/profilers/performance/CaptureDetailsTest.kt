@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.profilers.performance
 
+import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.Timeline
 import com.android.tools.adtui.model.filter.Filter
+import com.android.tools.idea.transport.faketransport.FakeGrpcServer
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.perflib.vmtrace.ClockType
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
@@ -42,6 +46,14 @@ import org.junit.Test
 class CaptureDetailsTest {
   @get:Rule
   val appRule = ApplicationRule()
+
+  private val timer = FakeTimer()
+  private val transportService = FakeTransportService(timer, false)
+  private val profilerService = FakeProfilerService(timer)
+
+  @get:Rule
+  var grpcServer = FakeGrpcServer.createFakeGrpcServer("CaptureDetailsTest", transportService, profilerService)
+
   private fun benchmarkInit(prefix: String) =
     benchmarkMemoryAndTime("$prefix Initialization", "Load-Capture", memUnit = MemoryUnit.KB)
   private fun benchmarkRangeChange(prefix: String) =
@@ -119,7 +131,7 @@ class CaptureDetailsTest {
   }
 
   private fun fakeProfilersView(): StudioProfilersView {
-    val profilers = object: StudioProfilers(ProfilerClient("test"), FakeIdeProfilerServices()) {
+    val profilers = object: StudioProfilers(ProfilerClient(grpcServer.channel), FakeIdeProfilerServices()) {
       override fun update(elapsedNs: Long) {}
     }
     return StudioProfilersView(profilers, FakeIdeProfilerComponents())

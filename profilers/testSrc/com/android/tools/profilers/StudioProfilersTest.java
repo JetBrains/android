@@ -1163,6 +1163,11 @@ public final class StudioProfilersTest {
     assertThat(myProfilers.getSession().getStreamId()).isEqualTo(device.getDeviceId());
     assertThat(myProfilers.getSession().getPid()).isEqualTo(process.getPid());
     assertThat(myProfilers.getSession().getEndTimestamp()).isNotEqualTo(Long.MAX_VALUE);
+
+    // Even if the device process map (live data) is cleared, the session data should be persistent and consistent.
+    assertThat(myProfilers.getSelectedSessionSupportLevel()).isEqualTo(SupportLevel.DEBUGGABLE);
+    myProfilers.getDeviceProcessMap().clear();
+    assertThat(myProfilers.getSelectedSessionSupportLevel()).isEqualTo(SupportLevel.DEBUGGABLE);
   }
 
   @Test

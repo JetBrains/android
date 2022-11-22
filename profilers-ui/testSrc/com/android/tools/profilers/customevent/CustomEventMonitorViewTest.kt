@@ -19,9 +19,11 @@ import com.android.tools.adtui.LegendComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.chart.statechart.StateChart
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE
 import com.android.tools.profilers.StudioProfilers
@@ -35,16 +37,21 @@ import java.util.concurrent.TimeUnit
 
 class CustomEventMonitorViewTest {
 
-  private val timer = FakeTimer()
-  private val transportService = FakeTransportService(timer, true)
   private lateinit var monitorView: CustomEventMonitorView
 
   @get:Rule
   val applicationRule = ApplicationRule()
 
+  private val timer = FakeTimer()
+  private val transportService = FakeTransportService(timer, false)
+  private val profilerService = FakeProfilerService(timer)
+
+  @get:Rule
+  var grpcServer = FakeGrpcServer.createFakeGrpcServer("CustomEventMonitorViewTest", transportService, profilerService)
+
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(ProfilerClient("CustomEventMonitorViewTestChannel"), FakeIdeProfilerServices(), timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcServer.channel), FakeIdeProfilerServices(), timer)
     transportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE)
     timer.tick(TimeUnit.SECONDS.toNanos(1))
 
