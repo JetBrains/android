@@ -45,7 +45,7 @@ class TasksDataPageModelImplTest {
   fun testInitialSelection() {
     assertThat(model.selectedGrouping).isEqualTo(Grouping.BY_TASK_CATEGORY)
     assertThat(model.print()).isEqualTo("""
-      |Build duration - Total: 4.0s, Filtered tasks: 4.0s
+      |Tasks duration: 4.0s
       |ROOT
       |  Java
       |    :app:compile
@@ -64,7 +64,7 @@ class TasksDataPageModelImplTest {
     // Assert
     assertThat(model.selectedGrouping).isEqualTo(Grouping.BY_PLUGIN)
     assertThat(model.print()).isEqualTo("""
-      |Build duration - Total: 4.0s, Filtered tasks: 4.0s
+      |Tasks duration: 4.0s
       |ROOT
       |  compiler.plugin
       |    :app:compile
@@ -90,7 +90,7 @@ class TasksDataPageModelImplTest {
     // Assert
     assertThat(model.selectedGrouping).isEqualTo(Grouping.UNGROUPED)
     assertThat(model.print()).isEqualTo("""
-      |Build duration - Total: 4.0s, Filtered tasks: 4.0s
+      |Tasks duration: 4.0s
       |ROOT
       |  :app:compile
       |  :app:resources
@@ -124,7 +124,7 @@ class TasksDataPageModelImplTest {
     // Assert
     assertThat(model.selectedNode).isEqualTo(lastChild)
     assertThat(model.print()).isEqualTo("""
-      |Build duration - Total: 4.0s, Filtered tasks: 4.0s
+      |Tasks duration: 4.0s
       |ROOT
       |  Java
       |    :app:compile
@@ -148,7 +148,7 @@ class TasksDataPageModelImplTest {
     // Assert
     assertThat(model.selectedNode).isNull()
     assertThat(model.print()).isEqualTo("""
-      |Build duration - Total: 4.0s, Filtered tasks: 4.0s
+      |Tasks duration: 4.0s
       |ROOT
       |  Java
       |    :app:compile
@@ -166,7 +166,7 @@ class TasksDataPageModelImplTest {
     model.selectGrouping(Grouping.UNGROUPED)
     model.selectNode(model.treeRoot.firstChild as TasksTreeNode)
     assertThat(model.print()).isEqualTo("""
-      |Build duration - Total: 4.0s, Filtered tasks: 4.0s
+      |Tasks duration: 4.0s
       |ROOT
       |=>:app:compile
       |  :app:resources
@@ -180,7 +180,7 @@ class TasksDataPageModelImplTest {
     // Assert
     assertThat(model.selectedGrouping).isEqualTo(Grouping.BY_PLUGIN)
     assertThat(model.print()).isEqualTo("""
-      |Build duration - Total: 4.0s, Filtered tasks: 4.0s
+      |Tasks duration: 4.0s
       |ROOT
       |  compiler.plugin
       |===>:app:compile
@@ -198,7 +198,7 @@ class TasksDataPageModelImplTest {
     model.selectGrouping(Grouping.BY_PLUGIN)
     model.selectNode(model.treeRoot.lastLeaf as TasksTreeNode)
     assertThat(model.print()).isEqualTo("""
-      |Build duration - Total: 4.0s, Filtered tasks: 4.0s
+      |Tasks duration: 4.0s
       |ROOT
       |  compiler.plugin
       |    :app:compile
@@ -213,7 +213,7 @@ class TasksDataPageModelImplTest {
 
     // Assert
     assertThat(model.print()).isEqualTo("""
-      |Build duration - Total: 4.0s, Filtered tasks: 4.0s
+      |Tasks duration: 4.0s
       |ROOT
       |  :app:compile
       |=>:app:resources
@@ -228,7 +228,7 @@ class TasksDataPageModelImplTest {
     model.selectGrouping(Grouping.BY_PLUGIN)
     model.selectNode(model.treeRoot.lastChild as TasksTreeNode)
     assertThat(model.print()).isEqualTo("""
-      |Build duration - Total: 4.0s, Filtered tasks: 4.0s
+      |Tasks duration: 4.0s
       |ROOT
       |  compiler.plugin
       |    :app:compile
@@ -243,7 +243,7 @@ class TasksDataPageModelImplTest {
 
     // Assert
     assertThat(model.print()).isEqualTo("""
-      |Build duration - Total: 4.0s, Filtered tasks: 4.0s
+      |Tasks duration: 4.0s
       |ROOT
       |  :app:compile
       |  :app:resources
@@ -266,7 +266,7 @@ class TasksDataPageModelImplTest {
     // Assert
     assertThat(model.selectedGrouping).isEqualTo(Grouping.BY_TASK_CATEGORY)
     assertThat(model.print()).isEqualTo("""
-      |Build duration - Total: 4.0s, Filtered tasks: 4.0s
+      |Tasks duration: 4.0s
       |ROOT
       |  Java
       |    :app:compile
@@ -286,7 +286,7 @@ class TasksDataPageModelImplTest {
 
     // Assert
     assertThat(model.print()).isEqualTo("""
-      |Build duration - Total: 4.0s, Filtered tasks: 4.0s
+      |Tasks duration: 4.0s
       |ROOT
       |  Java
       |    :app:compile
@@ -307,7 +307,7 @@ class TasksDataPageModelImplTest {
     // Assert
     assertThat(model.selectedGrouping).isEqualTo(Grouping.BY_PLUGIN)
     assertThat(model.print()).isEqualTo("""
-      |Build duration - Total: 4.0s, Filtered tasks: 4.0s
+      |Tasks duration: 4.0s
       |ROOT
       |  compiler.plugin
       |    :app:compile
@@ -328,7 +328,7 @@ class TasksDataPageModelImplTest {
     // Assert
     assertThat(model.selectedGrouping).isEqualTo(Grouping.BY_TASK_CATEGORY)
     assertThat(model.print()).isEqualTo("""
-      |Build duration - Total: 4.0s, Filtered tasks: 4.0s
+      |Tasks duration: 4.0s
       |ROOT
       |  Java
       |    :app:compile
@@ -361,7 +361,7 @@ class TasksDataPageModelImplTest {
 
     // Assert
     assertThat(model.print()).isEqualTo("""
-      |Build duration - Total: 5.0s, Filtered tasks: 4.0s
+      |Tasks duration - Total: 5.0s, Filtered: 4.0s
       |ROOT
       |  Java
       |===>:app:compile
@@ -375,7 +375,7 @@ class TasksDataPageModelImplTest {
 
     // Assert
     assertThat(model.print()).isEqualTo("""
-      |Build duration - Total: 5.0s, Filtered tasks: 3.0s
+      |Tasks duration - Total: 5.0s, Filtered: 3.0s
       |ROOT
       |  compiler.plugin
       |===>:app:compile
@@ -395,7 +395,7 @@ class TasksDataPageModelImplTest {
 
     // Assert
     assertThat(model.print()).isEqualTo("""
-      |Build duration - Total: 4.0s, Filtered tasks: 0.0s
+      |Tasks duration - Total: 4.0s, Filtered: 0.0s
       |ROOT
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
@@ -406,7 +406,7 @@ class TasksDataPageModelImplTest {
 
     // Assert
     assertThat(model.print()).isEqualTo("""
-      |Build duration - Total: 4.0s, Filtered tasks: 0.0s
+      |Tasks duration - Total: 4.0s, Filtered: 0.0s
       |ROOT
     """.trimMargin())
   }

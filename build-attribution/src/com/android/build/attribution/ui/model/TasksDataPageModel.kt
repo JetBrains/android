@@ -117,7 +117,11 @@ class TasksDataPageModelImpl(
     get() = selectedPageId.grouping
 
   override val treeHeaderText: String
-    get() = "Build duration - Total: $totalTimeString, Filtered tasks: $filteredTimeString"
+    get() = if (treeStructure.treeStats.filtersAreApplied) {
+      "Tasks duration - Total: $totalTimeString, Filtered: $filteredTimeString"
+    } else {
+      "Tasks duration: $totalTimeString"
+    }
 
   private val totalTimeString: String
     get() = durationString(treeStructure.treeStats.totalTasksTimeMs)
@@ -236,6 +240,7 @@ private class TasksTreeStructure(
       TasksDataPageModel.Grouping.BY_PLUGIN -> createGroupedByEntryNodes(filter, treeStats, reportData.criticalPathPlugins, grouping)
       TasksDataPageModel.Grouping.BY_TASK_CATEGORY -> createGroupedByEntryNodes(filter, treeStats, reportData.criticalPathTaskCategories!!, grouping)
     }
+    treeStats.filtersAreApplied = (filter != TasksFilter.DEFAULT)
     treeStats.filteredTaskTimesDistribution.seal()
     treeStats.totalTasksTimeMs = reportData.criticalPathTasks.tasks.sumByLong { it.executionTime.timeMs }
   }
@@ -270,6 +275,7 @@ private class TasksTreeStructure(
   class TreeStats {
     var totalTasksTimeMs: Long = 0
     val filteredTaskTimesDistribution = TimeDistributionBuilder()
+    var filtersAreApplied: Boolean = false
     val filteredTasksTimeMs: Long
       get() = filteredTaskTimesDistribution.totalTime
   }
