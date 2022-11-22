@@ -117,19 +117,20 @@ class AppInspectionInspectorClient(
 
   private val bannerExceptionHandler = CoroutineExceptionHandler { ctx, t ->
     loggingExceptionHandler.handleException(ctx, t)
-    InspectorBannerService.getInstance(model.project)?.setNotification(
-      when {
-        t is ConnectionFailedException -> t.message!!
-        process.device.apiLevel >= 29 -> {
-          logUnexpectedError(InspectorConnectionError(t))
-          AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY)
-        }
-        else -> {
-          logUnexpectedError(InspectorConnectionError(t))
-          "Unknown error"
-        }
+
+    val message = when {
+      t is ConnectionFailedException -> t.message!!
+      process.device.apiLevel >= 29 -> {
+        logUnexpectedError(InspectorConnectionError(t))
+        AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY)
       }
-    )
+      else -> {
+        logUnexpectedError(InspectorConnectionError(t))
+        "Unknown error"
+      }
+    }
+
+    InspectorBannerService.getInstance(model.project)?.setNotification(message)
   }
 
   private var debugViewAttributesChanged = false
