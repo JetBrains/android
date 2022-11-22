@@ -240,7 +240,7 @@ class SessionsView(val profilers: StudioProfilers, val ideProfilerComponents: Id
               }
             val plainProcessAction = processAction {""}
             val annotatedProcessAction = processAction {
-              when (profilers.getProcessSupportLevel(it.pid)) {
+              when (profilers.getLiveProcessSupportLevel(it.pid)) {
                 SupportLevel.PROFILEABLE -> " (profileable)"
                 else -> " (debuggable)"
               }
@@ -270,7 +270,7 @@ class SessionsView(val profilers: StudioProfilers, val ideProfilerComponents: Id
             // Only add the separator if there are preferred processes added.
             if (otherProcesses.isNotEmpty() && deviceAction.childrenActionCount != 0) deviceAction.addChildrenActions(SeparatorAction())
             val (debuggables, profileables) = otherProcesses.partition {
-              profilers.getProcessSupportLevel(it.pid) == SupportLevel.DEBUGGABLE
+              profilers.getLiveProcessSupportLevel(it.pid) == SupportLevel.DEBUGGABLE
             }
             addOtherProcessesFlyout("debuggable", debuggables.map(plainProcessAction).sortedWith(order))
             addOtherProcessesFlyout("profileable", profileables.map(plainProcessAction).sortedWith(order))

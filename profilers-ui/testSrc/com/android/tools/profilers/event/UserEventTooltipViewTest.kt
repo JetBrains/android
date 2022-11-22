@@ -17,6 +17,7 @@ package com.android.tools.profilers.event
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.EventProfiler
 import com.android.tools.profiler.proto.Interaction
 import com.android.tools.profilers.FakeIdeProfilerComponents
@@ -38,9 +39,10 @@ class UserEventTooltipViewTest {
   private var myTimer: FakeTimer = FakeTimer()
   private var myMonitor: EventMonitor? = null
   private var myEventService = FakeEventService()
+  private val transportService = FakeTransportService(myTimer)
 
   @get:Rule
-  val myGrpcChannel = FakeGrpcChannel("UserEventTooltipViewTest", myEventService)
+  val myGrpcChannel = FakeGrpcChannel("UserEventTooltipViewTest", myEventService, transportService)
 
   @get:Rule
   val applicationRule = ApplicationRule()

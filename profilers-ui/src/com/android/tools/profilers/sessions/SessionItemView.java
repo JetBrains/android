@@ -96,7 +96,7 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
       panel.add(liveDotWrapper, new TabularLayout.Constraint(0, titleColumnCount++));
     }
 
-    if (getArtifact().getProfilers().getProcessSupportLevel(getArtifact().getSession().getPid()) == SupportLevel.PROFILEABLE) {
+    if (getArtifact().getProfilers().getLiveProcessSupportLevel(getArtifact().getSession().getPid()) == SupportLevel.PROFILEABLE) {
       JLabel infoLabel = new JLabel("");
       infoLabel.setBorder(new JBEmptyBorder(0, 4, 0, 0));
       infoLabel.setIcon(StudioIcons.Common.INFO);
