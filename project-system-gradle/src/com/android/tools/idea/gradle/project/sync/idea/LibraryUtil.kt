@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
+import com.android.tools.idea.gradle.model.IdeUnknownLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedModuleLibrary
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
@@ -143,6 +144,7 @@ private fun IdeUnresolvedLibraryTable.resolve(
         is IdeModuleLibrary -> error("Unexpected resolved library: $it")
         is IdeUnresolvedModuleLibrary -> resolve(it)
         is IdePreResolvedModuleLibrary -> resolve(it)
+        is IdeUnknownLibrary -> listOf(it)
       }
     }
   )

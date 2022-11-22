@@ -424,6 +424,9 @@ MODULE                        : withGradleMetadata.app
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl)
                                 artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                                 artifactAddress               : org.jetbrains:annotations:13.0@jar
+                        - unknownDependencies         : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2 (IdeUnknownDependencyImpl)
+                            target                        : IdeUnknownLibraryImpl
+                                key                           : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
                     runtimeClasspath              : IdeDependenciesImpl
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
@@ -439,6 +442,9 @@ MODULE                        : withGradleMetadata.app
                             target                        : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
+                        - unknownDependencies         : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-runtime, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2 (IdeUnknownDependencyImpl)
+                            target                        : IdeUnknownLibraryImpl
+                                key                           : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-runtime, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
                 ApplicationId                 : come.example.with.gradle.metadata
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -490,6 +496,8 @@ MODULE                        : withGradleMetadata.app
                                 projectPath                   : :app
                                 sourceSet                     : MAIN
                                 variant                       : debug
+                        - unknownDependencies         : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2 (IdeUnknownDependencyImpl)
+                            target                        : IdeUnknownLibraryImpl (*seen*)
                     runtimeClasspath              : IdeDependenciesImpl
                 ProvidedDependencies
                     - provided                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
@@ -538,6 +546,8 @@ MODULE                        : withGradleMetadata.app
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                        - unknownDependencies         : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2 (IdeUnknownDependencyImpl)
+                            target                        : IdeUnknownLibraryImpl (*seen*)
                     runtimeClasspath              : IdeDependenciesImpl
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
@@ -555,6 +565,8 @@ MODULE                        : withGradleMetadata.app
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                        - unknownDependencies         : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-runtime, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2 (IdeUnknownDependencyImpl)
+                            target                        : IdeUnknownLibraryImpl (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : withGradleMetadata.app.androidTest

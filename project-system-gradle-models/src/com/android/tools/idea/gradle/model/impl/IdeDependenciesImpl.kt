@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.model.IdeDependenciesCore
 import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeModuleDependency
+import com.android.tools.idea.gradle.model.IdeUnknownDependency
 import java.io.Serializable
 
 data class IdeDependenciesCoreImpl(
@@ -37,6 +38,8 @@ data class IdeDependenciesImpl(
     classpath.dependencies.flatMap(resolver::resolveJavaLibrary)
   override val moduleDependencies: Collection<IdeModuleDependency> =
     classpath.dependencies.flatMap(resolver::resolveModule)
+  override val unknownDependencies: Collection<IdeUnknownDependency> =
+    classpath.dependencies.flatMap(resolver::resolveUnknownLibrary)
 }
 
 fun throwingIdeDependencies(): IdeDependenciesCoreImpl {

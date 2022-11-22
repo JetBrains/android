@@ -236,3 +236,7 @@ interface IdeModuleLibrary : IdeLibrary {
   val sourceSet: IdeModuleSourceSet
 }
 
+interface IdeUnknownLibrary: IdeLibrary {
+  val key: String
+}
+

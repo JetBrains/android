@@ -104,6 +104,7 @@ import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl
+import com.android.tools.idea.gradle.model.impl.IdeUnknownLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedDependencyImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedModuleLibraryImpl
@@ -617,19 +618,34 @@ internal fun modelCacheV2Impl(
     class LibrariesByType(
       val androidLibraries: List<Library>,
       val javaLibraries: List<Library>,
-      val projectLibraries: List<Library>
+      val projectLibraries: List<Library>,
+      val unknownLibraries: List<Library>
     )
 
     fun getTypedLibraries(
       dependencies: List<Library>
     ): LibrariesByType {
-      return dependencies.groupBy { it.type }.let {
-        LibrariesByType(
-          androidLibraries = it[LibraryType.ANDROID_LIBRARY] ?: emptyList(),
-          javaLibraries = it[LibraryType.JAVA_LIBRARY] ?: emptyList(),
-          projectLibraries = it[LibraryType.PROJECT] ?: emptyList()
-        )
+      val androidLibraries: MutableList<Library> = mutableListOf()
+      val javaLibraries: MutableList<Library> = mutableListOf()
+      val projectLibraries: MutableList<Library> = mutableListOf()
+      val unknownLibraries: MutableList<Library> = mutableListOf()
+
+      dependencies.forEach { dep ->
+        when (dep.type) {
+          LibraryType.ANDROID_LIBRARY -> androidLibraries
+          LibraryType.PROJECT -> projectLibraries
+          LibraryType.JAVA_LIBRARY -> javaLibraries
+          LibraryType.RELOCATED -> unknownLibraries
+          LibraryType.NO_ARTIFACT_FILE -> unknownLibraries
+        }.add(dep)
       }
+
+      return LibrariesByType(
+        androidLibraries = androidLibraries,
+        javaLibraries = javaLibraries,
+        projectLibraries = projectLibraries,
+        unknownLibraries = unknownLibraries
+      )
     }
 
     /*
@@ -670,6 +686,18 @@ internal fun modelCacheV2Impl(
       }
     }
 
+    fun populateUnknownDependencies(libraries: List<Library>, visited: MutableSet<String>) {
+      for (identifier in libraries) {
+        val address = identifier.key
+        if (!visited.contains(address)) {
+          visited.add(address)
+          librariesById.computeIfAbsent(identifier.key) {
+            IdeDependencyCoreImpl(internedModels.getOrCreate(IdeUnknownLibraryImpl(identifier.key)))
+          }
+        }
+      }
+    }
+
     fun createIdeDependencies(
       artifactAddresses: Collection<String>
     ): IdeDependenciesCoreImpl {
@@ -685,6 +713,7 @@ internal fun modelCacheV2Impl(
       populateAndroidLibraries(typedLibraries.androidLibraries, visited)
       populateJavaLibraries(typedLibraries.javaLibraries, visited)
       populateProjectDependencies(typedLibraries.projectLibraries, visited)
+      populateUnknownDependencies(typedLibraries.unknownLibraries, visited)
       return createIdeDependencies(visited)
     }
     createIdeDependenciesInstance()

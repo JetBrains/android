@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTableImpl
+import com.android.tools.idea.gradle.model.impl.IdeUnknownLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedModuleLibraryImpl
 import org.jetbrains.annotations.TestOnly
 import java.io.File
@@ -47,6 +48,7 @@ class InternedModels(private val buildRootDirectory: File?) {
   private val androidLibraries: MutableMap<IdeAndroidLibraryImpl, Pair<LibraryReference, IdeAndroidLibraryImpl>> = HashMap()
   private val javaLibraries: MutableMap<IdeJavaLibraryImpl, Pair<LibraryReference, IdeJavaLibraryImpl>> = HashMap()
   private val moduleLibraries: MutableMap<IdeLibrary, Pair<LibraryReference, IdeLibrary>> = HashMap()
+  private val unknownLibraries: MutableMap<IdeLibrary, Pair<LibraryReference, IdeLibrary>> = HashMap()
   var artifactToLibraryReferenceMap: Map<File, LibraryReference>? = null ; private set
 
   fun resolve(reference: LibraryReference): IdeLibrary = libraries[reference.libraryIndex]
@@ -103,6 +105,14 @@ class InternedModels(private val buildRootDirectory: File?) {
   @TestOnly
   fun getOrCreate(moduleLibrary: IdeModuleLibraryImpl): LibraryReference {
     return moduleLibraries.createOrGetLibrary(moduleLibrary) { it }
+  }
+
+
+  /**
+   * Interns [unknownLibrary].
+   */
+  fun getOrCreate(unknownLibrary: IdeUnknownLibraryImpl): LibraryReference {
+    return unknownLibraries.createOrGetLibrary(unknownLibrary) { it }
   }
 
   /**

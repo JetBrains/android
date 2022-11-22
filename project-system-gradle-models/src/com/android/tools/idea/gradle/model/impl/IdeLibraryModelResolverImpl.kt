@@ -25,6 +25,8 @@ import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeModuleDependency
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
+import com.android.tools.idea.gradle.model.IdeUnknownDependency
+import com.android.tools.idea.gradle.model.IdeUnknownLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedModuleLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import org.jetbrains.annotations.VisibleForTesting
@@ -56,6 +58,12 @@ class IdeLibraryModelResolverImpl @VisibleForTesting constructor(
         }
       }
       .map(::IdeModuleDependencyImpl)
+  }
+
+  override fun resolveUnknownLibrary(unresolved: IdeDependencyCore): Sequence<IdeUnknownDependency> {
+    return libraryTable(unresolved.target)
+      .filterIsInstance<IdeUnknownLibrary>()
+      .map { IdeUnknownDependencyImpl(it) }
   }
 
   companion object {

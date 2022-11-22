@@ -247,6 +247,7 @@ private val PROPERTIES_TO_SKIP = setOf(
 
 private val ENTITIES_TO_SKIP = setOf(
   "/Dependencies/compileClasspath/moduleDependencies/target",
+  "/Dependencies/compileClasspath/unknownDependencies",
   "/Dependencies/runtimeClasspath",
   "/MainArtifact/ModelSyncFile",
 )

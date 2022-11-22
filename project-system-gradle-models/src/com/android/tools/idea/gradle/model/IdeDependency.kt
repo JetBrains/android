@@ -36,10 +36,15 @@ interface IdeLibraryModelResolver {
   fun resolveAndroidLibrary(unresolved: IdeDependencyCore): Sequence<IdeAndroidLibraryDependency>
   fun resolveJavaLibrary(unresolved: IdeDependencyCore): Sequence<IdeJavaLibraryDependency>
   fun resolveModule(unresolved: IdeDependencyCore): Sequence<IdeModuleDependency>
+  fun resolveUnknownLibrary(unresolved: IdeDependencyCore): Sequence<IdeUnknownDependency>
 }
 
 interface IdeModuleDependency : IdeDependency<IdeModuleLibrary> {
   val target: IdeModuleLibrary
+}
+
+interface IdeUnknownDependency: IdeDependency<IdeUnknownLibrary> {
+  val target: IdeUnknownLibrary
 }
 
 /**

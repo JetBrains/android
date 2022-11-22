@@ -189,6 +189,9 @@ private val jbModelDumpers = listOf(
   SpecializedDumper(property = IdeDependencies::moduleDependencies) {
     prop(propertyName, it.asUnordered())
   },
+  SpecializedDumper(property = IdeDependencies::unknownDependencies) {
+    prop(propertyName, it.asUnordered())
+  },
   SpecializedDumper(property = KotlinMPPGradleModel::kotlinNativeHome) {
     // Do nothing as it is a machine specific path to `~/.konan` directory, where `~` is the true user home path rather than the one used
     // in tests.

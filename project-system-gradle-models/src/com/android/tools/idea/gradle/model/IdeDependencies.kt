@@ -36,4 +36,11 @@ interface IdeDependencies {
    * @return the list of libraries of type LIBRARY_MODULE.
    */
   val moduleDependencies: Collection<IdeModuleDependency>
+
+  /**
+   * Returns the unknown dependencies.
+   *
+   * @return the list of libraries of all other types.
+   */
+  val unknownDependencies: Collection<IdeUnknownDependency>
 }
