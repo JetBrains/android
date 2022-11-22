@@ -37,8 +37,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// TODO(b/258515462) Replace icon with an icon specific to Layout Inspector Snapshots
-object SnapshotAction : DropDownAction(null, "Snapshot Export/Import", StudioIcons.Emulator.Toolbar.SNAPSHOTS), TooltipDescriptionProvider {
+object SnapshotAction : DropDownAction(null, "Snapshot Export/Import", StudioIcons.LayoutInspector.SNAPSHOT), TooltipDescriptionProvider {
   init {
     add(ExportSnapshotAction)
     add(ImportSnapshotAction)
