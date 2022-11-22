@@ -338,8 +338,8 @@ MODULE                        : project.app
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
@@ -728,8 +728,8 @@ MODULE                        : project.benchmark
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
@@ -1583,8 +1583,8 @@ MODULE                        : project.test
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
@@ -1926,8 +1926,8 @@ MODULE                        : project.test2
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false

@@ -1767,8 +1767,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
@@ -3407,8 +3407,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
@@ -4298,8 +4298,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
@@ -5703,8 +5703,8 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
@@ -6013,8 +6013,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false

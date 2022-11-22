@@ -586,8 +586,8 @@ MODULE                        : project.app
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
@@ -1866,8 +1866,8 @@ MODULE                        : project.library1
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
@@ -2684,8 +2684,8 @@ MODULE                        : project.library2
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false

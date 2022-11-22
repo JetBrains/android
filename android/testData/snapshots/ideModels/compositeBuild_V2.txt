@@ -523,8 +523,8 @@ MODULE                        : TestCompositeLib1.app
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
@@ -2025,8 +2025,8 @@ MODULE                        : TestCompositeLib1.lib
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
@@ -3361,8 +3361,8 @@ MODULE                        : TestCompositeLib3.app
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
@@ -4375,8 +4375,8 @@ MODULE                        : TestCompositeLib3.lib
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
@@ -5855,8 +5855,8 @@ MODULE                        : project.app
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
@@ -6901,8 +6901,8 @@ MODULE                        : project.lib
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false

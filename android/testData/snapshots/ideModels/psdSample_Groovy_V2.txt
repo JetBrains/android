@@ -1623,8 +1623,8 @@ MODULE                        : project.app
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
@@ -3417,8 +3417,8 @@ MODULE                        : project.dyn_feature
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
@@ -3733,8 +3733,8 @@ MODULE                        : project.lib
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
@@ -4420,8 +4420,8 @@ MODULE                        : project.nested1
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
@@ -4722,8 +4722,8 @@ MODULE                        : project.nested1.deep
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
@@ -5034,8 +5034,8 @@ MODULE                        : project.nested2
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
@@ -5476,8 +5476,8 @@ MODULE                        : project.nested2.deep
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
@@ -5790,8 +5790,8 @@ MODULE                        : project.nested2.trans.deep2
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
         TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
