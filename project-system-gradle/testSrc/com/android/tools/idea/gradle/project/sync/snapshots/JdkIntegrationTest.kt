@@ -19,16 +19,13 @@ import com.android.tools.idea.gradle.project.sync.assertions.AssertInMemoryConfi
 import com.android.tools.idea.gradle.project.sync.assertions.AssertOnDiskConfig
 import com.android.tools.idea.gradle.project.sync.assertions.AssertOnFailure
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.gradle.project.sync.utils.EnvironmentUtils
 import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils
 import com.android.tools.idea.gradle.project.sync.utils.ProjectJdkUtils
-import com.android.tools.idea.gradle.project.sync.utils.environment.TestSystemEnvironment
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Expect
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.externalSystem.util.environment.Environment
-import com.intellij.testFramework.replaceService
 import org.junit.rules.TemporaryFolder
 import java.io.File
 import kotlin.reflect.KClass
@@ -73,10 +70,7 @@ class JdkIntegrationTest(
         ProjectJdkUtils.setUserHomeGradlePropertiesJdk(it, disposable)
       }
       JdkTableUtils.populateJdkTableWith(jdkTable, tempDir)
-
-      val systemEnvironment = TestSystemEnvironment()
-      ApplicationManager.getApplication().replaceService(Environment::class.java, systemEnvironment, disposable)
-      systemEnvironment.variables(*environmentVariables.toList().toTypedArray())
+      EnvironmentUtils.overrideEnvironmentVariables(environmentVariables, disposable)
     }
   }
 
@@ -121,16 +115,30 @@ class JdkIntegrationTest(
       expectedJdkPath: String,
       expectedException: KClass<out Exception>? = null,
     ) {
+      syncWithAssertion(
+        expectedGradleRootsJdkName = mapOf("" to expectedGradleJdkName),
+        expectedProjectJdkName = expectedProjectJdkName,
+        expectedJdkPath = expectedJdkPath,
+        expectedException = expectedException
+      )
+    }
+
+    fun syncWithAssertion(
+      expectedGradleRootsJdkName: Map<String, String>,
+      expectedProjectJdkName: String,
+      expectedJdkPath: String,
+      expectedException: KClass<out Exception>? = null,
+    ) {
       sync(
         assertInMemoryConfig = {
           assertGradleExecutionDaemon(expectedJdkPath)
-          assertGradleJdk(expectedGradleJdkName)
+          assertGradleRootsJdk(expectedGradleRootsJdkName)
           assertProjectJdk(expectedProjectJdkName)
           assertProjectJdkTablePath(expectedJdkPath)
           assertProjectJdkTableEntryIsValid(expectedProjectJdkName)
         },
         assertOnDiskConfig = {
-          assertGradleJdk(expectedGradleJdkName)
+          assertGradleRootsJdk(expectedGradleRootsJdkName)
           assertProjectJdk(expectedProjectJdkName)
         },
         assertOnFailure = { syncException ->

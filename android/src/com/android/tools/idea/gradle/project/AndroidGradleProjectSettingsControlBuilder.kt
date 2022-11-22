@@ -46,6 +46,7 @@ import org.jetbrains.plugins.gradle.util.getGradleJvmLookupProvider
 import java.awt.BorderLayout
 import java.nio.file.Path
 import javax.swing.JPanel
+import kotlin.io.path.absolutePathString
 
 @Suppress("UnstableApiUsage")
 class AndroidGradleProjectSettingsControlBuilder(
@@ -177,9 +178,9 @@ class AndroidGradleProjectSettingsControlBuilder(
       // Remove any invalid JDK
       ideSdks.removeInvalidJdksFromTable()
       // Add embedded
-      val embeddedJdkPath = ideSdks.embeddedJdkPath
-      if (embeddedJdkPath != null) {
-        addJdkIfNotPresent(sdksModel, EMBEDDED_JDK_NAME, embeddedJdkPath)
+      ideSdks.embeddedJdkPath?.let {
+        val embeddedJdkName = JavaSdk.getInstance().suggestSdkName(null, it.absolutePathString())
+        addJdkIfNotPresent(sdksModel, embeddedJdkName, it)
       }
       // ADD JDK_LOCATION_ENV_VARIABLE_NAME
       if (ideSdks.isJdkEnvVariableValid) {

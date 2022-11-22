@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project
 
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager.setJdkAsEmbedded
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
+import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.service.notification.GradleJvmNotificationExtension.Companion.getInvalidJdkReason
 import com.android.tools.idea.gradle.service.notification.GradleJvmNotificationExtension.Companion.reportInvalidJdkReasonToUsageTracker
 import com.android.tools.idea.project.AndroidNotification
@@ -25,6 +25,7 @@ import com.android.tools.idea.project.AndroidProjectInfo
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.notification.NotificationType
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -33,7 +34,7 @@ fun showNeededNotifications(project: Project) {
     notifyOnLegacyAndroidProject(project)
     notifyOnInvalidGradleJDKEnv(project)
     if (notifyOnInvalidGradleJdk(project)) {
-      setJdkAsEmbedded(project)
+      runWriteAction { JdkUtils.setProjectGradleJvmToUseEmbeddedJdk(project, project.basePath.orEmpty()) }
     }
   }
 }

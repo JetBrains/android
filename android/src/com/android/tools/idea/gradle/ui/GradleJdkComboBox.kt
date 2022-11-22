@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.gradle.ui
 
+import com.android.tools.idea.sdk.IdeSdks
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.JAVA_HOME
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_JAVA_HOME
+import com.intellij.openapi.externalSystem.service.execution.createJdkInfo
 import com.intellij.openapi.externalSystem.service.ui.addJdkReferenceItem
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ui.configuration.SdkComboBox
@@ -46,11 +50,17 @@ class GradleJdkComboBox(
   var selectedGradleJvmReference: String?
     get() = comboBox.getSelectedGradleJvmReference(sdkLookupProvider)
     set(value) {
-      comboBox.setSelectedGradleJvmReference(
-        sdkLookupProvider = sdkLookupProvider,
-        externalProjectPath = externalProjectPath,
-        jdkReference = value
-      )
+      when (value) {
+        USE_JAVA_HOME -> comboBox.selectedItem = comboBox.addJdkReferenceItem(
+          name = JAVA_HOME,
+          homePath = IdeSdks.getJdkFromJavaHome()
+        )
+        else -> comboBox.setSelectedGradleJvmReference(
+          sdkLookupProvider = sdkLookupProvider,
+          externalProjectPath = externalProjectPath,
+          jdkReference = value
+        )
+      }
     }
 
   init {
@@ -64,12 +74,18 @@ class GradleJdkComboBox(
 
   fun getProjectSdk(): Sdk? = comboBox.model.sdksModel.projectSdk
 
-  fun getSelectedGradleJvmInfo() = sdkLookupProvider.nonblockingResolveGradleJvmInfo(
-    project = model.project,
-    projectSdk = getProjectSdk(),
-    externalProjectPath = externalProjectPath,
-    gradleJvm = selectedGradleJvmReference
-  )
+  fun getSelectedGradleJvmInfo() = when (selectedGradleJvmReference) {
+    USE_JAVA_HOME -> createJdkInfo(
+      name = JAVA_HOME,
+      homePath = IdeSdks.getJdkFromJavaHome()
+    )
+    else -> sdkLookupProvider.nonblockingResolveGradleJvmInfo(
+      project = model.project,
+      projectSdk = getProjectSdk(),
+      externalProjectPath = externalProjectPath,
+      gradleJvm = selectedGradleJvmReference
+    )
+  }
 
   fun addJdkReferenceItem(name: String, homePath: String?) {
     comboBox.addJdkReferenceItem(name, homePath)

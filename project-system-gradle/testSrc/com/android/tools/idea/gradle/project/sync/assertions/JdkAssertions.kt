@@ -28,8 +28,15 @@ class AssertInMemoryConfig(
   private val expect: Expect
 ) {
   fun assertGradleJdk(expectedJdkName: String) {
-    val currentJdkName = ProjectJdkUtils.getGradleJdkNameInMemory(syncedProject)
-    expect.that(currentJdkName).isEqualTo(expectedJdkName)
+    val currentGradleJdkName = ProjectJdkUtils.getGradleRootJdkNameInMemory(syncedProject)
+    expect.that(currentGradleJdkName).isEqualTo(expectedJdkName)
+  }
+
+  fun assertGradleRootsJdk(expectedGradleRootsJdkName: Map<String, String>) {
+    expectedGradleRootsJdkName.forEach { (gradleRootPath, expectedJdkName) ->
+      val currentGradleRootJdkName = ProjectJdkUtils.getGradleRootJdkNameInMemory(syncedProject, gradleRootPath)
+      expect.that("$gradleRootPath:$currentGradleRootJdkName").isEqualTo("$gradleRootPath:$expectedJdkName")
+    }
   }
 
   fun assertProjectJdkAndValidateTableEntry(expectedJdkName: String, expectedJdkPath: String) {
@@ -65,9 +72,17 @@ class AssertOnDiskConfig(
   private val expect: Expect
 ) {
   fun assertGradleJdk(expectedJdkName: String) {
-    val projectRoot = File(syncedProject.basePath.orEmpty())
-    val currentJdkName = ProjectJdkUtils.getGradleJdkNameFromIdeaGradleXmlFile(projectRoot)
-    expect.that(currentJdkName).isEqualTo(expectedJdkName)
+    val projectFile = File(syncedProject.basePath.orEmpty())
+    val currentGradleJdkName = ProjectJdkUtils.getGradleRootJdkNameFromIdeaGradleXmlFile(projectFile)
+    expect.that(currentGradleJdkName).isEqualTo(expectedJdkName)
+  }
+
+  fun assertGradleRootsJdk(expectedGradleRootsJdkName: Map<String, String>) {
+    expectedGradleRootsJdkName.forEach { (gradleRootPath, expectedJdkName) ->
+      val projectFile = File(syncedProject.basePath.orEmpty())
+      val currentGradleRootJdkName = ProjectJdkUtils.getGradleRootJdkNameFromIdeaGradleXmlFile(projectFile, gradleRootPath)
+      expect.that("$gradleRootPath:$currentGradleRootJdkName").isEqualTo("$gradleRootPath:$expectedJdkName")
+    }
   }
 
   fun assertProjectJdk(expectedJdkName: String) {

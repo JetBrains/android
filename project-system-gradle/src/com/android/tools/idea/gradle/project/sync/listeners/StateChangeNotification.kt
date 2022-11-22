@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync
+package com.android.tools.idea.gradle.project.sync.listeners
 
+import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager

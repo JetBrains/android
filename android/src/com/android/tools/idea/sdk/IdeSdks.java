@@ -52,6 +52,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -66,7 +67,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.serviceContainer.NonInjectable;
-import com.intellij.util.EnvironmentUtil;
 import com.intellij.util.SystemProperties;
 import java.io.File;
 import java.io.IOException;
@@ -617,20 +617,15 @@ public class IdeSdks {
 
   /**
    * Get JDK path based on the value of JAVA_HOME environment variable. If this variable is not defined or does not correspond to a valid
-   * JDK folder then look into java.home system property. This method will try to get the environment from a terminal when possible and if
-   * not, use the current environment.
+   * JDK folder then look into java.home system property. This method will try to get the JAVA_HOME using the current environment,
+   * otherwise will use the system property
    *
    * @return null if no JDK can be found, or the path where the JDK is located.
    */
   @Nullable
   public static String getJdkFromJavaHome() {
-    // Try terminal environment first
-    String terminalValue = doGetJdkFromPathOrParent(EnvironmentUtil.getValue("JAVA_HOME"));
-    if (!isNullOrEmpty(terminalValue)) {
-      return terminalValue;
-    }
     // Now try with current environment
-    String envVariableValue = doGetJdkFromPathOrParent(System.getenv("JAVA_HOME"));
+    String envVariableValue = doGetJdkFromPathOrParent(ExternalSystemJdkUtil.getJavaHome());
     if (!isNullOrEmpty(envVariableValue)) {
       return envVariableValue;
     }

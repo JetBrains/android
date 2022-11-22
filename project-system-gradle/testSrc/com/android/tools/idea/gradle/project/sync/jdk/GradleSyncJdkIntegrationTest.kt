@@ -52,7 +52,9 @@ class GradleSyncJdkIntegrationTest {
   @Test(expected = ExternalSystemJdkException::class)
   fun `Given invalid userHomeGradlePropertiesJdkPath When import project Then throw exception`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(),
+      project = SimpleApplication(
+        ideaGradleJdk = USE_GRADLE_JAVA_HOME
+      ),
       environment = TestEnvironment(
         userHomeGradlePropertiesJdkPath = "/invalid/jdk/path"
       )
@@ -64,6 +66,7 @@ class GradleSyncJdkIntegrationTest {
   fun `Given invalid gradlePropertiesJdkPath When import project Then throw exception`() =
     jdkIntegrationTest.run(
       project = SimpleApplication(
+        ideaGradleJdk = USE_GRADLE_JAVA_HOME,
         gradlePropertiesJdkPath = "/invalid/jdk/path"
       )
     ) {

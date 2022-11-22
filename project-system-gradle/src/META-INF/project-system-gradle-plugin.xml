@@ -139,7 +139,9 @@
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
     <listener class="com.android.tools.idea.gradle.variant.view.BuildVariantView$SyncListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
-    <listener class="com.android.tools.idea.gradle.project.sync.StateChangeNotification"
+    <listener class="com.android.tools.idea.gradle.project.sync.listeners.StateChangeNotification"
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
+    <listener class="com.android.tools.idea.gradle.project.sync.listeners.MigrateGradleJvmListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
   </projectListeners>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">

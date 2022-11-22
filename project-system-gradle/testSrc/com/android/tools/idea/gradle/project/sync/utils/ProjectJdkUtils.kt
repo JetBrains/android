@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.utils
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.sync.extensions.getOptionElement
+import com.android.tools.idea.gradle.project.sync.extensions.getOptionElementName
 import com.android.tools.idea.gradle.project.sync.model.GradleRoot
 import com.android.tools.idea.gradle.util.GradleProperties
 import com.intellij.openapi.Disposable
@@ -32,6 +33,7 @@ import org.jetbrains.plugins.gradle.util.GRADLE_JAVA_HOME_PROPERTY
 import org.jetbrains.plugins.gradle.util.PROPERTIES_FILE_NAME
 import java.io.File
 
+private const val PROJECT_DIR = "${'$'}PROJECT_DIR${'$'}"
 private const val PROJECT_IDEA_GRADLE_XML_PATH = "$DIRECTORY_STORE_FOLDER/gradle.xml"
 private const val PROJECT_IDEA_MISC_XML_PATH = "$DIRECTORY_STORE_FOLDER/misc.xml"
 
@@ -54,19 +56,21 @@ object ProjectJdkUtils {
     text = ProjectIdeaConfigFilesUtils.buildMiscXmlConfig(jdkName)
   )
 
-  fun getGradleJdkNameInMemory(project: Project): String? {
-    val settings = GradleSettings.getInstance(project).getLinkedProjectSettings(project.basePath.orEmpty())
+  fun getGradleRootJdkNameInMemory(project: Project, gradleRootPath: String = ""): String? {
+    val linkedProjectPath = File(project.basePath.orEmpty()).resolve(gradleRootPath).absolutePath
+    val settings = GradleSettings.getInstance(project).getLinkedProjectSettings(linkedProjectPath)
     return settings?.gradleJvm
   }
 
-  fun getGradleJdkNameFromIdeaGradleXmlFile(projectRoot: File): String? {
+  fun getGradleRootJdkNameFromIdeaGradleXmlFile(projectRoot: File, gradleRootPath: String = ""): String? {
     val gradleXml = projectRoot.resolve(PROJECT_IDEA_GRADLE_XML_PATH)
     val gradleXmlRootElement = JpsLoaderBase.tryLoadRootElement(gradleXml.toPath())
     val gradleSettings = JDomSerializationUtil.findComponent(gradleXmlRootElement, "GradleSettings")
     val linkedExternalProjectsSettings = gradleSettings?.getOptionElement("linkedExternalProjectsSettings")
-    val gradleProjectSettings = linkedExternalProjectsSettings?.getChild("GradleProjectSettings")
-    val gradleJvm = gradleProjectSettings?.getOptionElement("gradleJvm")
-    return gradleJvm?.getAttributeValue("value")
+    return linkedExternalProjectsSettings?.content?.firstOrNull { gradleProjectSettings ->
+      val externalProjectPath = gradleProjectSettings?.getOptionElementName("externalProjectPath")?.getAttributeValue("value")
+      externalProjectPath == null || externalProjectPath == PROJECT_DIR || externalProjectPath == "$PROJECT_DIR/$gradleRootPath"
+    }?.getOptionElementName("gradleJvm")?.getAttributeValue("value")
   }
 
   fun getProjectJdkNameInMemory(project: Project): String? {

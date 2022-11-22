@@ -19,10 +19,9 @@ package com.android.tools.idea.gradle.project.sync.idea.issues
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
-import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager.setJdkAsEmbedded
-import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager.setJdkAsJavaHome
 import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.project.sync.quickFixes.DownloadAndroidStudioQuickFix
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
@@ -125,19 +124,19 @@ class JdkImportIssueChecker : GradleIssueChecker {
     val ideSdks = IdeSdks.getInstance()
     val jdkFromHome = IdeSdks.getJdkFromJavaHome()
     if (jdkFromHome != null && ideSdks.validateJdkPath(Paths.get(jdkFromHome)) != null) {
-      composer.addQuickFix(UseJavaHomeAsJdkQuickFix(jdkFromHome))
+      composer.addQuickFix(UseJavaHomeAsJdkQuickFix())
     }
   }
 }
 
-private class UseJavaHomeAsJdkQuickFix(val javaHome: String) : DescribedBuildIssueQuickFix {
+private class UseJavaHomeAsJdkQuickFix() : DescribedBuildIssueQuickFix {
   override val description: String = "Set Android Studio to use the same JDK as Gradle and sync project"
   override val id: String = "use.java.home.as.jdk"
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Nothing>()
     invokeLater {
-      runWriteAction { setJdkAsJavaHome(project, javaHome) }
+      runWriteAction { JdkUtils.setProjectGradleJvmToUseJavaHome(project, project.basePath.orEmpty()) }
       GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_JDK_CHANGED_TO_CURRENT)
       future.complete(null)
     }
@@ -152,7 +151,7 @@ private class UseEmbeddedJdkQuickFix : DescribedBuildIssueQuickFix {
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Nothing>()
     invokeLater {
-      runWriteAction { setJdkAsEmbedded(project) }
+      runWriteAction { JdkUtils.setProjectGradleJvmToUseEmbeddedJdk(project, project.basePath.orEmpty()) }
       GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_JDK_CHANGED_TO_EMBEDDED)
       future.complete(null)
     }

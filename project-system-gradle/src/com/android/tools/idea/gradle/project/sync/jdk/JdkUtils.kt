@@ -27,8 +27,11 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.ex.JavaSdkUtil
 import com.intellij.openapi.roots.ProjectRootManager
 import com.jetbrains.rd.util.firstOrNull
+import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import kotlin.io.path.Path
+import kotlin.io.path.absolutePathString
 
 private val LOG = Logger.getInstance(JdkUtils::class.java)
 
@@ -38,8 +41,8 @@ object JdkUtils {
    * Obtain the path with max version JDK from [GradleSettings.getLinkedProjectsSettings] taking in
    * consideration the different gradle project roots and return first sorting by suggested name
    * that combines the provider and version i.e: jbr-17
-   * @param project one of the projects currently open in the IDE.
-   * @return jdk path if was possible to obtain
+   * @param project One of the projects currently open in the IDE.
+   * @return Jdk path if was possible to obtain
    */
   fun getMaxVersionJdkPathFromAllGradleRoots(project: Project): String? {
     val maxVersionJdkPaths = GradleSettings.getInstance(project).linkedProjectsSettings
@@ -61,8 +64,8 @@ object JdkUtils {
   /**
    * Updates project jdk used to resolve symbols given a jdk path after a valid jdk.table.xml
    * entry has been added or recreated in case was already present but corrupted
-   * @param project one of the projects currently open in the IDE.
-   * @param jdkPath a jdk absolute path
+   * @param project One of the projects currently open in the IDE.
+   * @param jdkPath A jdk absolute path
    */
   fun updateProjectJdkWithPath(project: Project, jdkPath: String) {
     if (!ExternalSystemJdkUtil.isValidJdk(jdkPath)) {
@@ -80,10 +83,42 @@ object JdkUtils {
   }
 
   /**
+   * Configure given a gradle root project the [GradleProjectSettings.setGradleJvm] to use the dedicated #JAVA_HOME macro
+   * @param project Project to be modified
+   * @param gradleRootPath Gradle project root absolute path
+   */
+  fun setProjectGradleJvmToUseJavaHome(project: Project, gradleRootPath: @SystemIndependent String) {
+    updateProjectGradleJvm(project, gradleRootPath, ExternalSystemJdkUtil.USE_JAVA_HOME)
+  }
+
+  /**
+   * Configure given a gradle root project the [GradleProjectSettings.setGradleJvm] to use the Embedded JDK
+   * @param project Project to be modified
+   * @param gradleRootPath Gradle project root absolute path
+   * @return The jdkTable entry created for the embedded jdk
+   */
+  fun setProjectGradleJvmToUseEmbeddedJdk(project: Project, gradleRootPath: @SystemIndependent String): String? {
+    return IdeSdks.getInstance().embeddedJdkPath?.absolutePathString()?.let {
+      val jdkTableEntry = addOrRecreateDedicatedJdkTableEntry(it)
+      updateProjectGradleJvm(project, gradleRootPath, jdkTableEntry)
+      jdkTableEntry
+    }
+  }
+
+  private fun updateProjectGradleJvm(
+    project: Project,
+    gradleRootPath: @SystemIndependent String,
+    gradleJvm: String
+  ) {
+    val projectSettings = GradleSettings.getInstance(project).getLinkedProjectSettings(gradleRootPath)
+    projectSettings?.gradleJvm = gradleJvm
+  }
+
+  /**
    * Create or recreate in case is already present but was corrupted a dedicated jdk.table.xml entry given a valid jdk path.
    * The dedicated name is generated using the suggested name given a Jdk path were combines the provider and version i.e: jbr-17
-   * @param jdkPath a valid jdk absolute path
-   * @return sdk name of table entry for the gradle jvm path if was possible to create or update it
+   * @param jdkPath A valid jdk absolute path
+   * @return Sdk name of table entry for the gradle jvm path if was possible to create or update it
    */
   private fun addOrRecreateDedicatedJdkTableEntry(jdkPath: String): String {
     val suggestedJdkName = JavaSdk.getInstance().suggestSdkName(null, jdkPath)

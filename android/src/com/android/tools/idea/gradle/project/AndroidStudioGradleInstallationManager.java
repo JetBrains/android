@@ -3,6 +3,7 @@ package com.android.tools.idea.gradle.project;
 import static com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder.ANDROID_STUDIO_JAVA_HOME_NAME;
 import static com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder.EMBEDDED_JDK_NAME;
 import static com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME;
+import static com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_JAVA_HOME;
 import static com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_PROJECT_JDK;
 
 import com.android.tools.idea.sdk.IdeSdks;
@@ -47,6 +48,7 @@ public class AndroidStudioGradleInstallationManager extends GradleInstallationMa
               return embeddedPath.toAbsolutePath().toString();
             }
           }
+          case USE_JAVA_HOME:
           case ANDROID_STUDIO_JAVA_HOME_NAME: {
             String javaHome = IdeSdks.getJdkFromJavaHome();
             if (!StringUtils.isNullOrEmpty(javaHome)) {
@@ -77,26 +79,6 @@ public class AndroidStudioGradleInstallationManager extends GradleInstallationMa
   }
 
   /**
-   * Creates or reuses a JDK with the name {@link AndroidGradleProjectSettingsControlBuilder#ANDROID_STUDIO_JAVA_HOME_NAME} with the given
-   * path and sets the project to use it. Must be run inside of a write action.
-   * @param project Project to be modified to use the given JDK
-   * @param jdkPath Path where the JDK is located
-   */
-  public static void setJdkAsJavaHome(@NotNull Project project, @NotNull String jdkPath) {
-    setNamedJdk(project, jdkPath, ANDROID_STUDIO_JAVA_HOME_NAME);
-  }
-
-  /**
-   * Creates or reuses a JDK with the name {@link AndroidGradleProjectSettingsControlBuilder#EMBEDDED_JDK_NAME} with the given path and sets
-   * the project to use it. Must be run inside a write action.
-   * @param project Project to be modified to use the given JDK
-   */
-  public static void setJdkAsEmbedded(@NotNull Project project) {
-    Path embeddedJdkPath = IdeSdks.getInstance().getEmbeddedJdkPath();
-    setNamedJdk(project, embeddedJdkPath.toAbsolutePath().toString(), EMBEDDED_JDK_NAME);
-  }
-
-  /**
    * Creates or reuses a JDK with its default name and sets the project to use it.  Must be run inside a write action.
    * @param project Project to be modified to use the given JDK
    * @param jdkPath Path where the JDK is located
@@ -111,19 +93,5 @@ public class AndroidStudioGradleInstallationManager extends GradleInstallationMa
         projectSettings.setGradleJvm(USE_PROJECT_JDK);
       }
     }
-  }
-
-  private static void setNamedJdk(@NotNull Project project, @NotNull String jdkPath, @NotNull String name) {
-    String basePath = project.getBasePath();
-    if (basePath != null) {
-      Sdk jdk = IdeSdks.findOrCreateJdk(name, Paths.get(jdkPath));
-      GradleProjectSettings projectSettings = GradleSettings.getInstance(project).getLinkedProjectSettings(basePath);
-      if (projectSettings != null) {
-        projectSettings.setGradleJvm(name);
-        return;
-      }
-    }
-    // If cannot set in project, set as default value
-    setJdkAsProjectJdk(project, jdkPath);
   }
 }
