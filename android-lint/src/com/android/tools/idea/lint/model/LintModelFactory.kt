@@ -606,25 +606,6 @@ class LintModelFactory : LintModelModuleLoader {
         return DefaultLintModelMavenName(groupId, androidProject.projectPath.projectPath, "")
     }
 
-    private fun getMavenName(artifactAddress: String): LintModelMavenName {
-        fun Int.nextDelimiterIndex(vararg delimiters: Char): Int {
-            return delimiters.asSequence()
-                .map {
-                    val index = artifactAddress.indexOf(it, startIndex = this + 1)
-                    if (index == -1) artifactAddress.length else index
-                }.minOrNull() ?: artifactAddress.length
-        }
-
-        val lastDelimiterIndex = 0
-            .nextDelimiterIndex(':')
-            .nextDelimiterIndex(':')
-            .nextDelimiterIndex(':', '@')
-
-        // Currently [LintModelMavenName] supports group:name:version format only.
-        return LintModelMavenName.parse(artifactAddress.substring(0, lastDelimiterIndex))
-               ?: error("Cannot parse '$artifactAddress'")
-    }
-
     private fun getLintOptions(project: IdeAndroidProject): LintModelLintOptions =
         getLintOptions(project.lintOptions)
 
@@ -855,6 +836,29 @@ class LintModelFactory : LintModelModuleLoader {
     }
 
     companion object {
+        fun getMavenName(artifactAddress: String): LintModelMavenName {
+            fun Int.nextDelimiterIndex(vararg delimiters: Char): Int {
+                return delimiters.asSequence()
+                    .map {
+                        val index = artifactAddress.indexOf(it, startIndex = this + 1)
+                        if (index == -1) artifactAddress.length else index
+                    }.minOrNull() ?: artifactAddress.length
+            }
+
+            val lastDelimiterIndex = 0
+              .nextDelimiterIndex(':')
+              .nextDelimiterIndex(':')
+              .nextDelimiterIndex(':', '@')
+
+            return LintModelMavenName.parse(artifactAddress.substring(0, lastDelimiterIndex))
+                // This can happen if you have something like this:
+                //     implementation project(path: ':lib', configuration: 'shadow')
+                // with the shadowJar plugin; this is coming from a
+                //     IdeJavaLibraryImpl(artifactAddress=$P/lib/build/libs/lib-all.jar,
+                //                        name=$P/lib/build/libs/lib-all.jar,
+                //                        artifact=$P/lib/build/libs/lib-all.jar)
+                ?: DefaultLintModelMavenName("__non_maven__", artifactAddress)
+        }
 
         /**
          * Returns the [LintModelModuleType] for the given [typeId]. Type ids must be one of the values defined by
