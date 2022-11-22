@@ -57,3 +57,15 @@ open class ComposeRenderTestBase {
     RenderService.setForTesting(projectRule.project, null)
   }
 }
+
+fun AndroidGradleProjectRule.buildAndAssertSuccess(task: String = "assemble") {
+  val buildResult = invokeTasks(task)
+  Assert.assertTrue(
+    """
+        Build failed with:
+
+        ${buildResult.buildError}
+      """.trimIndent(),
+    buildResult.isBuildSuccessful
+  )
+}

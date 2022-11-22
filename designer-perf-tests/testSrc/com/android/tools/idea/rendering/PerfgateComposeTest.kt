@@ -162,7 +162,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
     val fastPreviewManager = FastPreviewManager.getInstance(project)
 
     // Make one full build (required before we use FastPreviewManager
-    assertTrue(projectRule.invokeTasks("assemble").isBuildSuccessful)
+    projectRule.buildAndAssertSuccess()
 
     runWriteActionAndWait {
       projectRule.fixture.openFileInEditor(mainFile)
@@ -197,7 +197,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
     fastPreviewManager.preStartDaemon(module)
 
     // Make one full build (required before we use FastPreviewManager
-    assertTrue(projectRule.invokeTasks("assemble").isBuildSuccessful)
+    projectRule.buildAndAssertSuccess()
 
     runWriteActionAndWait {
       projectRule.fixture.openFileInEditor(mainFile)

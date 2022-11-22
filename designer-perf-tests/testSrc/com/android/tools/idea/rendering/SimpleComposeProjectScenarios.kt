@@ -38,8 +38,7 @@ class SimpleComposeProjectScenarios {
           PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
         }
       }
-      // Modify the file to make sure a change is done
-      Assert.assertTrue(projectRule.invokeTasks("compileDebugKotlin").isBuildSuccessful)
+      projectRule.buildAndAssertSuccess("compileDebugKotlin")
     }
 
     fun baselineRenderScenario(projectRule: AndroidGradleProjectRule): RenderResult {
