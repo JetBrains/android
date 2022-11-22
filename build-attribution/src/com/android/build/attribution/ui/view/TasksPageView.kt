@@ -22,6 +22,7 @@ import com.android.build.attribution.ui.model.tasksFilterComponent
 import com.android.build.attribution.ui.panels.CriticalPathChartLegend
 import com.android.build.attribution.ui.view.chart.TimeDistributionTreeChart
 import com.android.build.attribution.ui.view.details.TaskViewDetailPagesFactory
+import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.CardLayoutPanel
 import com.intellij.ui.CollectionComboBoxModel
@@ -40,10 +41,10 @@ import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
+import icons.StudioIcons
 import org.jetbrains.annotations.NonNls
 import java.awt.BorderLayout
 import java.awt.Color
-import java.awt.Component
 import java.awt.Font
 import java.awt.event.ItemEvent
 import javax.swing.JCheckBox
@@ -136,9 +137,22 @@ class TasksPageView(
       val treeHeaderPanel = JPanel().apply {
         layout = BorderLayout()
         background = UIUtil.getTreeBackground()
-        treeHeaderLabel.border = JBUI.Borders.empty(5, 20)
-        treeHeaderLabel.alignmentX = Component.LEFT_ALIGNMENT
-        add(treeHeaderLabel, BorderLayout.CENTER)
+
+        val helpIcon = JLabel(StudioIcons.Common.HELP).apply {
+          HelpTooltip()
+            .setDescription("Build Analyzer only includes tasks that are part of the <b>critical path</b> for this build." +
+                            " These are the tasks you should investigate to optimize your build.")
+            .installOn(this)
+        }
+
+        add(
+          JBPanel<JBPanel<*>>(HorizontalLayout(5)).apply {
+            border = JBUI.Borders.empty(5, 20)
+            add(treeHeaderLabel)
+            add(helpIcon)
+          },
+          BorderLayout.CENTER
+        )
         add(tasksLegendPanel, BorderLayout.SOUTH)
       }
       add(treeHeaderPanel, BorderLayout.NORTH)
