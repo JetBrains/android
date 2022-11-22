@@ -17,11 +17,11 @@ package com.android.tools.asdriver.tests;
 
 import com.android.tools.asdriver.proto.ASDriver;
 import com.android.tools.asdriver.proto.AndroidStudioGrpc;
-import com.intellij.openapi.util.SystemInfo;
-import com.intellij.util.system.CpuArch;
 import com.android.tools.idea.io.grpc.ManagedChannel;
 import com.android.tools.idea.io.grpc.ManagedChannelBuilder;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.util.system.CpuArch;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

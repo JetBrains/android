@@ -19,6 +19,7 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.asdriver.tests.MavenRepo
+import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import org.junit.Rule
 import org.junit.Test
 import java.io.IOException
@@ -31,6 +32,10 @@ class LiveEditTest {
   @JvmField
   @Rule
   val system: AndroidSystem = AndroidSystem.standard()
+
+  @JvmField
+  @Rule
+  var watcher = MemoryDashboardNameProviderWatcher()
 
   /**
    * Enables Live Edit by modifying the settings on-disk.
@@ -63,7 +68,7 @@ class LiveEditTest {
     system.runAdb { adb ->
       // Live Edit requires an API level of at least 30.
       system.runEmulator(Emulator.SystemImage.API_30) { emulator ->
-        system.runStudio(project) { studio ->
+        system.runStudio(project, watcher.dashboardName) { studio ->
           studio.waitForSync()
           studio.waitForIndex()
 

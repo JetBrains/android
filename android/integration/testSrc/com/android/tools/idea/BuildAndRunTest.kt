@@ -18,6 +18,7 @@ package com.android.tools.idea
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
+import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
@@ -26,6 +27,10 @@ import kotlin.time.Duration.Companion.seconds
 class BuildAndRunTest {
   @JvmField @Rule
   val system = AndroidSystem.standard()
+
+  @JvmField
+  @Rule
+  var watcher = MemoryDashboardNameProviderWatcher()
 
   /**
    * Verifies that a project can build and deploy on an emulator
@@ -52,7 +57,7 @@ class BuildAndRunTest {
 
     system.runAdb { adb ->
       system.runEmulator { emulator ->
-        system.runStudio(project) { studio ->
+        system.runStudio(project, watcher.dashboardName) { studio ->
           studio.waitForSync()
           studio.waitForIndex()
           studio.executeAction("MakeGradleProject")

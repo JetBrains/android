@@ -33,5 +33,6 @@
     </orderEntry>
     <orderEntry type="library" scope="TEST" name="studio-sdk" level="project" />
     <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
+    <orderEntry type="module" module-name="perf-logger" scope="TEST" />
   </component>
 </module>

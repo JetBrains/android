@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
+import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
@@ -30,6 +31,9 @@ class LaunchInspectorsTest {
   @Rule
   val system = AndroidSystem.standard()
 
+  @JvmField
+  @Rule
+  var watcher = MemoryDashboardNameProviderWatcher()
 
   /**
    * Verifies that all inspectors are deployed successfully with a non-empty UI component
@@ -58,7 +62,7 @@ class LaunchInspectorsTest {
 
     system.runAdb { adb ->
       system.runEmulator { emulator ->
-        system.runStudio(project) { studio ->
+        system.runStudio(project, watcher.dashboardName) { studio ->
           studio.waitForSync()
           studio.waitForIndex()
           studio.executeAction("MakeGradleProject")

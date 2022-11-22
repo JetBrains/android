@@ -18,6 +18,7 @@ package com.android.tools.idea.compose
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
+import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import org.junit.Rule
@@ -31,8 +32,10 @@ class ComposePreviewKotlin {
 
   @get:Rule val system = AndroidSystem.standard()
 
+  @get:Rule var watcher = MemoryDashboardNameProviderWatcher()
+
   @Test
-  fun basic() {
+  fun composePreviewKotlinBasicTest() {
     // Create a new android project, and set a fixed distribution
     val project = AndroidProject("tools/adt/idea/compose-designer/testData/projects/composepreview")
     project.setDistribution("tools/external/gradle/gradle-7.3.3-bin.zip")
@@ -44,7 +47,7 @@ class ComposePreviewKotlin {
       "-Didea.log.debug.categories=#com.android.tools.idea.compose.preview.ComposePreviewRepresentation"
     )
 
-    system.runStudio(project) { studio ->
+    system.runStudio(project, watcher.dashboardName) { studio ->
       studio.waitForSync()
       studio.waitForIndex()
 

@@ -76,6 +76,7 @@ iml_module(
         "//tools/adt/idea/as-driver:asdriver_proto",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
+        "//tools/base/perf-logger:studio.perf-logger[module, test]",
     ],
 )
 

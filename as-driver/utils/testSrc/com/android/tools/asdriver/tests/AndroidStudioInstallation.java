@@ -119,7 +119,10 @@ public class AndroidStudioInstallation {
                        // test machines.
                        String.format("-Dide.libnotify.enabled=false%n") +
                        String.format("-Didea.log.path=%s%n", logsDir) +
-                       String.format("-Duser.home=%s%n", fileSystem.getHome());
+                       String.format("-Duser.home=%s%n", fileSystem.getHome()) +
+                       // Enabling this flag is required for connecting all the Java Instrumentation agents needed for memory statistics.
+                       String.format("-Dstudio.run.under.integration.test=true%n") +
+                       String.format("-Djdk.attach.allowAttachSelf=true%n");
     Files.write(vmOptionsPath, vmOptions.getBytes(StandardCharsets.UTF_8));
 
     // Handy utility to allow run configurations to force debugging

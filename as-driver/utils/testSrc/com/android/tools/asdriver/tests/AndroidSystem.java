@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -177,10 +178,14 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     return install.run(display, env, project, sdk.getSourceDir());
   }
 
-  public void runStudio(AndroidProject project, Consumer<AndroidStudio> callback) throws Exception {
-      try (AndroidStudio studio = runStudio(project)) {
-        callback.accept(studio);
-      }
+  //Temporary method, will be removed after submitting this review and corresponding AppInsightsTest fix.
+  public void runStudio(@NotNull final AndroidProject project,
+                        @Nullable final String memoryDashboardName,
+                        Consumer<AndroidStudio> callback) throws Exception {
+    try (AndroidStudio studio = runStudio(project)) {
+      callback.accept(studio);
+      MemoryUsageReportProcessor.Companion.collectMemoryUsageStatistics(studio, install, memoryDashboardName);
+    }
   }
 
   public void installRepo(MavenRepo repo) throws Exception {

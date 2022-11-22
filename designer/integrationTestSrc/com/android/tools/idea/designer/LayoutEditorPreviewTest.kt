@@ -18,24 +18,27 @@ package com.android.tools.idea.designer
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
-import java.nio.file.Path
+import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import org.junit.Rule
 import org.junit.Test
+import java.nio.file.Path
 
 /** Ensures that Layout Editor Preview works for an XML file. */
 class LayoutEditorPreviewTest {
 
   @get:Rule val system = AndroidSystem.standard()
 
+  @get:Rule var watcher = MemoryDashboardNameProviderWatcher()
+
   @Test
-  fun basic() {
+  fun layoutEditorPreviewBasicTest() {
     // Create a new android project, and set a fixed distribution
     val project = AndroidProject("tools/adt/idea/designer/testData/projects/simpleApplication")
     project.setDistribution("tools/external/gradle/gradle-7.3.3-bin.zip")
 
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/designer/layout_preview_deps.manifest"))
-    system.runStudio(project) { studio ->
+    system.runStudio(project, watcher.dashboardName) { studio ->
       studio.waitForSync()
       studio.waitForIndex()
 

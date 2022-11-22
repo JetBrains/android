@@ -232,20 +232,6 @@ build_and_run_test_data = select({
 ]
 
 iml_test(
-    name = "BuildAndRunWithMemoryTest",
-    timeout = "long",
-    data = build_and_run_test_data,
-    module = ":intellij.android.core.integration",
-    tags_linux = ["block-network"],
-    tags_mac = [],
-    tags_windows = [
-        "block-network",
-        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
-    ],
-    test_class = "com.android.tools.idea.BuildAndRunWithMemoryTest",
-)
-
-iml_test(
     name = "BuildAndRunTest",
     timeout = "long",
     data = build_and_run_test_data,
