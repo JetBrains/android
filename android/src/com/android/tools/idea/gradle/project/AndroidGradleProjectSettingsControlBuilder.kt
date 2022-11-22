@@ -16,48 +16,41 @@
 package com.android.tools.idea.gradle.project
 
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.gradle.ui.GradleJdkComboBox
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME
 import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.JAVA_HOME
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_PROJECT_JDK
 import com.intellij.openapi.externalSystem.util.ExternalSystemUiUtil
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
 import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable
-import com.intellij.openapi.roots.ui.configuration.SdkComboBox
 import com.intellij.openapi.roots.ui.configuration.SdkComboBoxModel
-import com.intellij.openapi.roots.ui.configuration.SdkListItem
-import com.intellij.openapi.roots.ui.configuration.SdkListModel
-import com.intellij.openapi.roots.ui.configuration.SdkListPresenter
-import com.intellij.openapi.roots.ui.configuration.SdkLookupProvider
 import com.intellij.openapi.roots.ui.configuration.SdkLookupProvider.SdkInfo
 import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBLabel
-import com.intellij.util.Producer
 import com.intellij.util.ThrowableRunnable
 import org.jetbrains.plugins.gradle.service.settings.IdeaGradleProjectSettingsControlBuilder
 import org.jetbrains.plugins.gradle.service.settings.JavaGradleProjectSettingsControlBuilder
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.util.getGradleJvmLookupProvider
-import org.jetbrains.plugins.gradle.util.getSelectedGradleJvmReference
-import org.jetbrains.plugins.gradle.util.nonblockingResolveGradleJvmInfo
-import org.jetbrains.plugins.gradle.util.setSelectedGradleJvmReference
 import java.awt.BorderLayout
-import java.awt.Component
 import java.nio.file.Path
-import java.nio.file.Paths
-import javax.swing.JList
 import javax.swing.JPanel
 
-class AndroidGradleProjectSettingsControlBuilder(val myInitialSettings: GradleProjectSettings) : JavaGradleProjectSettingsControlBuilder(myInitialSettings) {
+@Suppress("UnstableApiUsage")
+class AndroidGradleProjectSettingsControlBuilder(
+  private val myInitialSettings: GradleProjectSettings
+) : JavaGradleProjectSettingsControlBuilder(myInitialSettings) {
   companion object {
     const val GRADLE_JDK_LABEL_TEXT = "Gradle JDK:"
     const val EMBEDDED_JDK_NAME = "Embedded JDK"
@@ -72,8 +65,7 @@ class AndroidGradleProjectSettingsControlBuilder(val myInitialSettings: GradlePr
   private var dropGradleJdkComponents = false
   private var myGradleJdkLabel: JBLabel? = null
   private var myGradleJdkComboBoxWrapper: JPanel? = null
-  private var myGradleJdkComboBox: SdkComboBox? = null
-
+  private var myGradleJdkComboBox: GradleJdkComboBox? = null
 
   override fun dropGradleJdkComponents(): IdeaGradleProjectSettingsControlBuilder {
     dropGradleJdkComponents = true
@@ -97,15 +89,14 @@ class AndroidGradleProjectSettingsControlBuilder(val myInitialSettings: GradlePr
 
   override fun validate(settings: GradleProjectSettings?): Boolean {
     if (myGradleJdkComboBox != null && !ApplicationManager.getApplication().isUnitTestMode) {
-      val sdkInfo: SdkInfo = getSelectedGradleJvmInfo(myGradleJdkComboBox!!)
-      if (sdkInfo is SdkInfo.Undefined) {
-        throw ConfigurationException("Please, set the Gradle JDK option")
-      }
-      if (sdkInfo is SdkInfo.Resolved) {
-        val homePath: String = sdkInfo.homePath!!
-        if (!ExternalSystemJdkUtil.isValidJdk(homePath)) {
-          throw ConfigurationException("Gradle JDK option is incorrect:\nPath: $homePath")
+      when (val sdkInfo = myGradleJdkComboBox?.getSelectedGradleJvmInfo()) {
+        is SdkInfo.Undefined -> throw ConfigurationException("Please, set the Gradle JDK option")
+        is SdkInfo.Resolved -> {
+          if (!ExternalSystemJdkUtil.isValidJdk(sdkInfo.homePath)) {
+            throw ConfigurationException("Gradle JDK option is incorrect:\nPath: ${sdkInfo.homePath}")
+          }
         }
+        is SdkInfo.Resolving, SdkInfo.Unresolved, null -> {}
       }
     }
     return super.validate(settings)
@@ -114,9 +105,8 @@ class AndroidGradleProjectSettingsControlBuilder(val myInitialSettings: GradlePr
   override fun apply(settings: GradleProjectSettings?) {
     super.apply(settings)
     if (myGradleJdkComboBox != null) {
-      wrapExceptions { myGradleJdkComboBox!!.model.sdksModel.apply() }
-      val sdkLookupProvider = getSdkLookupProvider(myGradleJdkComboBox!!.model.project)
-      val gradleJvm = myGradleJdkComboBox!!.getSelectedGradleJvmReference(sdkLookupProvider)
+      wrapExceptions { myGradleJdkComboBox!!.applyModelChanges() }
+      val gradleJvm = myGradleJdkComboBox!!.selectedGradleJvmReference
       settings!!.gradleJvm = if (StringUtil.isEmpty(gradleJvm)) null else gradleJvm
       IdeSdks.getInstance().setUseEnvVariableJdk(JDK_LOCATION_ENV_VARIABLE_NAME == gradleJvm)
     }
@@ -124,12 +114,11 @@ class AndroidGradleProjectSettingsControlBuilder(val myInitialSettings: GradlePr
 
   override fun isModified(): Boolean {
     if (myGradleJdkComboBox != null) {
-      val sdkLookupProvider = getSdkLookupProvider(myGradleJdkComboBox!!.model.project)
-      val gradleJvm = myGradleJdkComboBox!!.getSelectedGradleJvmReference(sdkLookupProvider)
+      val gradleJvm = myGradleJdkComboBox!!.selectedGradleJvmReference
       if (!StringUtil.equals(gradleJvm, myInitialJdkName)) {
         return true
       }
-      if (myGradleJdkComboBox!!.model.sdksModel.isModified) {
+      if (myGradleJdkComboBox!!.isModelModified()) {
         return true
       }
     }
@@ -163,24 +152,22 @@ class AndroidGradleProjectSettingsControlBuilder(val myInitialSettings: GradlePr
     setupProjectSdksModel(sdksModel, checkedProject, projectSdk)
     recreateGradleJdkComboBox(checkedProject, sdksModel)
 
-    val sdkLookupProvider = getSdkLookupProvider(myGradleJdkComboBox!!.model.project)
-    val externalProjectPath = myInitialSettings.externalProjectPath
     var selectedSdk = settings!!.gradleJvm
     if (IdeSdks.getInstance().isUsingEnvVariableJdk) {
       selectedSdk = JDK_LOCATION_ENV_VARIABLE_NAME
     }
     if (selectedSdk == USE_PROJECT_JDK) {
-      val resolvedJdk = myGradleJdkComboBox!!.model.sdksModel.projectSdk
+      val resolvedJdk = myGradleJdkComboBox!!.getProjectSdk()
       if (resolvedJdk != null)
         selectedSdk = resolvedJdk.name
     }
     myInitialJdkName = selectedSdk
-    myGradleJdkComboBox!!.setSelectedGradleJvmReference(sdkLookupProvider, externalProjectPath, selectedSdk)
+    myGradleJdkComboBox!!.selectedGradleJvmReference = selectedSdk
   }
 
   private fun recreateGradleJdkComboBox(project: Project, sdksModel: ProjectSdksModel) {
     if (myGradleJdkComboBox != null) {
-      myGradleJdkComboBoxWrapper!!.remove(myGradleJdkComboBox)
+      myGradleJdkComboBoxWrapper!!.remove(myGradleJdkComboBox!!.component)
     }
     // Add Android Studio specific jdks
 
@@ -193,11 +180,6 @@ class AndroidGradleProjectSettingsControlBuilder(val myInitialSettings: GradlePr
       val embeddedJdkPath = ideSdks.embeddedJdkPath
       if (embeddedJdkPath != null) {
         addJdkIfNotPresent(sdksModel, EMBEDDED_JDK_NAME, embeddedJdkPath)
-      }
-      // Add JAVA_HOME
-      val javaHomeJdk = IdeSdks.getJdkFromJavaHome()
-      if (javaHomeJdk != null) {
-        addJdkIfNotPresent(sdksModel, ANDROID_STUDIO_JAVA_HOME_NAME, Paths.get(javaHomeJdk))
       }
       // ADD JDK_LOCATION_ENV_VARIABLE_NAME
       if (ideSdks.isJdkEnvVariableValid) {
@@ -217,36 +199,16 @@ class AndroidGradleProjectSettingsControlBuilder(val myInitialSettings: GradlePr
     }
     // TODO: End of remove
 
-    myGradleJdkComboBox = SdkComboBox(boxModel)
-    myGradleJdkComboBox!!.renderer = SdkListPathPresenter { myGradleJdkComboBox!!.model.listModel }
-    myGradleJdkComboBoxWrapper!!.add(myGradleJdkComboBox!!, BorderLayout.CENTER)
-  }
-
-  class SdkListPathPresenter(getSdkListModel: Producer<SdkListModel>) : SdkListPresenter(getSdkListModel) {
-    override fun customizeCellRenderer(list: JList<out SdkListItem>,
-                                       value: SdkListItem?,
-                                       index: Int,
-                                       selected: Boolean,
-                                       hasFocus: Boolean) {
-      super.customizeCellRenderer(list, value, index, selected, hasFocus)
-      if (value is SdkListItem.SdkItem && value.sdk.homePath != null) {
-        append(" ")
-        append(value.sdk.homePath!!, SimpleTextAttributes.GRAYED_ATTRIBUTES)
-      }
+    myGradleJdkComboBox = GradleJdkComboBox(
+      sdkComboBoxModel = boxModel,
+      sdkLookupProvider = getGradleJvmLookupProvider(project, myInitialSettings),
+      externalProjectPath = myInitialSettings.externalProjectPath
+    )
+    // Add JAVA_HOME
+    IdeSdks.getJdkFromJavaHome()?.let {
+      myGradleJdkComboBox?.addJdkReferenceItem(JAVA_HOME, it)
     }
-
-    override fun getListCellRendererComponent(list: JList<out SdkListItem>,
-                                              value: SdkListItem?,
-                                              index: Int,
-                                              selected: Boolean,
-                                              hasFocus: Boolean): Component {
-      val comp = super.getListCellRendererComponent(list, value, index, selected, hasFocus)
-      list.toolTipText = when {
-        value is SdkListItem.SdkItem && value.sdk.homePath != null -> value.sdk.homePath
-        else -> ""
-      }
-      return comp
-    }
+    myGradleJdkComboBoxWrapper!!.add(myGradleJdkComboBox!!.component, BorderLayout.CENTER)
   }
 
   private fun addJdkIfNotPresent(sdksModel: ProjectSdksModel, name: String, jdkPath: Path) {
@@ -254,13 +216,8 @@ class AndroidGradleProjectSettingsControlBuilder(val myInitialSettings: GradlePr
       // Already exists, do not generate a new one
       return
     }
-
-    val newJdk = IdeSdks.findOrCreateJdk(name, jdkPath)
-    sdksModel.addSdk(newJdk)
-  }
-
-  private fun getSdkLookupProvider(project: Project): SdkLookupProvider {
-    return getGradleJvmLookupProvider(project, myInitialSettings)
+    val jdk = JavaSdk.getInstance().createJdk(name, jdkPath.toAbsolutePath().toString())
+    sdksModel.addSdk(jdk)
   }
 
   private fun setupProjectSdksModel(sdksModel: ProjectSdksModel, project: Project, projectSdk: Sdk?) {
@@ -296,14 +253,6 @@ class AndroidGradleProjectSettingsControlBuilder(val myInitialSettings: GradlePr
       }
       processedNames.add(sdk.name)
     }
-  }
-
-  private fun getSelectedGradleJvmInfo(comboBox: SdkComboBox): SdkInfo {
-    val sdkLookupProvider = getSdkLookupProvider(comboBox.model.project)
-    val externalProjectPath = myInitialSettings.externalProjectPath
-    val projectSdk = comboBox.model.sdksModel.projectSdk
-    val gradleJvm = comboBox.getSelectedGradleJvmReference(sdkLookupProvider)
-    return sdkLookupProvider.nonblockingResolveGradleJvmInfo(comboBox.model.project, projectSdk, externalProjectPath, gradleJvm)
   }
 
   private fun wrapExceptions(runnable: ThrowableRunnable<Throwable>) {

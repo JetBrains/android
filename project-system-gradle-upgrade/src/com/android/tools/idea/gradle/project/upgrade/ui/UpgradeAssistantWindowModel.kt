@@ -19,7 +19,6 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
-import com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
@@ -41,6 +40,7 @@ import com.android.tools.idea.gradle.project.upgrade.isCleanEnoughProject
 import com.android.tools.idea.gradle.project.upgrade.trackProcessorUsage
 import com.android.tools.idea.gradle.project.upgrade.versionsAreIncompatible
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
+import com.android.tools.idea.gradle.ui.GradleJdkListPathPresenter
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.google.wireless.android.sdk.stats.GradleSyncStats
@@ -74,7 +74,6 @@ import com.intellij.ui.CheckboxTreeListener
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.util.ui.UIUtil
 import java.awt.event.ActionEvent
-import java.util.function.Predicate
 import javax.swing.AbstractAction
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -669,7 +668,9 @@ class UpgradeAssistantWindowModel(
         sdksModel.projectSdk = projectJdk
 
         comboBox = SdkComboBox(gradleJdkBoxModel).apply { name = "selection" }
-        comboBox.renderer = AndroidGradleProjectSettingsControlBuilder.SdkListPathPresenter { comboBox.model.listModel }
+        comboBox.renderer = GradleJdkListPathPresenter(
+          producerSdkList = { comboBox.model.listModel }
+        )
         processor.newJdkInfo?.let { newJdkInfo ->
           val sdkItem = comboBox.model.listModel.findSdkItem(newJdkInfo.sdk) ?: return@let
           comboBox.model.selectedItem = sdkItem
