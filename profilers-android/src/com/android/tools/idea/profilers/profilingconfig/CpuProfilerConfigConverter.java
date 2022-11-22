@@ -122,13 +122,6 @@ public class CpuProfilerConfigConverter {
   }
 
   /**
-   * Converts from list of {@link CpuProfilerConfig} to list of {@link Trace.TraceConfiguration}
-   */
-  public static List<Trace.UserOptions> toProto(List<CpuProfilerConfig> configs, int deviceApi) {
-    return ContainerUtil.map(configs, config -> toProto(config, deviceApi));
-  }
-
-  /**
    * Converts from {@link CpuProfilerConfig} to {@link Trace.UserOptions}
    */
   public static Trace.UserOptions toProto(CpuProfilerConfig config, int deviceApi) {
