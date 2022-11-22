@@ -68,7 +68,7 @@ private:
     std::atomic<int32_t> display_rotation;
   };
 
-  bool ProcessFramesUntilStopped(AMediaCodec* codec, VideoPacketHeader* packet_header);
+  bool ProcessFramesUntilStopped(AMediaCodec* codec, VideoPacketHeader* packet_header, const AMediaFormat* sync_frame_request);
 
   void StopCodec();
   void StopCodecUnlocked();  // REQUIRES(mutex_)

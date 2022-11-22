@@ -266,8 +266,11 @@ void DisplayStreamer::Run() {
       packet_header.display_orientation = NormalizeRotation(display_info.rotation + rotation_correction);
       packet_header.display_orientation_correction = NormalizeRotation(rotation_correction);
     }
-    bool end_of_stream = ProcessFramesUntilStopped(codec, &packet_header);
+    AMediaFormat* sync_frame_request = AMediaFormat_new();
+    AMediaFormat_setInt32(sync_frame_request, AMEDIACODEC_KEY_REQUEST_SYNC_FRAME, 0);
+    bool end_of_stream = ProcessFramesUntilStopped(codec, &packet_header, sync_frame_request);
     StopCodec();
+    AMediaFormat_delete(sync_frame_request);
     surface_control.DestroyDisplay(display);
     AMediaCodec_delete(codec);
     codec = nullptr;
@@ -336,7 +339,8 @@ void DisplayStreamer::Shutdown() {
   }
 }
 
-bool DisplayStreamer::ProcessFramesUntilStopped(AMediaCodec* codec, VideoPacketHeader* packet_header) {
+bool DisplayStreamer::ProcessFramesUntilStopped(AMediaCodec* codec, VideoPacketHeader* packet_header,
+                                                const AMediaFormat* sync_frame_request) {
   bool end_of_stream = false;
   bool first_frame_after_start = true;
   while (!end_of_stream && IsCodecRunning()) {
@@ -351,9 +355,10 @@ bool DisplayStreamer::ProcessFramesUntilStopped(AMediaCodec* codec, VideoPacketH
     if (first_frame_after_start) {
       // Request another sync frame to prevent a green bar that sometimes appears at the bottom
       // of the first frame.
-      AMediaFormat* params = AMediaFormat_new();
-      AMediaFormat_setInt32(params, AMEDIACODEC_KEY_REQUEST_SYNC_FRAME, 0);
-      media_status_t status = AMediaCodec_setParameters(codec, params);
+      media_status_t status = AMediaCodec_setParameters(codec, sync_frame_request);
+      if (status != AMEDIA_OK) {
+        Log::E("AMediaCodec_setParameters returned %d", status);
+      }
       first_frame_after_start = false;
     }
     int64_t delta = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count() - Agent::GetLastTouchEventTime();
@@ -422,4 +427,3 @@ void DisplayStreamer::DisplayRotationWatcher::OnRotationChanged(int32_t new_rota
 }
 
 }  // namespace screensharing
-
