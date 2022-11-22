@@ -626,23 +626,28 @@ class AgpUpgradeRefactoringProcessor(
     // being done; on the other hand it is cancellable, shows numeric progress and takes around 30 seconds for a project with 1k modules.
     //
     // Moving to an asynchronous process would involve modifying callers to do the subsequent work after parsing in callbacks.
-    progressManager.runProcessWithProgressSynchronously(
-      {
-        val indicator = progressManager.progressIndicator
-        projectBuildModel.getAllIncludedBuildModels { seen, total ->
-          indicator?.let {
-            indicator.checkCanceled()
-            // both "Parsing file ..." and "Parsing module ..." here are in general slightly wrong (given included and settings files).
-            indicator.text = "Parsing file $seen${if (total != null) " of $total" else ""}"
-            indicator.isIndeterminate = total == null
-            total?.let { indicator.fraction = seen.toDouble() / total.toDouble() }
+
+    DumbService.getInstance(project).runWhenSmart {
+      // we must be in smart mode before starting the modal progress display, otherwise attempts to use indexes in
+      // processors (with e.g. runReadActionInSmartMode) will softlock if indexes are not ready.
+      progressManager.runProcessWithProgressSynchronously(
+        {
+          val indicator = progressManager.progressIndicator
+          projectBuildModel.getAllIncludedBuildModels { seen, total ->
+            indicator?.let {
+              indicator.checkCanceled()
+              // both "Parsing file ..." and "Parsing module ..." here are in general slightly wrong (given included and settings files).
+              indicator.text = "Parsing file $seen${if (total != null) " of $total" else ""}"
+              indicator.isIndeterminate = total == null
+              total?.let { indicator.fraction = seen.toDouble() / total.toDouble() }
+            }
           }
-        }
-        // Ensure that we have the information about no-ops, which might also involve inspecting Psi directly (and thus should not be
-        // done on the EDT).
-        componentRefactoringProcessors.forEach { it.initializeComponentCaches() }
-      },
-      commandName, true, project)
+          // Ensure that we have the information about no-ops, which might also involve inspecting Psi directly (and thus should not be
+          // done on the EDT).
+          componentRefactoringProcessors.forEach { it.initializeComponentCaches() }
+        },
+        commandName, true, project)
+    }
   }
 }
 
