@@ -22,6 +22,7 @@ import org.jetbrains.annotations.TestOnly
 import java.util.PriorityQueue
 import java.util.Queue
 import java.util.concurrent.Callable
+import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.PriorityBlockingQueue
@@ -117,7 +118,7 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
     return runAsyncAction(RenderingPriority.HIGH, callable).get()
   }
 
-  private class EvictedException(message: String?) : Exception(message)
+  private class EvictedException(message: String?) : CancellationException(message)
 
   private fun scheduleTimeoutAction(timeout: Long, unit: TimeUnit, action: () -> Unit): ScheduledFuture<*> =
     timeoutExecutor.schedule(
@@ -223,7 +224,7 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
       numberOfCancelledActions = tasksToCancel.size
       tasksToCancel
     }.forEach {
-      it.completeExceptionally(Exception("This task is cancelled and should not be accessed"))
+      it.cancel(false)
     }
     return numberOfCancelledActions
   }

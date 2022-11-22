@@ -99,7 +99,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -888,6 +890,9 @@ public class RenderTask {
     }), RenderAsyncActionExecutor.DEFAULT_RENDER_THREAD_TIMEOUT_MS * 10, TimeUnit.MILLISECONDS)
       .handle((result, ex) -> {
         if (ex != null) {
+          while (ex instanceof CompletionException) {
+            ex = ex.getCause();
+          }
           String message = ex.getMessage();
           if (message == null) {
             message = ex.toString();
@@ -1008,6 +1013,11 @@ public class RenderTask {
    * Method used to report unhandled layoutlib exceptions to the crash reporter
    */
   private void reportException(@NotNull Throwable e) {
+    if (e instanceof CancellationException) {
+      // Cancellation exceptions are due to either cancelled Visual Linting tasks or tasks evicted from a full render queue.
+      // They are not crashes and so should not be reported to the crash reporter.
+      return;
+    }
     // This in an unhandled layoutlib exception, pass it to the crash reporter
     myCrashReporter.submit(new StudioExceptionReport.Builder().setThrowable(e, false, true).build());
   }
