@@ -30,14 +30,21 @@ public class BorderLayer extends Layer {
 
   private final SceneView myScreenView;
 
+  private final boolean myMustPaintBorder;
+
   public BorderLayer(@NotNull SceneView screenView) {
+    this(screenView, false);
+  }
+
+  public BorderLayer(@NotNull SceneView screenView, boolean mustPaintBorder) {
     myScreenView = screenView;
+    myMustPaintBorder = mustPaintBorder;
   }
 
   @Override
   public void paint(@NotNull Graphics2D g2d) {
     Shape screenShape = myScreenView.getScreenShape();
-    if (screenShape != null) {
+    if (!myMustPaintBorder && screenShape != null) {
       g2d.draw(screenShape);
       return;
     }

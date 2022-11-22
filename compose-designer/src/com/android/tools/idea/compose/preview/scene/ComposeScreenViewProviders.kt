@@ -47,7 +47,7 @@ internal val COMPOSE_SCREEN_VIEW_PROVIDER =
           ImmutableList.builder<Layer>()
             .apply {
               if (it.hasBorderLayer()) {
-                add(BorderLayer(it))
+                add(BorderLayer(it, true))
               }
               add(ScreenViewLayer(it))
               add(SceneLayer(it.surface, it, false).apply { isShowOnHover = true })
