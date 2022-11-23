@@ -13,7 +13,6 @@
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="android.sdktools.adblib" />
     <orderEntry type="module" module-name="android.sdktools.adblib.tools" />
-    <orderEntry type="module" module-name="android.sdktools.deployer" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.android.adb" />
     <orderEntry type="module" module-name="intellij.android.adb.ui" />

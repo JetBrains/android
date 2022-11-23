@@ -15,13 +15,9 @@
  */
 package com.android.tools.idea.streaming.emulator
 
-import com.android.ddmlib.AndroidDebugBridge
-import com.android.ddmlib.IDevice
 import com.android.emulator.control.DisplayConfiguration
-import com.android.sdklib.AndroidVersion
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
@@ -32,7 +28,6 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessRootPaneContainer
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.SetPortableUiFontRule
-import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.editors.liveedit.ui.LiveEditAction
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
@@ -45,34 +40,23 @@ import com.android.tools.idea.testing.mockStatic
 import com.android.tools.idea.testing.registerServiceInstance
 import com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.Futures.immediateFuture
 import com.intellij.configurationStore.deserialize
 import com.intellij.configurationStore.serialize
 import com.intellij.ide.ClipboardSynchronizer
-import com.intellij.ide.dnd.DnDEvent
-import com.intellij.ide.dnd.DnDManager
-import com.intellij.ide.dnd.DnDTarget
-import com.intellij.ide.dnd.TransferableWrapper
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.replaceService
 import com.intellij.ui.EditorNotificationPanel
-import org.jetbrains.android.sdk.AndroidSdkUtils.ADB_PATH_PROPERTY
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
-import org.mockito.Mockito.anyLong
-import org.mockito.Mockito.verify
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.MouseInfo
@@ -92,15 +76,13 @@ import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.MOUSE_MOVED
-import java.io.File
 import java.nio.file.Path
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import javax.swing.JViewport
 
 /**
- * Tests for [EmulatorToolWindowPanel] and some of the toolbar actions.
+ * Tests for [EmulatorToolWindowPanel] and some of its toolbar actions.
  */
 @RunsInEdt
 class EmulatorToolWindowPanelTest {
@@ -575,105 +557,6 @@ class EmulatorToolWindowPanelTest {
     waitForCondition(2, TimeUnit.SECONDS) { ui.findComponent<EditorNotificationPanel>() == null }
 
     panel.destroyContent()
-  }
-
-  @Test
-  fun testDragToInstallApp() {
-    val target = createDropTarget()
-    val device = createMockDevice()
-
-    // Check APK installation.
-    val apkFileList = listOf(File("/some_folder/myapp.apk"))
-    val event = createDragEvent(apkFileList)
-
-    // Simulate drag.
-    target.update(event)
-
-    verify(event).isDropPossible = true
-
-    val installPackagesCalled = CountDownLatch(1)
-    val installOptions = listOf("-t", "--user", "current", "--full")
-    val fileListCaptor = ArgumentCaptor.forClass(apkFileList.javaClass)
-    whenever(device.installPackages(fileListCaptor.capture(), eq(true), eq(installOptions), anyLong(), any())).then {
-      installPackagesCalled.countDown()
-    }
-
-    // Simulate drop.
-    target.drop(event)
-
-    assertThat(installPackagesCalled.await(2, TimeUnit.SECONDS)).isTrue()
-    assertThat(fileListCaptor.value).isEqualTo(apkFileList)
-  }
-
-  @Test
-  fun testDragToPushFiles() {
-    val target = createDropTarget()
-    val device = createMockDevice()
-
-    // Check file copying.
-    val fileList = listOf(File("/some_folder/file1.txt"), File("/some_folder/file2.jpg"))
-    val event = createDragEvent(fileList)
-
-    // Simulate drag.
-    target.update(event)
-
-    verify(event).isDropPossible = true
-
-    val pushCalled = CountDownLatch(1)
-    val firstArgCaptor = ArgumentCaptor.forClass(Array<String>::class.java)
-    val secondArgCaptor = ArgumentCaptor.forClass(String::class.java)
-    whenever(device.push(firstArgCaptor.capture(), secondArgCaptor.capture())).then { pushCalled.countDown() }
-
-    // Simulate drop.
-    target.drop(event)
-
-    assertThat(pushCalled.await(2, TimeUnit.SECONDS)).isTrue()
-    assertThat(firstArgCaptor.value).isEqualTo(fileList.map(File::getAbsolutePath).toTypedArray())
-    assertThat(secondArgCaptor.value).isEqualTo("/sdcard/Download")
-  }
-
-  private fun createDropTarget(): DnDTarget {
-    val adb = TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/fake-adb")
-    val savedAdbPath = System.getProperty(ADB_PATH_PROPERTY)
-    if (savedAdbPath != null) {
-      Disposer.register(testRootDisposable) { System.setProperty(ADB_PATH_PROPERTY, savedAdbPath) }
-    }
-    System.setProperty(ADB_PATH_PROPERTY, adb.toString())
-
-    var nullableTarget: DnDTarget? = null
-    val mockDndManager = mock<DnDManager>()
-    whenever(mockDndManager.registerTarget(any(), any())).then {
-      it.apply { nullableTarget = getArgument<DnDTarget>(0) }
-    }
-    ApplicationManager.getApplication().replaceService(DnDManager::class.java, mockDndManager, testRootDisposable)
-
-    val panel = createWindowPanelForPhone()
-    panel.createContent(false)
-    Disposer.register(testRootDisposable) { panel.destroyContent() }
-
-    return nullableTarget as DnDTarget
-  }
-
-  private fun createMockDevice(): IDevice {
-    val device = mock<IDevice>()
-    whenever(device.isEmulator).thenReturn(true)
-    whenever(device.serialNumber).thenReturn("emulator-${emulator.serialPort}")
-    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.MIN_RECOMMENDED_API))
-    val mockAdb = mock<AndroidDebugBridge>()
-    whenever(mockAdb.devices).thenReturn(arrayOf(device))
-    val mockAdbService = mock<AdbService>()
-    whenever(mockAdbService.getDebugBridge(any(File::class.java))).thenReturn(immediateFuture(mockAdb))
-    ApplicationManager.getApplication().registerServiceInstance(AdbService::class.java, mockAdbService, testRootDisposable)
-    return device
-  }
-
-  private fun createDragEvent(files: List<File>): DnDEvent {
-    val transferableWrapper = mock<TransferableWrapper>()
-    whenever(transferableWrapper.asFileList()).thenReturn(files)
-    val event = mock<DnDEvent>()
-    whenever(event.isDataFlavorSupported(DataFlavor.javaFileListFlavor)).thenReturn(true)
-    whenever(event.attachedObject).thenReturn(transferableWrapper)
-    return event
   }
 
   private fun FakeUi.mousePressOn(component: Component) {

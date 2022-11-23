@@ -17,7 +17,6 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
         "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools[module]",
-        "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
         "//tools/adt/idea/android-adb-ui:intellij.android.adb.ui[module]",
