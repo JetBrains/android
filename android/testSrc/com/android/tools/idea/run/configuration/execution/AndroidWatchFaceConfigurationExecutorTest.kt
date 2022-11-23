@@ -22,10 +22,10 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
-import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
-import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.DeployOptions
+import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
+import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.debugger.DebuggerManager
 import com.intellij.debugger.DebuggerManagerEx
@@ -103,7 +103,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
     // Mock app installation.
-    Mockito.doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
+    Mockito.doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
     val runContentDescriptor = getRunContentDescriptorForTests { executor.run().blockingGet(10, TimeUnit.SECONDS)!! }
 
@@ -174,7 +174,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
     // Mock app installation.
-    Mockito.doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
+    Mockito.doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
     val runContentDescriptor = getRunContentDescriptorForTests { executor.debug().blockingGet(10, TimeUnit.SECONDS)!! }
 
@@ -237,7 +237,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
       .whenever(app).activateComponent(any(), any(), any(AppComponent.Mode::class.java), any())
     val appInstaller = TestApplicationInstaller(appId, app) // Mock app installation.
-    Mockito.doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
+    Mockito.doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
     val e = assertFailsWith<Throwable> { executor.debug().blockingGet(10, TimeUnit.SECONDS) }.let {
       ExceptionUtil.findCause(it, ExecutionException::class.java)
@@ -310,7 +310,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
     // Mock app installation.
-    Mockito.doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
+    Mockito.doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
     // We expect the debugger to fail to attach, and we catch the corresponding exception. That happens only in this test as we
     // mocked DebuggerManagerEx to fail above.

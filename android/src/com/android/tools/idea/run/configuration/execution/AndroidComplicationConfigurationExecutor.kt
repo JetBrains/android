@@ -119,7 +119,7 @@ open class AndroidComplicationConfigurationExecutor(environment: ExecutionEnviro
     val watchFaceInfo = complicationLaunchOptions.watchFaceInfo
 
     val apkInfo = ApkInfo(File(watchFaceInfo.apk), watchFaceInfo.appId)
-    return getApplicationInstaller(console).fullDeploy(device, apkInfo, appRunSettings.deployOptions).app
+    return getApplicationDeployer(console).fullDeploy(device, apkInfo, appRunSettings.deployOptions).app
   }
 
   override fun getStopCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit {

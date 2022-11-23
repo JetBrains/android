@@ -77,7 +77,7 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     val app = createApp(device, appId, servicesName = listOf(), activitiesName = listOf(componentName))
     val appInstaller = TestApplicationInstaller(appId, app)
     // Mock app installation.
-    Mockito.doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
+    Mockito.doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
     val runContentDescriptor = getRunContentDescriptorForTests { executor.run().blockingGet(10, TimeUnit.SECONDS)!! }
 
@@ -138,7 +138,7 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     val app = createApp(device, appId, servicesName = listOf(), activitiesName = listOf(componentName))
     val appInstaller = TestApplicationInstaller(appId, app)
     // Mock app installation.
-    Mockito.doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
+    Mockito.doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
 
     val runContentDescriptor = getRunContentDescriptorForTests { executor.debug().blockingGet(15, TimeUnit.SECONDS)!! }

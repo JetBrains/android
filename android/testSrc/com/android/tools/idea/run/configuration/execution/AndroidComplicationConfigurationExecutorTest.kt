@@ -131,7 +131,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
         Pair(TestWatchFaceInfo.appId, watchFaceApp)
       )
     )
-    doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
+    doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
     // Mock the binary xml extraction.
     doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
@@ -234,7 +234,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
         Pair(TestWatchFaceInfo.appId, watchFaceApp)
       )
     )
-    doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
+    doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
     // Mock the binary xml extraction.
     doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
@@ -325,7 +325,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
         Pair(TestWatchFaceInfo.appId, watchFaceApp)
       )
     )
-    doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
+    doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
     // Mock the binary xml extraction.
     doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
@@ -401,7 +401,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
         Pair(appId, app),
         Pair(TestWatchFaceInfo.appId, watchFaceApp)
       )) // Mock app installation.
-    doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
+    doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
     val e = assertFailsWith<Throwable> { executor.run().blockingGet(10, TimeUnit.SECONDS) }.let {
       ExceptionUtil.findCause(it, ExecutionException::class.java)

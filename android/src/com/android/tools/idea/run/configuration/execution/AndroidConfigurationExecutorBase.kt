@@ -77,7 +77,7 @@ abstract class AndroidConfigurationExecutorBase(
     val console = createConsole()
     val processHandler = AndroidProcessHandler(project, appId, getStopCallback(console, false))
 
-    val applicationInstaller = getApplicationInstaller(console)
+    val applicationInstaller = getApplicationDeployer(console)
 
     val onDevice = { device: IDevice ->
       terminatePreviousAppInstance(device)
@@ -134,7 +134,7 @@ abstract class AndroidConfigurationExecutorBase(
 
     // ApkProvider provides multiple ApkInfo only for instrumented tests.
     val app = apkProvider.getApks(device).single()
-    val deployResult = getApplicationInstaller(console).fullDeploy(device, app, appRunSettings.deployOptions)
+    val deployResult = getApplicationDeployer(console).fullDeploy(device, app, appRunSettings.deployOptions)
 
     executeOnPooledThread {
       promise.catchError {
@@ -211,7 +211,7 @@ abstract class AndroidConfigurationExecutorBase(
   }
 
   @Throws(ExecutionException::class)
-  open fun getApplicationInstaller(console: ConsoleView): ApplicationDeployer {
+  open fun getApplicationDeployer(console: ConsoleView): ApplicationDeployer {
     return ApplicationDeployerImpl(project, console)
   }
 
