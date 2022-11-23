@@ -128,7 +128,7 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
       }
       testNamespace?.let { testNamespace ->
         if (model.android().testNamespace().valueType != GradlePropertyModel.ValueType.NONE) return@let
-        val psiElement = model.android().namespace().psiElement ?: model.android().psiElement ?: modelPsiElement
+        val psiElement = model.android().testNamespace().psiElement ?: model.android().psiElement ?: modelPsiElement
         val wrappedPsiElement = WrappedPsiElement(psiElement, this, ADD_TEST_NAMESPACE_BUILDFILE)
         val usageInfo = AndroidTestNamespaceUsageInfo(wrappedPsiElement, model, testNamespace)
         usages.add(usageInfo)
