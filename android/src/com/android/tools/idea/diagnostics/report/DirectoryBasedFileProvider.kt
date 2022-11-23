@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.diagnostics.report
 
-import com.android.tools.idea.diagnostics.hprof.action.HEAP_REPORTS_DIR
+import com.android.tools.idea.diagnostics.HEAP_REPORTS_DIR
+import com.android.tools.idea.diagnostics.THREAD_DUMP_DIR_PREFIX
+import com.android.tools.idea.diagnostics.UI_FREEZE_DIR_PREFIX
 import com.intellij.openapi.project.Project
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 
-private val THREAD_DUMP_REGEX = Regex("^threadDumps-.*")
-private val UI_FREEZE_REGEX = Regex("^uiFreeze-.*")
+private val THREAD_DUMP_REGEX = Regex("^${THREAD_DUMP_DIR_PREFIX}.*")
+private val UI_FREEZE_REGEX = Regex("^${UI_FREEZE_DIR_PREFIX}-.*")
 private val HEAP_REPORT_REGEX = Regex("^$HEAP_REPORTS_DIR$")
 
 /**
