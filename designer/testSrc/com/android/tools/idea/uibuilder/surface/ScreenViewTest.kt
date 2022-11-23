@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.resources.Density
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
@@ -22,11 +23,13 @@ import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.RenderLogger
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.ScreenView.DEVICE_CONTENT_SIZE_POLICY
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Rule
@@ -37,6 +40,11 @@ import java.awt.Dimension
 class ScreenViewTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
+
+  @After
+  fun tearDown() {
+    StudioFlags.NELE_DP_SIZED_PREVIEW.clearOverride()
+  }
 
   private fun buildState(): State {
     val screen = Screen().apply {
@@ -118,5 +126,43 @@ class ScreenViewTest {
     // Not modified
     assertEquals(300, outDimension.width)
     assertEquals(500, outDimension.height)
+  }
+
+  @Test
+  fun `device content size policy based on dp screen size`() {
+    StudioFlags.NELE_DP_SIZED_PREVIEW.override(true)
+    val screenView = mock(ScreenView::class.java)
+    val configuration = mock(Configuration::class.java)
+    val lowDensityScreen = Screen().apply {
+      yDimension = 500
+      xDimension = 300
+      pixelDensity = Density.LOW
+    }
+    val device = buildDevice("Pixel5", buildState().apply { hardware.screen = lowDensityScreen })
+    whenever(configuration.cachedDevice).thenReturn(device)
+    whenever(configuration.deviceState).thenReturn(device.defaultState)
+
+    whenever(screenView.configuration).thenReturn(configuration)
+
+    val outDimension = Dimension(123, 123)
+
+    DEVICE_CONTENT_SIZE_POLICY.measure(screenView, outDimension)
+
+    // Not modified
+    assertEquals(400, outDimension.width)
+    assertEquals(667, outDimension.height)
+
+    val highDensityScreen = Screen().apply {
+      yDimension = 500
+      xDimension = 300
+      pixelDensity = Density.XXHIGH
+    }
+    device.defaultState.hardware.screen = highDensityScreen
+
+    DEVICE_CONTENT_SIZE_POLICY.measure(screenView, outDimension)
+
+    // Not modified
+    assertEquals(100, outDimension.width)
+    assertEquals(167, outDimension.height)
   }
 }

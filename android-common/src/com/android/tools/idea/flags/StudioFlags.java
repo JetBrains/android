@@ -437,6 +437,11 @@ public final class StudioFlags {
     NELE, "dynamic.theming.action", "Enable previewing dynamic themes in Design Tools",
     "If enabled, Design Tools have an action to use various backgrounds to preview dynamic themes.",
     true);
+
+  public static final Flag<Boolean> NELE_DP_SIZED_PREVIEW = Flag.create(
+    NELE, "dp.sized.preview", "Use dp size instead of px size for previews",
+    "If enabled, the size of previews will be proportional to screen dp size instead of screen px size.",
+    false);
   //endregion
 
   //region Navigation Editor

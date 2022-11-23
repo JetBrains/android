@@ -24,6 +24,7 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.flags.StudioFlags;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,6 +42,9 @@ public class Coordinates {
    */
   @SwingCoordinate
   public static int getSwingX(@NotNull SceneView view, @AndroidCoordinate int androidX) {
+    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      return view.getX() + view.getContentTranslationX() + (int)Math.round(view.getScale() * pxToDp(view, androidX));
+    }
     return view.getX() + view.getContentTranslationX() + (int)Math.round(view.getScale() * androidX);
   }
 
@@ -50,6 +54,9 @@ public class Coordinates {
    */
   @SwingCoordinate
   public static float getSwingX(@NotNull SceneView view, @AndroidCoordinate float androidX) {
+    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      return view.getX() + view.getContentTranslationX() + (float)view.getScale() * pxToDp(view, androidX);
+    }
     return view.getX() + view.getContentTranslationX() + (float)view.getScale() * androidX;
   }
 
@@ -59,6 +66,9 @@ public class Coordinates {
    */
   @SwingCoordinate
   public static int getSwingY(@NotNull SceneView view, @AndroidCoordinate int androidY) {
+    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      return view.getY() + view.getContentTranslationY() + (int)Math.round(view.getScale() * pxToDp(view, androidY));
+    }
     return view.getY() + view.getContentTranslationY() + (int)Math.round(view.getScale() * androidY);
   }
 
@@ -68,6 +78,9 @@ public class Coordinates {
    */
   @SwingCoordinate
   public static float getSwingY(@NotNull SceneView view, @AndroidCoordinate float androidY) {
+    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      return view.getY() + view.getContentTranslationY() + (float)view.getScale() * pxToDp(view, androidY);
+    }
     return view.getY() + view.getContentTranslationY() + (float)view.getScale() * androidY;
   }
 
@@ -77,6 +90,9 @@ public class Coordinates {
    */
   @SwingCoordinate
   public static int getSwingDimension(@NotNull SceneView view, @AndroidCoordinate int androidDimension) {
+    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      return (int)Math.round(view.getScale() * pxToDp(view, androidDimension));
+    }
     return (int)Math.round(view.getScale() * androidDimension);
   }
 
@@ -85,25 +101,10 @@ public class Coordinates {
    * system) of the given dimension in the Android screen coordinate system
    */
   @SwingCoordinate
-  public static int getSwingDimension(@NotNull DesignSurface<?> surface, @AndroidCoordinate int androidDimension) {
-    return (int)Math.round(surface.getScale() * androidDimension);
-  }
-
-  /**
-   * Returns the Swing dimension (in the {@link DesignSurface} coordinate
-   * system) of the given dimension in the Android screen coordinate system
-   */
-  @SwingCoordinate
-  public static int getSwingDimension(@NotNull SceneContext sceneContext, @AndroidCoordinate int androidDimension) {
-    return (int)Math.round(sceneContext.getScale() * androidDimension);
-  }
-
-  /**
-   * Returns the Swing dimension (in the {@link DesignSurface} coordinate
-   * system) of the given dimension in the Android screen coordinate system
-   */
-  @SwingCoordinate
   public static float getSwingDimension(@NotNull SceneView view, @AndroidCoordinate float androidDimension) {
+    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      return (float)view.getScale() * pxToDp(view, androidDimension);
+    }
     return (float)view.getScale() * androidDimension;
   }
 
@@ -131,6 +132,11 @@ public class Coordinates {
     return pxToDp(view.getSceneManager(), androidPx);
   }
 
+  @AndroidDpCoordinate
+  public static float pxToDp(@NotNull SceneView view, @AndroidCoordinate float androidPx) {
+    return pxToDp(view.getSceneManager(), androidPx);
+  }
+
   @AndroidCoordinate
   public static int dpToPx(@NotNull SceneManager manager, @AndroidDpCoordinate float androidDp) {
     return Math.round(androidDp * manager.getSceneScalingFactor());
@@ -139,6 +145,11 @@ public class Coordinates {
   @AndroidDpCoordinate
   public static int pxToDp(@NotNull SceneManager manager, @AndroidCoordinate int androidPx) {
     return Math.round(androidPx / manager.getSceneScalingFactor());
+  }
+
+  @AndroidDpCoordinate
+  public static float pxToDp(@NotNull SceneManager manager, @AndroidCoordinate float androidPx) {
+    return androidPx / manager.getSceneScalingFactor();
   }
 
   /**
@@ -242,31 +253,15 @@ public class Coordinates {
   }
 
   /**
-   * Returns the Swing dimension (in the {@link DesignSurface} coordinate
-   * system) of the given dimension in the Android screen coordinate system
-   */
-  @SwingCoordinate
-  public static Rectangle getSwingRect(@NotNull SceneView view, @NotNull @AndroidCoordinate Rectangle rect) {
-    return new Rectangle(getSwingX(view, rect.x), getSwingY(view, rect.y),
-                         getSwingDimension(view, rect.width), getSwingDimension(view, rect.height));
-  }
-
-  /**
-   * Returns the Swing dimension (in the {@link DesignSurface} coordinate
-   * system) of the given dimension in the Android screen coordinate system
-   */
-  @SwingCoordinate
-  public static Rectangle getSwingRect(@NotNull SceneContext context, @NotNull @AndroidCoordinate Rectangle rect) {
-    return new Rectangle(context.getSwingX(rect.x), context.getSwingY(rect.y),
-                         getSwingDimension(context, rect.width), getSwingDimension(context, rect.height));
-  }
-
-  /**
    * Returns the Android x coordinate for the given Swing x coordinate (in
    * the {@link DesignSurface} coordinate system.)
    */
   @AndroidCoordinate
   public static int getAndroidX(@NotNull SceneView view, @SwingCoordinate int swingX) {
+    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      int dpX = (int)Math.round((swingX - view.getX() - view.getContentTranslationX()) / view.getScale());
+      return dpToPx(view, dpX);
+    }
     return (int)Math.round((swingX - view.getX() - view.getContentTranslationX()) / view.getScale());
   }
 
@@ -285,6 +280,10 @@ public class Coordinates {
    */
   @AndroidCoordinate
   public static int getAndroidY(@NotNull SceneView view, @SwingCoordinate int swingY) {
+    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      int dpY = (int)Math.round((swingY - view.getY() - view.getContentTranslationY()) / view.getScale());
+      return dpToPx(view, dpY);
+    }
     return (int)Math.round((swingY - view.getY() - view.getContentTranslationY()) / view.getScale());
   }
 
@@ -312,6 +311,10 @@ public class Coordinates {
    */
   @AndroidCoordinate
   public static int getAndroidDimension(@NotNull SceneView view, @SwingCoordinate int swingDimension) {
+    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      int dpDim = (int)Math.round(swingDimension / view.getScale());
+      return dpToPx(view, dpDim);
+    }
     return (int)Math.round(swingDimension / view.getScale());
   }
 
@@ -321,6 +324,10 @@ public class Coordinates {
    */
   @AndroidCoordinate
   public static int getAndroidDimension(@NotNull DesignSurface<?> surface, @SwingCoordinate int swingDimension) {
+    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      int dpDim = (int)Math.round(swingDimension / surface.getScale());
+      return dpToPx(surface.getSceneManager(), dpDim);
+    }
     return (int)Math.round(swingDimension / surface.getScale());
   }
 

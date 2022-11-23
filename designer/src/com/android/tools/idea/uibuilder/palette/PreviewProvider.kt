@@ -24,6 +24,7 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTask
@@ -184,7 +185,14 @@ class PreviewProvider(
   }
 
   private val currentScale: Double?
-    get() = myDesignSurfaceSupplier.get()?.let { it.scale * it.screenScalingFactor }
+    get() = myDesignSurfaceSupplier.get()?.let {
+      if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+        val sceneScale = it.focusedSceneView?.sceneManager?.sceneScalingFactor ?: 1.0f
+        return it.scale * it.screenScalingFactor / sceneScale
+      } else {
+        return it.scale * it.screenScalingFactor
+      }
+    }
 
   private val sceneView: SceneView?
     get() = myDesignSurfaceSupplier.get()?.focusedSceneView
