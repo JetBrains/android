@@ -263,6 +263,10 @@ class AllTabPanelTest {
       assertNotEquals(300, firstCard.getCurrentHeight())
       ui.clickOn(firstCard.findExpandButton())
       assertEquals(300, firstCard.getCurrentHeight())
+      // Update card size without expanding.
+      firstCard.expandedSize = 400
+      panel.updateCardSize(firstCard)
+      assertEquals(400, firstCard.getCurrentHeight())
     }
   }
 

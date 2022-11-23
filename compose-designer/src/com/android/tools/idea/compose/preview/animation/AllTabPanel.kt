@@ -98,15 +98,17 @@ class AllTabPanel : JPanel(TabularLayout("2px,*", "31px,*")) {
       cards.indexOf(card),
       TabularLayout.SizingRule(TabularLayout.SizingRule.Type.FIXED, card.getCurrentHeight())
     )
-    card.state.addExpandedListener {
-      cardsLayout.setRowSizing(
-        cards.indexOf(card),
-        TabularLayout.SizingRule(TabularLayout.SizingRule.Type.FIXED, card.getCurrentHeight())
-      )
-      updateDimension()
-      card.component.revalidate()
-    }
+    card.state.addExpandedListener { updateCardSize(card) }
     updateDimension()
+  }
+
+  fun updateCardSize(card: Card) {
+    cardsLayout.setRowSizing(
+      cards.indexOf(card),
+      TabularLayout.SizingRule(TabularLayout.SizingRule.Type.FIXED, card.getCurrentHeight())
+    )
+    updateDimension()
+    card.component.revalidate()
   }
 
   fun removeCard(card: Card) {

@@ -230,7 +230,10 @@ class AnimationPreview(
     }
 
   /** Create list of [TimelineElement] for selected [SupportedAnimationManager]s. */
-  private fun createTimelineElements(tabs: Collection<AnimationManager>) {
+  private fun createTimelineElements(
+    tabs: Collection<AnimationManager>,
+    elementsCreated: () -> Unit = {}
+  ) {
     executeOnRenderThread(false) {
       var minY = InspectorLayout.timelineHeaderHeightScaled()
       // Call once to update all sizes as all curves / lines required it.
@@ -262,6 +265,7 @@ class AnimationPreview(
                 line
               }
               .toMutableList()
+        elementsCreated()
       }
       timeline.revalidate()
       coordinationTab.revalidate()
@@ -269,8 +273,8 @@ class AnimationPreview(
   }
 
   /** Update currently displayed [TimelineElement]s. */
-  private fun updateTimelineElements() {
-    createTimelineElements(selectedAnimation?.let { listOf(it) } ?: animations)
+  private fun updateTimelineElements(elementsCreated: () -> Unit = {}) {
+    createTimelineElements(selectedAnimation?.let { listOf(it) } ?: animations, elementsCreated)
   }
 
   private fun setClockTime(newValue: Int, longTimeout: Boolean = false) {
@@ -634,7 +638,9 @@ class AnimationPreview(
     private val cachedTransitions: MutableMap<Int, Transition> = mutableMapOf()
 
     init {
-      currentTransitionCallback = { updateTimelineElements() }
+      currentTransitionCallback = {
+        updateTimelineElements { invokeLater { coordinationTab.updateCardSize(card) } }
+      }
     }
 
     private fun createState(): AnimationState {
