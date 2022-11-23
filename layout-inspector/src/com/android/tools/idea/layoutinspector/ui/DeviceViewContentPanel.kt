@@ -136,7 +136,7 @@ class DeviceViewContentPanel(
 
   init {
     processNotDebuggableText.appendLine(LayoutInspectorBundle.message("application.not.inspectable"))
-    processNotDebuggableText.appendLine(LayoutInspectorBundle.message("switch.to.debuggable.application"))
+    processNotDebuggableText.appendLine(LayoutInspectorBundle.message("navigate.to.debuggable.application"))
 
     navigateToDebuggableProcessText.appendLine(LayoutInspectorBundle.message("navigate.to.debuggable.application"))
 
