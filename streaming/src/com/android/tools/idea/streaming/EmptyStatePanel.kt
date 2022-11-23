@@ -36,7 +36,6 @@ import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.htmlComponent
@@ -49,8 +48,7 @@ import javax.swing.SwingConstants
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
 
-private const val MIN_REQUIRED_EMULATOR_VERSION = "30.7.4"
-private const val MIN_REQUIRED_EMULATOR_VERSION_AARCH64 = "31.3.1"
+private const val MIN_REQUIRED_EMULATOR_VERSION = "31.3.10"
 
 // As recommended at https://jetbrains.github.io/ui/principles/empty_state/#21.
 private const val TOP_MARGIN = 0.45
@@ -134,8 +132,7 @@ internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridB
   private fun localPackagesUpdated(packages: RepositoryPackages) {
     val emulatorPackage = packages.localPackages[SdkConstants.FD_EMULATOR] ?: return
     UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
-      val minRequired = if (SystemInfo.OS_ARCH == "aarch64") MIN_REQUIRED_EMULATOR_VERSION_AARCH64 else MIN_REQUIRED_EMULATOR_VERSION
-      val sufficient = emulatorPackage.version >= Revision.parseRevision(minRequired)
+      val sufficient = emulatorPackage.version >= Revision.parseRevision(MIN_REQUIRED_EMULATOR_VERSION)
       if (emulatorVersionIsSufficient != sufficient) {
         emulatorVersionIsSufficient = sufficient
         updateContent()

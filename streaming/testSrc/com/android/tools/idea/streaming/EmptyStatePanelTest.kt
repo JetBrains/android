@@ -70,7 +70,7 @@ class EmptyStatePanelTest {
   private val testRootDisposable by lazy { @Suppress("UnstableApiUsage") projectRule.project.earlyDisposable }
   private val emptyStatePanel by lazy { createEmptyStatePanel() }
   private val ui by lazy { FakeUi(emptyStatePanel) }
-  private val emulatorPackage = FakeLocalPackage(SdkConstants.FD_EMULATOR).apply { setRevision(Revision(31, 3, 9)) }
+  private val emulatorPackage = FakeLocalPackage(SdkConstants.FD_EMULATOR).apply { setRevision(Revision(31, 3, 10)) }
   private var savedLaunchInToolWindow = false
   private var savedDeviceMirroringEnabled = false
   private val executedActions = mutableListOf<String>()
@@ -166,7 +166,7 @@ class EmptyStatePanelTest {
     emulatorPackage.setRevision(Revision(30, 6))
     val htmlComponent = ui.getComponent<JEditorPane>()
     val text = htmlComponent.text.replace(Regex("&#160;|\\s+"), " ")
-    assertThat(text).contains("To launch virtual devices in this window, install Android Emulator 30.7.4 or higher." +
+    assertThat(text).contains("To launch virtual devices in this window, install Android Emulator 31.3.10 or higher." +
                               " Please <font color=\"589df6\"><a href=\"CheckForUpdate\">check for updates</a></font>" +
                               " and install the latest version of the Android Emulator.")
     assertThat(text).contains("To mirror a physical device, connect it via USB cable or over WiFi.")
@@ -181,7 +181,7 @@ class EmptyStatePanelTest {
     emulatorPackage.setRevision(Revision(30, 6))
     val htmlComponent = ui.getComponent<JEditorPane>()
     val text = htmlComponent.text.replace(Regex("&#160;|\\s+"), " ")
-    assertThat(text).contains("To launch virtual devices in this window, install Android Emulator 30.7.4 or higher." +
+    assertThat(text).contains("To launch virtual devices in this window, install Android Emulator 31.3.10 or higher." +
                               " Please <font color=\"589df6\"><a href=\"CheckForUpdate\">check for updates</a></font>" +
                               " and install the latest version of the Android Emulator.")
     assertThat(text).contains("To mirror physical devices, select the <i>Enable mirroring of physical Android devices</i> option" +
