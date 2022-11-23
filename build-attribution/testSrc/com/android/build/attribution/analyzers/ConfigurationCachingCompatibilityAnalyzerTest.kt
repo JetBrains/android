@@ -141,10 +141,10 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
   }
 
   @Test
-  @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["LATEST"])
+  @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["7.5"])
   fun testOldKotlinDetected() {
     projectSetup(
-      agpVersion = AgpVersionInBuildAttributionTest.AGP_71,
+      agpVersion = AgpVersionInBuildAttributionTest.AGP_71_GRADLE_75,
       dependencies = "classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72\"",
       pluginsApply = "apply plugin: 'kotlin-android'"
     )
@@ -175,7 +175,7 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
      */
 
     projectSetup(
-      agpVersion = AgpVersionInBuildAttributionTest.AGP_71,
+      agpVersion = AgpVersionInBuildAttributionTest.AGP_71_GRADLE_75,
       dependencies = "",
       pluginsApply = "id 'org.jetbrains.kotlin.android'",
       pluginsSectionInRoot = "plugins { id 'org.jetbrains.kotlin.android' version '1.3.72' apply false }",
@@ -194,11 +194,11 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     }
   }
 
-  @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["LATEST"])
+  @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["7.5"])
   @Test
   fun testOldKotlinDetectedAppliedInPluginDslWithExplicitDependency() {
     projectSetup(
-      agpVersion = AgpVersionInBuildAttributionTest.AGP_71,
+      agpVersion = AgpVersionInBuildAttributionTest.AGP_71_GRADLE_75,
       dependencies = "classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72\"",
       pluginsApply = "id 'kotlin-android'",
       useNewPluginsDsl = true
@@ -216,11 +216,11 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     }
   }
 
-  @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["LATEST"])
+  @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["7.5"])
   @Test
   fun testOldKotlinDetectedAppliedAsPluginClass() {
     projectSetup(
-      agpVersion = AgpVersionInBuildAttributionTest.AGP_71,
+      agpVersion = AgpVersionInBuildAttributionTest.AGP_71_GRADLE_75,
       dependencies = "classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72\"",
       pluginsApply = "apply plugin: org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"
     )
@@ -281,10 +281,10 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
   }
 
   @Test
-  @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["LATEST"])
+  @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["7.5"])
   fun testFailedConfigurationCacheTrial() {
     projectSetup(
-      agpVersion = AgpVersionInBuildAttributionTest.AGP_71,
+      agpVersion = AgpVersionInBuildAttributionTest.AGP_71_GRADLE_75,
       dependencies = "classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72\"",
       pluginsApply = "apply plugin: 'kotlin-android'"
     )
