@@ -17,19 +17,19 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.Deployer
-import com.android.tools.deployer.DeployerException
+import com.android.tools.idea.deploy.DeploymentConfiguration
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.ApkFileUnit
 import com.android.tools.idea.run.ApkInfo
+import com.android.tools.idea.run.tasks.ApplyChangesTask
+import com.android.tools.idea.run.tasks.ApplyCodeChangesTask
 import com.android.tools.idea.run.tasks.DeployTask
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.project.Project
-
 
 
 class ApplicationDeployerImpl(private val project: Project,
@@ -37,9 +37,6 @@ class ApplicationDeployerImpl(private val project: Project,
   private val LOG = Logger.getInstance(this::class.java)
 
   override fun fullDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions): Deployer.Result {
-
-    ProgressIndicatorProvider.getGlobalProgressIndicator()?.checkCanceled()
-    ProgressIndicatorProvider.getGlobalProgressIndicator()?.text = "Installing app"
 
     // Add packages to the deployment,
     val deployTask = DeployTask(
@@ -54,11 +51,25 @@ class ApplicationDeployerImpl(private val project: Project,
   }
 
   override fun applyChangesDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions): Deployer.Result {
-    throw RuntimeException("Unsupported operation")
+    val deployTask = ApplyChangesTask(
+      project,
+      listOf(filterDisabledFeatures(app, deployOptions.disabledDynamicFeatures)),
+      DeploymentConfiguration.getInstance().APPLY_CHANGES_FALLBACK_TO_RUN,
+      deployOptions.alwaysInstallWithPm)
+
+    // use single(), because we have 1 apkInfo as input.
+    return deployTask.run(device, console, AdbCommandCaptureLoggerWithConsole(LOG, console)).single()
   }
 
   override fun applyCodeChangesDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions): Deployer.Result {
-    throw RuntimeException("Unsupported operation")
+    val deployTask = ApplyCodeChangesTask(
+      project,
+      listOf(filterDisabledFeatures(app, deployOptions.disabledDynamicFeatures)),
+      DeploymentConfiguration.getInstance().APPLY_CODE_CHANGES_FALLBACK_TO_RUN,
+      deployOptions.alwaysInstallWithPm)
+
+    // use single(), because we have 1 apkInfo as input.
+    return deployTask.run(device, console, AdbCommandCaptureLoggerWithConsole(LOG, console)).single()
   }
 
   private fun filterDisabledFeatures(apkInfo: ApkInfo, disabledFeatures: List<String>): ApkInfo {
