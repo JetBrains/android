@@ -78,10 +78,8 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Cpu.CpuTraceIn
   @Override
   @NotNull
   public String getName() {
-    TraceType traceType = TraceType.from(myInfo.getConfiguration());
-    Trace.TraceMode traceMode = myInfo.getConfiguration().getUserOptions().getTraceMode();
-
-    return ProfilingTechnology.fromTypeAndMode(traceType, traceMode).getName();
+    Trace.TraceConfiguration config = myInfo.getConfiguration();
+    return ProfilingTechnology.fromTraceConfiguration(config).getName();
   }
 
   public String getSubtitle() {

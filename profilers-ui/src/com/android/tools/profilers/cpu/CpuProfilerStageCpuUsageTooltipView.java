@@ -56,8 +56,7 @@ class CpuProfilerStageCpuUsageTooltipView extends TooltipView {
       }
       SeriesData<CpuTraceInfo> trace = traceSeries.get(0);
       String name =
-        ProfilingTechnology.fromTypeAndMode(TraceType.from(trace.value.getTraceInfo().getConfiguration()), trace.value.getTraceMode())
-          .getName();
+        ProfilingTechnology.fromTraceConfiguration(trace.value.getTraceInfo().getConfiguration()).getName();
       mySelectionLabel.setText(name);
     }
     else {

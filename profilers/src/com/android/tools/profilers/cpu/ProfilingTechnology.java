@@ -114,24 +114,27 @@ public enum ProfilingTechnology {
     throw new IllegalArgumentException("Unreachable code");
   }
 
+  /**
+   * Utilizes the {@link Trace.TraceConfiguration} technology specific option
+   * to determine the respective {@link ProfilingTechnology}.
+   */
   @NotNull
-  public static ProfilingTechnology fromTypeAndMode(@NotNull TraceType type,
-                                                    @NotNull Trace.TraceMode mode) {
-    switch (type) {
-      case ART:
-        if (mode == Trace.TraceMode.SAMPLED) {
+  public static ProfilingTechnology fromTraceConfiguration(@NotNull Trace.TraceConfiguration config) {
+    switch (config.getUnionCase()) {
+      case ART_OPTIONS:
+        if (config.getArtOptions().getTraceMode() == Trace.TraceMode.SAMPLED) {
           return ART_SAMPLED;
         }
-        else if (mode == Trace.TraceMode.INSTRUMENTED) {
+        else if (config.getArtOptions().getTraceMode() == Trace.TraceMode.INSTRUMENTED) {
           return ART_INSTRUMENTED;
         }
         else {
           return ART_UNSPECIFIED;
         }
-      case SIMPLEPERF:
+      case SIMPLEPERF_OPTIONS:
         return SIMPLEPERF;
-      case ATRACE: // fall-through
-      case PERFETTO:
+      case ATRACE_OPTIONS: // fall-through
+      case PERFETTO_OPTIONS:
         return SYSTEM_TRACE;
       default:
         throw new IllegalStateException("Error while trying to get the name of an unknown profiling configuration");
