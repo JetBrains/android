@@ -277,8 +277,8 @@ public abstract class AbstractDeployTask implements LaunchTask {
     return myProject;
   }
 
-  protected boolean getFastRerunOnSwapFailure() {
-    return myRerunOnSwapFailure && StudioFlags.APPLY_CHANGES_FAST_RESTART_ON_SWAP_FAIL.get();
+  final boolean getFastRerunOnSwapFailure() {
+    return myRerunOnSwapFailure;
   }
 
   private void addSubTaskDetails(@NotNull Collection<DeployMetric> metrics, long startNanoTime,

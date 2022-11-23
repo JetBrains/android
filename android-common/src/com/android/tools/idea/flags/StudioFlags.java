@@ -567,13 +567,6 @@ public final class StudioFlags {
     "Requires applychanges.structuralredefinition to be true.",
     true);
 
-  public static final Flag<Boolean> APPLY_CHANGES_FAST_RESTART_ON_SWAP_FAIL = Flag.create(
-    RUNDEBUG,
-    "applychanges.swap.fastrestartonswapfail",
-    "Allow fast restart on swap failure.",
-    "Eliminate the need to build again when auto re-run checkbox is turned on.",
-    true);
-
   public static final Flag<Boolean> APPLY_CHANGES_KEEP_CONNECTION_ALIVE = Flag.create(
     RUNDEBUG,
     "applychanges.connection.keepalive",
