@@ -969,6 +969,10 @@ public class NlModel implements ModificationTracker, DataContextHolder {
     myListeners.clear();
   }
 
+  public boolean isDisposed() {
+    return myDisposed;
+  }
+
   @NotNull
   @Override
   public String toString() {

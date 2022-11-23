@@ -17,6 +17,7 @@ package com.android.tools.idea.common.surface
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.layout.findAllScanlines
 import com.android.tools.idea.common.surface.layout.findLargerScanline
@@ -31,6 +32,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
+import io.ktor.util.reflect.instanceOf
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Graphics
@@ -459,6 +461,21 @@ internal class SceneViewPanel(private val sceneViewProvider: () -> Collection<Sc
     get() = components.filterIsInstance<SceneViewPeerPanel>()
       .map { it.positionableAdapter }
       .toList()
+
+  /**
+   * Remove any components associated to the given model.
+   */
+  fun removeSceneViewForModel(modelToRemove: NlModel) {
+    val toRemove = components
+      .filterIsInstance<SceneViewPeerPanel>()
+      .filter {
+        it.sceneView.scene.sceneManager.model == modelToRemove
+      }
+      .toList()
+
+    toRemove.forEach { remove(it) }
+    invalidate()
+  }
 
   @UiThread
   private fun revalidateSceneViews() {

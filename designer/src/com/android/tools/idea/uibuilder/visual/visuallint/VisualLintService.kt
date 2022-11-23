@@ -81,9 +81,6 @@ class VisualLintService(val project: Project): Disposable {
 
   val issueModel: IssueModel = IssueModel(this, project)
 
-  /** Default issue provider for Visual Lint Service. */
-  val issueProvider: VisualLintIssueProvider = VisualLintIssueProvider(this)
-
   private val basicAnalyzers = listOf(BoundsAnalyzer, OverlapAnalyzer, AtfAnalyzer)
   private val adaptiveAnalyzers = listOf(BottomNavAnalyzer, BottomAppBarAnalyzer, TextFieldSizeAnalyzer,
                                          LongTextAnalyzer, ButtonSizeAnalyzer)
@@ -92,7 +89,6 @@ class VisualLintService(val project: Project): Disposable {
   private val ignoredTypes: MutableList<VisualLintErrorType>
 
   init {
-    issueModel.addIssueProvider(issueProvider, false)
     val connection = project.messageBus.connect()
     ignoredTypes = mutableListOf()
     getIgnoredTypesFromProfile(InspectionProfileManager.getInstance(project).currentProfile)
@@ -120,24 +116,22 @@ class VisualLintService(val project: Project): Disposable {
     }
   }
 
-  fun removeIssues() {
-    issueProvider.clear()
-    issueModel.updateErrorsList()
-  }
-
   /**
    * Runs visual lint analysis in a pooled thread for configurations based on the model provided,
    * and adds the issues found to the [IssueModel]
    */
-  fun runVisualLintAnalysis(models: List<NlModel>) {
-    runVisualLintAnalysis(models, visualLintExecutorService)
+  fun runVisualLintAnalysis(parentDisposable: Disposable, issueProvider: VisualLintIssueProvider, models: List<NlModel>) {
+    runVisualLintAnalysis(parentDisposable, issueProvider, models, visualLintExecutorService)
   }
 
   @VisibleForTesting
-  fun runVisualLintAnalysis(models: List<NlModel>, executorService: ExecutorService) {
+  fun runVisualLintAnalysis(parentDisposable: Disposable, issueProvider: VisualLintIssueProvider, models: List<NlModel>, executorService: ExecutorService) {
     CompletableFuture.runAsync({
-      issueProvider.clear()
-      issueModel.updateErrorsList()
+      removeAllIssueProviders()
+      Disposer.register(parentDisposable) {
+        issueModel.removeIssueProvider(issueProvider)
+      }
+      issueModel.addIssueProvider(issueProvider, true)
       if (models.isEmpty()) {
         return@runAsync
       }
@@ -221,7 +215,13 @@ class VisualLintService(val project: Project): Disposable {
            ?: HighlightSeverity.WARNING
     }
 
+  fun removeAllIssueProviders() {
+    issueModel.removeAllIssueProviders()
+    issueModel.updateErrorsList()
+  }
+
   override fun dispose() {
+    issueModel.removeAllIssueProviders()
   }
 }
 

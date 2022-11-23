@@ -216,7 +216,7 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
                                        null, this, null, Alarm.ThreadToUse.POOLED_THREAD)
     myUpdateQueue.setRestartTimerOnAdd(true)
 
-    visualLintHandler = VisualizationFormVisualLintHandler(project, surface.issueModel)
+    visualLintHandler = VisualizationFormVisualLintHandler(this, project, surface.issueModel)
   }
 
   private fun createToolbarPanel(): JComponent {
@@ -581,7 +581,7 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
     // This render the added components.
     for (manager in surface.sceneManagers) {
       if (StudioFlags.NELE_VISUAL_LINT.get() && manager is LayoutlibSceneManager) {
-        visualLintHandler.setupForLayoutlibSceneManager(manager)
+        visualLintHandler.setupForLayoutlibSceneManager(manager) { !isActive || isRenderingCanceled.get() }
       }
       renderFuture = renderFuture.thenCompose {
         if (isRenderingCanceled.get()) {

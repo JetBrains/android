@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
+import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueModel
+import com.android.tools.idea.common.error.IssueProvider
 import com.android.tools.idea.common.error.TestIssue
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
+import com.google.common.collect.ImmutableCollection
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertTrue
 import org.junit.Rule
@@ -35,7 +38,7 @@ class VisualizationFormVisualLintHandlerTest {
   @Test
   fun testAddIssue() {
     val issueModel = IssueModel(rule.projectRule.testRootDisposable, rule.project)
-    val handler = VisualizationFormVisualLintHandler(rule.project, issueModel)
+    val handler = VisualizationFormVisualLintHandler(rule.testRootDisposable, rule.project, issueModel)
 
     assertEquals(0, issueModel.issues.size)
 
@@ -53,14 +56,18 @@ class VisualizationFormVisualLintHandlerTest {
 
   @Test
   fun testActivateClearBackgroundLintIssue() {
-    val handler = VisualizationFormVisualLintHandler(rule.project, IssueModel(rule.projectRule.testRootDisposable, rule.project))
+    val handler = VisualizationFormVisualLintHandler(
+      rule.testRootDisposable, rule.project, IssueModel(rule.projectRule.testRootDisposable, rule.project))
 
     val service = VisualLintService.getInstance(rule.project)
-    val serviceIssueProvider = service.issueProvider
     val issueModel = service.issueModel
-
     val boundIssues = listOf(TestIssue("bound1"), TestIssue("bound2"))
-    serviceIssueProvider.addAllIssues(VisualLintErrorType.BOUNDS, boundIssues)
+    issueModel.addIssueProvider(object: IssueProvider() {
+      override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
+        issueListBuilder.addAll(boundIssues)
+      }
+    })
+
     issueModel.updateErrorsList()
 
     // Compare as the sets, because we don't care about the order in issue model.

@@ -722,7 +722,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     }
 
     // Mark the scene view panel as invalid to force the scene views to be updated
-    mySceneViewPanel.invalidate();
+    mySceneViewPanel.removeSceneViewForModel(model);
 
     if (manager == null) {
       return false;

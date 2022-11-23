@@ -82,7 +82,9 @@ class VisualLintServiceTest {
     val dashboardLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_dashboard.xml")!!
     val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, dashboardLayout)
     val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
-    visualLintService.runVisualLintAnalysis(listOf(nlModel), visualLintExecutorService)
+    visualLintService.runVisualLintAnalysis(projectRule.fixture.testRootDisposable,
+                                            VisualLintIssueProvider(projectRule.fixture.testRootDisposable), listOf(nlModel),
+                                            visualLintExecutorService)
     visualLintExecutorService.waitForTasksToComplete()
 
     val issues = visualLintIssueModel.issues
@@ -94,7 +96,8 @@ class VisualLintServiceTest {
     val atfLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/atf_layout.xml")!!
     val atfModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, atfLayout)
     VisualLintService.getInstance(projectRule.project)
-      .runVisualLintAnalysis(listOf(atfModel), visualLintExecutorService)
+      .runVisualLintAnalysis(projectRule.fixture.testRootDisposable, VisualLintIssueProvider(projectRule.fixture.testRootDisposable),
+                             listOf(atfModel), visualLintExecutorService)
     visualLintExecutorService.waitForTasksToComplete()
 
     val atfIssues = visualLintIssueModel.issues
@@ -110,7 +113,8 @@ class VisualLintServiceTest {
     val wearConfiguration = RenderTestUtil.getConfiguration(module, wearLayout, "wearos_small_round")
     val wearModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, wearLayout, wearConfiguration)
     VisualLintService.getInstance(projectRule.project)
-      .runVisualLintAnalysis(listOf(wearModel), visualLintExecutorService)
+      .runVisualLintAnalysis(projectRule.fixture.testRootDisposable, VisualLintIssueProvider(projectRule.fixture.testRootDisposable),
+                             listOf(wearModel), visualLintExecutorService)
     visualLintExecutorService.waitForTasksToComplete()
 
     val wearIssues = visualLintIssueModel.issues

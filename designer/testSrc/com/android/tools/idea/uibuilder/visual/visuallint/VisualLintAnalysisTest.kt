@@ -54,6 +54,10 @@ class VisualLintAnalysisTest {
   @get:Rule
   val projectRule = AndroidGradleProjectRule()
 
+  private val issueProvider by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+    VisualLintIssueProvider(projectRule.fixture.testRootDisposable)
+  }
+  
   @Before
   fun setup() {
     projectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/designer/testData").toString()
@@ -102,7 +106,7 @@ class VisualLintAnalysisTest {
     desktopConfiguration.setTheme("Theme.MaterialComponents.DayNight.DarkActionBar")
     analyzeFile(facet, filesToAnalyze, desktopConfiguration)
 
-    val issues = VisualLintService.getInstance(projectRule.project).issueProvider.getIssues()
+    val issues = issueProvider.getIssues()
     assertEquals(6, issues.size)
 
     issues.forEach {
@@ -173,7 +177,7 @@ class VisualLintAnalysisTest {
     }
 
     projectRule.fixture.disableInspections(BoundsAnalyzerInspection, TextFieldSizeAnalyzerInspection)
-    VisualLintService.getInstance(projectRule.project).issueProvider.clear()
+    issueProvider.clear()
     analyzeFile(facet, filesToAnalyze, phoneConfiguration)
     analyzeFile(facet, filesToAnalyze, tabletConfiguration)
     analyzeFile(facet, filesToAnalyze, foldableConfiguration)
@@ -186,14 +190,14 @@ class VisualLintAnalysisTest {
 
     val wearLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/wear_layout.xml")!!
     filesToAnalyze = listOf(wearLayout)
-    VisualLintService.getInstance(projectRule.project).issueProvider.clear()
+    issueProvider.clear()
     analyzeFile(facet, filesToAnalyze, phoneConfiguration)
     assertEquals(7, issues.size)
     issues.map {it as VisualLintRenderIssue }.forEach {
       assertNotEquals(VisualLintErrorType.WEAR_MARGIN, it.type)
     }
 
-    VisualLintService.getInstance(projectRule.project).issueProvider.clear()
+    issueProvider.clear()
     val wearSquareConfiguration = RenderTestUtil.getConfiguration(module, wearLayout, "wearos_square")
     analyzeFile(facet, filesToAnalyze, wearSquareConfiguration)
     val wearRectConfiguration = RenderTestUtil.getConfiguration(module, wearLayout, "wearos_rect")
@@ -271,7 +275,7 @@ class VisualLintAnalysisTest {
         try {
           val result = task.render().get()
           val service = VisualLintService.getInstance(projectRule.project)
-          service.analyzeAfterModelUpdate(service.issueProvider, result, nlModel, VisualLintBaseConfigIssues())
+          service.analyzeAfterModelUpdate(issueProvider, result, nlModel, VisualLintBaseConfigIssues())
         }
         catch (ex: Exception) {
           throw RuntimeException(ex)

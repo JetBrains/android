@@ -65,6 +65,7 @@ import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
@@ -399,6 +400,8 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   private boolean myShouldRenderErrorsPanel;
 
+  private final VisualLintIssueProvider myVisualLintIssueProvider;
+
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
                           @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider,
@@ -430,6 +433,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     mySupportedActions = supportedActions;
     myShouldRunVisualLintService = shouldRunVisualLintService;
     myShouldRenderErrorsPanel = shouldRenderErrorsPanel;
+    myVisualLintIssueProvider = new VisualLintIssueProvider(this);
 
     if (myNavigationHandler != null) {
       Disposer.register(this, myNavigationHandler);
@@ -801,7 +805,10 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
         });
 
         if (myShouldRunVisualLintService && !VisualizationToolWindowFactory.hasVisibleValidationWindow(project)) {
-          VisualLintService.getInstance(project).runVisualLintAnalysis(getModels());
+          VisualLintService.getInstance(project).runVisualLintAnalysis(
+            NlDesignSurface.this,
+            myVisualLintIssueProvider,
+            getModels());
         }
       }
 
@@ -816,6 +823,20 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     updateErrorDisplay();
     // modelRendered might be called in the Layoutlib Render thread and revalidateScrollArea needs to be called on the UI thread.
     UIUtil.invokeLaterIfNeeded(() -> revalidateScrollArea());
+  }
+
+  @Override
+  public void deactivate() {
+    myRenderIssueProviders.forEach(renderIssueProvider -> getIssueModel().removeIssueProvider(renderIssueProvider));
+    myRenderIssueProviders = ImmutableList.of();
+    myVisualLintIssueProvider.clear();
+    super.deactivate();
+  }
+
+  @Override
+  public void activate() {
+    super.activate();
+    updateErrorDisplay();
   }
 
   @NotNull

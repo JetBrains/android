@@ -25,17 +25,23 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
+import org.jetbrains.kotlin.idea.gradleTooling.get
 
 /**
  * Helper class to handle the process of visual lint in [VisualizationForm].
  */
-class VisualizationFormVisualLintHandler(private val project: Project, private val issueModel: IssueModel) {
+class VisualizationFormVisualLintHandler(
+  parentDisposable: Disposable,
+  private val project: Project,
+  private val issueModel: IssueModel) {
 
   private val myBaseConfigIssues = VisualLintBaseConfigIssues()
-  val lintIssueProvider = VisualLintIssueProvider(project)
+  val lintIssueProvider = VisualLintIssueProvider(parentDisposable)
 
   init {
     issueModel.addIssueProvider(lintIssueProvider)
@@ -52,14 +58,16 @@ class VisualizationFormVisualLintHandler(private val project: Project, private v
     myBaseConfigIssues.clear()
   }
 
-  fun setupForLayoutlibSceneManager(manager: LayoutlibSceneManager) {
+  fun setupForLayoutlibSceneManager(manager: LayoutlibSceneManager, isCancelled: () -> Boolean) {
     val renderListener: RenderListener = object : RenderListener {
       override fun onRenderCompleted() {
+        if (isCancelled() || manager.model.isDisposed) return
         val model = manager.model
         val result = manager.renderResult
         if (result != null) {
           ApplicationManager.getApplication().executeOnPooledThread {
-            VisualLintService.getInstance(project).analyzeAfterModelUpdate(lintIssueProvider, result, model, myBaseConfigIssues)
+            VisualLintService.getInstance(project).analyzeAfterModelUpdate(
+              lintIssueProvider, result, model, myBaseConfigIssues)
             if (StudioFlags.NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL.get()) {
               CommonLintUserDataHandler.updateVisualLintIssues(model.file, lintIssueProvider)
               issueModel.updateErrorsList()
@@ -81,7 +89,7 @@ class VisualizationFormVisualLintHandler(private val project: Project, private v
 
   fun onActivate() {
     // Clean up the visual lint issue from Layout Editor
-    VisualLintService.getInstance(project).removeIssues()
+    VisualLintService.getInstance(project).removeAllIssueProviders()
 
     issueModel.addIssueProvider(lintIssueProvider)
     issueModel.updateErrorsList()
@@ -89,6 +97,7 @@ class VisualizationFormVisualLintHandler(private val project: Project, private v
 
   fun onDeactivate() {
     issueModel.removeIssueProvider(lintIssueProvider)
+    lintIssueProvider.clear()
     issueModel.updateErrorsList()
 
     // Trigger Layout Editor Visual Lint

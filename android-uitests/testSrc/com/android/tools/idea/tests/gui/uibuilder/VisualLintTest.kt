@@ -76,6 +76,7 @@ class VisualLintTest {
     val layoutFile = "app/src/main/res/layout/activity_main.xml"
 
     editor.open(layoutFile)
+    editor.visualizationTool.waitForRenderToFinish()
     editor.visualizationTool.openProblemsPanel()
     ProblemsPaneFixture(ideFixture).waitUntilIsVisible().close()
     editor.visualizationTool.hide()
