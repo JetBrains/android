@@ -42,7 +42,7 @@ class DeviceExplorerController(
   private val model: DeviceExplorerModel,
   private val view: DeviceExplorerView,
   private val deviceFilesController: DeviceFileExplorerController,
-  private val deviceMonitorControllerImpl: DeviceMonitorController) : Disposable {
+  private val deviceMonitorController: DeviceMonitorController) : Disposable {
 
   private val uiThreadScope = AndroidCoroutineScope(this, AndroidDispatchers.uiThread)
   private val viewListener: DeviceExplorerViewListener = ViewListener()
@@ -65,8 +65,8 @@ class DeviceExplorerController(
       view.setup()
       deviceFilesController.setup()
       view.addTab(deviceFilesController.getViewComponent(), "Files")
-      deviceMonitorControllerImpl.setup()
-      view.addTab(deviceMonitorControllerImpl.getViewComponent(), "Processes")
+      deviceMonitorController.setup()
+      view.addTab(deviceMonitorController.getViewComponent(), "Processes")
       launch { view.trackDeviceListChanges() }
       launch { view.trackActiveDeviceChanges() }
     }
@@ -87,7 +87,7 @@ class DeviceExplorerController(
 
   private fun setActiveDevice(deviceHandle: DeviceHandle?) {
     model.setActiveDevice(deviceHandle)
-    deviceMonitorControllerImpl.setActiveConnectedDevice(deviceHandle?.state?.connectedDevice?.serialNumber)
+    deviceMonitorController.setActiveConnectedDevice(deviceHandle?.state?.connectedDevice?.serialNumber)
     deviceFilesController.setActiveConnectedDevice(newDeviceFileSystem(deviceHandle, deviceHandle?.state?.connectedDevice))
   }
 

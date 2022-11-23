@@ -21,7 +21,7 @@ import com.android.fakeadbserver.DeviceState
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutures
-import com.android.tools.idea.device.explorer.monitor.DeviceMonitorControllerImpl.Companion.getProjectController
+import com.android.tools.idea.device.explorer.monitor.DeviceMonitorController.Companion.getProjectController
 import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService
 import com.android.tools.idea.device.explorer.monitor.mocks.MockDeviceMonitorView
 import com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService
@@ -38,7 +38,7 @@ import org.junit.Test
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
-class DeviceMonitorControllerImplTest {
+class DeviceMonitorControllerTest {
 
   @get:Rule
   val androidProjectRule = AndroidProjectRule.withSdk()
@@ -177,8 +177,8 @@ class DeviceMonitorControllerImplTest {
     checkMockViewActiveDevice(testDevice1)
   }
 
-  private fun createController(): DeviceMonitorControllerImpl {
-    return DeviceMonitorControllerImpl(project, model, mockView, service)
+  private fun createController(): DeviceMonitorController {
+    return DeviceMonitorController(project, model, mockView, service)
   }
 
   private fun checkMockViewInitialState() {

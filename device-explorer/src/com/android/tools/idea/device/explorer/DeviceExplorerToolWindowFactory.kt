@@ -17,10 +17,11 @@ package com.android.tools.idea.device.explorer
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.device.explorer.files.DeviceExplorerFileManager
-import com.android.tools.idea.device.explorer.files.DeviceFileExplorerControllerImpl
+import com.android.tools.idea.device.explorer.files.DeviceFileExplorerController
 import com.android.tools.idea.device.explorer.files.DeviceFileExplorerModel
+import com.android.tools.idea.device.explorer.files.adbimpl.AdbDeviceFileSystemService
 import com.android.tools.idea.device.explorer.files.ui.DeviceFileExplorerViewImpl
-import com.android.tools.idea.device.explorer.monitor.DeviceMonitorControllerImpl
+import com.android.tools.idea.device.explorer.monitor.DeviceMonitorController
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorModel
 import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService
 import com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService
@@ -56,20 +57,20 @@ class DeviceExplorerToolWindowFactory : DumbAware, ToolWindowFactory {
     contentManager.addContent(toolWindowContent)
   }
 
-  private fun createDeviceMonitorController(project: Project): DeviceMonitorControllerImpl {
+  private fun createDeviceMonitorController(project: Project): DeviceMonitorController {
     val adbService = project.getService(AdbDeviceService::class.java)
     val processService = project.getService(DeviceProcessService::class.java)
     val model = DeviceMonitorModel(processService)
     val view = DeviceMonitorViewImpl(model)
-    return DeviceMonitorControllerImpl(project, model, view, adbService)
+    return DeviceMonitorController(project, model, view, adbService)
   }
 
-  private fun createDeviceFilesController(project: Project): DeviceFileExplorerControllerImpl {
+  private fun createDeviceFilesController(project: Project): DeviceFileExplorerController {
     val fileManager = project.getService(DeviceExplorerFileManager::class.java)
     val model = DeviceFileExplorerModel()
     val view = DeviceFileExplorerViewImpl(project, model, TOOL_WINDOW_ID)
-    return DeviceFileExplorerControllerImpl(project, model, view, fileManager,
-                                        object : DeviceFileExplorerControllerImpl.FileOpener {
+    return DeviceFileExplorerController(project, model, view, fileManager,
+                                        object : DeviceFileExplorerController.FileOpener {
                                           @UiThread
                                           override suspend fun openFile(localPath: Path) {
                                             fileManager.openFile(localPath)

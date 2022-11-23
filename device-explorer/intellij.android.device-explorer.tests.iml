@@ -9,15 +9,5 @@
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.device-explorer" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.device-explorer-files" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.device-explorer-monitor" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.adblib" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.device-provisioner" scope="TEST" />
   </component>
 </module>

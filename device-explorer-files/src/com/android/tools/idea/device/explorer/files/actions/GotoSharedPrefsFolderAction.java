@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.device.explorer.files.actions;
 
-import com.android.tools.idea.device.explorer.files.DeviceFileExplorerControllerImpl;
+import com.android.tools.idea.device.explorer.files.DeviceFileExplorerController;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAwareAction;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 public class GotoSharedPrefsFolderAction extends DumbAwareAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
-    DeviceFileExplorerControllerImpl controller = DeviceFileExplorerControllerImpl.getProjectController(e.getProject());
+    DeviceFileExplorerController controller = DeviceFileExplorerController.getProjectController(e.getProject());
     e.getPresentation().setEnabled(controller != null && controller.hasActiveDevice());
   }
 
