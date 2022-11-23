@@ -594,7 +594,7 @@ android_studio(
     version_micro_patch = "1.17",
     # This will get added to the end of the full-version string.
     # TODO(b/240707039): automate this.
-    version_release_number = "",
+    version_release_number = 1,
     version_type = "Stable",
     # version_update_message = "<html>this is optional</html>",
     visibility = ["//visibility:public"],
