@@ -203,8 +203,8 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
   "Watch Face" -> TemplateRenderer.WATCH_FACE
   "Empty Wear OS Compose Activity" -> TemplateRenderer.BLANK_WEAR_ACTIVITY
   "Google Wallet Activity" -> TemplateRenderer.GOOGLE_WALLET_ACTIVITY
-  "Basic Wear App",
-  "Basic Wear App Without Associated Tile And Complication" -> TemplateRenderer.BLANK_WEAR_ACTIVITY
+  "Empty Wear App",
+  "Empty Wear App With Tile And Complication" -> TemplateRenderer.BLANK_WEAR_ACTIVITY
 
   "Fullscreen Fragment" -> TemplateRenderer.FRAGMENT_FULLSCREEN
   "Google AdMob Ads Fragment" -> TemplateRenderer.FRAGMENT_GOOGLE_ADMOB_ADS

@@ -446,17 +446,17 @@ class TemplateTest {
       projectData.language = Language.Kotlin
       projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = false)
     }
-    checkCreateTemplate("Basic Wear App", withSpecificKotlin)
+    checkCreateTemplate("Empty Wear App", withSpecificKotlin)
   }
 
   @TemplateCheck
   @Test
-  fun testNewComposeWearActivityWithoutTileAndComplication() {
+  fun testNewComposeWearActivityWithTileAndComplication() {
     val withSpecificKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
       projectData.language = Language.Kotlin
       projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = false)
     }
-    checkCreateTemplate("Basic Wear App Without Associated Tile And Complication", withSpecificKotlin)
+    checkCreateTemplate("Empty Wear App With Tile And Complication", withSpecificKotlin)
   }
 
   @TemplateCheck
