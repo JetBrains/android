@@ -43,7 +43,7 @@ class RemoveImplementationPropertiesRefactoringProcessor: AgpUpgradeComponentRef
   override val necessityInfo = object : AgpUpgradeComponentNecessityInfo() {
     override fun computeNecessity(current: AgpVersion, new: AgpVersion) = when {
       new < AgpVersion.parse("7.0.0-alpha13") -> OPTIONAL_INDEPENDENT
-      current > AgpVersion.parse("8.0.0") -> IRRELEVANT_PAST
+      current > AgpVersion.parse("9.0.0-beta01") -> IRRELEVANT_PAST
       else -> MANDATORY_INDEPENDENT
     }
   }
