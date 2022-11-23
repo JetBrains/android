@@ -113,6 +113,7 @@ constexpr int BIT_RATE_REDUCED = 2000000;
 constexpr int I_FRAME_INTERVAL_SECONDS = 10;
 constexpr int REPEAT_FRAME_DELAY_MILLIS = 100;
 constexpr int CHANNEL_HEADER_LENGTH = 20;
+constexpr char* AMEDIACODEC_KEY_REQUEST_SYNC_FRAME = "request-sync";  // Introduced in API 31.
 
 bool IsCodecResolutionLessThanDisplayResolution(Size codec_resolution, Size display_resolution) {
   return max(codec_resolution.width, codec_resolution.height) < max(display_resolution.width, display_resolution.height);
@@ -265,8 +266,11 @@ void DisplayStreamer::Run() {
       packet_header.display_orientation = NormalizeRotation(display_info.rotation + rotation_correction);
       packet_header.display_orientation_correction = NormalizeRotation(rotation_correction);
     }
-    bool end_of_stream = ProcessFramesUntilStopped(codec, &packet_header);
+    AMediaFormat* sync_frame_request = AMediaFormat_new();
+    AMediaFormat_setInt32(sync_frame_request, AMEDIACODEC_KEY_REQUEST_SYNC_FRAME, 0);
+    bool end_of_stream = ProcessFramesUntilStopped(codec, &packet_header, sync_frame_request);
     StopCodec();
+    AMediaFormat_delete(sync_frame_request);
     surface_control.DestroyDisplay(display);
     AMediaCodec_delete(codec);
     codec = nullptr;
@@ -335,8 +339,10 @@ void DisplayStreamer::Shutdown() {
   }
 }
 
-bool DisplayStreamer::ProcessFramesUntilStopped(AMediaCodec* codec, VideoPacketHeader* packet_header) {
+bool DisplayStreamer::ProcessFramesUntilStopped(AMediaCodec* codec, VideoPacketHeader* packet_header,
+                                                const AMediaFormat* sync_frame_request) {
   bool end_of_stream = false;
+  bool first_frame_after_start = true;
   while (!end_of_stream && IsCodecRunning()) {
     CodecOutputBuffer codec_buffer(codec);
     if (!codec_buffer.Deque(-1)) {
@@ -345,6 +351,15 @@ bool DisplayStreamer::ProcessFramesUntilStopped(AMediaCodec* codec, VideoPacketH
     end_of_stream = codec_buffer.IsEndOfStream();
     if (!IsCodecRunning()) {
       return false;
+    }
+    if (first_frame_after_start) {
+      // Request another sync frame to prevent a green bar that sometimes appears at the bottom
+      // of the first frame.
+      media_status_t status = AMediaCodec_setParameters(codec, sync_frame_request);
+      if (status != AMEDIA_OK) {
+        Log::E("AMediaCodec_setParameters returned %d", status);
+      }
+      first_frame_after_start = false;
     }
     int64_t delta = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count() - Agent::GetLastTouchEventTime();
     if (delta < 1000) {
@@ -412,4 +427,3 @@ void DisplayStreamer::DisplayRotationWatcher::OnRotationChanged(int32_t new_rota
 }
 
 }  // namespace screensharing
-
