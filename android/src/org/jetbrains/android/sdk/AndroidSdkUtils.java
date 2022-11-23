@@ -29,6 +29,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.adb.AdbService;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
@@ -119,6 +120,7 @@ public final class AndroidSdkUtils {
 
   @Nullable
   private static IAndroidTarget findBestTarget(@NotNull IAndroidTarget[] targets) {
+    int androidPlatformToAutocreate = StudioFlags.ANDROID_PLATFORM_TO_AUTOCREATE.get();
     IAndroidTarget bestTarget = null;
     int maxApiLevel = -1;
     for (IAndroidTarget target : targets) {
@@ -126,6 +128,9 @@ public final class AndroidSdkUtils {
       if (target.isPlatform() && !version.isPreview() && version.getApiLevel() > maxApiLevel) {
         bestTarget = target;
         maxApiLevel = version.getApiLevel();
+        if (maxApiLevel == androidPlatformToAutocreate) {
+          break;
+        }
       }
     }
     return bestTarget;

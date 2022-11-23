@@ -43,6 +43,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
@@ -71,6 +72,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -214,6 +216,18 @@ public class AndroidSdks {
 
   @Nullable
   public Sdk create(@NotNull IAndroidTarget target, @NotNull File sdkPath, @NotNull String sdkName, @NotNull Sdk jdk, boolean addRoots) {
+    int androidPlatformToAutocreate = StudioFlags.ANDROID_PLATFORM_TO_AUTOCREATE.get();
+    if (androidPlatformToAutocreate > 0) {
+      int actualLevel = target.getVersion().getApiLevel();
+      if (actualLevel != androidPlatformToAutocreate) {
+        throw new IllegalStateException(String.format(
+          Locale.US,
+          "Created an Android platform with API-level==%d, but expected to create one with API-level==%d. This could mean that you need to " +
+          "manifest an additional dependency.",
+          actualLevel, androidPlatformToAutocreate));
+      }
+    }
+
     if (!target.getAdditionalLibraries().isEmpty()) {
       // Do not create an IntelliJ SDK for add-ons. Add-ons should be handled as module-level library dependencies.
       // Instead, create the add-on parent, if missing

@@ -1068,6 +1068,17 @@ public final class StudioFlags {
     "If enabled, a checkbox to opt-in to running instrumentation tests via UTP feature is displayed in the settings.",
     true
   );
+
+  public static final Flag<Integer> ANDROID_PLATFORM_TO_AUTOCREATE = Flag.create(
+    TESTING,
+    "android.platform.to.autocreate",
+    "Android platform to auto-create",
+    "Automatically sets up the JDK table at initialization time and points to the specified API level of the Android SDK " +
+    "(rather than always pointing to the latest). This is largely intended for use by tests where Android Studio can't be easily " +
+    "configured ahead of time. If this value is 0, then this flag is considered to be off and no platform will be automatically created. " +
+    "If this value is -1, then the platform will be automatically created with the latest version.",
+    0
+  );
   //endregion
 
   //region Memory
