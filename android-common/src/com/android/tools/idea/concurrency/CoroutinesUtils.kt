@@ -39,7 +39,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
-import com.intellij.psi.PsiTreeAnyChangeAbstractAdapter
 import com.intellij.util.concurrency.AppExecutorUtil
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -61,7 +60,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
@@ -535,23 +533,3 @@ fun smartModeFlow(project: Project, parentDisposable: Disposable, logger: Logger
  */
 fun smartModeFlow(project: Project, parentDisposable: Disposable, logger: Logger? = null): Flow<Unit> =
   smartModeFlow(project, parentDisposable, logger, null)
-
-
-/**
- * A [callbackFlow] that produces an element when a [PsiFile] changes.
- */
-fun psiFileChangeFlow(project: Project, parentDisposable: Disposable, logger: Logger? = null, onConnected: (() -> Unit)? = null): Flow<PsiFile> =
-  disposableCallbackFlow<PsiFile>(debugName = "PsiFileChangeFlow", parentDisposable = parentDisposable, logger = logger) {
-    PsiManager.getInstance(project).addPsiTreeChangeListener(
-      object : PsiTreeAnyChangeAbstractAdapter() {
-        override fun onChange(changedFile: PsiFile?) {
-          if (changedFile == null) return
-          trySend(changedFile)
-        }
-      },
-      this.disposable
-    )
-
-    onConnected?.let { onConnected -> launch(workerThread) { onConnected() } }
-  }
-    .distinctUntilChangedBy { file -> file.modificationStamp }
