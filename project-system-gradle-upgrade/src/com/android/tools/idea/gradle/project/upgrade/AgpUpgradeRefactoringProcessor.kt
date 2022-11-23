@@ -55,7 +55,6 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAs
 import com.google.wireless.android.sdk.stats.UpgradeAssistantProcessorEvent
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.undo.BasicUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.diagnostic.Logger
@@ -281,6 +280,7 @@ class AgpUpgradeRefactoringProcessor(
     NonConstantRClassDefaultRefactoringProcessor(this),
     AidlDefaultRefactoringProcessor(this),
     REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(this),
+    AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor(this),
     MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.RefactoringProcessor(this),
     REMOVE_BUILD_TYPE_USE_PROGUARD_INFO.RefactoringProcessor(this),
     RemoveImplementationPropertiesRefactoringProcessor(this),
