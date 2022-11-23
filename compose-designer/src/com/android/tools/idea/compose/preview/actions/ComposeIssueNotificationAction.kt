@@ -16,9 +16,11 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.flags.ifEnabled
-import com.android.tools.adtui.InformationPopup
-import com.android.tools.adtui.InformationPopupImpl
 import com.android.tools.adtui.common.ColoredIconGenerator
+import com.android.tools.adtui.compose.InformationPopup
+import com.android.tools.adtui.compose.InformationPopupImpl
+import com.android.tools.adtui.compose.IssueNotificationAction
+import com.android.tools.adtui.compose.actionLink
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
@@ -30,12 +32,10 @@ import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.BuildAndRefresh
-import com.android.tools.idea.preview.actions.IssueNotificationAction
-import com.android.tools.idea.preview.actions.PreviewStatusNotification
+import com.android.tools.idea.preview.actions.PreviewStatus
 import com.android.tools.idea.preview.actions.ReEnableFastPreview
 import com.android.tools.idea.preview.actions.ShowEventLogAction
 import com.android.tools.idea.preview.actions.ShowProblemsPanel
-import com.android.tools.idea.preview.actions.actionLink
 import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.icons.AllIcons
@@ -64,7 +64,7 @@ private val GREEN_REFRESH_BUTTON =
   )
 
 @VisibleForTesting
-internal fun getStatusInfo(project: Project, dataContext: DataContext): PreviewStatusNotification? {
+internal fun getStatusInfo(project: Project, dataContext: DataContext): PreviewStatus? {
   val composePreviewManager = dataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return null
   val previewStatus = composePreviewManager.status()
   val fastPreviewEnabled = project.fastPreviewManager.isEnabled
@@ -72,31 +72,31 @@ internal fun getStatusInfo(project: Project, dataContext: DataContext): PreviewS
     // No Fast Preview and Preview is out of date (only when is user disabled)
     !fastPreviewEnabled &&
       !project.fastPreviewManager.isAutoDisabled &&
-      previewStatus.isOutOfDate -> PreviewStatusNotification.OutOfDate
+      previewStatus.isOutOfDate -> PreviewStatus.OutOfDate
 
     // Resources are out of date. FastPreview does not help with this.
-    previewStatus.areResourcesOutOfDate -> PreviewStatusNotification.OutOfDate
+    previewStatus.areResourcesOutOfDate -> PreviewStatus.OutOfDate
 
     // Refresh status
     previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STARTING ->
-      PreviewStatusNotification.Refreshing(message("notification.interactive.preview.starting"))
+      PreviewStatus.Refreshing(message("notification.interactive.preview.starting"))
     previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STOPPING ->
-      PreviewStatusNotification.Refreshing(message("notification.interactive.preview.stopping"))
-    previewStatus.isRefreshing -> PreviewStatusNotification.Refreshing()
+      PreviewStatus.Refreshing(message("notification.interactive.preview.stopping"))
+    previewStatus.isRefreshing -> PreviewStatus.Refreshing()
 
     // Build/Syntax/Render errors
-    project.needsBuild -> PreviewStatusNotification.NeedsBuild
-    previewStatus.hasSyntaxErrors -> PreviewStatusNotification.SyntaxError
-    previewStatus.hasRuntimeErrors -> PreviewStatusNotification.RenderIssues
+    project.needsBuild -> PreviewStatus.NeedsBuild
+    previewStatus.hasSyntaxErrors -> PreviewStatus.SyntaxError
+    previewStatus.hasRuntimeErrors -> PreviewStatus.RenderIssues
 
     // Fast preview refresh/failures
     !fastPreviewEnabled && project.fastPreviewManager.isAutoDisabled ->
-      PreviewStatusNotification.FastPreviewFailed
+      PreviewStatus.FastPreviewFailed
     fastPreviewEnabled && project.fastPreviewManager.isCompiling ->
-      PreviewStatusNotification.FastPreviewCompiling
+      PreviewStatus.FastPreviewCompiling
 
     // Up-to-date
-    else -> PreviewStatusNotification.UpToDate
+    else -> PreviewStatus.UpToDate
   }
 }
 
@@ -120,7 +120,7 @@ fun defaultCreateInformationPopup(
   val fileProvider = ComposePreviewManagerFileProvider(dataContext)::invoke
   return getStatusInfo(project, dataContext)?.let { previewStatusNotification ->
     val isAutoDisabled =
-      previewStatusNotification is PreviewStatusNotification.FastPreviewFailed &&
+      previewStatusNotification is PreviewStatus.FastPreviewFailed &&
         project.fastPreviewManager.isAutoDisabled
 
     with(dataContext) {
@@ -154,9 +154,9 @@ fun defaultCreateInformationPopup(
 }
 
 private fun DataContext.createFastPreviewFailedActionLink(
-  previewStatusNotification: PreviewStatusNotification,
+  previewStatusNotification: PreviewStatus,
 ): AnActionLink? =
-  previewStatusNotification.takeIf { it is PreviewStatusNotification.FastPreviewFailed }?.let {
+  previewStatusNotification.takeIf { it is PreviewStatus.FastPreviewFailed }?.let {
     actionLink(
       text = message("fast.preview.disabled.notification.show.details.action.title"),
       action = ShowEventLogAction(),
@@ -184,9 +184,9 @@ private fun DataContext.createReenableFastPreviewActionLink(
     )
   }
 
-private fun DataContext.createErrorsActionLink(it: PreviewStatusNotification): AnActionLink? =
+private fun DataContext.createErrorsActionLink(it: PreviewStatus): AnActionLink? =
   when (it) {
-    is PreviewStatusNotification.SyntaxError, PreviewStatusNotification.RenderIssues ->
+    is PreviewStatus.SyntaxError, PreviewStatus.RenderIssues ->
       actionLink(message("action.view.problems"), ShowProblemsPanel(), this)
     else -> null
   }
@@ -218,7 +218,7 @@ class ComposeIssueNotificationAction(
 /**
  * [AnAction] that triggers a compilation of the current module. The build will automatically
  * trigger a refresh of the surface. The action visibility is controlled by the
- * [PreviewStatusNotification.hasRefreshIcon]
+ * [PreviewStatus.hasRefreshIcon]
  */
 private class ForceCompileAndRefreshActionForNotification(private val surface: DesignSurface<*>) :
   AnAction(

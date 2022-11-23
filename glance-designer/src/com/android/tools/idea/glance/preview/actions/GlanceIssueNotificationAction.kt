@@ -15,41 +15,41 @@
  */
 package com.android.tools.idea.glance.preview.actions
 
-import com.android.tools.adtui.InformationPopup
-import com.android.tools.adtui.InformationPopupImpl
+import com.android.tools.adtui.compose.InformationPopup
+import com.android.tools.adtui.compose.InformationPopupImpl
+import com.android.tools.adtui.compose.IssueNotificationAction
+import com.android.tools.adtui.compose.actionLink
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.glance.preview.GlancePreviewBundle.message
 import com.android.tools.idea.glance.preview.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.actions.BuildAndRefresh
-import com.android.tools.idea.preview.actions.IssueNotificationAction
-import com.android.tools.idea.preview.actions.PreviewStatusNotification
+import com.android.tools.idea.preview.actions.PreviewStatus
 import com.android.tools.idea.preview.actions.ShowProblemsPanel
-import com.android.tools.idea.preview.actions.actionLink
 import com.android.tools.idea.projectsystem.needsBuild
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
 
 /**
- * Provides [PreviewStatusNotification] based on [Project] and [PreviewViewModelStatus] (passed
- * through [DataContext]) states.
+ * Provides [PreviewStatus] based on [Project] and [PreviewViewModelStatus] (passed through
+ * [DataContext]) states.
  */
-internal fun getStatusInfo(project: Project, dataContext: DataContext): PreviewStatusNotification? {
+internal fun getStatusInfo(project: Project, dataContext: DataContext): PreviewStatus? {
   val viewModelStatus = dataContext.getData(PREVIEW_VIEW_MODEL_STATUS) ?: return null
   return when {
     // Refresh status
-    viewModelStatus.isRefreshing -> PreviewStatusNotification.Refreshing()
+    viewModelStatus.isRefreshing -> PreviewStatus.Refreshing()
 
     // Out of date
-    viewModelStatus.isOutOfDate -> PreviewStatusNotification.OutOfDate
+    viewModelStatus.isOutOfDate -> PreviewStatus.OutOfDate
 
     // Build/Syntax/Render errors
-    project.needsBuild -> PreviewStatusNotification.NeedsBuild
-    viewModelStatus.hasSyntaxErrors -> PreviewStatusNotification.SyntaxError
-    viewModelStatus.hasErrorsAndNeedsBuild -> PreviewStatusNotification.RenderIssues
+    project.needsBuild -> PreviewStatus.NeedsBuild
+    viewModelStatus.hasSyntaxErrors -> PreviewStatus.SyntaxError
+    viewModelStatus.hasErrorsAndNeedsBuild -> PreviewStatus.RenderIssues
 
     // Up-to-date
-    else -> PreviewStatusNotification.UpToDate
+    else -> PreviewStatus.UpToDate
   }
 }
 
@@ -72,7 +72,7 @@ internal fun createInformationPopup(project: Project, dataContext: DataContext):
           dataContext
         ),
         when (it) {
-          is PreviewStatusNotification.SyntaxError, PreviewStatusNotification.RenderIssues ->
+          is PreviewStatus.SyntaxError, PreviewStatus.RenderIssues ->
             actionLink(message("action.view.problems"), ShowProblemsPanel(), dataContext)
           else -> null
         }

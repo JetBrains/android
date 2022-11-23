@@ -13,15 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.preview.actions
+package com.android.tools.adtui.compose
 
-import com.android.tools.adtui.InformationPopup
-import com.android.tools.idea.common.error.IssuePanelService
-import com.android.tools.idea.editors.fast.fastPreviewManager
-import com.android.tools.idea.preview.PreviewBundle.message
-import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.icons.AllIcons
-import com.intellij.notification.EventLog
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -29,7 +23,6 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
@@ -38,10 +31,6 @@ import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.registry.Registry
-import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.psi.PsiFile
-import com.intellij.ui.AnimatedIcon
-import com.intellij.ui.EditorNotifications
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.RoundedLineBorder
@@ -70,25 +59,22 @@ private fun chipBorder(color: Color): Border = RoundedLineBorder(UIUtil.toAlpha(
                                                                  ACTION_BORDER_ARC_SIZE,
                                                                  ACTION_BORDER_THICKNESS)
 
-/**
- * Represents the Preview status to be notified to the user.
- */
-sealed class PreviewStatusNotification(
-  val icon: Icon?,
-  val title: String,
-  val description: String,
+interface ComposeStatus {
+  val icon: Icon?
+  val title: String
+  val description: String
   /** When true, the refresh icon will be displayed next to the notification chip. */
-  val hasRefreshIcon: Boolean = false,
-  val presentation: Presentation? = null
-) {
+  val hasRefreshIcon: Boolean
+  val presentation: Presentation?
+
   companion object {
-    val PRESENTATION = Key<Presentation>("PreviewStatusNotificationPresentation")
+    val PRESENTATION = Key<Presentation>("ComposeStatus.Presentation")
 
     /**
      * When not null, this will define the text alignment in the notification chip. One of [SwingConstants.LEADING] or
      * [SwingConstants.TRAILING].
      */
-    val TEXT_ALIGNMENT = Key<Int>("PreviewStatusNotificationTextAlignment")
+    val TEXT_ALIGNMENT = Key<Int>("ComposeStatus.TextAlignment")
   }
 
   /**
@@ -102,129 +88,6 @@ sealed class PreviewStatusNotification(
                         UIUtil.toAlpha(Color(baseColorDark), ACTION_BACKGROUND_ALPHA))
     val border = chipBorder(color)
   }
-
-  /**
-   * The Preview found a syntax error and paused the updates.
-   */
-  object SyntaxError : PreviewStatusNotification(
-    AllIcons.General.InspectionsPause,
-    message("notification.syntax.errors.title"),
-    message("notification.syntax.errors.description"),
-    false)
-
-  /**
-   * The Preview found a compilation error and paused the updates.
-   */
-  object NeedsBuild : PreviewStatusNotification(
-    AllIcons.General.Error,
-    message("notification.needs.build.broken.title"),
-    message("notification.needs.build.broken.description"),
-    true,
-    Presentation.Error)
-
-  /**
-   * The Preview is refreshing.
-   */
-  class Refreshing(detailsMessage: String = message("notification.preview.refreshing.description"))
-    : PreviewStatusNotification(
-    AnimatedIcon.Default(),
-    message("notification.preview.refreshing.title"),
-    detailsMessage)
-
-  /**
-   * The Preview is out of date. This state will not happen if Fast Preview is enabled.
-   */
-  object OutOfDate : PreviewStatusNotification(
-    AllIcons.General.Warning,
-    message("notification.preview.out.of.date.title"),
-    message("notification.preview.out.of.date.description"),
-    true,
-    Presentation.Warning)
-
-  /**
-   * The Preview is compiling.
-   */
-  object FastPreviewCompiling : PreviewStatusNotification(
-    AnimatedIcon.Default(),
-    message("notification.preview.fast.compile.title"),
-    message("notification.preview.fast.compile.description"))
-
-  /**
-   * An issue was found while rendering the Preview.
-   */
-  object RenderIssues : PreviewStatusNotification(
-    AllIcons.General.Warning,
-    message("notification.preview.render.issues.title"),
-    message("notification.preview.render.issues.description"),
-    true,
-    Presentation.Warning
-  )
-
-  /**
-   * The Preview has failed to compile a fast change.
-   */
-  object FastPreviewFailed : PreviewStatusNotification(
-    AllIcons.General.InspectionsPause,
-    message("notification.preview.fast.disabled.reason.compiler.error.title"),
-    message("notification.preview.fast.disabled.reason.compiler.error.description"),
-    true,
-    Presentation.Error)
-
-  /**
-   * The Preview is fully up to date.
-   */
-  object UpToDate : PreviewStatusNotification(
-    AllIcons.General.InspectionsOK,
-    message("notification.preview.up.to.date.title"),
-    message("notification.preview.up.to.date.description"))
-}
-
-/**
- * [AnAction] that will show the Event Log.
- */
-class ShowEventLogAction : AnAction() {
-  override fun actionPerformed(e: AnActionEvent) {
-    val project = e.project ?: return
-    EventLog.getEventLog(project)?.activate(null) ?: ToolWindowManager.getInstance(project).getToolWindow("Notifications")?.activate(null)
-  }
-}
-
-/**
- * [AnAction] that re-enable the Fast Preview if disabled.
- */
-class ReEnableFastPreview(private val allowAutoDisable: Boolean = true) : AnAction() {
-  override fun actionPerformed(e: AnActionEvent) {
-    val project = e.project ?: return
-    if (!allowAutoDisable) {
-      project.fastPreviewManager.allowAutoDisable = false
-    }
-    project.fastPreviewManager.enable()
-    PlatformCoreDataKeys.VIRTUAL_FILE.getData(e.dataContext)?.let {
-      EditorNotifications.getInstance(project).updateNotifications(it)
-    }
-  }
-}
-
-/**
- * [AnAction] that requests a build of the file returned by [fileProvider] and its dependencies.
- */
-class BuildAndRefresh(private val fileProvider: () -> PsiFile?) : AnAction() {
-  override fun actionPerformed(e: AnActionEvent) {
-    val file = fileProvider() ?: return
-    file.project.requestBuild(file.virtualFile)
-  }
-}
-
-/**
- * [AnAction] that shows the "Problems" panel with the "Design Tools" tab selected. The name "Design Tools" is different depends on
- * different tools. e.g. it shows "Compose" when using Compose Preview, shows "Layout and Qualifiers" when using Layout Editor.
- *
- */
-class ShowProblemsPanel : AnAction() {
-  override fun actionPerformed(e: AnActionEvent) {
-    val project = e.project ?: return
-    IssuePanelService.getInstance(project).setIssuePanelVisibility(true, IssuePanelService.Tab.DESIGN_TOOLS)
-  }
 }
 
 /**
@@ -237,14 +100,14 @@ fun actionLink(text: String, action: AnAction, delegateDataContext: DataContext)
   }
 
 /**
- * Action that reports the current state of the Preview. Local issues for a given preview are reported as part of the preview itself
- * and not in this action.
+ * Action that reports the current state of the Compose subsystem. Local issues for a given Compose subsystem are reported as part of the
+ * subsystem itself and not in this action.
  *
  * Clicking on the action will open a pop-up with additional details and action buttons.
  * @param popupAlarm used to show and hide the popup as a hint.
  */
 open class IssueNotificationAction(
-  private val createStatusInfo: (Project, DataContext) -> PreviewStatusNotification?,
+  private val createStatusInfo: (Project, DataContext) -> ComposeStatus?,
   private val createInformationPopup: (Project, DataContext) -> InformationPopup?,
   private val popupAlarm: Alarm = Alarm()
 ) : AnAction(), RightAlignedToolbarAction, CustomComponentAction, Disposable {
@@ -309,10 +172,10 @@ open class IssueNotificationAction(
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
     object : ActionButtonWithText(this, presentation, place, Dimension(0, 0)) {
       private val insets = JBUI.insets(3)
-      private val actionPresentation: PreviewStatusNotification.Presentation?
-        get() = myPresentation.getClientProperty(PreviewStatusNotification.PRESENTATION)
+      private val actionPresentation: ComposeStatus.Presentation?
+        get() = myPresentation.getClientProperty(ComposeStatus.PRESENTATION)
       val textAlignment: Int
-        get() = myPresentation.getClientProperty(PreviewStatusNotification.TEXT_ALIGNMENT) ?: SwingConstants.LEADING
+        get() = myPresentation.getClientProperty(ComposeStatus.TEXT_ALIGNMENT) ?: SwingConstants.LEADING
 
       private val font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
 
@@ -365,9 +228,9 @@ open class IssueNotificationAction(
       presentation.icon = it.icon
       presentation.text = it.title
       presentation.description = it.description
-      presentation.putClientProperty(PreviewStatusNotification.PRESENTATION, it.presentation)
+      presentation.putClientProperty(ComposeStatus.PRESENTATION, it.presentation)
       val isErrorOrWarningIcon = it.icon == AllIcons.General.Error || it.icon == AllIcons.General.Warning
-      presentation.putClientProperty(PreviewStatusNotification.TEXT_ALIGNMENT,
+      presentation.putClientProperty(ComposeStatus.TEXT_ALIGNMENT,
                                      if (isErrorOrWarningIcon) SwingConstants.TRAILING else SwingConstants.LEADING)
     }
   }

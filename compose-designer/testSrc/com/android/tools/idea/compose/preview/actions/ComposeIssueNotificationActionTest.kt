@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.adtui.InformationPopup
+import com.android.tools.adtui.compose.ComposeStatus
+import com.android.tools.adtui.compose.InformationPopup
 import com.android.tools.adtui.swing.findAllDescendants
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
@@ -25,7 +26,6 @@ import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewRule
 import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.editors.fast.fastPreviewManager
-import com.android.tools.idea.preview.actions.PreviewStatusNotification
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -123,7 +123,7 @@ internal class ComposeIssueNotificationActionTest {
     action.update(event)
     val statusInfo = getStatusInfo(projectRule.project, context)!!
     assertTrue(statusInfo.hasRefreshIcon)
-    assertEquals(PreviewStatusNotification.Presentation.Warning, statusInfo.presentation)
+    assertEquals(ComposeStatus.Presentation.Warning, statusInfo.presentation)
     assertEquals(
       "Render Issues (Some problems were found while rendering the preview)",
       event.presentation.toString()

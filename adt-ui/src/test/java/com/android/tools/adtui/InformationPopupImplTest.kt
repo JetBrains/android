@@ -15,6 +15,8 @@
  */
 package com.android.tools.adtui
 
+import com.android.tools.adtui.compose.InformationPopup
+import com.android.tools.adtui.compose.InformationPopupImpl
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.intellij.icons.AllIcons

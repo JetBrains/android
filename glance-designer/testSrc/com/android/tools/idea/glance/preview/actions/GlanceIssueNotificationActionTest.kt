@@ -18,7 +18,7 @@ package com.android.tools.idea.glance.preview.actions
 import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.idea.glance.preview.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.glance.preview.mvvm.PreviewViewModelStatus
-import com.android.tools.idea.preview.actions.PreviewStatusNotification
+import com.android.tools.idea.preview.actions.PreviewStatus
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.projectsystem.TestProjectSystemBuildManager
@@ -62,44 +62,27 @@ class GlanceIssueNotificationActionTest {
   fun testGetStatusInfo() {
     Assert.assertNull(getStatusInfo(projectRule.project) { null })
 
-    Assert.assertTrue(
-      getStatusInfo(projectRule.project, dataContext) is PreviewStatusNotification.Refreshing
-    )
+    Assert.assertTrue(getStatusInfo(projectRule.project, dataContext) is PreviewStatus.Refreshing)
 
     viewModelStatus.isRefreshing = false
 
-    Assert.assertEquals(
-      PreviewStatusNotification.OutOfDate,
-      getStatusInfo(projectRule.project, dataContext)
-    )
+    Assert.assertEquals(PreviewStatus.OutOfDate, getStatusInfo(projectRule.project, dataContext))
 
     viewModelStatus.isOutOfDate = false
 
-    Assert.assertEquals(
-      PreviewStatusNotification.NeedsBuild,
-      getStatusInfo(projectRule.project, dataContext)
-    )
+    Assert.assertEquals(PreviewStatus.NeedsBuild, getStatusInfo(projectRule.project, dataContext))
 
     buildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
 
-    Assert.assertEquals(
-      PreviewStatusNotification.SyntaxError,
-      getStatusInfo(projectRule.project, dataContext)
-    )
+    Assert.assertEquals(PreviewStatus.SyntaxError, getStatusInfo(projectRule.project, dataContext))
 
     viewModelStatus.hasSyntaxErrors = false
 
-    Assert.assertEquals(
-      PreviewStatusNotification.RenderIssues,
-      getStatusInfo(projectRule.project, dataContext)
-    )
+    Assert.assertEquals(PreviewStatus.RenderIssues, getStatusInfo(projectRule.project, dataContext))
 
     viewModelStatus.hasErrorsAndNeedsBuild = false
 
-    Assert.assertEquals(
-      PreviewStatusNotification.UpToDate,
-      getStatusInfo(projectRule.project, dataContext)
-    )
+    Assert.assertEquals(PreviewStatus.UpToDate, getStatusInfo(projectRule.project, dataContext))
   }
 
   @Test
