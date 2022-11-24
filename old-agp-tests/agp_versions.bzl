@@ -6,7 +6,6 @@ COMMON_DATA = [
     "//prebuilts/studio/layoutlib/data:native_libs",
     "//prebuilts/studio/layoutlib/data/fonts",
     "//prebuilts/studio/layoutlib/data/icu",
-    "//prebuilts/studio/sdk:build-tools/latest",
     "//prebuilts/studio/sdk:cmake",
     "//prebuilts/studio/sdk:docs",
     "//prebuilts/studio/sdk:licenses",

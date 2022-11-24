@@ -24,7 +24,6 @@ dependencies {
 android {
     namespace "com.android.tests.basic"
     compileSdkVersion 22
-    buildToolsVersion "22.0.1"
 
     testBuildType "debug"
 

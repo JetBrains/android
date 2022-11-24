@@ -3,7 +3,6 @@ apply plugin: 'com.android.library'
 android {
     namespace "test.helloworldapp.lib"
     compileSdkVersion 18
-    buildToolsVersion "19.1.0"
 
     sourceSets {
         main {

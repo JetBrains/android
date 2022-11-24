@@ -2,7 +2,6 @@ apply plugin: 'com.android.feature'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion "25.0.1"
 
     baseFeature true
 
