@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.project.upgrade.R8FullModeDefaultRefactorin
 import com.android.tools.idea.gradle.project.upgrade.RefactoringProcessorInstantiator
 import com.android.tools.idea.gradle.project.upgrade.WellKnownGradlePluginDependencyUsageInfo
 import com.android.tools.idea.gradle.project.upgrade.WellKnownGradlePluginDslUsageInfo
+import com.android.tools.idea.gradle.project.upgrade.computeGradlePluginUpgradeState
 import com.android.tools.idea.gradle.project.upgrade.isCleanEnoughProject
 import com.android.tools.idea.gradle.project.upgrade.trackProcessorUsage
 import com.android.tools.idea.gradle.project.upgrade.versionsAreIncompatible
@@ -73,7 +74,7 @@ private val LOG = Logger.getInstance(LOG_CATEGORY)
 class UpgradeAssistantWindowModel(
   val project: Project,
   val currentVersionProvider: () -> AgpVersion?,
-  val recommended: AgpVersion? = null,
+  var recommended: AgpVersion? = null,
   val knownVersionsRequester: () -> Set<AgpVersion> = { IdeGoogleMavenRepository.getAgpVersions() }
 ) : GradleSyncListener, Disposable {
 
@@ -385,7 +386,9 @@ class UpgradeAssistantWindowModel(
     processor = null
 
     if (refindPlugin) {
-      current = currentVersionProvider()
+      current = currentVersionProvider()?.also { current ->
+        recommended = computeGradlePluginUpgradeState(current, latestKnownVersion, knownVersions.valueOrNull ?: setOf()).target
+      }
       suggestedVersions.value = suggestedVersionsList(knownVersions.valueOrNull ?: setOf())
     }
     val newVersion = selectedVersion
