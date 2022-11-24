@@ -295,6 +295,14 @@ class ComposePreviewRepresentation(
       UniqueTaskCoroutineLauncher(this, "Compilation Launcher")
     }
 
+  /**
+   * This field will be false until the preview has rendered at least once. If the preview has not
+   * rendered once we do not have enough information about errors and the rendering to show the
+   * preview. Once it has rendered, even with errors, we can display additional information about
+   * the state of the preview.
+   */
+  private val hasRenderedAtLeastOnce = AtomicBoolean(false)
+
   init {
     val project = psiFile.project
     project
@@ -483,9 +491,9 @@ class ComposePreviewRepresentation(
             // background and refreshing the preview) before
             // opening a new one.
             animationInspectionPreviewElementInstance = null
-            updateAnimationPanelVisiblity()
+            updateAnimationPanelVisibility()
           }
-          updateAnimationPanelVisiblity()
+          updateAnimationPanelVisibility()
           surface.background = INTERACTIVE_BACKGROUND_COLOR
         } else {
           onAnimationInspectionStop()
@@ -504,11 +512,12 @@ class ComposePreviewRepresentation(
     // Close the animation inspection panel
     ComposePreviewAnimationManager.closeCurrentInspector()
     // Swap the components back
-    updateAnimationPanelVisiblity()
+    updateAnimationPanelVisibility()
     previewElementProvider.instanceFilter = null
   }
 
-  private fun updateAnimationPanelVisiblity() {
+  private fun updateAnimationPanelVisibility() {
+    if (!hasRenderedAtLeastOnce.get()) return
     composeWorkBench.bottomPanel =
       when {
         status().hasRuntimeErrors || project.needsBuild -> null
@@ -590,14 +599,6 @@ class ComposePreviewRepresentation(
    * boolean flag.
    */
   private val refreshCallsCount = AtomicInteger(0)
-
-  /**
-   * This field will be false until the preview has rendered at least once. If the preview has not
-   * rendered once we do not have enough information about errors and the rendering to show the
-   * preview. Once it has rendered, even with errors, we can display additional information about
-   * the state of the preview.
-   */
-  private val hasRenderedAtLeastOnce = AtomicBoolean(false)
 
   /**
    * Callback first time after the preview has loaded the initial state and it's ready to restore
@@ -1070,7 +1071,7 @@ class ComposePreviewRepresentation(
 
   private fun requestVisibilityAndNotificationsUpdate() {
     launch(workerThread) { refreshNotificationsAndVisibilityFlow.emit(Unit) }
-    updateAnimationPanelVisiblity()
+    updateAnimationPanelVisibility()
   }
 
   /**
