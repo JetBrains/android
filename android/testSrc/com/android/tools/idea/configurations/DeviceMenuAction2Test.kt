@@ -75,13 +75,26 @@ class DeviceMenuAction2Test {
       Utils.expandActionGroup(menuAction, presentationFactory, DataContext.EMPTY_CONTEXT, ActionPlaces.TOOLBAR)
       prettyPrintActions(menuAction, { action: AnAction -> !isAvdAction(action) }, presentationFactory)
     }
-    val expected = """
+    val referenceDevicesExpected = if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      """
+    Reference Devices
+    Phone (411 × 891 dp, xxhdpi)
+    Foldable (673 × 841 dp, xxhdpi)
+    Tablet (1280 × 800 dp, hdpi)
+    Desktop (1920 × 1080 dp, mdpi)
+    """
+    }
+    else {
+      """
     Reference Devices
     Phone (411 × 891 dp, xxhdpi)
     Foldable (674 × 841 dp, xxhdpi)
     Tablet (1280 × 800 dp, xxhdpi)
     Desktop (1920 × 1080 dp, xxhdpi)
-    Phones
+    """
+    }
+    val expected = referenceDevicesExpected +
+      """Phones
         Pixel 6 (411 × 914 dp, xxhdpi)
         Pixel 6 Pro (411 × 891 dp, xxxhdpi)
         Pixel 5 (393 × 851 dp, xxhdpi)

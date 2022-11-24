@@ -463,13 +463,25 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
     assertEquals("spec:shape=Normal,width=411,height=891,unit=dp,dpi=420", deviceProperty.value)
 
     deviceOptions["Foldable"]!!.select(deviceProperty)
-    assertEquals("spec:shape=Normal,width=674,height=841,unit=dp,dpi=480", deviceProperty.value)
+    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      assertEquals("spec:shape=Normal,width=673,height=841,unit=dp,dpi=420", deviceProperty.value)
+    } else {
+      assertEquals("spec:shape=Normal,width=674,height=841,unit=dp,dpi=480", deviceProperty.value)
+    }
 
     deviceOptions["Tablet"]!!.select(deviceProperty)
-    assertEquals("spec:shape=Normal,width=1280,height=800,unit=dp,dpi=480", deviceProperty.value)
+    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      assertEquals("spec:shape=Normal,width=1280,height=800,unit=dp,dpi=240", deviceProperty.value)
+    } else {
+      assertEquals("spec:shape=Normal,width=1280,height=800,unit=dp,dpi=480", deviceProperty.value)
+    }
 
     deviceOptions["Desktop"]!!.select(deviceProperty)
-    assertEquals("spec:shape=Normal,width=1920,height=1080,unit=dp,dpi=480", deviceProperty.value)
+    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      assertEquals("spec:shape=Normal,width=1920,height=1080,unit=dp,dpi=160", deviceProperty.value)
+    } else {
+      assertEquals("spec:shape=Normal,width=1920,height=1080,unit=dp,dpi=480", deviceProperty.value)
+    }
 
     deviceOptions["Square"]!!.select(deviceProperty) // Wear device
     assertEquals("spec:shape=Normal,width=300,height=300,unit=px,dpi=240", deviceProperty.value)

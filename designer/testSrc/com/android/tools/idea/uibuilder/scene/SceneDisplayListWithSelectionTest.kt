@@ -19,6 +19,7 @@ import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.AndroidXConstants.CONSTRAINT_LAYOUT
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
+import com.android.tools.idea.flags.StudioFlags
 import junit.framework.TestCase
 
 class SceneDisplayListWithSelectionTest : SceneTest() {
@@ -93,7 +94,34 @@ UNClip
     myScene.select(listOf(button))
     myInteraction.repaint()
 
-    val simpleList = """DrawNlComponentFrame,0,0,1000,1000,1,1000,1000
+    val simpleList = if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      """DrawNlComponentFrame,0,0,1000,1000,1,1000,1000
+Clip,0,0,1000,1000
+DrawComponentBackground,100,200,100,20,3
+DrawTextRegion,100,200,100,20,2,16,false,false,4,5,28,1.0,"TextView"
+DrawNlComponentFrame,100,200,100,20,3,20,20
+DrawResize,96,196,8,8,0
+DrawResize,96,216,8,8,0
+DrawResize,196,196,8,8,0
+DrawResize,196,216,8,8,0
+DrawAnchor,94,204,12,12,0
+DrawAnchor,144,180,12,12,0
+DrawAnchor,194,204,12,12,0
+DrawAnchor,144,228,12,12,0
+DrawComponentBackground,100,500,5,5,1
+DrawTextRegion,100,500,5,5,0,4,false,false,4,5,28,1.0,"TextView"
+DrawNlComponentFrame,100,500,5,5,1,5,5
+DrawLinearLayout,600,600,250,250,1
+DrawNlComponentFrame,600,600,250,250,1,250,250
+Clip,600,600,250,250
+DrawComponentBackground,600,600,100,100,1
+DrawTextRegion,600,600,100,100,0,80,false,false,4,5,28,1.0,"TextView"
+DrawNlComponentFrame,600,600,100,100,1,100,100
+UNClip
+UNClip
+"""
+    } else {
+      """DrawNlComponentFrame,0,0,1000,1000,1,1000,1000
 Clip,0,0,1000,1000
 DrawComponentBackground,100,200,100,20,3
 DrawTextRegion,100,200,100,20,2,16,false,false,4,5,28,1.0,"TextView"
@@ -118,6 +146,7 @@ DrawNlComponentFrame,600,600,100,100,1,100,100
 UNClip
 UNClip
 """
+    }
 
     TestCase.assertEquals(simpleList, myInteraction.displayList.serialize())
   }

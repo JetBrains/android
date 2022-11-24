@@ -113,7 +113,12 @@ class ScreenViewTest {
   fun `device content size policy with device and state`() {
     val screenView = mock(ScreenView::class.java)
     val configuration = mock(Configuration::class.java)
-    val device = buildDevice("Pixel5")
+    val screen = Screen().apply {
+      yDimension = 500
+      xDimension = 300
+      pixelDensity = Density.MEDIUM
+    }
+    val device = buildDevice("Pixel5", buildState().apply { hardware.screen = screen })
     whenever(configuration.cachedDevice).thenReturn(device)
     whenever(configuration.deviceState).thenReturn(device.defaultState)
 

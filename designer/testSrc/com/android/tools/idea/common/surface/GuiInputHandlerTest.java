@@ -51,6 +51,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.util.NlTreeDumper;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.common.fixtures.DropTargetDragEventBuilder;
 import com.android.tools.idea.uibuilder.handlers.ImageViewHandler;
@@ -119,7 +120,12 @@ public class GuiInputHandlerTest extends LayoutTestCase {
                          "     android:text=\"Hello World\"\n" +
                          "/>";
     Transferable transferable = createTransferable(DataFlavor.stringFlavor, xmlFragment);
-    dragDrop(manager, 0, 0, 100, 100, transferable);
+    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      dragDrop(manager, 0, 0, 50, 50, transferable);
+    }
+    else {
+      dragDrop(manager, 0, 0, 100, 100, transferable);
+    }
     Disposer.dispose(model);
 
     String expected = "NlComponent{tag=<LinearLayout>, instance=0}\n" +
@@ -149,7 +155,12 @@ public class GuiInputHandlerTest extends LayoutTestCase {
                          "     android:layout_height=\"wrap_content\"\n" +
                          "/>";
     Transferable transferable = createTransferable(DataFlavor.stringFlavor, xmlFragment);
-    dragDrop(manager, 0, 0, 100, 100, transferable);
+    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      dragDrop(manager, 0, 0, 50, 50, transferable);
+    }
+    else {
+      dragDrop(manager, 0, 0, 100, 100, transferable);
+    }
     Disposer.dispose(model);
 
     String expected = "NlComponent{tag=<LinearLayout>, instance=0}\n" +

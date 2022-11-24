@@ -123,9 +123,15 @@ internal class DeviceSpecCompletionContributorTest {
     assertEquals("id:pixel_5", fixture.lookupElementStrings!![0])
     assertEquals("spec:", fixture.lookupElementStrings!![1]) // Driven by Live Template
     assertEquals("spec:width=411dp,height=891dp", fixture.lookupElementStrings!![2])
-    assertEquals("spec:width=673.5dp,height=841dp,dpi=480", fixture.lookupElementStrings!![3])
-    assertEquals("spec:width=1280dp,height=800dp,dpi=480", fixture.lookupElementStrings!![4])
-    assertEquals("spec:width=1920dp,height=1080dp,dpi=480", fixture.lookupElementStrings!![5])
+    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      assertEquals("spec:width=673dp,height=841dp", fixture.lookupElementStrings!![3])
+      assertEquals("spec:width=1280dp,height=800dp,dpi=240", fixture.lookupElementStrings!![4])
+      assertEquals("spec:width=1920dp,height=1080dp,dpi=160", fixture.lookupElementStrings!![5])
+    } else {
+      assertEquals("spec:width=673.5dp,height=841dp,dpi=480", fixture.lookupElementStrings!![3])
+      assertEquals("spec:width=1280dp,height=800dp,dpi=480", fixture.lookupElementStrings!![4])
+      assertEquals("spec:width=1920dp,height=1080dp,dpi=480", fixture.lookupElementStrings!![5])
+    }
 
     // 'pix' should only match the default device (pixel_5)
     fixture.completeDeviceSpec("pix$caret")
@@ -139,18 +145,30 @@ internal class DeviceSpecCompletionContributorTest {
     assertEquals(5, fixture.lookupElementStrings!!.size)
     assertEquals("id:pixel_5", fixture.lookupElementStrings!![0])
     assertEquals("spec:width=411dp,height=891dp", fixture.lookupElementStrings!![1])
-    assertEquals("spec:width=673.5dp,height=841dp,dpi=480", fixture.lookupElementStrings!![2])
-    assertEquals("spec:width=1280dp,height=800dp,dpi=480", fixture.lookupElementStrings!![3])
-    assertEquals("spec:width=1920dp,height=1080dp,dpi=480", fixture.lookupElementStrings!![4])
+    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      assertEquals("spec:width=673dp,height=841dp", fixture.lookupElementStrings!![2])
+      assertEquals("spec:width=1280dp,height=800dp,dpi=240", fixture.lookupElementStrings!![3])
+      assertEquals("spec:width=1920dp,height=1080dp,dpi=160", fixture.lookupElementStrings!![4])
+    } else {
+      assertEquals("spec:width=673.5dp,height=841dp,dpi=480", fixture.lookupElementStrings!![2])
+      assertEquals("spec:width=1280dp,height=800dp,dpi=480", fixture.lookupElementStrings!![3])
+      assertEquals("spec:width=1920dp,height=1080dp,dpi=480", fixture.lookupElementStrings!![4])
+    }
 
     // completion for 'spec' prefix
     fixture.completeDeviceSpec("spe$caret")
     assertEquals(5, fixture.lookupElementStrings!!.size)
     assertEquals("spec:", fixture.lookupElementStrings!![0]) // Driven by Live Template
     assertEquals("spec:width=411dp,height=891dp", fixture.lookupElementStrings!![1])
-    assertEquals("spec:width=673.5dp,height=841dp,dpi=480", fixture.lookupElementStrings!![2])
-    assertEquals("spec:width=1280dp,height=800dp,dpi=480", fixture.lookupElementStrings!![3])
-    assertEquals("spec:width=1920dp,height=1080dp,dpi=480", fixture.lookupElementStrings!![4])
+    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      assertEquals("spec:width=673dp,height=841dp", fixture.lookupElementStrings!![2])
+      assertEquals("spec:width=1280dp,height=800dp,dpi=240", fixture.lookupElementStrings!![3])
+      assertEquals("spec:width=1920dp,height=1080dp,dpi=160", fixture.lookupElementStrings!![4])
+    } else {
+      assertEquals("spec:width=673.5dp,height=841dp,dpi=480", fixture.lookupElementStrings!![2])
+      assertEquals("spec:width=1280dp,height=800dp,dpi=480", fixture.lookupElementStrings!![3])
+      assertEquals("spec:width=1920dp,height=1080dp,dpi=480", fixture.lookupElementStrings!![4])
+    }
   }
 
   @Test

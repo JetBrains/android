@@ -389,7 +389,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_DP_SIZED_PREVIEW = Flag.create(
     NELE, "dp.sized.preview", "Use dp size instead of px size for previews",
     "If enabled, the size of previews will be proportional to screen dp size instead of screen px size.",
-    false);
+    true);
   //endregion
 
   //region Navigation Editor
