@@ -512,6 +512,7 @@ class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
     )
   }
 
+  @Test
   fun testBuildConfigDefaultUsageTracker() {
     val processor = BuildConfigDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
