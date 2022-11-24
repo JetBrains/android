@@ -16,76 +16,31 @@
 package org.jetbrains.android.sdk;
 
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.sdk.IdeSdks;
-import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkModel;
-import com.intellij.openapi.projectRoots.ValidatableSdkAdditionalData;
+import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import org.jdom.Element;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidSdkAdditionalData implements ValidatableSdkAdditionalData {
+public class AndroidSdkAdditionalData implements SdkAdditionalData {
 
-  @NonNls private static final String JDK = "jdk";
   @NonNls private static final String BUILD_TARGET = "sdk";
 
-  private String myJavaSdkName;
   private final Sdk myAndroidSdk;
-  private Sdk myJavaSdk;
 
   // hash string
   private String myBuildTarget;
 
   private AndroidPlatform myAndroidPlatform = null;
 
-  public AndroidSdkAdditionalData(@NotNull Sdk androidSdk, @Nullable Sdk javaSdk) {
-    myJavaSdk = javaSdk;
+  public AndroidSdkAdditionalData(@NotNull Sdk androidSdk) {
     myAndroidSdk = androidSdk;
   }
 
   public AndroidSdkAdditionalData(@NotNull Sdk androidSdk, @NotNull Element element) {
     myAndroidSdk = androidSdk;
-    myJavaSdkName = element.getAttributeValue(JDK);
     myBuildTarget = element.getAttributeValue(BUILD_TARGET);
-  }
-
-  public AndroidSdkAdditionalData(Sdk androidSdk) {
-    myAndroidSdk = androidSdk;
-  }
-
-  @Override
-  public void checkValid(SdkModel sdkModel) throws ConfigurationException {
-    if (getJavaSdk() == null) {
-      throw new ConfigurationException(AndroidBundle.message("android.sdk.configure.jdk.error"));
-    }
-  }
-
-  @Nullable
-  public Sdk getJavaSdk() {
-    final ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
-    if (myJavaSdk == null) {
-      if (myJavaSdkName != null) {
-        myJavaSdk = jdkTable.findJdk(myJavaSdkName);
-        myJavaSdkName = null;
-      }
-      else {
-        for (Sdk jdk : jdkTable.getAllJdks()) {
-          if (IdeSdks.getInstance().isJdkCompatible(jdk)) {
-            myJavaSdk = jdk;
-            break;
-          }
-        }
-      }
-    }
-    return myJavaSdk;
-  }
-
-  public void setJavaSdk(final Sdk javaSdk) {
-    myJavaSdk = javaSdk;
   }
 
   public void setBuildTargetHashString(String targetHashString) {
@@ -99,10 +54,6 @@ public class AndroidSdkAdditionalData implements ValidatableSdkAdditionalData {
   }
 
   public void save(Element element) {
-    final Sdk sdk = getJavaSdk();
-    if (sdk != null) {
-      element.setAttribute(JDK, sdk.getName());
-    }
     if (myBuildTarget != null) {
       element.setAttribute(BUILD_TARGET, myBuildTarget);
     }
@@ -124,9 +75,5 @@ public class AndroidSdkAdditionalData implements ValidatableSdkAdditionalData {
       myAndroidPlatform = AndroidPlatform.parse(myAndroidSdk);
     }
     return myAndroidPlatform;
-  }
-
-  public void clearAndroidPlatform() {
-    myAndroidPlatform = null;
   }
 }

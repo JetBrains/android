@@ -40,6 +40,7 @@ import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.ArgumentCaptor;
@@ -63,6 +64,7 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
     myJavaHomePath = new File(javaHome);
     Path embeddedPath = EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath();
     myEmbeddedIsJavaHome = FileUtils.isSameFile(embeddedPath.toFile(), myJavaHomePath);
+    cleanJdkTable();
   }
 
   @Override
@@ -81,6 +83,12 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
    * Verify that {@link IdeSdks#isUsingJavaHomeJdk} and {@link IdeSdks#isUsingEmbeddedJdk} return correct values when using JAVA_HOME
    */
   public void testJavaHomeJdk() {
+    WriteAction.run(() -> {
+      Sdk[] jdks = ProjectJdkTable.getInstance().getAllJdks();
+      for (Sdk jdk : jdks) {
+        ProjectJdkTable.getInstance().removeJdk(jdk);
+      }
+    });
     ApplicationManager.getApplication().runWriteAction((Runnable)() -> myIdeSdks.setJdkPath(myJavaHomePath.toPath()));
     assertTrue(myIdeSdks.isUsingJavaHomeJdk(false /* do not assume it is uint test */));
     assertEquals(myIdeSdks.isUsingEmbeddedJdk(), myEmbeddedIsJavaHome);
@@ -243,5 +251,11 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
     assertThat(recreatedJdk).isInstanceOf(ProjectJdkImpl.class);
     VirtualFile[] recreatedClassRoots = ((ProjectJdkImpl)recreatedJdk).getRoots(OrderRootType.CLASSES);
     assertThat(recreatedClassRoots).isEqualTo(originalClassRoots);
+  }
+
+  private void cleanJdkTable() {
+    WriteAction.run(() -> Arrays.stream(ProjectJdkTable.getInstance().getAllJdks()).forEach(
+      sdk -> ProjectJdkTable.getInstance().removeJdk(sdk)
+    ));
   }
 }

@@ -17,7 +17,6 @@ package com.android.tools.idea.startup;
 
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
 
@@ -49,7 +48,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
@@ -147,17 +145,6 @@ public class AndroidSdkInitializer implements Runnable {
           SdkModificator sdkModificator = newSdk.getSdkModificator();
           sdkModificator.setName(sdkNamePrefix + newSdk.getName().substring(sdkNamePrefix.length()));
           sdkModificator.commitChanges();
-
-          // Rename the JDK that goes along with this SDK.
-          AndroidSdkAdditionalData additionalData = AndroidSdks.getInstance().getAndroidSdkAdditionalData(newSdk);
-          if (additionalData != null) {
-            Sdk jdk = additionalData.getJavaSdk();
-            if (jdk != null) {
-              sdkModificator = jdk.getSdkModificator();
-              sdkModificator.setName(DEFAULT_JDK_NAME);
-              sdkModificator.commitChanges();
-            }
-          }
 
           // Fill out any missing build APIs for this new SDK.
           IdeSdks.getInstance().createAndroidSdkPerAndroidTarget(androidSdkPath);

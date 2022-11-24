@@ -42,7 +42,6 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -129,7 +128,6 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.main
             Scope                         : Test
@@ -225,7 +223,6 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         Classes
             -                             : file://<TEMP>/build/intermediates/javac/debug/classes
@@ -311,7 +308,6 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.main
             Scope                         : Test

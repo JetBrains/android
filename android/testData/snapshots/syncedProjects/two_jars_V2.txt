@@ -46,7 +46,6 @@ PROJECT                       : My Application
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -146,7 +145,6 @@ PROJECT                       : My Application
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: ./lib1/liba.jar [=]
             Scope                         : Test
@@ -393,7 +391,6 @@ PROJECT                       : My Application
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: ./lib1/liba.jar [=]
         LIBRARY                       : Gradle: ./lib2/liba.jar [=]
@@ -495,7 +492,6 @@ PROJECT                       : My Application
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: ./lib1/liba.jar [=]
             Scope                         : Test

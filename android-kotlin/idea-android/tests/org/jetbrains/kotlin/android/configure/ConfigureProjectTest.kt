@@ -19,6 +19,8 @@ import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.withSdk
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.projectRoots.ProjectJdkTable
+import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
 import com.intellij.openapi.util.io.FileUtilRt.loadFile
 import com.intellij.openapi.vfs.CharsetToolkit
 import com.intellij.openapi.vfs.VfsUtil
@@ -97,6 +99,11 @@ abstract class ConfigureProjectTest {
       WriteCommandAction.runWriteCommandAction(project) {
         project.setAndroidxProperties("false")
       }
+    }
+
+    // Clear JDK table
+    ProjectJdkTable.getInstance().allJdks.forEach {
+      SdkConfigurationUtil.removeSdk(it)
     }
   }
 

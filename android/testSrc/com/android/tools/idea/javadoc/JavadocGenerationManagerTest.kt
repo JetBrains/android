@@ -3,8 +3,11 @@ package com.android.tools.idea.javadoc
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.analysis.AnalysisScope
 import com.intellij.javadoc.JavadocGenerationManager
+import com.intellij.openapi.projectRoots.ProjectJdkTable
+import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import org.junit.After
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
@@ -18,6 +21,13 @@ class JavadocGenerationManagerTest {
 
   @get:Rule
   val edtRule = EdtRule()
+
+  @After
+  fun tearDown() {
+    ProjectJdkTable.getInstance().allJdks.forEach {
+      SdkConfigurationUtil.removeSdk(it)
+    }
+  }
 
   @Test
   @RunsInEdt

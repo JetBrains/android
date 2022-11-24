@@ -22,8 +22,6 @@ import static org.junit.Assert.assertNotNull;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -33,7 +31,6 @@ import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.projectRoots.impl.ProjectJdkTableImpl;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.OrderRootType;
@@ -98,12 +95,7 @@ public final class Sdks {
       sdkModificator.addRoot(docsFolder, JavadocOrderRootType.getInstance());
     }
 
-    Sdk jdk = IdeSdks.getInstance().getJdk();
-    if (parentDisposable != null) {
-      Disposer.register(parentDisposable, () -> WriteAction.run(() -> ProjectJdkTable.getInstance().removeJdk(jdk)));
-    }
-
-    AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(sdk, jdk);
+    AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(sdk);
     AndroidSdkData sdkData = getSdkData(sdkPath);
     assertNotNull(sdkData);
     IAndroidTarget foundTarget = null;

@@ -44,7 +44,6 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -141,7 +140,6 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : LightSyncBasedTestsWithGradleLikeStructureTest.main
             Scope                         : Test
@@ -240,7 +238,6 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -332,7 +329,6 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : LightSyncBasedTestsWithGradleLikeStructureTest.main
             Scope                         : Test

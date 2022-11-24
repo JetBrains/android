@@ -70,7 +70,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -216,7 +215,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : BuildSrcWithComposite.app.main
             Scope                         : Test
@@ -523,7 +521,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.activity:activity-ktx:1.1.0@aar [=]
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.3@aar [=]
@@ -733,7 +730,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : BuildSrcWithComposite.app.main
             Scope                         : Test
@@ -1435,7 +1431,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -1581,7 +1576,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.3@aar (1) [=]
             Scope                         : Test
@@ -1798,7 +1792,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.3@aar (1) [=]
         LIBRARY                       : Gradle: androidx.annotation:annotation-experimental:1.0.0@aar [=]
@@ -1977,7 +1970,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.3@aar (1) [=]
             Scope                         : Test
@@ -2129,7 +2121,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -2267,7 +2258,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
             Scope                         : Test
@@ -2420,7 +2410,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
@@ -2563,7 +2552,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
             Scope                         : Test

@@ -70,7 +70,6 @@ PROJECT                       : MultiFlavor
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -205,7 +204,6 @@ PROJECT                       : MultiFlavor
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.activity:activity:1.0.0@aar [=]
             Scope                         : Test
@@ -426,7 +424,6 @@ PROJECT                       : MultiFlavor
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.activity:activity:1.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.1.0 [=]
@@ -581,7 +578,6 @@ PROJECT                       : MultiFlavor
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.activity:activity:1.0.0@aar [=]
             Scope                         : Test

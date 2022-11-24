@@ -43,7 +43,6 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -130,7 +129,6 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : LightSyncBasedTestsWithDefaultTestProjectStructureTest.main
             Scope                         : Test
@@ -226,7 +224,6 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -309,7 +306,6 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : LightSyncBasedTestsWithDefaultTestProjectStructureTest.main
             Scope                         : Test

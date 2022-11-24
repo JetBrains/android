@@ -70,7 +70,6 @@ PROJECT                       : AS36_noiml
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -170,7 +169,6 @@ PROJECT                       : AS36_noiml
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : AS36_noiml.app.main
             Scope                         : Test
@@ -368,7 +366,6 @@ PROJECT                       : AS36_noiml
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : AS36_noiml.libs.android_library.main
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
@@ -500,7 +497,6 @@ PROJECT                       : AS36_noiml
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : AS36_noiml.app.main
             Scope                         : Test
@@ -682,7 +678,6 @@ PROJECT                       : AS36_noiml
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -778,7 +773,6 @@ PROJECT                       : AS36_noiml
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : AS36_noiml.app.main
             Scope                         : Test
@@ -876,7 +870,6 @@ PROJECT                       : AS36_noiml
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : AS36_noiml.app.main
         BUILD_TASKS
@@ -968,7 +961,6 @@ PROJECT                       : AS36_noiml
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : AS36_noiml.app.main
             Scope                         : Test
@@ -1048,7 +1040,6 @@ PROJECT                       : AS36_noiml
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -1144,7 +1135,6 @@ PROJECT                       : AS36_noiml
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : AS36_noiml.app.main
             Scope                         : Test
@@ -1242,7 +1232,6 @@ PROJECT                       : AS36_noiml
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : AS36_noiml.app.main
         BUILD_TASKS
@@ -1334,7 +1323,6 @@ PROJECT                       : AS36_noiml
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : AS36_noiml.app.main
             Scope                         : Test
@@ -1441,7 +1429,6 @@ PROJECT                       : AS36_noiml
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -1533,7 +1520,6 @@ PROJECT                       : AS36_noiml
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : AS36_noiml.libs.android_library.main
             Scope                         : Test
@@ -1723,7 +1709,6 @@ PROJECT                       : AS36_noiml
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : AS36_noiml.libs.java_lib.main
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
@@ -1847,7 +1832,6 @@ PROJECT                       : AS36_noiml
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : AS36_noiml.libs.android_library.main
             Scope                         : Test

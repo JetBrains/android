@@ -205,17 +205,11 @@ public class AndroidSdks {
 
   @Nullable
   public Sdk create(@NotNull IAndroidTarget target, @NotNull File sdkPath, boolean addRoots) {
-    Sdk jdk = getJdk();
-    return jdk != null ? create(target, sdkPath, jdk, addRoots) : null;
+    return create(target, sdkPath, chooseNameForNewLibrary(target), addRoots);
   }
 
   @Nullable
-  public Sdk create(@NotNull IAndroidTarget target, @NotNull File sdkPath, @NotNull Sdk jdk, boolean addRoots) {
-    return create(target, sdkPath, chooseNameForNewLibrary(target), jdk, addRoots);
-  }
-
-  @Nullable
-  public Sdk create(@NotNull IAndroidTarget target, @NotNull File sdkPath, @NotNull String sdkName, @NotNull Sdk jdk, boolean addRoots) {
+  public Sdk create(@NotNull IAndroidTarget target, @NotNull File sdkPath, @NotNull String sdkName, boolean addRoots) {
     int androidPlatformToAutocreate = StudioFlags.ANDROID_PLATFORM_TO_AUTOCREATE.get();
     if (androidPlatformToAutocreate > 0) {
       int actualLevel = target.getVersion().getApiLevel();
@@ -244,7 +238,7 @@ public class AndroidSdks {
 
     Sdk sdk = table.createSdk(tempName, AndroidSdkType.getInstance());
 
-    SdkModificator sdkModificator = getAndInitialiseSdkModificator(sdk, target, jdk);
+    SdkModificator sdkModificator = getAndInitialiseSdkModificator(sdk, target);
     sdkModificator.setHomePath(toSystemIndependentName(sdkPath.getPath()));
     setUpSdkAndCommit(sdkModificator, sdkName, Arrays.asList(table.getAllJdks()), addRoots);
 
@@ -255,22 +249,17 @@ public class AndroidSdks {
   public void setUpSdk(@NotNull Sdk androidSdk,
                        @NotNull IAndroidTarget target,
                        @NotNull String sdkName,
-                       @NotNull Collection<Sdk> allSdks,
-                       @Nullable Sdk jdk) {
-    setUpSdkAndCommit(getAndInitialiseSdkModificator(androidSdk, target, jdk), sdkName, allSdks, true /* add roots */);
+                       @NotNull Collection<Sdk> allSdks) {
+    setUpSdkAndCommit(getAndInitialiseSdkModificator(androidSdk, target), sdkName, allSdks, true /* add roots */);
   }
 
   @NotNull
   private static SdkModificator getAndInitialiseSdkModificator(@NotNull Sdk androidSdk,
-                                                               @NotNull IAndroidTarget target,
-                                                               @Nullable Sdk jdk) {
+                                                               @NotNull IAndroidTarget target) {
     SdkModificator sdkModificator = androidSdk.getSdkModificator();
-    AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(androidSdk, jdk);
+    AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(androidSdk);
     data.setBuildTarget(target);
     sdkModificator.setSdkAdditionalData(data);
-    if (jdk != null) {
-      sdkModificator.setVersionString(jdk.getVersionString());
-    }
     return sdkModificator;
   }
 
@@ -553,9 +542,5 @@ public class AndroidSdks {
   private static VirtualFile getVirtualFile(@NotNull PsiElement element) {
     PsiFile file = element.getContainingFile();
     return file != null ? file.getVirtualFile() : null;
-  }
-
-  Sdk getJdk() {
-    return IdeSdks.getInstance().getJdk();
   }
 }

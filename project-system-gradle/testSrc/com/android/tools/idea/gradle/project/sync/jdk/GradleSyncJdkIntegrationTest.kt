@@ -30,6 +30,7 @@ import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUt
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_PROJECT_JDK
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_JAVA_HOME
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -73,6 +74,7 @@ class GradleSyncJdkIntegrationTest {
       sync()
     }
 
+  @Ignore("b/264754896")
   @Test(expected = ExternalSystemJdkException::class)
   fun `Given invalid STUDIO_GRADLE_JDK env variable When import project Then throw exception`() =
     jdkIntegrationTest.run(
@@ -134,10 +136,22 @@ class GradleSyncJdkIntegrationTest {
       sync()
     }
 
-  @Test(expected = ExternalSystemJdkException::class)
-  fun `Given project without any configuration When import project Then throw exception`() =
+  @Test
+  fun `Given project without any configuration When import project Then sync used PROJECT_JDK`() =
     jdkIntegrationTest.run(SimpleApplication()) {
-      sync()
+      sync(
+        assertInMemoryConfig = {
+          assertGradleExecutionDaemon(JDK_17_PATH)
+          assertGradleJdk(USE_PROJECT_JDK)
+          assertProjectJdkAndValidateTableEntry(JDK_17, JDK_17_PATH)
+        },
+        assertOnDiskConfig = {
+          // When gradleJvm isn't specified in .idea/gradle.xml by default is resolved
+          // as #USE_PROJECT_JDK but the file isn't modified
+          assertGradleJdk(null)
+          assertProjectJdk(JDK_17)
+        }
+      )
     }
 
   @Test(expected = ExternalSystemJdkException::class)
