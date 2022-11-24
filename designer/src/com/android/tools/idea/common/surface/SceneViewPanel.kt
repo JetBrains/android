@@ -28,6 +28,7 @@ import com.android.tools.idea.uibuilder.surface.layout.getScaledContentSize
 import com.android.tools.idea.uibuilder.surface.layout.horizontal
 import com.android.tools.idea.uibuilder.surface.layout.scaledContentSize
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
@@ -36,8 +37,11 @@ import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Insets
 import java.awt.Rectangle
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.SwingUtilities
 
 
 /**
@@ -240,6 +244,8 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     add(modelNameLabel, BorderLayout.CENTER)
     if (sceneViewToolbar != null) {
       add(sceneViewToolbar, BorderLayout.LINE_END)
+      // Initialize the toolbar as invisible. Its visibility will be controlled by hovering the sceneViewTopPanel.
+      sceneViewToolbar.isVisible = false
     }
     // The space of name label is sacrified when there is no enough width to display the toolbar.
     // When it happens, the label will be trimmed and show the ellipsis at its tail.
@@ -248,6 +254,67 @@ class SceneViewPeerPanel(val sceneView: SceneView,
                    MODEL_NAME_LABEL_MIN_WIDTH +
                    (sceneViewToolbar?.minimumSize?.width ?: 0)
     minimumSize = Dimension(minWidth, minimumSize.height)
+
+    setUpTopPanelMouseListeners()
+  }
+
+  /**
+   * Creates and adds the [MouseAdapter]s required to show the [sceneViewToolbar] when the mouse is hovering the [sceneViewTopPanel], and
+   * hide it otherwise.
+   */
+  private fun JPanel.setUpTopPanelMouseListeners() {
+    // MouseListener to show the sceneViewToolbar when the mouse enters the target component, and to hide it when the mouse exits the bounds
+    // of sceneViewTopPanel.
+    val hoverTopPanelMouseListener = object : MouseAdapter() {
+
+      override fun mouseEntered(e: MouseEvent?) {
+        // Show the toolbar actions when mouse is hovering the top panel.
+        sceneViewToolbar?.let { it.isVisible = true }
+        // Updates the actions immediately, so the action buttons are available when we're traversing the toolbar components.
+        (sceneViewToolbar as? ActionToolbarImpl)?.updateActionsImmediately()
+      }
+
+      override fun mouseExited(e: MouseEvent?) {
+        // Hide the toolbar when the mouse exits the bounds of sceneViewTopPanel.
+        e?.locationOnScreen?.let {
+          SwingUtilities.convertPointFromScreen(it, this@setUpTopPanelMouseListeners)
+          if (!contains(it)) {
+            hideToolbar()
+          }
+        } ?: hideToolbar()
+      }
+
+      private fun hideToolbar() {
+        sceneViewToolbar?.let { toolbar -> toolbar.isVisible = false }
+      }
+    }
+
+    // Mouse listener to lazily add hoverTopPanelMouseListener to sceneViewToolbar and its action buttons. This is needed because the
+    // toolbar is initialized with a single JLabel representing a load state. By lazily adding the listener when entering the mouse on
+    // either modelNameLabel or sceneViewTopPanel, we make sure the corresponding action buttons are added to the toolbar by the time
+    // the listener is added.
+    //
+    // Once mouseEntered is called once, we remove the listener from both modelNameLabel and sceneViewTopPanel, to prevent adding
+    // hoverTopPanelMouseListener multiple times.
+    val lazyHoverListener = object : MouseAdapter() {
+      override fun mouseEntered(e: MouseEvent?) {
+        sceneViewToolbar?.let {
+          it.addMouseListener(hoverTopPanelMouseListener)
+          // Also add the listener to the toolbar action buttons.
+          for (i in 0 until it.componentCount) {
+            it.getComponent(i).addMouseListener(hoverTopPanelMouseListener)
+          }
+        }
+        removeMouseListener(this)
+        modelNameLabel.removeMouseListener(this)
+      }
+    }
+
+    addMouseListener(hoverTopPanelMouseListener)
+    modelNameLabel.addMouseListener(hoverTopPanelMouseListener)
+
+    addMouseListener(lazyHoverListener)
+    modelNameLabel.addMouseListener(lazyHoverListener)
   }
 
   val sceneViewBottomPanel = JPanel(BorderLayout()).apply {
