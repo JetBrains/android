@@ -124,8 +124,10 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
       val resolution = tracker.record({ fetchResolution(project, inputFiles) }, "resolution_fetch")
 
       ProgressManager.checkCanceled()
-      var bindingContext = tracker.record({ analyze(inputFiles, resolution) }, "analysis")
-      var inlineCandidates = inlineCandidateCache?.let { analyzeSingleDepthInlinedFunctions(resolution, file, bindingContext, it) }
+      val analysisResult = tracker.record({ analyze(inputFiles, resolution) }, "analysis")
+      val inlineCandidates = inlineCandidateCache?.let {
+        analyzeSingleDepthInlinedFunctions(resolution, file, analysisResult.bindingContext, it)
+      }
 
       // 2) Invoke the backend with the inputs and the binding context computed from step 1.
       //    This is the one of the most time-consuming step with 80 to 500ms turnaround, depending on
@@ -133,11 +135,16 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
       ProgressManager.checkCanceled()
       var generationState : GenerationState? = null
       try {
-        generationState = tracker.record({backendCodeGen(project, resolution, bindingContext, inputFiles,
-                                                         inputFiles.first().module!!,
-                                                         inlineCandidates,
-                                                         AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))},
-                                         "codegen")
+        generationState = tracker.record(
+          {
+            backendCodeGen(project,
+                           analysisResult,
+                           inputFiles,
+                           inputFiles.first().module!!,
+                           inlineCandidates,
+                           AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))
+          },
+          "codegen")
       } catch (e : LiveEditUpdateException) {
         if (e.error != LiveEditUpdateException.Error.UNABLE_TO_INLINE) {
           throw e
@@ -146,20 +153,22 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
         // 2.1) Add any extra source file this compilation need in order to support the input file calling an inline function
         //      from another source file then perform a compilation again.
         if (LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis) {
-          inputFiles = performInlineSourceDependencyAnalysis(resolution, file, bindingContext)
+          inputFiles = performInlineSourceDependencyAnalysis(resolution, file, analysisResult.bindingContext)
 
           // We need to perform the analysis once more with the new set of input files.
           val newAnalysisResult = resolution.analyzeWithAllCompilerChecks(inputFiles)
 
-          // We will need to start using the binding context from the new analysis for code gen.
-          bindingContext = newAnalysisResult.bindingContext
-
-          generationState = tracker.record({
-                                             backendCodeGen(project, resolution, bindingContext, inputFiles,
-                                                            inputFiles.first().module!!, inlineCandidates,
-                                                            AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))
-                                           },
-                                           "codegen_inline")
+          // We will need to start using the new analysis for code gen.
+          generationState = tracker.record(
+            {
+              backendCodeGen(project,
+                             newAnalysisResult,
+                             inputFiles,
+                             inputFiles.first().module!!,
+                             inlineCandidates,
+                             AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))
+            },
+            "codegen_inline")
         }
         else {
           throw e
@@ -198,14 +207,14 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
       // When the edit event was contained in a function
       is KtNamedFunction -> {
         val targetFunction = input.element as KtNamedFunction
-        var group = if (LiveEditAdvancedConfiguration.getInstance().usePartialRecompose)
+        val group = if (LiveEditAdvancedConfiguration.getInstance().usePartialRecompose)
           getGroupKey(compilerOutput, targetFunction) else null
         return getGeneratedMethodCode(compilerOutput, targetFunction, group, generationState)
       }
 
       is KtFunction -> {
         val targetFunction = input.element as KtFunction
-        var group = if (LiveEditAdvancedConfiguration.getInstance().usePartialRecompose)
+        val group = if (LiveEditAdvancedConfiguration.getInstance().usePartialRecompose)
             getGroupKey(compilerOutput, targetFunction, input.parentGroups) else null
         return getGeneratedMethodCode(compilerOutput, targetFunction, group, generationState)
       }

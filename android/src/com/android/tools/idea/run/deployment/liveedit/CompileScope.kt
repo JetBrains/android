@@ -24,6 +24,7 @@ import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.PsiRecursiveElementWalkingVisitor
 import com.intellij.psi.TokenType
 import com.intellij.psi.util.elementType
+import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.jvm.FacadeClassSourceShimForFragmentCompilation
 import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensionsImpl
@@ -119,14 +120,14 @@ interface CompileScope {
    *
    * This function needs to be done in a read action.
    */
-  fun analyze(input: List<KtFile>, resolution: ResolutionFacade): BindingContext
+  fun analyze(input: List<KtFile>, resolution: ResolutionFacade): AnalysisResult
 
   /**
    * Invoke the Kotlin compiler that is part of the plugin. The compose plugin is also attached by the
    * the extension point to generate code for @composable functions.
    */
-  fun backendCodeGen(project: Project, resolution: ResolutionFacade,
-                     bindingContext: BindingContext,
+  fun backendCodeGen(project: Project,
+                     analysisResult: AnalysisResult,
                      input: List<KtFile>,
                      module: Module,
                      inlineClassRequest : Set<SourceInlineCandidate>?,
@@ -149,7 +150,7 @@ private object CompileScopeImpl : CompileScope {
     return filesToCompile
   }
 
-  override fun analyze(input: List<KtFile>, resolution: ResolutionFacade): BindingContext {
+  override fun analyze(input: List<KtFile>, resolution: ResolutionFacade): AnalysisResult {
     val trace = com.android.tools.tracer.Trace.begin("analyzeWithAllCompilerChecks")
     try {
       var exception: LiveEditUpdateException? = null
@@ -172,15 +173,14 @@ private object CompileScopeImpl : CompileScope {
         }
       }
 
-      return analysisResult.bindingContext
+      return analysisResult
     }
     finally {
       trace.close()
     }
   }
 
-  override fun backendCodeGen(project: Project, resolution: ResolutionFacade, bindingContext: BindingContext, input: List<KtFile>,
-                              module: Module,
+  override fun backendCodeGen(project: Project, analysisResult: AnalysisResult, input: List<KtFile>,  module: Module,
                               inlineClassRequest : Set<SourceInlineCandidate>?, langVersion: LanguageVersionSettings): GenerationState {
 
     val compilerConfiguration = CompilerConfiguration()
@@ -222,8 +222,8 @@ private object CompileScopeImpl : CompileScope {
 
     val generationStateBuilder = GenerationState.Builder(project,
                                                          ClassBuilderFactories.BINARIES,
-                                                         resolution.moduleDescriptor,
-                                                         bindingContext,
+                                                         analysisResult.moduleDescriptor,
+                                                         analysisResult.bindingContext,
                                                          input,
                                                          compilerConfiguration);
 
