@@ -126,7 +126,7 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
       ProgressManager.checkCanceled()
       val analysisResult = tracker.record({ analyze(inputFiles, resolution) }, "analysis")
       val inlineCandidates = inlineCandidateCache?.let {
-        analyzeSingleDepthInlinedFunctions(resolution, file, analysisResult.bindingContext, it)
+        analyzeSingleDepthInlinedFunctions(file, analysisResult.bindingContext, it)
       }
 
       // 2) Invoke the backend with the inputs and the binding context computed from step 1.

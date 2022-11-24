@@ -169,7 +169,7 @@ class EmbeddedCompilerClientImpl(
         log.debug("analyze")
         val analysisResult = analyze(inputs, resolution)
         val inlineCandidates = inputs
-          .flatMap { analyzeSingleDepthInlinedFunctions(resolution, it, analysisResult.bindingContext, inlineCandidateCache) }
+          .flatMap { analyzeSingleDepthInlinedFunctions(it, analysisResult.bindingContext, inlineCandidateCache) }
           .toSet()
         ProgressManager.checkCanceled()
         log.debug("backCodeGen")

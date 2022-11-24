@@ -126,40 +126,31 @@ data class SourceInlineCandidate (val sourceFile: KtFile, val className : String
  * themselves can also reference inline functions from another source file that are not part of the return set.
  */
 fun analyzeSingleDepthInlinedFunctions(
-  resolutionFacadeForFile: ResolutionFacade,
   file: KtFile,
   bindingContext: BindingContext,
   cache: SourceInlineCandidateCache): Set<SourceInlineCandidate> {
   val referencedClasses = LinkedHashSet<SourceInlineCandidate>()
-  analyzeElementWithOneLevelInline(resolutionFacadeForFile,
-    file, bindingContext, referencedClasses, cache)
+  analyzeElementWithOneLevelInline(file, bindingContext, referencedClasses, cache)
   return referencedClasses
 }
 
 // This is mostly org.jetbrains.kotlin.idea.core.util.inlineAnalysisUtils but non recursive and fitted with Live edit specific abstraction
 private fun analyzeElementWithOneLevelInline(
-  resolutionFacade: ResolutionFacade,
   element: KtFile,
-  fullResolveContext: BindingContext,
+  bindingContext: BindingContext,
   requestedClasses: LinkedHashSet<SourceInlineCandidate>,
   cache: SourceInlineCandidateCache){
   val project = element.project
   val declarationsWithBody = HashSet<KtDeclarationWithBody>()
-  val innerContexts = ArrayList<BindingContext>()
-  innerContexts.addIfNotNull(fullResolveContext)
   element.accept(object : KtTreeVisitorVoid() {
     override fun visitExpression(expression: KtExpression) {
       super.visitExpression(expression)
-      val bindingContext = resolutionFacade.analyze(expression)
-      innerContexts.add(bindingContext)
       val call = bindingContext.get(BindingContext.CALL, expression) ?: return
       val resolvedCall = bindingContext.get(BindingContext.RESOLVED_CALL, call)
       checkResolveCall(resolvedCall)
     }
     override fun visitDestructuringDeclaration(destructuringDeclaration: KtDestructuringDeclaration) {
       super.visitDestructuringDeclaration(destructuringDeclaration)
-      val bindingContext = resolutionFacade.analyze(destructuringDeclaration)
-      innerContexts.add(bindingContext)
       for (entry in destructuringDeclaration.entries) {
         val resolvedCall = bindingContext.get(BindingContext.COMPONENT_RESOLVED_CALL, entry)
         checkResolveCall(resolvedCall)
@@ -167,8 +158,6 @@ private fun analyzeElementWithOneLevelInline(
     }
     override fun visitForExpression(expression: KtForExpression) {
       super.visitForExpression(expression)
-      val bindingContext = resolutionFacade.analyze(expression)
-      innerContexts.add(bindingContext)
       checkResolveCall(bindingContext.get(BindingContext.LOOP_RANGE_ITERATOR_RESOLVED_CALL, expression.loopRange))
       checkResolveCall(bindingContext.get(BindingContext.LOOP_RANGE_HAS_NEXT_RESOLVED_CALL, expression.loopRange))
       checkResolveCall(bindingContext.get(BindingContext.LOOP_RANGE_NEXT_RESOLVED_CALL, expression.loopRange))
@@ -211,7 +200,7 @@ private fun analyzeElementWithOneLevelInline(
         })
       }
     } else {
-      var name = containingClass.getKotlinFqName().toString().replace(".", "/")
+      val name = containingClass.getKotlinFqName().toString().replace(".", "/")
       val file = declaration.containingKtFile
       if (element != file) {
         requestedClasses.add(cache.computeIfAbsent(name) {
