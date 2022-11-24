@@ -342,12 +342,8 @@ internal class PreviewIssueNotificationActionTest {
           fakePopup
         }
         .also { Disposer.register(projectRule.testRootDisposable, it) }
-    val event =
-      object : TestActionEvent(context) {
-        override fun getInputEvent(): InputEvent =
-          MouseEvent(JPanel(), 0, 0, 0, 0, 0, 1, true, MouseEvent.BUTTON1)
-      }
-
+    val event = TestActionEvent.createTestEvent(action, context,
+          MouseEvent(JPanel(), 0, 0, 0, 0, 0, 1, true, MouseEvent.BUTTON1))
     action.update(event)
     assertEquals(0, popupRequested)
     action.actionPerformed(event)

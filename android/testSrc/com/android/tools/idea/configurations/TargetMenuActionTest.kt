@@ -88,7 +88,7 @@ class TargetMenuActionTest : AndroidTestCase() {
     menuAction.updateActions(DataContext.EMPTY_CONTEXT)
     menuAction.getChildren(null).let { children ->
       val presentation =  Presentation()
-      children[0].update(TestActionEvent(presentation))
+      children[0].update(TestActionEvent.createTestToolbarEvent(presentation))
       assertTrue(Toggleable.isSelected(presentation))
       for (child in children.drop(2)) {
         assertFalse(Toggleable.isSelected(child.templatePresentation))
@@ -102,7 +102,7 @@ class TargetMenuActionTest : AndroidTestCase() {
     menuAction.getChildren(null).let { children ->
       val presentation =  Presentation()
       // Automatically pick best should not be selected
-      children[0].update(TestActionEvent(presentation))
+      children[0].update(TestActionEvent.createTestToolbarEvent(presentation))
       assertFalse(Toggleable.isSelected(presentation))
 
       // The performed action should be selected
@@ -121,7 +121,7 @@ class TargetMenuActionTest : AndroidTestCase() {
     menuAction.getChildren(null).let { children ->
       val presentation =  Presentation()
       // Automatically pick best should be selected
-      children[0].update(TestActionEvent(presentation))
+      children[0].update(TestActionEvent.createTestToolbarEvent(presentation))
       assertTrue(Toggleable.isSelected(presentation))
 
       // Other actions should not be selected

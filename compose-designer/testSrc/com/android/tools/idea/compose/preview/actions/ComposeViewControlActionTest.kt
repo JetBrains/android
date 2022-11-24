@@ -286,10 +286,10 @@ class ComposeViewControlActionTest {
     val presentation = Presentation()
 
     // It should always not be multi-choice no matter it is enabled or not.
-    action.update(TestActionEvent(presentation))
+    action.update(TestActionEvent.createTestToolbarEvent(presentation))
     assertFalse(Utils.isMultiChoiceGroup(action))
     enabled = false
-    action.update(TestActionEvent(presentation))
+    action.update(TestActionEvent.createTestToolbarEvent(presentation))
     assertFalse(Utils.isMultiChoiceGroup(action))
   }
 }

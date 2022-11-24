@@ -51,10 +51,10 @@ class ShowInspectionTooltipsActionTest {
     val action = ShowInspectionTooltipsAction(context)
     manager.isInspectionTooltipEnabled = false
 
-    action.setSelected(TestActionEvent(Presentation()), true)
+    action.setSelected(TestActionEvent.createTestToolbarEvent(Presentation()), true)
     assertTrue(manager.isInspectionTooltipEnabled)
 
-    action.setSelected(TestActionEvent(Presentation()), false)
+    action.setSelected(TestActionEvent.createTestToolbarEvent(Presentation()), false)
     assertFalse(manager.isInspectionTooltipEnabled)
   }
 }

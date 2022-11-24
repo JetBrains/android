@@ -54,10 +54,10 @@ class SwitchSurfaceLayoutManagerActionTest {
     val presentation = Presentation()
 
     // It should always not be multi-choice no matter it is enabled or not.
-    nonMultiChoiceAction.update(TestActionEvent(presentation))
+    nonMultiChoiceAction.update(TestActionEvent.createTestToolbarEvent(presentation))
     assertFalse(Utils.isMultiChoiceGroup(nonMultiChoiceAction))
     enabled = false
-    nonMultiChoiceAction.update(TestActionEvent(presentation))
+    nonMultiChoiceAction.update(TestActionEvent.createTestToolbarEvent(presentation))
     assertFalse(Utils.isMultiChoiceGroup(nonMultiChoiceAction))
 
     enabled = true
@@ -65,10 +65,10 @@ class SwitchSurfaceLayoutManagerActionTest {
       SwitchSurfaceLayoutManagerAction(switcher, option) { enabled }
         .apply { templatePresentation.isMultiChoice = true }
     // It should always be multi-choice no matter it is enabled or not.
-    multiChoiceAction.update(TestActionEvent(presentation))
+    multiChoiceAction.update(TestActionEvent.createTestToolbarEvent(presentation))
     assertTrue(Utils.isMultiChoiceGroup(multiChoiceAction))
     enabled = false
-    multiChoiceAction.update(TestActionEvent(presentation))
+    multiChoiceAction.update(TestActionEvent.createTestToolbarEvent(presentation))
     assertTrue(Utils.isMultiChoiceGroup(multiChoiceAction))
   }
 }
