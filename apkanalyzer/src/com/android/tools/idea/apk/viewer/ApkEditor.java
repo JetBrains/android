@@ -49,6 +49,7 @@ import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -59,6 +60,7 @@ import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.messages.MessageBusConnection;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -68,6 +70,8 @@ import java.util.Optional;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.LayoutFocusTraversalPolicy;
+import kotlin.io.FilesKt;
+import kotlin.text.Charsets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -412,15 +416,13 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     }
 
     if (archive.isBaselineProfile(p, content)) {
-      try {
-        String text = BaselineProfilePrettyPrinter.prettyPrint(myBaseFile, p, content);
+      String text = getPrettyPrintedBaseline(myBaseFile, content, p, FileUtilRt.LARGE_FOR_CONTENT_LOADING);
+      if (text != null) {
         return ApkVirtualFile.createText(p, text);
       }
-      catch (IOException e) {
-        getLog().warn(String.format("Error decoding baseline entry \"%s\" from archive", p), e);
-        // Ignore error, fall through and show the original encoded content.
+      else {
+        return ApkVirtualFile.create(p, content);
       }
-      return ApkVirtualFile.create(p, content);
     }
 
     VirtualFile file = JarFileSystem.getInstance().findLocalVirtualFileByPath(archive.getPath().toString());
@@ -430,6 +432,53 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     else {
       return ApkVirtualFile.create(p, content);
     }
+  }
+
+  @Nullable
+  public static String getPrettyPrintedBaseline(@NotNull VirtualFile basefile, byte[] content, @NotNull Path path, int maxChars) {
+    String text;
+    try {
+      text = BaselineProfilePrettyPrinter.prettyPrint(basefile, path, content);
+    }
+    catch (IOException e) {
+      getLog().warn(String.format("Error decoding baseline entry \"%s\" from archive", path), e);
+      return null;
+    }
+    if (text.length() > maxChars) {
+      StringBuilder truncated = new StringBuilder(100000);
+      int length = text.getBytes(Charsets.UTF_8).length;
+      truncated.append(
+          "The contents of this baseline file is too large to show by default.\n" +
+          "You can increase the maximum buffer size by setting the property\n" +
+          "    idea.max.content.load.filesize=")
+        .append(length)
+        .append(
+          "\n" +
+          "(or higher)\n\n");
+
+      try {
+        File file = File.createTempFile("baseline", ".txt");
+        FilesKt.writeText(file, text, Charsets.UTF_8);
+        truncated.append(
+            "Alternatively, the full contents have been written to the following\n" + "temp file:\n")
+          .append(file.getPath())
+          .append("\n\n");
+      }
+      catch (IOException ignore) {
+        // Couldn't write temp file -- oh well, we just aren't including a mention of it.
+      }
+
+      // The header has taken up around 380 characters. It varies slightly, based on the path
+      // to the temporary file. We want to make the test output stable (such that the "truncated X chars"
+      // string doesn't vary from run to run) so we'll round up to say 450, instead of using
+      // truncated.length() here.
+      int truncateAt = Math.max(0, maxChars - 450);
+      truncated.append(text, 0, truncateAt).append("\n....truncated ").append(length - truncateAt).append(" characters.");
+
+      return truncated.toString();
+    }
+
+    return text;
   }
 
   @NotNull
