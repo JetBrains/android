@@ -355,26 +355,30 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
      * @return
      */
     @JvmStatic
-    fun transportDeviceFromIDevice(device: IDevice): Common.Device = Common.Device.newBuilder()
-      .setDeviceId(device.getId())
-      .setSerial(device.serialNumber)
-      .setModel(getDeviceModel(device))
-      .setVersion(StringUtil.notNullize(device.getProperty(IDevice.PROP_BUILD_VERSION)))
-      .setCodename(StringUtil.notNullize(device.version.codename))
-      .setApiLevel(device.version.apiLevel)
-      .setFeatureLevel(device.version.featureLevel)
-      .setManufacturer(getDeviceManufacturer(device))
-      .setIsEmulator(device.isEmulator)
-      .setBuildTags(device.getProperty(IDevice.PROP_BUILD_TAGS))
-      .setBuildType(device.getProperty(IDevice.PROP_BUILD_TYPE))
-      .setCpuAbi(device.getProperty(IDevice.PROP_DEVICE_CPU_ABI))
-      .setState(convertState(device.state))
-      .setUnsupportedReason(getDeviceUnsupportedReason(device))
-      .build()
+    fun transportDeviceFromIDevice(device: IDevice): Common.Device {
+      val bootId = device.getBootId()
+      return Common.Device.newBuilder()
+        .setDeviceId(device.getId(bootId))
+        .setBootId(bootId)
+        .setSerial(device.serialNumber)
+        .setModel(getDeviceModel(device))
+        .setVersion(StringUtil.notNullize(device.getProperty(IDevice.PROP_BUILD_VERSION)))
+        .setCodename(StringUtil.notNullize(device.version.codename))
+        .setApiLevel(device.version.apiLevel)
+        .setFeatureLevel(device.version.featureLevel)
+        .setManufacturer(getDeviceManufacturer(device))
+        .setIsEmulator(device.isEmulator)
+        .setBuildTags(device.getProperty(IDevice.PROP_BUILD_TAGS))
+        .setBuildType(device.getProperty(IDevice.PROP_BUILD_TYPE))
+        .setCpuAbi(device.getProperty(IDevice.PROP_DEVICE_CPU_ABI))
+        .setState(convertState(device.state))
+        .setUnsupportedReason(getDeviceUnsupportedReason(device))
+        .build()
+    }
 
-    private fun IDevice.getId() = try {
+    private fun IDevice.getId(bootId: String) = try {
       val digest = MessageDigest.getInstance("SHA-256")
-      digest.update(getBootId().toByteArray())
+      digest.update(bootId.toByteArray())
       digest.update(serialNumber.toByteArray())
       ByteBuffer.wrap(digest.digest()).long
     } catch (e: NoSuchAlgorithmException) {
@@ -390,7 +394,12 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
           override fun processNewLines(lines: Array<String>) {
             // There should only be one-line here.
             assert(lines.size == 1)
-            bootId = lines[0]
+            // check for empty string because processNewLines() could be called twice.
+            // For example if the output of the command terminates with new line,
+            // it will be called once with the boot id, then with an empty string. We don't want to overwrite the first value.
+            if (lines[0].isNotEmpty()) {
+              bootId = lines[0]
+            }
           }
           override fun isCancelled() = false
         })
