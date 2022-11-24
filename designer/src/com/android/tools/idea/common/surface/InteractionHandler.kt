@@ -236,9 +236,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
   }
 
   override fun stayHovering(mouseX: Int, mouseY: Int) {
-    for (sceneView in surface.sceneViews) {
-      sceneView.onHover(mouseX, mouseY)
-    }
+    surface.onHover(mouseX, mouseY)
   }
 
   override fun popupMenuTrigger(mouseEvent: MouseEvent) {

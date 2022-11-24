@@ -128,11 +128,11 @@ class VisualizationInteractionHandler(private val surface: DesignSurface<*>,
       context.setMouseLocation(mouseX, mouseY)
       sceneView.scene.mouseHover(context, Coordinates.getAndroidXDip(sceneView, mouseX), Coordinates.getAndroidYDip(sceneView, mouseY), modifiersEx)
     }
-    surface.sceneManagers.flatMap { it.sceneViews }.forEach { it.onHover(mouseX, mouseY) }
+    surface.onHover(mouseX, mouseY)
   }
 
   override fun stayHovering(mouseX: Int, mouseY: Int) {
-    surface.sceneManagers.flatMap { it.sceneViews }.forEach { it.onHover(mouseX, mouseY) }
+    surface.onHover(mouseX, mouseY)
   }
 
   override fun popupMenuTrigger(mouseEvent: MouseEvent) {

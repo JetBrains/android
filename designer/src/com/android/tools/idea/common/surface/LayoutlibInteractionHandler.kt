@@ -19,7 +19,6 @@ import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.uibuilder.surface.PanInteraction
-import com.android.tools.idea.uibuilder.surface.ScreenView
 import java.awt.Cursor
 import java.awt.dnd.DropTargetDragEvent
 import java.awt.event.KeyEvent
@@ -29,11 +28,10 @@ import java.awt.event.MouseWheelEvent
 /**
  * [InteractionHandler] used during interactive mode in the layout/compose previews.
  */
-class LayoutlibInteractionHandler(private val surface: DesignSurface<*>) : InteractionHandler {
+class LayoutlibInteractionHandler(private val surface: InteractableScenesSurface) : InteractionHandler {
   override fun createInteractionOnPressed(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? {
     val view = surface.getSceneViewAtOrPrimary(mouseX, mouseY) ?: return null
-    val screenView = view as ScreenView
-    return LayoutlibInteraction(screenView)
+    return LayoutlibInteraction(view)
   }
 
   override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
@@ -55,9 +53,7 @@ class LayoutlibInteractionHandler(private val surface: DesignSurface<*>) : Inter
   override fun hoverWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int) { }
 
   override fun stayHovering(mouseX: Int, mouseY: Int) {
-    for (sceneView in surface.sceneViews) {
-      sceneView.onHover(mouseX, mouseY)
-    }
+    surface.onHover(mouseX, mouseY)
   }
 
   override fun popupMenuTrigger(mouseEvent: MouseEvent) { }
@@ -70,8 +66,7 @@ class LayoutlibInteractionHandler(private val surface: DesignSurface<*>) : Inter
     }
     else {
       val view = surface.focusedSceneView ?: return null
-      val screenView = view as ScreenView
-      return LayoutlibInteraction(screenView)
+      return LayoutlibInteraction(view)
     }
   }
 

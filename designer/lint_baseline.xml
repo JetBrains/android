@@ -62,31 +62,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="636"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
-        <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="761"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
-        <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="766"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
-        <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="828"/>
+            line="714"/>
     </issue>
 
     <issue
@@ -102,7 +78,31 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="1505"/>
+            line="844"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
+            line="906"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
+            line="917"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
+            line="1591"/>
     </issue>
 
     <issue
@@ -198,7 +198,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/ConstraintResizeTarget.java"
-            line="64"/>
+            line="65"/>
     </issue>
 
     <issue
@@ -206,7 +206,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/ConstraintResizeTarget.java"
-            line="72"/>
+            line="73"/>
     </issue>
 
     <issue
@@ -214,7 +214,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/ConstraintResizeTarget.java"
-            line="77"/>
+            line="78"/>
     </issue>
 
     <issue
@@ -222,7 +222,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/ConstraintResizeTarget.java"
-            line="82"/>
+            line="83"/>
     </issue>
 
     <issue
@@ -310,7 +310,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/GuidelineTarget.java"
-            line="313"/>
+            line="320"/>
     </issue>
 
     <issue
@@ -318,7 +318,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/GuidelineTarget.java"
-            line="317"/>
+            line="324"/>
     </issue>
 
     <issue
@@ -374,7 +374,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
         <location
             file="src/com/android/tools/idea/common/scene/Scene.java"
-            line="657"/>
+            line="656"/>
     </issue>
 
     <issue
@@ -430,7 +430,7 @@
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/com/android/tools/idea/common/surface/DesignSurfaceHelper.kt"
-            line="41"/>
+            line="46"/>
     </issue>
 
     <issue
@@ -494,7 +494,7 @@
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationToolWindowFactory.kt"
-            line="122"/>
+            line="137"/>
     </issue>
 
     <issue
@@ -534,7 +534,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/surface/BorderLayer.java"
-            line="60"/>
+            line="67"/>
     </issue>
 
     <issue
@@ -542,7 +542,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/surface/CanvasResizeInteraction.java"
-            line="119"/>
+            line="120"/>
     </issue>
 
     <issue
@@ -774,7 +774,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/common/scene/Scene.java"
-            line="94"/>
+            line="93"/>
     </issue>
 
     <issue
@@ -910,7 +910,7 @@
         message="This method should only be accessed from tests or within protected scope">
         <location
             file="src/com/android/tools/idea/uibuilder/surface/NlDesignSurface.java"
-            line="801"/>
+            line="755"/>
     </issue>
 
     <issue
@@ -942,7 +942,7 @@
         message="This method should only be accessed from tests or within protected scope">
         <location
             file="src/com/android/tools/idea/uibuilder/statelist/SelectorMenuAction.kt"
-            line="183"/>
+            line="181"/>
     </issue>
 
     <issue
@@ -950,7 +950,7 @@
         message="This method should only be accessed from tests or within protected scope">
         <location
             file="src/com/android/tools/idea/uibuilder/statelist/SelectorMenuAction.kt"
-            line="183"/>
+            line="181"/>
     </issue>
 
     <issue
@@ -958,7 +958,7 @@
         message="This method should only be accessed from tests or within protected scope">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationForm.kt"
-            line="582"/>
+            line="581"/>
     </issue>
 
     <issue
@@ -966,39 +966,7 @@
         message="This method should only be accessed from tests or within protected scope">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationForm.kt"
-            line="582"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within protected scope">
-        <location
-            file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
-            line="131"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within protected scope">
-        <location
-            file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
-            line="131"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within protected scope">
-        <location
-            file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
-            line="135"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within protected scope">
-        <location
-            file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
-            line="135"/>
+            line="581"/>
     </issue>
 
     <issue

@@ -22,7 +22,6 @@ import static com.android.tools.idea.actions.DesignerDataKeys.DESIGN_SURFACE;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.UiThread;
-import com.android.tools.adtui.Pannable;
 import com.android.tools.adtui.Zoomable;
 import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -67,7 +66,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
@@ -132,7 +130,8 @@ import org.jetbrains.annotations.TestOnly;
 /**
  * A generic design surface for use in a graphical editor.
  */
-public abstract class DesignSurface<T extends SceneManager> extends EditorDesignSurface implements Disposable, DataProvider, Zoomable, Pannable, ZoomableViewport {
+public abstract class DesignSurface<T extends SceneManager> extends EditorDesignSurface
+  implements Disposable, InteractableScenesSurface, Zoomable, ZoomableViewport {
   /**
    * Alignment for the {@link SceneView} when its size is less than the minimum size.
    * If the size of the {@link SceneView} is less than the minimum, this enum describes how to align the content within
@@ -867,10 +866,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     }
   }
 
-  /**
-   * Returns the current focused {@link SceneView} that is responsible of responding to mouse and keyboard events, or null <br>
-   * if there is no focused {@link SceneView}.
-   */
+  @Override
   @Nullable
   public SceneView getFocusedSceneView() {
     ImmutableList<T> managers = getSceneManagers();
@@ -899,6 +895,13 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     return getSceneManagers().stream()
       .flatMap(sceneManager -> sceneManager.getSceneViews().stream())
       .collect(ImmutableList.toImmutableList());
+  }
+
+  @Override
+  public void onHover(@SwingCoordinate int x, @SwingCoordinate int y) {
+    for (SceneView sceneView : getSceneViews()) {
+      sceneView.onHover(x, y);
+    }
   }
 
   /**
@@ -984,21 +987,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     myGuiInputHandler.setPanning(isPanning);
   }
 
-  /**
-   * <p>
-   * Execute a zoom on the content. See {@link ZoomType} for the different types of zoom available.
-   * </p><p>
-   * If type is {@link ZoomType#IN}, zoom toward the given
-   * coordinates (relative to {@link #getLayeredPane()})
-   * <p>
-   * If x or y are negative, zoom toward the center of the viewport.
-   * </p>
-   *
-   * @param type Type of zoom to execute
-   * @param x    Coordinate where the zoom will be centered
-   * @param y    Coordinate where the zoom will be centered
-   * @return True if the scaling was changed, false if this was a noop.
-   */
+  @Override
   @UiThread
   public boolean zoom(@NotNull ZoomType type, @SwingCoordinate int x, @SwingCoordinate int y) {
     // track user triggered change
@@ -1440,13 +1429,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     return myFileEditorDelegate.get();
   }
 
-  /**
-   * Return the ScreenView under the given (x, y) position if any or the focused one otherwise. The coordinates are in the viewport view
-   * coordinate space so they will not change with scrolling.
-   * See also {@link #getFocusedSceneView()}
-   *
-   * @deprecated Use {@link #getSceneViewAt(int, int)}
-   */
+  @Override
   @Deprecated
   @Nullable
   public SceneView getSceneViewAtOrPrimary(@SwingCoordinate int x, @SwingCoordinate int y) {
@@ -1461,10 +1444,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     return view;
   }
 
-  /**
-   * Return the ScreenView under the given (x, y) position. The coordinates are in the viewport view coordinate
-   * space so they will not change with scrolling.
-   */
+  @Override
   @Nullable
   public SceneView getSceneViewAt(@SwingCoordinate int x, @SwingCoordinate int y) {
     Collection<SceneView> sceneViews = getSceneViews();
@@ -1496,14 +1476,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     return getSceneViewAt(mouseLocation.x, mouseLocation.y);
   }
 
-  /**
-   * @return the {@link Scene} of {@link SceneManager} associates to primary {@link NlModel}.
-   * @see #getSceneManager()
-   * @see #getSceneManager(NlModel)
-   * @see SceneManager#getScene()
-   * @deprecated Use {@link #getSceneManager()}{@code .getScene()} or {@link SceneView}{@code .getScene()} instead. Using this method will
-   * cause the code not to correctly support multiple previews.
-   */
+  @Override
   @Deprecated
   @Nullable
   public Scene getScene() {
