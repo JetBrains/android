@@ -156,6 +156,32 @@ class RecordingOptionsModelTest(configs: Array<RecordingOption>) {
     }
   }
 
+  @Test
+  fun `switching custom option dropdown selection changes model selection`() {
+    // Make the custom configs considered valid so setting the selectedOption is allowed.
+    model.addConfigurations(CustomConfigs[0])
+    model.addConfigurations(CustomConfigs[1])
+
+    // Simulate selection of custom recording option.
+    model.selectedOption = CustomConfigs[1]
+    model.selectCurrentCustomConfiguration()
+
+    // Change selected custom option in dropdown.
+    model.customConfigurationModel.selectedItem = CustomConfigs[0]
+    // Make sure that the change in custom dropdown reflects the
+    // overall model option selection.
+    assertThat(model.selectedOption).isEqualTo(CustomConfigs[0])
+
+    // Change selected custom option in dropdown again.
+    model.customConfigurationModel.selectedItem = CustomConfigs[1]
+    // Make sure that the change in custom dropdown reflects the
+    // overall model option selection.
+    assertThat(model.selectedOption).isEqualTo(CustomConfigs[1])
+
+    // Clean up custom configurations.
+    model.clearConfigurations()
+  }
+
   companion object {
     val BuiltIns = arrayOf(
       RecordingOption("Built in 1", "Description 1", {}),

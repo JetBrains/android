@@ -16,6 +16,7 @@
 package com.android.tools.profilers
 
 import com.android.tools.adtui.model.AspectModel
+import org.assertj.core.util.VisibleForTesting
 import java.util.Collections
 import javax.swing.DefaultComboBoxModel
 import javax.swing.ListModel
@@ -26,7 +27,7 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
     private set
 
   var selectedOption: RecordingOption? = null
-    private set(newOption) {
+    @VisibleForTesting set(newOption) {
       if (newOption != field) {
         require (!isRecording && newOption.isValid())
         field = newOption
@@ -148,7 +149,17 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
    */
   private fun RecordingOption?.isValid(): Boolean = this == null || this in builtInOptionList || this in customConfigurationModel
 
-  private inner class ConfigModel(configs: Array<RecordingOption>): DefaultComboBoxModel<RecordingOption>(configs) {
+  private inner class ConfigModel(configs: Array<RecordingOption>) : DefaultComboBoxModel<RecordingOption>(configs) {
+    override fun setSelectedItem(anObject: Any?) {
+      super.setSelectedItem(anObject)
+      // Because this method is fired on custom option dropdown selected change,
+      // the overall option selection should only change if a custom option is
+      // already selected.
+      if (isSelectedOptionCustom) {
+        selectCurrentCustomConfiguration()
+      }
+    }
+
     override fun addAll(c: MutableCollection<out RecordingOption>?) = trackEmptinessChanged { super.addAll(c) }
     override fun addAll(index: Int, c: MutableCollection<out RecordingOption>?) = trackEmptinessChanged { super.addAll(index, c) }
     override fun addElement(anObject: RecordingOption?) = trackEmptinessChanged { super.addElement(anObject) }
