@@ -522,7 +522,7 @@ class ComposePreviewRepresentation(
     if (!hasRenderedAtLeastOnce.get()) return
     composeWorkBench.bottomPanel =
       when {
-        status().hasRuntimeErrors || project.needsBuild -> null
+        status().hasErrors || project.needsBuild -> null
         animationInspection.get() -> ComposePreviewAnimationManager.currentInspector?.component
         else -> null
       }
