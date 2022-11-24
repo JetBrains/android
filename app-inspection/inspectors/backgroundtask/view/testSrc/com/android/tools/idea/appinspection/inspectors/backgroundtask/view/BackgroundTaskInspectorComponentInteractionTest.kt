@@ -60,7 +60,6 @@ import javax.swing.JPanel
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
-import kotlin.streams.toList
 
 class BackgroundTaskInspectorComponentInteractionTest {
 
@@ -169,7 +168,7 @@ class BackgroundTaskInspectorComponentInteractionTest {
         TreeWalker(entriesView).descendantStream().filter { it is ActionToolbar }.findFirst().get() as ActionToolbarImpl
 
       val cancelAction = toolbar.actions[0] as AnAction
-      val event: AnActionEvent = TestActionEvent()
+      val event = TestActionEvent.createTestEvent()
       assertThat(cancelAction.templateText).isEqualTo("Cancel Selected Work")
       cancelAction.update(event)
       assertThat(event.presentation.isEnabled).isFalse()

@@ -81,7 +81,7 @@ class GenerateRoomMigrationActionTest : AndroidTestCase() {
     context.put(CommonDataKeys.VIRTUAL_FILE_ARRAY.name, arrayOf(jsonOne, jsonTwo))
     context.put(CommonDataKeys.PROJECT, myFixture.project)
 
-    GenerateRoomMigrationAction().actionPerformed(TestActionEvent(context))
+    GenerateRoomMigrationAction().actionPerformed(TestActionEvent.createTestEvent(context))
 
     val migration = myFixture.findClass("Migration_2_3")
     assertThat(migration).isNotNull()

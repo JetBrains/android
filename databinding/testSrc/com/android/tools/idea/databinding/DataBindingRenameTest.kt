@@ -81,7 +81,7 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
 
   private fun checkAndRenameElementAtCaret(newName: String) {
     val action = RenameElementAction()
-    TestActionEvent(DataManager.getInstance().getDataContext(fixture.editor.component), action).let { event ->
+    TestActionEvent.createTestEvent(action, DataManager.getInstance().getDataContext(fixture.editor.component)).let { event ->
       action.update(event)
       assertTrue(event.presentation.isEnabled && event.presentation.isVisible)
     }

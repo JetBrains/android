@@ -69,7 +69,6 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTable
 import javax.swing.table.DefaultTableCellRenderer
-import kotlin.streams.toList
 
 class WorkManagerInspectorTabTest {
 
@@ -512,7 +511,7 @@ class WorkManagerInspectorTabTest {
         TreeWalker(inspectorTab.component).descendantStream().filter { it is ActionToolbar }.findFirst().get() as ActionToolbarImpl
 
       val cancelAction = toolbar.actions[0] as AnAction
-      val event: AnActionEvent = TestActionEvent()
+      val event = TestActionEvent.createTestEvent()
       assertThat(cancelAction.templateText).isEqualTo("Cancel Selected Work")
       cancelAction.update(event)
       assertThat(event.presentation.isEnabled).isFalse()

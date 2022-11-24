@@ -949,8 +949,9 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
   }
 
   protected void checkAndRename(String newName) {
-    final RenameElementAction action = new RenameElementAction();
-    final AnActionEvent e = new TestActionEvent(DataManager.getInstance().getDataContext(myFixture.getEditor().getComponent()), action);
+    RenameElementAction action = new RenameElementAction();
+    AnActionEvent e = TestActionEvent.createTestEvent(
+      action, DataManager.getInstance().getDataContext(myFixture.getEditor().getComponent()));
     action.update(e);
     assertTrue(e.getPresentation().isEnabled() && e.getPresentation().isVisible());
     doRename(newName);

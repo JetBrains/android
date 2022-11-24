@@ -47,7 +47,7 @@ public class MakeGradleProjectActionTest extends PlatformTestCase {
 
   public void testDoPerform() {
     // Method to test.
-    myAction.doPerform(new TestActionEvent(), getProject());
+    myAction.doPerform(TestActionEvent.createTestEvent(), getProject());
 
     // Verify.
     verify(myBuildInvoker).assemble(eq(TestCompileType.ALL));

@@ -221,7 +221,7 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     myFixture.configureFromExistingVirtualFile(file)
 
     val action = GotoRelatedSymbolAction()
-    val e = TestActionEvent(action)
+    val e = TestActionEvent.createTestEvent(action)
     assertThat(ActionUtil.lastUpdateAndCheckDumb(action, e, true)).isTrue()
     return GotoRelatedSymbolAction.getItems(myFixture.file, myFixture.editor, null)
   }

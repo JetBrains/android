@@ -33,7 +33,7 @@ class ClearLogcatActionTest {
   val applicationRule = ApplicationRule()
 
   private val fakeLogcatPresenter = FakeLogcatPresenter()
-  private val event by lazy(::TestActionEvent)
+  private val event by lazy(TestActionEvent::createTestEvent)
 
   @Test
   fun presentation() {

@@ -61,7 +61,7 @@ class ScreenRecorderActionTest {
   @Test
   fun update_noSerial_disabled() {
     userData[SCREEN_RECORDER_PARAMETERS_KEY.name] = null
-    val event = TestActionEvent { userData[it] }
+    val event = TestActionEvent.createTestEvent { userData[it] }
 
     action.update(event)
 
@@ -71,7 +71,7 @@ class ScreenRecorderActionTest {
   @Test
   fun update_deviceDoesNotSupportScreenRecording_disabled() = runBlockingTest {
     whenever(mockScreenRecordingSupportedCache.isScreenRecordingSupported(any(), anyInt())).thenReturn(false)
-    val event = TestActionEvent { userData[it] }
+    val event = TestActionEvent.createTestEvent { userData[it] }
 
     action.update(event)
 
@@ -81,7 +81,7 @@ class ScreenRecorderActionTest {
   @Test
   fun update_deviceDoesSupportScreenRecording_enabled() = runBlockingTest {
     whenever(mockScreenRecordingSupportedCache.isScreenRecordingSupported("device", 30)).thenReturn(true)
-    val event = TestActionEvent { userData[it] }
+    val event = TestActionEvent.createTestEvent { userData[it] }
 
     action.update(event)
 

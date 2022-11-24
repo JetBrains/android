@@ -57,7 +57,7 @@ class DeviceAndApiLevelFilterComboBoxActionTest {
     val comboBox = DeviceAndApiLevelFilterComboBoxAction()
     val filter = comboBox.filter
 
-    val actionEvent = TestActionEvent()
+    val actionEvent = TestActionEvent.createTestEvent()
     comboBox.update(actionEvent)
 
     assertThat(actionEvent.presentation.text).isEqualTo("All devices")
@@ -101,9 +101,9 @@ class DeviceAndApiLevelFilterComboBoxActionTest {
     comboBox.addDevice(device1)
     comboBox.addDevice(device2)
     comboBox.addDevice(device3)
-    comboBox.createActionGroup().flattenedActions().first { it.templateText == "device2" }.actionPerformed(TestActionEvent())
+    comboBox.createActionGroup().flattenedActions().first { it.templateText == "device2" }.actionPerformed(TestActionEvent.createTestEvent())
 
-    val actionEvent = TestActionEvent()
+    val actionEvent = TestActionEvent.createTestEvent()
     comboBox.update(actionEvent)
 
     assertThat(actionEvent.presentation.text).isEqualTo("device2")
@@ -124,9 +124,9 @@ class DeviceAndApiLevelFilterComboBoxActionTest {
     comboBox.addDevice(device1)
     comboBox.addDevice(device2)
     comboBox.addDevice(device3)
-    comboBox.createActionGroup().flattenedActions().first { it.templateText == "API 28" }.actionPerformed(TestActionEvent())
+    comboBox.createActionGroup().flattenedActions().first { it.templateText == "API 28" }.actionPerformed(TestActionEvent.createTestEvent())
 
-    val actionEvent = TestActionEvent()
+    val actionEvent = TestActionEvent.createTestEvent()
     comboBox.update(actionEvent)
 
     assertThat(actionEvent.presentation.text).isEqualTo("API 28")
@@ -146,9 +146,9 @@ class DeviceAndApiLevelFilterComboBoxActionTest {
     // Filter by API S
     comboBox.addDevice(device1)
     comboBox.addDevice(device2)
-    comboBox.createActionGroup().flattenedActions().first { it.templateText == "API S" }.actionPerformed(TestActionEvent())
+    comboBox.createActionGroup().flattenedActions().first { it.templateText == "API S" }.actionPerformed(TestActionEvent.createTestEvent())
 
-    val actionEvent = TestActionEvent()
+    val actionEvent = TestActionEvent.createTestEvent()
     comboBox.update(actionEvent)
 
     assertThat(actionEvent.presentation.text).isEqualTo("API S")
@@ -157,8 +157,8 @@ class DeviceAndApiLevelFilterComboBoxActionTest {
     assertThat(filter(device2)).isTrue()
 
     // Filter by API 30
-    comboBox.createActionGroup().flattenedActions().first { it.templateText == "API 30" }.actionPerformed(TestActionEvent())
-    val secondActionEvent = TestActionEvent()
+    comboBox.createActionGroup().flattenedActions().first { it.templateText == "API 30" }.actionPerformed(TestActionEvent.createTestEvent())
+    val secondActionEvent = TestActionEvent.createTestEvent()
     comboBox.update(secondActionEvent)
 
     assertThat(secondActionEvent.presentation.text).isEqualTo("API 30")
@@ -174,7 +174,7 @@ class DeviceAndApiLevelFilterComboBoxActionTest {
       addDevice(AndroidDevice("id1", "device1", "", AndroidDeviceType.LOCAL_PHYSICAL_DEVICE, AndroidVersion(28)))
       listener = mockListener
     }
-    comboBox.createActionGroup().flattenedActions().first { it.templateText == "device1" }.actionPerformed(TestActionEvent())
+    comboBox.createActionGroup().flattenedActions().first { it.templateText == "device1" }.actionPerformed(TestActionEvent.createTestEvent())
 
     verify(mockListener).onFilterUpdated()
   }
@@ -186,7 +186,7 @@ class DeviceAndApiLevelFilterComboBoxActionTest {
 
     comboBox.addDevice(device1)
 
-    val actionEvent = TestActionEvent()
+    val actionEvent = TestActionEvent.createTestEvent()
     comboBox.update(actionEvent)
 
     assertThat(actionEvent.presentation.isVisible).isFalse()
@@ -201,7 +201,7 @@ class DeviceAndApiLevelFilterComboBoxActionTest {
     comboBox.addDevice(device1)
     comboBox.addDevice(device2)
 
-    val actionEvent = TestActionEvent()
+    val actionEvent = TestActionEvent.createTestEvent()
     comboBox.update(actionEvent)
 
     assertThat(actionEvent.presentation.isVisible).isTrue()

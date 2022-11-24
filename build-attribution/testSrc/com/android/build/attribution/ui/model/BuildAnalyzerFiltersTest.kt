@@ -116,11 +116,11 @@ class BuildAnalyzerFiltersTest {
     val filterActions = warningsFilterActions(model.warningsPageModel, controller) as DefaultActionGroup
     val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show Always-run tasks" }
 
-    filterToggleAction.actionPerformed(TestActionEvent())
+    filterToggleAction.actionPerformed(TestActionEvent.createTestEvent())
     // Mock tasks have only one Always-run tasks warning. When it is filtered out, only AP, CC and Jetifier warnings should be shown.
     Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(3)
 
-    filterToggleAction.actionPerformed(TestActionEvent())
+    filterToggleAction.actionPerformed(TestActionEvent.createTestEvent())
     // All tasks should be back.
     Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(4)
 
@@ -132,12 +132,12 @@ class BuildAnalyzerFiltersTest {
     val filterActions = warningsFilterActions(model.warningsPageModel, controller) as DefaultActionGroup
     val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show issues for Android/Java/Kotlin plugins" }
 
-    filterToggleAction.actionPerformed(TestActionEvent())
+    filterToggleAction.actionPerformed(TestActionEvent.createTestEvent())
     // Mock tasks have only one Always-run tasks warning and task is attributed to Android plugin.
     // When it is filtered out, only AP, CC and Jetifier warnings should be shown.
     Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(3)
 
-    filterToggleAction.actionPerformed(TestActionEvent())
+    filterToggleAction.actionPerformed(TestActionEvent.createTestEvent())
     // All tasks should be back.
     Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(4)
 
@@ -149,11 +149,11 @@ class BuildAnalyzerFiltersTest {
     val filterActions = warningsFilterActions(model.warningsPageModel, controller) as DefaultActionGroup
     val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show annotation processors issues" }
 
-    filterToggleAction.actionPerformed(TestActionEvent())
+    filterToggleAction.actionPerformed(TestActionEvent.createTestEvent())
     // When AP warnings are filtered out only Always-run tasks, CC and Jetifier warnings should be shown.
     Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(3)
 
-    filterToggleAction.actionPerformed(TestActionEvent())
+    filterToggleAction.actionPerformed(TestActionEvent.createTestEvent())
     // All warnings should be back.
     Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(4)
 
@@ -165,11 +165,11 @@ class BuildAnalyzerFiltersTest {
     val filterActions = warningsFilterActions(model.warningsPageModel, controller) as DefaultActionGroup
     val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show configuration cache issues" }
 
-    filterToggleAction.actionPerformed(TestActionEvent())
+    filterToggleAction.actionPerformed(TestActionEvent.createTestEvent())
     // When CC warnings are filtered out only Always-run tasks, AP and Jetifier warnings should be shown.
     Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(3)
 
-    filterToggleAction.actionPerformed(TestActionEvent())
+    filterToggleAction.actionPerformed(TestActionEvent.createTestEvent())
     // All warnings should be back.
     Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(4)
 
@@ -181,11 +181,11 @@ class BuildAnalyzerFiltersTest {
     val filterActions = warningsFilterActions(model.warningsPageModel, controller) as DefaultActionGroup
     val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show Jetifier usage warning" }
 
-    filterToggleAction.actionPerformed(TestActionEvent())
+    filterToggleAction.actionPerformed(TestActionEvent.createTestEvent())
     // When Jetifier warnings are filtered out only Always-run tasks, AP and CC warnings should be shown.
     Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(3)
 
-    filterToggleAction.actionPerformed(TestActionEvent())
+    filterToggleAction.actionPerformed(TestActionEvent.createTestEvent())
     // All warnings should be back.
     Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(4)
 
@@ -213,11 +213,11 @@ class BuildAnalyzerFiltersTest {
     val filterActions = tasksFilterActions(model.tasksPageModel, controller) as DefaultActionGroup
     val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show tasks without warnings" }
 
-    filterToggleAction.actionPerformed(TestActionEvent())
+    filterToggleAction.actionPerformed(TestActionEvent.createTestEvent())
     // Only one of mock tasks has warnings, others should be filtered out now.
     Truth.assertThat(model.tasksPageModel.treeRoot.childCount).isEqualTo(1)
 
-    filterToggleAction.actionPerformed(TestActionEvent())
+    filterToggleAction.actionPerformed(TestActionEvent.createTestEvent())
     // All tasks should be back.
     Truth.assertThat(model.tasksPageModel.treeRoot.childCount).isEqualTo(3)
 
@@ -229,11 +229,11 @@ class BuildAnalyzerFiltersTest {
     val filterActions = tasksFilterActions(model.tasksPageModel, controller) as DefaultActionGroup
     val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show tasks for Android/Java/Kotlin plugins" }
 
-    filterToggleAction.actionPerformed(TestActionEvent())
+    filterToggleAction.actionPerformed(TestActionEvent.createTestEvent())
     // All mock tasks are attributed to android plugin thus should be filtered out now.
     Truth.assertThat(model.tasksPageModel.treeRoot.childCount).isEqualTo(0)
 
-    filterToggleAction.actionPerformed(TestActionEvent())
+    filterToggleAction.actionPerformed(TestActionEvent.createTestEvent())
     // All tasks should be back.
     Truth.assertThat(model.tasksPageModel.treeRoot.childCount).isEqualTo(3)
 

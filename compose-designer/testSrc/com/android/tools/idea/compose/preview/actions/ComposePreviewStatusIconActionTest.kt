@@ -88,7 +88,7 @@ class ComposePreviewStatusIconActionTest {
   @Test
   fun testIconState() {
     val action = ComposePreviewStatusIconAction(sceneViewMock)
-    val event = TestActionEvent(context)
+    val event = TestActionEvent.createTestEvent(context)
 
     // Syntax error has priority over the other properties
     for (syntaxError in tf) {

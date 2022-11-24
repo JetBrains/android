@@ -43,7 +43,8 @@ class RenameTabActionTest {
   private val project = MockitoKt.mock<Project>()
   private val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
   private val contentFactory by lazy { toolWindow.contentManager.factory }
-  private val event by lazy { TestActionEvent(SimpleDataContext.builder().add(CommonDataKeys.PROJECT, project).build(), action) }
+  private val event by lazy { TestActionEvent.createTestEvent(
+    action, SimpleDataContext.builder().add(CommonDataKeys.PROJECT, project).build()) }
 
   private val action = RenameTabAction()
 

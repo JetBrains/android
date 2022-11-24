@@ -141,5 +141,5 @@ private fun DialogWrapper.getCheckBox(text: String) =
   TreeWalker(rootPane).descendants().filterIsInstance<JCheckBox>().first { it.text == text }
 
 private fun AnAction.performAction() {
-  actionPerformed(TestActionEvent())
+  actionPerformed(TestActionEvent.createTestEvent())
 }

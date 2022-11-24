@@ -64,7 +64,7 @@ class ToggleIssueDetailActionTest {
     val action = ToggleIssueDetailAction()
 
     service.setSharedIssuePanelVisibility(false)
-    TestActionEvent { if (PlatformDataKeys.PROJECT.`is`(it)) rule.project else null }.let { event ->
+    TestActionEvent.createTestEvent { if (PlatformDataKeys.PROJECT.`is`(it)) rule.project else null }.let { event ->
       action.update(event)
       assertEquals("Show Issue Detail", event.presentation.text)
       assertTrue(event.presentation.isVisible)
@@ -72,7 +72,7 @@ class ToggleIssueDetailActionTest {
     }
 
     service.setSharedIssuePanelVisibility(true)
-    TestActionEvent { when {
+    TestActionEvent.createTestEvent { when {
       PlatformDataKeys.PROJECT.`is`(it) -> rule.project
       PlatformDataKeys.SELECTED_ITEM.`is`(it) -> TestNode()
       else -> null }
@@ -83,7 +83,7 @@ class ToggleIssueDetailActionTest {
       assertFalse(event.presentation.isEnabled)
     }
 
-    TestActionEvent { when {
+    TestActionEvent.createTestEvent { when {
       PlatformDataKeys.PROJECT.`is`(it) -> rule.project
       PlatformDataKeys.SELECTED_ITEM.`is`(it) -> TestIssueNode(TestIssue())
       else -> null }
@@ -98,7 +98,7 @@ class ToggleIssueDetailActionTest {
   @Test
   fun testIsSelected() {
     val action = ToggleIssueDetailAction()
-    val event = TestActionEvent { if (PlatformDataKeys.PROJECT.`is`(it)) rule.project else null }
+    val event = TestActionEvent.createTestEvent { if (PlatformDataKeys.PROJECT.`is`(it)) rule.project else null }
 
     service.setSharedIssuePanelVisibility(false)
     assertFalse(action.isSelected(event))
@@ -110,7 +110,7 @@ class ToggleIssueDetailActionTest {
   @Test
   fun testSelect() {
     val action = ToggleIssueDetailAction()
-    val event = TestActionEvent { if (PlatformDataKeys.PROJECT.`is`(it)) rule.project else null }
+    val event = TestActionEvent.createTestEvent { if (PlatformDataKeys.PROJECT.`is`(it)) rule.project else null }
     service.setSharedIssuePanelVisibility(true)
 
     action.setSelected(event, false)

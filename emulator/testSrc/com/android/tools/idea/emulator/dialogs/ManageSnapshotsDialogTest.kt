@@ -437,7 +437,7 @@ class ManageSnapshotsDialogTest {
   private fun performAction(action: AnActionButton?) {
     assertThat(action).isNotNull()
     assertThat(isPresentationEnabled(action)).isTrue()
-    action?.actionPerformed(TestActionEvent(action))
+    action?.actionPerformed(TestActionEvent.createTestEvent(action))
   }
 
   private fun isPresentationEnabled(action: AnActionButton?): Boolean? {
@@ -449,7 +449,7 @@ class ManageSnapshotsDialogTest {
           return true
         }
       }
-      val event = TestActionEvent(action)
+      val event = TestActionEvent.createTestEvent(action)
       action.update(event)
       return event.presentation.isEnabled
     }

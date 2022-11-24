@@ -37,7 +37,7 @@ class RestartLogcatActionTest {
   private val device = Device.createPhysical("device", false, 11, 30, "Google", "Pixel 2")
 
   private val fakeLogcatPresenter = FakeLogcatPresenter()
-  private val event by lazy(::TestActionEvent)
+  private val event by lazy(TestActionEvent::createTestEvent)
 
   @After
   fun tearDown() {

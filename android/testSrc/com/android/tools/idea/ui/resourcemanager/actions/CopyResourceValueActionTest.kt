@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.RESOURCE_DESIGN_ASSETS_KEY
 import com.android.tools.idea.util.androidFacet
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.ide.CopyPasteManager
@@ -37,9 +38,9 @@ internal class CopyResourceValueActionTest {
   @get:Rule
   val androidProject = AndroidProjectRule.inMemory()
 
-  private fun updateAction(dataContext: DataContext): Pair<CopyResourceValueAction, TestActionEvent> {
+  private fun updateAction(dataContext: DataContext): Pair<CopyResourceValueAction, AnActionEvent> {
     val action = CopyResourceValueAction()
-    val testActionEvent = TestActionEvent(dataContext, action)
+    val testActionEvent = TestActionEvent.createTestEvent(action, dataContext)
 
     action.update(testActionEvent)
     return action to testActionEvent

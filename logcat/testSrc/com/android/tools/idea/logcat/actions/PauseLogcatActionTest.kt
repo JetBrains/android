@@ -36,7 +36,7 @@ class PauseLogcatActionTest {
 
   private val device = Device.createPhysical("device", true, 10, 30, "Google", "Pixel")
   private val mockLogcatPresenter = mock<LogcatPresenter>()
-  private val event by lazy(::TestActionEvent)
+  private val event by lazy(TestActionEvent::createTestEvent)
 
   @Test
   fun update_text_isNotPaused() {

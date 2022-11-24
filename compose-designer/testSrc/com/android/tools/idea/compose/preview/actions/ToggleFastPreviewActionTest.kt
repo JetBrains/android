@@ -43,7 +43,7 @@ internal class ToggleFastPreviewActionTest {
         StudioFlags.COMPOSE_FAST_PREVIEW.override(it)
 
         val action = ToggleFastPreviewAction()
-        val event = TestActionEvent()
+        val event = TestActionEvent.createTestEvent()
         action.update(event)
 
         assertEquals(it, event.presentation.isVisible)
@@ -61,7 +61,7 @@ internal class ToggleFastPreviewActionTest {
     assertTrue(manager.isEnabled)
     assertTrue(manager.isAvailable)
     val action = ToggleFastPreviewAction()
-    val event = TestActionEvent()
+    val event = TestActionEvent.createTestEvent()
 
     action.actionPerformed(event)
     assertFalse(manager.isEnabled)

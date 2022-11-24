@@ -37,19 +37,19 @@ class ShowQuickFixesActionTest {
     val action = ShowQuickFixesAction()
 
     // Test no issue
-    val emptyContextEvent = TestActionEvent(DataContext.EMPTY_CONTEXT, action)
+    val emptyContextEvent = TestActionEvent.createTestEvent(action, DataContext.EMPTY_CONTEXT)
     action.update(emptyContextEvent)
     assertEquals(ActionsBundle.actionText("ProblemsView.QuickFixes") ?: "Show Quick Fix", emptyContextEvent.presentation.text)
     assertFalse(emptyContextEvent.presentation.isEnabled)
 
     // Test issue without the fix
-    val eventWithoutFix = TestActionEvent( { IssueNode(null, TestIssue(), null) }, action)
+    val eventWithoutFix = TestActionEvent.createTestEvent(action) { IssueNode(null, TestIssue(), null) }
     action.update(eventWithoutFix)
     assertEquals("No Quick Fix for This Issue", eventWithoutFix.presentation.text)
     assertFalse(eventWithoutFix.presentation.isEnabled)
 
     // Test issue with a fix
-    val eventWithFix = TestActionEvent({ IssueNode(null, TestIssue(fixList = listOf(mock())), null) }, action)
+    val eventWithFix = TestActionEvent.createTestEvent(action) { IssueNode(null, TestIssue(fixList = listOf(mock())), null) }
     action.update(eventWithFix)
     assertEquals(ActionsBundle.actionText("ProblemsView.QuickFixes") ?: "Show Quick Fix", eventWithFix.presentation.text)
     assertTrue(eventWithFix.presentation.isEnabled)

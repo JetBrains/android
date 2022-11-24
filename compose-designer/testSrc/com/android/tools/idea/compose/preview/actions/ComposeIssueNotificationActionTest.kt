@@ -82,7 +82,7 @@ internal class ComposeIssueNotificationActionTest {
     val action = ComposeIssueNotificationAction(::noPopupFactor).also {
       Disposer.register(projectRule.testRootDisposable, it)
     }
-    val event = TestActionEvent(context)
+    val event = TestActionEvent.createTestEvent(context)
 
     action.update(event)
     assertEquals("Up-to-date (The preview is up to date)", event.presentation.toString())
@@ -135,7 +135,7 @@ internal class ComposeIssueNotificationActionTest {
     val action = ComposeIssueNotificationAction(::noPopupFactor).also {
       Disposer.register(projectRule.testRootDisposable, it)
     }
-    val event = TestActionEvent(context)
+    val event = TestActionEvent.createTestEvent(context)
 
     composePreviewManager.currentStatus = originStatus.copy(
       hasSyntaxErrors = true,

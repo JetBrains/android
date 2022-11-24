@@ -88,7 +88,7 @@ class LogcatFormatPresetActionTest {
   fun actionPerformed_standard() {
     val action = LogcatFormatPresetAction.Standard(fakeLogcatPresenter)
 
-    action.actionPerformed(TestActionEvent())
+    action.actionPerformed(TestActionEvent.createTestEvent())
 
     assertThat(fakeLogcatPresenter.formattingOptions).isEqualTo(STANDARD.formattingOptions)
   }
@@ -97,7 +97,7 @@ class LogcatFormatPresetActionTest {
   fun actionPerformed_compact() {
     val action = LogcatFormatPresetAction.Compact(fakeLogcatPresenter)
 
-    action.actionPerformed(TestActionEvent())
+    action.actionPerformed(TestActionEvent.createTestEvent())
 
     assertThat(fakeLogcatPresenter.formattingOptions).isEqualTo(COMPACT.formattingOptions)
   }
