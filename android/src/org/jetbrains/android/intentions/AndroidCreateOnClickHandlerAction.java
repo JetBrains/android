@@ -15,8 +15,6 @@
  */
 package org.jetbrains.android.intentions;
 
-import static org.jetbrains.kotlin.psi.KtPsiFactoryKt.KtPsiFactory;
-
 import com.google.common.collect.Iterables;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
 import com.intellij.codeInsight.intention.HighPriorityAction;
@@ -65,6 +63,7 @@ import org.jetbrains.kotlin.idea.core.OldGenerateUtilKt;
 import org.jetbrains.kotlin.psi.KtClassOrObject;
 import org.jetbrains.kotlin.psi.KtDeclaration;
 import org.jetbrains.kotlin.psi.KtNamedFunction;
+import org.jetbrains.kotlin.psi.KtPsiFactory;
 
 public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction implements HighPriorityAction {
   @NotNull
@@ -196,7 +195,7 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction i
       if (origin == null) {
         return null;
       }
-      KtNamedFunction namedFunction = KtPsiFactory(origin)
+      KtNamedFunction namedFunction = new KtPsiFactory(origin.getProject())
         .createFunction("fun " + methodName + "(" + varName + ": " + methodParamType + ") {}");
       KtDeclaration anchor = Iterables.getLast(origin.getDeclarations(), null);
       OldGenerateUtilKt.insertMembersAfterAndReformat(null, origin, namedFunction, anchor);

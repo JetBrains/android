@@ -90,19 +90,19 @@ fun KtClass.canRemoveParcelable(): Boolean =
      ?: findDescribeContents()) != null
 
 fun KtClass.implementParcelable() {
-    val factory = KtPsiFactory(this)
+    val psiFactory = KtPsiFactory(project)
     val superExtendsParcelable = superExtendsParcelable()
 
-    findOrCreateParcelableSupertype(factory)
-    val constructor = findOrCreateConstructor(factory)
+    findOrCreateParcelableSupertype(psiFactory)
+    val constructor = findOrCreateConstructor(psiFactory)
 
-    addFieldReads(constructor, factory)
+    addFieldReads(constructor, psiFactory)
 
-    val writeToParcel = findOrCreateWriteToParcel(factory, superExtendsParcelable)
-    addFieldWrites(writeToParcel, factory, superExtendsParcelable)
+    val writeToParcel = findOrCreateWriteToParcel(psiFactory, superExtendsParcelable)
+    addFieldWrites(writeToParcel, psiFactory, superExtendsParcelable)
 
-    findOrCreateDescribeContents(factory)
-    findOrCreateCreator(factory)
+    findOrCreateDescribeContents(psiFactory)
+    findOrCreateCreator(psiFactory)
 
     performDelayedRefactoringRequests(project)
     save()
@@ -482,4 +482,4 @@ private fun KotlinType.isSparseBooleanArray(): Boolean = fqNameEquals("android.u
 
 private fun KotlinType.isBundle(): Boolean = fqNameEquals("android.os.Bundle")
 
-private fun <T: KtDeclaration> T.addNewLineBeforeDeclaration() = parent.addBefore(KtPsiFactory(this).createNewLine(), this)
+private fun <T: KtDeclaration> T.addNewLineBeforeDeclaration() = parent.addBefore(KtPsiFactory(project).createNewLine(), this)

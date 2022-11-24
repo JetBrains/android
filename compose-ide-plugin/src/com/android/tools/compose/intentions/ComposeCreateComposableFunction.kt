@@ -103,7 +103,7 @@ private class ComposeUnresolvedFunctionFixFactory : KotlinSingleIntentionActionF
       val parameters = element.getParameterInfos()
       val typeParameters = element.getTypeInfoForTypeArguments()
       val returnType = TypeInfo(expectedType, Variance.OUT_VARIANCE)
-      val modifierList = KtPsiFactory(element).createModifierList(composableAnnotation)
+      val modifierList = KtPsiFactory(element.project).createModifierList(composableAnnotation)
       val containers = element.getQualifiedExpressionForSelectorOrThis().getExtractionContainers()
       return FunctionInfo(name, TypeInfo.Empty, returnType, containers, parameters, typeParameters, modifierList = modifierList)
     }

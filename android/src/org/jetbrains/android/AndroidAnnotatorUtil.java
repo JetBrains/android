@@ -81,6 +81,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.kotlin.psi.KtExpression;
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression;
+import org.jetbrains.kotlin.psi.KtPsiFactory;
 import org.jetbrains.kotlin.psi.KtPsiFactoryKt;
 import org.xmlpull.v1.XmlPullParser;
 
@@ -544,7 +545,7 @@ public class AndroidAnnotatorUtil {
     }
     else {
       // Kotlin file case
-      KtExpression expression = KtPsiFactoryKt.KtPsiFactory(psiElement.getProject()).createExpression(resourceIdentifier);
+      KtExpression expression = new KtPsiFactory(psiElement.getProject()).createExpression(resourceIdentifier);
       // Replace the parent with the resulting expression, but return the last child, which corresponds to the name of the resource
       return psiElement.getParent().replace(expression).getLastChild();
     }

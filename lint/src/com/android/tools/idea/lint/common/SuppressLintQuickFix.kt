@@ -314,7 +314,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     private fun addArgumentToAnnotation(entry: KtAnnotationEntry, argument: String): Boolean {
       // add new arguments to an existing entry
       val args = entry.valueArgumentList
-      val psiFactory = KtPsiFactory(entry)
+      val psiFactory = KtPsiFactory(entry.project)
       val newArgList = psiFactory.createCallArguments("($argument)")
       when {
         args == null -> // new argument list
