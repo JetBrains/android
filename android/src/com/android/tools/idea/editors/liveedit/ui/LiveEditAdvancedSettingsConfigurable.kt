@@ -21,13 +21,11 @@ import com.intellij.openapi.options.BoundSearchableConfigurable
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.ui.UIBundle
-import com.intellij.ui.components.JBTextField
-import com.intellij.ui.layout.Cell
-import com.intellij.ui.layout.CellBuilder
-import com.intellij.ui.layout.panel
+import com.intellij.ui.dsl.builder.bindIntText
+import com.intellij.ui.dsl.builder.bindSelected
+import com.intellij.ui.dsl.builder.columns
+import com.intellij.ui.dsl.builder.panel
 import org.jetbrains.android.util.AndroidBundle
-import kotlin.reflect.KMutableProperty0
 
 
 class LiveEditAdvancedSettingsConfigurable : BoundSearchableConfigurable(
@@ -36,66 +34,39 @@ class LiveEditAdvancedSettingsConfigurable : BoundSearchableConfigurable(
   override fun createPanel(): DialogPanel {
     val liveEditSettings = LiveEditAdvancedConfiguration.getInstance()
 
-    // http://www.jetbrains.org/intellij/sdk/docs/user_interface_components/kotlin_ui_dsl.html
+    // https://plugins.jetbrains.com/docs/intellij/kotlin-ui-dsl-version-2.html
     return panel {
-        row {
-          checkBox(
-            AndroidBundle.message("live.edit.configurable.enable.embedded.compiler"),
-            liveEditSettings::useEmbeddedCompiler,
-            AndroidBundle.message("live.edit.configurable.enable.embedded.compiler.comment")
-          )
-        }
-        row {
-          checkBox(
-            AndroidBundle.message("live.edit.configurable.enable.debug.mode"),
-            liveEditSettings::useDebugMode,
-            AndroidBundle.message("live.edit.configurable.enable.debug.mode.comment")
-          )
-        }
-        row {
-          checkBox(
-            AndroidBundle.message("live.edit.configurable.enable.inline.analysis"),
-            liveEditSettings::useInlineAnalysis,
-            AndroidBundle.message("live.edit.configurable.enable.inline.analysis.comment")
-          )
-        }
-        row {
-          checkBox(
-            AndroidBundle.message("live.edit.configurable.enable.partial.recompose"),
-            liveEditSettings::usePartialRecompose,
-            AndroidBundle.message("live.edit.configurable.enable.partial.recompose.comment")
-          )
-        }
-        row(AndroidBundle.message("live.edit.configurable.refresh.rate")) {
-          cell {
-            // Workaround for bug https://youtrack.jetbrains.com/issue/IDEA-287095
-            // Delete this line and uncomment next once fixed.
-            createIntTextField(this, liveEditSettings::refreshRateMs, 4, LiveEditAdvancedConfiguration.REFRESH_RATE_RANGE)
-            //intTextField(liveEditSettings::refreshRateMs, 4, LiveEditConfig.REFRESH_RATE_RANGE)
-            commentNoWrap(AndroidBundle.message("live.edit.configurable.refresh.rate.comment"))
-          }
-        }
+      row {
+        checkBox(AndroidBundle.message("live.edit.configurable.enable.embedded.compiler"))
+          .bindSelected(liveEditSettings::useEmbeddedCompiler)
+          .comment(AndroidBundle.message("live.edit.configurable.enable.embedded.compiler.comment"))
+      }
+      row {
+        checkBox(AndroidBundle.message("live.edit.configurable.enable.debug.mode"))
+          .bindSelected(liveEditSettings::useDebugMode)
+          .comment(AndroidBundle.message("live.edit.configurable.enable.debug.mode.comment"))
+      }
+      row {
+        checkBox(AndroidBundle.message("live.edit.configurable.enable.inline.analysis"))
+          .bindSelected(liveEditSettings::useInlineAnalysis)
+          .comment(AndroidBundle.message("live.edit.configurable.enable.inline.analysis.comment"))
+      }
+      row {
+        checkBox(AndroidBundle.message("live.edit.configurable.enable.partial.recompose"))
+          .bindSelected(liveEditSettings::usePartialRecompose)
+          .comment(AndroidBundle.message("live.edit.configurable.enable.partial.recompose.comment"))
+      }
+      row(AndroidBundle.message("live.edit.configurable.refresh.rate")) {
+        intTextField(LiveEditAdvancedConfiguration.REFRESH_RATE_RANGE)
+          .bindIntText(liveEditSettings::refreshRateMs)
+          .columns(4)
+        comment(AndroidBundle.message("live.edit.configurable.refresh.rate.comment"))
+      }
     }
   }
 }
 
-// Delete this method once bug IDEA-287095 is fixed
-fun createIntTextField(cell: Cell, binding :KMutableProperty0<Int>, columns: Int? = null, range: IntRange? = null): CellBuilder<JBTextField> {
-  return cell.textField(
-    { binding.get().toString() },
-    { value -> value.toIntOrNull()?.let { intValue -> binding.set(range?.let { intValue.coerceIn(it.first, it.last) } ?: intValue) } },
-    columns
-  ).withValidationOnInput {
-    val value = it.text.toIntOrNull()
-    when {
-      value == null -> error(UIBundle.message("please.enter.a.number"))
-      range != null && value !in range -> error(UIBundle.message("please.enter.a.number.from.0.to.1", range.first, range.last))
-      else -> null
-    }
-  }
-}
-
-class LiveEditAdvancedSettingsConfigurableProvider: ConfigurableProvider() {
+class LiveEditAdvancedSettingsConfigurableProvider : ConfigurableProvider() {
   override fun createConfigurable(): Configurable? = if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_ADVANCED_SETTINGS_MENU.get()) LiveEditAdvancedSettingsConfigurable() else null
 
   override fun canCreateConfigurable(): Boolean {
