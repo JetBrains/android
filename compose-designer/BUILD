@@ -194,7 +194,7 @@ compose_preview_data = select({
     ],
 }) + [
     ":compose_preview_deps",
-    "//prebuilts/studio/sdk:build-tools/latest",
+    "//prebuilts/studio/sdk:build-tools/30.0.3",
     "//tools/adt/idea/compose-designer/testData:composepreview",
     "//tools/base/build-system:gradle-distrib-7.3.3",
 ]

@@ -289,7 +289,7 @@ MODULE                        : project.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/app/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : true
     GroupId                       : project
     Namespace                     : com.android.test.localaarsasmodules
@@ -670,7 +670,7 @@ MODULE                        : project.library
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/library/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : false
     GroupId                       : project
     Namespace                     : com.android.test.library

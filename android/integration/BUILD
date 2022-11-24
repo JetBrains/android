@@ -88,7 +88,7 @@ iml_test(
     }) + [
         ":buildproject_deps",
         ":minapp",
-        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:build-tools/30.0.3",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
         "//tools/base/build-system:gradle-distrib-7.2",
@@ -194,7 +194,7 @@ iml_test(
     }) + [
         ":live_edit_project_deps",
         ":liveeditproject",
-        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:build-tools/30.0.3",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
         "//tools/base/build-system:gradle-distrib-7.3.3",
@@ -224,7 +224,7 @@ build_and_run_test_data = select({
 }) + [
     ":buildproject_deps",
     ":minapp",
-    "//prebuilts/studio/sdk:build-tools/latest",
+    "//prebuilts/studio/sdk:build-tools/30.0.3",
     "//prebuilts/studio/sdk:emulator",
     "//prebuilts/studio/sdk:platform-tools",
     "//tools/base/build-system:gradle-distrib",
@@ -260,7 +260,7 @@ iml_test(
         ],
     }) + [
         ":createproject_deps",
-        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:build-tools/30.0.3",
         "//tools/base/build-system:gradle-distrib-7.3.3",
     ],
     module = ":intellij.android.core.integration",
@@ -337,7 +337,7 @@ iml_test(
     }) + [
         ":buildproject_deps",
         ":minapp",
-        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:build-tools/30.0.3",
         "//tools/base/build-system:gradle-distrib",
     ],
     module = ":intellij.android.core.integration",

@@ -278,7 +278,7 @@ MODULE                        : navgraph.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/app/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : true
     GroupId                       : navgraph
     Namespace                     : com.example.navgraph
@@ -2089,7 +2089,7 @@ MODULE                        : navgraph.lib
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/lib/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : false
     GroupId                       : navgraph
     Namespace                     : com.example.lib

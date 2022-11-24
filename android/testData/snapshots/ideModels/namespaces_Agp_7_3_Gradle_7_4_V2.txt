@@ -397,7 +397,7 @@ MODULE                        : project.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : true
     GroupId                       : project
     Namespace                     : com.example.app
@@ -767,7 +767,7 @@ MODULE                        : project.lib
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/lib/build
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : false
     GroupId                       : project
     Namespace                     : com.example.lib
@@ -1106,7 +1106,7 @@ MODULE                        : project.otherlib
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/otherlib/build
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : false
     GroupId                       : project
     Namespace                     : com.example.otherlib

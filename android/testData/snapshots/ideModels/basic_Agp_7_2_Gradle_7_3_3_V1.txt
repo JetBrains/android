@@ -30,7 +30,7 @@ MODULE                        : project
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : true
     GroupId                       :
     Namespace                     : com.android.tests.basic

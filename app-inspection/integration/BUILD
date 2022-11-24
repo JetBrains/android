@@ -35,7 +35,7 @@ iml_test(
     }) + [
         ":minapp_deps",
         ":minapp",
-        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:build-tools/30.0.3",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
         "//tools/base/build-system:gradle-distrib",

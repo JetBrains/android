@@ -1666,7 +1666,7 @@ MODULE                        : project.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : true
     GroupId                       : project
     Namespace                     : com.example.projectwithappandlib.app
@@ -3497,7 +3497,7 @@ MODULE                        : project.dyn_feature
     ProjectType                   : PROJECT_TYPE_DYNAMIC_FEATURE
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/dyn_feature/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : false
     GroupId                       : project
     Namespace                     : com.example.dyn_feature
@@ -3829,7 +3829,7 @@ MODULE                        : project.lib
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/lib/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : false
     GroupId                       : project
     Namespace                     : com.example.projectwithappandlib.lib
@@ -4532,7 +4532,7 @@ MODULE                        : project.nested1
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/nested1/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : false
     GroupId                       : project
     Namespace                     : com.example.nested1
@@ -4850,7 +4850,7 @@ MODULE                        : project.nested1.deep
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/nested1/deep/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : false
     GroupId                       : project.nested1
     Namespace                     : com.example.nested1.deep
@@ -5178,7 +5178,7 @@ MODULE                        : project.nested2
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/nested2/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : false
     GroupId                       : project
     Namespace                     : com.example.nested2
@@ -5646,7 +5646,7 @@ MODULE                        : project.nested2.deep
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/nested2/deep/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : false
     GroupId                       : project.nested2
     Namespace                     : com.example.nested2.deep
@@ -5976,7 +5976,7 @@ MODULE                        : project.nested2.trans.deep2
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/nested2/trans/deep2/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : false
     GroupId                       : project.nested2.trans
     Namespace                     : com.example.nested2.trans.deep2

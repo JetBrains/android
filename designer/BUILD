@@ -190,7 +190,7 @@ layout_editor_data = select({
     ],
 }) + [
     ":layout_preview_deps",
-    "//prebuilts/studio/sdk:build-tools/latest",
+    "//prebuilts/studio/sdk:build-tools/30.0.3",
     "//prebuilts/studio/sdk:emulator",
     "//prebuilts/studio/sdk:platform-tools",
     "//tools/adt/idea/designer/testData:simpleApplication",
