@@ -40,7 +40,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
-import java.awt.event.InputEvent
 import java.awt.event.MouseEvent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -316,12 +315,8 @@ internal class ComposeIssueNotificationActionTest {
     }.also {
       Disposer.register(projectRule.testRootDisposable, it)
     }
-    val event = object : TestActionEvent(context) {
-      override fun getInputEvent(): InputEvent = MouseEvent(
-        JPanel(), 0, 0, 0, 0, 0, 1, true, MouseEvent.BUTTON1
-      )
-    }
-
+    val event = TestActionEvent.createTestEvent(action, context, MouseEvent(
+        JPanel(), 0, 0, 0, 0, 0, 1, true, MouseEvent.BUTTON1))
     action.update(event)
     assertEquals(0, popupRequested)
     action.actionPerformed(event)
