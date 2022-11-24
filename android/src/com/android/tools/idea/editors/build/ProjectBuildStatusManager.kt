@@ -290,7 +290,7 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
       .addBuildListener(parentDisposable, buildListener)
 
     // Register listener
-    LOG.debug("setup build listener")
+    LOG.debug("setup notification change listener")
     runReadAction { psiFile.module?.androidFacet }?.let { facet ->
       val resourceNotificationManager = ResourceNotificationManager.getInstance(project)
       if (Disposer.tryRegister(parentDisposable) {
