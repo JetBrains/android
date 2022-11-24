@@ -43,7 +43,8 @@ class RenameTabActionTest {
 
   private val toolWindow by lazy { ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)}
   private val contentFactory by lazy { toolWindow.contentManager.factory }
-  private val event by lazy { TestActionEvent(SimpleDataContext.builder().add(CommonDataKeys.PROJECT, projectRule.project).build(), action) }
+  private val event by lazy { TestActionEvent.createTestEvent(
+    action, SimpleDataContext.builder().add(CommonDataKeys.PROJECT, projectRule.project).build()) }
 
   private val action = RenameTabAction()
 

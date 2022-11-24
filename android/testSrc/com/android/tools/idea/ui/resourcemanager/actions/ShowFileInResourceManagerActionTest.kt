@@ -28,6 +28,7 @@ import com.android.tools.idea.ui.resourcemanager.waitAndAssert
 import com.android.tools.idea.ui.resourcemanager.widget.SectionList
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.util.Disposer
@@ -133,9 +134,9 @@ class ShowFileInResourceManagerActionTest {
   }
 
   private fun checkActionWithFile(resourceManagerAction: ShowFileInResourceManagerAction,
-                                  virtualFile: VirtualFile?): TestActionEvent {
+                                  virtualFile: VirtualFile?): AnActionEvent {
     val dataContext = createDataContext(virtualFile)
-    val testActionEvent = TestActionEvent(dataContext, resourceManagerAction)
+    val testActionEvent = TestActionEvent.createTestEvent(resourceManagerAction, dataContext)
     runInEdtAndWait {
       resourceManagerAction.update(testActionEvent)
     }

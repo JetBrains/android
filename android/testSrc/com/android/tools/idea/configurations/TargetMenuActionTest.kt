@@ -95,7 +95,7 @@ class TargetMenuActionTest : AndroidTestCase() {
       }
 
       // Choose particular target
-      children[2].actionPerformed(TestActionEvent())
+      children[2].actionPerformed(TestActionEvent.createTestEvent())
     }
 
     menuAction.updateActions(DataContext.EMPTY_CONTEXT)
@@ -114,7 +114,7 @@ class TargetMenuActionTest : AndroidTestCase() {
       }
 
       // Select Automatically Pick Best action
-      children[0].actionPerformed(TestActionEvent())
+      children[0].actionPerformed(TestActionEvent.createTestEvent())
     }
 
     menuAction.updateActions(DataContext.EMPTY_CONTEXT)

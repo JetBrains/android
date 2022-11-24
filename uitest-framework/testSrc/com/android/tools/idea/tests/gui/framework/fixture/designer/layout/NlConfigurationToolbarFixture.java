@@ -160,7 +160,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
     DropDownActionTestUtil.updateActions(themeMenuAction);
     AnAction moreThemeAction =
       Arrays.stream(themeMenuAction.getChildren(null)).filter(action -> action instanceof ThemeMenuAction.MoreThemesAction).findAny().get();
-    ApplicationManager.getApplication().invokeLater(() -> moreThemeAction.actionPerformed(new TestActionEvent()));
+    ApplicationManager.getApplication().invokeLater(() -> moreThemeAction.actionPerformed(TestActionEvent.createTestEvent()));
     return ThemeSelectionDialogFixture.find(myRobot);
   }
 

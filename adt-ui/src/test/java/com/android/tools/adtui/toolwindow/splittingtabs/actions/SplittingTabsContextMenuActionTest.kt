@@ -19,6 +19,7 @@ import com.android.tools.adtui.toolwindow.splittingtabs.ChildComponentFactory
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingPanel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -42,7 +43,7 @@ class SplittingTabsContextMenuActionTest {
 
   private val splittingTabsContextMenuAction = TestSplittingTabsContextMenuAction("")
   private val toolWindow by lazy { ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)}
-  private val event by lazy { TestActionEvent({ }, splittingTabsContextMenuAction) }
+  private val event by lazy { TestActionEvent.createTestEvent(splittingTabsContextMenuAction, DataContext.EMPTY_CONTEXT) }
   private val content by lazy {
     toolWindow.contentManager.factory.createContent(null, "Content", false).also {
       it.component = SplittingPanel(it, null, object : ChildComponentFactory {

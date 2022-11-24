@@ -1,5 +1,6 @@
 package org.jetbrains.android.refactoring;
 
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -64,7 +65,7 @@ public class AndroidInlineLayoutTest extends AndroidTestCase {
     myFixture.configureFromExistingVirtualFile(f);
     AndroidInlineLayoutHandler.setTestConfig(new AndroidInlineTestConfig(true));
     try {
-      TestActionEvent e = doInlineFileTest();
+      AnActionEvent e = doInlineFileTest();
       assertTrue(e.getPresentation().isEnabled());
       assertTrue(e.getPresentation().isVisible());
     }
@@ -76,12 +77,12 @@ public class AndroidInlineLayoutTest extends AndroidTestCase {
   }
 
   @NotNull
-  private TestActionEvent doInlineFileTest() {
+  private AnActionEvent doInlineFileTest() {
     MapDataContext context = new MapDataContext();
     context.put(CommonDataKeys.PROJECT, getProject());
     context.put(CommonDataKeys.EDITOR, myFixture.getEditor());
     context.put(CommonDataKeys.PSI_ELEMENT, myFixture.getFile());
-    TestActionEvent e = new TestActionEvent(context);
+    AnActionEvent e = TestActionEvent.createTestEvent(context);
     new InlineAction().actionPerformed(e);
     return e;
   }

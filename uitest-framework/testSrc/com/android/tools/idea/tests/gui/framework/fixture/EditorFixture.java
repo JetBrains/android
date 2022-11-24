@@ -469,7 +469,7 @@ public class EditorFixture {
         .filter(ToggleAction.class::isInstance)
         .map(ToggleAction.class::cast)
         .collect(Collectors.toList());
-    TestActionEvent e = new TestActionEvent();
+    AnActionEvent e = TestActionEvent.createTestEvent();
     int actionToSelect = -1;
     switch (tab) {
       case EDITOR:

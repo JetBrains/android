@@ -185,7 +185,7 @@ class BackgroundTaskInspectorComponentInteractionTest {
           as ActionToolbarImpl
 
       val cancelAction = toolbar.actions[0] as AnAction
-      val event: AnActionEvent = TestActionEvent()
+      val event = TestActionEvent.createTestEvent()
       assertThat(cancelAction.templateText).isEqualTo("Cancel Selected Work")
       cancelAction.update(event)
       assertThat(event.presentation.isEnabled).isFalse()

@@ -45,7 +45,7 @@ class PairDevicesUsingWiFiActionTest : LightPlatform4TestCase() {
     // Prepare
     StudioFlags.ADB_WIRELESS_PAIRING_ENABLED.override(true)
     val action = PairDevicesUsingWiFiAction()
-    val event = TestActionEvent(action)
+    val event = TestActionEvent.createTestEvent(action)
 
     // Act
     action.update(event)
@@ -60,7 +60,7 @@ class PairDevicesUsingWiFiActionTest : LightPlatform4TestCase() {
     // Prepare
     StudioFlags.ADB_WIRELESS_PAIRING_ENABLED.override(false)
     val action = PairDevicesUsingWiFiAction()
-    val event = TestActionEvent(action)
+    val event = TestActionEvent.createTestEvent(action)
 
     // Act
     action.update(event)
@@ -75,7 +75,7 @@ class PairDevicesUsingWiFiActionTest : LightPlatform4TestCase() {
     // Prepare
     StudioFlags.ADB_WIRELESS_PAIRING_ENABLED.override(true)
     val action = PairDevicesUsingWiFiAction()
-    val event = TestActionEvent(action)
+    val event = TestActionEvent.createTestEvent(action)
 
     // Act
     createModalDialogAndInteractWithIt({

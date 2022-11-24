@@ -61,7 +61,7 @@ class IssuePanelViewOptionActionGroupTest {
   @Test
   fun testOptions() {
     val group = IssuePanelViewOptionActionGroup()
-    val actionEvent = TestActionEvent(context, group)
+    val actionEvent = TestActionEvent.createTestEvent(group, context)
 
     val options = group.getChildren(actionEvent)
 

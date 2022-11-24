@@ -40,7 +40,7 @@ class EnableInstantAppsSupportActionTest {
   private val context = MapDataContext()
   private val event by lazy {
     // lazy - object needs ActionManager, and that is only available after test is fully instantiated
-    TestActionEvent(context)
+    TestActionEvent.createTestEvent(context)
   }
 
   @Test

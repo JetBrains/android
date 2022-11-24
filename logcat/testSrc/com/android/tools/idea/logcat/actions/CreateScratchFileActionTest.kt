@@ -23,6 +23,7 @@ import com.android.tools.idea.logcat.util.logcatMessage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.json.JsonLanguage
 import com.intellij.lang.xml.XMLLanguage
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys.EDITOR
 import com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT
 import com.intellij.openapi.editor.RangeMarker
@@ -116,8 +117,8 @@ class CreateScratchFileActionTest {
     assertThat(language).isSameAs(XMLLanguage.INSTANCE)
   }
 
-  private fun testActionEvent(editor: EditorEx): TestActionEvent {
-    return TestActionEvent(MapDataContext().apply {
+  private fun testActionEvent(editor: EditorEx): AnActionEvent {
+    return TestActionEvent.createTestEvent(MapDataContext().apply {
       put(PROJECT, project)
       put(EDITOR, editor)
     })

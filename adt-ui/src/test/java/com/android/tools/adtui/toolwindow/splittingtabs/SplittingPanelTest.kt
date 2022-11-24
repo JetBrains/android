@@ -27,7 +27,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons.Actions.Close
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
@@ -314,7 +313,8 @@ class SplittingPanelTest {
       JLabelWithPopupActionGroup("Text", actionGroup)
     }
 
-    val actions = (content.findFirstSplitter()?.component as JLabelWithPopupActionGroup).popupActionGroup.getChildren(TestActionEvent())
+    val actions = (content.findFirstSplitter()?.component as JLabelWithPopupActionGroup).popupActionGroup
+      .getChildren(TestActionEvent.createTestEvent())
 
     assertThat(actions.map { it.templateText }).containsExactly("Split Right", "Split Down", "Close").inOrder()
     assertThat(actions.map { it.templatePresentation.icon }).containsExactly(VERTICAL.icon, HORIZONTAL.icon, Close).inOrder()
@@ -326,7 +326,7 @@ class SplittingPanelTest {
     val content = createSplittingPanelContent(contentRootPanel) { _, actionGroup ->
       JLabelWithPopupActionGroup("${count.incrementAndGet()}", actionGroup)
     }
-    val event: AnActionEvent = TestActionEvent()
+    val event = TestActionEvent.createTestEvent()
     val action = (content.findFirstSplitter()?.component as JLabelWithPopupActionGroup).popupActionGroup.getChildren(event)[0]
 
     action.actionPerformed(event)
@@ -340,7 +340,7 @@ class SplittingPanelTest {
     val content = createSplittingPanelContent(contentRootPanel) { _, actionGroup ->
       JLabelWithPopupActionGroup("${count.incrementAndGet()}", actionGroup)
     }
-    val event: AnActionEvent = TestActionEvent()
+    val event = TestActionEvent.createTestEvent()
     val action = (content.findFirstSplitter()?.component as JLabelWithPopupActionGroup).popupActionGroup.getChildren(event)[1]
 
     action.actionPerformed(event)
@@ -356,7 +356,7 @@ class SplittingPanelTest {
     }
     split(SplitCommand("1", VERTICAL), SplitCommand("1", HORIZONTAL), SplitCommand("2", HORIZONTAL))
     val splittingPanel = fakeUi.getComponent<SplittingPanel> { it.isNamed("1") }
-    val event: AnActionEvent = TestActionEvent()
+    val event = TestActionEvent.createTestEvent()
     val action = (splittingPanel.component as JLabelWithPopupActionGroup).popupActionGroup.getChildren(event)[2]
 
     action.actionPerformed(event)

@@ -40,7 +40,7 @@ internal class LayoutlibSceneManagerRefreshIconActionTest {
   ) {
     // Ensure all events have been processed
     UIUtil.dispatchAllInvocationEvents()
-    val testEvent = TestActionEvent(this)
+    val testEvent = TestActionEvent.createTestEvent(this)
     update(testEvent)
     runnable(testEvent)
   }

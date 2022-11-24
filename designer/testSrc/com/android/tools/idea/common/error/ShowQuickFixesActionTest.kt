@@ -19,6 +19,8 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.idea.ActionsBundle
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButton
@@ -26,7 +28,6 @@ import com.intellij.testFramework.TestActionEvent
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Dimension
-import java.awt.event.InputEvent
 import java.awt.event.MouseEvent
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -47,19 +48,19 @@ class ShowQuickFixesActionTest {
     val action = ShowQuickFixesAction()
 
     // Test no issue
-    val emptyContextEvent = TestActionEvent(DataContext.EMPTY_CONTEXT, action)
+    val emptyContextEvent = TestActionEvent.createTestEvent(action, DataContext.EMPTY_CONTEXT)
     action.update(emptyContextEvent)
     assertEquals(ActionsBundle.actionText("ProblemsView.QuickFixes") ?: "Show Quick Fix", emptyContextEvent.presentation.text)
     assertFalse(emptyContextEvent.presentation.isEnabled)
 
     // Test issue without the fix
-    val eventWithoutFix = TestActionEvent( { IssueNode(null, TestIssue(), null) }, action)
+    val eventWithoutFix = TestActionEvent.createTestEvent(action) { IssueNode(null, TestIssue(), null) }
     action.update(eventWithoutFix)
     assertEquals("No Quick Fix for This Issue", eventWithoutFix.presentation.text)
     assertFalse(eventWithoutFix.presentation.isEnabled)
 
     // Test issue with a fix
-    val eventWithFix = TestActionEvent({ IssueNode(null, TestIssue(fixList = listOf(mock())), null) }, action)
+    val eventWithFix = TestActionEvent.createTestEvent(action) { IssueNode(null, TestIssue(fixList = listOf(mock())), null) }
     action.update(eventWithFix)
     assertEquals(ActionsBundle.actionText("ProblemsView.QuickFixes") ?: "Show Quick Fix", eventWithFix.presentation.text)
     assertTrue(eventWithFix.presentation.isEnabled)
@@ -71,9 +72,8 @@ class ShowQuickFixesActionTest {
 
     val sourceButton = ActionButton(action, Presentation(), "", Dimension(1, 1))
     val inputEvent = MouseEvent(sourceButton, 0, 0, 0, 0, 0, 1, true, MouseEvent.BUTTON1)
-    val eventWithFix = object : TestActionEvent({ IssueNode(null, TestIssue(fixList = listOf(mock())), null) }, action) {
-      override fun getInputEvent(): InputEvent = inputEvent
-    }
+    val dataContext = DataContext { IssueNode(null, TestIssue(fixList = listOf(mock())), null) }
+    val eventWithFix = AnActionEvent(inputEvent, dataContext, "", action.templatePresentation.clone(), ActionManager.getInstance(), 0);
 
     assertEquals(0, popupRule.fakePopupFactory.getChildPopups(sourceButton).size)
     action.actionPerformed(eventWithFix)

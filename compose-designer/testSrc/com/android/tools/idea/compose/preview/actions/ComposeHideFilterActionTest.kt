@@ -45,7 +45,7 @@ class ComposeHideFilterActionTest {
     manager.isFilterEnabled = true
 
     val action = ComposeHideFilterAction(surface)
-    action.actionPerformed(TestActionEvent(DataContext.EMPTY_CONTEXT))
+    action.actionPerformed(TestActionEvent.createTestEvent(DataContext.EMPTY_CONTEXT))
 
     assertFalse(manager.isFilterEnabled)
   }

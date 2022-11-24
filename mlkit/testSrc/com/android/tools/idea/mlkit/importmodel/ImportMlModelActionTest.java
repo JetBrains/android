@@ -56,7 +56,7 @@ public class ImportMlModelActionTest {
 
   private void setupProject(String version, int version2) {
     MlProjectTestUtil.setupTestMlProject(projectRule.getProject(), version, version2);
-    myEvent = new TestActionEvent(new MapDataContext(
+    myEvent = TestActionEvent.createTestEvent(new MapDataContext(
       ImmutableMap.of(
         CommonDataKeys.PROJECT, projectRule.getProject(),
         PlatformCoreDataKeys.MODULE, gradleModule(projectRule.getProject(), ":")

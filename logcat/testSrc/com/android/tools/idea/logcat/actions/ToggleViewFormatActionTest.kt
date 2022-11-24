@@ -39,7 +39,7 @@ class ToggleViewFormatActionTest {
 
   @Test
   fun update_noLogcatPresenter_notVisible() {
-    val event = TestActionEvent(dataContext)
+    val event = TestActionEvent.createTestEvent(dataContext)
     val action = ToggleViewFormatAction()
 
     action.update(event)
@@ -51,7 +51,7 @@ class ToggleViewFormatActionTest {
   fun update_notStandardOrCompact_notVisible() {
     dataContext.put(LOGCAT_PRESENTER_ACTION, fakeLogcatPresenter)
     fakeLogcatPresenter.formattingOptions = FormattingOptions()
-    val event = TestActionEvent(dataContext)
+    val event = TestActionEvent.createTestEvent(dataContext)
     val action = ToggleViewFormatAction()
 
     action.update(event)
@@ -63,7 +63,7 @@ class ToggleViewFormatActionTest {
   fun update_standardView_isVisible() {
     dataContext.put(LOGCAT_PRESENTER_ACTION, fakeLogcatPresenter)
     fakeLogcatPresenter.formattingOptions = STANDARD.formattingOptions
-    val event = TestActionEvent(dataContext)
+    val event = TestActionEvent.createTestEvent(dataContext)
     val action = ToggleViewFormatAction()
 
     action.update(event)
@@ -75,7 +75,7 @@ class ToggleViewFormatActionTest {
   fun update_compactView_isVisible() {
     dataContext.put(LOGCAT_PRESENTER_ACTION, fakeLogcatPresenter)
     fakeLogcatPresenter.formattingOptions = COMPACT.formattingOptions
-    val event = TestActionEvent(dataContext)
+    val event = TestActionEvent.createTestEvent(dataContext)
     val action = ToggleViewFormatAction()
 
     action.update(event)
@@ -88,7 +88,7 @@ class ToggleViewFormatActionTest {
     dataContext.put(LOGCAT_PRESENTER_ACTION, fakeLogcatPresenter)
     val formattingOptions = FormattingOptions()
     fakeLogcatPresenter.formattingOptions = formattingOptions
-    val event = TestActionEvent(dataContext)
+    val event = TestActionEvent.createTestEvent(dataContext)
     val action = ToggleViewFormatAction()
 
     action.actionPerformed(event)
@@ -100,7 +100,7 @@ class ToggleViewFormatActionTest {
   fun actionPerformed_standardView_updatesPresenter() {
     dataContext.put(LOGCAT_PRESENTER_ACTION, fakeLogcatPresenter)
     fakeLogcatPresenter.formattingOptions = STANDARD.formattingOptions
-    val event = TestActionEvent(dataContext)
+    val event = TestActionEvent.createTestEvent(dataContext)
     val action = ToggleViewFormatAction()
 
     action.actionPerformed(event)
@@ -112,7 +112,7 @@ class ToggleViewFormatActionTest {
   fun actionPerformed_compactView_updatesPresenter() {
     dataContext.put(LOGCAT_PRESENTER_ACTION, fakeLogcatPresenter)
     fakeLogcatPresenter.formattingOptions = COMPACT.formattingOptions
-    val event = TestActionEvent(dataContext)
+    val event = TestActionEvent.createTestEvent(dataContext)
     val action = ToggleViewFormatAction()
 
     action.actionPerformed(event)
