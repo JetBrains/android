@@ -37,11 +37,9 @@ import com.android.tools.idea.flags.StudioFlags.OptimisticInstallSupportLevel;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
-import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.IdeService;
 import com.android.tools.idea.run.ui.ApplyChangesAction;
-import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.util.StudioPathManager;
 import com.android.utils.ILogger;
 import com.google.common.base.Stopwatch;
@@ -51,26 +49,19 @@ import com.google.wireless.android.sdk.stats.ApplyChangesAgentError;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
 import com.intellij.execution.Executor;
 import com.intellij.execution.executors.DefaultDebugExecutor;
-import com.intellij.execution.filters.HyperlinkInfo;
-import com.intellij.execution.ui.ConsoleView;
-import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationGroup;
-import com.intellij.notification.NotificationListener;
+import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.IdeActions;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.playback.commands.ActionCommand;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.wm.ToolWindowId;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -80,26 +71,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractDeployTask implements LaunchTask {
 
   public static final int MIN_API_VERSION = 26;
-  private static final NotificationGroup NOTIFICATION_GROUP =
-    NotificationGroup.toolWindowGroup("UnifiedDeployTask", ToolWindowId.RUN, true, PluginId.getId("org.jetbrains.android"));
-
-    private static final Map<OptimisticInstallSupportLevel, EnumSet<ChangeType>>
-            OPTIMISTIC_INSTALL_SUPPORT =
-                    ImmutableMap.of(
-                            OptimisticInstallSupportLevel.DISABLED, EnumSet.noneOf(ChangeType.class),
-                            OptimisticInstallSupportLevel.DEX, EnumSet.of(ChangeType.DEX),
-                            OptimisticInstallSupportLevel.DEX_AND_NATIVE,
-                                    EnumSet.of(ChangeType.DEX, ChangeType.NATIVE_LIBRARY),
-                            OptimisticInstallSupportLevel.DEX_AND_NATIVE_AND_RESOURCES,
-                                    EnumSet.of(
-                                            ChangeType.DEX,
+  private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroupManager.getInstance().getNotificationGroup("Deploy");
+  private static final Map<OptimisticInstallSupportLevel, EnumSet<ChangeType>>
+    OPTIMISTIC_INSTALL_SUPPORT =
+    ImmutableMap.of(
+      OptimisticInstallSupportLevel.DISABLED, EnumSet.noneOf(ChangeType.class),
+      OptimisticInstallSupportLevel.DEX, EnumSet.of(ChangeType.DEX),
+      OptimisticInstallSupportLevel.DEX_AND_NATIVE,
+      EnumSet.of(ChangeType.DEX, ChangeType.NATIVE_LIBRARY),
+      OptimisticInstallSupportLevel.DEX_AND_NATIVE_AND_RESOURCES,
+      EnumSet.of(
+        ChangeType.DEX,
                                             ChangeType.NATIVE_LIBRARY,
                                             ChangeType.RESOURCE));
 
@@ -125,43 +112,18 @@ public abstract class AbstractDeployTask implements LaunchTask {
     return 20;
   }
 
-  public List<Deployer.Result> run(IDevice device, ConsoleView console, ILogger logger) throws DeployerException {
-    ConsolePrinter printer = new ConsolePrinter() {
-      @Override
-      public void stdout(@NotNull String message) {
-        console.print(message, ConsoleViewContentType.NORMAL_OUTPUT);
-      }
-
-      @Override
-      public void stderr(@NotNull String message) {
-        console.print(message, ConsoleViewContentType.ERROR_OUTPUT);
-      }
-    };
-
-    return doRun(device, printer, new Canceller() {
-      @Override
-      public boolean cancelled() {
-        ProgressIndicator indicator = ProgressIndicatorProvider.getGlobalProgressIndicator();
-        return indicator != null && indicator.isCanceled();
-      }
-    }, logger);
+  public List<Deployer.Result> run(IDevice device, ProgressIndicator indicator) throws DeployerException {
+    return doRun(device, indicator);
   }
 
   @Override
   public LaunchResult run(@NotNull LaunchContext launchContext) {
     IDevice device = launchContext.getDevice();
     Executor executor = launchContext.getExecutor();
-    ConsolePrinter printer = launchContext.getConsolePrinter();
-    LogWrapper logger = new LogWrapper(LOG);
 
     try {
       launchContext.setLaunchApp(shouldTaskLaunchApp());
-      List<Deployer.Result> results = doRun(device, printer, new Canceller() {
-        @Override
-        public boolean cancelled() {
-          return launchContext.getProgressIndicator().isCanceled();
-        }
-      }, logger);
+      List<Deployer.Result> results = doRun(device, launchContext.getProgressIndicator());
       if (results.stream().anyMatch(result -> result.needsRestart)) {
         // TODO: fall back to using the suggested action, rather than blindly rerun
         launchContext.setKillBeforeLaunch(true);
@@ -169,14 +131,25 @@ public abstract class AbstractDeployTask implements LaunchTask {
       }
     }
     catch (DeployerException e) {
-      LOG.warn(String.format("%s failed: %s %s", getDescription(), e.getMessage(), e.getDetails()));
-      return toLaunchResult(executor, e, printer);
+      suggestResolveAction(executor, e);
+      LaunchResult result = new LaunchResult();
+      result.setResult(ERROR);
+      result.setErrorId(e.getId());
+      return result;
     }
     return new LaunchResult();
   }
 
-  private List<Deployer.Result> doRun(@NotNull IDevice device, ConsolePrinter printer, Canceller canceller, ILogger logger)
+  private List<Deployer.Result> doRun(@NotNull IDevice device, ProgressIndicator indicator)
     throws DeployerException {
+    Canceller canceller = new Canceller() {
+      @Override
+      public boolean cancelled() {
+        return indicator.isCanceled();
+      }
+    };
+
+    ILogger logger = new LogWrapper(LOG);
     Stopwatch stopwatch = Stopwatch.createStarted();
 
     // Collection that will accumulate metrics for the deployment.
@@ -235,14 +208,15 @@ public abstract class AbstractDeployTask implements LaunchTask {
     long duration = stopwatch.elapsed(TimeUnit.MILLISECONDS);
     if (idsSkippedInstall.isEmpty()) {
       String content = String.format("%s successfully finished in %s.", getDescription(), StringUtil.formatDuration(duration));
-      printer.stdout(content);
-      logger.info("%s", content);
+      NOTIFICATION_GROUP
+        .createNotification(content, NotificationType.INFORMATION)
+        .notify(myProject);
     } else {
       String title = String.format("%s successfully finished in %s.", getDescription(), StringUtil.formatDuration(duration));
       String content = createSkippedApkInstallMessage(idsSkippedInstall, idsSkippedInstall.size() == myPackages.size());
-      printer.stdout(content);
-      logger.info("%s. %s", title, content);
-      NOTIFICATION_GROUP.createNotification(content, NotificationType.INFORMATION).notify(myProject);
+      NOTIFICATION_GROUP
+        .createNotification(title, content, NotificationType.INFORMATION)
+        .notify(myProject);
     }
 
     return results;
@@ -329,9 +303,8 @@ public abstract class AbstractDeployTask implements LaunchTask {
     return mySubTaskDetails;
   }
 
-  public LaunchResult toLaunchResult(@NotNull Executor executor, @NotNull DeployerException e, @NotNull ConsolePrinter printer) {
-    LaunchResult result = new LaunchResult();
-    result.setResult(ERROR);
+  public void suggestResolveAction(@NotNull Executor executor, @NotNull DeployerException e) {
+    LOG.warn(String.format("%s failed: %s %s", getDescription(), e.getMessage(), e.getDetails()));
 
     StringBuilder bubbleError = new StringBuilder(getFailureTitle());
     bubbleError.append("\n");
@@ -346,101 +319,45 @@ public abstract class AbstractDeployTask implements LaunchTask {
       resolutionAction = DeployerException.ResolutionAction.RUN_APP;
     }
 
-    if (resolutionAction != DeployerException.ResolutionAction.NONE) {
-      if (myRerunOnSwapFailure) {
-        bubbleError.append(String.format("\n%s will be done automatically</a>", callToAction));
-      } else {
-        bubbleError.append(String.format("\n<a href='%s'>%s</a>", resolutionAction, callToAction));
-      }
+    if (resolutionAction == DeployerException.ResolutionAction.NONE) {
+      NOTIFICATION_GROUP.createNotification(bubbleError.toString(), NotificationType.ERROR).notify(myProject);
+      return;
     }
 
-    result.setMessage(bubbleError.toString());
-    result.setConsoleMessage(getFailureTitle() + "\n" + e.getMessage() + "\n" + e.getDetails());
-    result.setErrorId(e.getId());
+    String actionId;
 
-    DeploymentHyperlinkInfo hyperlinkInfo = new DeploymentHyperlinkInfo(executor, resolutionAction, printer);
-    result.setConsoleHyperlink(callToAction, hyperlinkInfo);
-    result.setNotificationListener(new DeploymentErrorNotificationListener(resolutionAction, hyperlinkInfo));
+    switch (resolutionAction) {
+      case APPLY_CHANGES:
+        actionId = ApplyChangesAction.ID;
+        break;
+      case RUN_APP:
+        actionId = DefaultDebugExecutor.EXECUTOR_ID.equals(executor.getId())
+                   ? IdeActions.ACTION_DEFAULT_DEBUGGER
+                   : IdeActions.ACTION_DEFAULT_RUNNER;
+        break;
+      case RETRY:
+        actionId = executor.getActionName();
+        break;
+      default:
+        throw new RuntimeException("Unknown resolution action");
+    }
+
+    AnAction action = ActionManager.getInstance().getAction(actionId);
+    Runnable actionRunnable = () -> ActionManager.getInstance().tryToExecute(action, null, null, null, true);
+
     if (myRerunOnSwapFailure) {
-      result.addOnFinishedCallback(() -> hyperlinkInfo.navigate(myProject));
+      bubbleError.append(String.format("\n%s will be done automatically</a>", callToAction));
+      NOTIFICATION_GROUP.createNotification(bubbleError.toString(), NotificationType.ERROR).notify(myProject);
+
+      ApplicationManager.getApplication().invokeLater(actionRunnable);
     }
-    return result;
+    else {
+      NotificationAction notificationAction = NotificationAction.createSimpleExpiring(callToAction, actionRunnable);
+      NOTIFICATION_GROUP.createNotification(bubbleError.toString(), NotificationType.ERROR).addAction(notificationAction).notify(myProject);
+    }
   }
 
   protected abstract String createSkippedApkInstallMessage(List<String> skippedApkList, boolean all);
-
-  private class DeploymentErrorNotificationListener implements NotificationListener {
-    private final @NotNull DeployerException.ResolutionAction myResolutionAction;
-    private final @NotNull DeploymentHyperlinkInfo myHyperlinkInfo;
-
-    public DeploymentErrorNotificationListener(@NotNull DeployerException.ResolutionAction resolutionAction,
-                                               @NotNull DeploymentHyperlinkInfo hyperlinkInfo) {
-      myResolutionAction = resolutionAction;
-      myHyperlinkInfo = hyperlinkInfo;
-    }
-
-    @Override
-    public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-      // Check if the hyperlink target matches the target we set in toLaunchResult.
-      if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED &&
-          event.getDescription().equals(myResolutionAction.name())) {
-        myHyperlinkInfo.navigate(myProject);
-      }
-    }
-  }
-
-  private static class DeploymentHyperlinkInfo implements HyperlinkInfo {
-    private final @Nullable String myActionId;
-    @NotNull
-    private final ConsolePrinter myPrinter;
-
-    public DeploymentHyperlinkInfo(@NotNull Executor executor, @NotNull DeployerException.ResolutionAction resolutionAction, @NotNull ConsolePrinter printer) {
-      myPrinter = printer;
-      switch (resolutionAction) {
-        case APPLY_CHANGES:
-          myActionId = ApplyChangesAction.ID;
-          break;
-        case RUN_APP:
-          myActionId = DefaultDebugExecutor.EXECUTOR_ID.equals(executor.getId())
-                       ? IdeActions.ACTION_DEFAULT_DEBUGGER
-                       : IdeActions.ACTION_DEFAULT_RUNNER;
-          break;
-        case RETRY:
-          myActionId = executor.getActionName();
-          break;
-        default:
-          myActionId = null;
-      }
-    }
-
-    @Override
-    public void navigate(@NotNull Project project) {
-      if (myActionId == null) {
-        return;
-      }
-
-      ActionManager manager = ActionManager.getInstance();
-      AnAction action = manager.getAction(myActionId);
-      if (action == null) {
-        return;
-      }
-
-      if (action instanceof BaseAction) {
-        BaseAction.DisableMessage message = BaseAction.getDisableMessage(project);
-        if (message != null) {
-          myPrinter.stderr(
-            String.format("%s is disabled because %s.", action.getTemplatePresentation().getText(), message.getDescription()));
-          return;
-        }
-      }
-
-      manager.tryToExecute(action,
-                           ActionCommand.getInputEvent(myActionId),
-                           null,
-                           ActionPlaces.UNKNOWN,
-                           true);
-    }
-  }
 
   @NotNull
   @Override

@@ -30,6 +30,7 @@ import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.openapi.progress.EmptyProgressIndicator
 import org.junit.Test
 import org.mockito.Mockito
 import java.util.concurrent.CountDownLatch
@@ -79,7 +80,9 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     // Mock app installation.
     Mockito.doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
-    val runContentDescriptor = getRunContentDescriptorForTests { executor.run().blockingGet(10, TimeUnit.SECONDS)!! }
+    val runContentDescriptor = getRunContentDescriptorForTests {
+      executor.run(EmptyProgressIndicator()).blockingGet(10, TimeUnit.SECONDS)!!
+    }
 
     // Verify commands sent to device.
 
@@ -141,7 +144,9 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     Mockito.doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
 
-    val runContentDescriptor = getRunContentDescriptorForTests { executor.debug().blockingGet(15, TimeUnit.SECONDS)!! }
+    val runContentDescriptor = getRunContentDescriptorForTests {
+      executor.debug(EmptyProgressIndicator()).blockingGet(15, TimeUnit.SECONDS)!!
+    }
 
     // Emulate stopping debug session.
     val processHandler = runContentDescriptor.processHandler!!

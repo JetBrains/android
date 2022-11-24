@@ -80,12 +80,12 @@ class AndroidConfigurationProgramRunner : AsyncProgramRunner<RunnerSettings>() {
 
         when (environment.executor.id) {
           DefaultRunExecutor.EXECUTOR_ID -> {
-            executor.run()
+            executor.run(indicator)
               .onSuccess { promise.setResult(it) }
               .onError(::handleError)
           }
           DefaultDebugExecutor.EXECUTOR_ID -> {
-            executor.debug()
+            executor.debug(indicator)
               .onSuccess { promise.setResult(it) }
               .onError(::handleError)
           }

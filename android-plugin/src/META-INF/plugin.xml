@@ -60,4 +60,5 @@
   <xi:include href="/META-INF/threading-checker.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/wear-pairing.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-execution-common.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/android-deploy.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

@@ -33,6 +33,7 @@ import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.xdebugger.impl.XDebugSessionImpl
 import org.jetbrains.concurrency.Promise
 
@@ -47,7 +48,7 @@ class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment,
   private val activityLaunchOptions = appRunSettings.componentLaunchOptions as ActivityLaunchOptionState
   override fun getStopCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit = { it.forceStop(appId) }
 
-  override fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean) {
+  override fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean, indicator: ProgressIndicator) {
     activityLaunchOptions.launch(device, app, apkProvider, isDebug, getFlags(device), console)
   }
 
@@ -56,15 +57,15 @@ class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment,
                                                               AndroidJavaDebugger().createState(), { it.forceStop(appId) }, console)
   }
 
-  override fun runAsInstantApp(): Promise<RunContentDescriptor> {
+  override fun runAsInstantApp(indicator: ProgressIndicator): Promise<RunContentDescriptor> {
     throw RuntimeException("Unsupported operation")
   }
 
-  override fun applyChanges(): Promise<RunContentDescriptor> {
+  override fun applyChanges(indicator: ProgressIndicator): Promise<RunContentDescriptor> {
     throw RuntimeException("Unsupported operation")
   }
 
-  override fun applyCodeChanges(): Promise<RunContentDescriptor> {
+  override fun applyCodeChanges(indicator: ProgressIndicator): Promise<RunContentDescriptor> {
     throw RuntimeException("Unsupported operation")
   }
 

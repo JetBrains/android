@@ -35,6 +35,7 @@ import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.ExceptionUtil
 import org.junit.Test
@@ -105,7 +106,9 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     // Mock app installation.
     Mockito.doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
-    val runContentDescriptor = getRunContentDescriptorForTests { executor.run().blockingGet(10, TimeUnit.SECONDS)!! }
+    val runContentDescriptor = getRunContentDescriptorForTests {
+      executor.run(EmptyProgressIndicator()).blockingGet(10, TimeUnit.SECONDS)!!
+    }
 
     // Verify commands sent to device.
 
@@ -176,7 +179,9 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     // Mock app installation.
     Mockito.doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
-    val runContentDescriptor = getRunContentDescriptorForTests { executor.debug().blockingGet(10, TimeUnit.SECONDS)!! }
+    val runContentDescriptor = getRunContentDescriptorForTests {
+      executor.debug(EmptyProgressIndicator()).blockingGet(10, TimeUnit.SECONDS)!!
+    }
 
     // Stop configuration.
     runContentDescriptor.processHandler!!.destroyProcess()
@@ -239,7 +244,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     val appInstaller = TestApplicationInstaller(appId, app) // Mock app installation.
     Mockito.doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
-    val e = assertFailsWith<Throwable> { executor.debug().blockingGet(10, TimeUnit.SECONDS) }.let {
+    val e = assertFailsWith<Throwable> { executor.debug(EmptyProgressIndicator()).blockingGet(10, TimeUnit.SECONDS) }.let {
       ExceptionUtil.findCause(it, ExecutionException::class.java)
     }
     assertThat(e).hasMessageThat().contains("Error while launching watch face, message: $failedResponse")
@@ -314,7 +319,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     // We expect the debugger to fail to attach, and we catch the corresponding exception. That happens only in this test as we
     // mocked DebuggerManagerEx to fail above.
-    val e = assertFailsWith<Throwable> { executor.debug().blockingGet(10, TimeUnit.SECONDS) }.let {
+    val e = assertFailsWith<Throwable> { executor.debug(EmptyProgressIndicator()).blockingGet(10, TimeUnit.SECONDS) }.let {
       ExceptionUtil.findCause(it, ExecutionException::class.java)
     }
     assertThat(e).hasMessageThat().contains("Exception on debug start")

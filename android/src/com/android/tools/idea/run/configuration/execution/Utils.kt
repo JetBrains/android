@@ -35,7 +35,7 @@ import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.progress.ProgressIndicatorProvider
+import com.intellij.openapi.progress.ProgressIndicator
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
@@ -55,14 +55,14 @@ internal fun ConsoleView.printError(error: String) {
 
 @WorkerThread
 internal fun IDevice.executeShellCommand(command: String, console: ConsoleView, receiver: IShellOutputReceiver = NullOutputReceiver(),
-                                         timeOut: Long = 5, timeOutUnits: TimeUnit = TimeUnit.SECONDS) {
+                                         timeOut: Long = 5, timeOutUnits: TimeUnit = TimeUnit.SECONDS, indicator: ProgressIndicator?) {
   ApplicationManager.getApplication().assertIsNonDispatchThread()
   console.printShellCommand(command)
-  val consoleReceiver = ConsoleOutputReceiver({ ProgressIndicatorProvider.getGlobalProgressIndicator()?.isCanceled == true }, console)
+  val consoleReceiver = ConsoleOutputReceiver({ indicator?.isCanceled == true }, console)
   executeShellCommand(command, MultiReceiver(receiver, consoleReceiver), timeOut, timeOutUnits)
 }
 
-internal fun IDevice.getWearDebugSurfaceVersion(): Int {
+internal fun IDevice.getWearDebugSurfaceVersion(indicator: ProgressIndicator): Int {
   class VersionReceiver(private val isCancelledCheck: () -> Boolean) : MultiLineReceiver() {
     // Example of output: Broadcast completed: result=1, data="3"
     private val versionPattern = "data=\"(\\d+)\"".toRegex()
@@ -78,16 +78,14 @@ internal fun IDevice.getWearDebugSurfaceVersion(): Int {
     }
   }
 
-  val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()?.apply {
-    checkCanceled()
-    text = "Checking Wear OS Surface API version"
-  }
+  indicator.checkCanceled()
+  indicator.text = "Checking Wear OS Surface API version"
 
   val startTime = System.currentTimeMillis()
   do {
-    val outputReceiver = RecordOutputReceiver { indicator?.isCanceled == true }
+    val outputReceiver = RecordOutputReceiver { indicator.isCanceled }
     val resultReceiver = CommandResultReceiver()
-    val versionReceiver = VersionReceiver { indicator?.isCanceled == true }
+    val versionReceiver = VersionReceiver { indicator.isCanceled }
     val receiver = MultiReceiver(outputReceiver, resultReceiver, versionReceiver)
     executeShellCommand(WearComponent.ShellCommand.GET_WEAR_DEBUG_SURFACE_VERSION, receiver, 5, TimeUnit.SECONDS)
 

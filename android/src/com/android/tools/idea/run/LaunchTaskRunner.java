@@ -19,6 +19,7 @@ import static com.android.tools.idea.run.debug.CaptureLogcatOutputToProcessHandl
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.ApplicationTerminator;
+import com.android.tools.idea.execution.common.RunConfigurationNotifier;
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
@@ -41,9 +42,6 @@ import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.RunContentManager;
-import com.intellij.notification.NotificationGroup;
-import com.intellij.notification.NotificationListener;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -85,7 +83,6 @@ public class LaunchTaskRunner extends Task.Backgroundable {
   @NotNull private final List<Runnable> myOnFinished;
 
   @Nullable private String myError;
-  @Nullable private NotificationListener myErrorNotificationListener;
 
   public LaunchTaskRunner(@NotNull Project project,
                           @NotNull String configName,
@@ -270,11 +267,6 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     IDevice device = launchContext.getDevice();
     LaunchStatus launchStatus = launchContext.getLaunchStatus();
 
-    String groupId = "LaunchTaskRunner for " + launchContext.getExecutor().getId();
-    NotificationGroup notificationGroup = NotificationGroup.findRegisteredGroup(groupId);
-    if (notificationGroup == null) {
-      notificationGroup = NotificationGroup.toolWindowGroup(groupId, launchContext.getExecutor().getId());
-    }
     int numWarnings = 0;
     for (LaunchTask task : launchTasks) {
       if (!checkIfLaunchIsAliveAndTerminateIfCancelIsRequested(indicator, launchStatus, destroyProcessOnCancellation)) {
@@ -289,28 +281,17 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         Result result = launchResult.getResult();
         myStats.endLaunchTask(task, details, result != Result.ERROR);
         if (result != Result.SUCCESS) {
-          myErrorNotificationListener = launchResult.getNotificationListener();
           myError = launchResult.getMessage();
           launchContext.getConsolePrinter().stderr(launchResult.getConsoleMessage());
 
-          // Append a footer hyperlink, if one was provided.
-          if (launchResult.getConsoleHyperlinkInfo() != null) {
-            myConsoleConsumer.accept(launchResult.getConsoleHyperlinkText() + "\n",
-                                     launchResult.getConsoleHyperlinkInfo());
+          if (!launchResult.getMessage().isEmpty()) {
+            if (result == Result.ERROR) {
+              RunConfigurationNotifier.INSTANCE.notifyError(myProject, myEnv.getRunProfile().getName(), launchResult.getMessage());
+            }
+            else {
+              RunConfigurationNotifier.INSTANCE.notifyWarning(myProject, myEnv.getRunProfile().getName(), launchResult.getMessage());
+            }
           }
-          String title;
-          NotificationType type;
-          if (result == Result.ERROR) {
-            title = "Error";
-            type = NotificationType.ERROR;
-          }
-          else {
-            title = "Warning";
-            type = NotificationType.WARNING;
-          }
-          notificationGroup.createNotification(title, launchResult.getMessage(), type).setListener(myErrorNotificationListener)
-            .setImportant(true).notify(myProject);
-
           // Show the tool window when we have an error.
           ApplicationManager.getApplication().invokeLater(() -> RunContentManager.getInstance(myProject).toFrontRunContent(
             myEnv.getExecutor(), myProcessHandler));
@@ -340,17 +321,16 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     }
 
     String launchType = myLaunchTasksProvider.getLaunchTypeDisplayName();
-    String content;
-    NotificationType notificationType;
+
     if (numWarnings == 0) {
-      notificationType = NotificationType.INFORMATION;
-      content = AndroidBundle.message("android.launch.task.succeeded", launchType);
+      RunConfigurationNotifier.INSTANCE.notifyInfo(myProject, myEnv.getRunProfile().getName(),
+                                                   AndroidBundle.message("android.launch.task.succeeded", launchType));
     }
     else {
-      notificationType = NotificationType.WARNING;
-      content = AndroidBundle.message("android.launch.task.succeeded.with.warnings", launchType, numWarnings);
+      RunConfigurationNotifier.INSTANCE.notifyWarning(myProject, myEnv.getRunProfile().getName(),
+                                                      AndroidBundle.message("android.launch.task.succeeded.with.warnings", launchType,
+                                                                            numWarnings));
     }
-    notificationGroup.createNotification("", content, notificationType).setImportant(false).notify(myProject);
 
     return true;
   }

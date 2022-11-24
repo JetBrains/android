@@ -31,6 +31,7 @@ import com.android.tools.idea.stats.RunStats
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.util.concurrent.Futures
 import com.intellij.execution.Executor
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.filters.HyperlinkInfo
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.progress.EmptyProgressIndicator
@@ -56,16 +57,24 @@ class LaunchTaskRunnerTest {
 
   @Mock
   lateinit var mockProcessHandler: AndroidProcessHandler
+
   @Mock
   lateinit var mockLaunchTasksProvider: LaunchTasksProvider
+
   @Mock
   lateinit var mockRunStats: RunStats
+
   @Mock
   lateinit var mockConsoleConsumer: BiConsumer<String, HyperlinkInfo>
+
   @Mock
   lateinit var mockExecutor: Executor
+
   @Mock
   lateinit var mockExecutionEnvironment: ExecutionEnvironment
+
+  @Mock
+  lateinit var mockRunConfiguration: RunConfiguration
 
 
   private val progressIndicator: ProgressIndicator by lazy {
@@ -75,6 +84,8 @@ class LaunchTaskRunnerTest {
   @Before
   fun setUp() {
     whenever(mockExecutionEnvironment.executor).thenReturn(mockExecutor)
+    whenever(mockExecutionEnvironment.runProfile).thenReturn(mockRunConfiguration)
+    whenever(mockRunConfiguration.name).thenReturn("app")
     whenever(mockExecutor.toolWindowId).thenReturn("toolWindowId")
     whenever(mockExecutor.id).thenReturn("id")
   }

@@ -19,8 +19,6 @@ import static com.android.tools.idea.run.tasks.LaunchResult.Result.ERROR;
 import static com.android.tools.idea.run.tasks.LaunchResult.Result.SUCCESS;
 import static com.android.tools.idea.run.tasks.LaunchResult.Result.WARNING;
 
-import com.intellij.execution.filters.HyperlinkInfo;
-import com.intellij.notification.NotificationListener;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -35,11 +33,7 @@ public class LaunchResult {
   private String myMessage;
   private String myErrorId;
   private String myConsoleMessage;
-  private NotificationListener myNotificationListener;
 
-  // Hyperlink to be appended to the footer of the console error message.
-  private String myConsoleHyperlinkText;
-  private HyperlinkInfo myConsoleHyperlinkInfo;
   private final List<Runnable> myOnFinishedCallbacks;
 
   public LaunchResult() {
@@ -47,9 +41,6 @@ public class LaunchResult {
     myMessage = "";
     myErrorId = "";
     myConsoleMessage = "";
-    myConsoleHyperlinkText = "";
-    myConsoleHyperlinkInfo = null;
-    myNotificationListener = null;
     myOnFinishedCallbacks = new ArrayList<>();
   }
 
@@ -83,27 +74,6 @@ public class LaunchResult {
 
   public String getConsoleMessage() {
     return myConsoleMessage;
-  }
-
-  public void setConsoleHyperlink(String hyperlinkText, HyperlinkInfo hyperlinkInfo) {
-    myConsoleHyperlinkText = hyperlinkText;
-    myConsoleHyperlinkInfo = hyperlinkInfo;
-  }
-
-  public String getConsoleHyperlinkText() {
-    return myConsoleHyperlinkText;
-  }
-
-  public HyperlinkInfo getConsoleHyperlinkInfo() {
-    return myConsoleHyperlinkInfo;
-  }
-
-  public NotificationListener getNotificationListener() {
-    return myNotificationListener;
-  }
-
-  public void setNotificationListener(NotificationListener listener) {
-    myNotificationListener = listener;
   }
 
   public List<Runnable> onFinishedCallbacks() {

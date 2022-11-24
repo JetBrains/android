@@ -36,7 +36,6 @@ import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
 import org.jetbrains.android.util.AndroidBundle
 import java.time.Duration
@@ -59,12 +58,11 @@ open class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment,
   }
 
   @WorkerThread
-  override fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean) {
+  override fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean, indicator: ProgressIndicator) {
     ProgressManager.checkCanceled()
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
-    val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
 
-    val version = device.getWearDebugSurfaceVersion()
+    val version = device.getWearDebugSurfaceVersion(indicator)
     if (version < TILE_MIN_DEBUG_SURFACE_VERSION) {
       throw SurfaceVersionException(TILE_MIN_DEBUG_SURFACE_VERSION, version, device.isEmulator)
     }
@@ -77,7 +75,7 @@ open class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment,
     val tileIndex = setWatchTile(app, mode, indicator, console)
     val showTileCommand = SHOW_TILE_COMMAND + tileIndex!!
     val showTileReceiver = CommandResultReceiver()
-    device.executeShellCommand(showTileCommand, console, showTileReceiver)
+    device.executeShellCommand(showTileCommand, console, showTileReceiver, indicator = indicator)
     verifyResponse(showTileReceiver, console)
   }
 
@@ -133,7 +131,7 @@ class TileLaunchOptions : WearSurfaceLaunchOptions {
 private fun getStopTileCallback(tileName: String, console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit = { device: IDevice ->
   val receiver = CommandResultReceiver()
   val removeTileCommand = Tile.ShellCommand.UNSET_TILE + tileName
-  device.executeShellCommand(removeTileCommand, console, receiver)
+  device.executeShellCommand(removeTileCommand, console, receiver, indicator = null)
   if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
     console.printError("Warning: Tile was not stopped.")
   }

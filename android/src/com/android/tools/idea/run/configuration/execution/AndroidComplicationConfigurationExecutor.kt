@@ -42,7 +42,6 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.util.xmlb.annotations.Transient
 import org.jetbrains.android.util.AndroidBundle
@@ -62,10 +61,10 @@ open class AndroidComplicationConfigurationExecutor(environment: ExecutionEnviro
   private val complicationLaunchOptions = appRunSettings.componentLaunchOptions as ComplicationLaunchOptions
 
   @WorkerThread
-  override fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean) {
+  override fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean, indicator: ProgressIndicator) {
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
 
-    val version = device.getWearDebugSurfaceVersion()
+    val version = device.getWearDebugSurfaceVersion(indicator)
     if (version < COMPLICATION_MIN_DEBUG_SURFACE_VERSION) {
       throw SurfaceVersionException(COMPLICATION_MIN_DEBUG_SURFACE_VERSION, version, device.isEmulator)
     }
@@ -78,12 +77,12 @@ open class AndroidComplicationConfigurationExecutor(environment: ExecutionEnviro
 
     ProgressManager.checkCanceled()
 
-    installWatchApp(device, console)
+    installWatchApp(device, console, indicator)
 
     complicationLaunchOptions.chosenSlots.forEach { slot ->
-      setComplicationOnWatchFace(app, slot, mode, ProgressIndicatorProvider.getGlobalProgressIndicator())
+      setComplicationOnWatchFace(app, slot, mode, indicator)
     }
-    showWatchFace(device, console)
+    showWatchFace(device, console, indicator)
   }
 
   private fun setComplicationOnWatchFace(app: App, slot: ChosenSlot, mode: AppComponent.Mode, indicator: ProgressIndicator?) {
@@ -115,11 +114,11 @@ open class AndroidComplicationConfigurationExecutor(environment: ExecutionEnviro
     }
   }
 
-  private fun installWatchApp(device: IDevice, console: ConsoleView): App {
+  private fun installWatchApp(device: IDevice, console: ConsoleView, indicator: ProgressIndicator): App {
     val watchFaceInfo = complicationLaunchOptions.watchFaceInfo
 
     val apkInfo = ApkInfo(File(watchFaceInfo.apk), watchFaceInfo.appId)
-    return getApplicationDeployer(console).fullDeploy(device, apkInfo, appRunSettings.deployOptions).app
+    return getApplicationDeployer(console).fullDeploy(device, apkInfo, appRunSettings.deployOptions, indicator).app
   }
 
   override fun getStopCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit {
@@ -165,10 +164,10 @@ private fun getStopComplicationCallback(complicationComponentName: String,
                                         isDebug: Boolean): (IDevice) -> Unit = { device: IDevice ->
   val removeReceiver = CommandResultReceiver()
   val removeComplicationCommand = Complication.ShellCommand.REMOVE_ALL_INSTANCES_FROM_CURRENT_WF + complicationComponentName
-  device.executeShellCommand(removeComplicationCommand, console, removeReceiver)
+  device.executeShellCommand(removeComplicationCommand, console, removeReceiver, indicator = null)
 
   val unsetReceiver = CommandResultReceiver()
-  device.executeShellCommand(UNSET_WATCH_FACE, console, unsetReceiver)
+  device.executeShellCommand(UNSET_WATCH_FACE, console, unsetReceiver, indicator = null)
   if (removeReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE || unsetReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
     console.printError("Warning: Complication was not stopped.")
   }

@@ -38,7 +38,7 @@ import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
-import com.intellij.openapi.progress.ProgressIndicatorProvider
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -69,11 +69,11 @@ abstract class AndroidConfigurationExecutorBase(
   protected val isDebug = environment.executor.isDebug
 
   @WorkerThread
-  override fun run(): Promise<RunContentDescriptor> {
+  override fun run(indicator: ProgressIndicator): Promise<RunContentDescriptor> {
     RunStats.from(environment).beginLaunchTasks()
     val promise = AsyncPromise<RunContentDescriptor>()
 
-    val devices = getDevices(RunStats.from(environment))
+    val devices = getDevices(indicator, RunStats.from(environment))
     val console = createConsole()
     val processHandler = AndroidProcessHandler(project, appId, getStopCallback(console, false))
 
@@ -85,12 +85,12 @@ abstract class AndroidConfigurationExecutorBase(
       val result = try {
         // ApkProvider provides multiple ApkInfo only for instrumented tests.
         val app = apkProvider.getApks(device).single()
-        applicationInstaller.fullDeploy(device, app, appRunSettings.deployOptions)
+        applicationInstaller.fullDeploy(device, app, appRunSettings.deployOptions, indicator)
       }
       catch (e: DeployerException) {
         throw ExecutionException("Failed to install app '$appId'. ${e.details.orEmpty()}", e)
       }
-      launch(device, result.app, console, false)
+      launch(device, result.app, console, false, indicator)
       processHandler.addTargetDevice(device)
     }
 
@@ -118,11 +118,11 @@ abstract class AndroidConfigurationExecutorBase(
   }
 
   @WorkerThread
-  override fun debug(): Promise<RunContentDescriptor> {
+  override fun debug(indicator: ProgressIndicator): Promise<RunContentDescriptor> {
     RunStats.from(environment).beginLaunchTasks()
     val promise = AsyncPromise<RunContentDescriptor>()
 
-    val devices = getDevices(RunStats.from(environment))
+    val devices = getDevices(indicator, RunStats.from(environment))
     if (devices.size > 1) {
       throw ExecutionException("Debugging is allowed only for single device")
     }
@@ -134,7 +134,7 @@ abstract class AndroidConfigurationExecutorBase(
 
     // ApkProvider provides multiple ApkInfo only for instrumented tests.
     val app = apkProvider.getApks(device).single()
-    val deployResult = getApplicationDeployer(console).fullDeploy(device, app, appRunSettings.deployOptions)
+    val deployResult = getApplicationDeployer(console).fullDeploy(device, app, appRunSettings.deployOptions, indicator)
 
     executeOnPooledThread {
       promise.catchError {
@@ -143,7 +143,7 @@ abstract class AndroidConfigurationExecutorBase(
           .then { it.runContentDescriptor }.processed(promise)
       }
     }
-    launch(device, deployResult.app, console, true)
+    launch(device, deployResult.app, console, true, indicator)
 
     promise.onSuccess {
       RunStats.from(environment).endLaunchTasks()
@@ -157,14 +157,14 @@ abstract class AndroidConfigurationExecutorBase(
 
   @VisibleForTesting
   @Throws(ExecutionException::class)
-  abstract fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean)
+  abstract fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean, indicator: ProgressIndicator)
 
   protected abstract fun startDebugSession(device: IDevice, console: ConsoleView): Promise<XDebugSessionImpl>
 
   @Throws(ExecutionException::class)
-  private fun getDevices(stats: RunStats): List<IDevice> {
-    ProgressManager.checkCanceled()
-    ProgressIndicatorProvider.getGlobalProgressIndicator()?.text = "Waiting for all target devices to come online"
+  private fun getDevices(indicator: ProgressIndicator, stats: RunStats): List<IDevice> {
+    indicator.checkCanceled()
+    indicator.text = "Waiting for all target devices to come online"
 
     val deviceFutureList = deployTarget.getDevices(project) ?: throw ExecutionException(
       AndroidBundle.message("deployment.target.not.found"))

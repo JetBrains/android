@@ -32,7 +32,7 @@ import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
-import com.intellij.openapi.progress.ProgressIndicatorProvider
+import com.intellij.openapi.progress.ProgressIndicator
 import org.jetbrains.android.util.AndroidBundle
 
 private const val WATCH_FACE_MIN_DEBUG_SURFACE_VERSION = 2
@@ -49,21 +49,20 @@ open class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironme
   override fun getStopCallback(console: ConsoleView, isDebug: Boolean) = getStopWatchFaceCallback(console, isDebug)
 
   @WorkerThread
-  override fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean) {
+  override fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean, indicator: ProgressIndicator) {
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
-    val version = device.getWearDebugSurfaceVersion()
+    val version = device.getWearDebugSurfaceVersion(indicator)
     if (version < WATCH_FACE_MIN_DEBUG_SURFACE_VERSION) {
       throw SurfaceVersionException(WATCH_FACE_MIN_DEBUG_SURFACE_VERSION, version, device.isEmulator)
     }
-    setWatchFace(app, mode)
-    showWatchFace(device, console)
+    setWatchFace(app, mode, indicator)
+    showWatchFace(device, console, indicator)
   }
 
-  private fun setWatchFace(app: App, mode: AppComponent.Mode) {
-    val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()?.apply {
-      checkCanceled()
-      text = "Launching the watch face"
-    }
+  private fun setWatchFace(app: App, mode: AppComponent.Mode, indicator: ProgressIndicator) {
+    indicator.checkCanceled()
+    indicator.text = "Launching the watch face"
+
     val outputReceiver = RecordOutputReceiver { indicator?.isCanceled == true }
     try {
       app.activateComponent(watchFaceLaunchOptions.componentType, watchFaceLaunchOptions.componentName!!, mode, outputReceiver)
@@ -89,7 +88,7 @@ class WatchFaceLaunchOptions : WearSurfaceLaunchOptions {
 
 private fun getStopWatchFaceCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit = { device: IDevice ->
   val receiver = CommandResultReceiver()
-  device.executeShellCommand(UNSET_WATCH_FACE, console, receiver)
+  device.executeShellCommand(UNSET_WATCH_FACE, console, receiver, indicator = null)
   if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
     console.printError("Warning: Watch face was not stopped.")
   }

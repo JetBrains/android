@@ -26,6 +26,7 @@ import com.android.tools.manifest.parser.XmlNode
 import com.android.tools.manifest.parser.components.ManifestActivityInfo
 import com.android.tools.manifest.parser.components.ManifestServiceInfo
 import com.android.utils.NullLogger
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -72,16 +73,22 @@ internal class TestApplicationInstaller : ApplicationDeployer {
     this.appIdToApp = appIdToApp
   }
 
-  override fun fullDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions): Deployer.Result {
+  override fun fullDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions, indicator: ProgressIndicator): Deployer.Result {
     val appId = app.applicationId
     return Deployer.Result(false, false, false, appIdToApp[appId]!!)
   }
 
-  override fun applyChangesDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions): Deployer.Result {
+  override fun applyChangesDeploy(device: IDevice,
+                                  app: ApkInfo,
+                                  deployOptions: DeployOptions,
+                                  indicator: ProgressIndicator): Deployer.Result {
     TODO("Not yet implemented")
   }
 
-  override fun applyCodeChangesDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions): Deployer.Result {
+  override fun applyCodeChangesDeploy(device: IDevice,
+                                      app: ApkInfo,
+                                      deployOptions: DeployOptions,
+                                      indicator: ProgressIndicator): Deployer.Result {
     TODO("Not yet implemented")
   }
 }

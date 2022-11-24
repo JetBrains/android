@@ -29,6 +29,7 @@ import com.android.tools.idea.run.tasks.ApplyCodeChangesTask
 import com.android.tools.idea.run.tasks.DeployTask
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 
 
@@ -36,7 +37,7 @@ class ApplicationDeployerImpl(private val project: Project,
                               val console: ConsoleView) : ApplicationDeployer {
   private val LOG = Logger.getInstance(this::class.java)
 
-  override fun fullDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions): Deployer.Result {
+  override fun fullDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions, indicator: ProgressIndicator): Deployer.Result {
 
     // Add packages to the deployment,
     val deployTask = DeployTask(
@@ -47,10 +48,13 @@ class ApplicationDeployerImpl(private val project: Project,
       deployOptions.alwaysInstallWithPm)
 
     // use single(), because we have 1 apkInfo as input.
-    return deployTask.run(device, console, AdbCommandCaptureLoggerWithConsole(LOG, console)).single()
+    return deployTask.run(device, indicator).single()
   }
 
-  override fun applyChangesDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions): Deployer.Result {
+  override fun applyChangesDeploy(device: IDevice,
+                                  app: ApkInfo,
+                                  deployOptions: DeployOptions,
+                                  indicator: ProgressIndicator): Deployer.Result {
     val deployTask = ApplyChangesTask(
       project,
       listOf(filterDisabledFeatures(app, deployOptions.disabledDynamicFeatures)),
@@ -58,10 +62,13 @@ class ApplicationDeployerImpl(private val project: Project,
       deployOptions.alwaysInstallWithPm)
 
     // use single(), because we have 1 apkInfo as input.
-    return deployTask.run(device, console, AdbCommandCaptureLoggerWithConsole(LOG, console)).single()
+    return deployTask.run(device, indicator).single()
   }
 
-  override fun applyCodeChangesDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions): Deployer.Result {
+  override fun applyCodeChangesDeploy(device: IDevice,
+                                      app: ApkInfo,
+                                      deployOptions: DeployOptions,
+                                      indicator: ProgressIndicator): Deployer.Result {
     val deployTask = ApplyCodeChangesTask(
       project,
       listOf(filterDisabledFeatures(app, deployOptions.disabledDynamicFeatures)),
@@ -69,7 +76,7 @@ class ApplicationDeployerImpl(private val project: Project,
       deployOptions.alwaysInstallWithPm)
 
     // use single(), because we have 1 apkInfo as input.
-    return deployTask.run(device, console, AdbCommandCaptureLoggerWithConsole(LOG, console)).single()
+    return deployTask.run(device, indicator).single()
   }
 
   private fun filterDisabledFeatures(apkInfo: ApkInfo, disabledFeatures: List<String>): ApkInfo {

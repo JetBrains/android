@@ -37,6 +37,7 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.util.ExceptionUtil
 import io.ktor.util.reflect.instanceOf
 import org.junit.Test
@@ -112,7 +113,9 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     // Mock app installation.
     Mockito.doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
-    val runContentDescriptor = getRunContentDescriptorForTests { executor.run().blockingGet(10, TimeUnit.SECONDS)!! }
+    val runContentDescriptor = getRunContentDescriptorForTests {
+      executor.run(EmptyProgressIndicator()).blockingGet(10, TimeUnit.SECONDS)!!
+    }
 
     // Verify commands sent to device.
 
@@ -181,7 +184,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     val appInstaller = TestApplicationInstaller(appId, app) // Mock app installation.
     Mockito.doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
-    val e = assertFailsWith<Throwable> { executor.debug().blockingGet(10, TimeUnit.SECONDS) }.let {
+    val e = assertFailsWith<Throwable> { executor.debug(EmptyProgressIndicator()).blockingGet(10, TimeUnit.SECONDS) }.let {
       ExceptionUtil.findCause(it, ExecutionException::class.java)
     }
     assertThat(e).hasMessageThat().contains("Error while setting the tile, message: $failedResponse")
@@ -229,7 +232,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     val appInstaller = TestApplicationInstaller(appId, app) // Mock app installation.
     Mockito.doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
-    val e = assertFailsWith<Throwable> { executor.run().blockingGet(10, TimeUnit.SECONDS) }.let {
+    val e = assertFailsWith<Throwable> { executor.run(EmptyProgressIndicator()).blockingGet(10, TimeUnit.SECONDS) }.let {
       ExceptionUtil.findCause(it, ExecutionException::class.java)
     }
 
@@ -288,7 +291,9 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     // Mock app installation.
     Mockito.doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
-    val runContentDescriptor = getRunContentDescriptorForTests { executor.debug().blockingGet(10, TimeUnit.SECONDS)!! }
+    val runContentDescriptor = getRunContentDescriptorForTests {
+      executor.debug(EmptyProgressIndicator()).blockingGet(10, TimeUnit.SECONDS)!!
+    }
     assertThat(runContentDescriptor.processHandler).instanceOf(AndroidRemoteDebugProcessHandler::class)
 
     // Stop configuration.
