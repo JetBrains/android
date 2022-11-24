@@ -1404,6 +1404,21 @@ java_test(
 )
 
 java_test(
+    name = "CreateNavNIGraphTest",
+    data = COMMON_DATA + glob([
+        "testData/SimpleApplication/**",
+    ]) + [
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+    ],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.naveditor.CreateNavNIGraphTest"],
+    tags = COMMON_TAGS + [
+        "qa_smoke",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
     name = "RefactoringFlowTest",
     size = "enormous",
     timeout = "long",
