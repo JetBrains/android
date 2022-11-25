@@ -359,7 +359,7 @@ class ExtractVariableWorkerTest {
         val targetSdkVersion = PsProductFlavor.ProductFlavorDescriptors.targetSdkVersion.bind(paidProductFlavor)
         checkPreferredName(maxSdkVersion, "paidMaxSdkVersion", 25)
         checkPreferredName(minSdkVersion, "paidMinSdkVersion", "10")
-        checkPreferredName(targetSdkVersion, "paidTargetSdkVersion", "20")
+        checkPreferredName(targetSdkVersion, "paidTargetSdkVersion", "${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}")
       }
 
       // test{ApplicationId,FunctionalTest,HandleProfiling,InstrumentationRunner}

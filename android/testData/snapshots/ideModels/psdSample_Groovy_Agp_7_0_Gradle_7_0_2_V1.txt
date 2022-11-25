@@ -1867,8 +1867,8 @@ MODULE                        : project.app
                 ApiLevel                      : 10
                 ApiString                     : 10
             TargetSdkVersion
-                ApiLevel                      : 20
-                ApiString                     : 20
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             TestInstrumentationRunnerArguments
                 a                             : AAA
                 b                             : BBB

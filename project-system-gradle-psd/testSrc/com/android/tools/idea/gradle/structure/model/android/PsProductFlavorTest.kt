@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
@@ -141,8 +142,8 @@ class PsProductFlavorTest {
       assertThat(
         PsProductFlavor.ProductFlavorDescriptors.getParsed(productFlavor)?.targetSdkVersion()?.valueType,
         equalTo(GradlePropertyModel.ValueType.INTEGER))
-      assertThat(targetSdkVersion.resolved.asTestValue(), equalTo("20"))
-      assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("20"))
+      assertThat(targetSdkVersion.resolved.asTestValue(), equalTo("${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}"))
+      assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}"))
 
       assertThat(testApplicationId.resolved.asTestValue(), equalTo("com.example.psd.sample.app.paid.test"))
       assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.paid.test"))

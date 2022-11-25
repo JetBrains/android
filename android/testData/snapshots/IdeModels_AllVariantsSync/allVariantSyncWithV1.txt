@@ -347,8 +347,8 @@ ProductFlavors
             ApiLevel                      : 10
             ApiString                     : 10
         TargetSdkVersion
-            ApiLevel                      : 20
-            ApiString                     : 20
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         TestInstrumentationRunnerArguments
             a                             : AAA
             b                             : BBB
@@ -2486,8 +2486,8 @@ IdeVariants
             ApiLevel                      : 10
             ApiString                     : 10
         TargetSdkVersion
-            ApiLevel                      : 20
-            ApiString                     : 20
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         MaxSdkVersion                 : 25
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoo
@@ -3141,8 +3141,8 @@ IdeVariants
             ApiLevel                      : 10
             ApiString                     : 10
         TargetSdkVersion
-            ApiLevel                      : 20
-            ApiString                     : 20
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         MaxSdkVersion                 : 25
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoo
@@ -4742,8 +4742,8 @@ IdeVariants
             ApiLevel                      : 10
             ApiString                     : 10
         TargetSdkVersion
-            ApiLevel                      : 20
-            ApiString                     : 20
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         MaxSdkVersion                 : 25
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoovsuffix
@@ -5216,8 +5216,8 @@ IdeVariants
             ApiLevel                      : 10
             ApiString                     : 10
         TargetSdkVersion
-            ApiLevel                      : 20
-            ApiString                     : 20
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         MaxSdkVersion                 : 25
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoovsuffix
@@ -6628,8 +6628,8 @@ IdeVariants
             ApiLevel                      : 10
             ApiString                     : 10
         TargetSdkVersion
-            ApiLevel                      : 20
-            ApiString                     : 20
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         MaxSdkVersion                 : 25
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoovnsSpecial
@@ -7098,8 +7098,8 @@ IdeVariants
             ApiLevel                      : 10
             ApiString                     : 10
         TargetSdkVersion
-            ApiLevel                      : 20
-            ApiString                     : 20
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         MaxSdkVersion                 : 25
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoovnsSpecial

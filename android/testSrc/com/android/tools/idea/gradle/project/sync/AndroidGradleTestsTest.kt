@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
@@ -26,6 +27,7 @@ import com.android.tools.idea.testing.injectBuildOutputDumpingBuildViewManager
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
+import com.android.tools.idea.testing.resolve
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.annotations.SystemIndependent
@@ -73,6 +75,23 @@ class AndroidGradleTestsTest : GradleIntegrationTest {
       assertThat(e.message).contains("a:a:1.0")
     }
   }
+
+  @Test
+  @RunsInEdt
+  fun testMultipleRegexMatches() {
+    val expectedVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.resolve().agpVersion
+    val resultPath = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
+    val result = resultPath.resolve("build.gradle").readText()
+
+    assertThat(result.contains("""
+      // id 'com.android.library' version '$expectedVersion' apply false
+      // id 'com.android.application' version '$expectedVersion' apply false
+    """.trimIndent())).isTrue()
+    assertThat(result.contains("""
+      // id 'com.android.library' version 'VERSION_TO_BE_REPLACED' apply false
+      // id 'com.android.application' version 'VERSION_TO_BE_REPLACED' apply false
+    """.trimIndent())).isFalse()
+ }
 
   @Test
   @RunsInEdt

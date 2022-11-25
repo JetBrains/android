@@ -39,6 +39,7 @@ import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.util.io.FileUtil.copyDir;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.util.text.StringUtil.replace;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static java.util.Collections.emptyList;
 import static org.junit.Assert.assertNotNull;
@@ -474,8 +475,11 @@ public class AndroidGradleTests {
   public static String replaceRegexGroup(String contents, String regex, String value) {
     Pattern pattern = Pattern.compile(regex);
     Matcher matcher = pattern.matcher(contents);
-    if (matcher.find()) {
-      contents = contents.substring(0, matcher.start(1)) + value + contents.substring(matcher.end(1));
+    if (matcher.find() && !matcher.group(1).equals(value)) {
+      return contents.substring(0, matcher.start(1))
+             + value
+             // Keep replacing the found matches.
+             + replaceRegexGroup(contents.substring(matcher.end(1)), regex, value);
     }
     return contents;
   }

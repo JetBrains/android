@@ -19,3 +19,7 @@ allprojects {
 }
 
 println("This is a simple application!")
+
+// This is added to test regex replacement and kept as a comment to minimize interference
+// id 'com.android.library' version 'VERSION_TO_BE_REPLACED' apply false
+// id 'com.android.application' version 'VERSION_TO_BE_REPLACED' apply false
