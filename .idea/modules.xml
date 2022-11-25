@@ -270,6 +270,7 @@
       <module fileurl="file://$PROJECT_DIR$/streaming/intellij.android.streaming.tests.iml" filepath="$PROJECT_DIR$/streaming/intellij.android.streaming.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/studio/integration/intellij.android.studio.integration/intellij.android.studio.integration.iml" filepath="$PROJECT_DIR$/studio/integration/intellij.android.studio.integration/intellij.android.studio.integration.iml" />
       <module fileurl="file://$PROJECT_DIR$/studio/tests/intellij.android.studio.tests.iml" filepath="$PROJECT_DIR$/studio/tests/intellij.android.studio.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/sync-memory-tests/intellij.android.sync-memory-tests.iml" filepath="$PROJECT_DIR$/sync-memory-tests/intellij.android.sync-memory-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/sync-perf-tests/intellij.android.sync-perf-tests.iml" filepath="$PROJECT_DIR$/sync-perf-tests/intellij.android.sync-perf-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-templates/intellij.android.templates.iml" filepath="$PROJECT_DIR$/android-templates/intellij.android.templates.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-templates/intellij.android.templates.tests.iml" filepath="$PROJECT_DIR$/android-templates/intellij.android.templates.tests.iml" />
