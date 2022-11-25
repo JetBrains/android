@@ -831,6 +831,14 @@ public final class StudioFlags {
     ""
   );
 
+  public static final Flag<String> GRADLE_HPROF_OUTPUT_DIRECTORY = Flag.create(
+    GRADLE_IDE,
+    "gradle.hprof.output.directory",
+    "Gradle sync HPROF output directory",
+    "If set, HPROF snapshots will be created at certain points during project sync and saved in the directory",
+    ""
+  );
+
   //endregion
 
   //region Database Inspector

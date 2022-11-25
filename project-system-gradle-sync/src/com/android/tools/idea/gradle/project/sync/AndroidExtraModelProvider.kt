@@ -63,6 +63,11 @@ private class BuildModelsAndMap(val models: Set<GradleBuild>, val map: IdeCompos
  * initializers (without having these values serialized).
  */
 private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionOptions) {
+  init {
+    if (syncOptions.flags.studioHprofOutputDirectory.isNotEmpty()) {
+      captureSnapshot(syncOptions.flags.studioHprofOutputDirectory, "before_sync")
+    }
+  }
 
   private var buildModelsAndMap: BuildModelsAndMap? = null
   private val seenBuildModels: MutableSet<GradleBuild> = mutableSetOf()
@@ -107,6 +112,9 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
       ).populateBuildModels()
       if (syncOptions.flags.studioFlagOutputSyncStats) {
         println(syncCounters)
+      }
+      if (syncOptions.flags.studioHprofOutputDirectory.isNotEmpty()) {
+        captureSnapshot(syncOptions.flags.studioHprofOutputDirectory, "after_sync")
       }
    }
   }
