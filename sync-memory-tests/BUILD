@@ -4,6 +4,7 @@ load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.sync-memory-tests",
+    srcs = ["src"],
     iml_files = ["intellij.android.sync-memory-tests.iml"],
     split_test_targets = {
         "Benchmark100": {
@@ -46,4 +47,17 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
     ],
+)
+
+java_binary(
+    name = "benchmark_summary_tool",
+    testonly = True,
+    main_class = "com.android.tools.idea.gradle.project.sync.memory.BenchmarkSummaryTool",
+    runtime_deps = [":benchmark_summary_lib"],
+)
+
+kotlin_library(
+    name = "benchmark_summary_lib",
+    srcs = ["src/com/android/tools/idea/gradle/project/sync/memory/BenchmarkSummaryTool.kt"],
+    deps = ["@maven//:com.google.code.gson.gson"],
 )
