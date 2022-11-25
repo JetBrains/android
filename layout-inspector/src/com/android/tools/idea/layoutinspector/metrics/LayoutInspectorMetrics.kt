@@ -16,8 +16,6 @@
 package com.android.tools.idea.layoutinspector.metrics
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.appinspection.ide.analytics.toDeviceInfo
-import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorTransportError
@@ -34,7 +32,7 @@ object LayoutInspectorMetrics {
     UsageTracker.log(builder)
   }
 
-  fun logTransportError(transportErrorType: DynamicLayoutInspectorTransportError.Type, deviceDescriptor: DeviceDescriptor) {
+  fun logTransportError(transportErrorType: DynamicLayoutInspectorTransportError.Type) {
     val transportErrorInfo = DynamicLayoutInspectorTransportError.newBuilder().setType(transportErrorType).build()
 
     val androidStudioEvent = AndroidStudioEvent.newBuilder().apply {
@@ -43,7 +41,6 @@ object LayoutInspectorMetrics {
         type = DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.TRANSPORT_ERROR
         transportError = transportErrorInfo
       }.build()
-      deviceInfo = deviceDescriptor.toDeviceInfo()
     }
 
     UsageTracker.log(androidStudioEvent)

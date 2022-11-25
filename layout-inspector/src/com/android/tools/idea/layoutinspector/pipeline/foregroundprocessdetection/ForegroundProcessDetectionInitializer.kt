@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetecti
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
-import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportService
 import com.intellij.openapi.diagnostic.Logger
@@ -73,14 +72,12 @@ object ForegroundProcessDetectionInitializer {
     foregroundProcessListener: ForegroundProcessListener = getDefaultForegroundProcessListener(deviceModel, processModel),
     transportClient: TransportClient = getDefaultTransportClient(),
     metrics: ForegroundProcessDetectionMetrics,
-    layoutInspectorMetrics: LayoutInspectorMetrics = LayoutInspectorMetrics
   ): ForegroundProcessDetection {
     val foregroundProcessDetection = ForegroundProcessDetection(
       project,
       deviceModel,
       processModel,
       transportClient,
-      layoutInspectorMetrics,
       metrics,
       coroutineScope
     )

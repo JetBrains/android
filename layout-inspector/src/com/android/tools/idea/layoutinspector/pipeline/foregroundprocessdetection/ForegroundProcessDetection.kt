@@ -21,7 +21,6 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
-import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.manager.StreamConnected
@@ -33,7 +32,6 @@ import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorTransportError
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineDispatcher
@@ -104,7 +102,6 @@ class ForegroundProcessDetection(
   private val deviceModel: DeviceModel,
   processModel: ProcessesModel,
   private val transportClient: TransportClient,
-  private val layoutInspectorMetrics: LayoutInspectorMetrics,
   private val metrics: ForegroundProcessDetectionMetrics,
   scope: CoroutineScope,
   workDispatcher: CoroutineDispatcher = AndroidDispatchers.workerThread,
@@ -144,7 +141,7 @@ class ForegroundProcessDetection(
     private val connectTimestamps = mutableMapOf<DeviceDescriptor, Long>()
     private val loggedDevices = mutableSetOf<DeviceDescriptor>()
 
-    private fun addTimeStamp(deviceDescriptor: DeviceDescriptor, newTimeStamp: Long, layoutInspectorMetrics: LayoutInspectorMetrics) {
+    private fun addTimeStamp(deviceDescriptor: DeviceDescriptor, newTimeStamp: Long) {
       if (connectTimestamps.contains(deviceDescriptor)) {
         val prevTimeStamp = connectTimestamps[deviceDescriptor]!!
         // the previous timestamp is >= the new timestamp, this means that b/250589069 happened.
@@ -155,10 +152,6 @@ class ForegroundProcessDetection(
           )
           // log only once per device
           loggedDevices.add(deviceDescriptor)
-          layoutInspectorMetrics.logTransportError(
-            DynamicLayoutInspectorTransportError.Type.TRANSPORT_OLD_TIMESTAMP_BIGGER_THAN_NEW_TIMESTAMP,
-            deviceDescriptor
-          )
         }
         else {
           connectTimestamps[deviceDescriptor] = newTimeStamp
@@ -217,7 +210,7 @@ class ForegroundProcessDetection(
             val timeRequest = Transport.TimeRequest.newBuilder().setStreamId(stream.streamId).build()
             val currentTime = activity.streamChannel.client.getCurrentTime(timeRequest).timestampNs
 
-            addTimeStamp(streamDevice, currentTime, layoutInspectorMetrics)
+            addTimeStamp(streamDevice, currentTime)
 
             // start listening for LAYOUT_INSPECTOR_FOREGROUND_PROCESS events
             launch {
