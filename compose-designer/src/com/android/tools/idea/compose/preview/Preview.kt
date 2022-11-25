@@ -192,7 +192,6 @@ fun configureLayoutlibSceneManager(
       changeRequiresReinflate(showDecorations, isInteractive, requestPrivateClassLoader)
     setTransparentRendering(!showDecorations)
     setShrinkRendering(!showDecorations)
-    setRerenderWhenModelDerivedDataChanged(false)
     interactive = isInteractive
     isUsePrivateClassLoader = requestPrivateClassLoader
     setQuality(if (PreviewPowerSaveManager.isInPowerSaveMode) 0.5f else 0.7f)

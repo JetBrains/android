@@ -387,9 +387,11 @@ class NlPropertiesModelTest: LayoutTestCase() {
     // then we also need to wait for events on the UI thread.
     fun waitUntilLastSelectionUpdateCompleted(model: NlPropertiesModel) {
       model.updateQueue.flush()
-      while (!model.lastUpdateCompleted) {
-        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-      }
+      PlatformTestUtil.waitWithEventsDispatching(
+        "Model was not updated",
+        { model.lastUpdateCompleted },
+        10
+      );
     }
   }
 }

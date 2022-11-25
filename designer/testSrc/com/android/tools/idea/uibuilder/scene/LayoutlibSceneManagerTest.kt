@@ -72,8 +72,8 @@ class LayoutlibSceneManagerTest: SceneTest() {
       assertFalse(sceneManager.isOutOfDate)
       sceneManager.model.notifyModified(NlModel.ChangeType.RESOURCE_CHANGED)
       assertTrue(sceneManager.isOutOfDate)
-      // Requesting a model update will clear the out of date flag.
-      sceneManager.requestModelUpdate()
+      // Requesting a render which will clear the flag.
+      sceneManager.requestRenderAsync()
       assertFalse(sceneManager.isOutOfDate)
     } finally {
       PowerSaveMode.setEnabled(false)

@@ -85,7 +85,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.SlowOperations;
 import com.intellij.util.concurrency.AppExecutorUtil;
@@ -323,12 +322,6 @@ public class LayoutlibSceneManager extends SceneManager {
    * If true, the render will paint the system decorations (status and navigation bards)
    */
   private boolean useShowDecorations;
-
-  /**
-   * If true, automatically re-render when {@link ModelListener#modelDerivedDataChanged(NlModel)} is triggered. Which happens after model is
-   * inflated.
-   */
-  private boolean myRerenderWhenModelDerivedDataChanged = true;
 
   /**
    * If true, automatically update (if needed) and re-render when being activated. Which happens after {@link #activate(Object)} is called.
@@ -740,20 +733,15 @@ public class LayoutlibSceneManager extends SceneManager {
       // After the model derived data is changed, we need to update the selection in Edt thread.
       // Changing selection should run in UI thread to avoid avoid race condition.
       NlDesignSurface surface = getDesignSurface();
-      if (!myRerenderWhenModelDerivedDataChanged) {
-        CompletableFuture.runAsync(() -> {
-          // Selection change listener should run in UI thread not in the layoublib rendering thread. This avoids race condition.
-          mySelectionChangeListener.selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection());
-        }, EdtExecutorService.getInstance());
-        return;
-      }
+      CompletableFuture.runAsync(() -> {
+        // Ensure the new derived that is passed to the Scene components hierarchy
+        if (!isDisposed.get()) {
+          update();
+        }
 
-      requestRenderAsync(getTriggerFromChangeType(model.getLastChangeType()))
-        .thenRunAsync(() ->
-          mySelectionChangeListener.selectionChanged(
-            surface.getSelectionModel(),
-            surface.getSelectionModel().getSelection()),
-                      EdtExecutorService.getInstance());
+        // Selection change listener should run in UI thread not in the layoublib rendering thread. This avoids race condition.
+        mySelectionChangeListener.selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection());
+      }, EdtExecutorService.getInstance());
     }
 
     @Override
@@ -764,19 +752,19 @@ public class LayoutlibSceneManager extends SceneManager {
         return;
       }
 
-      requestModelUpdate();
-      ApplicationManager.getApplication().invokeLater(() -> {
-        if (!isDisposed.get()) {
-          mySelectionChangeListener
-            .selectionChanged(getDesignSurface().getSelectionModel(), getDesignSurface().getSelectionModel().getSelection());
-        }
-      });
+      NlDesignSurface surface = getDesignSurface();
+      // The structure might have changed, force a re-inflate
+      forceReinflate();
+      requestRenderAsync(getTriggerFromChangeType(model.getLastChangeType()))
+        .thenRunAsync(() ->
+                        mySelectionChangeListener.selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection())
+          , EdtExecutorService.getInstance());
     }
 
     @Override
     public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
       UIUtil.invokeLaterIfNeeded(() -> {
-        if (!Disposer.isDisposed(LayoutlibSceneManager.this)) {
+        if (!isDisposed.get()) {
           boolean previous = getScene().isAnimated();
           getScene().setAnimated(animate);
           update();
@@ -805,7 +793,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * @return {@link CompletableFuture} that will be completed once the render has been done.
    */
   @NotNull
-  private CompletableFuture<Void> requestRenderAsync(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+  protected CompletableFuture<Void> requestRenderAsync(@Nullable LayoutEditorRenderResult.Trigger trigger) {
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("requestRender after LayoutlibSceneManager has been disposed");
       return CompletableFuture.completedFuture(null);
@@ -964,10 +952,6 @@ public class LayoutlibSceneManager extends SceneManager {
       useShowDecorations = enabled;
       forceReinflate(); // Showing decorations changes the XML content of the render so requires re-inflation
     }
-  }
-
-  public void setRerenderWhenModelDerivedDataChanged(boolean enabled) {
-    myRerenderWhenModelDerivedDataChanged = enabled;
   }
 
   public void setUpdateAndRenderWhenActivated(boolean enable) {
@@ -1385,16 +1369,21 @@ public class LayoutlibSceneManager extends SceneManager {
                                                                         4L);
           }
 
-          UIUtil.invokeLaterIfNeeded(() -> {
-            if (!isDisposed.get()) {
-              update();
-            }
-          });
+          return result;
+        })
+        .thenApplyAsync(result -> {
+          if (!isDisposed.get()) {
+            update();
+          }
+
+          return result;
+        }, EdtExecutorService.getInstance())
+        .thenApplyAsync(result -> {
           fireOnRenderComplete();
           completeRender();
 
           return result;
-        });
+        }, AppExecutorUtil.getAppExecutorService());
     }
     catch (Throwable e) {
       if (!getModel().getFacet().isDisposed()) {

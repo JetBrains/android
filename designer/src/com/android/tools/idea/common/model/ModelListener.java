@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface ModelListener {
   /**
-   * Some of the derived (from layoutlib) data in the model changed.
+   * Some of the derived (from layoutlib) data in the model changed. This listener will typically be called after the render has completed.
    *
    * TODO: determine whether the implementors of this actually need this or if they can use modelChanged, indicating that there
    * has been a change to the model itself (e.g. components added or deleted).

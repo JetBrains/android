@@ -27,11 +27,14 @@ import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.UIUtil;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,13 +72,27 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
     myIgnoreRenderRequests = ignoreRenderRequests;
   }
 
+  private <T> CompletableFuture<T> waitForFutureWithoutBlockingUiThread(CompletableFuture<T> future) {
+    if (ApplicationManager.getApplication().isDispatchThread()) {
+      // If this is happening in the UI thread, keep dispatching the events in the UI thread while we are waiting
+      PlatformTestUtil.waitForFuture(future, TimeUnit.SECONDS.toMillis(RENDER_TIMEOUT_SECS));
+    }
+
+    CompletableFuture<T> result = CompletableFuture.completedFuture(future.orTimeout(RENDER_TIMEOUT_SECS, TimeUnit.SECONDS).join());
+
+    // After running render calls, there might be pending actions to run on the UI thread, dispatch those to ensure that after this call, everything
+    // is done.
+    ApplicationManager.getApplication().invokeAndWait(PlatformTestUtil::dispatchAllEventsInIdeEventQueue);
+    return result;
+  }
+
   @NotNull
   @Override
   protected CompletableFuture<RenderResult> renderAsync(@Nullable LayoutEditorRenderResult.Trigger trigger) {
     if (myIgnoreRenderRequests) {
       return CompletableFuture.completedFuture(null);
     }
-    return CompletableFuture.completedFuture(super.renderAsync(trigger).orTimeout(RENDER_TIMEOUT_SECS, TimeUnit.SECONDS).join());
+    return waitForFutureWithoutBlockingUiThread(super.renderAsync(trigger));
   }
 
   @NotNull
@@ -84,21 +101,27 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
     if (myIgnoreRenderRequests) {
       return CompletableFuture.completedFuture(null);
     }
-    return CompletableFuture.completedFuture(super.requestRenderAsync().orTimeout(RENDER_TIMEOUT_SECS, TimeUnit.SECONDS).join());
+    CompletableFuture<Void> result = waitForFutureWithoutBlockingUiThread(super.requestRenderAsync());
+    return result;
+  }
+
+  @Override
+  protected @NotNull CompletableFuture<Void> requestRenderAsync(LayoutEditorRenderResult.@Nullable Trigger trigger) {
+    if (myIgnoreRenderRequests) {
+      return CompletableFuture.completedFuture(null);
+    }
+    return waitForFutureWithoutBlockingUiThread(super.requestRenderAsync(trigger));
   }
 
   @NotNull
   @Override
   public CompletableFuture<Void> updateModelAsync() {
-    return CompletableFuture.completedFuture(super.updateModelAsync().orTimeout(RENDER_TIMEOUT_SECS, TimeUnit.SECONDS).join());
+    return waitForFutureWithoutBlockingUiThread(super.updateModelAsync());
   }
 
   @Override
   protected void requestModelUpdate() {
     updateModelAsync();
-
-    // Note: this probably doesn't belong here, but several tests rely on the UI event queue being emptied so keep it for now:
-    UIUtil.dispatchAllInvocationEvents();
   }
 
   @Override

@@ -46,6 +46,7 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//tools/base/lint:studio.android.sdktools.lint-api[module]",
     ],
 )
 

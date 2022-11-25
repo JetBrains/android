@@ -160,7 +160,6 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
         val sceneManager = LayoutlibSceneManager(model, surface, config)
         sceneManager.setListenResourceChange(false)
         sceneManager.setShowDecorations(VisualizationToolSettings.getInstance().globalState.showDecoration)
-        sceneManager.setRerenderWhenModelDerivedDataChanged(false)
         sceneManager.setUpdateAndRenderWhenActivated(false)
         sceneManager.setUseImagePool(false)
         // 0.0f makes it spend 50% memory. See document in RenderTask#MIN_DOWNSCALING_FACTOR.

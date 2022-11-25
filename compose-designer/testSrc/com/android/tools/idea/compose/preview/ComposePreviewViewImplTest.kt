@@ -43,14 +43,13 @@ import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -89,7 +88,7 @@ private fun configureLayoutlibSceneManagerForPreviewElement(
     requestPrivateClassLoader = false
   )
 
-/** Convers and [InstructionsPanel] into text that can be easily used in assertions. */
+/** Converts an [InstructionsPanel] into text that can be easily used in assertions. */
 private fun InstructionsPanel.toDisplayText(): String =
   (0 until componentCount)
     .flatMap { getRenderInstructionsForComponent(it) }
@@ -104,8 +103,6 @@ private fun InstructionsPanel.toDisplayText(): String =
     .joinToString("")
 
 class ComposePreviewViewImplTest {
-  @get:Rule val edtRule = EdtRule()
-
   @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
   private val project: Project
@@ -125,7 +122,7 @@ class ComposePreviewViewImplTest {
   private lateinit var fakeUi: FakeUi
 
   @Before
-  fun setUp() {
+  fun setUp() = invokeAndWaitIfNeeded {
     // Setup a fake manifest so rendering works correctly
     val manifest =
       fixture.addFileToProjectAndInvalidate(
@@ -241,17 +238,20 @@ class ComposePreviewViewImplTest {
         ::configureLayoutlibSceneManagerForPreviewElement
       )
     }
-    previewView.updateVisibilityAndNotifications()
-    fakeUi.root.validate()
+    invokeAndWaitIfNeeded {
+      previewView.updateVisibilityAndNotifications()
+      fakeUi.root.validate()
+    }
   }
 
-  @RunsInEdt
   @Test
   fun `empty preview state`() {
-    previewView.hasRendered = true
-    previewView.hasContent = false
-    previewView.updateVisibilityAndNotifications()
-    fakeUi.root.validate()
+    invokeAndWaitIfNeeded {
+      previewView.hasRendered = true
+      previewView.hasContent = false
+      previewView.updateVisibilityAndNotifications()
+      fakeUi.root.validate()
+    }
 
     assertEquals(
       """
@@ -263,14 +263,15 @@ class ComposePreviewViewImplTest {
     )
   }
 
-  @RunsInEdt
   @Test
   fun `test compilation error state`() {
-    previewView.hasRendered = true
-    previewView.hasContent = false
-    statusManager.status = ProjectStatus.NeedsBuild
-    previewView.updateVisibilityAndNotifications()
-    fakeUi.root.validate()
+    invokeAndWaitIfNeeded {
+      previewView.hasRendered = true
+      previewView.hasContent = false
+      statusManager.status = ProjectStatus.NeedsBuild
+      previewView.updateVisibilityAndNotifications()
+      fakeUi.root.validate()
+    }
 
     val shortcutRegEx = Regex("\\(.+.\\)")
     val instructionsText =
@@ -286,7 +287,6 @@ class ComposePreviewViewImplTest {
     )
   }
 
-  @RunsInEdt
   @Test
   fun `create compose view with two elements`() {
     val composePreviewManager = TestComposePreviewManager()
@@ -301,15 +301,16 @@ class ComposePreviewViewImplTest {
           previews.asSequence()
       }
     updatePreviewAndRefreshWithProvider(fakePreviewProvider, composePreviewManager)
-    previewView.mainSurface.zoomToFit()
-    fakeUi.root.validate()
+    invokeAndWaitIfNeeded {
+      previewView.mainSurface.zoomToFit()
+      fakeUi.root.validate()
+    }
 
     assertEquals(2, fakeUi.findAllComponents<SceneViewPeerPanel>() { it.isShowing }.size)
     assertTrue(fakeUi.findComponent<JLabel> { it.text == "Display1" }!!.isShowing)
     assertTrue(fakeUi.findComponent<JLabel> { it.text == "Display2" }!!.isShowing)
   }
 
-  @RunsInEdt
   @Test
   fun `open and close bottom panel`() {
     val composePreviewManager = TestComposePreviewManager()
@@ -325,25 +326,30 @@ class ComposePreviewViewImplTest {
       }
     updatePreviewAndRefreshWithProvider(fakePreviewProvider, composePreviewManager)
 
-    previewView.bottomPanel =
-      JPanel().apply {
-        layout = BorderLayout()
-        size = Dimension(100, 100)
-        add(JLabel("Bottom panel"), BorderLayout.CENTER)
-      }
-    fakeUi.root.validate()
+    invokeAndWaitIfNeeded {
+      previewView.bottomPanel =
+        JPanel().apply {
+          layout = BorderLayout()
+          size = Dimension(100, 100)
+          add(JLabel("Bottom panel"), BorderLayout.CENTER)
+        }
+      fakeUi.root.validate()
+    }
     assertTrue(fakeUi.findComponent<JLabel> { it.text == "Bottom panel" }!!.isShowing)
 
-    previewView.bottomPanel = null
-    fakeUi.root.validate()
+    invokeAndWaitIfNeeded {
+      previewView.bottomPanel = null
+      fakeUi.root.validate()
+    }
     assertNull(fakeUi.findComponent<JLabel> { it.text == "Bottom panel" })
   }
 
-  @RunsInEdt
   @Test
   fun `verify refresh cancellation`() {
-    previewView.onRefreshCancelledByTheUser()
-    fakeUi.root.validate()
+    invokeAndWaitIfNeeded {
+      previewView.onRefreshCancelledByTheUser()
+      fakeUi.root.validate()
+    }
     assertEquals(
       """
       Refresh was cancelled and needs to be completed before the preview can be displayed
@@ -353,7 +359,6 @@ class ComposePreviewViewImplTest {
     )
   }
 
-  @RunsInEdt
   @Test
   fun `verify refresh cancellation with content available does not show error panel`() {
     val composePreviewManager = TestComposePreviewManager()
@@ -368,8 +373,10 @@ class ComposePreviewViewImplTest {
           previews.asSequence()
       }
     updatePreviewAndRefreshWithProvider(fakePreviewProvider, composePreviewManager)
-    previewView.onRefreshCancelledByTheUser()
-    fakeUi.root.validate()
+    invokeAndWaitIfNeeded {
+      previewView.onRefreshCancelledByTheUser()
+      fakeUi.root.validate()
+    }
 
     assertNull(fakeUi.findComponent<InstructionsPanel> { it.isShowing })
   }
