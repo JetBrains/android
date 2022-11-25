@@ -47,7 +47,7 @@ class AnnotationProcessorsAnalyzerTest {
       var results = buildAnalyzerStorageManager.getSuccessfulResult()
 
       assertThat(
-        results.getAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(
+        results.getNonIncrementalAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(
         setOf(
           "com.google.auto.value.processor.AutoAnnotationProcessor",
           "com.google.auto.value.processor.AutoValueBuilderProcessor",
@@ -73,10 +73,10 @@ class AnnotationProcessorsAnalyzerTest {
           .replace("annotationProcessor 'com.google.auto.value:auto-value:1.6.2'", "")
       )
 
-      invokeTasks(":app:compileDebugJavaWithJavac")
+      invokeTasks("clean", ":app:compileDebugJavaWithJavac")
       results = buildAnalyzerStorageManager.getSuccessfulResult()
 
-      assertThat(results.getAnnotationProcessorsData()).isEmpty()
+      assertThat(results.getNonIncrementalAnnotationProcessorsData()).isEmpty()
       assertThat(results.getTaskCategoryWarningsAnalyzerResult()).isInstanceOf(TaskCategoryWarningsAnalyzer.IssuesResult::class.java)
       assertThat(
         (results.getTaskCategoryWarningsAnalyzerResult() as TaskCategoryWarningsAnalyzer.IssuesResult).taskCategoryIssues
@@ -105,7 +105,7 @@ class AnnotationProcessorsAnalyzerTest {
       val results = buildAnalyzerStorageManager.getSuccessfulResult()
 
       assertThat(
-        results.getAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(
+        results.getNonIncrementalAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(
         setOf(
           "com.google.auto.value.processor.AutoValueBuilderProcessor",
           "com.google.auto.value.processor.AutoOneOfProcessor",

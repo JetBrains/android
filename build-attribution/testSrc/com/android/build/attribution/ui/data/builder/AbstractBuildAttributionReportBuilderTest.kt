@@ -51,7 +51,6 @@ open class AbstractBuildAttributionReportBuilderTest {
   open class MockResultsProvider : BuildEventsAnalysisResult {
     override fun getBuildRequestData(): GradleBuildInvoker.Request.RequestData = mock()
     override fun getBuildFinishedTimestamp(): Long = 0
-    override fun getAnnotationProcessorsData(): List<AnnotationProcessorData> = emptyList()
     override fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData> = emptyList()
     override fun getTotalBuildTimeMs(): Long = 0
     override fun getConfigurationPhaseTimeMs(): Long = 0

@@ -101,10 +101,6 @@ data class BuildAnalysisResults(
     return criticalPathAnalyzerResult.buildFinishedTimestamp
   }
 
-  override fun getAnnotationProcessorsData(): List<AnnotationProcessorData> {
-    return annotationProcessorAnalyzerResult.annotationProcessorsData
-  }
-
   override fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData> {
     return annotationProcessorAnalyzerResult.nonIncrementalAnnotationProcessorsData
   }

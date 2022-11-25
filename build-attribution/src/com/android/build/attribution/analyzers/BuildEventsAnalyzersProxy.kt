@@ -32,7 +32,6 @@ import org.jetbrains.kotlin.idea.util.ifTrue
 interface BuildEventsAnalysisResult {
   fun getBuildRequestData() : GradleBuildInvoker.Request.RequestData
   fun getBuildFinishedTimestamp() : Long
-  fun getAnnotationProcessorsData(): List<AnnotationProcessorData>
   fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData>
   fun getTotalBuildTimeMs(): Long
   fun getConfigurationPhaseTimeMs(): Long

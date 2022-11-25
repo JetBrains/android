@@ -36,7 +36,7 @@ class TaskCategoryIssueUiDataContainer(
       .taskCategoryIssues.filter { issue ->
         issue.taskCategory == taskCategory && issue.severity == severity
       }.map {
-        it.toUiData(buildAnalysisResult.getAnnotationProcessorsData())
+        it.toUiData(buildAnalysisResult.getNonIncrementalAnnotationProcessorsData())
       }
   }
 
