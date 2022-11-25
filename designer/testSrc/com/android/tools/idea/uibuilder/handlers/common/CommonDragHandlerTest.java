@@ -20,7 +20,7 @@ import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.InteractionManager;
+import com.android.tools.idea.common.surface.GuiInputHandler;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.common.LayoutTestUtilities;
@@ -69,7 +69,7 @@ public class CommonDragHandlerTest extends LayoutTestCase {
     surface.getSelectionModel().setSelection(ImmutableList.of(button));
     surface.setModel(model);
     Transferable transferable = surface.getSelectionAsTransferable();
-    InteractionManager manager = surface.getInteractionManager();
+    GuiInputHandler manager = surface.getGuiInputHandler();
     manager.startListening();
     LayoutTestUtilities.dragDrop(manager, 0, 0, 40, 0, transferable, DnDConstants.ACTION_MOVE);
     assertEquals(3, model.find("inner").getChildCount());

@@ -17,7 +17,7 @@ package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
-import com.android.tools.idea.common.surface.InteractionManager.CURSOR_RECEIVER
+import com.android.tools.idea.common.surface.GuiInputHandler.CURSOR_RECEIVER
 import com.intellij.ide.DataManager
 import java.awt.Component
 import javax.swing.JComponent

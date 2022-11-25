@@ -323,7 +323,7 @@ public class Scene implements SelectionListener, Disposable {
 
   @JdkConstants.InputEventMask
   private int getModifiersEx() {
-    return myDesignSurface.getInteractionManager().getLastModifiersEx();
+    return myDesignSurface.getGuiInputHandler().getLastModifiersEx();
   }
 
   //endregion

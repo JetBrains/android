@@ -62,7 +62,7 @@ public class SceneMouseInteraction {
    */
   public void setModifiersEx(@JdkConstants.InputEventMask int modifiersEx) {
     myModifiersEx = modifiersEx;
-    myScene.getDesignSurface().getInteractionManager().setModifier(modifiersEx);
+    myScene.getDesignSurface().getGuiInputHandler().setModifier(modifiersEx);
   }
 
   @NotNull

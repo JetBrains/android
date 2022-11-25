@@ -25,7 +25,7 @@ import com.android.tools.idea.common.fixtures.MouseEventBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.InteractionManager;
+import com.android.tools.idea.common.surface.GuiInputHandler;
 import com.android.tools.idea.common.fixtures.DropTargetDragEventBuilder;
 import com.android.tools.idea.common.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponentMixin;
@@ -60,7 +60,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 public class LayoutTestUtilities {
-  public static void dragMouse(InteractionManager manager,
+  public static void dragMouse(GuiInputHandler manager,
                                @SwingCoordinate int x1,
                                @SwingCoordinate int y1,
                                @SwingCoordinate int x2,
@@ -88,7 +88,7 @@ public class LayoutTestUtilities {
     }
   }
 
-  public static void moveMouse(InteractionManager manager,
+  public static void moveMouse(GuiInputHandler manager,
                                @SwingCoordinate int x1,
                                @SwingCoordinate int y1,
                                @SwingCoordinate int x2,
@@ -114,7 +114,7 @@ public class LayoutTestUtilities {
     }
   }
 
-  public static void pressMouse(InteractionManager manager, int button, @SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
+  public static void pressMouse(GuiInputHandler manager, int button, @SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
     Object listener = manager.getListener();
     assertTrue(listener instanceof MouseListener);
     MouseListener mouseListener = (MouseListener)listener;
@@ -127,7 +127,7 @@ public class LayoutTestUtilities {
                                  .build());
   }
 
-  public static void releaseMouse(InteractionManager manager, int button, @SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
+  public static void releaseMouse(GuiInputHandler manager, int button, @SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
     Object listener = manager.getListener();
     assertTrue(listener instanceof MouseListener);
     MouseListener mouseListener = (MouseListener)listener;
@@ -139,7 +139,7 @@ public class LayoutTestUtilities {
                                   .withId(MouseEvent.MOUSE_RELEASED).build());
   }
 
-  public static void clickMouse(InteractionManager manager,
+  public static void clickMouse(GuiInputHandler manager,
                                 int button,
                                 int count,
                                 @SwingCoordinate int x,
@@ -165,7 +165,7 @@ public class LayoutTestUtilities {
     }
   }
 
-  public static void dragDrop(InteractionManager manager,
+  public static void dragDrop(GuiInputHandler manager,
                               @SwingCoordinate int x1,
                               @SwingCoordinate int y1,
                               @SwingCoordinate int x2,
@@ -174,7 +174,7 @@ public class LayoutTestUtilities {
     dragDrop(manager, x1, y1, x2, y2, transferable, DnDConstants.ACTION_COPY);
   }
 
-  public static void dragDrop(InteractionManager manager,
+  public static void dragDrop(GuiInputHandler manager,
                               @SwingCoordinate int x1,
                               @SwingCoordinate int y1,
                               @SwingCoordinate int x2,
@@ -206,7 +206,7 @@ public class LayoutTestUtilities {
     verify(dropEvent, times(1)).dropComplete(true);
   }
 
-  public static void releaseKey(@NotNull InteractionManager manager, int keyCode) {
+  public static void releaseKey(@NotNull GuiInputHandler manager, int keyCode) {
     Object listener = manager.getListener();
     assertTrue(listener instanceof KeyListener);
     KeyListener keyListener = (KeyListener)listener;

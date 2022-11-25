@@ -24,7 +24,7 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.surface.InteractionManager
+import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.notifications.NotificationPanel
@@ -165,7 +165,7 @@ internal class ComposePreviewViewImpl(
       .setDelegateDataProvider { key ->
         if (PANNABLE_KEY.`is`(key)) {
           this@ComposePreviewViewImpl
-        } else if (InteractionManager.CURSOR_RECEIVER.`is`(key)) {
+        } else if (GuiInputHandler.CURSOR_RECEIVER.`is`(key)) {
           // TODO(b/229842640): We should actually pass the [scrollPane] here, but it does not work
           workbench
         } else dataProvider.getData(key)

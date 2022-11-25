@@ -21,7 +21,7 @@ import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
-import com.android.tools.idea.common.surface.InteractionManager
+import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -54,8 +54,8 @@ class SelectionTest : NavTestCase() {
     val scene = model.surface.scene!!
     scene.layout(0, SceneContext.get())
 
-    val interactionManager = surface.interactionManager
-    interactionManager.startListening()
+    val guiInputHandler = surface.guiInputHandler
+    guiInputHandler.startListening()
 
     val component1 = scene.getSceneComponent("fragment1")!!
     val component2 = scene.getSceneComponent("fragment2")!!
@@ -65,16 +65,16 @@ class SelectionTest : NavTestCase() {
     @NavCoordinate var x2 = component2.drawX + component2.drawWidth / 2
     @NavCoordinate val y2 = component2.drawY + component2.drawHeight / 2
 
-    checkSelection(x1, y1, x2, y2, component1, component2, true, interactionManager, sceneView)
+    checkSelection(x1, y1, x2, y2, component1, component2, true, guiInputHandler, sceneView)
 
     x1 = component1.drawX + component1.drawWidth
     x2 = component2.drawX + component2.drawWidth
 
     // clicking on the action handle selects the underlying destination
     // and clears all other selection
-    checkSelection(x1, y1, x2, y2, component1, component2, false, interactionManager, sceneView)
+    checkSelection(x1, y1, x2, y2, component1, component2, false, guiInputHandler, sceneView)
 
-    interactionManager.stopListening()
+    guiInputHandler.stopListening()
   }
 
   private fun checkSelection(@NavCoordinate x1: Int,
@@ -84,35 +84,35 @@ class SelectionTest : NavTestCase() {
                              component1: SceneComponent,
                              component2: SceneComponent,
                              allowsMultiSelect: Boolean,
-                             interactionManager: InteractionManager,
+                             guiInputHandler: GuiInputHandler,
                              sceneView: SceneView) {
-    select(x1, y1, false, interactionManager, sceneView)
+    select(x1, y1, false, guiInputHandler, sceneView)
     assertTrue(component1.isSelected)
     assertFalse(component2.isSelected)
 
-    select(x2, y2, false, interactionManager, sceneView)
+    select(x2, y2, false, guiInputHandler, sceneView)
     assertFalse(component1.isSelected)
     assertTrue(component2.isSelected)
 
-    select(x1, y1, true, interactionManager, sceneView)
+    select(x1, y1, true, guiInputHandler, sceneView)
     assertTrue(component1.isSelected)
     assertEquals(component2.isSelected, allowsMultiSelect)
 
-    select(x1, y1, true, interactionManager, sceneView)
+    select(x1, y1, true, guiInputHandler, sceneView)
     assertEquals(component1.isSelected, !allowsMultiSelect)
     assertEquals(component2.isSelected, allowsMultiSelect)
   }
 
-  private fun select(@NavCoordinate x: Int, @NavCoordinate y: Int, shiftKey: Boolean, interactionManager: InteractionManager,
+  private fun select(@NavCoordinate x: Int, @NavCoordinate y: Int, shiftKey: Boolean, guiInputHandler: GuiInputHandler,
                      sceneView: SceneView) {
     val modifiers = if (shiftKey) InputEvent.SHIFT_DOWN_MASK else 0
 
     val swingX = Coordinates.getSwingX(sceneView, x)
     val swingY = Coordinates.getSwingX(sceneView, y)
 
-    LayoutTestUtilities.moveMouse(interactionManager, 0, 0, swingX, swingY)
-    LayoutTestUtilities.pressMouse(interactionManager, BUTTON1, swingX, swingY, modifiers)
-    LayoutTestUtilities.releaseMouse(interactionManager, BUTTON1, swingX, swingY, modifiers)
+    LayoutTestUtilities.moveMouse(guiInputHandler, 0, 0, swingX, swingY)
+    LayoutTestUtilities.pressMouse(guiInputHandler, BUTTON1, swingX, swingY, modifiers)
+    LayoutTestUtilities.releaseMouse(guiInputHandler, BUTTON1, swingX, swingY, modifiers)
   }
 
   fun testLassoSelection() {
@@ -136,8 +136,8 @@ class SelectionTest : NavTestCase() {
     val scene = model.surface.scene!!
     scene.layout(0, SceneContext.get())
 
-    val interactionManager = surface.interactionManager
-    interactionManager.startListening()
+    val guiInputHandler = surface.guiInputHandler
+    guiInputHandler.startListening()
 
     val fragment1 = scene.getSceneComponent("fragment1")!!
     val fragment2 = scene.getSceneComponent("fragment2")!!
@@ -147,27 +147,27 @@ class SelectionTest : NavTestCase() {
     val action2 = scene.getSceneComponent("action2")!!
     val action3 = scene.getSceneComponent("action3")!!
 
-    lassoSelect(sceneView, interactionManager, fragment1);
+    lassoSelect(sceneView, guiInputHandler, fragment1);
     assertContainsElements(surface.selectionModel.selection, fragment1.nlComponent, action1.nlComponent)
 
-    lassoSelect(sceneView, interactionManager, fragment2);
+    lassoSelect(sceneView, guiInputHandler, fragment2);
     assertContainsElements(surface.selectionModel.selection, fragment2.nlComponent, action2.nlComponent)
 
-    lassoSelect(sceneView, interactionManager, fragment3);
+    lassoSelect(sceneView, guiInputHandler, fragment3);
     assertContainsElements(surface.selectionModel.selection, fragment3.nlComponent, action3.nlComponent)
 
-    interactionManager.stopListening()
+    guiInputHandler.stopListening()
   }
 
-  private fun lassoSelect(sceneView: SceneView, interactionManager: InteractionManager, component: SceneComponent) {
+  private fun lassoSelect(sceneView: SceneView, guiInputHandler: GuiInputHandler, component: SceneComponent) {
     val rect = component.fillRect(null)
     @SwingCoordinate val x1s = Coordinates.getSwingX(sceneView, rect.x) - LASSO_PADDING
     @SwingCoordinate val y1s = Coordinates.getSwingY(sceneView, rect.y) - LASSO_PADDING
     @SwingCoordinate val x2s = Coordinates.getSwingX(sceneView, rect.x + rect.width) + LASSO_PADDING
     @SwingCoordinate val y2s = Coordinates.getSwingY(sceneView, rect.y + rect.height) + LASSO_PADDING
-    LayoutTestUtilities.moveMouse(interactionManager, 0, 0, x1s, y1s)
-    LayoutTestUtilities.pressMouse(interactionManager, BUTTON1, x1s, y1s, InputEvent.SHIFT_DOWN_MASK)
-    LayoutTestUtilities.dragMouse(interactionManager, x1s, y1s, x2s, y2s, 0)
-    LayoutTestUtilities.releaseMouse(interactionManager, BUTTON1, x2s, y2s, InputEvent.SHIFT_DOWN_MASK)
+    LayoutTestUtilities.moveMouse(guiInputHandler, 0, 0, x1s, y1s)
+    LayoutTestUtilities.pressMouse(guiInputHandler, BUTTON1, x1s, y1s, InputEvent.SHIFT_DOWN_MASK)
+    LayoutTestUtilities.dragMouse(guiInputHandler, x1s, y1s, x2s, y2s, 0)
+    LayoutTestUtilities.releaseMouse(guiInputHandler, BUTTON1, x2s, y2s, InputEvent.SHIFT_DOWN_MASK)
   }
 }

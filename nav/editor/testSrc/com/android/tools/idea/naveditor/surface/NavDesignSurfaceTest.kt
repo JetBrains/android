@@ -27,7 +27,7 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.inlineDrawRect
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
-import com.android.tools.idea.common.surface.InteractionManager
+import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.TestInteractable
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -212,8 +212,8 @@ class NavDesignSurfaceTest : NavTestCase() {
 
     val surface = model.surface as NavDesignSurface
     whenever(surface.layeredPane).thenReturn(mock(JComponent::class.java))
-    val interactionManager = surface.interactionManager
-    interactionManager.startListening()
+    val guiInputHandler = surface.guiInputHandler
+    guiInputHandler.startListening()
 
     val view = NavView(surface, surface.sceneManager!!)
 
@@ -221,7 +221,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     val fragment = surface.scene!!.getSceneComponent("fragment1")!!
     val x = Coordinates.getSwingX(view, fragment.drawX) + 5
     val y = Coordinates.getSwingY(view, fragment.drawY) + 5
-    LayoutTestUtilities.clickMouse(interactionManager, MouseEvent.BUTTON1, 2, x, y, 0)
+    LayoutTestUtilities.clickMouse(guiInputHandler, MouseEvent.BUTTON1, 2, x, y, 0)
 
     verify(surface).notifyComponentActivate(eq(fragment.nlComponent), anyInt(), anyInt())
   }
@@ -297,7 +297,9 @@ class NavDesignSurfaceTest : NavTestCase() {
     whenever(surface.focusedSceneView).thenReturn(sceneView)
 
     model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!))
-    val manager = InteractionManager(surface, TestInteractable(surface, JPanel(), JPanel()), NavInteractionHandler(surface))
+    val manager = GuiInputHandler(
+      surface, TestInteractable(surface, JPanel(), JPanel()), NavInteractionHandler(surface)
+    )
     manager.startListening()
 
     val fragment1 = scene.getSceneComponent("fragment1")!!
@@ -523,7 +525,9 @@ class NavDesignSurfaceTest : NavTestCase() {
 
     model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!))
 
-    val manager = InteractionManager(surface, TestInteractable(surface, JPanel(), JPanel()), NavInteractionHandler(surface))
+    val manager = GuiInputHandler(
+      surface, TestInteractable(surface, JPanel(), JPanel()), NavInteractionHandler(surface)
+    )
     manager.startListening()
 
     try {
@@ -671,7 +675,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     assertEquals(expected.id, surface.currentNavigation.id)
   }
 
-  private fun dragSelect(manager: InteractionManager, sceneView: SceneView, @NavCoordinate rect: Rectangle) {
+  private fun dragSelect(manager: GuiInputHandler, sceneView: SceneView, @NavCoordinate rect: Rectangle) {
     @SwingCoordinate val x1 = Coordinates.getSwingX(sceneView, rect.x)
     @SwingCoordinate val y1 = Coordinates.getSwingY(sceneView, rect.y)
     @SwingCoordinate val x2 = Coordinates.getSwingX(sceneView, rect.x + rect.width)
@@ -681,7 +685,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     LayoutTestUtilities.dragMouse(manager, x1, y1, x2, y2, 0)
   }
 
-  private fun dragRelease(manager: InteractionManager, sceneView: SceneView, @NavCoordinate rect: Rectangle) {
+  private fun dragRelease(manager: GuiInputHandler, sceneView: SceneView, @NavCoordinate rect: Rectangle) {
     @SwingCoordinate val x2 = Coordinates.getSwingX(sceneView, rect.x + rect.width)
     @SwingCoordinate val y2 = Coordinates.getSwingY(sceneView, rect.y + rect.height)
 

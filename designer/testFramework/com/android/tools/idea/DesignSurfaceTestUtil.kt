@@ -17,7 +17,6 @@ package com.android.tools.idea
 
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.common.analytics.DesignerAnalyticsManager
 import com.android.tools.idea.common.fixtures.ModelBuilder.TestActionManager
 import com.android.tools.idea.common.model.DefaultSelectionModel
 import com.android.tools.idea.common.model.SelectionModel
@@ -25,7 +24,7 @@ import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.InteractionHandler
-import com.android.tools.idea.common.surface.InteractionManager
+import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.TestInteractable
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -58,7 +57,9 @@ object DesignSurfaceTestUtil {
     whenever(surface.selectionAsTransferable).thenCallRealMethod()
     whenever(surface.actionManager).thenReturn(TestActionManager(surface as DesignSurface<SceneManager>))
     val interactable = TestInteractable(surface, JPanel(), surface)
-    whenever(surface.interactionManager).thenReturn(InteractionManager(surface, interactable, interactionHandlerCreator(surface)))
+    whenever(surface.guiInputHandler).thenReturn(
+      GuiInputHandler(surface, interactable,
+                                                                               interactionHandlerCreator(surface)))
     if (surface is NlDesignSurface) {
       whenever(surface.analyticsManager).thenReturn(NlAnalyticsManager(surface))
     }

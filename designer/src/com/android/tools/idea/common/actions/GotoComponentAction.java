@@ -49,7 +49,7 @@ public class GotoComponentAction extends DumbAwareAction {
   public void actionPerformed(@NotNull AnActionEvent e) {
     InputEvent inputEvent = e.getInputEvent();
     if (inputEvent instanceof MouseEvent) {
-      if (mySurface.getInteractionManager().interceptPanInteraction((MouseEvent)inputEvent) || AdtUiUtils.isActionKeyDown(inputEvent)) {
+      if (mySurface.getGuiInputHandler().interceptPanInteraction((MouseEvent)inputEvent) || AdtUiUtils.isActionKeyDown(inputEvent)) {
         // We don't want to perform navigation while holding some modifiers on mouse event.
         return;
       }

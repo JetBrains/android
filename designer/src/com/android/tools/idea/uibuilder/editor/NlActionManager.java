@@ -501,13 +501,13 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       // which is usually how the toolbar code is updated.
       //
       // So, instead we'll need to feed it the most recently known mask from the
-      // InteractionManager which observes mouse and keyboard events in the design surface.
+      // GuiInputHandler which observes mouse and keyboard events in the design surface.
       // This misses pure keyboard events when the design surface does not have focus
       // (but moving the mouse over the design surface updates it immediately.)
       //
       // (Longer term we consider having a singleton Toolkit listener which listens
       // for AWT events globally and tracks the most recent global modifier key state.)
-      int modifiersEx = mySurface.getInteractionManager().getLastModifiersEx();
+      int modifiersEx = mySurface.getGuiInputHandler().getLastModifiersEx();
 
       myCurrentPresentation = e.getPresentation();
       try {

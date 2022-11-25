@@ -65,22 +65,23 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 /**
- * The {@linkplain InteractionManager} is is the central manager of interactions; it is responsible for
- * recognizing when particular interactions should begin and terminate. It listens to the mouse and keyboard
- * events to find out when to start interactions and in order to update the interactions along the way.
+ * The {@linkplain GuiInputHandler} is the handler of user input events.
+ *
+ * It is responsible for converting the events into {@link Interaction}s. It listens to the mouse and keyboard events to find out when
+ * to start {@link Interaction}, update them and terminate them.
  */
-public class InteractionManager implements Disposable {
+public class GuiInputHandler implements Disposable {
   /**
    * The {@link Cursor} may need to be updated during the interaction. This {@link DataKey} is used to find the target {@link Component}
    * which the {@link Cursor} should be set to.
    */
-  public static final DataKey<Component> CURSOR_RECEIVER = DataKey.create(InteractionManager.class.getName() + ".cursorReceiver");
+  public static final DataKey<Component> CURSOR_RECEIVER = DataKey.create(GuiInputHandler.class.getName() + ".cursorReceiver");
 
   private static final int HOVER_DELAY_MS = Registry.intValue("ide.tooltip.initialDelay");
   private static final int SCROLL_END_TIME_MS = 500;
 
   /**
-   * The canvas which owns this {@linkplain InteractionManager}.
+   * The canvas which owns this {@linkplain GuiInputHandler}.
    */
   @NotNull
   private final Interactable myInteractable;
@@ -165,11 +166,11 @@ public class InteractionManager implements Disposable {
   private boolean myIsInteractionCanceled;
 
   /**
-   * Constructs a new {@link InteractionManager} for the given {@link Interactable}.
+   * Constructs a new {@link GuiInputHandler} for the given {@link Interactable}.
    *
-   * @param interactable The surface which controls this {@link InteractionManager}
+   * @param interactable The surface which controls this {@link GuiInputHandler}
    */
-  public InteractionManager(@NotNull Disposable disposableParent, @NotNull Interactable interactable, @NotNull InteractionHandler provider) {
+  public GuiInputHandler(@NotNull Disposable disposableParent, @NotNull Interactable interactable, @NotNull InteractionHandler provider) {
     myInteractable = interactable;
     myInteractionHandler = provider;
     Disposer.register(disposableParent, this);
@@ -202,9 +203,9 @@ public class InteractionManager implements Disposable {
   }
 
   /**
-   * Returns the canvas associated with this {@linkplain InteractionManager}.
+   * Returns the canvas associated with this {@linkplain GuiInputHandler}.
    *
-   * @return The {@link Interactable} associated with this {@linkplain InteractionManager}.
+   * @return The {@link Interactable} associated with this {@linkplain GuiInputHandler}.
    * Never null.
    */
   @NotNull
@@ -217,7 +218,7 @@ public class InteractionManager implements Disposable {
   }
 
   /**
-   * This will register all the listeners to {@link Interactable} needed by the {@link InteractionManager}.<br>
+   * This will register all the listeners to {@link Interactable} needed by the {@link GuiInputHandler}.<br>
    * Do nothing if it is listening already.
    * @see #stopListening()
    */

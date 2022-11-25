@@ -21,7 +21,6 @@ import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.scene.ACTION_COLOR
@@ -68,14 +67,14 @@ class ActionHitProviderTest : NavTestCase() {
     scene.buildDisplayList(DisplayList(), 0, view)
 
 
-    val interactionManager = surface.interactionManager
-    interactionManager.startListening()
+    val guiInputHandler = surface.guiInputHandler
+    guiInputHandler.startListening()
 
-    LayoutTestUtilities.clickMouse(interactionManager, BUTTON1, 1, Coordinates.getSwingXDip(view, 300),
+    LayoutTestUtilities.clickMouse(guiInputHandler, BUTTON1, 1, Coordinates.getSwingXDip(view, 300),
                                    Coordinates.getSwingYDip(view, component.centerY), 0)
 
     assertEquals(model.find("action1"), surface.selectionModel.primary)
-    interactionManager.stopListening()
+    guiInputHandler.stopListening()
   }
 
   fun testHighlight() {

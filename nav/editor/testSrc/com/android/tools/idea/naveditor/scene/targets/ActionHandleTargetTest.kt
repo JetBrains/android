@@ -22,7 +22,7 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.surface.InteractionManager
+import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -39,22 +39,22 @@ import java.awt.event.MouseEvent
 
 class ActionHandleTargetTest : NavTestCase() {
   private lateinit var surface: DesignSurface<*>
-  private lateinit var interactionManager: InteractionManager
+  private lateinit var myGuiInputHandler: GuiInputHandler
   private lateinit var scene: Scene
   private lateinit var view: SceneView
 
   private fun setModel(model: SyncNlModel) {
     surface = model.surface
-    interactionManager = model.surface.interactionManager
+    myGuiInputHandler = model.surface.guiInputHandler
     scene = model.surface.scene!!
     view = scene.sceneManager.sceneViews.first()
 
     scene.layout(0, view.context)
-    interactionManager.startListening()
+    myGuiInputHandler.startListening()
   }
 
   override fun tearDown() {
-    interactionManager.stopListening()
+    myGuiInputHandler.stopListening()
     super.tearDown()
   }
 
@@ -216,9 +216,9 @@ class ActionHandleTargetTest : NavTestCase() {
 
   private fun dragAndRelease(@SwingCoordinate x1: Int, @SwingCoordinate y1: Int,
                              @SwingCoordinate x2: Int, @SwingCoordinate y2: Int) {
-    LayoutTestUtilities.pressMouse(interactionManager, MouseEvent.BUTTON1, x1, y1, 0)
-    LayoutTestUtilities.dragMouse(interactionManager, x1, y1, x2, y2, 0)
-    LayoutTestUtilities.releaseMouse(interactionManager, MouseEvent.BUTTON1, x2, y2, 0)
+    LayoutTestUtilities.pressMouse(myGuiInputHandler, MouseEvent.BUTTON1, x1, y1, 0)
+    LayoutTestUtilities.dragMouse(myGuiInputHandler, x1, y1, x2, y2, 0)
+    LayoutTestUtilities.releaseMouse(myGuiInputHandler, MouseEvent.BUTTON1, x2, y2, 0)
   }
 
   @SwingCoordinate

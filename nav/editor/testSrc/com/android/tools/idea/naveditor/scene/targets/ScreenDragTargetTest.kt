@@ -19,7 +19,6 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneContext
-import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.model.NavCoordinate
@@ -49,25 +48,25 @@ class ScreenDragTargetTest : NavTestCase() {
     scene.layout(0, SceneContext.get())
 
     val component = scene.getSceneComponent("fragment1")!!
-    val interactionManager = surface.interactionManager
+    val guiInputHandler = surface.guiInputHandler
     try {
-      interactionManager.startListening()
+      guiInputHandler.startListening()
 
       @NavCoordinate val x = component.drawX
       @NavCoordinate val y = component.drawY
 
-      LayoutTestUtilities.pressMouse(interactionManager, BUTTON1, Coordinates.getSwingX(view, x + 10),
-          Coordinates.getSwingY(view, y + 10), 0)
-      LayoutTestUtilities.dragMouse(interactionManager, Coordinates.getSwingX(view, x), Coordinates.getSwingY(view, y),
-          Coordinates.getSwingX(view, x + 30), Coordinates.getSwingY(view, y + 40), 0)
-      LayoutTestUtilities.releaseMouse(interactionManager, BUTTON1, Coordinates.getSwingX(view, x + 30),
-          Coordinates.getSwingY(view, y + 40), 0)
+      LayoutTestUtilities.pressMouse(guiInputHandler, BUTTON1, Coordinates.getSwingX(view, x + 10),
+                                     Coordinates.getSwingY(view, y + 10), 0)
+      LayoutTestUtilities.dragMouse(guiInputHandler, Coordinates.getSwingX(view, x), Coordinates.getSwingY(view, y),
+                                    Coordinates.getSwingX(view, x + 30), Coordinates.getSwingY(view, y + 40), 0)
+      LayoutTestUtilities.releaseMouse(guiInputHandler, BUTTON1, Coordinates.getSwingX(view, x + 30),
+                                       Coordinates.getSwingY(view, y + 40), 0)
 
       assertEquals(x + 20, component.drawX)
       assertEquals(y + 30, component.drawY)
     }
     finally {
-      interactionManager.stopListening()
+      guiInputHandler.stopListening()
     }
   }
 }
