@@ -160,7 +160,7 @@ object AdtUiUtils {
     }
     var smallestLength = 0
     var largestLength = text.length
-    var bestLength = smallestLength
+    var bestLength = 0
     do {
       val midLength = smallestLength + (largestLength - smallestLength) / 2
       if (textFitPredicate.test("${text.substring(0, midLength)}${SwingHelper.ELLIPSIS}")) {

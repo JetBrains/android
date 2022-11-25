@@ -81,7 +81,7 @@ class AdditionalClassifierArtifactsModelBuilder : ParameterizedToolingModelBuild
     var message: String? = null
 
     if (ids.isEmpty()) {
-      return AdditionalClassifierArtifactsModelImpl(artifacts, message)
+      return AdditionalClassifierArtifactsModelImpl(artifacts, message = null)
     }
 
     try {
