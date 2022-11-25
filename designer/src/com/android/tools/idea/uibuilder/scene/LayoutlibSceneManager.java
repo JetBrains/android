@@ -747,16 +747,13 @@ public class LayoutlibSceneManager extends SceneManager {
         }, EdtExecutorService.getInstance());
         return;
       }
-      // TODO: this is the right behavior, but seems to unveil repaint issues. Turning it off for now.
-      if (false && surface.getScreenViewProvider() == NlScreenViewProvider.BLUEPRINT) {
-        requestLayoutAsync(true);
-      }
-      else {
-        requestRenderAsync(getTriggerFromChangeType(model.getLastChangeType()))
-          .thenRunAsync(() ->
-            mySelectionChangeListener.selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection())
-          , EdtExecutorService.getInstance());
-      }
+
+      requestRenderAsync(getTriggerFromChangeType(model.getLastChangeType()))
+        .thenRunAsync(() ->
+          mySelectionChangeListener.selectionChanged(
+            surface.getSelectionModel(),
+            surface.getSelectionModel().getSelection()),
+                      EdtExecutorService.getInstance());
     }
 
     @Override
