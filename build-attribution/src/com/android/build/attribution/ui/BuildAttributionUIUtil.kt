@@ -62,9 +62,9 @@ fun TaskCategory.displayName() =
 fun TaskCategoryIssue.getWarningMessage(nonIncrementalAnnotationProcessors: List<AnnotationProcessorData>): String {
   return when (this) {
     TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED -> """
-        Resource IDs will be non-final by default in Android Gradle Plugin 8.0.
-        This will break using resource IDs in a static context such as switch statements and annotations.
-        To enable this, set android.nonFinalResIds=true in gradle.properties.
+        Non-final resource IDs are currently disabled.
+        Enable non-final resource IDs for faster incremental compilation.
+        To enable, set android.nonFinalResIds=true in gradle.properties.
       """.trimIndent()
     TaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED -> """
         Non-transitive R classes are currently disabled.
