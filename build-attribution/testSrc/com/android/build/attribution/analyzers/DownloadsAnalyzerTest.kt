@@ -30,17 +30,14 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
-import org.jetbrains.plugins.gradle.settings.GradleSettings
 import java.net.InetSocketAddress
 import java.nio.file.Paths
 import java.util.Base64
 
-@org.junit.Ignore("b/240887542")
 class DownloadsAnalyzerTest : AndroidGradleTestCase()  {
 
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
@@ -54,8 +51,8 @@ class DownloadsAnalyzerTest : AndroidGradleTestCase()  {
     StudioFlags.BUILD_ANALYZER_DOWNLOADS_ANALYSIS.override(true)
 
     // Set up servers.
-    server1 = disposeOnTearDown(HttpServerWrapper("Server1"))
-    server2 = disposeOnTearDown(HttpServerWrapper("Server2"))
+    server1 = HttpServerWrapper("Server1", myFixture.testRootDisposable)
+    server2 = HttpServerWrapper("Server2", myFixture.testRootDisposable)
   }
 
   override fun tearDown() {
@@ -67,11 +64,15 @@ class DownloadsAnalyzerTest : AndroidGradleTestCase()  {
   fun testRunningBuildWithDownloadsFromLocalServers() {
     val gradleHome = Paths.get(myFixture.tempDirPath, "gradleHome").toString()
 
-    invokeAndWaitIfNeeded {
-      ApplicationManager.getApplication().runWriteAction {
-        GradleSettings.getInstance(myFixture.project).serviceDirectoryPath = gradleHome
-      }
-    }
+    //TODO (b/240887542): this section seems to be the root cause for the Directory not empty failure.
+    //      Changing gradle home starts a new daemon and it seems that sometimes it does not stop before cleaning this up.
+    //      This actually only needed for running tests locally because gradle home is not clean in this case.
+    //      Let's try like this and see if it indeed helps with the flake.
+    //invokeAndWaitIfNeeded {
+    //  ApplicationManager.getApplication().runWriteAction {
+    //    GradleSettings.getInstance(myFixture.project).serviceDirectoryPath = gradleHome
+    //  }
+    //}
 
     //Add files to server2. Server1 will return errors (404 for everything and 403 for one for a change).
     val emptyJarBytes = Base64.getDecoder().decode("UEsFBgAAAAAAAAAAAAAAAAAAAAAAAA==")
@@ -233,7 +234,8 @@ private class FileRequest(
 )
 
 private class HttpServerWrapper(
-  val name: String
+  val name: String,
+  val parentDisposable: Disposable
 ) : Disposable {
   private val LOCALHOST = "127.0.0.1"
 
@@ -246,6 +248,7 @@ private class HttpServerWrapper(
     }
     // Make servers just fail on any not added explicitly file.
     createErrorContext("/", 404, "File not found")
+    Disposer.register(parentDisposable, this)
   }
 
   val authority: String get() = "$LOCALHOST:${server.address.port}"
@@ -296,6 +299,8 @@ private class HttpServerWrapper(
   }
 
   override fun dispose() {
+    println("Disposing server '$name'")
     server.stop(0)
+    println("'$name' stopped")
   }
 }
