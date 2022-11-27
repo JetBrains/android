@@ -441,20 +441,24 @@ class EmulatorView(
   private fun computeDisplayRectangle(skin: SkinLayout): Rectangle {
     // The roundScale call below is used to avoid scaling by a fractional factor larger than 1 or
     // by a factor that is only slightly below 1.
+    val maxSize = computeMaxImageSize()
+    val maxWidth = maxSize.width
+    val maxHeight = maxSize.height
     return if (deviceFrameVisible) {
       val frameRectangle = skin.frameRectangle
-      val scale = roundScale(min(realWidth.toDouble() / frameRectangle.width, realHeight.toDouble() / frameRectangle.height))
+      val scale = roundScale(min(maxWidth.toDouble() / frameRectangle.width, maxHeight.toDouble() / frameRectangle.height))
       val fw = frameRectangle.width.scaled(scale)
       val fh = frameRectangle.height.scaled(scale)
       val w = screenshotShape.width.scaled(scale)
       val h = screenshotShape.height.scaled(scale)
-      Rectangle((realWidth - fw) / 2 - frameRectangle.x.scaled(scale), (realHeight - fh) / 2 - frameRectangle.y.scaled(scale), w, h)
+      Rectangle((physicalWidth - fw) / 2 - frameRectangle.x.scaled(scale), (physicalHeight - fh) / 2 - frameRectangle.y.scaled(scale),
+                w, h)
     }
     else {
-      val scale = roundScale(min(realWidth.toDouble() / screenshotShape.width, realHeight.toDouble() / screenshotShape.height))
+      val scale = roundScale(min(maxWidth.toDouble() / screenshotShape.width, maxHeight.toDouble() / screenshotShape.height))
       val w = screenshotShape.width.scaled(scale)
       val h = screenshotShape.height.scaled(scale)
-      Rectangle((realWidth - w) / 2, (realHeight - h) / 2, w, h)
+      Rectangle((physicalWidth - w) / 2, (physicalHeight - h) / 2, w, h)
     }
   }
 
@@ -466,7 +470,7 @@ class EmulatorView(
 
   private fun requestScreenshotFeed(displaySize: Dimension, orientationQuadrants: Int) {
     if (width != 0 && height != 0 && connected) {
-      val maxSize = realSize.rotatedByQuadrants(-orientationQuadrants)
+      val maxSize = physicalSize.rotatedByQuadrants(-orientationQuadrants)
       val skin = emulator.skinDefinition
       if (skin != null && deviceFrameVisible) {
         // Scale down to leave space for the device frame.

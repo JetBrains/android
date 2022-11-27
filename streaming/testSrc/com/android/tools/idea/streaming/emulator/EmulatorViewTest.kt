@@ -314,6 +314,20 @@ class EmulatorViewTest {
     assertAppearance(ui, "LargeScale")
     assertThat(call.completion.isCancelled).isFalse() // The latest call has not been cancelled.
     assertThat(call.completion.isDone).isFalse() // The latest call is still ongoing.
+    assertThat(view.canZoomIn()).isTrue()
+    assertThat(view.canZoomOut()).isFalse()
+    assertThat(view.canZoomToActual()).isFalse()
+    assertThat(view.canZoomToFit()).isFalse()
+
+    view.zoom(ZoomType.IN)
+    ui.layoutAndDispatchEvents()
+    assertThat(call.completion.isCancelled).isFalse() // The latest call has not been cancelled.
+    assertThat(call.completion.isDone).isFalse() // The latest call is still ongoing.
+    println("Attention!")
+    assertThat(view.canZoomIn()).isFalse()
+    assertThat(view.canZoomOut()).isTrue()
+    assertThat(view.canZoomToActual()).isTrue()
+    assertThat(view.canZoomToFit()).isTrue()
   }
 
   @Test

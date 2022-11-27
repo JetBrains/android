@@ -20,7 +20,6 @@ import com.android.tools.adtui.actions.ZoomType
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Dimension
 import kotlin.math.floor
-import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -29,7 +28,7 @@ private const val MAX_SCALE = 2.0 // Zoom above 200% is not allowed.
 private val ZOOM_LEVELS = intArrayOf(5, 10, 25, 50, 100, 200) // In percent.
 
 /**
- * A [JPanel] with zoom support.
+ * A [BorderLayoutPanel] with zoom support.
  */
 abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
 
@@ -42,19 +41,19 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
     }
 
   /** Width in physical pixels. */
-  protected val realWidth
+  protected val physicalWidth
     get() = width.scaled(screenScale)
 
   /** Height in physical pixels. */
-  protected val realHeight
+  protected val physicalHeight
     get() = height.scaled(screenScale)
 
   /** Size in physical pixels. */
-  protected val realSize
-    get() = Dimension(realWidth, realHeight)
+  protected val physicalSize
+    get() = Dimension(physicalWidth, physicalHeight)
 
   override val scale: Double
-    get() = computeScaleToFit(realSize)
+    get() = computeScaleToFit(computeMaxImageSize())
 
   override val screenScalingFactor
     get() = screenScale
@@ -71,8 +70,9 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
     return true
   }
 
-  override fun canZoomIn(): Boolean =
-    canZoom() && computeZoomedSize(ZoomType.IN) != explicitlySetPreferredSize
+  override fun canZoomIn(): Boolean {
+    return canZoom() && computeZoomedSize(ZoomType.IN) != explicitlySetPreferredSize
+  }
 
   override fun canZoomOut(): Boolean =
     canZoom() && computeZoomedSize(ZoomType.OUT) != explicitlySetPreferredSize
@@ -86,24 +86,57 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
   internal val explicitlySetPreferredSize: Dimension?
     get() = if (isPreferredSizeSet) preferredSize else null
 
+  override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
+    val oldWidth = this.width
+    val oldHeight = this.height
+    super.setBounds(x, y, width, height)
+    if ((width < oldWidth || height < oldHeight) && explicitlySetPreferredSize != null && scale <= computeScaleToFitInParent()) {
+      // Reset preferred size so that the view fits into reduced available space.
+      preferredSize = null
+    }
+  }
+
+  /**
+   * Computes the maximum allowed size of the device display image in physical pixels.
+   */
+  protected fun computeMaxImageSize(): Dimension =
+    (explicitlySetPreferredSize ?: size).scaled(screenScale)
+
   /**
    * Computes the preferred size in virtual pixels after the given zoom operation.
    * The preferred size is null for zoom to fit.
    */
   private fun computeZoomedSize(zoomType: ZoomType): Dimension? {
     val newScale = when (zoomType) {
-      ZoomType.IN -> min(ZoomType.zoomIn((scale * 100).roundToInt(), ZOOM_LEVELS) / 100.0, MAX_SCALE)
-      ZoomType.OUT -> max(ZoomType.zoomOut((scale * 100).roundToInt(), ZOOM_LEVELS) / 100.0, computeScaleToFitInParent())
-      ZoomType.ACTUAL -> 1.0
+      ZoomType.IN -> {
+        val nextScale = (ZoomType.zoomIn((scale * 100).roundToInt(), ZOOM_LEVELS) / 100.0)
+        val fitScale = computeScaleToFitInParent()
+        if (nextScale == fitScale) {
+          return null
+        }
+        if (fitScale >= nextScale) nextScale else nextScale.coerceAtMost(MAX_SCALE)
+      }
+
+      ZoomType.OUT -> {
+        val nextScale = ZoomType.zoomOut((scale * 100).roundToInt(), ZOOM_LEVELS) / 100.0
+        val fitScale = computeScaleToFitInParent()
+        if (nextScale <= fitScale) {
+          return null
+        }
+        nextScale
+      }
+
+      ZoomType.ACTUAL -> {
+        if (computeScaleToFitInParent() == 1.0) {
+          return null
+        }
+        1.0
+      }
       ZoomType.FIT -> return null
       else -> throw IllegalArgumentException("Unsupported zoom type $zoomType")
     }
-    val scaledSize = computeActualSize().scaled(newScale)
-    val availableSize = computeAvailableSize()
-    if (scaledSize.width <= availableSize.width && scaledSize.height <= availableSize.height) {
-      return null
-    }
-    return scaledSize.scaled(1 / screenScale)
+    val newScaledSize = computeActualSize().scaled(newScale)
+    return newScaledSize.scaled(1 / screenScale)
   }
 
   private fun computeScaleToFitInParent() =
