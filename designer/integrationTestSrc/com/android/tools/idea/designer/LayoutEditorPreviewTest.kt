@@ -22,13 +22,16 @@ import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Path
+import java.util.concurrent.TimeUnit
 
 /** Ensures that Layout Editor Preview works for an XML file. */
 class LayoutEditorPreviewTest {
 
-  @get:Rule val system = AndroidSystem.standard()
+  @get:Rule
+  val system = AndroidSystem.standard()
 
-  @get:Rule var watcher = MemoryDashboardNameProviderWatcher()
+  @get:Rule
+  var watcher = MemoryDashboardNameProviderWatcher()
 
   @Test
   fun layoutEditorPreviewBasicTest() {
@@ -38,14 +41,25 @@ class LayoutEditorPreviewTest {
 
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/designer/layout_preview_deps.manifest"))
-    system.runStudio(project, watcher.dashboardName) { studio ->
-      studio.waitForSync()
-      studio.waitForIndex()
+    system.runAdb { adb ->
+      system.runEmulator { emulator ->
+        system.runStudio(project, watcher.dashboardName) { studio ->
+          studio.waitForSync()
+          studio.waitForIndex()
+          studio.executeAction("MakeGradleProject")
+          studio.waitForBuild()
 
-      val path: Path =
-        project.targetProject.resolve("app/src/main/res/layout/activity_my.xml")
-      studio.openFile("simpleApplication", path.toString())
-      studio.waitForComponentByClass("DesignSurfaceScrollPane", "JBViewport", "SceneViewPanel")
+          val path: Path =
+            project.targetProject.resolve("app/src/main/res/layout/activity_my.xml")
+          studio.openFile("simpleApplication", path.toString())
+          studio.waitForComponentByClass("DesignSurfaceScrollPane", "JBViewport", "SceneViewPanel")
+
+          studio.executeAction("Run")
+          system.installation.ideaLog.waitForMatchingLine(
+            ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for launched app: google\\.simpleapplication",
+            60, TimeUnit.SECONDS)
+        }
+      }
     }
   }
 }

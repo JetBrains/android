@@ -186,21 +186,24 @@ layout_editor_data = select({
 }) + [
     ":layout_preview_deps",
     "//prebuilts/studio/sdk:build-tools/latest",
+    "//prebuilts/studio/sdk:emulator",
+    "//prebuilts/studio/sdk:platform-tools",
     "//tools/adt/idea/designer/testData:simpleApplication",
     "//tools/base/build-system:gradle-distrib-7.3.3",
+    "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
 ]
 
 maven_repository(
     name = "layout_preview_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:com.android.support.appcompat-v7_28.0.0",
-        "@maven//:com.android.support.constraint.constraint-layout_2.0.4",
+        "@maven//:androidx.appcompat.appcompat_1.3.0",
+        "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
         "@maven//:com.android.tools.build.aapt2_7.2.0-7984345",
         "@maven//:com.android.tools.build.gradle_7.2.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20-Beta",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20-Beta",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20-Beta",
     ],
 )
 
@@ -210,6 +213,9 @@ iml_test(
     data = layout_editor_data,
     module = ":intellij.android.designer.integration",
     tags_linux = ["block-network"],
-    tags_windows = ["block-network"],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
     test_class = "com.android.tools.idea.designer.LayoutEditorPreviewTest",
 )
