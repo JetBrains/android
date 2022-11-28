@@ -67,17 +67,17 @@ class LayoutBindingSafeDeleteProcessor : SafeDeleteProcessorDelegate {
   }
 
   override fun getElementsToSearch(element: PsiElement,
-                                   allElementsToDelete: MutableCollection<PsiElement>): MutableCollection<out PsiElement>? {
+                                   allElementsToDelete: Collection<PsiElement>): Collection<PsiElement>? {
     return delegateProcessor.getElementsToSearch(element, allElementsToDelete)
   }
 
   override fun getAdditionalElementsToDelete(element: PsiElement,
-                                             allElementsToDelete: MutableCollection<PsiElement>,
-                                             askUser: Boolean): MutableCollection<PsiElement>? {
+                                             allElementsToDelete: Collection<PsiElement>,
+                                             askUser: Boolean): Collection<PsiElement>? {
     return delegateProcessor.getAdditionalElementsToDelete(element, allElementsToDelete, askUser)
   }
 
-  override fun findConflicts(element: PsiElement, allElementsToDelete: Array<PsiElement>): MutableCollection<String>? {
+  override fun findConflicts(element: PsiElement, allElementsToDelete: Array<PsiElement>): Collection<String>? {
     return delegateProcessor.findConflicts(element, allElementsToDelete)
   }
 

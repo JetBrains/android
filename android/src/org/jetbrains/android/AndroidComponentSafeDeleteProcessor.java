@@ -67,13 +67,13 @@ public class AndroidComponentSafeDeleteProcessor extends SafeDeleteProcessorDele
   @Override
   public Collection<? extends PsiElement> getElementsToSearch(@NotNull PsiElement element,
                                                               @Nullable Module module,
-                                                              @NotNull Collection<PsiElement> allElementsToDelete) {
+                                                              @NotNull Collection<? extends PsiElement> allElementsToDelete) {
     return getBaseHandler().getElementsToSearch(element, module, allElementsToDelete);
   }
 
   @Override
   public Collection<PsiElement> getAdditionalElementsToDelete(@NotNull PsiElement element,
-                                                              @NotNull Collection<PsiElement> allElementsToDelete,
+                                                              @NotNull Collection<? extends PsiElement> allElementsToDelete,
                                                               boolean askUser) {
     return getBaseHandler().getAdditionalElementsToDelete(element, allElementsToDelete, askUser);
   }

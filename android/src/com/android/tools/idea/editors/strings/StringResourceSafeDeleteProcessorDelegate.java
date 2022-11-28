@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import static com.android.SdkConstants.ATTR_NAME;
-
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -28,13 +26,12 @@ import com.intellij.refactoring.safeDelete.SafeDeleteProcessor;
 import com.intellij.refactoring.safeDelete.SafeDeleteProcessorDelegateBase;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.IncorrectOperationException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
+
+import static com.android.SdkConstants.ATTR_NAME;
 
 /**
  * Enables the Safe Delete refactoring for Android string resource elements (&lt;string>...&lt;/string>)
@@ -53,14 +50,14 @@ final class StringResourceSafeDeleteProcessorDelegate extends SafeDeleteProcesso
   @Override
   public Collection<? extends PsiElement> getElementsToSearch(@NotNull PsiElement element,
                                                               @Nullable Module module,
-                                                              @NotNull Collection<PsiElement> elementsToDelete) {
+                                                              @NotNull Collection<? extends PsiElement> elementsToDelete) {
     return Collections.singletonList(element);
   }
 
   @NotNull
   @Override
   public Collection<PsiElement> getAdditionalElementsToDelete(@NotNull PsiElement element,
-                                                              @NotNull Collection<PsiElement> elementsToDelete,
+                                                              @NotNull Collection<? extends PsiElement> elementsToDelete,
                                                               boolean askUser) {
     return Collections.emptyList();
   }
