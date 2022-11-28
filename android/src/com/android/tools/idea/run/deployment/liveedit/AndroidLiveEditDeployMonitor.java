@@ -476,10 +476,11 @@ public class AndroidLiveEditDeployMonitor {
         filesWithCompilationErrors.remove(change.getFile().getName());
       }
     } catch (LiveEditUpdateException e) {
-      filesWithCompilationErrors.add(e.getSource().getName());
-      updateEditStatus(new EditStatus(
-        e.getError().getRecoverable() ? EditState.PAUSED : EditState.ERROR,
-        errorMessage(e), null));
+      boolean recoverable = e.getError().getRecoverable();
+      if (recoverable) {
+        filesWithCompilationErrors.add(e.getSource().getName());
+      }
+      updateEditStatus(new EditStatus(recoverable ? EditState.PAUSED : EditState.ERROR, errorMessage(e), null));
       return true;
     }
 

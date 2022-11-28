@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.annotations.Trace
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
+import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonPrivateInlineFunctionFailure
@@ -117,6 +118,8 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
     var inputFiles = listOf(file)
 
     return runWithCompileLock {
+      ReadActionPrebuildChecks(file)
+
       // This is a three-step process:
       // 1) Compute binding context based on any previous cached analysis results.
       //    On small edits of previous analyzed project, this operation should be below 30ms or so.

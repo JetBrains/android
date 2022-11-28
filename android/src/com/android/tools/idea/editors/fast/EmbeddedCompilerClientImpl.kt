@@ -60,6 +60,7 @@ private fun Throwable?.isCompilationError(): Boolean =
     LiveEditUpdateException.Error.INTERNAL_ERROR,
     LiveEditUpdateException.Error.UNABLE_TO_LOCATE_COMPOSE_GROUP,
     LiveEditUpdateException.Error.UNSUPPORTED_BUILD_SRC_CHANGE,
+    LiveEditUpdateException.Error.UNSUPPORTED_TEST_SRC_CHANGE,
     LiveEditUpdateException.Error.KNOWN_ISSUE -> false
   }
 

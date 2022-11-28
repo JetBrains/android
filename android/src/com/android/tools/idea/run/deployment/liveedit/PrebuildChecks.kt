@@ -17,11 +17,14 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.editors.literals.EditEvent
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedBuildSrcChange
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
+import org.jetbrains.kotlin.idea.util.module
 
 
 internal fun PrebuildChecks(project: Project, changes: List<EditEvent>) {
@@ -61,5 +64,17 @@ internal fun checkJetpackCompose(project: Project) {
   }
   if (!found) {
     throw compilationError("Cannot find Jetpack Compose plugin in Android Studio. Is it enabled?", null, null)
+  }
+}
+
+internal fun ReadActionPrebuildChecks(file: PsiFile) {
+  ApplicationManager.getApplication().assertReadAccessAllowed()
+  if (file.module != null) {
+    if (TestArtifactSearchScopes.getInstance(file.module!!)?.isUnitTestSource(file.virtualFile) == true) {
+      throw LiveEditUpdateException.unsupportedTestSrcChange(file.name)
+    }
+    if (TestArtifactSearchScopes.getInstance(file.module!!)?.isAndroidTestSource(file.virtualFile) == true) {
+      throw LiveEditUpdateException.unsupportedTestSrcChange(file.name)
+    }
   }
 }
