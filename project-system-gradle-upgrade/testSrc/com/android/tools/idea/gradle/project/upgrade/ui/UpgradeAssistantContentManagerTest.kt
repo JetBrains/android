@@ -128,6 +128,7 @@ class ContentManagerImplTest {
       """
         android.enableR8.fullMode=true
         android.nonTransitiveRClass=true
+        android.nonFinalResIds=true
       """.trimIndent()
     )
   }
@@ -187,6 +188,7 @@ class ContentManagerImplTest {
         Upgrade
           Accept the new R8 default of full mode
           Preserve transitive R classes
+          Preserve constant R class values
           Upgrade AGP dependency from $currentAgpVersion to $latestAgpVersion
       """.trimIndent()
     )
@@ -592,6 +594,7 @@ class ContentManagerImplTest {
           Upgrade project JDK for running Gradle
           Accept the new R8 default of full mode
           Preserve transitive R classes
+          Preserve constant R class values
           Upgrade AGP dependency from 7.3.0 to 8.0.0
       """.trimIndent()
     )

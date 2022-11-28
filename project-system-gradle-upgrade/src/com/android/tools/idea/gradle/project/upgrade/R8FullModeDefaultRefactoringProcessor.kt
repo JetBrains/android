@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.dsl.utils.FN_GRADLE_PROPERTIES
 import com.android.tools.idea.gradle.project.upgrade.R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction
 import com.android.tools.idea.gradle.project.upgrade.R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction.ACCEPT_NEW_DEFAULT
 import com.android.tools.idea.gradle.project.upgrade.R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction.INSERT_OLD_DEFAULT
@@ -152,7 +153,7 @@ class R8FullModeUsageInfo(
     if (!existing && noPropertyPresentAction == INSERT_OLD_DEFAULT) {
       val (propertiesFile, psiFile) = when (val realElement = wrappedElement.realElement) {
         is PropertiesFile -> realElement to (realElement as? PsiFile ?: return)
-        is PsiDirectory -> realElement.createFile("gradle.properties").let {
+        is PsiDirectory -> (realElement.findFile(FN_GRADLE_PROPERTIES) ?: realElement.createFile (FN_GRADLE_PROPERTIES)).let {
           (it as? PropertiesFile ?: return) to (it as? PsiFile ?: return)
         }
         else -> return

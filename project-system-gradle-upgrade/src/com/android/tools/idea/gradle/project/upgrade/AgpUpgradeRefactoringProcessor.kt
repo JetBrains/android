@@ -278,6 +278,7 @@ class AgpUpgradeRefactoringProcessor(
     RenderScriptDefaultRefactoringProcessor(this),
     BuildConfigDefaultRefactoringProcessor(this),
     NonTransitiveRClassDefaultRefactoringProcessor(this),
+    NonConstantRClassDefaultRefactoringProcessor(this),
     AidlDefaultRefactoringProcessor(this),
     REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(this),
     MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.RefactoringProcessor(this),

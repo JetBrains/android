@@ -30,11 +30,11 @@ import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
 import org.jetbrains.android.util.AndroidBundle
 
-class NonTransitiveRClassDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
+class NonConstantRClassDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override val necessityInfo = PointNecessity(AgpVersion.parse("8.0.0-alpha08"))
+  override val necessityInfo = PointNecessity(AgpVersion.parse("8.0.0-beta01"))
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
@@ -43,10 +43,10 @@ class NonTransitiveRClassDefaultRefactoringProcessor : AgpUpgradeComponentRefact
     if (gradlePropertiesVirtualFile != null && gradlePropertiesVirtualFile.exists()) {
       val gradlePropertiesPsiFile = PsiManager.getInstance(project).findFile(gradlePropertiesVirtualFile)
       if (gradlePropertiesPsiFile is PropertiesFile) {
-        val property = gradlePropertiesPsiFile.findPropertyByKey("android.nonTransitiveRClass")
+        val property = gradlePropertiesPsiFile.findPropertyByKey("android.nonFinalResIds")
         if (property == null) {
           val wrappedPsiElement = WrappedPsiElement(gradlePropertiesPsiFile, this, INSERT_PROPERTY)
-          usages.add(NonTransitiveRClassUsageInfo(wrappedPsiElement))
+          usages.add(NonConstantRClassUsageInfo(wrappedPsiElement))
         }
       }
     }
@@ -54,29 +54,28 @@ class NonTransitiveRClassDefaultRefactoringProcessor : AgpUpgradeComponentRefact
       val baseDirPsiDirectory = PsiManager.getInstance(project).findDirectory(baseDir)
       if (baseDirPsiDirectory is PsiElement) {
         val wrappedPsiElement = WrappedPsiElement(baseDirPsiDirectory, this, INSERT_PROPERTY)
-        usages.add(NonTransitiveRClassUsageInfo(wrappedPsiElement))
+        usages.add(NonConstantRClassUsageInfo(wrappedPsiElement))
       }
     }
     return usages.toTypedArray()
   }
 
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
-    // TODO(xof): do the metrics dance
-    builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.NON_TRANSITIVE_R_CLASS_DEFAULT)
+    builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.NON_CONSTANT_R_CLASS_DEFAULT)
 
-  override fun getCommandName(): String = AndroidBundle.message("project.upgrade.nonTransitiveRClassDefaultRefactoringProcessor.commandName")
+  override fun getCommandName(): String = AndroidBundle.message("project.upgrade.nonConstantRClassDefaultRefactoringProcessor.commandName")
 
   override fun getShortDescription() = """
-    R classes in this project are transitive, pulling in information from their
-    dependencies.  The default behaviour in the Android Gradle Plugin is changing;
-    this processor inserts a property in gradle.properties to preserve the current
-    default.  You can migrate your project to non-transitive R classes now or later
-    using the "Migrate to Non-Transitive R Classes" action under "Refactor".
+    R classes in applications and tests previously used constant values that can be
+    inlined by the java compiler. The default behaviour in the Android Gradle
+    plugin is changing to speed up builds and allow more precise shrinking; this
+    processor inserts a property in gradle.properties to preserve the current
+    default.
   """.trimIndent()
 
-  override fun getRefactoringId() = "com.android.tools.agp.upgrade.nonTransitiveRClass"
+  override fun getRefactoringId() = "com.android.tools.agp.upgrade.nonConstantRClass"
 
-  override val readMoreUrlRedirect = ReadMoreUrlRedirect("non-transitive-r-class-default")
+  // override val readMoreUrlRedirect = ReadMoreUrlRedirect("non-constant-r-class-default") // TODO(b/170852493)
 
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
     return object : UsageViewDescriptorAdapter() {
@@ -84,16 +83,16 @@ class NonTransitiveRClassDefaultRefactoringProcessor : AgpUpgradeComponentRefact
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AndroidBundle.message("project.upgrade.nonTransitiveRClassDefaultRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() = AndroidBundle.message("project.upgrade.nonConstantRClassDefaultRefactoringProcessor.usageView.header")
     }
   }
 
   companion object {
-    val INSERT_PROPERTY = UsageType(AndroidBundle.messagePointer("project.upgrade.nonTransitiveRClassDefaultRefactoringProcessor.usageType"))
+    val INSERT_PROPERTY = UsageType(AndroidBundle.messagePointer("project.upgrade.nonConstantRClassDefaultRefactoringProcessor.usageType"))
   }
 }
 
-class NonTransitiveRClassUsageInfo(
+class NonConstantRClassUsageInfo(
   private val wrappedElement: WrappedPsiElement
 ) : GradleBuildModelUsageInfo(wrappedElement) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
@@ -105,8 +104,8 @@ class NonTransitiveRClassUsageInfo(
       else -> return
     }
     otherAffectedFiles.add(psiFile)
-    propertiesFile.addProperty("android.nonTransitiveRClass", "false")
+    propertiesFile.addProperty("android.nonFinalResIds", "false")
   }
 
-  override fun getTooltipText() = AndroidBundle.message("project.upgrade.nonTransitiveRClassUsageInfo.tooltipText")
+  override fun getTooltipText() = AndroidBundle.message("project.upgrade.nonConstantRClassUsageInfo.tooltipText")
 }
