@@ -31,6 +31,7 @@ import com.google.common.truth.Expect
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkException
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.testFramework.RunsInEdt
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -70,6 +71,7 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
     }
 
   @Test
+  @Ignore("b/260585581")
   fun `Given root using gradleJdk #JAVA_HOME pointing to JDK_17 When synced project successfully Then projectJdk is updated with JDK_17`() =
     jdkIntegrationTest.run(
       project = SimpleApplicationMultipleRoots(
@@ -90,6 +92,7 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
     }
 
   @Test
+  @Ignore("b/260585581")
   fun `Given multiple roots using different gradleJdk versions When synced project successfully Then projectJdk is updated with greatest JDK version JDK_17`() =
     jdkIntegrationTest.run(
       project = SimpleApplicationMultipleRoots(
@@ -182,6 +185,7 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
     }
 
   @Test
+  @Ignore("b/260585581")
   fun `Given multiple roots with invalid and valid jdkTable entry When sync partially succeed Then projectJdk is updated with greatest JDK synced version JDK_11`() =
     jdkIntegrationTest.run(
       project = SimpleApplicationMultipleRoots(
