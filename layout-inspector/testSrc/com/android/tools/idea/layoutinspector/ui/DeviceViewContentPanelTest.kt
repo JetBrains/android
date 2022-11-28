@@ -25,7 +25,6 @@ import com.android.ide.common.resources.configuration.ScreenWidthQualifier
 import com.android.resources.Density
 import com.android.resources.ResourceType
 import com.android.resources.ScreenRound
-import com.android.testutils.AssumeUtil
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
@@ -1482,8 +1481,6 @@ class DeviceViewContentPanelWithScaledFontTest {
 
   @Test
   fun testPaintEmpty() {
-    AssumeUtil.assumeNotMac() // b/163289116
-    AssumeUtil.assumeNotWindows() // b/246912759
     ApplicationManager.getApplication().replaceService(ActionManager::class.java, mock(), disposable.disposable)
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
