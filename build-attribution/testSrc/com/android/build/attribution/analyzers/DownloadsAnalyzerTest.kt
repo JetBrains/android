@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.BuildAttributionManagerImpl
 import com.android.build.attribution.getSuccessfulResult
+import com.android.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -30,10 +31,13 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
+import org.jetbrains.plugins.gradle.settings.GradleSettings
 import java.net.InetSocketAddress
 import java.nio.file.Paths
 import java.util.Base64
@@ -64,15 +68,18 @@ class DownloadsAnalyzerTest : AndroidGradleTestCase()  {
   fun testRunningBuildWithDownloadsFromLocalServers() {
     val gradleHome = Paths.get(myFixture.tempDirPath, "gradleHome").toString()
 
+    if (!TestUtils.runningFromBazel()) {
     //TODO (b/240887542): this section seems to be the root cause for the Directory not empty failure.
-    //      Changing gradle home starts a new daemon and it seems that sometimes it does not stop before cleaning this up.
-    //      This actually only needed for running tests locally because gradle home is not clean in this case.
+    //      Changing gradle home starts a new daemon and it seems that sometimes it does not stop before test tries to clean this up.
+    //      This actually only needed for running tests locally because gradle home is likely not clean in this case.
     //      Let's try like this and see if it indeed helps with the flake.
-    //invokeAndWaitIfNeeded {
-    //  ApplicationManager.getApplication().runWriteAction {
-    //    GradleSettings.getInstance(myFixture.project).serviceDirectoryPath = gradleHome
-    //  }
-    //}
+      invokeAndWaitIfNeeded {
+        ApplicationManager.getApplication().runWriteAction {
+          println(GradleSettings.getInstance(myFixture.project).serviceDirectoryPath)
+          GradleSettings.getInstance(myFixture.project).serviceDirectoryPath = gradleHome
+        }
+      }
+    }
 
     //Add files to server2. Server1 will return errors (404 for everything and 403 for one for a change).
     val emptyJarBytes = Base64.getDecoder().decode("UEsFBgAAAAAAAAAAAAAAAAAAAAAAAA==")
