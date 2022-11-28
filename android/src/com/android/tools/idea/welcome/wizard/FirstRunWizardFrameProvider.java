@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * {@link WelcomeFrameProvider} for the {@link FirstRunWizard}.
  */
-public class FirstRunWizardFrameProvider implements WelcomeFrameProvider {
+final class FirstRunWizardFrameProvider implements WelcomeFrameProvider {
   @Override
   public @Nullable IdeFrame createFrame() {
     WelcomeFrame frame = WelcomeScreenProvider.EP_NAME.computeSafeIfAny(provider -> {
