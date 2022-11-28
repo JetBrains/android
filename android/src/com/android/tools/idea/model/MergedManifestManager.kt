@@ -20,7 +20,6 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.concurrency.ThrottlingAsyncSupplier
-import com.android.tools.idea.stats.ManifestMergerStatsTracker
 import com.android.tools.idea.stats.ManifestMergerStatsTracker.MergeResult
 import com.android.tools.idea.util.androidFacet
 import com.android.utils.TraceUtils
@@ -39,6 +38,7 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.RecursionManager
+import com.intellij.util.messages.Topic
 import org.jetbrains.android.facet.AndroidFacet
 import java.time.Duration
 import java.util.concurrent.ExecutionException
@@ -114,19 +114,26 @@ private class MergedManifestSupplier(private val module: Module) : AsyncSupplier
   /** Create a [MergedManifestSnapshot] and record associated telemetry. */
   @Slow
   private fun createMergedManifestSnapshot(facet: AndroidFacet): MergedManifestSnapshot {
-    val snapshot: MergedManifestSnapshot
     val startMillis = System.currentTimeMillis()
+    val token = Object()
+    ApplicationManager.getApplication().messageBus.syncPublisher(MergedManifestSnapshotComputeListener.TOPIC)
+      .snapshotCreationStarted(token, startMillis)
+
+    val snapshot: MergedManifestSnapshot
     var result = MergeResult.FAILED
 
     try {
       snapshot = MergedManifestSnapshotFactory.createMergedManifestSnapshot(facet, MergedManifestInfo.create(facet))
       result = MergeResult.SUCCESS
-    } catch (e: ProcessCanceledException) {
+    }
+    catch (e: ProcessCanceledException) {
       result = MergeResult.CANCELED
       throw e
-    } finally {
+    }
+    finally {
       val endMillis = System.currentTimeMillis()
-      ManifestMergerStatsTracker.recordManifestMergeRunTime(endMillis - startMillis, result)
+      ApplicationManager.getApplication().messageBus.syncPublisher(MergedManifestSnapshotComputeListener.TOPIC)
+        .snapshotCreationEnded(token, startMillis, endMillis, result)
     }
 
     return snapshot
@@ -373,4 +380,31 @@ class MergedManifestManager(module: Module) : Disposable {
       }
     }
   }
+}
+
+/** Listener for events related to manifest merge computation. */
+interface MergedManifestSnapshotComputeListener {
+  companion object {
+    val TOPIC = Topic.create(MergedManifestSnapshotComputeListener::class.qualifiedName!!,
+                             MergedManifestSnapshotComputeListener::class.java,
+                             Topic.BroadcastDirection.TO_CHILDREN)
+  }
+
+  /**
+   * Invoked when manifest merge computation begins.
+   *
+   * @param token an arbitrary object representing the computation in progress. This allows the consumer to track a specific computation
+   * between calls to the start and end events, since multiple merges may be happening simultaneously. The token passed to each method will
+   * be the same object for a given single merge computation.
+   */
+  fun snapshotCreationStarted(token: Any, startTimestampMillis: Long)
+
+  /**
+   * Invoked when manifest merge computation end.
+   *
+   * @param token an arbitrary object representing the computation that has ended. This allows the consumer to track a specific computation
+   * between calls to the start and end events, since multiple merges may be happening simultaneously. The token passed to each method will
+   * be the same object for a given single merge computation.
+   */
+  fun snapshotCreationEnded(token: Any, startTimestampMillis: Long, endTimestampMillis: Long, result: MergeResult)
 }

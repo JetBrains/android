@@ -805,12 +805,10 @@
   <applicationListeners>
     <listener class="com.android.tools.idea.editors.literals.LiveEditAnActionListener"
               topic="com.intellij.openapi.actionSystem.ex.AnActionListener"/>
-  </applicationListeners>
-
-  <applicationListeners>
     <listener class="com.android.tools.idea.startup.ProjectMetricsInitializer"
               topic="com.intellij.openapi.project.ProjectManagerListener"/>
-
+    <listener class="com.android.tools.idea.stats.ManifestMergerStatsTracker"
+              topic="com.android.tools.idea.model.MergedManifestSnapshotComputeListener"/>
   </applicationListeners>
 
   <projectListeners>

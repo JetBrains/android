@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.stats
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.toProto
+import com.android.tools.idea.model.MergedManifestSnapshotComputeListener
 import com.android.utils.mapValuesNotNull
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ManifestMergerStats
@@ -25,7 +27,7 @@ import org.HdrHistogram.SingleWriterRecorder
 import java.util.concurrent.ConcurrentHashMap
 
 /** Object used to record metrics related to running the Manifest Merger within the IDE. */
-object ManifestMergerStatsTracker {
+object ManifestMergerStatsTracker : MergedManifestSnapshotComputeListener {
 
   enum class MergeResult {
     CANCELED, FAILED, SUCCESS
@@ -33,11 +35,17 @@ object ManifestMergerStatsTracker {
 
   private val histogramsByResult = ConcurrentHashMap<MergeResult, SingleWriterRecorder>()
 
-  /** Store a manifest merger run time for eventual analytics reporting. */
-  fun recordManifestMergeRunTime(runTimeMs: Long, mergeResult: MergeResult) {
+  @AnyThread
+  override fun snapshotCreationStarted(token: Any, startTimestampMillis: Long) {
+    // Do nothing
+  }
+
+  @AnyThread
+  override fun snapshotCreationEnded(token: Any, startTimestampMillis: Long, endTimestampMillis: Long, result: MergeResult) {
+    val runTimeMs = endTimestampMillis - startTimestampMillis
     ApplicationManager.getApplication().invokeLater {
       // This runs on the EDT to ensure a single writer, but is thread-safe with respect to a background thread reading the histogram.
-      histogramsByResult.computeIfAbsent(mergeResult) { SingleWriterRecorder(1) }.recordValue(runTimeMs)
+      histogramsByResult.computeIfAbsent(result) { SingleWriterRecorder(1) }.recordValue(runTimeMs)
     }
   }
 
