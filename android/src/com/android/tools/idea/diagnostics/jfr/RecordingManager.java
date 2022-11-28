@@ -16,6 +16,7 @@
 package com.android.tools.idea.diagnostics.jfr;
 
 import com.android.tools.idea.diagnostics.jfr.reports.JfrFreezeReports;
+import com.android.tools.idea.diagnostics.jfr.reports.JfrManifestMergerReports;
 import com.android.tools.idea.diagnostics.jfr.reports.JfrTypingLatencyReports;
 import com.android.tools.idea.diagnostics.report.JfrBasedReport;
 import com.android.tools.idea.diagnostics.report.DiagnosticReport;
@@ -115,6 +116,10 @@ public class RecordingManager {
 
   private static void createReportManagers(ServerFlagService serverFlagService) {
     JfrFreezeReports.Companion.createFreezeReportManager();
+
+    if (StudioFlags.JFR_MANIFEST_MERGE_ENABLED.get()) {
+      JfrManifestMergerReports.Companion.createReportManager();
+    }
 
     if (StudioFlags.JFR_TYPING_LATENCY_ENABLED.get()) {
       JfrTypingLatencyReports.Companion.createReportManager(serverFlagService);

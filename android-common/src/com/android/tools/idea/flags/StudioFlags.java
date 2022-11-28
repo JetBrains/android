@@ -991,6 +991,13 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> JFR_MANIFEST_MERGE_ENABLED = Flag.create(
+    EDITOR, "jfr.manifest.merge.enabled",
+    "Enable JFR for manifest merge",
+    "If enabled, allows JFR reports to be generated when manifest merge exceeds the defined threshold",
+    true
+  );
+
   public static final Flag<Boolean> JFR_TYPING_LATENCY_ENABLED = Flag.create(
     EDITOR, "jfr.typing.latency.enabled",
     "Enable JFR for typing latency",
