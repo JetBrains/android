@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.project;
 
-import static com.android.sdklib.AndroidVersion.VersionCodes.Q;
 import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.adtui.validation.Validator.Severity.WARNING;
@@ -25,8 +24,6 @@ import static com.android.tools.idea.npw.module.AndroidApiLevelComboBoxKt.ensure
 import static com.android.tools.idea.npw.platform.AndroidVersionsInfoKt.getSdkManagerLocalPath;
 import static com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
-import static com.intellij.openapi.ui.panel.ComponentPanelBuilder.computeCommentInsets;
-import static com.intellij.openapi.ui.panel.ComponentPanelBuilder.createCommentComponent;
 import static java.lang.String.format;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -66,8 +63,6 @@ import com.android.tools.idea.wizard.template.Template;
 import com.android.tools.idea.wizard.template.TemplateConstraint;
 import com.android.tools.idea.wizard.ui.WizardUtils;
 import com.google.common.collect.Lists;
-import com.intellij.icons.AllIcons;
-import com.intellij.ide.HelpTooltip;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBCheckBox;
@@ -75,7 +70,6 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.ui.JBEmptyBorder;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -86,7 +80,6 @@ import java.util.List;
 import java.util.Locale;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import org.jetbrains.android.util.AndroidUtils;
@@ -113,17 +106,13 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JTextField myPackageName;
   private JComboBox<Language> myProjectLanguage;
   private JBLabel myProjectLanguageLabel;
-  private JPanel myAppCompatPanel;
-  private JBCheckBox myAppCompatCheck;
   private JBCheckBox myWearCheck;
   private JBCheckBox myTvCheck;
-  private JBLabel myAppCompatHelp;
   private JBLabel myTemplateTitle;
   private JBLabel myTemplateDetail;
   private HyperlinkLabel myDocumentationLink;
   private JPanel myFormFactorSdkControlsPanel;
   private JBCheckBox myGradleKtsCheck;
-  private JLabel myAppCompatComment;
   private JComboBox myMinSdkCombo;
   private FormFactorSdkControls myFormFactorSdkControls;
 
@@ -133,13 +122,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myProjectModel = projectModel;
     myValidatorPanel = new ValidatorPanel(this, myPanel);
     myRootPanel = wrapWithVScroll(myValidatorPanel);
-
-    myAppCompatHelp.setIcon(AllIcons.General.ContextHelp);
-    HelpTooltip helpTooltip = new HelpTooltip()
-      .setDescription(message("android.wizard.project.help.appcompat"));
-    helpTooltip.installOn(myAppCompatCheck);
-    helpTooltip.installOn(myAppCompatHelp);
-    myAppCompatComment.setBorder(new JBEmptyBorder(computeCommentInsets(myAppCompatCheck, true)));
 
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
@@ -184,7 +166,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myFormFactorSdkControls.init(androidSdkInfo, this);
 
     myBindings.bindTwoWay(new SelectedItemProperty<>(myProjectLanguage), myProjectModel.getLanguage());
-    myBindings.bindTwoWay(myProjectModel.getUseAppCompat(), new SelectedProperty(myAppCompatCheck));
     if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()) {
       myBindings.bindTwoWay(myProjectModel.getUseGradleKts(), new SelectedProperty(myGradleKtsCheck));
     }
@@ -222,8 +203,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myWearCheck.setVisible(formFactor == FormFactor.Wear);
       myTvCheck.setVisible(formFactor == FormFactor.Tv);
     });
-
-    myListeners.listen(androidSdkInfo, this::updateAppCompatCheckBox);
   }
 
   @Override
@@ -243,7 +222,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     if (isKotlinOnly) {
       myProjectModel.getLanguage().setValue(Language.Kotlin);
     }
-    updateAppCompatCheckBox();
   }
 
   @Override
@@ -312,25 +290,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myDocumentationLink.setVisible(documentationUrl != null);
   }
 
-  private void updateAppCompatCheckBox() {
-    VersionItem androidVersion = getModel().androidSdkInfo().getValueOrNull();
-    Template template = getModel().newRenderTemplate.getValueOrNull();
-
-    boolean isAndroidxApi = androidVersion != null && androidVersion.getMinApiLevel() >= Q; // No more app-compat after Q
-    boolean hasAndroidxConstraint = template != null && template.getConstraints().contains(TemplateConstraint.AndroidX);
-
-    if (isAndroidxApi || hasAndroidxConstraint) {
-      myAppCompatCheck.setSelected(false);
-      myAppCompatCheck.setEnabled(false);
-    }
-    else {
-      myAppCompatCheck.setEnabled(true);
-    }
-
-    boolean isKotlin = template != null && template.getConstraints().contains(TemplateConstraint.Kotlin);
-    myAppCompatPanel.setVisible(!isKotlin);
-  }
-
   private static boolean hasValidSdkComposeVersion(VersionItem skdItem, @Nullable Template renderTemplate) {
     return renderTemplate == null ||
            renderTemplate.getCategory() != Category.Compose ||
@@ -342,6 +301,5 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myFormFactorSdkControls = new FormFactorSdkControls();
     myFormFactorSdkControlsPanel = myFormFactorSdkControls.getRoot();
     myMinSdkCombo = myFormFactorSdkControls.getMinSdkComboBox();
-    myAppCompatComment = createCommentComponent(message("android.wizard.validate.select.appcompat"), true);
   }
 }

@@ -61,7 +61,6 @@ class ExistingProjectModelData(
   override val applicationName: StringValueProperty = StringValueProperty()
   override val packageName: StringValueProperty = StringValueProperty()
   override val projectLocation: StringValueProperty = StringValueProperty(project.basePath!!)
-  override val useAppCompat = BoolValueProperty()
   override val useGradleKts = BoolValueProperty(project.hasKtsUsage())
   override val viewBindingSupport = OptionalValueProperty<ViewBindingSupport>(project.isViewBindingSupported())
   override val isNewProject = false

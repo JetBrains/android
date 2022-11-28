@@ -158,7 +158,7 @@ abstract class ModuleModel(
           minSdk = androidSdkInfo.valueOrNull?.minApiLevel ?: 0,
           bytecodeLevel = (this@ModuleModel as? NewAndroidModuleModel)?.bytecodeLevel?.valueOrNull,
           useGradleKts = useGradleKts.get(),
-          useAppCompat = useAppCompat.get()
+          useAppCompat = false
         )
       } else null
 

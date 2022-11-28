@@ -221,7 +221,7 @@ class RenderTemplateModel private constructor(
         minSdk = androidSdkInfo.valueOrNull?.minApiLevel ?: 0,
         bytecodeLevel = (moduleModelData as? NewAndroidModuleModel)?.bytecodeLevel?.valueOrNull,
         useGradleKts = useGradleKts.get(),
-        useAppCompat = useAppCompat.get()
+        useAppCompat = false
       )
 
       val executor = if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)

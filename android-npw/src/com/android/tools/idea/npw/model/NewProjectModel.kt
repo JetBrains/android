@@ -81,7 +81,6 @@ interface ProjectModelData {
   val applicationName: StringProperty
   val packageName: StringProperty
   val projectLocation: StringProperty
-  val useAppCompat: BoolProperty
   val useGradleKts: BoolProperty
   val viewBindingSupport: OptionalValueProperty<ViewBindingSupport>
   var project: Project
@@ -96,7 +95,6 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val applicationName = StringValueProperty("My Application")
   override val packageName = StringValueProperty()
   override val projectLocation = StringValueProperty()
-  override val useAppCompat = BoolValueProperty()
   override val useGradleKts = BoolValueProperty()
   // We can assume this is true for a new project because View binding is supported from AGP 3.6+
   override val viewBindingSupport = OptionalValueProperty<ViewBindingSupport>(ViewBindingSupport.SUPPORTED_4_0_MORE)
@@ -183,7 +181,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     override fun init() {
       projectTemplateDataBuilder.apply {
         topOut = File(project.basePath ?: "")
-        androidXSupport = !useAppCompat.get()
+        androidXSupport = true
 
         setProjectDefaults(project)
         language = this@NewProjectModel.language.value
@@ -225,7 +223,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       )
       val executor = if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
       val recipe: Recipe = { data: TemplateData ->
-        androidProjectRecipe(data as ProjectTemplateData, applicationName.get(), language.value, !useAppCompat.get(), useGradleKts.get())
+        androidProjectRecipe(data as ProjectTemplateData, applicationName.get(), language.value, true, useGradleKts.get())
       }
 
       recipe.render(context, executor, AndroidStudioEvent.TemplateRenderer.ANDROID_PROJECT)
