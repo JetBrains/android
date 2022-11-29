@@ -204,11 +204,6 @@ public final class FakeUiWindowManager extends WindowManagerEx {
     }
 
     @Override
-    public IdeFrame getFrame() {
-      return null;
-    }
-
-    @Override
     public StatusBar findChild(Component c) {
       return null;
     }
@@ -250,9 +245,6 @@ public final class FakeUiWindowManager extends WindowManagerEx {
     public void addWidget(@NotNull StatusBarWidget widget, @NotNull String anchor, @NotNull Disposable parentDisposable) {
       addWidget(widget, parentDisposable);
     }
-
-    @Override
-    public void dispose() {}
 
     @Override
     public void updateWidget(@NotNull String id) {}

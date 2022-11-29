@@ -33,7 +33,6 @@ class SendFeedbackPanel : StatusBarWidget.Multiframe, StatusBarWidget.IconPresen
   private val project: Project?
     get() = CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(myStatusBar as JComponent?))
 
-  override fun dispose() {}
   override fun ID(): String = "SendFeedbackPanel"
   override fun getPresentation() = this
   override fun install(statusBar: StatusBar) {

@@ -30,9 +30,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.StatusBar;
 import com.intellij.openapi.wm.StatusBarWidget;
-import com.intellij.util.Consumer;
 import java.awt.Color;
-import java.awt.event.MouseEvent;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,10 +64,6 @@ final class AdbConnectionWidget implements StatusBarWidget.IconPresentation, Sta
   }
 
   @Override
-  public void install(@NotNull StatusBar statusBar) {
-  }
-
-  @Override
   public void dispose() {
     myAdapter = null;
   }
@@ -78,12 +72,6 @@ final class AdbConnectionWidget implements StatusBarWidget.IconPresentation, Sta
   @Override
   public String getTooltipText() {
     return myLastConnectionState.myTooltip;
-  }
-
-  @Nullable
-  @Override
-  public Consumer<MouseEvent> getClickConsumer() {
-    return null;
   }
 
   @NotNull
