@@ -16,8 +16,11 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.testutils.TestUtils
+import com.android.tools.compose.ComposePluginIrGenerationExtension
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.PsiTestUtil
+import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 
 /**
  * Path to the compose-runtime jar. Note that unlike all other dependencies, we
@@ -28,8 +31,16 @@ import com.intellij.testFramework.PsiTestUtil
  * The main reason to include that is because the compose compiler plugin expects
  * the runtime to be path of the classpath or else it'll throw an error.
  */
-private val composeRuntimePath = TestUtils.getWorkspaceRoot().resolve(
+internal val composeRuntimePath = TestUtils.getWorkspaceRoot().resolve(
   "tools/adt/idea/compose-ide-plugin/testData/lib/compose-runtime-1.4.0-SNAPSHOT.jar").toString()
+
+fun setUpComposeInProjectFixture(projectRule: AndroidProjectRule) {
+  projectRule.module.loadComposeRuntimeInClassPath()
+  // Register the compose compiler plugin much like what Intellij would normally do.
+  if (IrGenerationExtension.getInstances(projectRule.project).find { it is ComposePluginIrGenerationExtension } == null) {
+    IrGenerationExtension.registerExtension(projectRule.project, ComposePluginIrGenerationExtension())
+  }
+}
 
 /**
  * Loads the Compose runtime into the project class path. This allows for tests using the compiler (Live Edit/FastPreview)
