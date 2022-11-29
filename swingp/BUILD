@@ -37,6 +37,12 @@ java_binary(
         "Can-Redefine-Classes: true",
         "Can-Retransform-Classes: true",
     ],
+    javacopts = [
+        "--add-exports",
+        "java.desktop/sun.java2d=ALL-UNNAMED",
+        "--add-exports",
+        "java.desktop/sun.awt.image=ALL-UNNAMED",
+    ],
     deps = [
         "@maven//:com.google.code.gson.gson",
         "@maven//:com.google.guava.guava",
