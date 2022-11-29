@@ -40,8 +40,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
 
-private val PREVIEW_FRAME_PADDING_PROVIDER: (PositionableContent) -> Int = { content ->
-  val scale = content.scale
+private val PREVIEW_FRAME_PADDING_PROVIDER: (Double) -> Int = { scale ->
   // Minimum 5 at 20% and maximum 20 at 100%, responsive.
   val min = 5
   val max = 20

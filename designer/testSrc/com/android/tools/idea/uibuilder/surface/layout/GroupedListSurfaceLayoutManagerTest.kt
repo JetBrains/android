@@ -19,6 +19,7 @@ import com.android.tools.idea.common.surface.layout.TestPositionableContent
 import junit.framework.Assert.assertEquals
 import org.junit.Test
 import java.awt.Dimension
+import kotlin.test.assertNotEquals
 
 class GroupedListSurfaceLayoutManagerTest {
 
@@ -219,7 +220,7 @@ class GroupedListSurfaceLayoutManagerTest {
       assertEquals(450, contents[4].x)
       assertEquals(590, contents[4].y)
       val size = manager.getRequiredSize(contents, width, height, null)
-      assertEquals(Dimension(100, 710), size)
+      assertEquals(Dimension(140, 710), size)
     }
 
     run {
@@ -237,7 +238,7 @@ class GroupedListSurfaceLayoutManagerTest {
       assertEquals(450, contents[4].x)
       assertEquals(730, contents[4].y)
       val size = manager.getRequiredSize(contents, width, height, null)
-      assertEquals(Dimension(100, 710), size)
+      assertEquals(Dimension(140, 710), size)
     }
 
     run {
@@ -255,7 +256,7 @@ class GroupedListSurfaceLayoutManagerTest {
       assertEquals(20, contents[4].x)
       assertEquals(590, contents[4].y)
       val size = manager.getRequiredSize(contents, width, height, null)
-      assertEquals(Dimension(100, 710), size)
+      assertEquals(Dimension(140, 710), size)
     }
 
     run {
@@ -273,14 +274,14 @@ class GroupedListSurfaceLayoutManagerTest {
       assertEquals(20, contents[4].x)
       assertEquals(730, contents[4].y)
       val size = manager.getRequiredSize(contents, width, height, null)
-      assertEquals(Dimension(100, 710), size)
+      assertEquals(Dimension(140, 710), size)
     }
   }
 
   @Test
   fun testAdaptiveFramePadding() {
     val framePadding = 50
-    val manager = GroupedListSurfaceLayoutManager(0, { (it.scale * framePadding).toInt() }) { contents ->
+    val manager = GroupedListSurfaceLayoutManager(0, { (it * framePadding).toInt() }) { contents ->
       listOf(contents.toList())
     }
     val contents = listOf(TestPositionableContent(0, 0, 100, 100, scale = 0.5),
@@ -300,6 +301,46 @@ class GroupedListSurfaceLayoutManagerTest {
     assertEquals(150, contents[3].x)
     assertEquals(600, contents[3].y)
     val size = manager.getRequiredSize(contents, width, height, null)
-    assertEquals(Dimension(200, 900), size)
+    assertEquals(Dimension(400, 900), size)
+  }
+
+  @Test
+  fun testScaleDoNotEffectPreferredSize() {
+    val framePadding = 50
+    val manager = GroupedListSurfaceLayoutManager(0, { (it * framePadding).toInt() }) { contents ->
+      listOf(contents.toList())
+    }
+
+    val contentProvider: (scale: Double) -> List<PositionableContent> = {
+      listOf(TestPositionableContent(0, 0, 100, 100, scale = it),
+             TestPositionableContent(0, 0, 100, 100, scale = it),
+             TestPositionableContent(0, 0, 100, 100, scale = it),
+             TestPositionableContent(0, 0, 100, 100, scale = it))
+    }
+
+    val contents1 = contentProvider(1.0)
+    val contents2 = contentProvider(2.0)
+    val contents3 = contentProvider(3.0)
+
+    val width = 1000
+    val height = 1000
+
+    run {
+      // When scale are different, the required size are different.
+      val scaledSize1 = manager.getRequiredSize(contents1, width, height, null)
+      val scaledSize2 = manager.getRequiredSize(contents2, width, height, null)
+      val scaledSize3 = manager.getRequiredSize(contents3, width, height, null)
+      assertNotEquals(scaledSize1, scaledSize2)
+      assertNotEquals(scaledSize1, scaledSize3)
+    }
+
+    run {
+      // Even the scale are different, the preferred size should be same.
+      val scaledSize1 = manager.getPreferredSize(contents1, width, height, null)
+      val scaledSize2 = manager.getPreferredSize(contents2, width, height, null)
+      val scaledSize3 = manager.getPreferredSize(contents3, width, height, null)
+      assertEquals(scaledSize1, scaledSize2)
+      assertEquals(scaledSize1, scaledSize3)
+    }
   }
 }

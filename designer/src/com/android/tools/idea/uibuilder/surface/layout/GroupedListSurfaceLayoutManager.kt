@@ -28,7 +28,7 @@ import kotlin.math.max
  * preview with its toolbars. The input value is the scale value of the current [PositionableContent].
  */
 class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadding: Int,
-                                      @SwingCoordinate private val previewFramePaddingProvider: (content: PositionableContent) -> Int,
+                                      @SwingCoordinate private val previewFramePaddingProvider: (scale: Double) -> Int,
                                       private val transform: (Collection<PositionableContent>) -> List<List<PositionableContent>>)
   : SurfaceLayoutManager {
 
@@ -36,16 +36,17 @@ class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
                                 @SwingCoordinate availableWidth: Int,
                                 @SwingCoordinate availableHeight: Int,
                                 @SwingCoordinate dimension: Dimension?) =
-    getSize(content, PositionableContent::contentSize, dimension)
+    getSize(content, PositionableContent::contentSize, { 1.0 }, dimension)
 
   override fun getRequiredSize(content: Collection<PositionableContent>,
                                @SwingCoordinate availableWidth: Int,
                                @SwingCoordinate availableHeight: Int,
                                @SwingCoordinate dimension: Dimension?) =
-    getSize(content, PositionableContent::scaledContentSize, dimension)
+    getSize(content, PositionableContent::scaledContentSize, { scale }, dimension)
 
   private fun getSize(content: Collection<PositionableContent>,
                       sizeFunc: PositionableContent.() -> Dimension,
+                      scaleFunc: PositionableContent.() -> Double,
                       dimension: Dimension?): Dimension {
     val dim = dimension ?: Dimension()
 
@@ -60,9 +61,10 @@ class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
     var totalRequiredHeight = canvasTopPadding
 
     for (view in verticalList) {
-      val viewWidth = view.sizeFunc().width + view.margin.horizontal
-      val framePadding = previewFramePaddingProvider(view)
-      val requiredHeight = framePadding + view.sizeFunc().height + view.margin.vertical + framePadding
+      val viewSize = view.sizeFunc()
+      val framePadding = previewFramePaddingProvider(scaleFunc(view))
+      val viewWidth = framePadding + viewSize.width + view.margin.horizontal + framePadding
+      val requiredHeight = framePadding + viewSize.height + view.margin.vertical + framePadding
 
       requiredWidth = maxOf(requiredWidth, viewWidth)
       totalRequiredHeight += requiredHeight
@@ -83,12 +85,12 @@ class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
 
     val widthMap =
       verticalList.associateWith {
-        val framePadding = previewFramePaddingProvider(it)
+        val framePadding = previewFramePaddingProvider(it.scale)
         framePadding + it.scaledContentSize.width + it.margin.horizontal + framePadding
       }
     val heightMap =
       verticalList.associateWith {
-        val framePadding = previewFramePaddingProvider(it)
+        val framePadding = previewFramePaddingProvider(it.scale)
         framePadding + it.scaledContentSize.height + it.margin.vertical + framePadding
       }
 
@@ -103,7 +105,7 @@ class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
     for (view in verticalList) {
       val width = widthMap[view]!!
       val locationX = centerX - (width / 2)
-      val framePadding = previewFramePaddingProvider(view)
+      val framePadding = previewFramePaddingProvider(view.scale)
       setContentPosition(view, locationX + framePadding, nextY + framePadding)
       nextY += heightMap[view]!!
     }
