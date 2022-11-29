@@ -103,7 +103,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   private boolean myPreviewWithToolsVisibilityAndPosition = true;
 
-  @SurfaceScale private static final double DEFAULT_MIN_SCALE = 0.1;
+  @SurfaceScale private static final double DEFAULT_MIN_SCALE = 0.025;
   @SurfaceScale private static final double DEFAULT_MAX_SCALE = 10;
 
   /**
