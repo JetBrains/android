@@ -122,41 +122,6 @@ public class CpuProfilerConfigConverter {
   }
 
   /**
-   * Converts from {@link CpuProfilerConfig} to {@link Trace.UserOptions}
-   */
-  public static Trace.UserOptions toProto(CpuProfilerConfig config, int deviceApi) {
-    Trace.UserOptions.Builder protoBuilder = Trace.UserOptions.newBuilder()
-      .setName(config.getName())
-      .setBufferSizeInMb(config.getBufferSizeMb())
-      .setSamplingIntervalUs(config.getSamplingIntervalUs());
-
-    switch (config.getTechnology()) {
-      case SAMPLED_JAVA:
-        protoBuilder.setTraceType(Trace.UserOptions.TraceType.ART);
-        protoBuilder.setTraceMode(Trace.TraceMode.SAMPLED);
-        break;
-      case INSTRUMENTED_JAVA:
-        protoBuilder.setTraceType(Trace.UserOptions.TraceType.ART);
-        protoBuilder.setTraceMode(Trace.TraceMode.INSTRUMENTED);
-        break;
-      case SAMPLED_NATIVE:
-        protoBuilder.setTraceType(Trace.UserOptions.TraceType.SIMPLEPERF);
-        protoBuilder.setTraceMode(Trace.TraceMode.SAMPLED);
-        break;
-      case SYSTEM_TRACE:
-        if (deviceApi >= AndroidVersion.VersionCodes.P) {
-          protoBuilder.setTraceType(Trace.UserOptions.TraceType.PERFETTO);
-        } else {
-          protoBuilder.setTraceType(Trace.UserOptions.TraceType.ATRACE);
-        }
-        protoBuilder.setTraceMode(Trace.TraceMode.INSTRUMENTED);
-        break;
-    }
-
-    return protoBuilder.build();
-  }
-
-  /**
    * Converts from {@link Trace.UserOptions} to {@link CpuProfilerConfig}
    */
   public static CpuProfilerConfig fromProto(Trace.UserOptions proto) {
