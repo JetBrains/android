@@ -54,7 +54,7 @@ public class AndroidResourceFileSafeDeleteProcessor extends SafeDeleteProcessorD
 
   @Nullable
   @Override
-  public NonCodeUsageSearchInfo findUsages(@NotNull PsiElement element, @NotNull PsiElement[] allElementsToDelete, @NotNull List<UsageInfo> result) {
+  public NonCodeUsageSearchInfo findUsages(@NotNull PsiElement element, @NotNull PsiElement[] allElementsToDelete, @NotNull List<? super UsageInfo> result) {
     SafeDeleteProcessor.findGenericElementUsages(element, result, allElementsToDelete);
 
     if (element instanceof PsiFile) {
