@@ -53,7 +53,7 @@ class LayoutBindingSafeDeleteProcessor : SafeDeleteProcessorDelegate {
 
   override fun findUsages(element: PsiElement,
                           allElementsToDelete: Array<PsiElement>,
-                          result: MutableList<UsageInfo>): NonCodeUsageSearchInfo? {
+                          result: MutableList<in UsageInfo>): NonCodeUsageSearchInfo? {
     val resourceFile = element as PsiFile
     val facet = AndroidFacet.getInstance(element)!!
     val cache = LayoutBindingModuleCache.getInstance(facet)

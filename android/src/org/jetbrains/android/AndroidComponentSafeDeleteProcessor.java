@@ -13,15 +13,16 @@ import com.intellij.refactoring.safeDelete.NonCodeUsageSearchInfo;
 import com.intellij.refactoring.safeDelete.SafeDeleteProcessorDelegateBase;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.IncorrectOperationException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public class AndroidComponentSafeDeleteProcessor extends SafeDeleteProcessorDelegateBase {
 
@@ -40,7 +41,7 @@ public class AndroidComponentSafeDeleteProcessor extends SafeDeleteProcessorDele
   }
 
   @Override
-  public NonCodeUsageSearchInfo findUsages(@NotNull PsiElement element, @NotNull PsiElement[] allElementsToDelete, @NotNull List<UsageInfo> result) {
+  public NonCodeUsageSearchInfo findUsages(@NotNull PsiElement element, @NotNull PsiElement[] allElementsToDelete, @NotNull List<? super UsageInfo> result) {
     final ArrayList<UsageInfo> usages = new ArrayList<UsageInfo>();
     final NonCodeUsageSearchInfo info = getBaseHandler().findUsages(element, allElementsToDelete, usages);
     if (info == null) {
@@ -84,12 +85,12 @@ public class AndroidComponentSafeDeleteProcessor extends SafeDeleteProcessorDele
   }
 
   @Override
-  public UsageInfo[] preprocessUsages(Project project, UsageInfo[] usages) {
+  public UsageInfo[] preprocessUsages(@NotNull Project project, UsageInfo @NotNull [] usages) {
     return usages;
   }
 
   @Override
-  public void prepareForDeletion(PsiElement element) throws IncorrectOperationException {
+  public void prepareForDeletion(@NotNull PsiElement element) throws IncorrectOperationException {
     assert element instanceof PsiClass;
     final AndroidAttributeValue<PsiClass> declaration = AndroidDomUtil.findComponentDeclarationInManifest((PsiClass)element);
     if (declaration != null) {

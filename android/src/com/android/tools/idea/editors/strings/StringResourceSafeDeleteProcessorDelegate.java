@@ -66,7 +66,7 @@ final class StringResourceSafeDeleteProcessorDelegate extends SafeDeleteProcesso
   @Override
   public NonCodeUsageSearchInfo findUsages(@NotNull PsiElement element,
                                            @NotNull PsiElement[] elementsToDelete,
-                                           @NotNull List<UsageInfo> result) {
+                                           @NotNull List<? super UsageInfo> result) {
     Collection<PsiElement> elements = new ArrayList<>();
 
     XmlTag tag = (XmlTag)element;
