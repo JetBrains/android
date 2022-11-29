@@ -452,7 +452,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
   }
 
   @Override
-  protected Dimension getDefaultOffset() {
+  protected Dimension getScrollToVisibleOffset() {
     return new Dimension(0, 0);
   }
 

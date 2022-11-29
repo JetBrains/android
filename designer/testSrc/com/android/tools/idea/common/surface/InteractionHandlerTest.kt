@@ -118,7 +118,7 @@ private class Surface(project: Project, disposable: Disposable,
 
   override fun getMaxScale() = 10.0
 
-  override fun getDefaultOffset() = Dimension()
+  override fun getScrollToVisibleOffset() = Dimension()
 
   override fun getPreferredContentSize(availableWidth: Int, availableHeight: Int) = Dimension()
 

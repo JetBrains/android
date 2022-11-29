@@ -1069,9 +1069,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
     int availableWidth = getExtentSize().width;
     int availableHeight = getExtentSize().height;
-    Dimension padding = getDefaultOffset();
-    availableWidth -= padding.width;
-    availableHeight -= padding.height;
 
     @SurfaceScale double scaleX = size.width == 0 ? 1 : (double)availableWidth / size.width;
     @SurfaceScale double scaleY = size.height == 0 ? 1 : (double)availableHeight / size.height;
@@ -1085,7 +1082,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   }
 
   @SwingCoordinate
-  protected abstract Dimension getDefaultOffset();
+  protected abstract Dimension getScrollToVisibleOffset();
 
   @SwingCoordinate
   @NotNull
@@ -1143,8 +1140,8 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   public final void scrollToVisible(@NotNull SceneView sceneView, boolean forceScroll) {
     Rectangle rectangle = mySceneViewPanel.findSceneViewRectangle(sceneView);
     if (rectangle != null && (forceScroll || !getViewport().getViewRect().intersects(rectangle))) {
-      Dimension defaultOffset = getDefaultOffset();
-      setScrollPosition(rectangle.x - defaultOffset.width, rectangle.y - defaultOffset.height);
+      Dimension offset = getScrollToVisibleOffset();
+      setScrollPosition(rectangle.x - offset.width, rectangle.y - offset.height);
     }
   }
 

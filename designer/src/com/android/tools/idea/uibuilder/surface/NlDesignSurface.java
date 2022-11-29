@@ -695,9 +695,12 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     return new ItemTransferable(new DnDTransferItem(model != null ? model.getId() : 0, components));
   }
 
+  /**
+   * The offsets to the left and top edges when scrolling to a component by calling {@link #scrollToVisible(SceneView, boolean)}
+   */
   @SwingCoordinate
   @Override
-  protected Dimension getDefaultOffset() {
+  protected Dimension getScrollToVisibleOffset() {
     return new Dimension(2 * DEFAULT_SCREEN_OFFSET_X, 2 * DEFAULT_SCREEN_OFFSET_Y);
   }
 
