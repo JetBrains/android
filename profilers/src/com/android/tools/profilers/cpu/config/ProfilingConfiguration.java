@@ -118,43 +118,39 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
    */
   @NotNull
   public static ProfilingConfiguration fromProto(@NotNull Trace.TraceConfiguration proto) {
-    ProfilingConfiguration configuration = null;
     switch (proto.getUnionCase()) {
       case ART_OPTIONS:
         if (proto.getArtOptions().getTraceMode() == Trace.TraceMode.SAMPLED) {
           ArtSampledConfiguration artSampled = new ArtSampledConfiguration("");
           artSampled.setProfilingSamplingIntervalUs(proto.getArtOptions().getSamplingIntervalUs());
           artSampled.setProfilingBufferSizeInMb(proto.getArtOptions().getBufferSizeInMb());
-          configuration = artSampled;
+          return artSampled;
         }
         else {
           ArtInstrumentedConfiguration artInstrumented = new ArtInstrumentedConfiguration("");
           artInstrumented.setProfilingBufferSizeInMb(proto.getArtOptions().getBufferSizeInMb());
-          configuration = artInstrumented;
+          return artInstrumented;
         }
-        break;
       case PERFETTO_OPTIONS:
         PerfettoConfiguration perfetto = new PerfettoConfiguration("");
         if (proto.getPerfettoOptions().getBuffersCount() > 0) {
           // Perfetto buffer size is configured for the first buffer always. Value is fetched as Kb, so we convert to Mb.
           perfetto.setProfilingBufferSizeInMb(proto.getPerfettoOptions().getBuffers(0).getSizeKb() / 1024);
         }
-        configuration = perfetto;
-        break;
+        return perfetto;
       case ATRACE_OPTIONS:
         AtraceConfiguration atrace = new AtraceConfiguration("");
         atrace.setProfilingBufferSizeInMb(proto.getAtraceOptions().getBufferSizeInMb());
-        configuration = atrace;
-        break;
+        return atrace;
       case SIMPLEPERF_OPTIONS:
         SimpleperfConfiguration simpleperf = new SimpleperfConfiguration("");
         simpleperf.setProfilingSamplingIntervalUs(proto.getSimpleperfOptions().getSamplingIntervalUs());
-        configuration = simpleperf;
-        break;
+        return simpleperf;
       case UNION_NOT_SET:
+        // fall through
+      default:
         return new UnspecifiedConfiguration(DEFAULT_CONFIGURATION_NAME);
     }
-    return configuration;
   }
 
   /**
