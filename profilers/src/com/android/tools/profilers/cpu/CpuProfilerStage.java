@@ -339,9 +339,7 @@ public class CpuProfilerStage extends StreamingStage {
       .setAppName(process.getName())
       .setAbiCpuArch(TransportFileManager.getShortAbiName(getStudioProfilers().getDevice().getCpuAbi()))
       .setInitiationType(TraceInitiationType.INITIATED_BY_UI)
-      .setTempPath(traceFilePath) // TODO b/133321803 switch back to having daemon generates and provides the path.
-      .setUserOptions(config.toProto())
-      .addAllSymbolDirs(getStudioProfilers().getIdeServices().getNativeSymbolsDirectories());
+      .setTempPath(traceFilePath);
 
     config.addOptions(configurationBuilder, Map.of(AdditionalOptions.APP_PKG_NAME, process.getName(), AdditionalOptions.SYMBOL_DIRS,
                                                    getStudioProfilers().getIdeServices().getNativeSymbolsDirectories()));
