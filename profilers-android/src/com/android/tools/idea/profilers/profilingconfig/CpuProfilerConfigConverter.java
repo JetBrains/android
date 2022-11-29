@@ -17,7 +17,6 @@ package com.android.tools.idea.profilers.profilingconfig;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
-import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.AtraceConfiguration;
@@ -31,7 +30,6 @@ import java.util.List;
 public class CpuProfilerConfigConverter {
 
   private CpuProfilerConfigConverter() {}
-
 
   /**
    * Converts from a {@link ProfilingConfiguration} to a {@link CpuProfilerConfig}
@@ -119,36 +117,5 @@ public class CpuProfilerConfigConverter {
    */
   public static List<ProfilingConfiguration> toProfilingConfiguration(List<CpuProfilerConfig> configs, int deviceApi) {
     return ContainerUtil.map(configs, config -> toProfilingConfiguration(config, deviceApi));
-  }
-
-  /**
-   * Converts from {@link Trace.UserOptions} to {@link CpuProfilerConfig}
-   */
-  public static CpuProfilerConfig fromProto(Trace.UserOptions proto) {
-    CpuProfilerConfig config = new CpuProfilerConfig()
-      .setName(proto.getName())
-      .setSamplingIntervalUs(proto.getSamplingIntervalUs())
-      .setBufferSizeMb(proto.getBufferSizeInMb());
-
-    switch (proto.getTraceType()) {
-      case ART:
-        if (proto.getTraceMode() == Trace.TraceMode.SAMPLED) {
-          config.setTechnology(CpuProfilerConfig.Technology.SAMPLED_JAVA);
-        }
-        else {
-          config.setTechnology(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA);
-        }
-        break;
-      case SIMPLEPERF:
-        config.setTechnology(CpuProfilerConfig.Technology.SAMPLED_NATIVE);
-        break;
-      case ATRACE: // fall-through
-      case PERFETTO:
-        config.setTechnology(CpuProfilerConfig.Technology.SYSTEM_TRACE);
-        break;
-      default:
-        throw new IllegalArgumentException("Unsupported trace type: " + proto.getTraceType());
-    }
-    return config;
   }
 }

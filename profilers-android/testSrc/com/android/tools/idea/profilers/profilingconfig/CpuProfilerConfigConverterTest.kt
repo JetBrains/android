@@ -31,69 +31,6 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 class CpuProfilerConfigConverterTest {
-
-  @Test
-  fun fromProtoSampledJava() {
-    val proto = Trace.UserOptions
-      .newBuilder()
-      .setName("MySampledJava")
-      .setTraceType(Trace.UserOptions.TraceType.ART)
-      .setTraceMode(Trace.TraceMode.SAMPLED)
-      .setSamplingIntervalUs(1234)
-      .setBufferSizeInMb(12)
-      .build()
-
-    val config = CpuProfilerConfigConverter.fromProto(proto)
-    assertThat(config.name).isEqualTo("MySampledJava")
-    assertThat(config.technology).isEqualTo(CpuProfilerConfig.Technology.SAMPLED_JAVA)
-    assertThat(config.samplingIntervalUs).isEqualTo(1234)
-    assertThat(config.bufferSizeMb).isEqualTo(12)
-  }
-
-  @Test
-  fun fromProtoSampledNative() {
-    val proto = Trace.UserOptions
-      .newBuilder()
-      .setTraceType(Trace.UserOptions.TraceType.SIMPLEPERF)
-      .setTraceMode(Trace.TraceMode.SAMPLED)
-      .build()
-    val config = CpuProfilerConfigConverter.fromProto(proto)
-    assertThat(config.technology).isEqualTo(CpuProfilerConfig.Technology.SAMPLED_NATIVE)
-  }
-
-  @Test
-  fun fromProtoInstrumentedJava() {
-    val proto = Trace.UserOptions
-      .newBuilder()
-      .setTraceType(Trace.UserOptions.TraceType.ART)
-      .setTraceMode(Trace.TraceMode.INSTRUMENTED)
-      .build()
-    val config = CpuProfilerConfigConverter.fromProto(proto)
-    assertThat(config.technology).isEqualTo(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA)
-  }
-
-  @Test
-  fun fromProtoAtrace() {
-    val proto = Trace.UserOptions
-      .newBuilder()
-      .setTraceType(Trace.UserOptions.TraceType.ATRACE)
-      .setTraceMode(Trace.TraceMode.INSTRUMENTED)
-      .build()
-    val config = CpuProfilerConfigConverter.fromProto(proto)
-    assertThat(config.technology).isEqualTo(CpuProfilerConfig.Technology.SYSTEM_TRACE)
-  }
-
-  @Test
-  fun fromProtoPerfetto() {
-    val proto = Trace.UserOptions
-      .newBuilder()
-      .setTraceType(Trace.UserOptions.TraceType.PERFETTO)
-      .setTraceMode(Trace.TraceMode.INSTRUMENTED)
-      .build()
-    val config = CpuProfilerConfigConverter.fromProto(proto)
-    assertThat(config.technology).isEqualTo(CpuProfilerConfig.Technology.SYSTEM_TRACE)
-  }
-
   @Test
   fun toProfilingConfigurationSampledJava() {
     val config = CpuProfilerConfig().apply {
@@ -112,7 +49,6 @@ class CpuProfilerConfigConverterTest {
     assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(0)
   }
 
-
   @Test
   fun toProfilingConfigurationInstrumentedJava() {
     val config = CpuProfilerConfig().apply {
@@ -129,7 +65,6 @@ class CpuProfilerConfigConverterTest {
     assertThat(profilingConfiguration.profilingBufferSizeInMb).isEqualTo(5678)
     assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(0)
   }
-
 
   @Test
   fun toProfilingConfigurationSampledNative() {
