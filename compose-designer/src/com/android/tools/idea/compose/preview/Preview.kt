@@ -1105,7 +1105,10 @@ class ComposePreviewRepresentation(
         "",
         true
       )
-    if (!Disposer.tryRegister(this, refreshProgressIndicator)) return null
+    if (!Disposer.tryRegister(this, refreshProgressIndicator)) {
+      refreshProgressIndicator.processFinish()
+      return null
+    }
     // This is not launched in the activation scope to avoid cancelling the refresh mid-way when the
     // user changes tabs.
     val refreshJob =
