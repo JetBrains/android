@@ -579,7 +579,7 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
 
     // This render the added components.
     for (manager in surface.sceneManagers) {
-      if (StudioFlags.NELE_VISUAL_LINT.get() && manager is LayoutlibSceneManager) {
+      if (StudioFlags.NELE_VISUAL_LINT.get()) {
         visualLintHandler.setupForLayoutlibSceneManager(manager) { !isActive || isRenderingCanceled.get() }
       }
       renderFuture = renderFuture.thenCompose {
@@ -587,7 +587,7 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
           return@thenCompose CompletableFuture.completedFuture<Void?>(null)
         }
         else {
-          val modelUpdateFuture = (manager as LayoutlibSceneManager).updateModelAsync()
+          val modelUpdateFuture = manager.updateModelAsync()
           if (isRenderingCanceled.get()) {
             return@thenCompose CompletableFuture.completedFuture<Void?>(null)
           }
@@ -702,8 +702,7 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       VisualizationToolSettings.getInstance().globalState.showDecoration = state
-      surface.models.map { model: NlModel -> surface.getSceneManager(model) }
-        .filterIsInstance<LayoutlibSceneManager>()
+      surface.models.mapNotNull { model: NlModel -> surface.getSceneManager(model) }
         .forEach { manager -> manager.setShowDecorations(state) }
       surface.requestRender().thenRun {
         if (!Disposer.isDisposed(myWorkBench)) {

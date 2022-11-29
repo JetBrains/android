@@ -25,7 +25,6 @@ import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.actionSystem.DataContext
@@ -82,8 +81,7 @@ class ComposeScreenViewProvidersTest {
     // When showDecorations is true, the scene view should always use a the device shape. In this
     // case, round.
     listOf(COMPOSE_SCREEN_VIEW_PROVIDER, COMPOSE_BLUEPRINT_SCREEN_VIEW_PROVIDER).forEach {
-      val sceneView =
-        it.createPrimarySceneView(surface, surface.sceneManager as LayoutlibSceneManager)
+      val sceneView = it.createPrimarySceneView(surface, surface.sceneManager!!)
       assertTrue(sceneView.screenShape is Ellipse2D)
     }
 
@@ -95,8 +93,7 @@ class ComposeScreenViewProvidersTest {
         showDecorations = false
       )
     listOf(COMPOSE_SCREEN_VIEW_PROVIDER, COMPOSE_BLUEPRINT_SCREEN_VIEW_PROVIDER).forEach {
-      val sceneView =
-        it.createPrimarySceneView(surface, surface.sceneManager as LayoutlibSceneManager)
+      val sceneView = it.createPrimarySceneView(surface, surface.sceneManager!!)
       assertTrue(sceneView.screenShape is Rectangle)
     }
   }
