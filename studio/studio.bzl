@@ -468,9 +468,20 @@ def _get_channel_info(version_type):
 
 def _form_version_full(ctx):
     """Forms version_full based on code name, version type, and release number"""
-    return (ctx.attr.version_code_name +
-            " | " +
-            "{0}.{1}.{2} " +
+    (channel, _) = _get_channel_info(ctx.attr.version_type)
+
+    code_name_and_patch_components = (ctx.attr.version_code_name +
+                                      " | " +
+                                      "{0}.{1}.{2}")
+
+    if channel == "Stable":
+        if ctx.attr.version_release_number <= 1:
+            return code_name_and_patch_components
+
+        return code_name_and_patch_components + " Patch " + str(ctx.attr.version_release_number - 1)
+
+    return (code_name_and_patch_components +
+            " " +
             ctx.attr.version_type +
             " " +
             str(ctx.attr.version_release_number))
@@ -758,6 +769,39 @@ _android_studio = rule(
 #       plugins: A list of plugins to be bundled
 #       modules: A dictionary (see studio_plugin) with modules bundled at top level
 #       resources: A dictionary (see studio_plugin) with resources bundled at top level
+#
+# Regarding versioning information:
+# - The "version_*" parameters (like "version_micro_path" and
+#   "version_type") are used both for Android Studio itself and for
+#   metadata produced by this rule (e.g. the build manifest and the
+#   update message).
+# - The full version string is produced by "_form_version_full"
+#   following these rules:
+#   - If the version_type is "Stable", then the first release will not
+#     have a patch number, then every subsequent release will have a
+#     patch number starting at 1. In addition, the word "Stable" will
+#     never appear in the full version string.
+#   - If the version_type is anything other than "Stable", then the
+#     version_type will appear in the full version string, and
+#     version_release_number will be appended directly after.
+# Examples:
+# - Input: version_type = "Stable", version_release_number = 1
+# - Output: "Dolphin | 2022.1.1"
+# - Input: version_type = "Stable", version_release_number = 2
+# - Output: "Dolphin | 2022.1.1 Patch 1"
+# - Input: version_type = "Stable", version_release_number = 3
+# - Output: "Dolphin | 2022.1.1 Patch 2"
+# - Input: version_type = "Canary", version_release_number = 1
+# - Output: "Dolphin | 2022.1.1 Canary 1"
+# - Input: version_type = "Canary", version_release_number = 2
+# - Output: "Dolphin | 2022.1.1 Canary 2"
+# - Input: version_type = "RC", version_release_number = 3
+# - Output: "Dolphin | 2022.1.1 RC 3"
+#
+# version_release_number may or may not match the actual patch number.
+# For example, we may be on patch 12 of a Beta while still calling it
+# "Beta 3", meaning we've shipped 9 Canary releases and 2 Beta releases
+# before patch 12. In such a case, the release_number would be 3.
 def android_studio(
         name,
         **kwargs):
