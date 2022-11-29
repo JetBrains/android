@@ -133,7 +133,7 @@ fun WorkBench<DesignSurface<*>>.handleLayoutlibNativeCrash(runnable: Runnable) {
 fun createZoomControlAutoHiddenListener(zoomControlPaneOwner: JComponent, zoomControlComponent: JComponent): AWTEventListener {
   return AWTEventListener { event ->
     val id: Int = event.id
-    if (id == MouseEvent.MOUSE_ENTERED || id == MouseEvent.MOUSE_EXITED) {
+    if (id == MouseEvent.MOUSE_ENTERED) {
       if (!zoomControlPaneOwner.isShowing) {
         zoomControlComponent.isVisible = false
         return@AWTEventListener
