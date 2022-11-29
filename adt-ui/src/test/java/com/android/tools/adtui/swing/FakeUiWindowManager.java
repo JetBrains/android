@@ -33,23 +33,17 @@ import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.openapi.wm.impl.ProjectFrameHelper;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.Window;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import javax.swing.event.HyperlinkListener;
+import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.swing.Icon;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.event.HyperlinkListener;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Slightly modified copy of {@link com.intellij.openapi.wm.impl.TestWindowManager} that
@@ -203,12 +197,7 @@ public final class FakeUiWindowManager extends WindowManagerEx {
     }
 
     @Override
-    public IdeFrame getFrame() {
-      return null;
-    }
-
-    @Override
-    public StatusBar findChild(Component c) {
+    public StatusBar findChild(@NotNull Component c) {
       return null;
     }
 
@@ -251,13 +240,10 @@ public final class FakeUiWindowManager extends WindowManagerEx {
     }
 
     @Override
-    public void dispose() {}
-
-    @Override
     public void updateWidget(@NotNull String id) {}
 
     @Override
-    public StatusBarWidget getWidget(String id) {
+    public StatusBarWidget getWidget(@NotNull String id) {
       return myWidgetMap.get(id);
     }
 
