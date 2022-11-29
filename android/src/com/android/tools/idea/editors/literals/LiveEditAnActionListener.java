@@ -18,15 +18,14 @@ package com.android.tools.idea.editors.literals;
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.actionSystem.ex.AnActionListener;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.project.Project;
 import java.util.Arrays;
 import java.util.List;
-import org.assertj.core.util.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,21 +33,18 @@ public class LiveEditAnActionListener implements AnActionListener {
 
   private static final String SAVEALL_NO_SHORTCUT_MSG = "[SaveAll shortcut]";
 
-  // We use beforeActionPerformed instead of beforeShortcutTriggered because
-  // the action can be triggered not only by shortcuts but also clicking buttons.
   @Override
-  public void beforeActionPerformed(@NotNull AnAction action, @NotNull AnActionEvent event) {
-    Project project = event.getDataContext().getData(CommonDataKeys.PROJECT);
+  public void beforeShortcutTriggered(@NotNull Shortcut shortcut, @NotNull List<AnAction> actions, @NotNull DataContext dataContext) {
+    Project project = dataContext.getData(CommonDataKeys.PROJECT);
     if (project == null) {
       return;
     }
-    List<Shortcut> actionShortcuts = Lists.newArrayList(action.getShortcutSet().getShortcuts());
-    if (Arrays.stream(getLiveEditTriggerShortCut()).anyMatch(actionShortcuts::contains)) {
+    if (Arrays.asList(getLiveEditTriggerShortCut()).contains(shortcut)) {
       triggerLiveEdit(project);
     }
   }
 
-  private static void triggerLiveEdit(@NotNull Project project) {
+  public static void triggerLiveEdit(@NotNull Project project) {
     if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit()) {
       return;
     }

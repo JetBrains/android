@@ -20,6 +20,7 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.editors.literals.EditState
 import com.android.tools.idea.editors.literals.EditStatus
+import com.android.tools.idea.editors.literals.LiveEditAnActionListener
 import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
@@ -68,6 +69,7 @@ class LiveEditAction(private val instanceEditor: Editor? = null) : DropDownActio
     val FOREGROUND = ColorKey.createColorKey("ActionButton.iconTextForeground", UIUtil.getContextHelpForeground())
     val LIVE_EDIT_STATUS = Key<EditStatus>("android.liveedit.action.editstatus")
     val LIVE_EDIT_STATUS_PREVIOUS = Key<EditStatus>("android.liveedit.action.editstatus.previous")
+    val MANUAL_LIVE_EDIT_METHOD = Key<() -> Unit>("android.liveedit.action.manual")
     val deviceMap = HashMap<Project, DeviceGetter>()
 
     val stateToIcon = hashMapOf<EditState, Icon>(
@@ -136,7 +138,7 @@ class LiveEditAction(private val instanceEditor: Editor? = null) : DropDownActio
               val action = ActionManager.getInstance().getAction(actionId)
               val shortcut = KeymapManager.getInstance()?.activeKeymap?.getShortcuts(actionId)?.toList()?.firstOrNull()
               tooltip.setLink("${action.templateText}${if (shortcut != null) " (${KeymapUtil.getShortcutText(shortcut)})" else ""}") {
-                ActionManager.getInstance().tryToExecute(action, null, null, null, true)
+                myPresentation.getClientProperty(MANUAL_LIVE_EDIT_METHOD)?.invoke()
               }
             }
             HelpTooltip.dispose(this)
@@ -207,6 +209,11 @@ class LiveEditAction(private val instanceEditor: Editor? = null) : DropDownActio
     presentation.icon = stateToIcon[editStatus.editState]
     presentation.isEnabledAndVisible = (editStatus.editState != EditState.DISABLED)
     presentation.putClientProperty(LIVE_EDIT_STATUS, editStatus)
+    presentation.putClientProperty(MANUAL_LIVE_EDIT_METHOD) {
+      val actionManager = ActionManager.getInstance()
+      actionManager.tryToExecute(actionManager.getAction(LiveEditService.PIGGYBACK_ACTION_ID), null, null, null, true)
+      LiveEditAnActionListener.triggerLiveEdit(project)
+    }
   }
 
   override fun updateCustomComponent(component: JComponent, presentation: Presentation) {
