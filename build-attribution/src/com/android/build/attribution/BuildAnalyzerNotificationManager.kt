@@ -20,6 +20,7 @@ import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.model.shouldShowWarning
+import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.intellij.build.BuildContentManager
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.project.Project
@@ -62,13 +63,16 @@ class BuildAnalyzerNotificationManager(
   }
 }
 
-private enum class WarningType(val triggerNotification: Boolean){
-  ALWAYS_RUN_TASK(triggerNotification = true),
-  TASK_SETUP_ISSUE(triggerNotification = true),
-  NON_INCREMENTAL_ANNOTATION_PROCESSOR(triggerNotification = true),
-  CONFIGURATION_CACHE(triggerNotification = false),
-  JETIFIER_USAGE(triggerNotification = true)
+private sealed class WarningType(val triggerNotification: Boolean){
+  object ALWAYS_RUN_TASK : WarningType(triggerNotification = true)
+  object TASK_SETUP_ISSUE : WarningType(triggerNotification = true)
+  object NON_INCREMENTAL_ANNOTATION_PROCESSOR : WarningType(triggerNotification = true)
+  object CONFIGURATION_CACHE : WarningType(triggerNotification = false)
+  object JETIFIER_USAGE : WarningType(triggerNotification = true)
+
+  data class TaskCategoryWarning(val taskCategoryIssue: TaskCategoryIssue) : WarningType(triggerNotification = taskCategoryIssue.severity == TaskCategoryIssue.Severity.WARNING)
 }
+
 
 private fun BuildAttributionReportUiData.isBuildAnalyzerSpecialBuild(): Boolean =
   confCachingData == ConfigurationCacheCompatibilityTestFlow ||
@@ -83,5 +87,9 @@ private fun BuildAttributionReportUiData.warningTypes(): Set<WarningType> {
   if (this.annotationProcessors.issueCount > 0) issueTypes.add(WarningType.NON_INCREMENTAL_ANNOTATION_PROCESSOR)
   if (this.confCachingData.shouldShowWarning()) issueTypes.add(WarningType.CONFIGURATION_CACHE)
   if (this.jetifierData.shouldShowWarning()) issueTypes.add(WarningType.JETIFIER_USAGE)
+  this.criticalPathTaskCategories?.entries?.flatMap {
+    it.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = true)
+  }?.forEach { issueTypes.add(WarningType.TaskCategoryWarning(it.issue)) }
+
   return issueTypes
 }

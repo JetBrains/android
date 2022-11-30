@@ -20,14 +20,17 @@ import com.android.build.attribution.BuildAnalyzerSettings
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.analyzers.AlwaysRunTasksAnalyzer
 import com.android.build.attribution.analyzers.ConfigurationCacheCompatibilityTestFlow
+import com.android.build.attribution.analyzers.CriticalPathAnalyzer
 import com.android.build.attribution.analyzers.JetifierCanBeRemoved
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.analyzers.JetifierUsedCheckRequired
 import com.android.build.attribution.analyzers.NoIncompatiblePlugins
+import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
 import com.android.build.attribution.constructEmptyBuildResultsObject
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
+import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.android.testutils.MockitoKt
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
@@ -178,6 +181,54 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
     setNewReportData(result)
 
     verifyNotificationShownForSessions(emptyList())
+  }
+
+  fun testBalloonShownForTaskCategoryWarnings() {
+    /*
+    Test that
+    1) shown for just TaskCategoryIssue
+    2) not shown for the same issue second time
+    3) shown for other TaskCategoryIssue found
+     */
+    val buildSessionId1 = UUID.randomUUID().toString()
+    val buildSessionId2 = UUID.randomUUID().toString()
+    val buildSessionId3 = UUID.randomUUID().toString()
+    val plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "compiler.plugin")
+    val task1 = TaskData("task1", ":app", plugin, 0, 2000, TaskData.TaskExecutionMode.FULL, emptyList()).apply {
+      setTaskCategories(TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD.taskCategory, emptyList())
+    }
+    val task2 = TaskData("task2", ":app", plugin, 0, 2000, TaskData.TaskExecutionMode.FULL, emptyList()).apply {
+      setTaskCategories(TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED.taskCategory, emptyList())
+    }
+    val criticalPathAnalyzerResult = CriticalPathAnalyzer.Result(
+      listOf(task1, task2),
+      emptyList(),
+      0,
+      0
+    )
+    val result1 = constructEmptyBuildResultsObject(buildSessionId1, Projects.getBaseDirPath(project)).copy(
+      taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.IssuesResult(listOf(
+        TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD
+      )),
+      criticalPathAnalyzerResult = criticalPathAnalyzerResult,
+      taskMap = mapOf(task1.taskName to task1, task2.taskName to task2),
+      pluginMap = mapOf(plugin.idName to plugin)
+    )
+    val result2 = result1.copy(
+      buildSessionID = buildSessionId2
+    )
+    val result3 = result1.copy(
+      buildSessionID = buildSessionId3,
+      taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.IssuesResult(listOf(
+        TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD,
+        TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED
+      )),
+    )
+    setNewReportData(result1)
+    setNewReportData(result2)
+    setNewReportData(result3)
+
+    verifyNotificationShownForSessions(listOf(buildSessionId1, buildSessionId3))
   }
 
   private fun setNewReportData(analysisResults: BuildAnalysisResults) {
