@@ -166,7 +166,9 @@ class HeapAnalysisTest {
       addDisposer(this, objectTree)
     }
 
+/* b/260862050
     runHProfScenario(scenario, "testDisposerTreeSummarySection.txt", config = configWithDisposerTreeSummaryOnly())
+b/260862050 */
   }
 
   @Suppress("unused") // Field names are accessed through reflection
