@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui.treeview
 
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.model.PsModel
+import com.intellij.ide.projectView.PresentationData
 import com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES
 import javax.swing.Icon
 
@@ -39,8 +40,7 @@ abstract class AbstractPsModelNode<T : PsModel> : AbstractPsNode, PsModelNode<T>
     icon = buildIcon()
   }
 
-  override fun doUpdate() {
-    val presentation = templatePresentation
+  override fun doUpdate(presentation: PresentationData) {
     presentation.clearText()
     presentation.addText(myName, REGULAR_ATTRIBUTES)
   }
