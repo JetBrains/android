@@ -101,13 +101,9 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
       return;
     }
 
-    // Running a single inspection that's not lint? If so don't run lint
-    boolean runningSingleInspection = localTools.isEmpty() && globalTools.size() == 1;
-    if (runningSingleInspection) {
-      Tools tool = globalTools.get(0);
-      if (!tool.getShortName().startsWith(LINT_INSPECTION_PREFIX)) {
-        return;
-      }
+    // If none of the active inspections are Lint checks, then do not run Lint.
+    if (globalTools.stream().noneMatch(it -> it.getShortName().startsWith(LINT_INSPECTION_PREFIX))) {
+      return;
     }
 
     Set<Issue> issues = LintExternalAnnotator.Companion.getIssuesFromInspections(project, null);
@@ -118,6 +114,7 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
     long startTime = System.currentTimeMillis();
 
     // If running a single check by name, turn it on if it's off by default.
+    boolean runningSingleInspection = localTools.isEmpty() && globalTools.size() == 1;
     if (runningSingleInspection) {
       Tools tool = globalTools.get(0);
       String id = tool.getShortName().substring(LINT_INSPECTION_PREFIX.length());
