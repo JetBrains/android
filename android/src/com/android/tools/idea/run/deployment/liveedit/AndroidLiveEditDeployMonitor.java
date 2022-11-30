@@ -164,8 +164,6 @@ public class AndroidLiveEditDeployMonitor {
 
   private static final EditStatus UPDATE_IN_PROGRESS = new EditStatus(EditState.IN_PROGRESS, "Live edit update in progress.", null);
 
-  private static final EditStatus DISCONNECTED = new EditStatus(EditState.PAUSED, "No apps are ready to receive live edits.", null);
-
   private static final EditStatus UP_TO_DATE = new EditStatus(EditState.UP_TO_DATE, "Up to date.", null);
 
   private static final EditStatus OUT_OF_DATE = new EditStatus(EditState.OUT_OF_DATE, "Refresh to view the latest Live Edit Changes. App state may be reset.", LiveEditService.getPIGGYBACK_ACTION_ID());
@@ -213,7 +211,7 @@ public class AndroidLiveEditDeployMonitor {
       return editStatus.compute(device, (d, s) -> {
         EditStatus result;
         if (!device.isOnline()) {
-          result = DISCONNECTED;
+          result = DISABLED_STATUS;
         }
         else {
           List<AndroidSessionInfo> info = AndroidSessionInfo.findActiveSession(project);
@@ -236,7 +234,7 @@ public class AndroidLiveEditDeployMonitor {
               // App has came online, so flip state to UP_TO_DATE.
               result = UP_TO_DATE;
             }
-            else if (s != DISCONNECTED && s != LOADING && !appAlive) {
+            else if (s != LOADING && !appAlive) {
               // App was running and has been terminated (or this was in disabled state already - this saves extra check), hide the indicator.
               result = DISABLED_STATUS;
             }
@@ -589,9 +587,6 @@ public class AndroidLiveEditDeployMonitor {
       .filter(e -> keys.contains(e.getKey())).map(Map.Entry::getValue)
       .collect(Collectors.toList());
 
-    if (statuses.isEmpty()) {
-      return DISCONNECTED;
-    }
     EditStatus mergedStatus = DISABLED_STATUS;
     for (EditStatus status : statuses) {
       if (status.getEditState().ordinal() < mergedStatus.getEditState().ordinal()) {
