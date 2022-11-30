@@ -29,8 +29,7 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profiler.proto.TransportServiceGrpc
-import com.android.tools.profilers.cpu.TraceConfigOptionsUtils
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration
+import com.android.tools.profilers.TraceConfigOptionsUtils
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.PerfettoSdkHandshakeMetadata.HandshakeResult
@@ -40,7 +39,6 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.nio.charset.Charset
-
 
 class CpuTraceInterceptCommandHandlerTest {
   private val timer = FakeTimer()
@@ -150,10 +148,6 @@ class CpuTraceInterceptCommandHandlerTest {
     startCpuTrace = Cpu.StartCpuTrace.newBuilder().apply {
       val configuration = Trace.TraceConfiguration.newBuilder().apply {
         abiCpuArch = "FakeAbi"
-        userOptions = Trace.UserOptions.newBuilder().apply {
-          // TODO (b/258542374): Remove TRACE_TYPE_MAP, UserOptions will have to be removed as well.
-          this.traceType = ProfilingConfiguration.TRACE_TYPE_MAP[traceType]
-        }.build()
       }
       // Add the technology-specific options.
       TraceConfigOptionsUtils.addDefaultTraceOptions(configuration, traceType)

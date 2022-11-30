@@ -39,6 +39,7 @@ import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.TraceConfigOptionsUtils;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.analysis.AndroidFrameTimelineAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
@@ -396,16 +397,16 @@ public class CpuCaptureStage extends Stage<Timeline> {
   }
 
   private void insertImportedTraceEvent(@NotNull CpuCapture capture) {
-    Cpu.CpuTraceInfo importedTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+    Cpu.CpuTraceInfo.Builder importedTraceInfo = Cpu.CpuTraceInfo.newBuilder()
       // Use session ID as trace ID for imported traces.
       .setTraceId(getStudioProfilers().getSession().getSessionId())
       .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMin()))
-      .setToTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMax()))
-      .setConfiguration(
-        Trace.TraceConfiguration
-          .newBuilder()
-          .setUserOptions(Trace.UserOptions.newBuilder().setTraceType(ProfilingConfiguration.TRACE_TYPE_MAP.get(capture.getType()))))
-      .build();
+      .setToTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMax()));
+
+    Trace.TraceConfiguration.Builder config = Trace.TraceConfiguration.newBuilder();
+    TraceConfigOptionsUtils.addDefaultTraceOptions(config, capture.getType());
+    importedTraceInfo.setConfiguration(config);
+
     // TODO(b/141560550): add test when we can mock TransportService#registerStreamServer.
     EventStreamServer streamServer =
       getStudioProfilers().getSessionsManager().getEventStreamServer(getStudioProfilers().getSession().getStreamId());

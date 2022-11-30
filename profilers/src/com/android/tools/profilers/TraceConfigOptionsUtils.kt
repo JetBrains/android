@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu
+package com.android.tools.profilers
 
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
@@ -25,6 +25,7 @@ object TraceConfigOptionsUtils {
    * Helper function to add default trace options to the TraceConfiguration
    * based on the type of trace/trace technology being configured.
    */
+  @JvmStatic
   fun addDefaultTraceOptions(configBuilder: Trace.TraceConfiguration.Builder, traceType: TraceType) {
     when (traceType) {
       TraceType.ART -> {
