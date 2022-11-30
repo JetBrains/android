@@ -25,11 +25,12 @@ import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.analytics.CommonMetricsData;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
+import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Energy;
-import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
@@ -1054,27 +1055,28 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @NotNull
     private static CpuProfilingConfig toStatsCpuProfilingConfig(@NotNull ProfilingConfiguration config) {
       CpuProfilingConfig.Builder cpuConfigInfo = CpuProfilingConfig.newBuilder();
-      Trace.UserOptions options = config.toProto();
+      CpuProfilerConfig cpuProfilerConfig = CpuProfilerConfigConverter.fromProfilingConfiguration(config);
+
       switch (config.getTraceType()) {
         case ART:
           cpuConfigInfo.setType(CpuProfilingConfig.Type.ART);
           cpuConfigInfo.setMode(config instanceof ArtSampledConfiguration
                                 ? CpuProfilingConfig.Mode.SAMPLED
                                 : CpuProfilingConfig.Mode.INSTRUMENTED);
-          cpuConfigInfo.setSampleInterval(options.getSamplingIntervalUs());
+          cpuConfigInfo.setSampleInterval(cpuProfilerConfig.getSamplingIntervalUs());
           break;
         case SIMPLEPERF:
           cpuConfigInfo.setType(CpuProfilingConfig.Type.SIMPLE_PERF);
           cpuConfigInfo.setMode(CpuProfilingConfig.Mode.SAMPLED);
-          cpuConfigInfo.setSampleInterval(options.getSamplingIntervalUs());
+          cpuConfigInfo.setSampleInterval(cpuProfilerConfig.getSamplingIntervalUs());
           break;
         case ATRACE:
           cpuConfigInfo.setType(CpuProfilingConfig.Type.ATRACE);
-          cpuConfigInfo.setSizeLimit(options.getBufferSizeInMb());
+          cpuConfigInfo.setSizeLimit(cpuProfilerConfig.getBufferSizeMb());
           break;
         case PERFETTO:
           cpuConfigInfo.setType(CpuProfilingConfig.Type.PERFETTO);
-          cpuConfigInfo.setSizeLimit(options.getBufferSizeInMb());
+          cpuConfigInfo.setSizeLimit(cpuProfilerConfig.getBufferSizeMb());
           break;
         case UNSPECIFIED:
           break;
