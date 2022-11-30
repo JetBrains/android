@@ -26,7 +26,7 @@
         key="whats-new"
         label=" What's New in Electric Eel"
         icon="preview/whats_new_icon.png"
-        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/preview-release-notes/2022-1-1"
+        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/stable-release-notes"
         remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
@@ -117,26 +117,8 @@
             </p>
               <br><img src="https://d.android.com/studio/releases/assistant/2021.3.1/logcat-app-restart.png"></p>
               <br><br>
-              <a href="https://d.android.com/studio/preview/features#logcat">Learn more</a>
+              <a href="https://d.android.com/studio/preview/features#updates_to_logcat">Learn more</a>
               <br><br>
-            ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="Live Edit for composables">
-        <stepElement>
-          <section>
-            <![CDATA[
-            <p>
-            Make code changes to composables in Android Studio and see those changes reflected
-            immediately in the Compose Preview and your emulator or physical device. You don't have
-            to wait for builds or deployments to be completed, so you can make faster progress in
-            the creation of your app's experience.
-            </p>
-            <br>
-            <a href="https://d.android.com/r/studio-ui/compose/live-edit">Learn more</a>
-            <br>
-            <br>
             ]]>
           </section>
         </stepElement>
@@ -196,7 +178,7 @@
           </section>
         </stepElement>
       </step>
-      <step label="Visual Linting">
+      <step label="Visual Linting for Views">
         <stepElement>
           <section>
             <![CDATA[
@@ -207,23 +189,6 @@
             </p>
             <br>
             <a href="https://d.android.com/r/studio-ui/layout/visual-linting">Learn more</a>
-            <br>
-            <br>
-            ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="Emulated Bluetooth">
-        <stepElement>
-          <section>
-            <![CDATA[
-            <p>
-            You can now discover and connect two phone emulators using virtual Bluetooth. With
-            virtual Bluetooth, you can test that your app can recognize and gain access to the
-            Bluetooth adapter in a scalable way.
-            </p>
-            <br>
-            <a href="https://d.android.com/r/studio-ui/run/emulated-bluetooth">Learn more</a>
             <br>
             <br>
             ]]>
@@ -242,29 +207,124 @@
                Once enabled, connect your device and either deploy your app or open the
                <b>Running Devices</b> window to begin streaming the device's display and interacting
                with it from the IDE.
-            </p><br><br>
+            </p>
+            <br>
+            <a href="https://d.android.com/r/studio-ui/run/device-mirroring">Learn more</a>
+            <br>
+            <br>
             ]]>
           </section>
         </stepElement>
       </step>
-      <step label="New Wear OS run configurations">
+      <step label="AGP Upgrade Assistant post-upgrade report and rollback functionality">
         <stepElement>
           <section>
             <![CDATA[
-              <p>
-                New run configurations have been added to quickly run and debug surfaces specific
-                to <a href="https://d.android.com/training/wearables">Wear OS</a> like watch faces, Tiles, and complications.
-                You can create these new configurations from the <b>Run/Debug Configurations</b> dialog
-                when running your application.
-              </p>
-              <img src="https://d.android.com/studio/preview/features/images/dolphin/wearos_launch_configurations.png"/>
-
-              <p>
-                Alternatively, you can also run these surfaces from the gutter icon that is
-                located next to the declaration of the surface, as shown in the following image.
-             </p>
-             <img src="https://d.android.com/studio/preview/features/images/dolphin/wearos_os_gutter_run.png"/>
-           ]]>
+            <p>
+               The AGP Upgrade Assistant now includes a post-ugprade report and the ability to
+               revert changes made by the upgrade assistant.
+            </p>
+            <br>
+            <a href="https://d.android.com/r/studio-ui/build/upgrade-assistant-report-rollback">Learn more</a>
+            <br>
+            <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Desktop Android Virtual Device now available">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>
+               You can now test how your app works on desktop devices such as Chromebooks by
+               using a Desktop Android Virtual Device (AVD). With the Desktop AVD, you can ensure
+               your app is compatible with large screen devices by seeing how your app behaves in
+               response to app resizing, freeform window management, and desktop notifications.
+            </p>
+            <br>
+            <a href="https://d.android.com/r/studio-ui/run/desktop-avd">Learn more</a>
+            <br>
+            <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Layout Inspector recomposition rendering highlights">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>
+              Recompositions are highlighted to help you determine where in the UI your composables
+              are recomposing. The highlighted portion shows a gradient overlay of the composable in
+              the image section of the Layout Inspector, and gradually disappears so that you can
+              get an idea of where in the UI the composable with the highest recompositions can be
+              found. If one composable is recomposing at a higher rate than another composable, then
+              the first composable receives a stronger gradient overlay color.
+            </p>
+              <br><img src="https://d.android.com/studio/releases/assistant/2022.1.1/recomposition-rendering-highlights.gif"
+                alt="Recomposition rendering highlights"/>
+              <br>
+              <br>
+              <a href="https://d.android.com/studio/preview/features#li-recomposition-highlights">Learn more</a>
+              <br>
+              <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Universal Problems panel">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>
+              View all the issues for your Design Tools in a shared issue panel. To view the tool
+              window, navigate to <strong>View</strong> &gt; <strong>Tool Windows</strong> &gt;
+              <strong>Problems</strong>.
+            </p>
+              <br><img src="https://d.android.com/studio/releases/assistant/2022.1.1/universal-problems-panel.png"
+                alt="Panel UI"/>
+              <br><br>
+              <a href="https://d.android.com/studio/preview/features#universal-problems-panel">Learn more</a>
+              <br><br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Compose Preview">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>
+              See immediate updates to your Preview changes as you make them in real time.
+            </p>
+              <br><img src="https://d.android.com/studio/releases/assistant/2022.1.1/compose-preview.gif"
+                alt="Compose Preview gif"/>
+              <br><br>
+              <a href="https://d.android.com/studio/preview/features#compose-preview">Learn more</a>
+              <br><br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Check download impact using Build Analyzer">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>
+              View a summary of time spent downloading dependencies and a detailed view of downloads
+              per repository using Build Analyzer. You can use this information to determine whether
+              unexpected dependency downloads are negatively impacting your build performance-for
+              example, during incremental builds, which shouldn't consistently download artifacts.
+              You can also use this information to identify configuration issues, such as use of
+              dynamic versions of dependencies that cause unexpected downloads.If you see a high
+              number of failed requests for a specific repository, it could indicate that the
+              repository should be removed or moved lower in your repository configuration.
+            </p>
+            <br><br>
+            <a href="https://d.android.com/studio/preview/features#downloads-info">Learn more</a>
+            <br><br>
+            ]]>
           </section>
         </stepElement>
       </step>
@@ -272,7 +332,7 @@
         <stepElement>
           <section>
             <![CDATA[
-              <br><em>Last updated 5/11/2022</em><br><br>
+              <br><em>Last updated 11/30/2022</em><br><br>
             ]]>
           </section>
         </stepElement>
