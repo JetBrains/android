@@ -23,6 +23,7 @@ import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.message
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
@@ -205,7 +206,7 @@ class PlaybackControls(
       e.presentation.isEnabled = true
       e.presentation.apply {
         if (isPlaying) {
-          icon = StudioIcons.LayoutEditor.Motion.PAUSE
+          icon = AllIcons.Actions.Pause
           text = message("animation.inspector.action.pause")
         } else {
           icon = StudioIcons.LayoutEditor.Motion.PLAY
