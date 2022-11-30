@@ -23,8 +23,10 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.UserDataHolderBase;
 import icons.StudioIcons;
+import java.awt.EventQueue;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -51,8 +53,23 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   }
 
   @Override
+  public @NotNull ListenableFuture<@NotNull Boolean> isApplicationRunningAsync(@NotNull String appPackage) {
+    var futures = deviceStream()
+      .map(device -> device.isRunningAsync(appPackage))
+      .collect(Collectors.toList());
+
+    // noinspection UnstableApiUsage, SpellCheckingInspection
+    return Futures.transform(Futures.successfulAsList(futures), runnings -> runnings.contains(true), MoreExecutors.directExecutor());
+  }
+
+  @Override
   public boolean isApplicationRunning(@NotNull String appPackage) {
-    return deviceStream().anyMatch(device -> device.isRunning(appPackage));
+    if (Thread.currentThread().getName().equals("Action Updater (Common)") || EventQueue.isDispatchThread()) {
+      Logger.getInstance(DeviceAndSnapshotComboBoxExecutionTarget.class)
+        .error("Blocking Future::get call on an Action Updater (Common) thread or the EDT http://b/261501171");
+    }
+
+    return Futures.getUnchecked(isApplicationRunningAsync(appPackage));
   }
 
   @Override

@@ -20,7 +20,9 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.deployable.Deployable;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.concurrent.ExecutionException;
@@ -129,14 +131,16 @@ public abstract class Device {
   @NotNull
   abstract Future<AndroidVersion> getAndroidVersion();
 
-  final boolean isRunning(@NotNull String appPackage) {
+  final @NotNull ListenableFuture<@NotNull Boolean> isRunningAsync(@NotNull String appPackage) {
     if (!isConnected()) {
-      return false;
+      return Futures.immediateFuture(false);
     }
 
-    IDevice device = getDdmlibDevice();
-    assert device != null;
+    // noinspection UnstableApiUsage
+    return Futures.transform(getDdmlibDeviceAsync(), device -> isRunning(device, appPackage), MoreExecutors.directExecutor());
+  }
 
+  private static boolean isRunning(@NotNull IDevice device, @NotNull String appPackage) {
     if (!device.isOnline()) {
       return false;
     }

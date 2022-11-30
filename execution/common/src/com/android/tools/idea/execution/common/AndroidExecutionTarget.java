@@ -19,10 +19,20 @@ import com.android.ddmlib.IDevice;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.ExecutionTarget;
 import java.util.Collection;
+import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AndroidExecutionTarget extends ExecutionTarget {
-  public abstract boolean isApplicationRunning(@NotNull String packageName);
+  public @NotNull ListenableFuture<@NotNull Boolean> isApplicationRunningAsync(@NotNull String appPackage) {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * @deprecated This is called by action updater threads and the EDT and must execute quickly. The current implementation calls
+   * {@link Future#get()} which can block for too long. Use {@link #isApplicationRunningAsync} instead.
+   */
+  @Deprecated
+  public abstract boolean isApplicationRunning(@NotNull String appPackage);
 
   /**
    * @return the number of (potentially) launch-able devices in this execution target
