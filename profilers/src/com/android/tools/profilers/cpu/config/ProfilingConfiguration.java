@@ -154,19 +154,6 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
   }
 
   /**
-   * Converts {@code this} to {@link Trace.UserOptions}.
-   */
-  @NotNull
-  public Trace.UserOptions toProto() {
-    return buildUserOptions()
-      .setName(getName())
-      .setTraceType(TRACE_TYPE_MAP.get(getTraceType()))
-      .build();
-  }
-
-  protected abstract Trace.UserOptions.Builder buildUserOptions();
-
-  /**
    * Returns an options proto (field of {@link Trace.TraceConfiguration}) equivalent of the ProfilingConfiguration
    */
   protected abstract GeneratedMessageV3 getOptions();
@@ -184,11 +171,11 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
       return false;
     }
     ProfilingConfiguration incoming = (ProfilingConfiguration)obj;
-    return incoming.toProto().equals(toProto());
+    return incoming.getOptions().equals(getOptions());
   }
 
   @Override
   public int hashCode() {
-    return toProto().hashCode();
+    return getOptions().hashCode();
   }
 }

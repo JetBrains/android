@@ -57,19 +57,6 @@ class ProfilingConfigurationTest {
   }
 
   @Test
-  fun toProto() {
-    val configuration = SimpleperfConfiguration("MyConfiguration").apply {
-      profilingSamplingIntervalUs = 1234
-    }
-    val proto = configuration.toProto()
-
-    assertThat(proto.name).isEqualTo("MyConfiguration")
-    assertThat(proto.traceMode).isEqualTo(Trace.TraceMode.SAMPLED)
-    assertThat(proto.traceType).isEqualTo(Trace.UserOptions.TraceType.SIMPLEPERF)
-    assertThat(proto.samplingIntervalUs).isEqualTo(1234)
-  }
-
-  @Test
   fun addOptionsArtSampledConfigAddsSuccessfully() {
     val configBuilder = TraceConfiguration.getDefaultInstance().toBuilder()
     val artSampledConfiguration = ArtSampledConfiguration("MyConfiguration").apply {

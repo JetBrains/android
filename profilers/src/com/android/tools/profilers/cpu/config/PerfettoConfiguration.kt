@@ -32,11 +32,6 @@ class PerfettoConfiguration(name: String) : ProfilingConfiguration(name) {
                    unit = "Mb")
   var profilingBufferSizeInMb = DEFAULT_BUFFER_SIZE_MB
 
-  override fun buildUserOptions(): Trace.UserOptions.Builder {
-    return Trace.UserOptions.newBuilder()
-      .setBufferSizeInMb(profilingBufferSizeInMb)
-  }
-
   override fun getOptions(): TraceConfig {
     return PerfettoTraceConfigBuilders.getCpuTraceConfig(profilingBufferSizeInMb)
   }

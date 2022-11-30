@@ -30,12 +30,6 @@ class ArtInstrumentedConfiguration(name: String) : ProfilingConfiguration(name) 
                 description = "Maximum recording output file size. On Android 8.0 (API level 26) and higher, this value is ignored.")
   var profilingBufferSizeInMb = DEFAULT_BUFFER_SIZE_MB
 
-  override fun buildUserOptions(): Trace.UserOptions.Builder {
-    return Trace.UserOptions.newBuilder()
-      .setTraceMode(TraceMode.INSTRUMENTED)
-      .setBufferSizeInMb(profilingBufferSizeInMb)
-  }
-
   override fun getOptions(): Trace.ArtOptions {
     return Trace.ArtOptions.newBuilder()
       .setTraceMode(TraceMode.INSTRUMENTED)
