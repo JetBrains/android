@@ -182,11 +182,6 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     AndroidDebugBridge.removeDeviceChangeListener(myListener);
   }
 
-  @Override
-  public void virtualDeviceAdded(@NotNull VirtualDeviceWatcherEvent event) {
-    addDevice(event.getKey());
-  }
-
   @NotNull ListenableFuture<@NotNull Key> addDevice(@NotNull Key key) {
     // noinspection UnstableApiUsage
     return Futures.transform(myAsyncSupplier.get(key), this::add, EdtExecutorService.getInstance());
@@ -197,11 +192,6 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     return device.getKey();
   }
 
-  @Override
-  public void virtualDeviceChanged(@NotNull VirtualDeviceWatcherEvent event) {
-    reloadDevice(event.getKey());
-  }
-
   @NotNull ListenableFuture<@NotNull Key> reloadDevice(@NotNull Key key) {
     // noinspection UnstableApiUsage
     return Futures.transform(myAsyncSupplier.get(key), this::set, EdtExecutorService.getInstance());
@@ -210,11 +200,6 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   private @NotNull Key set(@NotNull VirtualDevice device) {
     getModel().set(device);
     return device.getKey();
-  }
-
-  @Override
-  public void virtualDeviceRemoved(@NotNull VirtualDeviceWatcherEvent event) {
-    getModel().remove(event.getKey());
   }
 
   @Override

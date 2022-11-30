@@ -52,7 +52,6 @@ import org.jetbrains.annotations.VisibleForTesting;
  */
 @Service
 public final class VirtualDeviceWatcher implements ApplicationActivationListener {
-  private @NotNull Map<String, AvdInfo> myAvds;
   private final @NotNull AvdManager myAvdManager;
   private final @NotNull EventListenerList myListeners;
 
@@ -67,7 +66,6 @@ public final class VirtualDeviceWatcher implements ApplicationActivationListener
   @UiThread
   @VisibleForTesting
   VirtualDeviceWatcher(@NotNull AvdManager avdManager) {
-    myAvds = new HashMap<>();
     myAvdManager = avdManager;
     myListeners = new EventListenerList();
 
@@ -80,28 +78,7 @@ public final class VirtualDeviceWatcher implements ApplicationActivationListener
   @UiThread
   @Override
   public void applicationActivated(@NotNull IdeFrame ideFrame) {
-    // Use a delay to avoid excessive operations
-    myAlarm.cancelAllRequests();
-    myAlarm.addRequest(() -> {
-      if (!ApplicationManager.getApplication().isActive()) {
-        return;
-      }
-
-      ListenableFuture<Void> future = DeviceManagerFutures.appExecutorServiceSubmit(this::processAvdInfoChanges);
-      Futures.addCallback(future, new FailedFutureCallback(), AppExecutorUtil.getAppExecutorService());
-    }, 1000);
-  }
-
-  @UiThread
-  @Override
-  public void applicationDeactivated(@NotNull IdeFrame ideFrame) {
-    // If there is a delay in progress, we should not overwrite the AVDs because the baseline for the change needs to remain the same
-    if (!myAlarm.isEmpty()) {
-      return;
-    }
-
-    ListenableFuture<Void> future = DeviceManagerFutures.appExecutorServiceSubmit(this::snapshotAvds);
-    Futures.addCallback(future, new FailedFutureCallback(), AppExecutorUtil.getAppExecutorService());
+    // TODO
   }
 
   @UiThread
@@ -128,66 +105,11 @@ public final class VirtualDeviceWatcher implements ApplicationActivationListener
   }
 
   /**
-   * Checks the differences between the saved AVDs and the current AVDs. Called by an application pool thread.
-   */
-  @WorkerThread
-  private synchronized void processAvdInfoChanges() {
-    Map<String, AvdInfo> currentAvds = getCurrentAvds();
-    Application application = ApplicationManager.getApplication();
-
-    for (String currentId : currentAvds.keySet()) {
-      AvdInfo currentAvd = currentAvds.get(currentId);
-      AvdInfo pastAvd = myAvds.remove(currentId);
-      if (pastAvd == null) {
-        // If this AVD doesn't exist in the past set, then this is a new AVD
-        application.invokeLater(() -> fireVirtualDeviceAdded(new VirtualDevicePath(currentAvd.getId())));
-      }
-      else if (!currentAvd.equals(pastAvd)) {
-        // If the AVD ID is the same but the fields are not equal, the AVD has been changed
-        application.invokeLater(() -> fireVirtualDeviceChanged(new VirtualDevicePath(currentAvd.getId())));
-      }
-    }
-
-    // Any AVDs left over in myAvds are AVDs that have been deleted
-    myAvds.values().stream()
-      .map(AvdInfo::getId)
-      .map(VirtualDevicePath::new)
-      .forEach(path -> application.invokeLater(() -> fireVirtualDeviceRemoved(path)));
-
-    // Save the new set of AVDs
-    myAvds = currentAvds;
-  }
-
-  @UiThread
-  private void fireVirtualDeviceAdded(@NotNull Key key) {
-    EventListenerLists.fire(myListeners,
-                            VirtualDeviceWatcherListener::virtualDeviceAdded,
-                            VirtualDeviceWatcherListener.class,
-                            () -> new VirtualDeviceWatcherEvent(this, key));
-  }
-
-  @UiThread
-  private void fireVirtualDeviceChanged(@NotNull Key key) {
-    EventListenerLists.fire(myListeners,
-                            VirtualDeviceWatcherListener::virtualDeviceChanged,
-                            VirtualDeviceWatcherListener.class,
-                            () -> new VirtualDeviceWatcherEvent(this, key));
-  }
-
-  @UiThread
-  private void fireVirtualDeviceRemoved(@NotNull Key key) {
-    EventListenerLists.fire(myListeners,
-                            VirtualDeviceWatcherListener::virtualDeviceRemoved,
-                            VirtualDeviceWatcherListener.class,
-                            () -> new VirtualDeviceWatcherEvent(this, key));
-  }
-
-  /**
    * Called by an application pool thread
    */
   @WorkerThread
   private synchronized void snapshotAvds() {
-    myAvds = getCurrentAvds();
+    // TODO
   }
 
   /**
@@ -206,22 +128,4 @@ public final class VirtualDeviceWatcher implements ApplicationActivationListener
     }
   }
 
-  private static class FailedFutureCallback implements FutureCallback<Void> {
-    /**
-     * Called by an application pool thread
-     */
-    @WorkerThread
-    @Override
-    public void onSuccess(@Nullable Void result) {
-    }
-
-    /**
-     * Called by an application pool thread
-     */
-    @WorkerThread
-    @Override
-    public void onFailure(@NotNull Throwable t) {
-      Logger.getInstance(VirtualDevice.class).warn(t);
-    }
-  }
 }
