@@ -24,7 +24,6 @@ import com.android.utils.concurrency.AsyncSupplier;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -251,12 +250,6 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
 
   @Override
   public void removePropertyChangeListener(@NotNull PropertyChangeListener listener) {
-  }
-
-  @Nullable
-  @Override
-  public StructureViewBuilder getStructureViewBuilder() {
-    return null;
   }
 
   @Override

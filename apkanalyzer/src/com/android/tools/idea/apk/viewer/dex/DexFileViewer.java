@@ -451,16 +451,6 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
   }
 
   @Override
-  public void selectNotify() {
-
-  }
-
-  @Override
-  public void deselectNotify() {
-
-  }
-
-  @Override
   public void addPropertyChangeListener(@NotNull PropertyChangeListener listener) {
 
   }

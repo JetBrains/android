@@ -29,7 +29,6 @@ import com.android.tools.idea.apk.viewer.dex.DexFileViewer;
 import com.android.tools.idea.apk.viewer.diff.ApkDiffPanel;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.utils.FileUtils;
-import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooser;
@@ -227,25 +226,11 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
   }
 
   @Override
-  public void selectNotify() {
-  }
-
-  @Override
-  public void deselectNotify() {
-  }
-
-  @Override
   public void addPropertyChangeListener(@NotNull PropertyChangeListener listener) {
   }
 
   @Override
   public void removePropertyChangeListener(@NotNull PropertyChangeListener listener) {
-  }
-
-  @Nullable
-  @Override
-  public StructureViewBuilder getStructureViewBuilder() {
-    return null;
   }
 
   @Override

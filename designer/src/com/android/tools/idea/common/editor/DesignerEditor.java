@@ -16,7 +16,6 @@
 package com.android.tools.idea.common.editor;
 
 import com.android.tools.idea.common.lint.BackgroundEditorHighlighter;
-import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.project.Project;
@@ -103,12 +102,6 @@ public abstract class DesignerEditor extends UserDataHolderBase implements FileE
       myBackgroundHighlighter = new BackgroundEditorHighlighter(myEditorPanel, myEditorPanel.getModelLintIssueAnnotator());
     }
     return myBackgroundHighlighter;
-  }
-
-  @Nullable
-  @Override
-  public StructureViewBuilder getStructureViewBuilder() {
-    return null;
   }
 
   @Nullable

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.FileEditorStateLevel;
@@ -101,25 +100,11 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
   }
 
   @Override
-  public void selectNotify() {
-  }
-
-  @Override
-  public void deselectNotify() {
-  }
-
-  @Override
   public void addPropertyChangeListener(@NotNull PropertyChangeListener listener) {
   }
 
   @Override
   public void removePropertyChangeListener(@NotNull PropertyChangeListener listener) {
-  }
-
-  @Nullable
-  @Override
-  public StructureViewBuilder getStructureViewBuilder() {
-    return null;
   }
 
   @Override

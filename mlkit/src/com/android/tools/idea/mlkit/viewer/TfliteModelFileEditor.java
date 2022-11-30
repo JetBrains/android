@@ -867,14 +867,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   @Override
-  public void selectNotify() {
-  }
-
-  @Override
-  public void deselectNotify() {
-  }
-
-  @Override
   public void addPropertyChangeListener(@NotNull PropertyChangeListener listener) {
   }
 

@@ -20,7 +20,6 @@ import com.android.draw9patch.graphics.GraphicsUtilities;
 import com.android.draw9patch.ui.ImageEditorPanel;
 import com.android.draw9patch.ui.ImageViewer;
 import com.intellij.AppTopics;
-import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -169,25 +168,11 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
   }
 
   @Override
-  public void selectNotify() {
-  }
-
-  @Override
-  public void deselectNotify() {
-  }
-
-  @Override
   public void addPropertyChangeListener(@NotNull PropertyChangeListener listener) {
   }
 
   @Override
   public void removePropertyChangeListener(@NotNull PropertyChangeListener listener) {
-  }
-
-  @Nullable
-  @Override
-  public StructureViewBuilder getStructureViewBuilder() {
-    return null;
   }
 
   @Override
