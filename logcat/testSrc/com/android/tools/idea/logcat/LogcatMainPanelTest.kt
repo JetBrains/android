@@ -86,8 +86,6 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem
-import com.intellij.openapi.diagnostic.LogLevel.TRACE
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.project.DumbAware
@@ -107,8 +105,6 @@ import com.intellij.tools.SimpleActionGroup
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.util.ConcurrencyUtil
 import kotlinx.coroutines.runBlocking
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.times
@@ -160,16 +156,6 @@ class LogcatMainPanelTest {
   private val mockFoldingDetector = mock<FoldingDetector>()
   private val project get() = projectRule.project
   private val disposable get() = disposableRule.disposable
-
-  @Before
-  fun setUp() {
-    Logger.getInstance(DocumentImpl::class.java).setLevel(TRACE)
-  }
-
-  @After
-  fun tearDown() {
-    Logger.getInstance(DocumentImpl::class.java).setLevel(com.intellij.openapi.diagnostic.LogLevel.INFO)
-  }
 
   @RunsInEdt
   @Test

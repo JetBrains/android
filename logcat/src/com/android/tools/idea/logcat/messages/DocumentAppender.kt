@@ -55,6 +55,8 @@ internal class DocumentAppender(project: Project, private val document: Document
       trimToSize()
     }
 
+    LOGGER.debug {"Document text.length: ${document.text.length} immutableCharSequence.length: ${document.immutableCharSequence.length}" }
+
     // Document has a cyclic buffer, so we need to get document.textLength again after inserting text.
     val offset = document.textLength - text.length
     for (range in buffer.textAttributesRanges) {
