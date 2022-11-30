@@ -122,7 +122,7 @@ public final class HeapSnapshotTraverseService {
       return;
     }
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(new HeapTraverseConfig(ComponentsSet.buildComponentSetForIntegrationTesting(),
-      /*collectHistograms=*/true));
+      /*collectHistograms=*/true, /*collectDisposerTreeInfo=*/true));
     HeapSnapshotTraverse.collectAndWriteStats(LOG::info, stats,
                                               new HeapSnapshotTraverse.HeapSnapshotPresentationConfig(
                                                 OPTIMAL_UNITS,
@@ -179,7 +179,8 @@ public final class HeapSnapshotTraverseService {
         return;
       }
 
-      StatusCode statusCode = HeapSnapshotTraverse.collectMemoryReport();
+      HeapSnapshotStatistics stats = new HeapSnapshotStatistics(ComponentsSet.buildComponentSet());
+      StatusCode statusCode = HeapSnapshotTraverse.collectMemoryReport(stats, HeapSnapshotTraverse.getLoadedClassesComputable);
       if (statusCode == StatusCode.NO_ERROR) {
         addMemoryReportCollectionRequest();
       }

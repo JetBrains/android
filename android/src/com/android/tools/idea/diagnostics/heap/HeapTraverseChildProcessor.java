@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
+import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.getFieldValue;
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.isArrayOfPrimitives;
 
 import com.android.tools.idea.flags.StudioFlags;
@@ -128,18 +129,6 @@ public class HeapTraverseChildProcessor {
         }
         consumer.accept(currDisposable, HeapTraverseNode.RefWeight.DISPOSER_TREE_REFERENCE);
       }
-    }
-  }
-
-  @Nullable
-  private static Object getFieldValue(@NotNull Object object, @NotNull String fieldName) {
-    try {
-      Field field = object.getClass().getDeclaredField(fieldName);
-      field.setAccessible(true);
-      return field.get(object);
-    }
-    catch (ReflectiveOperationException e) {
-      throw new Error(e); // Should not happen unless there is a bug in this class.
     }
   }
 }

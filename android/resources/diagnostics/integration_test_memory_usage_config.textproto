@@ -45,6 +45,8 @@ categories: {
     label: "naveditor"
     package_names: "com.android.tools.idea.naveditor"
   }
+
+  extended_report_threshold_bytes: 	100000000
 }
 categories: {
   label: "android:gradle"
@@ -219,3 +221,5 @@ categories: {
   }
 }
 shared_components_limit: 200
+shared_cluster_extended_report_threshold_bytes: 280000000
+uncategorized_component_extended_report_threshold_bytes: 100000000

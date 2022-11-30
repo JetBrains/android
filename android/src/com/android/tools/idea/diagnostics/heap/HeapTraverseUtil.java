@@ -18,9 +18,11 @@ package com.android.tools.idea.diagnostics.heap;
 import static com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverse.HeapSnapshotPresentationConfig.SizePresentationStyle;
 
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils;
+import java.lang.reflect.Field;
 import java.util.Locale;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class HeapTraverseUtil {
 
@@ -59,5 +61,17 @@ public class HeapTraverseUtil {
                                                    SizePresentationStyle style) {
     return String.format(Locale.US, "%s/%d objects",
                          getObjectsSizePresentation(statistics.getTotalSizeInBytes(), style), statistics.getObjectsCount());
+  }
+
+  @Nullable
+  static Object getFieldValue(@NotNull Object object, @NotNull String fieldName) {
+    try {
+      Field field = object.getClass().getDeclaredField(fieldName);
+      field.setAccessible(true);
+      return field.get(object);
+    }
+    catch (ReflectiveOperationException e) {
+      throw new Error(e); // Should not happen unless there is a bug in this class.
+    }
   }
 }

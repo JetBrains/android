@@ -22,11 +22,14 @@ public class HeapTraverseConfig {
   @NotNull
   private final ComponentsSet componentsSet;
   final boolean collectHistograms;
+  final boolean collectDisposerTreeInfo;
 
   public HeapTraverseConfig(@NotNull final ComponentsSet componentsSet,
-                            boolean collectHistograms) {
+                            boolean collectHistograms,
+                            boolean collectDisposerTreeInfo) {
     this.componentsSet = componentsSet;
     this.collectHistograms = collectHistograms;
+    this.collectDisposerTreeInfo = collectDisposerTreeInfo;
   }
 
   @NotNull

@@ -21,22 +21,34 @@ import static com.google.common.math.LongMath.isPowerOfTwo;
 import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.MemoryUsageCollectionMetadata.StatusCode;
 
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
+import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ide.PowerSaveMode;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.LowMemoryWatcher;
 import com.intellij.util.containers.WeakList;
 import com.intellij.util.messages.MessageBusConnection;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public final class HeapSnapshotTraverse implements Disposable {
+
+  static final Computable<WeakList<Object>> getLoadedClassesComputable = () -> {
+    WeakList<Object> roots = new WeakList<>();
+    roots.addAll(Arrays.asList(getClasses()));
+    roots.addAll(Thread.getAllStackTraces().keySet());
+    return roots;
+  };
 
   private static final int MAX_ALLOWED_OBJECT_MAP_SIZE = 1_000_000;
   private static final int INVALID_OBJECT_ID = -1;
@@ -81,6 +93,13 @@ public final class HeapSnapshotTraverse implements Disposable {
     this.statistics = statistics;
   }
 
+  @TestOnly
+  StatusCode walkObjects(int maxDepth, @NotNull final List<Object> roots) {
+    WeakList<Object> classes = new WeakList<>();
+    classes.addAll(roots);
+    return walkObjects(maxDepth, () -> classes);
+  }
+
   /**
    * The heap traversal algorithm is the following:
    * <p>
@@ -95,21 +114,10 @@ public final class HeapSnapshotTraverse implements Disposable {
    * <p>
    * On the second pass, we directly update the masks and pass them to the referring objects.
    *
-   * @param maxDepth the maximum depth to which we will descend when traversing the object tree.
+   * @param maxDepth        the maximum depth to which we will descend when traversing the object tree.
+   * @param rootsComputable computable that return the list of roots for heap traversal.
    */
-  public StatusCode walkObjects(int maxDepth) {
-    if (!canTagObjects()) {
-      return StatusCode.CANT_TAG_OBJECTS;
-    }
-
-    WeakList<Object> roots = new WeakList<>();
-    roots.addAll(Arrays.asList(getClasses()));
-    roots.addAll(Thread.getAllStackTraces().keySet());
-
-    return walkObjects(maxDepth, roots);
-  }
-
-  public StatusCode walkObjects(int maxDepth, @NotNull final Collection<?> startRoots) {
+  public StatusCode walkObjects(int maxDepth, @NotNull final Computable<WeakList<Object>> rootsComputable) {
     try {
       if (!canTagObjects()) {
         return StatusCode.CANT_TAG_OBJECTS;
@@ -121,6 +129,7 @@ public final class HeapSnapshotTraverse implements Disposable {
         StackNode.clearDepthFirstSearchStack();
         HeapTraverseNode.clearObjectIdToTraverseNodeMap();
         HeapTraverseNode.cacheHeapSnapshotTraverseNodeConstructorId(HeapTraverseNode.class);
+        WeakList<Object> startRoots = rootsComputable.compute();
         // enumerating heap objects in topological order
         for (Object root : startRoots) {
           if (root == null) continue;
@@ -174,6 +183,13 @@ public final class HeapSnapshotTraverse implements Disposable {
           String currentObjectClassName = currentObject.getClass().getName();
 
           statistics.addObjectToTotal(currentObjectSize);
+
+          if (statistics.getConfig().collectDisposerTreeInfo && currentObject instanceof Disposable) {
+            //noinspection deprecation
+            if (Disposer.isDisposed((Disposable)currentObject)) {
+              statistics.addDisposedButReferencedObject(currentObjectSize, currentObjectClassName);
+            }
+          }
 
           // if it's a root of a component
           if (currentObjectComponent != null) {
@@ -229,6 +245,9 @@ public final class HeapSnapshotTraverse implements Disposable {
           // propagate to referred objects
           propagateComponentMask(currentObject, node, fieldCache);
         }
+
+        //noinspection UnstableApiUsage
+        statistics.addDisposerTreeInfo(Disposer.getTree());
       }
       finally {
         // finalization operations that involved the native agent.
@@ -490,17 +509,17 @@ public final class HeapSnapshotTraverse implements Disposable {
                                           @NotNull final HeapSnapshotStatistics stats,
                                           @NotNull final HeapSnapshotPresentationConfig presentationConfig) {
     long collectionStartTimestamp = System.nanoTime();
-    new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH);
+    new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, getLoadedClassesComputable);
 
     stats.print(writer, bytes -> HeapTraverseUtil.getObjectsStatsPresentation(bytes, presentationConfig.sizePresentation),
                 presentationConfig, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - collectionStartTimestamp));
   }
 
-  public static StatusCode collectMemoryReport() {
-    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(ComponentsSet.buildComponentSet());
+  public static StatusCode collectMemoryReport(@NotNull final HeapSnapshotStatistics stats,
+                                               @NotNull final Computable<WeakList<Object>> rootsComputable) {
     long startTime = System.nanoTime();
     StatusCode statusCode =
-      new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH);
+      new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, rootsComputable);
     UsageTracker.log(AndroidStudioEvent.newBuilder()
                        .setKind(AndroidStudioEvent.EventKind.MEMORY_USAGE_REPORT_EVENT)
                        .setMemoryUsageReportEvent(
@@ -511,7 +530,48 @@ public final class HeapSnapshotTraverse implements Disposable {
                                                              startTime),
                                                            ComponentsSet.getServerFlagConfiguration()
                                                              .getSharedComponentsLimit())));
+    List<String> exceededClusters = getClustersThatExceededThreshold(stats);
+    if (!exceededClusters.isEmpty()) {
+      collectAndSendExtendedMemoryReport(stats.getConfig().getComponentsSet(), exceededClusters, rootsComputable);
+    }
+
     return statusCode;
+  }
+
+  @NotNull
+  private static List<String> getClustersThatExceededThreshold(@NotNull final HeapSnapshotStatistics stats) {
+    List<String> exceededClusters = Lists.newArrayList();
+    for (ComponentsSet.ComponentCategory category : stats.getConfig().getComponentsSet().getComponentsCategories()) {
+      if (stats.getCategoryComponentStats().get(category.getId()).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes() >
+          category.getExtendedReportCollectionThresholdBytes()) {
+        exceededClusters.add(category.getComponentCategoryLabel());
+      }
+    }
+
+    for (ComponentsSet.Component component : stats.getConfig().getComponentsSet().getComponents()) {
+      if (stats.getComponentStats().get(component.getId()).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes() >
+          component.getExtendedReportCollectionThresholdBytes()) {
+        exceededClusters.add(component.getComponentLabel());
+      }
+    }
+    for (HeapSnapshotStatistics.SharedClusterStatistics value : stats.maskToSharedComponentStats.values()) {
+      if (value.getStatistics().getObjectsStatistics().getTotalSizeInBytes() >
+          stats.getConfig().getComponentsSet().getSharedClusterExtendedReportThreshold()) {
+        exceededClusters.add(HeapSnapshotStatistics.getSharedClusterPresentationLabel(value, stats));
+      }
+    }
+
+    return exceededClusters;
+  }
+
+  public static void collectAndSendExtendedMemoryReport(@NotNull final ComponentsSet componentsSet,
+                                                        @NotNull final List<String> exceededClusters,
+                                                        @NotNull final Computable<WeakList<Object>> rootsComputable) {
+    HeapSnapshotStatistics extendedReportStats =
+      new HeapSnapshotStatistics(new HeapTraverseConfig(componentsSet, true, /*collectDisposerTreeInfo=*/true));
+    new HeapSnapshotTraverse(extendedReportStats).walkObjects(MAX_DEPTH, rootsComputable);
+
+    StudioCrashReporter.getInstance().submit(extendedReportStats.asCrashReport(exceededClusters), true);
   }
 
   private static short getNextIterationId() {
