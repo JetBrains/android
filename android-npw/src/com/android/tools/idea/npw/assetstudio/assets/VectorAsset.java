@@ -156,8 +156,8 @@ public final class VectorAsset extends BaseAsset {
       switch (fileType) {
         case SVG: {
           ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-          String errorMessage = Svg2Vector.parseSvgToXml(file, outStream);
-          xmlFileContent = outStream.toString(UTF_8.name());
+          String errorMessage = Svg2Vector.parseSvgToXml(file.toPath(), outStream);
+          xmlFileContent = outStream.toString(UTF_8);
           errors.append(errorMessage);
           break;
         }
@@ -167,7 +167,7 @@ public final class VectorAsset extends BaseAsset {
           break;
 
         case VECTOR_DRAWABLE:
-          xmlFileContent = new String(Files.readAllBytes(file.toPath()), UTF_8);
+          xmlFileContent = Files.readString(file.toPath());
           break;
       }
     } catch (Exception e) {
