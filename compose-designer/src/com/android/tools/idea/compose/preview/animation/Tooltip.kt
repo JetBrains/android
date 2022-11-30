@@ -20,6 +20,7 @@ import com.android.tools.adtui.TooltipComponent
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBFont
+import com.intellij.util.ui.UIUtil
 import java.awt.event.MouseAdapter
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -41,8 +42,12 @@ class Tooltip(owner: JComponent, pane: TooltipLayeredPane) {
       }
     }
 
-  private val tooltipHeader = JLabel("").apply { font = JBFont.medium().asBold() }
-  private val tooltipDescription = JLabel("").apply { font = JBFont.medium() }
+  private val tooltipHeader = JLabel("").apply { font = JBFont.regular() }
+  private val tooltipDescription =
+    JLabel("").apply {
+      font = JBFont.regular()
+      foreground = UIUtil.getContextHelpForeground()
+    }
 
   private val tooltipComponent: TooltipComponent
 
