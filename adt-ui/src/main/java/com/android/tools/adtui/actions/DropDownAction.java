@@ -19,6 +19,7 @@ import com.intellij.ide.HelpTooltip;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -32,12 +33,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.util.NlsActions;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.util.text.StringUtil;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.util.function.Supplier;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -207,5 +210,37 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
   @Override
   public boolean canBePerformed(@NotNull DataContext context) {
     return true;
+  }
+
+  /**
+   * Create the {@link DefaultActionGroup} used by this dropdown action. This group can be used when all the {@link AnAction}s in the
+   * sub-menu are {@link com.intellij.openapi.actionSystem.Toggleable} to prevent dropdown menu not disappear issue.
+   *
+   * @see com.intellij.openapi.actionSystem.impl.Utils#isMultiChoiceGroup
+   */
+  @NotNull
+  public static DefaultActionGroup createSubMenuGroup(@NotNull Supplier<@NlsActions.ActionText String> shortName) {
+    return new SubMenuGroup(shortName);
+  }
+
+  /**
+   * The action group for creating the sub menu in this dropdown action.
+   * If all the actions in a popup {@link DefaultActionGroup} are {@link com.intellij.openapi.actionSystem.Toggleable}, the created sub-menu
+   * would be flagged as multi choice. When it happens, clicking the action in the submenu would not hide this dropdown the menu.
+   * If clicking {@link com.intellij.openapi.actionSystem.Toggleable} {@link AnAction} in sub-menu should hide this dropdown, use this class
+   * to store the actions.
+   *
+   * @see com.intellij.openapi.actionSystem.impl.Utils#isMultiChoiceGroup
+   */
+  private static class SubMenuGroup extends DefaultActionGroup {
+
+    public SubMenuGroup(@NotNull Supplier<@NlsActions.ActionText String> shortName) {
+      super(shortName, true);
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
   }
 }

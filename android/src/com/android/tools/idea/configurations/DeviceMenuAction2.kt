@@ -220,7 +220,7 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
   }
 
   private fun addDevicesToPopup(title: String, devices: List<Device>) {
-    val group = DefaultActionGroup.createPopupGroup { title }
+    val group = createSubMenuGroup { title }
     add(group)
 
     val template = group.templatePresentation

@@ -77,7 +77,7 @@ public class OrientationMenuAction extends DropDownAction {
       }
 
       addSeparator();
-      DefaultActionGroup uiModeGroup = DefaultActionGroup.createPopupGroup(() -> "_UI Mode");
+      DefaultActionGroup uiModeGroup = createSubMenuGroup(() -> "_UI Mode");
       UiMode currentUiMode = configuration.getUiMode();
       for (UiMode uiMode : UiMode.values()) {
         String title = uiMode.getShortDisplayValue();
