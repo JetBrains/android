@@ -32,6 +32,7 @@ import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_
 import com.android.tools.idea.logcat.ProjectApplicationIdsProvider.Companion.PROJECT_APPLICATION_IDS_CHANGED_TOPIC
 import com.android.tools.idea.logcat.ProjectApplicationIdsProvider.ProjectApplicationIdsListener
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
+import com.android.tools.idea.logcat.actions.CopyMessageTextAction
 import com.android.tools.idea.logcat.actions.CreateScratchFileAction
 import com.android.tools.idea.logcat.actions.LogcatFoldLinesLikeThisAction
 import com.android.tools.idea.logcat.actions.LogcatFormatAction
@@ -385,6 +386,7 @@ internal class LogcatMainPanel @TestOnly constructor(
   private fun getPopupActionGroup(actions: Array<AnAction>): ActionGroup {
     return SimpleActionGroup().apply {
       add(CopyAction().withText(ActionsBundle.message("action.EditorCopy.text")).withIcon(AllIcons.Actions.Copy))
+      add(CopyMessageTextAction())
       add(SearchWebAction().withText(ActionsBundle.message("action.\$SearchWeb.text")))
       add(LogcatFoldLinesLikeThisAction(editor))
       add(ToggleFilterAction(this@LogcatMainPanel, logcatFilterParser))

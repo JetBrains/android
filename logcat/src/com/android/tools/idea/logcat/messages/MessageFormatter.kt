@@ -62,7 +62,7 @@ internal class MessageFormatter(private val logcatColors: LogcatColors, private 
         textAttributesKey = logcatColors.getMessageKey(header.logLevel))
 
       val end = textAccumulator.getTextLength()
-      textAccumulator.addMessageRange(start, end, message)
+      textAccumulator.addMessageRange(start, end - 1, message)
 
       previousTag = tag
       previousPid = header.pid
