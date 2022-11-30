@@ -90,8 +90,9 @@ class ProfilerProgramRunner : StudioProgramRunner() {
     val dialog = object : DialogWrapper(environment.project) {
       override fun createCenterPanel(): JComponent {
         return JPanel(BorderLayout()).apply {
-          add(JBLabel("<html>Profiling with Low Overhead requires Android Gradle Plugin 7.3 and a device with API level 29 or higher.<br>" +
-                      "Do you want to continue to Profile with Complete Data?</html>"), BorderLayout.CENTER)
+          add(JBLabel("<html>Profiling with Low Overhead requires Android Gradle Plugin 7.3, a device with API level 29 or higher,<br>" +
+                      "and a system that is not debuggable (e.g., a Google Play enabled emulator system image).<br>" +
+                      "Do you want to Profile with Complete Data instead?</html>"), BorderLayout.CENTER)
         }
       }
 
@@ -190,7 +191,8 @@ class ProfilerProgramRunner : StudioProgramRunner() {
       val deviceFutures = env.getCopyableUserData(DeviceFutures.KEY)
       val targetDevices = deviceFutures?.devices ?: emptyList()
       if (targetDevices.isNotEmpty()) {
-        return targetDevices[0].version.isGreaterOrEqualThan(VersionCodes.Q)
+        val device = targetDevices[0]
+        return device.version.isGreaterOrEqualThan(VersionCodes.Q) && !device.isDebuggable
       }
       return false
     }
