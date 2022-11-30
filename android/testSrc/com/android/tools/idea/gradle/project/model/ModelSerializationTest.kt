@@ -94,11 +94,12 @@ class ModelSerializationTest : AndroidGradleTestCase() {
     GradleModuleModel(
       "testName",
       gradleProject,
-      false,
-      false,
+
       null,
       "4.1.10",
-      "3.6.0-dev"
+      "3.6.0-dev",
+      false,
+      false,
     )
   }
 

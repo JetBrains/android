@@ -37,38 +37,42 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
  */
 public class GradleModuleModel implements ModuleModel {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 5L;
+  // The DataNode serialization mechanisms currently do not use this ID.
+  private static final long serialVersionUID = 6L;
 
   @NotNull private final String myModuleName;
   @NotNull private final List<String> myTaskNames;
   @NotNull private final String myGradlePath;
   @NotNull private final File myRootFolderPath;
-  @NotNull private final Boolean mySafeArgsJava;
-  @NotNull private final Boolean mySafeArgsKotlin;
+  @NotNull private final List<String> myGradlePlugins;
 
   @Nullable private final File myBuildFilePath;
   @Nullable private final String myGradleVersion;
   @Nullable private final String myAgpVersion;
 
+  @Nullable private final Boolean mySafeArgsJava;
+  @Nullable private final Boolean mySafeArgsKotlin;
+
   /**
-   * @param moduleName      the name of the IDE module.
-   * @param gradleProject   the model obtained from Gradle.
+   * @param moduleName    the name of the IDE module.
+   * @param gradleProject the model obtained from Gradle.
+   * @param buildFilePath the path of the build.gradle file.
+   * @param gradleVersion the version of Gradle used to sync the project.
+   * @param agpVersion    the version of AGP used to sync the project.
    * @param safeArgsJava    whether the safe args Java plugin has been applied
    * @param safeArgsKotlin  whether the safe args Kotlin plugin has been applied
-   * @param buildFilePath   the path of the build.gradle file.
-   * @param gradleVersion   the version of Gradle used to sync the project.
-   * @param agpVersion      the version of AGP used to sync the project.
    */
   public GradleModuleModel(@NotNull String moduleName,
                            @NotNull GradleProject gradleProject,
-                           boolean safeArgsJava,
-                           boolean safeArgsKotlin,
                            @Nullable File buildFilePath,
                            @Nullable String gradleVersion,
-                           @Nullable String agpVersion) {
+                           @Nullable String agpVersion,
+                           @Nullable Boolean safeArgsJava,
+                           @Nullable Boolean safeArgsKotlin) {
     this(moduleName, getTaskNames(gradleProject), gradleProject.getPath(),
-         gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir(), safeArgsJava, safeArgsKotlin, buildFilePath,
-         gradleVersion, agpVersion);
+         gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir(),
+         getBackwardsCompatiblePlugins(safeArgsJava, safeArgsKotlin), buildFilePath, gradleVersion, agpVersion, safeArgsJava,
+         safeArgsKotlin);
   }
 
   /**
@@ -80,30 +84,37 @@ public class GradleModuleModel implements ModuleModel {
     "myTaskNames",
     "myGradlePath",
     "myRootFolderPath",
-    "mySafeArgsJava",
-    "mySafeArgsKotlin",
+    "myGradlePlugins",
     "myBuildFilePath",
     "myGradleVersion",
-    "myAgpVersion"
+    "myAgpVersion",
+    "mySafeArgsJava",
+    "mySafeArgsKotlin"
   })
   public GradleModuleModel(@NotNull String moduleName,
                            @NotNull List<String> taskNames,
                            @NotNull String gradlePath,
                            @NotNull File rootFolderPath,
-                           @NotNull Boolean safeArgsJava,
-                           @NotNull Boolean safeArgsKotlin,
+                           @NotNull List<String> gradlePlugins,
                            @Nullable File buildFilePath,
                            @Nullable String gradleVersion,
-                           @Nullable String agpVersion) {
+                           @Nullable String agpVersion,
+                           @Nullable Boolean safeArgsJava,
+                           @Nullable Boolean safeArgsKotlin) {
     myModuleName = moduleName;
     myTaskNames = taskNames;
     myGradlePath = gradlePath;
     myRootFolderPath = rootFolderPath;
-    mySafeArgsJava = safeArgsJava;
-    mySafeArgsKotlin = safeArgsKotlin;
+    if (gradlePlugins.isEmpty()) {
+      myGradlePlugins = getBackwardsCompatiblePlugins(safeArgsJava, safeArgsKotlin);
+    } else {
+      myGradlePlugins = gradlePlugins;
+    }
     myBuildFilePath = buildFilePath;
     myGradleVersion = gradleVersion;
     myAgpVersion = agpVersion;
+    mySafeArgsJava = safeArgsJava;
+    mySafeArgsKotlin = safeArgsKotlin;
   }
 
   @NotNull
@@ -119,6 +130,18 @@ public class GradleModuleModel implements ModuleModel {
       }
     }
     return taskNames;
+  }
+
+  @NotNull
+  private static List<String> getBackwardsCompatiblePlugins(@Nullable Boolean safeArgsJava, @Nullable Boolean safeArgsKotlin) {
+    List<String> result = new ArrayList<>();
+    if (safeArgsJava != null && safeArgsJava) {
+      result.add("androidx.navigation.safeargs.gradle.SafeArgsJavaPlugin");
+    }
+    if (safeArgsKotlin != null && safeArgsKotlin) {
+      result.add("androidx.navigation.safeargs.gradle.SafeArgsKotlinPlugin");
+    }
+    return result;
   }
 
   @Override
@@ -165,11 +188,30 @@ public class GradleModuleModel implements ModuleModel {
     return myAgpVersion;
   }
 
+  /**
+   * Not populated, DO NOT USE.
+   *
+   * Left for backward compatibility of serialized data nodes.
+   */
+  @Deprecated
+  @NotNull
+  public List<String> getGradlePlugins() {
+    return myGradlePlugins;
+  }
+
   public boolean hasSafeArgsJavaPlugin() {
-    return mySafeArgsJava;
+    if (mySafeArgsJava != null) {
+      return mySafeArgsJava;
+    }
+
+    return myGradlePlugins.contains("androidx.navigation.safeargs.gradle.SafeArgsJavaPlugin");
   }
 
   public boolean hasSafeArgsKotlinPlugin() {
-    return mySafeArgsKotlin;
+    if (mySafeArgsKotlin != null) {
+      return mySafeArgsKotlin;
+    }
+
+    return myGradlePlugins.contains("androidx.navigation.safeargs.gradle.SafeArgsKotlinPlugin");
   }
 }

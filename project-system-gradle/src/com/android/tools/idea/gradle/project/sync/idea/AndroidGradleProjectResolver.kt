@@ -790,11 +790,11 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       return GradleModuleModel(
         moduleName,
         gradleModule.gradleProject,
-        gradlePluginModel?.hasSafeArgsJava() ?: false,
-        gradlePluginModel?.hasSafeArgsKotlin() ?: false,
         buildScriptPath,
         buildScriptClasspathModel?.gradleVersion,
-        modelVersionString
+        modelVersionString,
+        gradlePluginModel?.hasSafeArgsJava() ?: false,
+        gradlePluginModel?.hasSafeArgsKotlin() ?: false
       )
     }
 

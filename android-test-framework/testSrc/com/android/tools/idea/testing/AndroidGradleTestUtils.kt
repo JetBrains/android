@@ -1473,11 +1473,12 @@ private fun createAndroidModuleDataNode(
         listOf(),
         gradlePath,
         moduleBasePath,
-        false,
-        false,
+        listOf(),
         moduleBasePath.resolve("build.gradle"),
         gradleVersion,
-        agpVersion
+        agpVersion,
+        false,
+        false
       ),
       null
     )
@@ -1670,11 +1671,12 @@ private fun createJavaModuleDataNode(
           listOf(),
           gradlePath,
           moduleBasePath,
-          false,
-          false,
+          listOf(),
           null,
           null,
-          null
+          null,
+          false,
+          false
         ),
         null
       )
