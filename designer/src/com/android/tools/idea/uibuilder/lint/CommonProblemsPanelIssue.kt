@@ -46,9 +46,8 @@ class CommonProblemsPanelIssue(issue: Issue) : Issue() {
           source.components.forEach { component ->
             getTextRange(component)?.let { return it }
         }}
-        is NlComponentIssueSource -> {
-          return getTextRange(source.component)
-        }
+        is NlComponentIssueSource -> return source.component?.let { getTextRange(it) }
+
       }
 
       return null

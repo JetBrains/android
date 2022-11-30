@@ -30,6 +30,7 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
+import java.lang.ref.WeakReference
 import java.util.Objects
 import java.util.stream.Stream
 import javax.swing.event.HyperlinkListener
@@ -57,7 +58,15 @@ class VisualLintIssueProvider(parentDisposable: Disposable) : IssueProvider(), D
 
   fun clear() = issues.clear()
 
-  data class VisualLintIssueSource(val models: Set<NlModel>, val components: List<NlComponent>) : IssueSource {
+  class VisualLintIssueSource(models: Set<NlModel>, components: List<NlComponent>) : IssueSource {
+    private val modelRefs = models.map { WeakReference(it) }.toList()
+    private val componentRefs = components.map { WeakReference(it) }.toList()
+
+    val models: Set<NlModel>
+      get() = modelRefs.mapNotNull { it.get() }.toSet()
+    val components: List<NlComponent>
+      get() = componentRefs.mapNotNull { it.get() }.toList()
+
     override val file: VirtualFile? = null
     override val displayText = ""
   }

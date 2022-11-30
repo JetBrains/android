@@ -35,7 +35,7 @@ class DesignSurfaceIssueListenerImpl(val surface: DesignSurface<*>) : IssueListe
   override fun onIssueSelected(issue: Issue) {
     when (val source = issue.source) {
       is NlComponentIssueSource -> {
-        val component = source.component
+        val component = source.component ?: return
         surface.selectionModel.setSelection(listOf(component))
 
         // Navigate to the selected element if possible

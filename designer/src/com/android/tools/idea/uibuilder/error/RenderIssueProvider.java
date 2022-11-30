@@ -29,6 +29,7 @@ import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -109,6 +110,20 @@ public class RenderIssueProvider extends IssueProvider {
     @Nullable
     public HyperlinkListener getHyperlinkListener() {
       return myIssue.getHyperlinkListener();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      if (!super.equals(o)) return false;
+      NlRenderIssueWrapper wrapper = (NlRenderIssueWrapper)o;
+      return Objects.equals(myIssue, wrapper.myIssue) && Objects.equals(mySource, wrapper.mySource);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(super.hashCode(), myIssue, mySource);
     }
   }
 
