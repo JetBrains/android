@@ -1338,15 +1338,15 @@ public class Configuration implements Disposable, ModificationTracker {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this.getClass())
-      .add("display", getDisplayName())
-      .add("theme", getTheme())
-      .add("activity", getActivity())
-      .add("device", getDevice())
-      .add("state", getDeviceState())
-      .add("locale", getLocale())
-      .add("target", getTarget())
-      .add("uimode", getUiMode())
-      .add("nightmode", getNightMode())
+      .add("display", myDisplayName)
+      .add("theme", myTheme)
+      .add("activity", myActivity)
+      .add("device", myDevice)
+      .add("state", myState)
+      .add("locale", myLocale)
+      .add("target", myTarget)
+      .add("uimode", myUiMode)
+      .add("nightmode", myNightMode)
       .toString();
   }
 
