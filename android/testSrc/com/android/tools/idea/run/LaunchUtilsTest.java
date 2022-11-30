@@ -35,7 +35,7 @@ public class LaunchUtilsTest extends AndroidGradleTestCase {
     assertFalse(LaunchUtils.isWatchFeatureRequired(myAndroidFacet));
   }
 
-  @Bombed(year = 2022, month = Calendar.NOVEMBER, day = 30, user = "Andrei Kuznetsov",
+  @Bombed(year = 2023, month = Calendar.MARCH, day = 30, user = "Nebojsa Viksic",
   description = "Timed out due to: 'Calling invokeAndWait from read-action leads to possible deadlock.' exception")
   public void testWatchFaceService() throws Exception {
     loadProject(RUN_CONFIG_WATCHFACE);
