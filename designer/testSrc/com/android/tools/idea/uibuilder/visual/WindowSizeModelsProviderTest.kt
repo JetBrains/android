@@ -71,7 +71,7 @@ class WindowSizeModelsProviderTest : LayoutTestCase() {
 
     verifyAdaptiveShapeReflected(sourceConfig, nlModels, true)
     verifyDeviceReflected(sourceConfig, nlModels, false)
-    verifyDeviceStateReflected(sourceConfig, nlModels, true)
+    verifyDeviceStateReflected(sourceConfig, nlModels, false)
     verifyUiModeReflected(sourceConfig, nlModels, true)
     verifyNightModeReflected(sourceConfig, nlModels, true)
     verifyThemeReflected(sourceConfig, nlModels, true)

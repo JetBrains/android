@@ -34,7 +34,6 @@ import org.jetbrains.annotations.VisibleForTesting
 private const val PORTRAIT_DEVICE_KEYWORD = "phone"
 
 private const val EFFECTIVE_FLAGS = ConfigurationListener.CFG_ADAPTIVE_SHAPE or
-  ConfigurationListener.CFG_DEVICE_STATE or
   ConfigurationListener.CFG_UI_MODE or
   ConfigurationListener.CFG_NIGHT_MODE or
   ConfigurationListener.CFG_THEME or

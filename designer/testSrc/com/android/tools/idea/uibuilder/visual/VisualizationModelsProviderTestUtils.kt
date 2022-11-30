@@ -47,13 +47,18 @@ fun verifyDeviceStateReflected(sourceConfig: Configuration, modelsToVerify: Coll
       it.device?.allStates?.map { deviceState -> deviceState.name }?.contains(stateName) ?: false
     }
 
+    val currentStateNames = configsToVerify.associateWith { it.deviceState?.name }
     sourceConfig.deviceState = state
     for (responseConfig in configsShouldResponse) {
       if (shouldReflect) {
         LayoutTestCase.assertEquals(responseConfig.deviceState!!.name, stateName)
       }
-      else {
+      else if (stateName != currentStateNames[responseConfig]) {
         LayoutTestCase.assertNotSame(responseConfig.deviceState!!.name, stateName)
+      }
+      else {
+        // Even it doesn't reflect to the new state, it is still possible the current state name is already same to the new state name.
+        // In this case, nothing to do.
       }
     }
   }
