@@ -29,7 +29,7 @@ import java.util.List;
 
 public class CpuProfilerConfigConverter {
 
-  private CpuProfilerConfigConverter() {}
+  private CpuProfilerConfigConverter() { }
 
   /**
    * Converts from a {@link ProfilingConfiguration} to a {@link CpuProfilerConfig}
@@ -39,35 +39,35 @@ public class CpuProfilerConfigConverter {
 
     switch (config.getTraceType()) {
       case ART:
-        if(config instanceof ArtSampledConfiguration) {
-          ArtSampledConfiguration artSampledConfiguration = (ArtSampledConfiguration) config;
+        if (config instanceof ArtSampledConfiguration) {
+          ArtSampledConfiguration artSampledConfiguration = (ArtSampledConfiguration)config;
           cpuProfilerConfig = new CpuProfilerConfig(artSampledConfiguration.getName(), CpuProfilerConfig.Technology.SAMPLED_JAVA);
           cpuProfilerConfig.setSamplingIntervalUs(artSampledConfiguration.getProfilingSamplingIntervalUs());
           cpuProfilerConfig.setBufferSizeMb(artSampledConfiguration.getProfilingBufferSizeInMb());
         }
         else {
-          ArtInstrumentedConfiguration artInstrumentedConfiguration = (ArtInstrumentedConfiguration) config;
+          ArtInstrumentedConfiguration artInstrumentedConfiguration = (ArtInstrumentedConfiguration)config;
           cpuProfilerConfig = new CpuProfilerConfig(artInstrumentedConfiguration.getName(), CpuProfilerConfig.Technology.INSTRUMENTED_JAVA);
           cpuProfilerConfig.setBufferSizeMb(artInstrumentedConfiguration.getProfilingBufferSizeInMb());
         }
         break;
       case SIMPLEPERF:
-        SimpleperfConfiguration simpleperfConfiguration = (SimpleperfConfiguration) config;
+        SimpleperfConfiguration simpleperfConfiguration = (SimpleperfConfiguration)config;
         cpuProfilerConfig = new CpuProfilerConfig(simpleperfConfiguration.getName(), CpuProfilerConfig.Technology.SAMPLED_NATIVE);
         cpuProfilerConfig.setSamplingIntervalUs(simpleperfConfiguration.getProfilingSamplingIntervalUs());
         break;
       case ATRACE:
-        AtraceConfiguration atraceConfiguration = (AtraceConfiguration) config;
+        AtraceConfiguration atraceConfiguration = (AtraceConfiguration)config;
         cpuProfilerConfig = new CpuProfilerConfig(atraceConfiguration.getName(), CpuProfilerConfig.Technology.SYSTEM_TRACE);
         cpuProfilerConfig.setBufferSizeMb(atraceConfiguration.getProfilingBufferSizeInMb());
         break;
       case PERFETTO:
-        PerfettoConfiguration perfettoConfiguration = (PerfettoConfiguration) config;
+        PerfettoConfiguration perfettoConfiguration = (PerfettoConfiguration)config;
         cpuProfilerConfig = new CpuProfilerConfig(perfettoConfiguration.getName(), CpuProfilerConfig.Technology.SYSTEM_TRACE);
         cpuProfilerConfig.setBufferSizeMb(perfettoConfiguration.getProfilingBufferSizeInMb());
         break;
       case UNSPECIFIED:
-        UnspecifiedConfiguration unspecifiedConfiguration = (UnspecifiedConfiguration) config;
+        UnspecifiedConfiguration unspecifiedConfiguration = (UnspecifiedConfiguration)config;
         cpuProfilerConfig = new CpuProfilerConfig(unspecifiedConfiguration.getName(), CpuProfilerConfig.Technology.SAMPLED_JAVA);
         break;
     }
@@ -86,25 +86,25 @@ public class CpuProfilerConfigConverter {
     switch (config.getTechnology()) {
       case SAMPLED_JAVA:
         configuration = new ArtSampledConfiguration(name);
-        ((ArtSampledConfiguration) configuration).setProfilingBufferSizeInMb(config.getBufferSizeMb());
-        ((ArtSampledConfiguration) configuration).setProfilingSamplingIntervalUs(config.getSamplingIntervalUs());
+        ((ArtSampledConfiguration)configuration).setProfilingBufferSizeInMb(config.getBufferSizeMb());
+        ((ArtSampledConfiguration)configuration).setProfilingSamplingIntervalUs(config.getSamplingIntervalUs());
         break;
       case INSTRUMENTED_JAVA:
         configuration = new ArtInstrumentedConfiguration(name);
-        ((ArtInstrumentedConfiguration) configuration).setProfilingBufferSizeInMb(config.getBufferSizeMb());
+        ((ArtInstrumentedConfiguration)configuration).setProfilingBufferSizeInMb(config.getBufferSizeMb());
         break;
       case SAMPLED_NATIVE:
         configuration = new SimpleperfConfiguration(name);
-        ((SimpleperfConfiguration) configuration).setProfilingSamplingIntervalUs(config.getSamplingIntervalUs());
+        ((SimpleperfConfiguration)configuration).setProfilingSamplingIntervalUs(config.getSamplingIntervalUs());
         break;
       case SYSTEM_TRACE:
-        if(deviceApi >= AndroidVersion.VersionCodes.P) {
+        if (deviceApi >= AndroidVersion.VersionCodes.P) {
           configuration = new PerfettoConfiguration(name);
-          ((PerfettoConfiguration) configuration).setProfilingBufferSizeInMb(config.getBufferSizeMb());
+          ((PerfettoConfiguration)configuration).setProfilingBufferSizeInMb(config.getBufferSizeMb());
         }
         else {
           configuration = new AtraceConfiguration(name);
-          ((AtraceConfiguration) configuration).setProfilingBufferSizeInMb(config.getBufferSizeMb());
+          ((AtraceConfiguration)configuration).setProfilingBufferSizeInMb(config.getBufferSizeMb());
         }
         break;
     }

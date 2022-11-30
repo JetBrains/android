@@ -17,7 +17,6 @@ package com.android.tools.idea.profilers.profilingconfig
 
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
-import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration
 import com.android.tools.profilers.cpu.config.AtraceConfiguration
