@@ -23,8 +23,8 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.ModificationTracker
+import com.intellij.util.Alarm
 import com.intellij.util.Alarm.ThreadToUse.POOLED_THREAD
-import com.intellij.util.AlarmFactory
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicReference
 
@@ -44,7 +44,7 @@ class ThrottlingAsyncSupplier<V : Any>(
   private val mergingPeriod: Duration
 ) : AsyncSupplier<V>, Disposable, ModificationTracker {
 
-  private val alarm = AlarmFactory.getInstance().create(POOLED_THREAD, this)
+  private val alarm = Alarm(POOLED_THREAD, this)
   private val scheduledComputation = AtomicReference<Computation<V>?>(null)
   /**
    * The completed [Computation] representing the last successful invocation of [compute].
