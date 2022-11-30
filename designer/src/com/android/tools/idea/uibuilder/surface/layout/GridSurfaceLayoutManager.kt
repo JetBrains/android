@@ -72,7 +72,7 @@ open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPaddi
       requiredHeight = currentHeight
     }
 
-    dim.setSize(requiredWidth, max(0, requiredHeight - verticalViewDelta))
+    dim.setSize(requiredWidth + 2 * horizontalPadding, max(0, requiredHeight - verticalViewDelta + 2 * verticalPadding))
     return dim
   }
 

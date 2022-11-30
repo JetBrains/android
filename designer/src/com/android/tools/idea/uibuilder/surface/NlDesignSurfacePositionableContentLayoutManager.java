@@ -52,11 +52,6 @@ public class NlDesignSurfacePositionableContentLayoutManager extends Positionabl
   public Dimension preferredLayoutSize(@NotNull Collection<? extends PositionableContent> content, @NotNull Dimension availableSize) {
     availableSize = myDesignSurface.getExtentSize();
     Dimension dimension = myLayoutManager.getRequiredSize(content, availableSize.width, availableSize.height, null);
-
-    if (dimension.width >= 0 && dimension.height >= 0) {
-      dimension.setSize(dimension.width + 2 * DEFAULT_SCREEN_OFFSET_X, dimension.height + 2 * DEFAULT_SCREEN_OFFSET_Y);
-    }
-
     dimension.setSize(
       Math.max(myDesignSurface.getScrollableViewMinSize().width, dimension.width),
       Math.max(myDesignSurface.getScrollableViewMinSize().height, dimension.height)

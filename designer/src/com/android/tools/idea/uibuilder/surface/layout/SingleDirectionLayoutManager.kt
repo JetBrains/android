@@ -82,7 +82,7 @@ open class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalP
       height = content.maxOf { sizeFunc().height } ?: 0
     }
 
-    dim.setSize(max(0, width), max(0, height))
+    dim.setSize(max(0, width + 2 * horizontalPadding), max(0, height + 2 * verticalPadding))
     return dim
   }
 
@@ -114,10 +114,10 @@ open class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalP
       startY = previousVerticalPadding
     } else {
       val requiredSize = getRequiredSize(content, availableWidth, availableHeight, null)
-      val requiredWidth = requiredSize.width
-      val requiredHeight = requiredSize.height
-      startX = max((availableWidth - requiredWidth) / 2, horizontalPadding)
-      startY = max((availableHeight - requiredHeight) / 2, verticalPadding)
+      val requiredContentWidth = requiredSize.width - 2 * horizontalPadding
+      val requiredContentHeight = requiredSize.height - 2 * verticalPadding
+      startX = max((availableWidth - requiredContentWidth) / 2, horizontalPadding)
+      startY = max((availableHeight - requiredContentHeight) / 2, verticalPadding)
       previousHorizontalPadding = startX
       previousVerticalPadding = startY
     }
