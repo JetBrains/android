@@ -281,7 +281,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
       return; // A new update has already been scheduled.
     }
     try {
-      ResourceResolver resolver = getResourceResolver();
+      ResourceResolver resolver = myConfiguration.getResourceResolver();
       if (resolver.getTheme(themeUrl.name, themeUrl.isFramework()) == null) {
         String theme = myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration);
         if (myThemeUpdateComputation.get() != computationToken) {
@@ -295,20 +295,6 @@ public class NlModel implements ModificationTracker, DataContextHolder {
         Disposer.dispose(computationToken);
       }
     }
-  }
-
-  @Slow
-  private @NotNull ResourceResolver getResourceResolver() {
-    String theme = myConfiguration.getTheme();
-    Device device = myConfiguration.getDevice();
-    ResourceResolverCache resolverCache = myConfiguration.getConfigurationManager().getResolverCache();
-    FolderConfiguration config = myConfiguration.getFullConfig();
-    if (device != null && Configuration.CUSTOM_DEVICE_ID.equals(device.getId())) {
-      // Remove the old custom device configuration only if it's different from the new one
-      resolverCache.replaceCustomConfig(theme, config);
-    }
-    IAndroidTarget target = myConfiguration.getTarget();
-    return resolverCache.getResourceResolver(target, theme, config);
   }
 
   private void deactivate() {
