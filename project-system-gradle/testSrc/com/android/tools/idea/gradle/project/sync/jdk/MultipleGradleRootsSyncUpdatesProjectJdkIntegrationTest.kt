@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.jdk
 
+import com.android.testutils.junit4.OldAgpTest
+import com.android.testutils.junit4.SeparateOldAgpTestsRule
 import com.android.tools.idea.gradle.project.sync.constants.JDK_11
 import com.android.tools.idea.gradle.project.sync.constants.JDK_11_PATH
 import com.android.tools.idea.gradle.project.sync.constants.JDK_17
@@ -25,19 +27,22 @@ import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest.TestEnvironment
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkTestProject.SimpleApplicationMultipleRoots
 import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils.Jdk
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Expect
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkException
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 
 @RunsInEdt
 class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
+
+  @get:Rule
+  val separateOldAgpTestsRule = SeparateOldAgpTestsRule()
 
   @get:Rule
   val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
@@ -71,7 +76,7 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
     }
 
   @Test
-  @Ignore("b/260585581")
+  @OldAgpTest(agpVersions = ["7.4.0"], gradleVersions = ["7.5"])
   fun `Given root using gradleJdk #JAVA_HOME pointing to JDK_17 When synced project successfully Then projectJdk is updated with JDK_17`() =
     jdkIntegrationTest.run(
       project = SimpleApplicationMultipleRoots(
@@ -83,7 +88,8 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
       environment = TestEnvironment(
         jdkTable = listOf(Jdk(JDK_11, JDK_11_PATH)),
         environmentVariables = mapOf(ExternalSystemJdkUtil.JAVA_HOME to JDK_17_PATH)
-      )
+      ),
+      agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_74 // Later versions of AGP (8.0 and beyond) require JDK17
     ) {
       sync(
         assertInMemoryConfig = { assertProjectJdkAndValidateTableEntry(JDK_17, JDK_17_PATH) },
@@ -92,7 +98,7 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
     }
 
   @Test
-  @Ignore("b/260585581")
+  @OldAgpTest(agpVersions = ["7.4.0"], gradleVersions = ["7.5"])
   fun `Given multiple roots using different gradleJdk versions When synced project successfully Then projectJdk is updated with greatest JDK version JDK_17`() =
     jdkIntegrationTest.run(
       project = SimpleApplicationMultipleRoots(
@@ -109,7 +115,8 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
           Jdk(JDK_17, JDK_17_PATH),
           Jdk(JDK_11, JDK_11_PATH)
         )
-      )
+      ),
+      agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_74 // Later versions of AGP (8.0 and beyond) require JDK17
     ) {
       sync(
         assertInMemoryConfig = { assertProjectJdkAndValidateTableEntry(JDK_17, JDK_17_PATH) },
@@ -185,7 +192,7 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
     }
 
   @Test
-  @Ignore("b/260585581")
+  @OldAgpTest(agpVersions = ["7.4.0"], gradleVersions = ["7.5"])
   fun `Given multiple roots with invalid and valid jdkTable entry When sync partially succeed Then projectJdk is updated with greatest JDK synced version JDK_11`() =
     jdkIntegrationTest.run(
       project = SimpleApplicationMultipleRoots(
@@ -200,7 +207,8 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
           Jdk(JDK_17, JDK_INVALID_PATH),
           Jdk(JDK_11, JDK_11_PATH)
         )
-      )
+      ),
+      agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_74 // Later versions of AGP (8.0 and beyond) require JDK17
     ) {
       sync(
         assertOnDiskConfig = { assertProjectJdk(JDK_11) },
