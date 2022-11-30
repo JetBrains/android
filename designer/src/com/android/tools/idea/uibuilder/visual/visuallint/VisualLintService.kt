@@ -131,6 +131,7 @@ class VisualLintService(val project: Project): Disposable {
   fun runVisualLintAnalysis(parentDisposable: Disposable, issueProvider: VisualLintIssueProvider, models: List<NlModel>, executorService: ExecutorService) {
     CompletableFuture.runAsync({
       removeAllIssueProviders()
+      issueProvider.clear()
       Disposer.register(parentDisposable) {
         issueModel.removeIssueProvider(issueProvider)
       }
