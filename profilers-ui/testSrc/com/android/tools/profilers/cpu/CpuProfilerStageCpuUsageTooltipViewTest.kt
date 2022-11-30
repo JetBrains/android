@@ -92,7 +92,6 @@ class CpuProfilerStageCpuUsageTooltipViewTest {
 
 
   private fun addTraceInfo(traceId: Long, startTimeSec: Long, endTimeSec: Long, traceType: TraceType) {
-    // TODO (b/258542374): Remove TRACE_TYPE_MAP, UserOptions will have to be removed as well.
     val configuration = Trace.TraceConfiguration.newBuilder()
     TraceConfigOptionsUtils.addDefaultTraceOptions(configuration, traceType)
 

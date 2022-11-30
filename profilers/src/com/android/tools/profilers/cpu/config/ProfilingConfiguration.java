@@ -74,15 +74,6 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
     }
   }
 
-  // TODO (b/258542374): Delete this mapping once UserOptions is removed and thus so is TraceType proto.
-  public static final Map<TraceType, Trace.UserOptions.TraceType> TRACE_TYPE_MAP = Map.of(
-    TraceType.ART, Trace.UserOptions.TraceType.ART,
-    TraceType.ATRACE, Trace.UserOptions.TraceType.ATRACE,
-    TraceType.SIMPLEPERF, Trace.UserOptions.TraceType.SIMPLEPERF,
-    TraceType.PERFETTO, Trace.UserOptions.TraceType.PERFETTO,
-    TraceType.UNSPECIFIED, Trace.UserOptions.TraceType.UNSPECIFIED_TYPE
-  );
-
   /**
    * Name to identify the profiling preference. It should be displayed in the preferences list.
    */
