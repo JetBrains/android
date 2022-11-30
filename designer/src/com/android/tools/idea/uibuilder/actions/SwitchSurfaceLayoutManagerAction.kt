@@ -59,7 +59,7 @@ class SwitchSurfaceLayoutManagerAction(private val layoutManagerSwitcher: Layout
 ) : DropDownAction(
   "Switch Layout",
   "Changes the layout of the preview elements.",
-  AllIcons.Debugger.RestoreLayout) {
+  null) {
 
   private val disabledIcon = IconLoader.getDisabledIcon(AllIcons.Debugger.RestoreLayout)
 
