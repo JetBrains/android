@@ -59,8 +59,14 @@ class PlaybackControls(
   private val loopAction = TimelineLoopAction()
   private val speedAction = TimelineSpeedAction()
 
+  private val toolbars = mutableListOf<PlaybackToolbar>()
+
+  private fun updateActionsImmediately() {
+    toolbars.forEach { it.playbackControls.updateActionsImmediately() }
+  }
+
   fun createToolbar(extraActions: List<AnAction> = emptyList()) =
-    PlaybackToolbar(extraActions).component
+    PlaybackToolbar(extraActions).also { toolbars.add(it) }.component
 
   fun pause() {
     playPauseAction.pause()
@@ -77,7 +83,7 @@ class PlaybackControls(
      * TODO(b/157895086): Update action icons when we have the final Compose Animation tooling icons
      * TODO(b/157895086): Disable toolbar actions while build is in progress
      */
-    private val playbackControls =
+    val playbackControls =
       ActionManager.getInstance()
         .createActionToolbar(
           "Animation Preview",
@@ -174,6 +180,7 @@ class PlaybackControls(
                 handleLoopEnd()
               } else {
                 pause()
+                UIUtil.invokeLaterIfNeeded { updateActionsImmediately() }
               }
             }
           }
