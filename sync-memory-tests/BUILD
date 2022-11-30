@@ -1,37 +1,14 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
+load("//tools/adt/idea/sync-memory-tests:util.bzl", "generate_test_targets_with_multiple_runs")
 
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.sync-memory-tests",
     srcs = ["src"],
+    enable_tests = False,
     iml_files = ["intellij.android.sync-memory-tests.iml"],
-    split_test_targets = {
-        "Benchmark100": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark100MemoryTest",
-        },
-    },
-    test_class = "com.android.tools.idea.gradle.project.sync.memory.SyncMemoryTestSuite",
-    test_data = [
-        "//prebuilts/studio/buildbenchmarks:ExtraLarge2022_project",
-        "//prebuilts/studio/sdk:platform-tools",
-        "//prebuilts/studio/sdk:platforms/android-32",  # Used for model v1 tests that needs AGP 7.1 (which needs compile sdk 32)
-        "//prebuilts/studio/sdk:platforms/latest",
-        "//prebuilts/studio/sdk:build-tools/latest",
-        "//prebuilts/tools/common/eclipse-mat",
-        "//tools/base/build-system:android_gradle_plugin.zip",
-        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
-        "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
-        "//tools/base/build-system:gradle-distrib",
-    ],
     test_srcs = ["testSrc"],
-    test_tags = [
-        "cpu:3",
-        "block-network",
-        "no_test_mac",
-        "no_test_windows",
-    ],
-    test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -60,4 +37,37 @@ kotlin_library(
     name = "benchmark_summary_lib",
     srcs = ["src/com/android/tools/idea/gradle/project/sync/memory/BenchmarkSummaryTool.kt"],
     deps = ["@maven//:com.google.code.gson.gson"],
+)
+
+generate_test_targets_with_multiple_runs(
+    size = "large",
+    data = [
+        "//prebuilts/studio/buildbenchmarks:ExtraLarge2022_project",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:platforms/android-32",  # Used for model v1 tests that needs AGP 7.1 (which needs compile sdk 32)
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/tools/common/eclipse-mat",
+        "//tools/base/build-system:android_gradle_plugin.zip",
+        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+        "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+    ],
+    jvm_flags = [
+        "-Dtest.suite.class=com.android.tools.idea.gradle.project.sync.memory.SyncMemoryTestSuite",
+        "-Dtest.suite.jar=intellij.android.sync-memory-tests_test.jar",
+        "-Dtest.suite.jar=intellij.android.sync-memory-tests_test.jar",
+    ],
+    num_tests = 10,
+    tags = [
+        "block-network",
+        "cpu:3",
+        "no_test_mac",
+        "no_test_windows",
+    ],
+    test_class = "com.android.tools.idea.gradle.project.sync.memory.SyncMemoryTestSuite",
+    tests = {
+        "Benchmark100": "com.android.tools.idea.gradle.project.sync.memory.Benchmark100MemoryTest",
+    },
+    runtime_deps = [":intellij.android.sync-memory-tests_testlib"],
 )

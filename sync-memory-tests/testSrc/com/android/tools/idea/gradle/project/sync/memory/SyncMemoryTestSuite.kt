@@ -25,7 +25,6 @@ import org.junit.runner.RunWith
 import java.util.logging.Logger
 
 @RunWith(JarTestSuiteRunner::class)
-@ExcludeClasses(SyncMemoryTestSuite::class)
 object SyncMemoryTestSuite : IdeaTestSuiteBase() {
   @JvmField @ClassRule  val checker = LeakCheckerRule()
   @JvmField @ClassRule  val gradle = GradleDaemonsRule()
