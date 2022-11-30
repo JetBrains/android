@@ -140,6 +140,8 @@ iml_module(
 maven_repository(
     name = "test_deps",
     artifacts = [
+        "@maven//:androidx.appcompat.appcompat_1.3.0",
+        "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
         "@maven//:com.android.support.constraint.constraint-layout_2.0.4",
         "@maven//:com.android.support.design_28.0.0",
         "@maven//:com.android.support.test.espresso.espresso-core_3.0.2",
@@ -149,6 +151,8 @@ maven_repository(
         "@maven//:com.sun.activation.javax.activation_1.2.0",
         "@maven//:commons-lang.commons-lang_2.4",
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20-Beta",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20-Beta",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",
@@ -189,6 +193,7 @@ layout_editor_data = select({
     "//prebuilts/studio/sdk:emulator",
     "//prebuilts/studio/sdk:platform-tools",
     "//tools/adt/idea/designer/testData:simpleApplication",
+    "//tools/adt/idea/designer/testData:visualLintApplication",
     "//tools/base/build-system:gradle-distrib-7.3.3",
     "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
 ]
@@ -201,6 +206,7 @@ maven_repository(
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
         "@maven//:com.android.tools.build.aapt2_7.2.0-7984345",
         "@maven//:com.android.tools.build.gradle_7.2.0",
+        "@maven//:com.google.android.material.material_1.4.0",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20-Beta",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20-Beta",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20-Beta",
@@ -218,4 +224,14 @@ iml_test(
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
     test_class = "com.android.tools.idea.designer.LayoutEditorPreviewTest",
+)
+
+iml_test(
+    name = "VisualLintTest",
+    timeout = "long",
+    data = layout_editor_data,
+    module = ":intellij.android.designer.integration",
+    tags_linux = ["block-network"],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.designer.VisualLintTest",
 )
