@@ -35,17 +35,16 @@
     <notificationGroup id="Build Analyzer" displayType="TOOL_WINDOW" toolWindowId="Build"/>
   </extensions>
   <actions>
-    <group text="Build Analyzer" popup="true">
-      <action id = "com.android.build.attribution.ui.OpenBuildAnalyzerAction"
-              class="com.android.build.attribution.ui.OpenBuildAnalyzerAction"
-              description = "Open Build Analyzer (require successful build to show report).">
-      </action>
-      <action id = "com.android.build.attribution.ui.OpenBuildAnalyzerResultsAction"
-              class="com.android.build.attribution.ui.OpenBuildAnalyzerResultsAction"
-              description = "Open Build Analyzer on a past build's results">
-      </action>
+    <action id = "com.android.build.attribution.ui.OpenBuildAnalyzerAction"
+            class="com.android.build.attribution.ui.OpenBuildAnalyzerAction"
+            description = "Open Build Analyzer (requires successful build to show report).">
       <add-to-group group-id="BuildMenu" anchor="last"/>
-    </group>
+    </action>
+    <action id = "com.android.build.attribution.ui.OpenBuildAnalyzerResultsAction"
+            class="com.android.build.attribution.ui.OpenBuildAnalyzerResultsAction"
+            description = "Open Build Analyzer on a past build's results">
+      <add-to-group group-id="BuildMenu" anchor="last"/>
+    </action>
   </actions>
   <projectListeners>
     <listener

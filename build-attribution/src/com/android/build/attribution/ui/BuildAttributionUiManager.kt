@@ -31,6 +31,7 @@ import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.view.BuildAnalyzerComboBoxView
+import com.android.tools.idea.flags.StudioFlags
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
 import com.intellij.ide.ui.LafManagerListener
@@ -124,6 +125,8 @@ class BuildAttributionUiManagerImpl(
   }
 
   override fun showBuildAnalysisReportById(buildID: String) {
+    // Should not be called if the flag is off, but guard just in case anyway.
+    if (!StudioFlags.BUILD_ANALYZER_HISTORY.get()) return
     val buildResults = BuildAnalyzerStorageManager.getInstance(project).getHistoricBuildResultByID(buildID).get() // TODO
     val reportFile = BuildReportFile(buildResults, project)
     val fileDescriptor = OpenFileDescriptor(project, reportFile)
