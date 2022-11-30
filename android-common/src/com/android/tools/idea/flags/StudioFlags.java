@@ -1386,6 +1386,13 @@ public final class StudioFlags {
     "Enable the Paired devices tab",
     "Enable the Paired devices tab in the details panel",
     true);
+
+  public static final Flag<Boolean> VIRTUAL_DEVICE_WATCHER_ENABLED = Flag.create(
+    DEVICE_MANAGER,
+    "virtual.device.watcher.enabled",
+    "Enable VirtualDeviceWatcher",
+    "Enable VirtualDeviceWatcher to update the Virtual table based on disk changes",
+    false);
   // endregion
 
   //region DDMLIB

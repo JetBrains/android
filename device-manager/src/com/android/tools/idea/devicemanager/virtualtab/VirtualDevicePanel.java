@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.DevicePanel;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
@@ -78,8 +79,10 @@ public final class VirtualDevicePanel extends DevicePanel {
     initDetailsPanelPanel();
     layOut();
 
-    // TODO: b/243972484 duplicated AVDs
-    // myWatcher.addVirtualDeviceWatcherListener(getTable());
+    if (StudioFlags.VIRTUAL_DEVICE_WATCHER_ENABLED.get()) {
+      myWatcher.addVirtualDeviceWatcherListener(getTable());
+    }
+
     Disposer.register(parent, this);
   }
 
