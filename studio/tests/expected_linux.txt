@@ -450,7 +450,7 @@ android-studio/lib/asm-analysis-9.2.jar
 android-studio/lib/asm-commons-9.2.jar
 android-studio/lib/asm-tree-9.2.jar
 android-studio/lib/asm-util-9.2.jar
-android-studio/lib/build-marker-AI-222.4345.14.2221.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-222.4459.24.2221.__BUILD_NUMBER__
 android-studio/lib/byte-buddy-agent.jar
 android-studio/lib/cds/classesLogAgent.jar
 android-studio/lib/dbus-java-3.2.1.jar
