@@ -449,4 +449,37 @@ class GroupedGridSurfaceLayoutManagerTest {
       assertEquals(scaledSize1, scaledSize3)
     }
   }
+
+  @Test
+  fun testFitIntoScale() {
+    val manager = GroupedGridSurfaceLayoutManager(0, { 0 }) { contents ->
+      listOf(contents.toList())
+    }
+
+    val contents = listOf(TestPositionableContent(0, 0, 100, 100),
+                          TestPositionableContent(0, 0, 100, 100),
+                          TestPositionableContent(0, 0, 100, 100),
+                          TestPositionableContent(0, 0, 100, 100),
+                          TestPositionableContent(0, 0, 100, 100))
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 300, 100)
+      assertEquals(0.5, scale)
+    }
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 500, 100)
+      assertEquals(1.0, scale)
+    }
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 1000, 1000)
+      assertEquals(2.0, scale)
+    }
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 50, 1000)
+      assertEquals(0.5, scale)
+    }
+  }
 }

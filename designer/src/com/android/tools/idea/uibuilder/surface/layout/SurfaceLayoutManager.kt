@@ -116,6 +116,14 @@ interface SurfaceLayoutManager {
                       @SwingCoordinate dimension: Dimension?): Dimension
 
   /**
+   * Get the fit into scale value which can display all the [PositionableContent] in the given [availableWidth] x [availableHeight] range.
+   */
+  @SurfaceScale
+  fun getFitIntoScale(content: Collection<PositionableContent>,
+                      @SwingCoordinate availableWidth: Int,
+                      @SwingCoordinate availableHeight: Int): Double
+
+  /**
    * Place the given [PositionableContent]s in the proper positions by using [PositionableContent.setLocation]
    * Note that it only changes the locations of [PositionableContent]s but doesn't change their sizes.
    *

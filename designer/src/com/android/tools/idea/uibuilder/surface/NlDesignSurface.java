@@ -40,6 +40,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
+import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.InteractionHandler;
 import com.android.tools.idea.common.surface.LayoutScannerControl;
@@ -62,6 +63,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
+import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
@@ -704,16 +706,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     return new Dimension(2 * DEFAULT_SCREEN_OFFSET_X, 2 * DEFAULT_SCREEN_OFFSET_Y);
   }
 
-  @SwingCoordinate
-  @NotNull
-  @Override
-  protected Dimension getPreferredContentSize(@SwingCoordinate int availableWidth, @SwingCoordinate int availableHeight) {
-    Dimension extent = getExtentSize();
-    return ((NlDesignSurfacePositionableContentLayoutManager)getSceneViewLayoutManager())
-      .getLayoutManager()
-      .getPreferredSize(getPositionableContent(), extent.width, extent.height, null);
-  }
-
   @Override
   public CompletableFuture<Void> setModel(@Nullable NlModel model) {
     myAccessoryPanel.setModel(model);
@@ -908,6 +900,16 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   }
 
   @Override
+  public double getFitScale() {
+    Dimension extent = getExtentSize();
+    double scale = ((NlDesignSurfacePositionableContentLayoutManager)getSceneViewLayoutManager())
+      .getLayoutManager()
+      .getFitIntoScale(getPositionableContent(), extent.width, extent.height);
+
+    return Math.min(scale, myMaxFitIntoScale);
+  }
+
+  @Override
   public boolean setScale(double scale, int x, int y) {
     if (x < 0 || y < 0) {
       // This happens when zooming is triggered by shortcut or zoom buttons.
@@ -969,7 +971,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     @SwingCoordinate int targetSwingY = (int)areaToCenter.getCenterY();
     // Center to position.
     setScrollPosition(targetSwingX - swingViewportSize.width / 2, targetSwingY - swingViewportSize.height / 2);
-    @SurfaceScale double fitScale = getFitScale(areaToCenter.getSize());
+    @SurfaceScale double fitScale = DesignSurfaceHelper.getFitContentIntoWindowScale(this, areaToCenter.getSize());
 
     if (getScale() > fitScale) {
       // Scale down to fit selection.

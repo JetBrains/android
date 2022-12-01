@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface.layout
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.surface.SurfaceScale
 import java.awt.Dimension
 import kotlin.math.max
 
@@ -95,6 +96,16 @@ open class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalP
 
     val primary = content.sortByPosition().first()
     return (availableHeight > 3 * availableWidth / 2) || primary.scaledContentSize.width > primary.scaledContentSize.height
+  }
+
+  @SurfaceScale
+  override fun getFitIntoScale(content: Collection<PositionableContent>,
+                      @SwingCoordinate availableWidth: Int,
+                      @SwingCoordinate availableHeight: Int): Double {
+    val contentSize = getPreferredSize(content, availableWidth, availableHeight, null)
+    @SurfaceScale val scaleX: Double = if (contentSize.width == 0) 1.0 else availableWidth.toDouble() / contentSize.width
+    @SurfaceScale val scaleY: Double = if (contentSize.height == 0) 1.0 else availableHeight.toDouble() / contentSize.height
+    return minOf(scaleX, scaleY)
   }
 
   override fun layout(content: Collection<PositionableContent>,

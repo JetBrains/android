@@ -108,6 +108,8 @@ private class Surface(project: Project, disposable: Disposable,
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
   }
 
+  override fun getFitScale(): Double = 1.0
+
   override fun createSceneManager(model: NlModel) = TestSceneManager(model, this).apply { updateSceneView() }
 
   override fun scrollToCenter(list: MutableList<NlComponent>) {}
@@ -119,8 +121,6 @@ private class Surface(project: Project, disposable: Disposable,
   override fun getMaxScale() = 10.0
 
   override fun getScrollToVisibleOffset() = Dimension()
-
-  override fun getPreferredContentSize(availableWidth: Int, availableHeight: Int) = Dimension()
 
   override fun isLayoutDisabled() = true
 

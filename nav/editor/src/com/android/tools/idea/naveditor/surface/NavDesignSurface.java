@@ -48,6 +48,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.SinglePositionableContentLayoutManager;
 import com.android.tools.idea.configurations.Configuration;
@@ -456,24 +457,6 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
     return new Dimension(0, 0);
   }
 
-  @NavCoordinate
-  @Override
-  @NotNull
-  protected Dimension getPreferredContentSize(int availableWidth, int availableHeight) {
-    SceneView view = getFocusedSceneView();
-    if (view == null) {
-      return new Dimension(0, 0);
-    }
-
-    SceneComponent root = view.getScene().getRoot();
-    if (root == null) {
-      return new Dimension(0, 0);
-    }
-
-    @NavCoordinate Rectangle boundingBox = NavSceneManagerKt.getBoundingBox(root);
-    return boundingBox.getSize();
-  }
-
   @Override
   public boolean isLayoutDisabled() {
     return false;
@@ -538,7 +521,24 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
 
   @Override
   public double getFitScale() {
-    return Math.min(super.getFitScale(), 1.0);
+    Dimension size = new Dimension();
+    SceneView view = getFocusedSceneView();
+    if (view != null) {
+      SceneComponent root = view.getScene().getRoot();
+      if (root == null) {
+        size.setSize(0, 0);
+      }
+      else {
+        @NavCoordinate Rectangle boundingBox = NavSceneManagerKt.getBoundingBox(root);
+        size.setSize(boundingBox.getSize());
+      }
+    }
+    else {
+      size.setSize(0, 0);
+    }
+
+    double scale = DesignSurfaceHelper.getFitContentIntoWindowScale(this, size);
+    return Math.min(scale, 1.0);
   }
 
   private boolean isEmpty() {
@@ -663,8 +663,10 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
     @SwingCoordinate Point start = new Point(swingStartCenterXInViewport, swingStartCenterYInViewport);
     @SwingCoordinate Point end = new Point(swingViewportSize.width / 2, swingViewportSize.height / 2);
     @SwingCoordinate LerpPoint lerpPoint = new LerpPoint(start, end, getScrollDurationMs());
-    LerpValue zoomLerp = new LerpDouble(view.getScale(), Math.min(getFitScale(selectionBounds.getSize()), 1.0),
-                                        getScrollDurationMs());
+
+    double fitSelectionScale = DesignSurfaceHelper.getFitContentIntoWindowScale(this, selectionBounds.getSize());
+    fitSelectionScale = Math.min(fitSelectionScale, 1.0);
+    LerpValue zoomLerp = new LerpDouble(view.getScale(), fitSelectionScale, getScrollDurationMs());
 
     if (getScheduleRef().get() != null) {
       getScheduleRef().get().cancel(false);
@@ -693,7 +695,6 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
     return myScheduleRef;
   }
 
-  @VisibleForTesting
   int getScrollDurationMs() {
     return SCROLL_DURATION_MS;
   }

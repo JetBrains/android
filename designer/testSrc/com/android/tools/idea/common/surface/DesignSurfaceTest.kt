@@ -306,6 +306,8 @@ class TestDesignSurface(project: Project, disposible: Disposable) :
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
   }
 
+  override fun getFitScale(): Double = 1.0
+
   override fun createSceneManager(model: NlModel) = TestSceneManager(model, this).apply { updateSceneView() }
 
   override fun scrollToCenter(list: MutableList<NlComponent>) {}
@@ -317,8 +319,6 @@ class TestDesignSurface(project: Project, disposible: Disposable) :
   override fun getMaxScale() = 10.0
 
   override fun getScrollToVisibleOffset() = Dimension()
-
-  override fun getPreferredContentSize(availableWidth: Int, availableHeight: Int) = Dimension()
 
   override fun isLayoutDisabled() = true
 

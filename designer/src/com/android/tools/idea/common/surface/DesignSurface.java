@@ -262,7 +262,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   @NotNull
   private final DesignerAnalyticsManager myAnalyticsManager;
 
-  @SurfaceScale private final double myMaxFitIntoScale;
+  @SurfaceScale protected final double myMaxFitIntoScale;
 
   /**
    * When surface is opened at first time, it zoom-to-fit the content to make the previews fit the initial window size.
@@ -1034,42 +1034,16 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   }
 
   /**
-   * @see #getFitScale(Dimension)
-   */
-  @SurfaceScale
-  public double getFitScale() {
-    int availableWidth = getExtentSize().width;
-    int availableHeight = getExtentSize().height;
-    return getFitScale(getPreferredContentSize(availableWidth, availableHeight));
-  }
-
-  /**
    * Measure the scale size which can fit the SceneViews into the scrollable area.
    * This function doesn't consider the legal scale range, which can be get by {@link #getMaxScale()} and {@link #getMinScale()}.
    *
-   * @param size dimension to fit into the view
    * @return The scale to make the content fit the design surface
    */
   @SurfaceScale
-  protected double getFitScale(@AndroidCoordinate Dimension size) {
-    // Fit to zoom
-
-    int availableWidth = getExtentSize().width;
-    int availableHeight = getExtentSize().height;
-
-    @SurfaceScale double scaleX = size.width == 0 ? 1 : (double)availableWidth / size.width;
-    @SurfaceScale double scaleY = size.height == 0 ? 1 : (double)availableHeight / size.height;
-    @SurfaceScale double scale = Math.min(scaleX, scaleY);
-    scale = Math.min(scale, myMaxFitIntoScale);
-    return scale;
-  }
+  abstract public double getFitScale();
 
   @SwingCoordinate
   protected abstract Dimension getScrollToVisibleOffset();
-
-  @SwingCoordinate
-  @NotNull
-  protected abstract Dimension getPreferredContentSize(int availableWidth, int availableHeight);
 
   @UiThread
   final public boolean zoomToFit() {
