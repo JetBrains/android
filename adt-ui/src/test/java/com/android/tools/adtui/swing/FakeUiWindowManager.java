@@ -16,6 +16,7 @@
 package com.android.tools.adtui.swing;
 
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.TaskInfo;
 import com.intellij.openapi.project.Project;
@@ -33,6 +34,7 @@ import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.openapi.wm.impl.ProjectFrameHelper;
+import kotlin.jvm.functions.Function0;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -192,8 +194,13 @@ public final class FakeUiWindowManager extends WindowManagerEx {
     }
 
     @Override
-    public @Nullable StatusBar createChild(@NotNull IdeFrame frame) {
+    public @Nullable StatusBar createChild(@NotNull IdeFrame frame, @NotNull Function0<? extends FileEditor> editorProvider) {
       return null;
+    }
+
+    @Override
+    public @NotNull Function0<FileEditor> getCurrentEditor() {
+      return () -> null;
     }
 
     @Override
