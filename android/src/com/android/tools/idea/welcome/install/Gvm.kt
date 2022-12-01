@@ -44,7 +44,7 @@ class Gvm(
     setOf(if (installationIntention === UNINSTALL) VmUninstallInfoStep(VmType.GVM)
           else GvmInstallInfoStep(isCustomInstall))
 
-  companion object InstallerInfo : VmInstallerInfo("Android Emulator Hypervisor Driver for AMD Processors") {
+  companion object InstallerInfo : VmInstallerInfo("Android Emulator Hypervisor Driver") {
     override val vendor = "google"
     override val installSolution = SolutionCode.INSTALL_GVM
     override val reinstallSolution = SolutionCode.REINSTALL_GVM
