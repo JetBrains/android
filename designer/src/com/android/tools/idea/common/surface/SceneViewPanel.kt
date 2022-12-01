@@ -249,13 +249,18 @@ class SceneViewPeerPanel(val sceneView: SceneView,
       // Initialize the toolbar as invisible. Its visibility will be controlled by hovering the sceneViewTopPanel.
       sceneViewToolbar.isVisible = false
     }
-    // The space of name label is sacrified when there is no enough width to display the toolbar.
+    // The space of name label is sacrificed when there is no enough width to display the toolbar.
     // When it happens, the label will be trimmed and show the ellipsis at its tail.
     // User can still hover it to see the full label in the tooltips.
     val minWidth = (sceneViewStatusIcon?.minimumSize?.width ?: 0) +
                    MODEL_NAME_LABEL_MIN_WIDTH +
                    (sceneViewToolbar?.minimumSize?.width ?: 0)
-    minimumSize = Dimension(minWidth, minimumSize.height)
+    // Since sceneViewToolbar visibility can change, sceneViewTopPanel (its container) might want to reduce its size when sceneViewToolbar
+    // gets invisible, resulting in a visual misbehavior where the toolbar moves a little when the actions appear/disappear. To fix this,
+    // we should set sceneViewTopPanel preferred size to always occupy the height taken by sceneViewToolbar.
+    val minHeight = maxOf(minimumSize.height, sceneViewToolbar?.preferredSize?.height ?: 0)
+    minimumSize = Dimension(minWidth, minHeight)
+    preferredSize = Dimension(minWidth, minHeight)
 
     setUpTopPanelMouseListeners()
   }
