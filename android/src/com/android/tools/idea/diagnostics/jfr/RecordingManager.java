@@ -31,6 +31,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.LowMemoryWatcher;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import java.io.File;
@@ -67,7 +68,8 @@ public class RecordingManager {
   private static Consumer<DiagnosticReport> reportCallback;
 
   public static void init(Consumer<DiagnosticReport> callback) {
-    if (ServerFlagService.Companion.getInstance().getBoolean(JFR_SERVER_FLAG_NAME, false)) {
+    // TODO(b/257594096): disabled on Mac due to crashes in the JVM during sampling
+    if (!SystemInfo.isMac && ServerFlagService.Companion.getInstance().getBoolean(JFR_SERVER_FLAG_NAME, false)) {
       reportCallback = callback;
       setupActionEvents();
       setupLowMemoryEvents();
