@@ -1024,7 +1024,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
         scaled = setScale(1d / getScreenScalingFactor());
         break;
       case FIT:
-        scaled = setScale(getFitScale(false));
+        scaled = setScale(getFitScale());
         break;
       default:
         throw new UnsupportedOperationException("Not yet implemented: " + type);
@@ -1034,26 +1034,24 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   }
 
   /**
-   * @see #getFitScale(Dimension, boolean)
+   * @see #getFitScale(Dimension)
    */
   @SurfaceScale
-  public double getFitScale(boolean fitInto) {
+  public double getFitScale() {
     int availableWidth = getExtentSize().width;
     int availableHeight = getExtentSize().height;
-    return getFitScale(getPreferredContentSize(availableWidth, availableHeight), fitInto);
+    return getFitScale(getPreferredContentSize(availableWidth, availableHeight));
   }
 
   /**
    * Measure the scale size which can fit the SceneViews into the scrollable area.
    * This function doesn't consider the legal scale range, which can be get by {@link #getMaxScale()} and {@link #getMinScale()}.
    *
-   * @param size    dimension to fit into the view
-   * @param fitInto If true, don't scale to more than 100%
+   * @param size dimension to fit into the view
    * @return The scale to make the content fit the design surface
-   * @see {@link #getScreenScalingFactor()}
    */
   @SurfaceScale
-  protected double getFitScale(@AndroidCoordinate Dimension size, boolean fitInto) {
+  protected double getFitScale(@AndroidCoordinate Dimension size) {
     // Fit to zoom
 
     int availableWidth = getExtentSize().width;
@@ -1062,10 +1060,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     @SurfaceScale double scaleX = size.width == 0 ? 1 : (double)availableWidth / size.width;
     @SurfaceScale double scaleY = size.height == 0 ? 1 : (double)availableHeight / size.height;
     @SurfaceScale double scale = Math.min(scaleX, scaleY);
-    if (fitInto) {
-      @SurfaceScale double min = 1d / getScreenScalingFactor();
-      scale = Math.min(min, scale);
-    }
     scale = Math.min(scale, myMaxFitIntoScale);
     return scale;
   }

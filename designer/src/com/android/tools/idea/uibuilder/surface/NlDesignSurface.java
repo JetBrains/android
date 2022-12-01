@@ -896,7 +896,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   @Override
   public boolean canZoomToFit() {
     @SurfaceScale double currentScale = getScale();
-    @SurfaceScale double zoomToFitScale = getFitScale(false);
+    @SurfaceScale double zoomToFitScale = getFitScale();
     return (currentScale > zoomToFitScale && canZoomOut()) || (currentScale < zoomToFitScale && canZoomIn());
   }
 
@@ -969,7 +969,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     @SwingCoordinate int targetSwingY = (int)areaToCenter.getCenterY();
     // Center to position.
     setScrollPosition(targetSwingX - swingViewportSize.width / 2, targetSwingY - swingViewportSize.height / 2);
-    @SurfaceScale double fitScale = getFitScale(areaToCenter.getSize(), false);
+    @SurfaceScale double fitScale = getFitScale(areaToCenter.getSize());
 
     if (getScale() > fitScale) {
       // Scale down to fit selection.

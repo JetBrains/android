@@ -530,15 +530,15 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
       return false;
     }
 
-    Double fitScale = getFitScale(true);
+    Double fitScale = getFitScale();
     Double scale = getScale();
 
     return Math.abs(fitScale - scale) > SCALING_THRESHOLD;
   }
 
   @Override
-  public double getFitScale(boolean fitInto) {
-    return Math.min(super.getFitScale(fitInto), 1.0);
+  public double getFitScale() {
+    return Math.min(super.getFitScale(), 1.0);
   }
 
   private boolean isEmpty() {
@@ -663,7 +663,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
     @SwingCoordinate Point start = new Point(swingStartCenterXInViewport, swingStartCenterYInViewport);
     @SwingCoordinate Point end = new Point(swingViewportSize.width / 2, swingViewportSize.height / 2);
     @SwingCoordinate LerpPoint lerpPoint = new LerpPoint(start, end, getScrollDurationMs());
-    LerpValue zoomLerp = new LerpDouble(view.getScale(), getFitScale(selectionBounds.getSize(), true),
+    LerpValue zoomLerp = new LerpDouble(view.getScale(), Math.min(getFitScale(selectionBounds.getSize()), 1.0),
                                         getScrollDurationMs());
 
     if (getScheduleRef().get() != null) {
