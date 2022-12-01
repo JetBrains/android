@@ -53,7 +53,7 @@ class MaterialIconsMetadataDownloadCacheService {
     // Return the fallback URL for the metadata if there's no Sdk directory.
     val downloadDir = File(FileUtil.getTempDirectory())
     if (!downloadDir.isDirectory) {
-      return CompletableFuture.completedFuture(checkNotNull(getMetadata(fallbackMetadataURL)))
+      return CompletableFuture.completedFuture(getMetadata(fallbackMetadataURL))
     }
     return getDownloadService(downloadDir, fallbackMetadataURL).refreshAndGetMetadata(fallbackMetadataURL)
   }
@@ -77,8 +77,8 @@ private fun MaterialIconsMetadataDownloadService.refreshAndGetMetadata(fallbackM
   return CompletableFuture.supplyAsync(Supplier {
     // Wait for async refresh to complete, then ask the service for the metadata.
     semaphore.waitFor(TimeUnit.MINUTES.toMillis(1L))
-    return@Supplier getMetadata(this.getLatestMetadataUrl())
+    return@Supplier getMetadata(this.getLatestMetadataUrl()).takeUnless { it === MaterialIconsMetadata.EMPTY }
                     // Fallback URL should not fail
-                    ?: checkNotNull(getMetadata(fallbackMetadataURL))
+                    ?: getMetadata(fallbackMetadataURL)
   }, AppExecutorUtil.getAppExecutorService())
 }

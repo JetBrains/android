@@ -18,9 +18,7 @@ package com.android.tools.idea.npw.assetstudio.material.icons.utils
 import com.android.tools.idea.npw.assetstudio.material.icons.metadata.MaterialIconsMetadata
 import com.android.tools.idea.sdk.AndroidSdks
 import com.intellij.openapi.diagnostic.Logger
-import java.io.BufferedReader
 import java.io.File
-import java.io.InputStreamReader
 import java.net.URL
 import java.nio.file.Files
 import java.util.Locale
@@ -84,17 +82,11 @@ object MaterialIconsUtils {
   }
 
   /**
-   * @see [MaterialIconsMetadata.toJsonText]
+   * @see [MaterialIconsMetadata.writeAsJson]
    * @return The [MaterialIconsMetadata] parsed from the URL provided.
    */
-  fun getMetadata(url: URL): MaterialIconsMetadata? {
-    return try {
-      MaterialIconsMetadata.parse(BufferedReader(InputStreamReader(url.openStream())))
-    }
-    catch (e: Exception) {
-      LOG.error("Error obtaining metadata file", e)
-      null
-    }
+  fun getMetadata(url: URL): MaterialIconsMetadata {
+    return MaterialIconsMetadata.parse(url, LOG)
   }
 
   /**

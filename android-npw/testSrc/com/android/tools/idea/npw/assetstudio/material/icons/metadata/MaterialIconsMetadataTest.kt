@@ -15,57 +15,53 @@
  */
 package com.android.tools.idea.npw.assetstudio.material.icons.metadata
 
+import com.android.utils.SdkUtils
 import com.google.common.truth.Truth
-import com.google.gson.JsonParseException
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.io.FileUtil
 import org.junit.Before
 import org.junit.Test
-import java.io.BufferedReader
 import java.io.File
-import java.io.InputStreamReader
-import java.io.StringReader
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 
 class MaterialIconsMetadataTest {
-
   private lateinit var testDirectory: File
+  private lateinit var testMetadataFile: File
 
   @Before
   fun setup() {
     testDirectory = FileUtil.createTempDirectory(MaterialIconsMetadataTest::class.java.simpleName, null)
+    testMetadataFile = testDirectory.resolve("my_metadata_file.txt")
   }
 
   @Test
   fun testParse() {
-    val testMetadataFile = testDirectory.resolve("my_metadata_file.txt").apply {
-      writeText(
-        ")]}'\n" +
-        "{\n" +
-        "  \"host\": \"fonts.gstatic.com\",\n" +
-        "  \"asset_url_pattern\": \"/s/i/{family}/{icon}/v{version}/{asset}\",\n" +
-        "  \"families\": [\n" +
-        "    \"Material Icons\",\n" +
-        "    \"Material Icons Outlined\",\n" +
-        "    \"Material Icons Round\",\n" +
-        "    \"Material Icons Sharp\",\n" +
-        "    \"Material Icons Two Tone\"\n" +
-        "  ],\n" +
-        "  \"icons\": [\n" +
-        "    {\n" +
-        "      \"name\": \"360\",\n" +
-        "      \"version\": 1,\n" +
-        "      \"unsupported_families\": [],\n" +
-        "      \"categories\": [\n" +
-        "        \"maps\"\n" +
-        "      ],\n" +
-        "      \"tags\": []\n" +
-        "    }\n" +
-        "  ]\n" +
-        "}"
-      )
-    }
-    val iconsMetadata = MaterialIconsMetadata.parse(BufferedReader(InputStreamReader(testMetadataFile.inputStream())))
+    testMetadataFile.writeText(
+      ")]}'\n" +
+      "{\n" +
+      "  \"host\": \"fonts.gstatic.com\",\n" +
+      "  \"asset_url_pattern\": \"/s/i/{family}/{icon}/v{version}/{asset}\",\n" +
+      "  \"families\": [\n" +
+      "    \"Material Icons\",\n" +
+      "    \"Material Icons Outlined\",\n" +
+      "    \"Material Icons Round\",\n" +
+      "    \"Material Icons Sharp\",\n" +
+      "    \"Material Icons Two Tone\"\n" +
+      "  ],\n" +
+      "  \"icons\": [\n" +
+      "    {\n" +
+      "      \"name\": \"360\",\n" +
+      "      \"version\": 1,\n" +
+      "      \"unsupported_families\": [],\n" +
+      "      \"categories\": [\n" +
+      "        \"maps\"\n" +
+      "      ],\n" +
+      "      \"tags\": []\n" +
+      "    }\n" +
+      "  ]\n" +
+      "}"
+    )
+    val iconsMetadata = MaterialIconsMetadata.parse(SdkUtils.fileToUrl(testMetadataFile), thisLogger())
     Truth.assertThat(iconsMetadata.families).hasLength(5)
     assertEquals(iconsMetadata.families[0], "Material Icons")
     assertEquals(iconsMetadata.families[1], "Material Icons Outlined")
@@ -83,9 +79,9 @@ class MaterialIconsMetadataTest {
 
   @Test
   fun testParseWithBadFile() {
-    val badMetadataFile = testDirectory.resolve("my_metadata_file.txt").apply { writeText("Hello, World!") }
+    testMetadataFile.writeText("Hello, World!")
 
-    assertFailsWith<JsonParseException> { MaterialIconsMetadata.parse(BufferedReader(InputStreamReader(badMetadataFile.inputStream()))) }
+    assertEquals(MaterialIconsMetadata.EMPTY, getParsedTestMetadata())
   }
 
   @Test
@@ -95,16 +91,19 @@ class MaterialIconsMetadataTest {
       MaterialMetadataIcon("icon_2", 1, emptyArray(), arrayOf("category_2"), emptyArray())
     )
     // Create an instance of MaterialIconsMetadata
-    val metadataObject = MaterialIconsMetadata(host = "my_host",
-                                               urlPattern = "my_pattern",
-                                               families = arrayOf("Style 1", "Style 2"),
-                                               icons = iconsMetadata)
+    val metadataObject = MaterialIconsMetadata(
+      host = "my_host",
+      urlPattern = "my_pattern",
+      families = arrayOf("Style 1", "Style 2"),
+      icons = iconsMetadata
+    )
     // Create a Json String
-    val serializedMetadata = MaterialIconsMetadata.toJsonText(metadataObject)
+    MaterialIconsMetadata.writeAsJson(metadataObject, testMetadataFile.toPath(), thisLogger())
 
     // Deserialize the Json String and compare resulting object
-    val deserializedMetadata = MaterialIconsMetadata.parse(StringReader(serializedMetadata))
-
-    assertEquals(metadataObject, deserializedMetadata)
+    assertEquals(metadataObject, getParsedTestMetadata())
   }
+
+  private fun getParsedTestMetadata(): MaterialIconsMetadata =
+    MaterialIconsMetadata.parse(SdkUtils.fileToUrl(testMetadataFile), thisLogger())
 }

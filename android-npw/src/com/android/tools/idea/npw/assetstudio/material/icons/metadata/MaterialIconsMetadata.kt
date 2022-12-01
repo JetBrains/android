@@ -24,8 +24,15 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonIOException
 import com.google.gson.JsonSyntaxException
 import com.google.gson.annotations.SerializedName
-import java.io.Reader
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.util.io.isDirectory
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStreamReader
 import java.lang.reflect.Type
+import java.net.URL
+import java.nio.file.Files
+import java.nio.file.Path
 
 /**
  * Metadata for the Material design icons, based on the metadata file obtained from http://fonts.google.com/metadata/icons.
@@ -38,32 +45,65 @@ data class MaterialIconsMetadata(
   val icons: Array<MaterialMetadataIcon>
 ) {
   companion object {
+    val EMPTY = MaterialIconsMetadata(
+      host = "fonts.gstatic.com",
+      urlPattern = "/s/i/{family}/{icon}/v{version}/{asset}",
+      families = emptyArray(),
+      icons = emptyArray()
+    )
+
     /**
-     * @return The deserialized [MaterialIconsMetadata] from the [reader] object.
+     * Parses the file resolved by the [url] into [MaterialIconsMetadata].
+     *
+     * Returns an empty instance if the parsing fails. See [EMPTY].
      */
-    @Throws(JsonIOException::class, JsonSyntaxException::class)
-    fun parse(reader: Reader): MaterialIconsMetadata {
-      return with(getMetadataGson()) {
-        fromJson<MaterialIconsMetadata>(reader, MaterialIconsMetadata::class.java)
+    fun parse(url: URL, logger: Logger): MaterialIconsMetadata {
+      var metadata: MaterialIconsMetadata = EMPTY
+
+      try {
+        metadata = BufferedReader(InputStreamReader(url.openStream())).use { reader ->
+          getGson().fromJson(reader, MaterialIconsMetadata::class.java)
+        }
       }
+      catch (e: Exception) {
+        when (e) {
+          is IOException,
+          is JsonIOException,
+          is JsonSyntaxException -> logger.warn("Error reading url", e)
+
+          else -> throw e
+        }
+      }
+      return metadata
     }
 
     /**
-     * @return A Json [String] of the serialized [MaterialIconsMetadata], note that it generates an NonExecutable Json using Gson.
+     * Writes the metadata as a serialized Json text.
      */
-    fun toJsonText(metadata: MaterialIconsMetadata): String {
-      return with(getMetadataGson()) {
-        toJson(metadata, MaterialIconsMetadata::class.java)
+    fun writeAsJson(metadata: MaterialIconsMetadata, target: Path, logger: Logger) {
+      if (target.isDirectory()) {
+        logger.error("Given path is a directory")
+        return
+      }
+      try {
+        Files.newBufferedWriter(target).use { writer ->
+          getGson().toJson(metadata, writer)
+        }
+      }
+      catch (e: Exception) {
+        when (e) {
+          is IOException,
+          is JsonIOException -> logger.warn("Error saving metadata file", e)
+          else -> throw e
+        }
       }
     }
 
-    private fun getMetadataGson(): Gson {
-      return GsonBuilder()
-        .registerTypeAdapter(MaterialIconsMetadata::class.java, MetadataDeserializer())
-        .registerTypeAdapter(MaterialMetadataIcon::class.java, IconDeserializer())
-        .generateNonExecutableJson()
-        .create()
-    }
+    private fun getGson(): Gson = GsonBuilder()
+      .registerTypeAdapter(MaterialIconsMetadata::class.java, MetadataDeserializer())
+      .registerTypeAdapter(MaterialMetadataIcon::class.java, IconDeserializer())
+      .generateNonExecutableJson()
+      .create()
   }
 
   /**

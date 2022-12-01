@@ -23,10 +23,12 @@ import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIcons
 import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIconsUtils.toDirFormat
 import com.android.utils.SdkUtils
 import com.intellij.openapi.diagnostic.Logger
-import java.io.BufferedReader
+import com.intellij.openapi.progress.ProgressManager
 import java.io.File
-import java.io.InputStreamReader
+import java.io.IOException
 import java.net.URL
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 
 private const val METADATA_TEMP_FILE_NAME = "icons_metadata_temp_copy.txt"
 
@@ -106,6 +108,10 @@ class MaterialIconsCopyHandler(
     val metadataBuilder = restoreMetadata(targetPath)
     val iconsToCopy = getRemainingIconsToCopy(metadataBuilder)
 
+    if (iconsToCopy.isEmpty()) {
+      return
+    }
+
     copyIcons(iconsToCopy, metadataBuilder, targetPath)
   }
 
@@ -120,7 +126,12 @@ class MaterialIconsCopyHandler(
   }
 
   private fun copyIcons(iconsToCopy: HashMap<String, VdIconWriteData>, metadataBuilder: MaterialIconsMetadataBuilder, targetPath: File) {
-    iconsToCopy.forEach { (_, writeData) ->
+    var cancelled = false
+    iconsToCopy.values.forEach { writeData ->
+      if (ProgressManager.getInstance().progressIndicator?.isCanceled == true) {
+        cancelled = true
+        return@forEach
+      }
       val iconMetadata = writeData.metadataIcon
       writeData.stylesToURLAndName.forEach { (family, urlAndFileName) ->
         if (!iconMetadata.unsupportedFamilies.contains(family)) {
@@ -128,9 +139,11 @@ class MaterialIconsCopyHandler(
         }
       }
       metadataBuilder.addIconMetadata(iconMetadata)
-      updateSavedMetadata(metadataBuilder, targetPath)
     }
-    finishMetadata(targetPath)
+    updateTemporaryMetadataFile(metadataBuilder, targetPath)
+    if (!cancelled) {
+      updateFinishedMetadataFileName(targetPath)
+    }
   }
 
   private fun copyIcon(iconUrl: URL, iconFileName: String, family: String, iconMetadata: MaterialMetadataIcon, targetPath: File) {
@@ -138,8 +151,9 @@ class MaterialIconsCopyHandler(
     File(vdIconDir, iconFileName).writeText(iconUrl.readText())
   }
 
-  private fun updateSavedMetadata(metadataBuilder: MaterialIconsMetadataBuilder, targetPath: File) {
-    targetPath.resolve(METADATA_TEMP_FILE_NAME).writeText(MaterialIconsMetadata.toJsonText(metadataBuilder.build()))
+  private fun updateTemporaryMetadataFile(metadataBuilder: MaterialIconsMetadataBuilder, targetPath: File) {
+    val tempFilePath = targetPath.toPath().resolve(METADATA_TEMP_FILE_NAME)
+    MaterialIconsMetadata.writeAsJson(metadataBuilder.build(), tempFilePath, LOG)
   }
 
   private fun alreadyCopied(targetPath: File): Boolean {
@@ -147,33 +161,31 @@ class MaterialIconsCopyHandler(
   }
 
   private fun restoreMetadata(targetPath: File): MaterialIconsMetadataBuilder {
-    val metadataBuilder = MaterialIconsMetadataBuilder(host = host,
-                                                       urlPattern = urlPattern,
-                                                       families = families)
+    val metadataBuilder = MaterialIconsMetadataBuilder(host = host, urlPattern = urlPattern, families = families)
     val metadataTempFile = File(targetPath, METADATA_TEMP_FILE_NAME)
     if (metadataTempFile.exists() && !metadataTempFile.isDirectory) {
       LOG.info("Continuing icons copy")
-      val reader = BufferedReader(InputStreamReader(SdkUtils.fileToUrl(metadataTempFile).openStream()))
-      try {
-        MaterialIconsMetadata.parse(reader).icons.forEach {
-          metadataBuilder.addIconMetadata(it)
-        }
+      val metadata = MaterialIconsMetadata.parse(SdkUtils.fileToUrl(metadataTempFile), LOG)
+      metadata.icons.forEach {
+        metadataBuilder.addIconMetadata(it)
       }
-      catch (ignore: Exception) {
-      }
-      reader.close()
     }
     return metadataBuilder
   }
 
-  private fun finishMetadata(targetPath: File) {
+  private fun updateFinishedMetadataFileName(targetPath: File) {
     val metadataFinishedFile = targetPath.resolve(METADATA_FILE_NAME)
     val metadataTempFile = targetPath.resolve(METADATA_TEMP_FILE_NAME)
 
-    metadataFinishedFile.writeText(metadataTempFile.readText())
+    if (!metadataTempFile.exists()) {
+      LOG.warn("No temporary metadata file")
+      return
+    }
 
-    if (!metadataTempFile.delete()) {
-      LOG.warn("Failed to delete temporary metadata file: ${metadataTempFile.name}")
+    try {
+      Files.move(metadataTempFile.toPath(), metadataFinishedFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+    } catch (e: IOException) {
+      LOG.warn("Failed to rename temporary metadata file", e)
     }
   }
 }

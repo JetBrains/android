@@ -25,6 +25,7 @@ import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIcons
 import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIconsUtils.getIconFileNameWithoutExtension
 import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIconsUtils.toDirFormat
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.util.download.DownloadableFileDescription
 import com.intellij.util.download.DownloadableFileService
@@ -39,7 +40,6 @@ import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.BasicFileAttributes
 import kotlin.io.path.isSameFileAs
 import kotlin.io.path.name
-import kotlin.io.path.writeText
 
 private interface MaterialIconsUpdater
 
@@ -71,31 +71,40 @@ fun updateIconsAtDir(existingMetadata: MaterialIconsMetadata, newMetadata: Mater
   existingMetadata.icons.forEach(metadataBuilder::addIconMetadata)
 
   val updateData = getIconsUpdateData(existingMetadata, newMetadata)
+  if (updateData.isEmpty()) {
+    return
+  }
 
-  updateData.iconsToRemove.forEach { iconMetadata ->
-    ProgressManager.getInstance().progressIndicator?.checkCanceled()
-    try {
-      metadataBuilder.removeIconMetadata(iconMetadata)
-      updateSavedMetadata(targetDir, metadataBuilder)
-    }
-    catch (e: Exception) {
-      log.warn("Error while removing metadata for: '${iconMetadata.name}'", e)
+  var isCancelled = ProgressManager.getInstance().progressIndicator?.isCanceled ?: false
+  fun List<MaterialMetadataIcon>.cancellableForEachIcon(onIcon: (iconMetadata: MaterialMetadataIcon) -> Unit) {
+    this.forEach { iconMetadata: MaterialMetadataIcon ->
+      if (isCancelled || ProgressManager.getInstance().progressIndicator?.isCanceled == true) {
+        isCancelled = true
+        return@forEach
+      }
+      onIcon(iconMetadata)
     }
   }
 
-  updateData.iconsToDownload.forEach { iconMetadata ->
-    ProgressManager.getInstance().progressIndicator?.checkCanceled()
+  updateData.iconsToRemove.cancellableForEachIcon(metadataBuilder::removeIconMetadata)
+  updateData.iconsToDownload.cancellableForEachIcon { iconMetadata ->
     try {
       downloadIconStyles(existingMetadata, targetDir, iconMetadata)
 
-      // Only update the metadata if download doesn't fail, so that we can try again next time.
+      // Icon should be registered until after the download finishes
       metadataBuilder.addIconMetadata(iconMetadata)
-      updateSavedMetadata(targetDir, metadataBuilder)
     }
     catch (e: Exception) {
-      log.warn("Error while downloading '${iconMetadata.name}'", e)
+      when (e) {
+        // Don't include the ProcessCanceledException in the Log
+        is ProcessCanceledException -> log.info("Download cancelled for: ${iconMetadata.name}")
+        else -> log.warn("Download error for: ${iconMetadata.name}", e)
+      }
     }
   }
+
+  // Update metadata file
+  MaterialIconsMetadata.writeAsJson(metadataBuilder.build(), targetDir.resolve(METADATA_FILE_NAME), log)
 }
 
 /**
@@ -214,13 +223,6 @@ private fun getIconsUpdateData(oldMetadata: MaterialIconsMetadata, newMetadata: 
 }
 
 /**
- * Updates the metadata file with the contents of [metadataBuilder] in the [targetDir].
- */
-private fun updateSavedMetadata(targetDir: Path, metadataBuilder: MaterialIconsMetadataBuilder) {
-  targetDir.resolve(METADATA_FILE_NAME).writeText(MaterialIconsMetadata.toJsonText(metadataBuilder.build()))
-}
-
-/**
  * Removes any remaining files in the directories of the downloaded icons, so that there's only the downloaded file in each of the icon
  * directories.
  *
@@ -258,4 +260,6 @@ private fun renameDownloadedFiles(downloadedFiles: List<File>): List<File> {
 private data class IconsUpdateData(
   val iconsToRemove: List<MaterialMetadataIcon>,
   val iconsToDownload: List<MaterialMetadataIcon>
-)
+) {
+  fun isEmpty() = iconsToRemove.isEmpty() && iconsToDownload.isEmpty()
+}

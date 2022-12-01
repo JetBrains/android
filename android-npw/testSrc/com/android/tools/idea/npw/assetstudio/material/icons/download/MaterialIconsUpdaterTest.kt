@@ -20,6 +20,8 @@ import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.npw.assetstudio.material.icons.metadata.MaterialIconsMetadata
 import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIconsUtils.METADATA_FILE_NAME
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.utils.SdkUtils
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.download.DownloadableFileService
@@ -32,7 +34,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import java.io.StringReader
+import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.writeText
@@ -40,6 +42,7 @@ import kotlin.test.assertEquals
 
 private const val HOST = "my.host.com"
 private const val PATTERN = "/s/i/{family}/{icon}/v{version}/{asset}"
+private const val NOT_EXECUTABLE_PREFIX = ")]}'\n"
 private const val OLD_METADATA_CONTENT =
   ")]}'\n" +
   "{\n" +
@@ -95,12 +98,13 @@ class MaterialIconsUpdaterTest {
 
   private lateinit var testDirectory: Path
   private lateinit var downloadDir: Path
+  private lateinit var existingMetadataFile: File
 
   @Before
   fun setup() {
     testDirectory = createTempDirectory(javaClass.simpleName)
     downloadDir = testDirectory.resolve("downloads")
-    downloadDir.resolve(METADATA_FILE_NAME).createFile().writeText(OLD_METADATA_CONTENT)
+    existingMetadataFile = downloadDir.resolve(METADATA_FILE_NAME).createFile().apply { writeText(OLD_METADATA_CONTENT) }.toFile()
     // Setup 'Downloads' directory with the existing XML files of the `old` metadata
     downloadDir.resolve("style1/my_icon_1").apply { createDirectories() }.resolve("my_icon_1.xml").writeText(OLD_VD)
     downloadDir.resolve("style1/my_icon_2").apply { createDirectories() }.resolve("my_icon_2.xml").writeText(OLD_VD)
@@ -110,7 +114,8 @@ class MaterialIconsUpdaterTest {
     val fileDescription = DownloadableFileDescriptionImpl(
       ICON_DOWNLOAD_URL, FileUtil.toSystemDependentName("style1/my_icon_1/my_icon_1"), "tmp")
     val mockDownloader = Mockito.mock(FileDownloader::class.java)
-    whenever(mockDownloader.download(downloadDir.toFile())).thenAnswer {
+    val downloadDirAsFile = downloadDir.toFile()
+    whenever(mockDownloader.download(downloadDirAsFile)).thenAnswer {
       // Write file with the new file contents to the 'downloads' directory
       val downloadedFile = downloadDir.resolve(fileDescription.defaultFileName).apply {
         parent.createDirectories()
@@ -130,10 +135,18 @@ class MaterialIconsUpdaterTest {
     assertEquals(OLD_VD, existingIcon1.readText())
     assertEquals(OLD_VD, existingIcon2.readText())
 
-    val newMetadata = MaterialIconsMetadata.parse(StringReader(NEW_METADATA_CONTENT))
+    val loadExistingMetadata: () -> MaterialIconsMetadata = {
+      MaterialIconsMetadata.parse(SdkUtils.fileToUrl(existingMetadataFile), thisLogger())
+    }
+
+    val testDownloadedMetadataFile = testDirectory.resolve("downloaded_metadata.txt").apply { writeText(NEW_METADATA_CONTENT) }.toFile()
+    val loadTestDownloadedMetadata: () -> MaterialIconsMetadata = {
+      MaterialIconsMetadata.parse(SdkUtils.fileToUrl(testDownloadedMetadataFile), thisLogger())
+    }
+
     updateIconsAtDir(
-      existingMetadata = MaterialIconsMetadata.parse(StringReader(OLD_METADATA_CONTENT)),
-      newMetadata = newMetadata,
+      existingMetadata = loadExistingMetadata(),
+      newMetadata = loadTestDownloadedMetadata(),
       targetDir = downloadDir
     )
 
@@ -148,20 +161,42 @@ class MaterialIconsUpdaterTest {
 
     assertEquals(NEW_VD, existingIcon1.parent.resolve("style1_my_icon_1_24.xml").readText())
 
-    // There should be a metadata file that reflects the new information
-    val savedMetadata = downloadDir.resolve("icons_metadata.txt")
-    assertThat(savedMetadata).exists()
-    assertEquals(MaterialIconsMetadata.toJsonText(newMetadata), savedMetadata.readText())
+    // The existing metadata file should reflect the new information, however it will be formatted differently, removing all whitespace
+    // while keeping the not executable prefix
+    val expectedMetadataContent = testDownloadedMetadataFile.readText().toExpectedJsonFormat()
+    assertEquals(expectedMetadataContent, existingMetadataFile.readText())
 
     // Calling updateIconsAtDir again will remove any unused Icons from the current metadata
     updateIconsAtDir(
-      existingMetadata = newMetadata, // The existing metadata now reflects the latest changes
-      newMetadata = newMetadata, // No changes
+      existingMetadata = loadExistingMetadata(),
+      newMetadata = loadTestDownloadedMetadata(),
       targetDir = downloadDir
     )
 
     // Icon 2 should be deleted now, since it's not in use by the current metadata
     assertThat(existingIcon1.parent).exists()
     assertThat(existingIcon2.parent).doesNotExist()
+  }
+
+  private fun String.toExpectedJsonFormat(): String {
+    val expectedPrefixIndex = NOT_EXECUTABLE_PREFIX.length - 1
+    var isInStringToken = false
+    val builder = StringBuilder()
+
+    this.forEachIndexed { index, c ->
+      if (index <= expectedPrefixIndex) {
+        builder.append(c)
+        return@forEachIndexed
+      }
+
+      if ((c == ' ' || c == '\n') && !isInStringToken) {
+        return@forEachIndexed
+      }
+      if (c == '\'' || c == '"') {
+        isInStringToken = !isInStringToken
+      }
+      builder.append(c)
+    }
+    return builder.toString()
   }
 }

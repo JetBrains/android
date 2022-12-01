@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.assetstudio
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.npw.assetstudio.MaterialVdIconsProvider.Status
 import com.android.tools.idea.npw.assetstudio.material.icons.MaterialIconsCopyHandler
 import com.android.tools.idea.npw.assetstudio.material.icons.MaterialVdIcons
 import com.android.tools.idea.npw.assetstudio.material.icons.MaterialVdIconsLoader
@@ -31,7 +32,6 @@ import com.android.tools.idea.npw.assetstudio.material.icons.metadata.MaterialIc
 import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIconsUtils.getIconsSdkTargetPath
 import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIconsUtils.getMetadata
 import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIconsUtils.hasMetadataFileInSdkPath
-import com.android.tools.idea.npw.assetstudio.MaterialVdIconsProvider.Status
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -92,7 +92,7 @@ class MaterialVdIconsProvider {
           LOG.warn("No metadata for material icons.")
           refreshUiCallback(MaterialVdIcons.EMPTY, Status.FINISHED)
         }
-        metadata.families.isEmpty() -> {
+        metadata === MaterialIconsMetadata.EMPTY || metadata.families.isEmpty() -> {
           LOG.warn("Empty metadata for material icons.")
           refreshUiCallback(MaterialVdIcons.EMPTY, Status.FINISHED)
         }
@@ -113,8 +113,11 @@ private fun loadMaterialVdIcons(metadata: MaterialIconsMetadata,
   val progressIndicator = EmptyProgressIndicator()
   val backgroundExecutor = createBackgroundExecutor()
   val disposable = Disposable {
-    backgroundExecutor.shutdownNow()
     progressIndicator.cancel()
+    backgroundExecutor.shutdown()
+
+    // There might an IO process pending, wait for them to finish and release resources
+    backgroundExecutor.awaitTermination(2L, TimeUnit.SECONDS)
   }
   Disposer.register(parentDisposable, disposable)
   metadata.families.forEachIndexed { index, style ->
@@ -138,7 +141,7 @@ private fun loadMaterialVdIcons(metadata: MaterialIconsMetadata,
         if (status == Status.FINISHED) {
           if (StudioFlags.ASSET_COPY_MATERIAL_ICONS.get()) {
             // When finished loading, copy icons to the Android/Sdk directory.
-            copyBundledIcons(metadata, icons, backgroundExecutor)
+            copyBundledIcons(metadata, icons, backgroundExecutor, progressIndicator)
           }
           if (StudioFlags.ASSET_DOWNLOAD_MATERIAL_ICONS.get()) {
             // Then, download the most recent metadata file and any new icons.
@@ -169,14 +172,22 @@ private fun getIconsUrlProvider(): MaterialIconsUrlProvider {
   }
 }
 
-private fun copyBundledIcons(metadata: MaterialIconsMetadata, icons: MaterialVdIcons, executor: ExecutorService) {
+private fun copyBundledIcons(
+  metadata: MaterialIconsMetadata,
+  icons: MaterialVdIcons,
+  executor: ExecutorService,
+  progressIndicator: ProgressIndicator
+) {
   val targetPath = getIconsSdkTargetPath()
   if (targetPath == null) {
     LOG.warn("No Android Sdk folder, can't copy material icons.")
     return
   }
   CompletableFuture.supplyAsync(Supplier {
-    MaterialIconsCopyHandler(metadata, icons).copyTo(targetPath)
+    ProgressManager.getInstance().runProcess(
+      { MaterialIconsCopyHandler(metadata, icons).copyTo(targetPath) },
+      progressIndicator
+    )
   }, executor).whenComplete { _, throwable ->
     if (throwable != null) {
       LOG.error("Error while copying icons", throwable)
@@ -184,9 +195,11 @@ private fun copyBundledIcons(metadata: MaterialIconsMetadata, icons: MaterialVdI
   }
 }
 
-private fun updateMetadataAndIcons(existingMetadata: MaterialIconsMetadata,
-                                   executor: ExecutorService,
-                                   progressIndicator: ProgressIndicator) {
+private fun updateMetadataAndIcons(
+  existingMetadata: MaterialIconsMetadata,
+  executor: ExecutorService,
+  progressIndicator: ProgressIndicator
+) {
   val targetPath = getIconsSdkTargetPath()
   if (targetPath == null) {
     LOG.warn("No Android Sdk folder, can't download any material icons.")

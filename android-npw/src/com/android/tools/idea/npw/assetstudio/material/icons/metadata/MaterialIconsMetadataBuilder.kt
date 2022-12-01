@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.npw.assetstudio.material.icons.metadata
 
-import org.jetbrains.kotlin.utils.newHashMapWithExpectedSize
+import java.util.SortedMap
+import java.util.TreeMap
 
 /**
  * A builder class for [MaterialIconsMetadata] that incrementally takes [MaterialMetadataIcon].
@@ -25,8 +26,10 @@ class MaterialIconsMetadataBuilder(
   private val urlPattern: String,
   private val families: Array<String>
 ) {
-
-  private val iconsMap = newHashMapWithExpectedSize<String, MaterialMetadataIcon>(1200) // There are around 1057 icons available
+  /**
+   * [MaterialIconsMetadata] is expected to be sorted. Using a sorted map since the list of icons is in the thousands.
+   */
+  private val iconsMap: SortedMap<String, MaterialMetadataIcon> = TreeMap()
 
   /**
    * Add a [MaterialMetadataIcon] to the list of existing icons.
@@ -48,6 +51,6 @@ class MaterialIconsMetadataBuilder(
    * Create a copy of [MaterialMetadataIcon] containing the current list of icons added into this instance through [addIconMetadata].
    */
   fun build(): MaterialIconsMetadata {
-    return MaterialIconsMetadata(host, urlPattern, families, iconsMap.toSortedMap().values.toTypedArray())
+    return MaterialIconsMetadata(host, urlPattern, families, iconsMap.values.toTypedArray())
   }
 }
