@@ -19,4 +19,5 @@ import java.util.EventListener;
 import org.jetbrains.annotations.NotNull;
 
 interface VirtualDeviceWatcherListener extends EventListener {
+  void virtualDevicesChanged(@NotNull VirtualDeviceWatcherEvent event);
 }

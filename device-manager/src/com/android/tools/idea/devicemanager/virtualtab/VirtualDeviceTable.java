@@ -182,6 +182,11 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     AndroidDebugBridge.removeDeviceChangeListener(myListener);
   }
 
+  @Override
+  public void virtualDevicesChanged(@NotNull VirtualDeviceWatcherEvent event) {
+    // TODO
+  }
+
   @NotNull ListenableFuture<@NotNull Key> addDevice(@NotNull Key key) {
     // noinspection UnstableApiUsage
     return Futures.transform(myAsyncSupplier.get(key), this::add, EdtExecutorService.getInstance());

@@ -15,35 +15,19 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import com.android.tools.idea.devicemanager.Key;
+import com.android.sdklib.internal.avd.AvdInfo;
 import java.util.EventObject;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 final class VirtualDeviceWatcherEvent extends EventObject {
-  private final @NotNull Key myKey;
+  private final @NotNull Iterable<@NotNull AvdInfo> myAvds;
 
-  VirtualDeviceWatcherEvent(@NotNull VirtualDeviceWatcher source, @NotNull Key key) {
+  VirtualDeviceWatcherEvent(@NotNull VirtualDeviceWatcher source, @NotNull Iterable<@NotNull AvdInfo> avds) {
     super(source);
-    myKey = key;
+    myAvds = avds;
   }
 
-  @NotNull Key getKey() {
-    return myKey;
-  }
-
-  @Override
-  public int hashCode() {
-    return 31 * source.hashCode() + myKey.hashCode();
-  }
-
-  @Override
-  public boolean equals(@Nullable Object object) {
-    if (!(object instanceof VirtualDeviceWatcherEvent)) {
-      return false;
-    }
-
-    VirtualDeviceWatcherEvent event = (VirtualDeviceWatcherEvent)object;
-    return source.equals(event.source) && myKey.equals(event.myKey);
+  @NotNull Iterable<@NotNull AvdInfo> getAvds() {
+    return myAvds;
   }
 }
