@@ -17,7 +17,6 @@ package com.android.tools.idea.common.surface
 
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.RenderResult
 
 /**
@@ -71,7 +70,7 @@ interface LayoutScannerConfiguration {
 /** Configuration for when layout scanner is available. */
 class LayoutScannerEnabled : LayoutScannerConfiguration {
 
-  override var isLayoutScannerEnabled: Boolean = StudioFlags.NELE_LAYOUT_SCANNER_IN_EDITOR.get()
+  override var isLayoutScannerEnabled: Boolean = true
 
   override var isIntegrateWithDefaultIssuePanel: Boolean = true
 }

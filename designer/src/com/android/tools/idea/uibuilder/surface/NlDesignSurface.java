@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import static com.android.tools.idea.flags.StudioFlags.NELE_LAYOUT_SCANNER_IN_EDITOR;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA;
@@ -501,10 +500,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
       port.setViewPosition(new Point(newViewPositionX, newViewPositionY));
     });
 
-    if (NELE_LAYOUT_SCANNER_IN_EDITOR.get()) {
-      myScannerControl = new NlLayoutScanner(this);
-    }
-
+    myScannerControl = new NlLayoutScanner(this);
     myDelegateDataProvider = delegateDataProvider;
   }
 
@@ -757,7 +753,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
         if (results.isEmpty()) {
           return;
         }
-        if (NELE_LAYOUT_SCANNER_IN_EDITOR.get() && myScannerControl != null) {
+        if (myScannerControl != null) {
           for (Map.Entry<LayoutlibSceneManager, RenderResult> entry : results.entrySet()) {
             LayoutlibSceneManager manager = entry.getKey();
             if (manager.getLayoutScannerConfig().isIntegrateWithDefaultIssuePanel()) {

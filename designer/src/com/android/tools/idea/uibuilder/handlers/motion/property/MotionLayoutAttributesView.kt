@@ -101,45 +101,37 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) : Propertie
         MotionEditorSelector.Type.CONSTRAINT -> {
           val showConstraintPanel = !shouldDisplaySection(MotionSceneAttrs.Tags.LAYOUT, selection)
           addPropertyTable(inspector, selection, MotionSceneAttrs.Tags.CONSTRAINT, model, true, false, showConstraintPanel)
-          if (StudioFlags.NELE_TRANSFORM_PANEL.get()) {
-            addTransforms(inspector, model, properties)
-          }
-          if (StudioFlags.NELE_TRANSITION_PANEL.get()) {
-            val attributes = ArrayList<String>()
-            attributes.add("transitionEasing")
-            attributes.add("pathMotionArc")
-            attributes.add("transitionPathRotate")
-            addTransition(inspector, InspectorSection.TRANSITION, model, "transitionEasing", properties, attributes)
-          }
+          addTransforms(inspector, model, properties)
+          val attributes = ArrayList<String>()
+          attributes.add("transitionEasing")
+          attributes.add("pathMotionArc")
+          attributes.add("transitionPathRotate")
+          addTransition(inspector, InspectorSection.TRANSITION, model, "transitionEasing", properties, attributes)
           addSubTagSections(inspector, selection, model)
         }
         MotionEditorSelector.Type.TRANSITION -> {
           addPropertyTable(inspector, selection, selection.motionSceneTagName, model, false, false, false)
-          if (StudioFlags.NELE_TRANSITION_PANEL.get()) {
-            val attributes = ArrayList<String>()
-            attributes.add("motionInterpolator")
-            attributes.add("staggered")
-            attributes.add("autoTransition")
-            attributes.add("pathMotionArc")
-            attributes.add("layoutDuringTransition")
-            addTransition(
-              inspector,
-              InspectorSection.TRANSITION_MODIFIERS,
-              model,
-              "motionInterpolator",
-              properties,
-              attributes
-            )
-          }
+          val attributes = ArrayList<String>()
+          attributes.add("motionInterpolator")
+          attributes.add("staggered")
+          attributes.add("autoTransition")
+          attributes.add("pathMotionArc")
+          attributes.add("layoutDuringTransition")
+          addTransition(
+            inspector,
+            InspectorSection.TRANSITION_MODIFIERS,
+            model,
+            "motionInterpolator",
+            properties,
+            attributes
+          )
           addSubTagSections(inspector, selection, model)
         }
         else -> {
           addPropertyTable(inspector, selection, selection.motionSceneTagName, model, false, false, false)
-          if (StudioFlags.NELE_TRANSFORM_PANEL.get()) {
-            val allProperties = model.allProperties
-            if (allProperties.containsKey("KeyAttribute")) {
-              addTransforms(inspector, model, properties)
-            }
+          val allProperties = model.allProperties
+          if (allProperties.containsKey("KeyAttribute")) {
+            addTransforms(inspector, model, properties)
           }
         }
       }

@@ -21,7 +21,6 @@ import com.android.tools.idea.common.assistant.AssistantPanelMetricsTracker
 import com.android.tools.idea.common.assistant.HelpPanelBundle
 import com.android.tools.idea.common.assistant.HelpPanelToolWindowListener
 import com.android.tools.idea.common.assistant.LayoutEditorHelpPanelAssistantBundleCreatorBase
-import com.android.tools.idea.flags.StudioFlags
 import com.google.wireless.android.sdk.stats.DesignEditorHelpPanelEvent.HelpPanelType
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
@@ -37,7 +36,7 @@ class NavEditorHelperAssistanceAction : OpenAssistSidePanelAction() {
   }
 
   override fun update(e: AnActionEvent) {
-    e.presentation.isEnabledAndVisible = StudioFlags.NELE_NAV_EDITOR_ASSISTANT.get()
+    e.presentation.isEnabledAndVisible = true
   }
 
   override fun actionPerformed(event: AnActionEvent) {
