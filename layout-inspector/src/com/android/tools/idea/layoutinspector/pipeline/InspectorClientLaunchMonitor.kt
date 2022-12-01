@@ -111,7 +111,7 @@ class InspectorClientLaunchMonitor(
       }
     }
     val banner = InspectorBannerService.getInstance(project)
-    banner?.setNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY), listOf(continueWaiting, disconnect))
+    banner?.addNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY), listOf(continueWaiting, disconnect))
   }
 
   private fun logAttachError(errorCode: AttachErrorCode) {

@@ -115,7 +115,7 @@ fun showActivityRestartedInBanner(project: Project, process: ProcessDescriptor) 
   if (showEnableAction) {
     actions.add(0, enableInRunConfigAction)
   }
-  banner.setNotification(LayoutInspectorBundle.message("activity.restart"), actions)
+  banner.addNotification(LayoutInspectorBundle.message("activity.restart"), actions)
 }
 
 private fun moduleFromCurrentProjectBeingInspected(project: Project, process: ProcessDescriptor): Module? =

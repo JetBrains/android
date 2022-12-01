@@ -131,7 +131,7 @@ class AppInspectionInspectorClient(
       }
     }
 
-    InspectorBannerService.getInstance(model.project)?.setNotification(message)
+    InspectorBannerService.getInstance(model.project)?.addNotification(message)
   }
 
   private var debugViewAttributesChanged = false
@@ -329,14 +329,14 @@ class AppInspectionInspectorClient(
           message = API_29_BUG_MESSAGE
           actions = listOf(bannerService.DISMISS_ACTION)
         }
-        bannerService.setNotification(message, actions)
+        bannerService.addNotification(message, actions)
       }
       sdkHandler.getSdkManager(logger).load(0, null, listOf(showBanner), null,
                                             StudioProgressRunner(false, false, "Checking available system images", null),
                                             StudioDownloader(), StudioSettingsController.getInstance())
     }
     else {
-      bannerService.setNotification(API_29_BUG_MESSAGE, listOf(bannerService.DISMISS_ACTION))
+      bannerService.addNotification(API_29_BUG_MESSAGE, listOf(bannerService.DISMISS_ACTION))
     }
     throw ConnectionFailedException("Unsupported system image revision", AttachErrorCode.LOW_API_LEVEL)
   }

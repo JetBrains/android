@@ -129,10 +129,10 @@ class LegacyInspectorMetricsTest {
     // Launch monitor will set a banner
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
     val banner = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
-    assertThat(banner.notification?.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+    assertThat(banner.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
 
     // User disconnects:
-    banner.notification?.actions?.last()?.actionPerformed(mock())
+    banner.notifications.single().actions.last().actionPerformed(mock())
     connectThread.join()
     val usages = waitFor3Events()
     var studioEvent = usages[0].studioEvent

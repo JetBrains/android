@@ -98,7 +98,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.ui.HyperlinkLabel
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
@@ -116,8 +115,8 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
-import javax.swing.JPanel
 import javax.swing.JTable
+import kotlin.collections.set
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
 
@@ -549,41 +548,39 @@ class AppInspectionInspectorClientTest {
     }
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     assertThat(error.await()).isEqualTo(startFetchError)
-    assertThat(InspectorBannerService.getInstance(inspectorRule.project)?.notification?.message)
-      .isEqualTo("Failed to start fetching or whatever")
+    val notification1 = InspectorBannerService.getInstance(inspectorRule.project)!!.notifications.single()
+    assertThat(notification1.message).isEqualTo("Failed to start fetching or whatever")
   }
 
   @Test
   fun composeClientShowsMessageIfOlderComposeUiLibrary() {
     inspectionRule.composeInspector.createResponseStatus = AppInspection.CreateInspectorResponse.Status.VERSION_INCOMPATIBLE
-    val banner = InspectorBanner(inspectorRule.project)
-
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-    assertThat(banner.text.text).isEqualTo(
+
+    val notification1 = InspectorBannerService.getInstance(inspectorRule.project)!!.notifications.single()
+    assertThat(notification1.message).isEqualTo(
       LayoutInspectorBundle.message(INCOMPATIBLE_LIBRARY_MESSAGE_KEY, "androidx.compose.ui:ui:1.0.0-beta02"))
   }
 
   @Test
   fun composeClientShowsMessageIfProguardedComposeUiLibrary() {
     inspectionRule.composeInspector.createResponseStatus = AppInspection.CreateInspectorResponse.Status.APP_PROGUARDED
-    val banner = InspectorBanner(inspectorRule.project)
-
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
-    assertThat(banner.text.text).isEqualTo(LayoutInspectorBundle.message(PROGUARDED_LIBRARY_MESSAGE_KEY))
+    val notification1 = InspectorBannerService.getInstance(inspectorRule.project)!!.notifications.single()
+    assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message(PROGUARDED_LIBRARY_MESSAGE_KEY))
   }
 
   @Test
   fun composeClientShowsMessageIfLibraryVersionNotFound() {
     inspectionRule.composeInspector.createResponseStatus = AppInspection.CreateInspectorResponse.Status.VERSION_MISSING
-    val banner = InspectorBanner(inspectorRule.project)
-
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
-    assertThat(banner.text.text).isEqualTo(LayoutInspectorBundle.message(VERSION_MISSING_MESSAGE_KEY))
+    val notification1 = InspectorBannerService.getInstance(inspectorRule.project)!!.notifications.single()
+    assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message(VERSION_MISSING_MESSAGE_KEY))
 
     inspectorRule.launcher.disconnectActiveClient()
 
@@ -802,7 +799,6 @@ class AppInspectionInspectorClientTest {
   @Test
   fun errorShownOnConnectException() {
     inspectorClientSettings.isCapturingModeOn = true
-    val banner = InspectorBanner(inspectorRule.project)
     inspectionRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
       com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response.newBuilder().apply {
         startFetchResponseBuilder.error = "here's my error"
@@ -810,14 +806,14 @@ class AppInspectionInspectorClientTest {
     }
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-    assertThat(banner.text.text).isEqualTo("here's my error")
+    val notification1 = InspectorBannerService.getInstance(inspectorRule.project)!!.notifications.single()
+    assertThat(notification1.message).isEqualTo("here's my error")
     assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
   }
 
   @Test
   fun errorShownOnRefreshException() {
     inspectorClientSettings.isCapturingModeOn = false
-    val banner = InspectorBanner(inspectorRule.project)
     inspectionRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
       com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response.newBuilder().apply {
         startFetchResponseBuilder.error = "here's my error"
@@ -826,7 +822,8 @@ class AppInspectionInspectorClientTest {
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-    assertThat(banner.text.text).isEqualTo("here's my error")
+    val notification1 = InspectorBannerService.getInstance(inspectorRule.project)!!.notifications.single()
+    assertThat(notification1.message).isEqualTo("here's my error")
     assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
   }
 
@@ -835,10 +832,9 @@ class AppInspectionInspectorClientTest {
     setUpRunConfiguration()
     preferredProcess = null
     inspectorRule.attachDevice(MODERN_PROCESS.device)
-    val banner = InspectorBanner(inspectorRule.project)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
-    verifyActivityRestartBanner(banner, runConfigActionExpected = true)
+    verifyActivityRestartBanner(runConfigActionExpected = true)
   }
 
   @Test
@@ -860,14 +856,13 @@ class AppInspectionInspectorClientTest {
     setUpRunConfiguration()
     preferredProcess = null
     inspectorRule.attachDevice(MODERN_PROCESS.device)
-    val banner = InspectorBanner(inspectorRule.project)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
-    val actionPanel = banner.components[1] as JPanel
-    val doNotShowAction = actionPanel.components[1] as HyperlinkLabel
-    doNotShowAction.doClick()
+    val bannerService = InspectorBannerService.getInstance(projectRule.project) ?: error("No banner")
+    val notification1 = bannerService.notifications.single()
+    notification1.actions[1].actionPerformed(mock())
     assertThat(PropertiesComponent.getInstance().getBoolean(KEY_HIDE_ACTIVITY_RESTART_BANNER)).isTrue()
   }
 
@@ -900,10 +895,9 @@ class AppInspectionInspectorClientTest {
     setUpRunConfiguration(enableInspectionWithoutRestart = true)
     preferredProcess = null
     inspectorRule.attachDevice(MODERN_PROCESS.device)
-    val banner = InspectorBanner(inspectorRule.project)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
-    verifyActivityRestartBanner(banner, runConfigActionExpected = false)
+    verifyActivityRestartBanner(runConfigActionExpected = false)
   }
 
   @Test
@@ -911,10 +905,9 @@ class AppInspectionInspectorClientTest {
     setUpRunConfiguration()
     preferredProcess = null
     inspectorRule.attachDevice(OTHER_MODERN_PROCESS.device)
-    val banner = InspectorBanner(inspectorRule.project)
     inspectorRule.processNotifier.fireConnected(OTHER_MODERN_PROCESS)
     inspectorRule.processes.selectedProcess = OTHER_MODERN_PROCESS
-    verifyActivityRestartBanner(banner, runConfigActionExpected = false)
+    verifyActivityRestartBanner(runConfigActionExpected = false)
   }
 
   @Test
@@ -995,26 +988,28 @@ class AppInspectionInspectorClientTest {
     }
   }
 
-  private fun verifyActivityRestartBanner(banner: InspectorBanner, runConfigActionExpected: Boolean) {
+  private fun verifyActivityRestartBanner(runConfigActionExpected: Boolean) {
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-    assertThat(banner.text.text).isEqualTo("The activity was restarted. This can be avoided by selecting " +
-                                           "\"Enable view attribute inspection\" in the developer options on the device or " +
-                                           "by enabling \"Connect without restarting activity\" in the run configuration options.")
     val service = InspectorBannerService.getInstance(inspectorRule.project) ?: error("no banner")
-    service.DISMISS_ACTION.actionPerformed(mock())
+    val notification1 = service.notifications.single()
+    assertThat(notification1.message).isEqualTo("The activity was restarted. This can be avoided by selecting " +
+                                                "\"Enable view attribute inspection\" in the developer options on the device or " +
+                                                "by enabling \"Connect without restarting activity\" in the run configuration options.")
+
+    notification1.actions.last().actionPerformed(mock())
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
-    val actionPanel = banner.getComponent(1) as JPanel
+    val notification2 = service.notifications.single()
     if (runConfigActionExpected) {
-      assertThat(actionPanel.componentCount).isEqualTo(3)
-      assertThat((actionPanel.components[0] as HyperlinkLabel).text).isEqualTo("Open Run Configuration")
-      assertThat((actionPanel.components[1] as HyperlinkLabel).text).isEqualTo("Don't Show Again")
-      assertThat((actionPanel.components[2] as HyperlinkLabel).text).isEqualTo("Dismiss")
+      assertThat(notification2.actions.size).isEqualTo(3)
+      assertThat(notification2.actions[0].templateText).isEqualTo("Open Run Configuration")
+      assertThat(notification2.actions[1].templateText).isEqualTo("Don't Show Again")
+      assertThat(notification2.actions[2].templateText).isEqualTo("Dismiss")
     }
     else {
-      assertThat(actionPanel.componentCount).isEqualTo(2)
-      assertThat((actionPanel.components[0] as HyperlinkLabel).text).isEqualTo("Don't Show Again")
-      assertThat((actionPanel.components[1] as HyperlinkLabel).text).isEqualTo("Dismiss")
+      assertThat(notification2.actions.size).isEqualTo(2)
+      assertThat(notification2.actions[0].templateText).isEqualTo("Don't Show Again")
+      assertThat(notification2.actions[1].templateText).isEqualTo("Dismiss")
     }
   }
 }
@@ -1079,10 +1074,10 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     val avdInfo = setUpAvd(sdkPackage, tag, 29)
     val packages = RepositoryPackages(listOf(sdkPackage), listOf())
     val sdkHandler = AndroidSdkHandler(sdkRoot, null, FakeRepoManager(sdkRoot, packages))
-    val banner = InspectorBanner(inspectorRule.project)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
-    assertThat(banner.isVisible).isFalse()
+    val bannerService = InspectorBannerService.getInstance(projectRule.project) ?: error("No banner")
+    assertThat(bannerService.notifications).isEmpty()
 
     setUpAvdManagerAndRun(sdkHandler, avdInfo, suspend {
       val client = AppInspectionInspectorClient(
@@ -1099,10 +1094,11 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
       client.connect(inspectorRule.project)
       waitForCondition(1, TimeUnit.SECONDS) { client.state == InspectorClient.State.DISCONNECTED }
       invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-      assertThat(banner.isVisible).isTrue()
-      assertThat(banner.text.text).isEqualTo(API_29_BUG_MESSAGE)
+
+      val notification1 = bannerService.notifications.single()
+      assertThat(notification1.message).isEqualTo(API_29_BUG_MESSAGE)
     })
-    banner.isVisible = false
+    bannerService.clear()
 
     if (!checkUpdate) {
       return
@@ -1126,10 +1122,10 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
       client.connect(inspectorRule.project)
       waitForCondition(1, TimeUnit.SECONDS) { client.state == InspectorClient.State.DISCONNECTED }
       invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-      assertThat(banner.isVisible).isTrue()
-      assertThat(banner.text.text).isEqualTo("$API_29_BUG_MESSAGE $API_29_BUG_UPGRADE")
+      val notification2 = bannerService.notifications.single()
+      assertThat(notification2.message).isEqualTo("$API_29_BUG_MESSAGE $API_29_BUG_UPGRADE")
     })
-    banner.isVisible = false
+    bannerService.clear()
   }
 
   private suspend fun setUpAvdManagerAndRun(sdkHandler: AndroidSdkHandler, avdInfo: AvdInfo, body: suspend () -> Unit) {
@@ -1244,11 +1240,14 @@ class AppInspectionInspectorClientWithFailingClientTest {
   @Test
   fun errorShownOnNoAgentWithApi29() {
     throwOnState = AttachErrorState.START_REQUEST_SENT
-    val banner = InspectorBanner(inspectorRule.project)
     inspectorRule.attachDevice(MODERN_DEVICE)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-    assertThat(banner.text.text).isEqualTo("Unable to detect a live inspection service. To enable live inspections, restart the device.")
+    val notifications = InspectorBannerService.getInstance(inspectorRule.project)!!.notifications
+    assertThat(notifications).hasSize(2)
+    assertThat(notifications[0].message).isEqualTo("expected")
+    assertThat(notifications[1].message).isEqualTo(
+      "Unable to detect a live inspection service. To enable live inspections, restart the device.")
     assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
     val usages = usageTrackerRule.testTracker.usages
       .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
@@ -1264,11 +1263,14 @@ class AppInspectionInspectorClientWithFailingClientTest {
   @Test
   fun errorLoggedOnException() {
     throwOnState = AttachErrorState.ATTACH_SUCCESS
-    val banner = InspectorBanner(inspectorRule.project)
     inspectorRule.attachDevice(MODERN_DEVICE)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-    assertThat(banner.text.text).isEqualTo("Unable to detect a live inspection service. To enable live inspections, restart the device.")
+    val notifications = InspectorBannerService.getInstance(inspectorRule.project)!!.notifications
+    assertThat(notifications).hasSize(2)
+    assertThat(notifications[0].message).isEqualTo("expected")
+    assertThat(notifications[1].message).isEqualTo(
+      "Unable to detect a live inspection service. To enable live inspections, restart the device.")
     assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
     val usages = usageTrackerRule.testTracker.usages
       .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }

@@ -48,8 +48,8 @@ class InspectorClientLaunchMonitorTest {
       val client = mock<InspectorClient>()
       monitor.start(client)
       scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
-      assertThat(banner.notification?.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
-      banner.notification = null
+      assertThat(banner.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+      banner.clear()
     }
     run {
       val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), scheduler)
@@ -58,16 +58,16 @@ class InspectorClientLaunchMonitorTest {
       scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS - 1, TimeUnit.SECONDS)
       monitor.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.START_REQUEST_SENT)
       scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS - 1, TimeUnit.SECONDS)
-      assertThat(banner.notification).isNull()
+      assertThat(banner.notifications).isEmpty()
       scheduler.advanceBy(2, TimeUnit.SECONDS)
-      assertThat(banner.notification?.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
-      banner.notification = null
+      assertThat(banner.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+      banner.clear()
     }
     run {
       val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), scheduler)
       monitor.updateProgress(CONNECTED_STATE)
       scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
-      assertThat(banner.notification).isNull()
+      assertThat(banner.notifications).isEmpty()
     }
   }
 
@@ -110,33 +110,36 @@ class InspectorClientLaunchMonitorTest {
     monitor.start(client)
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
     verify(client, never()).disconnect()
-    assertThat(banner.notification?.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
-    assertThat(banner.notification?.actions?.first()?.templateText).isEqualTo("Continue Waiting")
-    assertThat(banner.notification?.actions?.last()?.templateText).isEqualTo(expectedDisconnectMessage)
+    val notification1 = banner.notifications.single()
+    assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+    assertThat(notification1.actions.first().templateText).isEqualTo("Continue Waiting")
+    assertThat(notification1.actions.last().templateText).isEqualTo(expectedDisconnectMessage)
 
     // Continue waiting:
-    banner.notification?.actions?.first()?.actionPerformed(mock())
-    assertThat(banner.notification).isNull()
+    notification1.actions.first().actionPerformed(mock())
+    assertThat(banner.notifications).isEmpty()
 
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
     verify(client, never()).disconnect()
-    assertThat(banner.notification?.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
-    assertThat(banner.notification?.actions?.first()?.templateText).isEqualTo("Continue Waiting")
-    assertThat(banner.notification?.actions?.last()?.templateText).isEqualTo(expectedDisconnectMessage)
+    val notification2 = banner.notifications.single()
+    assertThat(notification2.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+    assertThat(notification2.actions.first().templateText).isEqualTo("Continue Waiting")
+    assertThat(notification2.actions.last().templateText).isEqualTo(expectedDisconnectMessage)
 
     // Continue waiting:
-    banner.notification?.actions?.first()?.actionPerformed(mock())
-    assertThat(banner.notification).isNull()
+    notification2.actions.first().actionPerformed(mock())
+    assertThat(banner.notifications).isEmpty()
 
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
     verify(client, never()).disconnect()
-    assertThat(banner.notification?.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
-    assertThat(banner.notification?.actions?.first()?.templateText).isEqualTo("Continue Waiting")
-    assertThat(banner.notification?.actions?.last()?.templateText).isEqualTo(expectedDisconnectMessage)
+    val notification3 = banner.notifications.single()
+    assertThat(notification3.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+    assertThat(notification3.actions.first().templateText).isEqualTo("Continue Waiting")
+    assertThat(notification3.actions.last().templateText).isEqualTo(expectedDisconnectMessage)
 
     // Disconnect:
-    banner.notification?.actions?.last()?.actionPerformed(mock())
-    assertThat(banner.notification).isNull()
+    notification3.actions.last().actionPerformed(mock())
+    assertThat(banner.notifications).isEmpty()
     verify(client).disconnect()
   }
 
@@ -155,12 +158,13 @@ class InspectorClientLaunchMonitorTest {
     monitor.start(client)
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
     verify(client, never()).disconnect()
-    assertThat(banner.notification?.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
-    assertThat(banner.notification?.actions?.first()?.templateText).isEqualTo("Continue Waiting")
-    assertThat(banner.notification?.actions?.last()?.templateText).isEqualTo("Disconnect")
+    val notification1 = banner.notifications.single()
+    assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+    assertThat(notification1.actions.first().templateText).isEqualTo("Continue Waiting")
+    assertThat(notification1.actions.last().templateText).isEqualTo("Disconnect")
 
     monitor.updateProgress(CONNECTED_STATE)
-    assertThat(banner.notification).isNull()
+    assertThat(banner.notifications).isEmpty()
   }
 
   @Test
@@ -179,6 +183,6 @@ class InspectorClientLaunchMonitorTest {
     monitor.stop()
     monitor.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
-    assertThat(banner.notification).isNull()
+    assertThat(banner.notifications).isEmpty()
   }
 }

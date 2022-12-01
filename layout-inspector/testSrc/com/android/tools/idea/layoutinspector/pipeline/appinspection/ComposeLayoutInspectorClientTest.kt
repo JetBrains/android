@@ -46,7 +46,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.MAV
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.MINIMUM_COMPOSE_COORDINATE
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.PROGUARDED_LIBRARY_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.VERSION_MISSING_MESSAGE_KEY
-import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.TransportNonExistingFileException
 import com.google.common.truth.Truth.assertThat
@@ -123,12 +123,12 @@ class ComposeLayoutInspectorClientTest {
     val artifactService = object : InspectorArtifactService {
       override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path {
         throw AppInspectionArtifactNotFoundException("not found",
-                                                     ArtifactCoordinate("group", "id", "1.0.0-SNAPSHOT", ArtifactCoordinate.Type.AAR))
+                                                     ArtifactCoordinate("group", "id", "1.3.0-SNAPSHOT", ArtifactCoordinate.Type.AAR))
       }
     }
     ApplicationManager.getApplication().registerServiceInstance(InspectorArtifactService::class.java, artifactService)
     val target = mock<AppInspectionTarget>()
-    whenever(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatbilityInfo(mock(), mock(), "1.0.0-SNAPSHOT", "")))
+    whenever(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatbilityInfo(mock(), mock(), "1.3.0-SNAPSHOT", "")))
     val apiServices = mock<AppInspectionApiServices>()
     whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
 
@@ -141,12 +141,12 @@ class ComposeLayoutInspectorClientTest {
     val artifactService = object : InspectorArtifactService {
       override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path {
         throw AppInspectionArtifactNotFoundException("not found",
-                                                     ArtifactCoordinate("androidx.compose.ui", "ui", "1.0.0", ArtifactCoordinate.Type.AAR))
+                                                     ArtifactCoordinate("androidx.compose.ui", "ui", "1.3.0", ArtifactCoordinate.Type.AAR))
       }
     }
     ApplicationManager.getApplication().registerServiceInstance(InspectorArtifactService::class.java, artifactService)
     val target = mock<AppInspectionTarget>()
-    whenever(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatbilityInfo(mock(), mock(), "1.0.0", "")))
+    whenever(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatbilityInfo(mock(), mock(), "1.3.0", "")))
     val apiServices = mock<AppInspectionApiServices>()
     whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
 
@@ -329,7 +329,6 @@ class ComposeLayoutInspectorClientTest {
   ) {
     var errorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
     val capabilities = EnumSet.noneOf(InspectorClient.Capability::class.java)
-    val banner = InspectorBanner(projectRule.project)
     val client = ComposeLayoutInspectorClient.launch(apiServices, processDescriptor, model(projectRule.project) {}, mock(), capabilities,
                                                      mock(), { errorCode = it }, isRunningFromSources)
     if (expectClient) {
@@ -339,7 +338,18 @@ class ComposeLayoutInspectorClientTest {
     }
 
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-    assertThat(banner.text.text).isEqualTo(expectedMessage)
-    assertThat(errorCode).isEqualTo(expectedError)
+    val bannerService = InspectorBannerService.getInstance(projectRule.project) ?: error("No banner")
+    if (expectedMessage.isEmpty()) {
+      assertThat(bannerService.notifications)
+        .named("expected to be empty but has: ${bannerService.notifications.firstOrNull()?.message}")
+        .isEmpty()
+    } else {
+      val notification1 = bannerService.notifications.single()
+      assertThat(notification1.message).isEqualTo(expectedMessage)
+      assertThat(errorCode).isEqualTo(expectedError)
+
+      // Clear the banner for the next invocation:
+      bannerService.clear()
+    }
   }
 }

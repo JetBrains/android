@@ -66,7 +66,7 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
       val layout = node.layout?.name
       if (navigatable == null && node.viewId == null && layout != null && !node.isSystemNode) {
         val banner = InspectorBannerService.getInstance(model.project)
-        banner?.setNotification(LayoutInspectorBundle.message(VIEW_NOT_FOUND, node.unqualifiedName, layout))
+        banner?.addNotification(LayoutInspectorBundle.message(VIEW_NOT_FOUND, node.unqualifiedName, layout))
       }
       navigatable
     }

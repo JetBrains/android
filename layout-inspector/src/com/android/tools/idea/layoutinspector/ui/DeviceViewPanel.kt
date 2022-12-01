@@ -416,7 +416,7 @@ class DeviceViewPanel(
               contentPanel.renderModel.isRotated -> LayoutInspectorBundle.message(PERFORMANCE_WARNING_3D)
               model.hasHiddenNodes() -> LayoutInspectorBundle.message(PERFORMANCE_WARNING_HIDDEN)
               else -> null
-            }?.let { InspectorBannerService.getInstance(model.project)?.setNotification(it) }
+            }?.let { InspectorBannerService.getInstance(model.project)?.addNotification(it) }
           }
           else {
             val service = InspectorBannerService.getInstance(model.project)

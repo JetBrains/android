@@ -61,7 +61,8 @@ class ComposeWarningTest {
     val moduleSystem = Mockito.spy(DefaultModuleSystem(projectRule.module))
     projectSystem.setModuleSystem(moduleSystem.module, moduleSystem)
     moduleSystem.usesCompose = true
-    InspectorBannerService.getInstance(projectRule.project)?.notificationListeners?.add { lastNotification = it }
+    val bannerService = InspectorBannerService.getInstance(projectRule.project) ?: error("No banner")
+    bannerService.notificationListeners.add { lastNotification = bannerService.notifications.lastOrNull() }
     composeWarning = ComposeWarning(projectRule.project)
   }
 

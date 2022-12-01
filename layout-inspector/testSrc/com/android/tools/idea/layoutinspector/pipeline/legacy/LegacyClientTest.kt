@@ -106,10 +106,11 @@ class LegacyClientTest {
     assertThat((inspectorRule.inspectorClient as LegacyClient).reloadAllWindows()).isFalse()
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
     val banner = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
-    assertThat(banner.notification?.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+    val notification1 = banner.notifications.single()
+    assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
 
     // User disconnects:
-    banner.notification?.actions?.last()?.actionPerformed(MockitoKt.mock())
+    notification1.actions.last().actionPerformed(MockitoKt.mock())
     waitForCondition(5, TimeUnit.SECONDS) { inspectorRule.inspectorClient === DisconnectedClient }
     executor.shutdownNow()
   }

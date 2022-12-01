@@ -41,7 +41,7 @@ import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.skia.ParsingFailedException
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
-import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot.Type.BITMAP
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.layoutinspector.BitmapType
@@ -349,8 +349,6 @@ class AppInspectionTreeLoaderTest {
   }
 
   private fun assertExpectedErrorIfSkiaRespondsWith(msg: String, skiaAnswer: () -> Any) {
-    val banner = InspectorBanner(projectRule.project)
-
     val skiaParser: SkiaParser = mock()
     whenever(skiaParser.getViewTree(eq(sample565.bytes), any(), any(), any())).thenAnswer { skiaAnswer() }
 
@@ -365,7 +363,8 @@ class AppInspectionTreeLoaderTest {
       UIUtil.dispatchAllInvocationEvents()
     }
 
-    assertThat(banner.text.text).isEqualTo(msg)
+    val notification1 = InspectorBannerService.getInstance(projectRule.project)!!.notifications.single()
+    assertThat(notification1.message).isEqualTo(msg)
   }
 
   @Test

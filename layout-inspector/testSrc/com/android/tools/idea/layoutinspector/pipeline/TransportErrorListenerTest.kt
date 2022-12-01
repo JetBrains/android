@@ -53,8 +53,9 @@ class TransportErrorListenerTest {
 
     transportErrorListener.onStartTransportDaemonServerFail(device1, mock())
 
-    assertThat(bannerService.notification?.message).isEqualTo(LayoutInspectorBundle.message("two.versions.of.studio.running"))
-    assertThat(bannerService.notification?.actions).isEmpty()
+    val notification1 = bannerService.notifications.single()
+    assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message("two.versions.of.studio.running"))
+    assertThat(notification1.actions).isEmpty()
     verify(mockMetrics).logTransportError(
       DynamicLayoutInspectorTransportError.Type.TRANSPORT_FAILED_TO_START_DAEMON,
       device1.toDeviceDescriptor()
@@ -62,6 +63,6 @@ class TransportErrorListenerTest {
 
     transportErrorListener.onPreTransportDaemonStart(mock())
 
-    assertThat(bannerService.notification).isNull()
+    assertThat(bannerService.notifications).isEmpty()
   }
 }

@@ -20,13 +20,17 @@ import com.android.tools.idea.layoutinspector.model.StatusNotificationImpl
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.project.Project
-import kotlin.properties.Delegates
+import com.jetbrains.rd.util.AtomicReference
+
+val NOTIFICATION_KEY = DataKey.create<StatusNotification>(StatusNotification::class.java.name)
 
 class InspectorBannerService {
   val DISMISS_ACTION = object : AnAction("Dismiss") {
-    override fun actionPerformed(e: AnActionEvent) {
-      notification = null
+    override fun actionPerformed(event: AnActionEvent) {
+      val notification = event.getData(NOTIFICATION_KEY) ?: return
+      removeNotification(notification.message)
     }
   }
 
@@ -36,21 +40,54 @@ class InspectorBannerService {
     }
   }
 
-  val notificationListeners = mutableListOf<(StatusNotification?) -> Unit>()
-  var notification: StatusNotification? by Delegates.observable(null as StatusNotification?) { _, old, new ->
-    if (new != old) {
-      notificationListeners.forEach { it(new) }
-    }
-  }
+  /**
+   * The current list of notifications. This list may change at any time.
+   */
+  private val notificationData = mutableListOf<StatusNotification>()
 
-  fun setNotification(text: String, actions: List<AnAction> = listOf(DISMISS_ACTION)) {
-    notification = StatusNotificationImpl(text, actions)
+  /**
+   * A copy of [notificationData]. Once retrieved the list of notification is guaranteed not to change.
+   */
+  private val notificationList = AtomicReference<List<StatusNotification>>(emptyList())
+
+  /**
+   * Listeners to be notified when the notifications have changed.
+   */
+  val notificationListeners = mutableListOf<() -> Unit>()
+
+  /**
+   * The current notifications.
+   *
+   * A copy of [notificationData] is made to avoid modifications in the middle of an extern usage.
+   */
+  var notifications: List<StatusNotification>
+    get() = notificationList.get()
+    private set(value) {
+      notificationList.getAndSet(value.toList())
+    }
+
+  fun addNotification(text: String, actions: List<AnAction> = listOf(DISMISS_ACTION)) {
+    if (notificationData.any { it.message == text }) {
+      return
+    }
+    notificationData.add(StatusNotificationImpl(text, actions))
+    notifyChanges()
   }
 
   fun removeNotification(text: String) {
-    if (notification?.message == text) {
-      notification = null
+    if (notificationData.removeIf { it.message == text }) {
+      notifyChanges()
     }
+  }
+
+  fun clear() {
+    notificationData.clear()
+    notifyChanges()
+  }
+
+  private fun notifyChanges() {
+    notifications = notificationData
+    notificationListeners.forEach { it() }
   }
 
   companion object {

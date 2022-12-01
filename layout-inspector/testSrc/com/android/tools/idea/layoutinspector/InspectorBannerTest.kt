@@ -19,11 +19,10 @@ import com.android.tools.adtui.actions.ZoomActualAction
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomToFitAction
-import com.android.tools.idea.layoutinspector.model.StatusNotificationImpl
-import com.android.tools.idea.layoutinspector.ui.INSPECTOR_BANNER_ACTION_PANEL_NAME
-import com.android.tools.idea.layoutinspector.ui.INSPECTOR_BANNER_TEXT_NAME
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.util.ComponentUtil
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -33,11 +32,13 @@ import com.intellij.ui.HyperlinkLabel
 import com.intellij.util.ui.UIUtil
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Container
+import java.awt.Cursor
 import java.awt.Dimension
-import java.awt.event.ContainerAdapter
-import java.awt.event.ContainerEvent
+import java.awt.Point
+import java.awt.Rectangle
 import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.JTable
 
 class InspectorBannerTest {
 
@@ -54,7 +55,7 @@ class InspectorBannerTest {
   fun testVisibleWithStatus() {
     val banner = InspectorBanner(projectRule.project)
     val bannerService = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
-    bannerService.notification = StatusNotificationImpl ("There is an error somewhere", emptyList())
+    bannerService.addNotification("There is an error somewhere", emptyList())
     invokeAndWaitIfNeeded {
       UIUtil.dispatchAllInvocationEvents()
     }
@@ -65,8 +66,8 @@ class InspectorBannerTest {
   fun testInvisibleAfterEmptyStatus() {
     val banner = InspectorBanner(projectRule.project)
     val bannerService = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
-    bannerService.notification = StatusNotificationImpl("There is an error somewhere", emptyList())
-    bannerService.notification = null
+    bannerService.addNotification("There is an error somewhere", emptyList())
+    bannerService.clear()
     invokeAndWaitIfNeeded {
       UIUtil.dispatchAllInvocationEvents()
     }
@@ -81,7 +82,7 @@ class InspectorBannerTest {
       override fun actionPerformed(event: AnActionEvent) {}
     }
     val bannerService = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
-    bannerService.notification = StatusNotificationImpl("There is an error somewhere", listOf(action))
+    bannerService.addNotification("There is an error somewhere", listOf(action))
     invokeAndWaitIfNeeded {
       UIUtil.dispatchAllInvocationEvents()
     }
@@ -97,28 +98,67 @@ class InspectorBannerTest {
   fun testSynchronization() {
     val banner = InspectorBanner(projectRule.project)
     val service = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
-    val actionPanel = banner.components.find { it.name == INSPECTOR_BANNER_ACTION_PANEL_NAME } as Container
-    val text = banner.components.find { it.name == INSPECTOR_BANNER_TEXT_NAME } as JLabel
+    val table = ComponentUtil.flatten(banner).single { it is JTable } as JTable
+    val cellRenderer = table.getCellRenderer(0, 0)
     var addedSecond = false
     // Add a listener that will change the banner in the middle of when it's being changed initially
-    actionPanel.addContainerListener(object: ContainerAdapter() {
-      override fun componentAdded(e: ContainerEvent?) {
-        if (!addedSecond) {
-          addedSecond = true
-          service.notification = StatusNotificationImpl("There is an error somewhere else",
-                                                        listOf(ZoomToFitAction.getInstance(), ZoomActualAction.getInstance()))
-        }
+    table.model.addTableModelListener {
+      if (!addedSecond) {
+        addedSecond = true
+        service.addNotification("There is another error somewhere else",
+                                listOf(ZoomToFitAction.getInstance(), ZoomActualAction.getInstance()))
       }
-    })
+    }
     // Set the initial banner. It will be overridden by the second.
-    service.notification = StatusNotificationImpl ("There is an error somewhere",
-                                                   listOf(ZoomInAction.getInstance(), ZoomOutAction.getInstance()))
+    service.addNotification("There is an error somewhere",
+                            listOf(ZoomInAction.getInstance(), ZoomOutAction.getInstance()))
     invokeAndWaitIfNeeded {
       UIUtil.dispatchAllInvocationEvents()
     }
-    // We should only get the content of the second banner.
-    assertThat(actionPanel.components.filterIsInstance<HyperlinkLabel>().map(HyperlinkLabel::getText))
+    // We now have 2 messages in the banner
+    assertThat(table.model.rowCount).isEqualTo(2)
+    val text1 = cellRenderer.getTableCellRendererComponent(table, null, false, false, 0, 0) as JLabel
+    val actions1 = cellRenderer.getTableCellRendererComponent(table, null, false, false, 0, 1) as JPanel
+    assertThat(actions1.components.filterIsInstance<HyperlinkLabel>().map(HyperlinkLabel::getText))
+      .isEqualTo(listOf("Zoom In", "Zoom Out"))
+    assertThat(text1.text).isEqualTo("There is an error somewhere")
+    val text2 = cellRenderer.getTableCellRendererComponent(table, null, false, false, 1, 0) as JLabel
+    val actions2 = cellRenderer.getTableCellRendererComponent(table, null, false, false, 1, 1) as JPanel
+    assertThat(text2.text).isEqualTo("There is another error somewhere else")
+    assertThat(actions2.components.filterIsInstance<HyperlinkLabel>().map(HyperlinkLabel::getText))
       .isEqualTo(listOf("Zoom to Fit Screen", "Zoom to Actual Size (100%)"))
-    assertThat(text.text).isEqualTo("There is an error somewhere else")
+  }
+
+  @Test
+  fun testMouseHandling() {
+    val banner = InspectorBanner(projectRule.project)
+    val service = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
+    val table = ComponentUtil.flatten(banner).single { it is JTable } as JTable
+    service.addNotification("First error")
+    service.addNotification("Second error")
+    service.addNotification("Third error")
+    banner.setSize(800, 400)
+    val ui = FakeUi(banner, createFakeWindow = true)
+
+    // Move mouse over message of 1st error
+    val rect1 = table.getCellRect(0, 0, false)
+    ui.mouse.moveTo(rect1.midPoint())
+    assertThat(table.cursor).isSameAs(Cursor.getDefaultCursor())
+
+    // Move mouse over actions of 1st error
+    val rect2 = table.getCellRect(0, 1, false)
+    ui.mouse.moveTo(rect2.midPoint())
+    assertThat(table.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+
+    // Click on the actions of the 2nd error, should remove that error from the banner service:
+    val rect3 = table.getCellRect(1, 1, false)
+    ui.mouse.click(rect3.midPoint().x, rect3.midPoint().y)
+    assertThat(service.notifications).hasSize(2)
+    assertThat(service.notifications.first().message).isEqualTo("First error")
+    assertThat(service.notifications.last().message).isEqualTo("Third error")
+  }
+
+  private fun Rectangle.midPoint(): Point {
+    return Point(x + width / 2, y + height / 2)
   }
 }

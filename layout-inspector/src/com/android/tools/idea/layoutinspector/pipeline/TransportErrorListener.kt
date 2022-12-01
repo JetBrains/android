@@ -45,7 +45,7 @@ class TransportErrorListener(
       val bannerService = InspectorBannerService.getInstance(project)
       if (hasStartServerFailed) {
         // the banner can't be dismissed. It will automatically be dismissed when the Transport tries to start again.
-        bannerService?.setNotification(errorMessage, emptyList())
+        bannerService?.addNotification(errorMessage, emptyList())
         // TODO(b/258453315) log to metrics
       }
       else {

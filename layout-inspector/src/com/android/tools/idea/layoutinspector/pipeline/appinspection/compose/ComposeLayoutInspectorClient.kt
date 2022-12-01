@@ -283,7 +283,7 @@ class ComposeLayoutInspectorClient(
       }
       val banner = InspectorBannerService.getInstance(project) ?: return null
       actions.add(banner.DISMISS_ACTION)
-      banner.setNotification(message, actions)
+      banner.addNotification(message, actions)
       logErrorToMetrics(error.code)
       return null
     }
@@ -299,7 +299,7 @@ class ComposeLayoutInspectorClient(
       if (version.isAtLeast(1, 3, 0, "alpha", 3, false) || (version.minor == 2 && version.isAtLeast(1, 2, 1))) return
       val versionUpgrade = if (version.minor == 3) "1.3.0" else "1.2.1"
       val banner = InspectorBannerService.getInstance(project) ?: return
-      banner.setNotification(LayoutInspectorBundle.message(COMPOSE_MAY_CAUSE_APP_CRASH_KEY, versionString, versionUpgrade))
+      banner.addNotification(LayoutInspectorBundle.message(COMPOSE_MAY_CAUSE_APP_CRASH_KEY, versionString, versionUpgrade))
       // Allow the user to connect and inspect compose elements because:
       // - b/235526153 is uncommon
       // - b/237987764 only happens if the kotlin compiler version is at least 1.6.20 (which we cannot reliably detect)

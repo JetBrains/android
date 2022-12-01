@@ -228,14 +228,14 @@ class InspectorClientLauncher(
     if (!validClientConnected) {
       val bannerService = InspectorBannerService.getInstance(project) ?: return
       // Save the banner so we can put it back after it's cleared by the client change, to show the error that made us disconnect.
-      val currentBanner = bannerService.notification
+      val notifications = bannerService.notifications
       activeClient = DisconnectedClient
       if (enabled) {
         // If we're enabled, don't show the process as selected anymore. If we're not (the window is minimized), we'll try to reconnect
         // when we're reenabled, so leave the process selected.
         processes.selectedProcess = null
       }
-      bannerService.notification = currentBanner
+      notifications.forEach { bannerService.addNotification(it.message, it.actions) }
     }
   }
 

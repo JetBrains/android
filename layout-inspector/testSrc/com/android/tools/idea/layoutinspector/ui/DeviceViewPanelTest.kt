@@ -97,7 +97,6 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -221,23 +220,25 @@ class DeviceViewPanelWithFullInspectorTest {
     assertThat(scheduler.isShutdown).isTrue()
     assertThat(deviceModel.isRotated).isTrue()
     UIUtil.dispatchAllInvocationEvents()
-    assertThat(banner.notification?.message).isEqualTo(LayoutInspectorBundle.message(PERFORMANCE_WARNING_3D))
+    val notification1 = banner.notifications.single()
+    assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message(PERFORMANCE_WARNING_3D))
 
     // Turn 3D mode off:
     toggle.click()
     UIUtil.dispatchAllInvocationEvents()
-    assertThat(banner.notification?.message).isNull()
+    assertThat(banner.notifications).isEmpty()
 
     // Hide VIEW2:
     val view2 = inspectorRule.inspectorModel[VIEW2]!!
     inspectorRule.inspectorModel.hideSubtree(view2)
     UIUtil.dispatchAllInvocationEvents()
-    assertThat(banner.notification?.message).isEqualTo(LayoutInspectorBundle.message(PERFORMANCE_WARNING_HIDDEN))
+    val notification2 = banner.notifications.single()
+    assertThat(notification2.message).isEqualTo(LayoutInspectorBundle.message(PERFORMANCE_WARNING_HIDDEN))
 
     // Show all:
     inspectorRule.inspectorModel.showAll()
     UIUtil.dispatchAllInvocationEvents()
-    assertThat(banner.notification?.message).isNull()
+    assertThat(banner.notifications).isEmpty()
   }
 
   private fun delegateDataProvider(panel: DeviceViewPanel) {
@@ -689,8 +690,8 @@ class DeviceViewPanelWithFullInspectorTest {
   fun testGotoDeclarationOfViewWithoutAnId() {
     gotoDeclaration(VIEW3)
     fileOpenCaptureRule.checkNoNavigation()
-    assertThat(InspectorBannerService.getInstance(inspectorRule.project)?.notification?.message)
-      .isEqualTo("It appears that the v3 in the layout demo.xml doesnt have an id.")
+    val notification1 = InspectorBannerService.getInstance(inspectorRule.project)!!.notifications.single()
+    assertThat(notification1.message).isEqualTo("It appears that the v3 in the layout demo.xml doesnt have an id.")
   }
 
   private fun gotoDeclaration(selectedView: Long) {
