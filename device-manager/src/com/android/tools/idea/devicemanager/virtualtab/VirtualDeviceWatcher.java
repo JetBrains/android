@@ -20,29 +20,21 @@ import com.android.annotations.concurrency.WorkerThread;
 import com.android.prefs.AndroidLocationsException;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.tools.idea.devicemanager.DeviceManagerFutures;
-import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeAvdManagers;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationActivationListener;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.util.Alarm;
-import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.Alarm.ThreadToUse;
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import javax.swing.event.EventListenerList;
 import org.jetbrains.android.AndroidPluginDisposable;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
 /**
@@ -68,9 +60,7 @@ public final class VirtualDeviceWatcher implements ApplicationActivationListener
   VirtualDeviceWatcher(@NotNull AvdManager avdManager) {
     myAvdManager = avdManager;
     myListeners = new EventListenerList();
-
-    myAlarm = new Alarm();
-    Disposer.register(AndroidPluginDisposable.Companion.getApplicationInstance(), myAlarm);
+    myAlarm = new Alarm(ThreadToUse.POOLED_THREAD, AndroidPluginDisposable.Companion.getApplicationInstance());
 
     ApplicationManager.getApplication().getMessageBus().connect().subscribe(ApplicationActivationListener.TOPIC, this);
   }
@@ -78,7 +68,8 @@ public final class VirtualDeviceWatcher implements ApplicationActivationListener
   @UiThread
   @Override
   public void applicationActivated(@NotNull IdeFrame ideFrame) {
-    // TODO
+    myAlarm.cancelAllRequests();
+    myAlarm.addRequest(this::snapshotAvds, Duration.ofSeconds(1).toMillis());
   }
 
   @UiThread
@@ -108,24 +99,36 @@ public final class VirtualDeviceWatcher implements ApplicationActivationListener
    * Called by an application pool thread
    */
   @WorkerThread
-  private synchronized void snapshotAvds() {
-    // TODO
+  private void snapshotAvds() {
+    Application application = ApplicationManager.getApplication();
+
+    if (!application.isActive()) {
+      return;
+    }
+
+    Iterable<AvdInfo> avds = getCurrentAvds();
+    application.invokeLater(() -> fireVirtualDevicesChanged(avds));
   }
 
   /**
    * Called by an application pool thread
    */
   @WorkerThread
-  private synchronized @NotNull Map<@NotNull String, @NotNull AvdInfo> getCurrentAvds() {
+  private @NotNull Iterable<@NotNull AvdInfo> getCurrentAvds() {
     try {
       myAvdManager.reloadAvds();
-      Map<String, AvdInfo> idToAvdInfo = new HashMap<>();
-      Arrays.stream(myAvdManager.getAllAvds()).forEach(avdInfo -> idToAvdInfo.put(avdInfo.getId(), avdInfo));
-      return idToAvdInfo;
+      return new ArrayList<>(Arrays.asList(myAvdManager.getAllAvds()));
     }
     catch (AndroidLocationsException e) {
       throw new RuntimeException(e);
     }
   }
 
+  @UiThread
+  private void fireVirtualDevicesChanged(@NotNull Iterable<@NotNull AvdInfo> avds) {
+    EventListenerLists.fire(myListeners,
+                            VirtualDeviceWatcherListener::virtualDevicesChanged,
+                            VirtualDeviceWatcherListener.class,
+                            () -> new VirtualDeviceWatcherEvent(this, avds));
+  }
 }
