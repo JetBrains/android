@@ -106,9 +106,9 @@ internal class AppInspectionProcessDiscovery(
           if (activity is StreamConnected) {
             streamIdMap[streamChannel.stream.streamId] = streamChannel
             launch {
-              streamChannel.processesFlow { _, process ->
+              streamChannel.processesFlow(filter = { _, process ->
                 process.exposureLevel == Common.Process.ExposureLevel.DEBUGGABLE
-              }.collect { process ->
+              }).collect { process ->
                 when (process.state) {
                   Common.Process.State.ALIVE -> addProcess(streamChannel, process)
                   Common.Process.State.DEAD -> removeProcess(streamChannel.stream.streamId, process.pid)
