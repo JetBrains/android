@@ -21,11 +21,13 @@ import com.android.tools.idea.diagnostics.jfr.EventFilter
 import com.android.tools.idea.diagnostics.jfr.JfrReportGenerator
 import com.android.tools.idea.diagnostics.jfr.JfrReportManager
 import com.android.tools.idea.diagnostics.jfr.reports.JfrTypingLatencyReports.Companion.CALL_TREES_FIELD
+import com.android.tools.idea.diagnostics.jfr.reports.JfrTypingLatencyReports.Companion.DEFAULT_COOLDOWN_TIMEOUT_MILLIS
+import com.android.tools.idea.diagnostics.jfr.reports.JfrTypingLatencyReports.Companion.DEFAULT_LATENCY_THRESHOLD_MILLIS
+import com.android.tools.idea.diagnostics.jfr.reports.JfrTypingLatencyReports.Companion.DEFAULT_SESSION_TIMEOUT_MILLIS
+import com.android.tools.idea.diagnostics.jfr.reports.JfrTypingLatencyReports.Companion.DEFAULT_TYPING_TIMEOUT_MILLIS
 import com.android.tools.idea.diagnostics.jfr.reports.JfrTypingLatencyReports.Companion.KEYSTROKE_COUNT_FIELD
-import com.android.tools.idea.diagnostics.jfr.reports.JfrTypingLatencyReports.Companion.cooldownTimeoutMillis
-import com.android.tools.idea.diagnostics.jfr.reports.JfrTypingLatencyReports.Companion.latencyThresholdMillis
-import com.android.tools.idea.diagnostics.jfr.reports.JfrTypingLatencyReports.Companion.sessionTimeoutMillis
-import com.android.tools.idea.diagnostics.jfr.reports.JfrTypingLatencyReports.Companion.typingTimeoutMillis
+import com.android.tools.idea.serverflags.ServerFlagService
+import com.android.tools.idea.serverflags.protos.JfrTypingLatencyConfig
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.application.ApplicationManager
@@ -41,31 +43,39 @@ class JfrTypingLatencyReports {
   companion object {
     const val REPORT_TYPE = "JFR-TypingLatency"
 
-    // TODO(b/259447928): Add flags for values, after code review ensures these are the right "slots" needed.
-    const val maxReportLengthBytes = 200_000
-    const val typingTimeoutMillis = 2_000L // 2 seconds
-    const val sessionTimeoutMillis = 10_000L // 10 seconds
-    const val cooldownTimeoutMillis = 1_000L * 60L * 10L // 10 minutes
+    const val SERVER_FLAG_NAME = "diagnostics/jfr_typing_latency"
 
-    const val latencyThresholdMillis = 1_000L // 1 second
+    const val DEFAULT_MAX_REPORTING_LENGTH_BYTES = 200_000
+    const val DEFAULT_TYPING_TIMEOUT_MILLIS = 2_000L // 2 seconds
+    const val DEFAULT_SESSION_TIMEOUT_MILLIS = 10_000L // 10 seconds
+    const val DEFAULT_COOLDOWN_TIMEOUT_MILLIS = 1_000L * 60L * 10L // 10 minutes
+
+    const val DEFAULT_LATENCY_THRESHOLD_MILLIS = 1_000L // 1 second
 
     const val CALL_TREES_FIELD = "callTrees"
     const val KEYSTROKE_COUNT_FIELD = "keystrokes"
     val FIELDS = listOf(CALL_TREES_FIELD, KEYSTROKE_COUNT_FIELD)
 
-    fun createReportManager(): JfrReportManager<*> = JfrReportManager.create(::MyReportGenerator) {
-      val stopCapture = fun(keystrokes: Int) {
-        this.currentReportGenerator?.keystrokeCount = keystrokes
-        this.stopCapture()
+    fun createReportManager(serverFlagService: ServerFlagService): JfrReportManager<*> {
+      val config: JfrTypingLatencyConfig? = serverFlagService.getProtoOrNull(SERVER_FLAG_NAME, JfrTypingLatencyConfig.getDefaultInstance())
+      val maxReportLengthBytes =
+        if (config?.hasMaxReportLengthBytes() == true) config.maxReportLengthBytes else DEFAULT_MAX_REPORTING_LENGTH_BYTES
+
+      return JfrReportManager.create({ MyReportGenerator(maxReportLengthBytes) }) {
+        val stopCapture = fun(keystrokes: Int) {
+          this.currentReportGenerator?.keystrokeCount = keystrokes
+          this.stopCapture()
+        }
+        val latencyListener = MyLatencyListener(config, ::startCapture, stopCapture)
+        ApplicationManager.getApplication().messageBus.connect().subscribe(LatencyListener.TOPIC, latencyListener)
       }
-      val latencyListener = MyLatencyListener(::startCapture, stopCapture)
-      ApplicationManager.getApplication().messageBus.connect().subscribe(LatencyListener.TOPIC, latencyListener)
     }
   }
 }
 
-private class MyReportGenerator : JfrReportGenerator(JfrTypingLatencyReports.REPORT_TYPE, EventFilter.CPU_SAMPLES, startOffsetMs = 0,
-                                                     endOffsetMs = 0) {
+private class MyReportGenerator(private val maxReportLengthBytes: Int) : JfrReportGenerator(JfrTypingLatencyReports.REPORT_TYPE,
+                                                                                            EventFilter.CPU_SAMPLES, startOffsetMs = 0,
+                                                                                            endOffsetMs = 0) {
   var keystrokeCount: Int = -1
 
   private val callTreeAggregator = CallTreeAggregator(CallTreeAggregator.THREAD_FILTER_ALL)
@@ -80,7 +90,7 @@ private class MyReportGenerator : JfrReportGenerator(JfrTypingLatencyReports.REP
 
   override fun generateReport(): Map<String, String> {
     return mapOf(
-      CALL_TREES_FIELD to callTreeAggregator.generateReport(JfrTypingLatencyReports.maxReportLengthBytes),
+      CALL_TREES_FIELD to callTreeAggregator.generateReport(maxReportLengthBytes),
       KEYSTROKE_COUNT_FIELD to keystrokeCount.toString())
   }
 }
@@ -96,9 +106,20 @@ private class MyReportGenerator : JfrReportGenerator(JfrTypingLatencyReports.REP
  * After a session completes, we want to wait a "cooldown" amount of time before starting any new sessions.
  */
 @VisibleForTesting
-class MyLatencyListener(private val startCapture: () -> Unit,
+class MyLatencyListener(config: JfrTypingLatencyConfig?,
+                        private val startCapture: () -> Unit,
                         private val stopCapture: (keystrokeCount: Int) -> Unit,
                         private val scheduler: ScheduledExecutorService = JobScheduler.getScheduler()) : LatencyListener {
+
+  private val typingTimeoutMillis =
+    if (config?.hasTypingTimeoutMillis() == true) config.typingTimeoutMillis else DEFAULT_TYPING_TIMEOUT_MILLIS
+  private val sessionTimeoutMillis =
+    if (config?.hasSessionTimeoutMillis() == true) config.sessionTimeoutMillis else DEFAULT_SESSION_TIMEOUT_MILLIS
+  private val cooldownTimeoutMillis =
+    if (config?.hasCooldownTimeoutMillis() == true) config.cooldownTimeoutMillis else DEFAULT_COOLDOWN_TIMEOUT_MILLIS
+
+  private val latencyReportingThresholdMillis =
+    if (config?.hasLatencyReportingThresholdMillis() == true) config.latencyReportingThresholdMillis else DEFAULT_LATENCY_THRESHOLD_MILLIS
 
   private enum class State {
     WAITING_TO_RECORD,
@@ -106,13 +127,21 @@ class MyLatencyListener(private val startCapture: () -> Unit,
     COOLDOWN,
   }
 
-  private enum class TimeoutType(val timeoutMs: Long) {
+  private enum class TimeoutType {
     /** Tracks the user's typing behavior. It's reset when a new keystroke comes in, and if it first it indicates they stopped typing. */
-    TYPING(typingTimeoutMillis),
+    TYPING,
+
     /** Tracks overall length of the recording session. */
-    SESSION(sessionTimeoutMillis),
+    SESSION,
+
     /** Tracks amount of time between recording sessions. */
-    COOLDOWN(cooldownTimeoutMillis),
+    COOLDOWN,
+  }
+
+  private fun TimeoutType.timeoutLengthMillis() = when (this) {
+    TimeoutType.TYPING -> typingTimeoutMillis
+    TimeoutType.SESSION -> sessionTimeoutMillis
+    TimeoutType.COOLDOWN -> cooldownTimeoutMillis
   }
 
   // State variables are only accessed on the UI Thread, so do not need any locking.
@@ -124,7 +153,7 @@ class MyLatencyListener(private val startCapture: () -> Unit,
   override fun recordTypingLatency(editor: Editor, action: String?, latencyMs: Long) {
     when (state) {
       State.WAITING_TO_RECORD -> {
-        if (latencyMs > latencyThresholdMillis) {
+        if (latencyMs > latencyReportingThresholdMillis) {
           // Start recording when there's a latency above the threshold.
           keystrokeCount = 1
           cancelAllTimeouts()
@@ -137,7 +166,7 @@ class MyLatencyListener(private val startCapture: () -> Unit,
       }
 
       State.RECORDING -> {
-        if (latencyMs > latencyThresholdMillis) {
+        if (latencyMs > latencyReportingThresholdMillis) {
           keystrokeCount++
           startTimeout(TimeoutType.TYPING)
         }
@@ -160,7 +189,7 @@ class MyLatencyListener(private val startCapture: () -> Unit,
 
     timeouts[timeoutType] = scheduler.schedule(
       { invokeLater { handleTimeout(timeoutType) } },
-      timeoutType.timeoutMs,
+      timeoutType.timeoutLengthMillis(),
       TimeUnit.MILLISECONDS)
   }
 
