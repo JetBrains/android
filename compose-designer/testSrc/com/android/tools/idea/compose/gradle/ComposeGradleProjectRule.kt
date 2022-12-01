@@ -104,4 +104,8 @@ class ComposeGradleProjectRule(
       assertTrue(it.isBuildSuccessful)
     }
   }
+
+  fun requestSyncAndWait() {
+    projectRule.requestSyncAndWait()
+  }
 }

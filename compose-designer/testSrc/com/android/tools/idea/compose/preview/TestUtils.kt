@@ -56,7 +56,8 @@ internal enum class SimpleComposeAppPaths(val path: String) {
   LIB_PREVIEWS_ANDROID_TEST(
     "lib/src/androidTest/java/google/simpleapplicationlib/AndroidPreviews.kt"
   ),
-  LIB_PREVIEWS_UNIT_TEST("lib/src/test/java/google/simpleapplicationlib/UnitPreviews.kt")
+  LIB_PREVIEWS_UNIT_TEST("lib/src/test/java/google/simpleapplicationlib/UnitPreviews.kt"),
+  APP_BUILD_GRADLE("app/build.gradle")
 }
 
 /**

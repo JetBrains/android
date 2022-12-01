@@ -38,6 +38,7 @@ import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiLiteralExpression
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.util.containers.sequenceOfNotNull
 import com.intellij.util.text.nullize
@@ -47,9 +48,9 @@ import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UClassLiteralExpression
+import org.jetbrains.uast.UExpression
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.UParameter
-import org.jetbrains.uast.evaluateString
 import org.jetbrains.uast.toUElementOfType
 import org.jetbrains.uast.tryResolve
 
@@ -322,12 +323,6 @@ internal fun UAnnotation.findPreviewDefaultValues(): Map<String, String?> =
     }
     .toMap()
 
-private fun UAnnotation.findAttributeIntValue(name: String) =
-  findAttributeValue(name)?.evaluate() as? Int
-
-private fun UAnnotation.findAttributeFloatValue(name: String) =
-  findAttributeValue(name)?.evaluate() as? Float
-
 private fun UAnnotation.findClassNameValue(name: String) =
   (findAttributeValue(name) as? UClassLiteralExpression)?.type?.canonicalText
 
@@ -386,25 +381,18 @@ private fun previewAnnotationToPreviewElement(
     }
 
   val composableMethod = annotatedMethod.qualifiedName
-  val previewName =
-    getPreviewName(previewAnnotation.findDeclaredAttributeValue(PARAMETER_NAME)?.evaluateString())
+  val previewName = getPreviewName(previewAnnotation.getDeclaredAttributeValue(PARAMETER_NAME))
   val defaultValues = previewAnnotation.findPreviewDefaultValues()
 
-  fun getBooleanAttribute(attributeName: String) =
-    previewAnnotation.findDeclaredAttributeValue(attributeName)?.evaluate() as? Boolean
-      ?: defaultValues[attributeName]?.toBoolean()
-
-  val groupName =
-    overrideGroupName
-      ?: previewAnnotation.findDeclaredAttributeValue(PARAMETER_GROUP)?.evaluateString()
+  val groupName = overrideGroupName ?: previewAnnotation.getDeclaredAttributeValue(PARAMETER_GROUP)
   val showDecorations =
-    getBooleanAttribute(PARAMETER_SHOW_DECORATION)
-      ?: (getBooleanAttribute(PARAMETER_SHOW_SYSTEM_UI)) ?: false
-  val showBackground = getBooleanAttribute(PARAMETER_SHOW_BACKGROUND) ?: false
+    previewAnnotation.getBooleanAttribute(PARAMETER_SHOW_DECORATION, defaultValues)
+      ?: (previewAnnotation.getBooleanAttribute(PARAMETER_SHOW_SYSTEM_UI, defaultValues)) ?: false
+  val showBackground =
+    previewAnnotation.getBooleanAttribute(PARAMETER_SHOW_BACKGROUND, defaultValues) ?: false
   // We don't use the library's default value for BackgroundColor and instead use a value defined
   // here, see PreviewElement#toPreviewXml.
-  val backgroundColor =
-    previewAnnotation.findDeclaredAttributeValue(PARAMETER_BACKGROUND_COLOR)?.evaluate()
+  val backgroundColor = previewAnnotation.getDeclaredAttributeValue<Any>(PARAMETER_BACKGROUND_COLOR)
   val backgroundColorString =
     when (backgroundColor) {
       is Int -> backgroundColor.toString(16)
@@ -453,23 +441,42 @@ private fun getPreviewParameters(parameters: Collection<UParameter>): Collection
         ?: return@mapIndexedNotNull null
     val providerClassFqn =
       (annotation.findClassNameValue("provider")) ?: return@mapIndexedNotNull null
-    val limit = annotation.findAttributeIntValue("limit") ?: Int.MAX_VALUE
+    val limit = annotation.getAttributeValue("limit") ?: Int.MAX_VALUE
     PreviewParameter(parameter.name, index, providerClassFqn, limit)
   }
+
+private inline fun <reified T> UExpression.getValueOfType(): T? {
+  val value = this.evaluate() as? T
+  // Cast to literal as fallback. Needed for example for MultiPreview imported from a binary file
+  return value ?: (this.sourcePsi as? PsiLiteralExpression)?.value as? T
+}
+
+private inline fun <reified T> UAnnotation.getDeclaredAttributeValue(attributeName: String): T? {
+  val expression = this.findDeclaredAttributeValue(attributeName)
+  return expression?.getValueOfType() as T?
+}
+
+private inline fun <reified T> UAnnotation.getAttributeValue(attributeName: String): T? {
+  val expression = this.findAttributeValue(attributeName)
+  return expression?.getValueOfType()
+}
+
+private fun UAnnotation.getBooleanAttribute(
+  attributeName: String,
+  defaultValues: Map<String, String?>
+) = this.getAttributeValue(attributeName) ?: defaultValues[attributeName]?.toBoolean()
 
 private fun UAnnotation.getIntAttribute(
   attributeName: String,
   defaultValues: Map<String, String?>
-) = this.findAttributeIntValue(attributeName) ?: defaultValues[attributeName]?.toInt()
+) = this.getAttributeValue(attributeName) ?: defaultValues[attributeName]?.toInt()
 
 private fun UAnnotation.getFloatAttribute(
   attributeName: String,
   defaultValues: Map<String, String?>
-) = this.findAttributeFloatValue(attributeName) ?: defaultValues[attributeName]?.toFloat()
+) = this.getAttributeValue(attributeName) ?: defaultValues[attributeName]?.toFloat()
 
 private fun UAnnotation.getStringAttribute(
   attributeName: String,
   defaultValues: Map<String, String?>
-) =
-  this.findAttributeValue(attributeName)?.evaluateString()?.nullize()
-    ?: defaultValues[attributeName]
+) = this.getAttributeValue<String>(attributeName)?.nullize() ?: defaultValues[attributeName]
