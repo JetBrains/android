@@ -397,7 +397,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
     // API-initiated tracing starts.
     Trace.TraceConfiguration apiTracingConfig = Trace.TraceConfiguration.newBuilder()
       .setInitiationType(Trace.TraceInitiationType.INITIATED_BY_API)
-      .setUserOptions(Trace.UserOptions.newBuilder().setTraceType(Trace.UserOptions.TraceType.ART))
       .build();
     addTraceInfoHelper(1, FAKE_DEVICE_ID, FAKE_PROCESS.getPid(), 100, -1, apiTracingConfig);
 
@@ -434,7 +433,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
     // API-initiated tracing starts.
     Trace.TraceConfiguration apiTracingConfig = Trace.TraceConfiguration.newBuilder()
       .setInitiationType(Trace.TraceInitiationType.INITIATED_BY_API)
-      .setUserOptions(Trace.UserOptions.newBuilder().setTraceType(Trace.UserOptions.TraceType.ART))
       .build();
     addTraceInfoHelper(1, FAKE_DEVICE_ID, FAKE_PROCESS.getPid(), 100, -1, apiTracingConfig);
 
@@ -451,10 +449,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
   public void rightOptionSelectedForStartUpTracing() {
     Trace.TraceConfiguration startUpTracingConfig = Trace.TraceConfiguration.newBuilder()
       .setInitiationType(Trace.TraceInitiationType.INITIATED_BY_STARTUP)
-      .setUserOptions(Trace.UserOptions.newBuilder()
-                        .setName(FakeIdeProfilerServices.FAKE_ATRACE_NAME)
-                        .setTraceType(Trace.UserOptions.TraceType.PERFETTO)
-      )
       .setPerfettoOptions(PerfettoConfig.TraceConfig.getDefaultInstance())
       .build();
     addTraceInfoHelper(1, FAKE_DEVICE_ID, FAKE_PROCESS.getPid(), 100, -1, startUpTracingConfig);
