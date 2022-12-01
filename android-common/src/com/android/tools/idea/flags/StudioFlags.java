@@ -243,26 +243,6 @@ public final class StudioFlags {
     "If enabled, the surface displays some debug information to diagnose performance",
     false);
 
-  public static final Flag<Boolean> NELE_COLOR_RESOURCE_PICKER_FOR_FILE_EDITORS = Flag.create(
-    NELE, "editor.color.picker", "Enable popup color resource picker for java and kotlin files.",
-    "Show the popup color resource picker when clicking the gutter icon of color resource in java and kotlin files.",
-    true);
-
-  public static final Flag<Boolean> NELE_DRAWABLE_POPUP_PICKER = Flag.create(
-    NELE, "show.drawable.popup.picker", "Enable drawable popup picker in Xml Editor.",
-    "Show the resource popup picker for picking drawable resources from the Editor's gutter icon.",
-    true);
-
-  public static final Flag<Boolean> NELE_DRAWABLE_BACKGROUND_MENU = Flag.create(
-    NELE, "show.drawable.background.menu", "Enable background option menu in drawable preview panel.",
-    "Show the background option menu to switch the background when previewing drawable resources.",
-    true);
-
-  public static final Flag<Boolean> NELE_WEAR_DEVICE_FIXED_ORIENTATION = Flag.create(
-    NELE, "wear.fixed.orientation", "Fixes the orientation of wear os devices.",
-    "For wear device, force using the portrait for square and round devices and landscape for chin devices.",
-    true);
-
   public static final Flag<Boolean> NELE_LOG_ANDROID_FRAMEWORK = Flag.create(
     NELE, "log.android.framework", "Log messages coming from Layoutlib Native.",
     "Log in the IDEA log the messages coming from Java and native code of Layoutlib Native.",
@@ -315,13 +295,6 @@ public final class StudioFlags {
     "When you right click recycler view in layout editor, you can now see \"Generate Adapter\" " +
     "that takes you through setup wizard",
     false);
-
-  public static final Flag<Boolean> NELE_CUSTOM_SHORTCUT_KEYMAP = Flag.create(
-    NELE, "custom.shortcut.keymap", "Design Tool Custom Shortcut",
-    "Make the shortcuts of design tools configurable. The shortcut keymap can be changed in Preferences -> Keymap -> Android Design" +
-    " Tools",
-    true
-  );
 
   public static final Flag<Boolean> NELE_LAYOUT_SCANNER_IN_EDITOR = Flag.create(
     NELE, "toggle.layout.editor.validator.a11y", "Toggle layout validator for layout editor.",
@@ -381,11 +354,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_CLASS_BINARY_CACHE = Flag.create(
     NELE, "toggle.layout.editor.class.binary.cache", "Enable binary cache",
     "Enable binary cache of classes used in preview",
-    true);
-
-  public static final Flag<Boolean> NELE_STATE_LIST_PICKER = Flag.create(
-    NELE, "state.list.picker", "Enable State List Picker",
-    "Enable state list picker for selector drawable.",
     true);
 
   public static final Flag<Boolean> NELE_ASSET_REPOSITORY_INCLUDE_AARS_THROUGH_PROJECT_SYSTEM = Flag.create(

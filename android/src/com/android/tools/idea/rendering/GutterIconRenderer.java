@@ -11,7 +11,6 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.util.FileExtensions;
@@ -164,42 +163,26 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
       Project project = editor.getProject();
       if (project == null) return;
 
-      if (StudioFlags.NELE_DRAWABLE_POPUP_PICKER.get()) {
-        List<ResourcePickerSources> pickerSources = new ArrayList<>();
-        pickerSources.add(ResourcePickerSources.PROJECT);
-        pickerSources.add(ResourcePickerSources.ANDROID);
-        pickerSources.add(ResourcePickerSources.LIBRARY);
-        if (myEditingXmlFile) {
-          // We can only support theme attributes for Xml files, since we can't substitute R.color.[resource_name] for a theme attribute.
-          pickerSources.add(ResourcePickerSources.THEME_ATTR);
-        }
-        // Show the resource picker popup.
-        ResourceChooserHelperKt.createAndShowResourcePickerPopup(
-          ResourceType.DRAWABLE,
-          myConfiguration,
-          myFacet,
-          pickerSources,
-          MouseInfo.getPointerInfo().getLocation(),
-          resourceReference -> {
-            setAttribute(resourceReference);
-            return null;
-          }
-        );
+      List<ResourcePickerSources> pickerSources = new ArrayList<>();
+      pickerSources.add(ResourcePickerSources.PROJECT);
+      pickerSources.add(ResourcePickerSources.ANDROID);
+      pickerSources.add(ResourcePickerSources.LIBRARY);
+      if (myEditingXmlFile) {
+        // We can only support theme attributes for Xml files, since we can't substitute R.color.[resource_name] for a theme attribute.
+        pickerSources.add(ResourcePickerSources.THEME_ATTR);
       }
-      else {
-        // Show the navigate-able preview popup (a larger preview of the icon that opens the image file when clicked).
-        VirtualFile navigationTarget = getNavigationTarget();
-        Runnable onClick = navigationTarget == null ? null : () -> openImageResourceTab(project, navigationTarget);
-        JBPopup preview = createPreview(onClick);
-
-        if (preview != null) {
-          // Show preview popup at location of mouse click.
-          preview.show(new RelativePoint((MouseEvent)event.getInputEvent()));
+      // Show the resource picker popup.
+      ResourceChooserHelperKt.createAndShowResourcePickerPopup(
+        ResourceType.DRAWABLE,
+        myConfiguration,
+        myFacet,
+        pickerSources,
+        MouseInfo.getPointerInfo().getLocation(),
+        resourceReference -> {
+          setAttribute(resourceReference);
+          return null;
         }
-        else if (navigationTarget != null) {
-          openImageResourceTab(project, navigationTarget);
-        }
-      }
+      );
     }
 
     @Nullable

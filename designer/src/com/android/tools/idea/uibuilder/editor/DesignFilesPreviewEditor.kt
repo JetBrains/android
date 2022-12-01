@@ -86,17 +86,12 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
         }
         .build()
         .apply {
-          val screenViewProvider = if (StudioFlags.NELE_DRAWABLE_BACKGROUND_MENU.get()) {
-            when (file?.toPsiFile(project)?.typeOf()) {
-              is AdaptiveIconFileType, is DrawableFileType -> {
-                val lastBackgroundType = DesignSurfaceSettings.getInstance(project).surfaceState.loadDrawableBackgroundType(project, file!!)
-                DrawableScreenViewProvider(lastBackgroundType)
-              }
-              else -> NlScreenViewProvider.RENDER
+          val screenViewProvider = when (file?.toPsiFile(project)?.typeOf()) {
+            is AdaptiveIconFileType, is DrawableFileType -> {
+              val lastBackgroundType = DesignSurfaceSettings.getInstance(project).surfaceState.loadDrawableBackgroundType(project, file!!)
+              DrawableScreenViewProvider(lastBackgroundType)
             }
-          }
-          else {
-            NlScreenViewProvider.RENDER
+            else -> NlScreenViewProvider.RENDER
           }
           setScreenViewProvider(screenViewProvider, false)
           // Make DesignSurface be focused when mouse clicked. This make the DataContext is provided from it while user clicks it.

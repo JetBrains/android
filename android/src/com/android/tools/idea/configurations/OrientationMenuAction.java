@@ -23,7 +23,6 @@ import com.android.resources.UiMode;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -58,8 +57,7 @@ public class OrientationMenuAction extends DropDownAction {
 
         // Do not allow to change the orientation of the wear devices.
         //noinspection SimplifiableConditionalExpression
-        boolean showSetOrientationOptions = StudioFlags.NELE_WEAR_DEVICE_FIXED_ORIENTATION.get() ? !HardwareConfigHelper.isWear(device)
-                                                                                                 : true;
+        boolean showSetOrientationOptions = !HardwareConfigHelper.isWear(device);
 
         if (showSetOrientationOptions) {
           List<State> states = device.getAllStates();

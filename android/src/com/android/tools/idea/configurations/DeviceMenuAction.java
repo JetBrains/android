@@ -20,7 +20,6 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.adtui.device.DeviceArtPainter;
-import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.text.StringUtil;
@@ -176,12 +175,7 @@ public class DeviceMenuAction extends DropDownAction {
     addDeviceSection(groupedDevices, DeviceGroup.NEXUS_XL, currentDevice);
     addDeviceSection(groupedDevices, DeviceGroup.NEXUS_TABLET, currentDevice);
     addDeviceSection(groupedDevices, DeviceGroup.DESKTOP, currentDevice);
-    if (StudioFlags.NELE_WEAR_DEVICE_FIXED_ORIENTATION.get()) {
-      addWearDeviceSection(groupedDevices, currentDevice);
-    }
-    else {
-      addDeviceSection(groupedDevices, DeviceGroup.WEAR, currentDevice);
-    }
+    addWearDeviceSection(groupedDevices, currentDevice);
     addDeviceSection(groupedDevices, DeviceGroup.TV, currentDevice);
     addDeviceSection(groupedDevices, DeviceGroup.AUTOMOTIVE, currentDevice);
     addCustomDeviceSection(currentDevice);

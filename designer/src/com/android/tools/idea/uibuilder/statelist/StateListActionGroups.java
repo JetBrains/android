@@ -22,7 +22,6 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.actions.DrawableBackgroundMenuAction;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 
 public final class StateListActionGroups extends ToolbarActionGroups {
@@ -36,22 +35,14 @@ public final class StateListActionGroups extends ToolbarActionGroups {
     DefaultActionGroup group = new DefaultActionGroup();
     // TODO(b/136258816): Update to support multi-model
     group.add(new ThemeMenuAction(mySurface::getConfiguration));
-    if (!StudioFlags.NELE_STATE_LIST_PICKER.get()) {
-      Arrays.asList(State.values()).forEach(state -> group.add(new ToggleStateAction(state, mySurface)));
-    }
-    if (StudioFlags.NELE_DRAWABLE_BACKGROUND_MENU.get()) {
-      group.add(new DrawableBackgroundMenuAction());
-    }
+    group.add(new DrawableBackgroundMenuAction());
     return group;
   }
 
   @Override
   protected @NotNull ActionGroup getNorthEastGroup() {
-    if (StudioFlags.NELE_STATE_LIST_PICKER.get()) {
-      DefaultActionGroup group = new DefaultActionGroup();
-      group.add(new SelectorMenuAction());
-      return group;
-    }
-    return ActionGroup.EMPTY_GROUP;
+    DefaultActionGroup group = new DefaultActionGroup();
+    group.add(new SelectorMenuAction());
+    return group;
   }
 }

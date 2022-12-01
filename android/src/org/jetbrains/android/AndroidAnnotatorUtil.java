@@ -30,7 +30,6 @@ import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -359,11 +358,6 @@ public class AndroidAnnotatorUtil {
 
     @Override
     public AnAction getClickAction() {
-      if (myElement instanceof PsiReferenceExpression || myElement instanceof KtNameReferenceExpression) {
-        if (!StudioFlags.NELE_COLOR_RESOURCE_PICKER_FOR_FILE_EDITORS.get()) {
-          return null;
-        }
-      }
       if (!myIncludeClickAction) { // Cannot set colors that were derived.
         return null;
       }
