@@ -447,7 +447,9 @@ class UpgradeAssistantWindowModel(
     if (application.isUnitTestMode) {
       setEnabled(newProcessor, projectFilesClean, versionCatalogs)
     } else {
-      invokeLater(ModalityState.NON_MODAL) { setEnabled(newProcessor, projectFilesClean, versionCatalogs) }
+      DumbService.getInstance(newProcessor.project).smartInvokeLater {
+        setEnabled(newProcessor, projectFilesClean, versionCatalogs)
+      }
     }
   }
 
