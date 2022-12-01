@@ -42,10 +42,13 @@ class ThreadingCheckerHookImplTest {
 
   init {
     ThreadingCheckerTrampoline.installHook(threadingCheckerHook)
+    // Do not log errors as to not throw exceptions by default
+    System.setProperty("android.studio.instrumentation.threading.log-errors", "false")
   }
 
   @Test
   fun testVerifyOnUiThread_addsViolation_whenCalledFromWorkerThread() {
+    System.setProperty("android.studio.instrumentation.threading.suppress-notifications", "false")
     val expectedViolatingMethod =
       "com.android.tools.idea.instrumentation.threading.ThreadingCheckerHookImplTest\$checkForUiThreadOnWorkerThread\$1#invoke"
     checkForUiThreadOnWorkerThread()
@@ -70,6 +73,7 @@ class ThreadingCheckerHookImplTest {
 
   @Test
   fun testVerifyOnWorkerThread_addsViolation_whenCalledFromUiThread() {
+    System.setProperty("android.studio.instrumentation.threading.suppress-notifications", "false")
     val expectedViolatingMethod =
       "com.android.tools.idea.instrumentation.threading.ThreadingCheckerHookImplTest#testVerifyOnWorkerThread_addsViolation_whenCalledFromUiThread"
     ThreadingCheckerTrampoline.verifyOnWorkerThread()

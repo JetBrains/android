@@ -75,12 +75,12 @@ class ThreadingCheckerHookImpl(
   }
 
   private fun shouldLogErrors(): Boolean {
-    return System.getProperty("android.studio.instrumentation.threading.log-errors", "false")
+    return System.getProperty("android.studio.instrumentation.threading.log-errors", "true")
       .equals("true", ignoreCase = true)
   }
 
   private fun shouldSuppressNotifications(): Boolean {
-    return System.getProperty("android.studio.instrumentation.threading.suppress-notifications", "false")
+    return System.getProperty("android.studio.instrumentation.threading.suppress-notifications", "true")
       .equals("true", ignoreCase = true)
   }
 }
