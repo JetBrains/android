@@ -25,7 +25,7 @@ import com.android.tools.idea.uibuilder.surface.LAYER_FONT
 import com.android.tools.idea.uibuilder.surface.drawMultilineString
 import com.intellij.openapi.project.Project
 import com.intellij.ui.JBColor
-import com.intellij.util.io.PagedFileStorage.MB
+import com.intellij.util.io.IOUtil.MiB
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.RenderingHints
@@ -64,14 +64,14 @@ class DiagnosticsLayer(private val diagnosticKey: NlDiagnosticKey, private val p
 
     return """
       |General
-      | Mem avail     ${runtime.freeMemory() / MB}MB ${PCT_FORMAT.format(freeMemPct)}%
+      | Mem avail     ${runtime.freeMemory() / MiB}MB ${PCT_FORMAT.format(freeMemPct)}%
       | 90% Render    ${PCT_FORMAT.format(diagnostics.renderTime(90))}ms
-      | Last render   ${PCT_FORMAT.format(lastRenderMs)}ms / ${diagnostics.lastRenderImageSize() / MB}MB
+      | Last render   ${PCT_FORMAT.format(lastRenderMs)}ms / ${diagnostics.lastRenderImageSize() / MiB}MB
       |
       |Image pool
-      | Allocated     ${(poolStats?.totalBytesAllocated() ?: -1) / MB}MB
-      | In use        ${(poolStats?.totalBytesInUse() ?: -1) / MB}MB
-      | Free          ${((poolStats?.totalBytesAllocated() ?: -1) - (poolStats?.totalBytesInUse() ?: 0)) / MB}MB
+      | Allocated     ${(poolStats?.totalBytesAllocated() ?: -1) / MiB}MB
+      | In use        ${(poolStats?.totalBytesInUse() ?: -1) / MiB}MB
+      | Free          ${((poolStats?.totalBytesAllocated() ?: -1) - (poolStats?.totalBytesInUse() ?: 0)) / MiB}MB
       |
       |Buckets
       |${bucketStats}
