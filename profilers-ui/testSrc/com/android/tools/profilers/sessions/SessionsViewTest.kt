@@ -138,10 +138,7 @@ class SessionsViewTest {
     val cpuTraceTimestamp = 20L
     val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(heapDumpTimestamp).setEndTime(heapDumpTimestamp + 1).build()
     val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder()
-      .setConfiguration(Trace.TraceConfiguration.newBuilder()
-                          .setUserOptions(
-                            Trace.UserOptions.newBuilder()
-                              .setTraceType(Trace.UserOptions.TraceType.SIMPLEPERF)))
+      .setConfiguration(Trace.TraceConfiguration.newBuilder())
       .setFromTimestamp(cpuTraceTimestamp)
       .setToTimestamp(cpuTraceTimestamp + 1)
       .build()
@@ -405,11 +402,7 @@ class SessionsViewTest {
     val process2 = debuggableProcess { pid = 20 }
     val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(10).setEndTime(11).build()
     val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder()
-      .setConfiguration(Trace.TraceConfiguration.newBuilder()
-                          .setUserOptions(
-                            Trace.UserOptions.newBuilder()
-                              .setTraceType(Trace.UserOptions.TraceType.ART)
-                              .setTraceMode(Trace.TraceMode.SAMPLED)))
+      .setConfiguration(Trace.TraceConfiguration.newBuilder())
       .setFromTimestamp(20)
       .setToTimestamp(21)
       .build()
@@ -553,10 +546,6 @@ class SessionsViewTest {
       .setFromTimestamp(TimeUnit.MINUTES.toNanos(1))
       .setToTimestamp(TimeUnit.MINUTES.toNanos(2))
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
-                          .setUserOptions(
-                            Trace.UserOptions.newBuilder()
-                              .setTraceType(Trace.UserOptions.TraceType.ART)
-                              .setTraceMode(Trace.TraceMode.SAMPLED))
                           .setArtOptions(Trace.ArtOptions.newBuilder().setTraceMode(Trace.TraceMode.SAMPLED)))
       .build()
 
@@ -628,10 +617,6 @@ class SessionsViewTest {
     val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder()
       .setTraceId(1)
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
-                          .setUserOptions(
-                            Trace.UserOptions.newBuilder()
-                              .setTraceType(Trace.UserOptions.TraceType.ATRACE)
-                              .setTraceMode(Trace.TraceMode.INSTRUMENTED))
                           .setAtraceOptions(Trace.AtraceOptions.getDefaultInstance()))
       .setFromTimestamp(sessionStartNs + 1)
       .setToTimestamp(-1)
