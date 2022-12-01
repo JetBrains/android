@@ -121,10 +121,7 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
       long startTime = SESSION_ONE_OFFSET + i * 2;
       Cpu.CpuTraceInfo trace = Cpu.CpuTraceInfo
         .newBuilder().setTraceId(startTime)
-        .setConfiguration(Trace.TraceConfiguration.newBuilder()
-                            .setUserOptions(Trace.UserOptions.newBuilder()
-                                              .setTraceType(Trace.UserOptions.TraceType.ART)
-                                              .setTraceMode(Trace.TraceMode.SAMPLED)))
+        .setConfiguration(Trace.TraceConfiguration.newBuilder())
         .setFromTimestamp(startTime).setToTimestamp(startTime + 1)
         .build();
       getTable().insertTraceInfo(SESSION_HUNDREDS, trace);
