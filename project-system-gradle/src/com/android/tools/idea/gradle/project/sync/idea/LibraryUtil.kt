@@ -166,7 +166,7 @@ internal fun maybeLinkLibraryAndWorkOutLibraryLevel(projectDataNode: DataNode<Pr
   // TODO(b/243008075): Work out the level of the library, if the library path is inside the module directory we treat
   // this as a Module level library. Otherwise we treat it as a Project level one.
   return when {
-    !GradleProjectResolverUtil.linkProjectLibrary(null, projectDataNode, libraryData) -> LibraryLevel.MODULE
+    !GradleProjectResolverUtil.linkProjectLibrary(projectDataNode, libraryData) -> LibraryLevel.MODULE
     else -> LibraryLevel.PROJECT
   }
 }
