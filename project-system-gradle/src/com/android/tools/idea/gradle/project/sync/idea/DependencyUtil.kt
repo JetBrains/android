@@ -162,7 +162,7 @@ private class AndroidDependenciesSetupContext(
       // this as a Module level library. Otherwise we treat it as a Project level one.
       return when {
         library.target.isModuleLevel(moduleDataNode.data.moduleFileDirectoryPath) -> LibraryLevel.MODULE
-        !linkProjectLibrary(null, projectDataNode, libraryData) -> LibraryLevel.MODULE
+        !linkProjectLibrary(projectDataNode, libraryData) -> LibraryLevel.MODULE
         else -> LibraryLevel.PROJECT
       }
     }
