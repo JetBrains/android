@@ -464,11 +464,11 @@ class UpgradeAssistantWindowModel(
       }
       uiState.set(UIState.Blocked)
     }
-    else if (!projectFilesClean) {
-      uiState.set(UIState.ProjectFilesNotCleanWarning)
-    }
     else if ((treeModel.root as? CheckedTreeNode)?.childCount == 0) {
       uiState.set(UIState.AllDone)
+    }
+    else if (!projectFilesClean) {
+      uiState.set(UIState.ProjectFilesNotCleanWarning)
     }
     else if (versionCatalogs) {
       uiState.set(UIState.ProjectUsesVersionCatalogs)
