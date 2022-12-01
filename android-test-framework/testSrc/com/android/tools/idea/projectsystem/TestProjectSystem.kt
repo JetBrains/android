@@ -277,7 +277,6 @@ class TestProjectSystem @JvmOverloads constructor(
   override fun getClassJarProvider(): ClassJarProvider {
     return object: ClassJarProvider {
       override fun getModuleExternalLibraries(module: Module): List<File> = emptyList()
-      override fun isClassFileOutOfDate(module: Module, fqcn: String, classFile: VirtualFile): Boolean  = false
     }
   }
 

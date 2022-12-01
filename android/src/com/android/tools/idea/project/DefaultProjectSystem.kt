@@ -152,9 +152,6 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
         return AndroidRootUtil.getExternalLibraries(module).map { file: VirtualFile? -> VfsUtilCore.virtualToIoFile(file!!) }
       }
 
-      override fun isClassFileOutOfDate(module: Module, fqcn: String, classFile: VirtualFile): Boolean {
-        return false
-      }
     }
   }
 

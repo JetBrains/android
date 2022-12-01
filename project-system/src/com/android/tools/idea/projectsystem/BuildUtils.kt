@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.projectsystem
 
-import com.android.annotations.concurrency.Slow
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
@@ -23,7 +22,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
-import com.intellij.psi.SmartPsiElementPointer
 
 fun Project.requestBuild(file: VirtualFile) {
   requestBuild(listOf(file))
@@ -49,36 +47,6 @@ fun hasExistingClassFile(psiFile: PsiFile?) = if (psiFile is PsiClassOwner) {
     .firstOrNull() != null
 }
 else false
-
-/**
- * Returns whether the [PsiFile] has been built. It does this by checking the build status of the module if available.
- * If not available, this method will look for the compiled classes and check if they exist.
- *
- * @param project the [Project] the [PsiFile] belongs to.
- * @param lazyFileProvider a lazy provider for the [PsiFile]. It will only be called if needed to obtain the status
- *  of the build.
- */
-@Slow
-fun hasBeenBuiltSuccessfully(project: Project, lazyFileProvider: () -> PsiFile?): Boolean {
-  val result = ProjectSystemService.getInstance(project).projectSystem.getBuildManager().getLastBuildResult()
-
-  if (result.status != ProjectSystemBuildManager.BuildStatus.UNKNOWN) {
-    return result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS &&
-           result.mode != ProjectSystemBuildManager.BuildMode.CLEAN
-
-  }
-
-  // We do not have information from the last build, try to find if the class file exists
-  return hasExistingClassFile(lazyFileProvider())
-}
-
-/**
- * Returns whether the [PsiFile] has been built. It does this by checking the build status of the module if available.
- * If not available, this method will look for the compiled classes and check if they exist.
- */
-@Slow
-fun hasBeenBuiltSuccessfully(psiFilePointer: SmartPsiElementPointer<PsiFile>): Boolean =
-  hasBeenBuiltSuccessfully(psiFilePointer.project) { ReadAction.compute<PsiFile, Throwable> { psiFilePointer.element } }
 
 @Suppress("UnstableApiUsage")
 private fun VirtualFile.getSourceFile(): VirtualFile = if (!this.isInLocalFileSystem && this is BackedVirtualFile) {

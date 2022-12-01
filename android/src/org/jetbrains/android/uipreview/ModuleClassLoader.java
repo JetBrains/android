@@ -239,40 +239,6 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
   @NotNull
   public ClassTransform getNonProjectClassesTransform() { return myImpl.getNonProjectTransforms(); }
 
-  /**
-   * Determines whether the class specified by the given qualified name has a source file in the IDE that
-   * has been edited more recently than its corresponding class file.
-   *
-   * <p>This method requires the indexing to have finished.
-   *
-   * <p><b>Note that this method can only answer queries for classes that this class loader has previously
-   * loaded!</b>
-   *
-   * @param name         the fully qualified class name
-   * @param myCredential a render sandbox credential
-   * @return true if the source file has been modified, or false if not (or if the source file cannot be found)
-   */
-  public boolean isSourceModified(@NotNull String name, @Nullable Object myCredential) {
-    if (!myImpl.getProjectLoadedClassNames().contains(name) ||
-        ModuleClassLoaderUtil.isResourceClassName(name)) {
-      return false;
-    }
-
-    Module module = getModule();
-    if (module == null) return false;
-
-    // Allow file system access for timestamps.
-    boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
-    try {
-      VirtualFile virtualFile = myImpl.findClassVirtualFile(name);
-      if (virtualFile == null) return false;
-      return ModuleClassLoaderUtil.isSourceModified(module, name, virtualFile);
-    }
-    finally {
-      RenderSecurityManager.exitSafeRegion(token);
-    }
-  }
-
   public boolean areDependenciesUpToDate() {
     Module module = getModule();
     if (module == null) return true;

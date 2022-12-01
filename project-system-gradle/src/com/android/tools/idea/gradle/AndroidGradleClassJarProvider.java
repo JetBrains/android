@@ -20,13 +20,11 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency;
 import com.android.tools.idea.gradle.model.IdeJavaLibrary;
 import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency;
-import com.android.tools.idea.gradle.project.model.ClassFileUtil;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.List;
 import java.util.stream.Stream;
@@ -56,10 +54,5 @@ public class AndroidGradleClassJarProvider implements ClassJarProvider {
       // Flat map the concatenated streams
       .flatMap(s -> s)
       .collect(toImmutableList());
-  }
-
-  @Override
-  public boolean isClassFileOutOfDate(@NotNull Module module, @NotNull String fqcn, @NotNull VirtualFile classFile) {
-    return ClassFileUtil.isClassSourceFileNewerThanClassClassFile(module, fqcn, classFile);
   }
 }

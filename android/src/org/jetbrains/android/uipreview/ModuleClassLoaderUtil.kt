@@ -126,22 +126,6 @@ internal const val INTERNAL_PACKAGE = "_layoutlib_._internal_."
  */
 private fun onDiskClassNameLookup(name: String): String = StringUtil.trimStart(name, INTERNAL_PACKAGE)
 
-/**
- * Returns true if the given [fqcn] is in the form of `package.subpackage...R` or `package.subpackage...R$...`. For example, this
- * would return true for:
- * ```
- * com.android.sample.R
- * com.android.sample.R$styles
- * com.android.sample.R$layouts
- * ```
- */
-internal fun isResourceClassName(fqcn: String): Boolean =
-  fqcn.substringAfterLast(".").let { it == "R" || it.startsWith("R$") }
-
-fun Module?.isSourceModified(fqcn: String, classFile: VirtualFile): Boolean = this?.let {
-  it.project.getProjectSystem().getClassJarProvider().isClassFileOutOfDate(it, fqcn, classFile)
-} ?: false
-
 
 /**
  * [DelegatingClassLoader.Loader] providing the implementation to load classes from a project. This loader can load user defined classes
