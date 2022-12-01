@@ -93,7 +93,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * This class represents the view of a capture taken from within the {@link CpuProfilerStageView}.
- * all captures of type {@link Trace.UserOptions.TraceType} are supported.
+ * all captures of type {@link ProfilingConfiguration.TraceType} are supported.
  */
 public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   /**
