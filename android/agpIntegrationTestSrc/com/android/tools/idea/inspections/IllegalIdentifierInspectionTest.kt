@@ -48,9 +48,6 @@ class IllegalIdentifierInspectionTest : AndroidGradleTestCase() {
   }
 
   fun testInspectionInBuildKtsFile() {
-    if (SystemInfoRt.isWindows) {
-      return  // TODO(b/162761346) failing on windows
-    }
     val file = project.guessProjectDir()!!
       .findFileByRelativePath("app/build.gradle.kts")!!
     myFixture.openFileInEditor(file)
