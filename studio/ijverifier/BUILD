@@ -20,7 +20,7 @@ py_test(
         "kotlin_ignored_problems.txt",
         "//prebuilts/studio/intellij-sdk:studio-sdk-full-linux.zip",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//prebuilts/studio/jdk:jdk11_runtime_linux_files",
+        "//prebuilts/studio/jdk/jdk11:jdk11_runtime_linux_files",
         "//prebuilts/tools/common/intellij-plugin-verifier",
     ],
     python_version = "PY3",
