@@ -83,9 +83,8 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
 
   private fun startTrace(command: Commands.Command) {
     val traceConfiguration = command.startCpuTrace.configuration
-    val userOptions = traceConfiguration.userOptions
-    val traceType = TraceType.from(traceConfiguration)
-    assert(traceType == TraceType.ART)
+    assert(traceConfiguration.hasArtOptions())
+    val artOptions = traceConfiguration.artOptions
 
     val pid = command.pid
     val appPkgName = device.getClientName(pid)
@@ -110,14 +109,14 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
         // com.android.ddmlib.HandleProfiling.sendSPSS(..) has buffer size as a parameter, but we cannot call it
         // because the class is not public. To set buffer size, we modify DdmPreferences which will be read by
         // client.startSamplingProfiler(..) and client.startMethodTracer().
-        DdmPreferences.setProfilerBufferSizeMb(userOptions.bufferSizeInMb)
+        DdmPreferences.setProfilerBufferSizeMb(artOptions.bufferSizeInMb)
 
         val requestTimeNs = transportStub.getCurrentTime(Transport.TimeRequest.getDefaultInstance()).timestampNs
         val record = LegacyCpuTraceRecord()
         legacyProfilingRecord.put(pid, record)
         try {
-          if (userOptions.traceMode == Trace.TraceMode.SAMPLED) {
-            client.startSamplingProfiler(userOptions.samplingIntervalUs, TimeUnit.MICROSECONDS)
+          if (artOptions.traceMode == Trace.TraceMode.SAMPLED) {
+            client.startSamplingProfiler(artOptions.samplingIntervalUs, TimeUnit.MICROSECONDS)
           }
           else {
             client.startMethodTracer()
@@ -172,9 +171,8 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
 
   private fun stopTrace(command: Commands.Command) {
     val traceConfiguration = command.stopCpuTrace.configuration
-    val userOptions = traceConfiguration.userOptions
-    val traceType = TraceType.from(traceConfiguration)
-    assert(traceType == TraceType.ART)
+    assert(traceConfiguration.hasArtOptions())
+    val artOptions = traceConfiguration.artOptions
 
     val pid = command.pid
     val appPkgName = device.getClientName(pid)
@@ -203,7 +201,7 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
       }
       else {
         try {
-          if (userOptions.getTraceMode() == Trace.TraceMode.SAMPLED) {
+          if (artOptions.traceMode == Trace.TraceMode.SAMPLED) {
             client.stopSamplingProfiler()
           }
           else {
