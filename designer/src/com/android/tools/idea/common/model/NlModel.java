@@ -696,14 +696,6 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   }
 
   /**
-   * TODO: Needs remove after refactor.
-   */
-  @NotNull
-  public Consumer<NlComponent> getComponentRegistrar() {
-    return myComponentRegistrar;
-  }
-
-  /**
    * Simply create a component. In most cases you probably want
    * {@link #createComponent(XmlTag, NlComponent, NlComponent, InsertType)}.
    */
