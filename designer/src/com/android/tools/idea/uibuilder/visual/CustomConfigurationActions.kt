@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.adtui.LightCalloutPopup
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -43,7 +42,7 @@ class AddCustomConfigurationSetAction(private val onAdd: (String) -> Unit) : AnA
   }
 
   override fun update(e: AnActionEvent) {
-    e.presentation.isVisible = StudioFlags.NELE_VISUALIZATION_MULTIPLE_CUSTOM.get()
+    e.presentation.isVisible = true
     e.presentation.icon = StudioIcons.NavEditor.Toolbar.NESTED_GRAPH
   }
 
@@ -73,7 +72,7 @@ class RemoveCustomConfigurationSetAction(val configurationSet: ConfigurationSet,
   }
 
   override fun update(e: AnActionEvent) {
-    e.presentation.isVisible = StudioFlags.NELE_VISUALIZATION_MULTIPLE_CUSTOM.get() && configurationSet is UserDefinedCustom
+    e.presentation.isVisible = configurationSet is UserDefinedCustom
   }
 
   override fun actionPerformed(e: AnActionEvent) {

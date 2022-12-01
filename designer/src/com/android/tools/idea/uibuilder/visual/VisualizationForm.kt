@@ -245,19 +245,17 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
     viewOptions.add(ToggleShowDecorationAction())
     viewOptions.isPopup = true
     group.add(viewOptions)
-    if (StudioFlags.NELE_VISUALIZATION_MULTIPLE_CUSTOM.get()) {
-      group.add(AddCustomConfigurationSetAction { createdConfigSetId: String ->
-        val configurationSets = getConfigurationSets().stream()
-          .filter { set: ConfigurationSet -> createdConfigSetId == set.id }
-          .collect(Collectors.toList())
-        if (configurationSets.isNotEmpty()) {
-          onSelectedConfigurationSetChanged(configurationSets[0])
-        }
-      })
-      group.add(RemoveCustomConfigurationSetAction(myCurrentConfigurationSet) {
-        onSelectedConfigurationSetChanged(ConfigurationSetProvider.defaultSet)
-      })
-    }
+    group.add(AddCustomConfigurationSetAction { createdConfigSetId: String ->
+      val configurationSets = getConfigurationSets().stream()
+        .filter { set: ConfigurationSet -> createdConfigSetId == set.id }
+        .collect(Collectors.toList())
+      if (configurationSets.isNotEmpty()) {
+        onSelectedConfigurationSetChanged(configurationSets[0])
+      }
+    })
+    group.add(RemoveCustomConfigurationSetAction(myCurrentConfigurationSet) {
+      onSelectedConfigurationSetChanged(ConfigurationSetProvider.defaultSet)
+    })
     // Use ActionPlaces.EDITOR_TOOLBAR as place to update the ui when appearance is changed.
     // In IJ's implementation, only the actions in ActionPlaces.EDITOR_TOOLBAR toolbar will be tweaked when ui is changed.
     // See com.intellij.openapi.actionSystem.impl.ActionToolbarImpl.tweakActionComponentUI()

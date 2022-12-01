@@ -300,26 +300,6 @@ public final class StudioFlags {
     "Use the new designed device menu to support device classes",
     true);
 
-  public static final Flag<Boolean> NELE_VISUALIZATION_WINDOW_SIZE_MODE = Flag.create(
-    NELE, "visualization.window.sizes", "Use Window Sizes Category in Layout Validation Tool",
-    "Use Window Sizes as default group and replace the pixel devices category with it in Layout Validation Tool",
-    true);
-
-  public static final Flag<Boolean> NELE_VISUALIZATION_LOCALE_MODE = Flag.create(
-    NELE, "visualization.locale", "Locale Mode in Layout Validation Tool",
-    "Enable locale mode in Layout Validation Tool to preview layout in project's locales",
-    true);
-
-  public static final Flag<Boolean> NELE_VISUALIZATION_APPLY_CONFIG_TO_LAYOUT_EDITOR = Flag.create(
-    NELE, "visualization.apply.config", "Apply Selected Configuration in Validation Tool to Layout Editor",
-    "Apply the configuration to Layout Editor by double clicking the preview in Validation Tool",
-    true);
-
-  public static final Flag<Boolean> NELE_VISUALIZATION_MULTIPLE_CUSTOM = Flag.create(
-    NELE, "visualization.multiple.custom", "Multiple Custom Categories in Layout Validation Tool",
-    "Allow to create or delete multiple custom categories in Layout Validation Tool",
-    true);
-
   public static final Flag<Boolean> NELE_SOURCE_CODE_EDITOR = Flag.create(
     NELE, "show.source.code.editor", "New Source Code Editor",
     "Enable new source code editor with preview(s) coming as a substitute to Compose and Custom View editors.",

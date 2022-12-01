@@ -26,7 +26,6 @@ fun trackOpenConfigSet(surface: DesignSurface<*>, configSet: ConfigurationSet) {
     ConfigurationSet.PixelDevices -> trackSetCategory(surface, MultiViewEventType.OPEN_PIXEL_DEVICES)
     ConfigurationSet.WearDevices -> trackSetCategory(surface, MultiViewEventType.OPEN_WEAR_DEVICES)
     ConfigurationSet.ProjectLocal -> trackSetCategory(surface, MultiViewEventType.OPEN_PROJECT_LOCALES)
-    ConfigurationSet.PredefinedCustom -> trackSetCategory(surface, MultiViewEventType.OPEN_CUSTOM_CONFIGURATION_SETS)
     ConfigurationSet.ColorBlindMode -> trackSetCategory(surface, MultiViewEventType.OPEN_COLOR_BLIND_MODE)
     ConfigurationSet.LargeFont -> trackSetCategory(surface, MultiViewEventType.OPEN_LARGE_FONT)
     ConfigurationSet.WindowSizeDevices -> trackSetCategory(surface, MultiViewEventType.OPEN_REFERENCE_DEVICES)

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
-import com.android.tools.idea.flags.StudioFlags
-
 /**
  * The helper class provides the general utility functions of visualization tool (a.k.a. Validation Tool).
  */
@@ -43,9 +41,6 @@ object VisualizationUtil {
   }
 
   fun getUserMadeConfigurationSets(): List<ConfigurationSet> {
-    if (!StudioFlags.NELE_VISUALIZATION_MULTIPLE_CUSTOM.get()) {
-      return listOf(ConfigurationSet.PredefinedCustom)
-    }
     val sets = mutableListOf<ConfigurationSet>()
     val configurationSets = VisualizationToolSettings.getInstance().globalState.customConfigurationSets
     for ((id, configSet) in configurationSets) {

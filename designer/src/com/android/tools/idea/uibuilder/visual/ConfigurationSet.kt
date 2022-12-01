@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
-import com.android.tools.idea.flags.StudioFlags
-
 interface ConfigurationSet {
   /**
    * The unique id of this models provider.
@@ -35,7 +33,7 @@ interface ConfigurationSet {
     override val id = "pixelDevices"
     override val name = "Pixel Devices"
     override fun createModelsProvider(listener: ConfigurationSetListener) = PixelDeviceModelsProvider
-    override val visible = !StudioFlags.NELE_VISUALIZATION_WINDOW_SIZE_MODE.get()
+    override val visible = false
   }
 
   object WearDevices : ConfigurationSet {
@@ -48,32 +46,8 @@ interface ConfigurationSet {
     override val id = "projectLocales"
     override val name = "Project Locales"
     override fun createModelsProvider(listener: ConfigurationSetListener) = LocaleModelsProvider
-    override val visible = StudioFlags.NELE_VISUALIZATION_LOCALE_MODE.get()
+    override val visible = true
   }
-
-  /**
-   * This built-in custom category gives user a chance to add or remove the custom configurations. This custom category is not removable.
-   * When [StudioFlags.NELE_VISUALIZATION_MULTIPLE_CUSTOM]] is enabled, this category is not shown as an option and user has to create
-   * and name the custom categories by themself. In that case, [UserDefinedCustom] is used.
-   *
-   * TODO: Remove this class when [StudioFlags.NELE_VISUALIZATION_MULTIPLE_CUSTOM] is enabled permanently, which supported multiple
-   * user-made custom categories by using [UserDefinedCustom].
-   */
-  object PredefinedCustom : ConfigurationSet {
-    override val id = "predefinedCustom"
-    override val name = "Custom"
-    override fun createModelsProvider(listener: ConfigurationSetListener): CustomModelsProvider {
-      val customSet = VisualizationUtil.getCustomConfigurationSet(id)
-      if (customSet == null) {
-        // The predefined set has never been initialized, init it.
-        val newCustomSet = CustomConfigurationSet(name, emptyList())
-        VisualizationUtil.setCustomConfigurationSet(id, newCustomSet)
-        return CustomModelsProvider(id, newCustomSet, listener)
-      }
-      return CustomModelsProvider(id, customSet, listener)
-    }
-  }
-
 
   object ColorBlindMode : ConfigurationSet {
     override val id = "colorBlind"
@@ -94,14 +68,12 @@ interface ConfigurationSet {
     override val id = "windowSizeDevices"
     override val name = "Reference Devices"
     override fun createModelsProvider(listener: ConfigurationSetListener) = WindowSizeModelsProvider
-    override val visible = StudioFlags.NELE_VISUALIZATION_WINDOW_SIZE_MODE.get()
+    override val visible = true
   }
 }
 
 /**
- * The custom category which is created by user. User can only create their custom when [StudioFlags.NELE_VISUALIZATION_MULTIPLE_CUSTOM] is
- * enabled. In the meantime the [ConfigurationSet.PredefinedCustom] is not used.
- * Not like [ConfigurationSet.PredefinedCustom], the user-made custom category is removable, which means user can delete the custom category
+ * The custom category which is created by user. The user-made custom category is removable, which means user can delete the custom category
  * if they choose.
  */
 class UserDefinedCustom(override val id: String, val customConfigurationSet: CustomConfigurationSet) : ConfigurationSet {
@@ -115,8 +87,7 @@ class UserDefinedCustom(override val id: String, val customConfigurationSet: Cus
 
 object ConfigurationSetProvider {
   @JvmField
-  val defaultSet =
-    if (StudioFlags.NELE_VISUALIZATION_WINDOW_SIZE_MODE.get()) ConfigurationSet.WindowSizeDevices else ConfigurationSet.PixelDevices
+  val defaultSet = ConfigurationSet.WindowSizeDevices
 
   @JvmStatic
   fun getConfigurationSets(): List<ConfigurationSet> = getGroupedConfigurationSets().flatten()
@@ -124,7 +95,7 @@ object ConfigurationSetProvider {
   @JvmStatic
   fun getGroupedConfigurationSets(): List<List<ConfigurationSet>>  {
     val predefinedGroup1 = listOf(
-      if (StudioFlags.NELE_VISUALIZATION_WINDOW_SIZE_MODE.get()) ConfigurationSet.WindowSizeDevices else ConfigurationSet.PixelDevices,
+      ConfigurationSet.WindowSizeDevices,
       ConfigurationSet.WearDevices,
       ConfigurationSet.ProjectLocal)
     val customGroup = VisualizationUtil.getUserMadeConfigurationSets()
@@ -146,9 +117,8 @@ interface ConfigurationSetListener {
 
   /**
    * Callback when the current [ConfigurationSet] changes the provided [com.android.tools.idea.common.model.NlModel]s. For example,
-   * assuming the current selected [ConfigurationSet] is [ConfigurationSet.PredefinedCustom], and user add one more configuration. In such
-   * case this callback is triggered because [ConfigurationSet.PredefinedCustom] now provides one more
-   * [com.android.tools.idea.common.model.NlModel].
+   * when user add one more configuration in a [UserDefinedCustom]. In such case this callback is triggered because the
+   * [UserDefinedCustom] now provides one more [com.android.tools.idea.common.model.NlModel].
    */
   fun onCurrentConfigurationSetUpdated()
 }
