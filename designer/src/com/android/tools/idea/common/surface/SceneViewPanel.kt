@@ -37,6 +37,7 @@ import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Insets
+import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -281,13 +282,27 @@ class SceneViewPeerPanel(val sceneView: SceneView,
       }
 
       override fun mouseExited(e: MouseEvent?) {
+        SwingUtilities.getWindowAncestor(this@setUpTopPanelMouseListeners)?.let {
+          if (!it.isFocused) {
+            // Dismiss the toolbar if the current window loses focus, e.g. when alt tabbing.
+            hideToolbar()
+            return@mouseExited
+          }
+        }
+
         // Hide the toolbar when the mouse exits the bounds of sceneViewTopPanel.
         e?.locationOnScreen?.let {
           SwingUtilities.convertPointFromScreen(it, this@setUpTopPanelMouseListeners)
-          if (!contains(it)) {
+          if (!containsExcludingBorder(it)) {
             hideToolbar()
           }
         } ?: hideToolbar()
+      }
+
+      private fun JPanel.containsExcludingBorder(p: Point): Boolean {
+        val borderInsets = border.getBorderInsets(this@setUpTopPanelMouseListeners)
+        return p.x in borderInsets.left until (width - borderInsets.right)
+               && p.y in borderInsets.top until (height - borderInsets.bottom)
       }
 
       private fun hideToolbar() {
