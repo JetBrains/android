@@ -41,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
 
 public final class VirtualDevicePanel extends DevicePanel {
   private final @Nullable Project myProject;
+  private @Nullable VirtualDeviceTableWatcherListener myWatcherListener;
   private final @NotNull VirtualDeviceWatcher myWatcher;
 
   private final @NotNull JButton myCreateButton;
@@ -80,7 +81,8 @@ public final class VirtualDevicePanel extends DevicePanel {
     layOut();
 
     if (StudioFlags.VIRTUAL_DEVICE_WATCHER_ENABLED.get()) {
-      myWatcher.addVirtualDeviceWatcherListener(getTable());
+      myWatcherListener = new VirtualDeviceTableWatcherListener(getTable());
+      myWatcher.addVirtualDeviceWatcherListener(myWatcherListener);
     }
 
     Disposer.register(parent, this);
@@ -137,6 +139,8 @@ public final class VirtualDevicePanel extends DevicePanel {
 
   @Override
   public void dispose() {
-    myWatcher.removeVirtualDeviceWatcherListener(getTable());
+    if (myWatcherListener != null) {
+      myWatcher.removeVirtualDeviceWatcherListener(myWatcherListener);
+    }
   }
 }

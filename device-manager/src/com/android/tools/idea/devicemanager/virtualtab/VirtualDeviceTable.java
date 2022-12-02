@@ -66,7 +66,7 @@ import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> implements VirtualDeviceWatcherListener, Disposable {
+public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> implements Disposable {
   private final @NotNull VirtualDeviceAsyncSupplier myAsyncSupplier;
   private final @NotNull NewSetDevices myNewSetDevices;
   private @Nullable IDeviceChangeListener myListener;
@@ -180,11 +180,6 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   @Override
   public void dispose() {
     AndroidDebugBridge.removeDeviceChangeListener(myListener);
-  }
-
-  @Override
-  public void virtualDevicesChanged(@NotNull VirtualDeviceWatcherEvent event) {
-    // TODO
   }
 
   @NotNull ListenableFuture<@NotNull Key> addDevice(@NotNull Key key) {
