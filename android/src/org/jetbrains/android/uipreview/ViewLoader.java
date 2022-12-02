@@ -42,7 +42,6 @@ import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import com.intellij.facet.Facet;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.ExtensionsArea;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Ref;
@@ -71,8 +70,6 @@ public class ViewLoader {
   private static final Logger LOG = Logger.getInstance(ViewLoader.class);
   /** Number of instances of a custom view that are allowed to nest inside itself. */
   private static final int ALLOWED_NESTED_VIEWS = 100;
-
-  private static final ViewLoaderExtension[] EMPTY_EXTENSION_LIST = new ViewLoaderExtension[0];
 
   @NotNull private final Module myModule;
   @NotNull private final Map<String, Class<?>> myLoadedClasses = Maps.newHashMap();
@@ -235,15 +232,6 @@ public class ViewLoader {
   }
 
   @NotNull
-  private ViewLoaderExtension[] getExtensions() {
-    ExtensionsArea area = myModule.getProject().getExtensionArea();
-    if (!area.hasExtensionPoint(ViewLoaderExtension.EP_NAME.getName())) {
-      return EMPTY_EXTENSION_LIST;
-    }
-    return area.getExtensionPoint(ViewLoaderExtension.EP_NAME).getExtensions();
-  }
-
-  @NotNull
   public Module getModule() {
     return myModule;
   }
@@ -358,13 +346,6 @@ public class ViewLoader {
     }
 
     try {
-      for (ViewLoaderExtension extension : getExtensions()) {
-        Class<?> loadedClass = extension.loadClass(className, myClassLoader);
-        if (loadedClass != null) {
-          return loadedClass;
-        }
-      }
-
       return myClassLoader.loadClass(className);
     }
     catch (ClassNotFoundException e) {

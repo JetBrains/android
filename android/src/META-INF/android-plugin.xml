@@ -746,9 +746,6 @@
                     interface="com.android.tools.idea.run.tasks.LaunchTasksProvider.Provider" />
     <extensionPoint qualifiedName="com.android.rendering.renderErrorContributor"
                     interface="com.android.tools.idea.rendering.RenderErrorContributor$Provider" />
-    <extensionPoint qualifiedName="org.jetbrains.android.uipreview.viewLoaderExtension"
-                    interface="org.jetbrains.android.uipreview.ViewLoaderExtension"
-                    area="IDEA_PROJECT"/>
     <extensionPoint qualifiedName="com.android.tools.idea.ui.guiTestingStatusProvider"
                     interface="com.android.tools.idea.ui.GuiTestingStatusProvider"
                     dynamic="false"/>
