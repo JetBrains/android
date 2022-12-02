@@ -54,8 +54,8 @@ class DefaultPTableCellRenderer : SimpleColoredComponent(), PTableCellRenderer {
     setPaintFocusBorder(hasFocus)
     font = table.activeFont
     if (isSelected && hasFocus) {
-      foreground = UIUtil.getTreeForeground(true, hasFocus)
-      background = UIUtil.getTreeSelectionBackground(hasFocus)
+      foreground = UIUtil.getTreeForeground(true, true)
+      background = UIUtil.getTreeSelectionBackground(true)
     }
     else {
       foreground = table.foregroundColor

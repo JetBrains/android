@@ -341,7 +341,7 @@ open class ComposableCallChecker : CallChecker, AdditionalTypeChecker,
         )
         if (isInlineable) return
 
-        if (!expectedComposable && isComposable) {
+        if (!expectedComposable) {
           val inferred = c.trace.bindingContext[
             ComposeWritableSlices.INFERRED_COMPOSABLE_DESCRIPTOR,
             descriptor

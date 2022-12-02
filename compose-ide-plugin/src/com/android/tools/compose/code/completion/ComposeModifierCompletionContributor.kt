@@ -116,7 +116,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     resultSet.addAllElements(returnsModifier.toLookupElements(lookupElementFactory, 2.0, insertModifier = isNewModifier))
     //If user didn't type Modifier don't suggest extensions that doesn't return Modifier.
     if (isMethodCalledOnImportedModifier) {
-      resultSet.addAllElements(others.toLookupElements(lookupElementFactory, 0.0, insertModifier = isNewModifier))
+      resultSet.addAllElements(others.toLookupElements(lookupElementFactory, 0.0, insertModifier = false))
     }
 
     ProgressManager.checkCanceled()

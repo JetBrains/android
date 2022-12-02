@@ -1094,9 +1094,6 @@ class ComposableFunctionBodyTransformer(
         val skipPreamble = mutableStatementContainer()
         val bodyPreamble = mutableStatementContainer()
 
-        // we start off assuming that we *can* skip execution of the function
-        var canSkipExecution = true
-
         // NOTE(lmr): Technically, dirty is a mutable variable, but we don't want to mark it
         // as one since that will cause a `Ref<Int>` to get created if it is captured. Since
         // we know we will never be mutating this variable _after_ it gets captured, we can
@@ -1130,11 +1127,11 @@ class ComposableFunctionBodyTransformer(
         // are using the dispatchReceiverParameter or the extensionReceiverParameter
         val transformed = nonReturningBody.apply { transformChildrenVoid() }
 
-        canSkipExecution = buildPreambleStatementsAndReturnIfSkippingPossible(
+        val canSkipExecution = buildPreambleStatementsAndReturnIfSkippingPossible(
             body,
             skipPreamble,
             bodyPreamble,
-            canSkipExecution,
+            isSkippableDeclaration = true, // we start off assuming that we *can* skip execution of the function
             scope,
             dirty,
             changedParam,
@@ -3683,7 +3680,7 @@ class ComposableFunctionBodyTransformer(
             override fun calculateHasSourceInformation(sourceInformationEnabled: Boolean): Boolean {
                 return if (sourceInformationEnabled) {
                     if (function.isLambda() && !isInlinedLambda)
-                        super.calculateHasSourceInformation(sourceInformationEnabled)
+                        super.calculateHasSourceInformation(sourceInformationEnabled = true)
                     else
                         true
                 } else function.visibility.isPublicAPI
@@ -3692,7 +3689,7 @@ class ComposableFunctionBodyTransformer(
             override fun calculateSourceInfo(sourceInformationEnabled: Boolean): String? =
                 if (sourceInformationEnabled) {
                     "${callInformation()}${parameterInformation()}${
-                    super.calculateSourceInfo(sourceInformationEnabled) ?: ""
+                      super.calculateSourceInfo(sourceInformationEnabled = true) ?: ""
                     }:${sourceFileInformation()}"
                 } else {
                     if (function.visibility.isPublicAPI) {
@@ -4006,7 +4003,7 @@ class ComposableFunctionBodyTransformer(
             override fun calculateSourceInfo(sourceInformationEnabled: Boolean): String? =
                 if (sourceInformationEnabled) {
                     "C${
-                    super.calculateSourceInfo(sourceInformationEnabled) ?: ""
+                      super.calculateSourceInfo(sourceInformationEnabled = true) ?: ""
                     }:${functionScope?.sourceFileInformation() ?: ""}"
                 } else {
                     null

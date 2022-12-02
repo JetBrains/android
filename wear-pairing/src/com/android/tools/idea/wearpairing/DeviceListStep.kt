@@ -245,7 +245,7 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
               add(JBLabel(value.displayName).apply {
                 icon = if (!value.isWearDevice && value.hasPlayStore) getIcon(StudioIcons.Avd.DEVICE_PLAY_STORE, isSelected) else null
                 foreground = when {
-                  isSelected -> UIUtil.getListForeground(isSelected, isSelected)
+                  isSelected -> UIUtil.getListForeground(true, true)
                   value.isDisabled() -> UIUtil.getLabelDisabledForeground()
                   else -> UIUtil.getLabelForeground()
                 }
@@ -253,7 +253,7 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
               })
               add(JBLabel(SdkVersionInfo.getAndroidName(value.apiLevel)).apply {
                 foreground = when {
-                  isSelected -> UIUtil.getListForeground(isSelected, isSelected)
+                  isSelected -> UIUtil.getListForeground(true, true)
                   value.isDisabled() -> UIUtil.getLabelDisabledForeground()
                   else -> UIUtil.getContextHelpForeground()
                 }

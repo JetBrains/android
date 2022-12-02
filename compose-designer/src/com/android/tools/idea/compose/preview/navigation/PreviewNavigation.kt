@@ -166,7 +166,7 @@ class ComposePreviewNavigationHandler : PreviewNavigationHandler {
     // Only allow default navigation when double clicking since it might take us to a different file
     if (!requestFocus) return true
 
-    val navigatedToDefault = navigateToDefault(sceneView, requestFocus)
+    val navigatedToDefault = navigateToDefault(sceneView, requestFocus = true)
     LOG.debug { "Navigated to default? $navigatedToDefault" }
     return navigatedToDefault
   }
