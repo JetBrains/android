@@ -16,6 +16,7 @@
 package com.android.tools.idea.dagger
 
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
@@ -115,6 +116,7 @@ internal class DaggerAnalyticsTrackerImpl(private val project: Project) : Dagger
   override fun trackOpenLinkFromError() = track(DaggerEditorEvent.newBuilder().setType(DaggerEditorEvent.Type.OPENED_LINK_FROM_ERROR))
 
   private fun track(daggerEventBuilder: DaggerEditorEvent.Builder) {
+    daggerEventBuilder.usingBuiltInAnnotationSearch = StudioFlags.DAGGER_BUILT_IN_SEARCH_ENABLED.get()
     val studioEvent: AndroidStudioEvent.Builder = AndroidStudioEvent.newBuilder()
       .setKind(AndroidStudioEvent.EventKind.DAGGER_EDITOR)
       .setDaggerEditorEvent(daggerEventBuilder)
