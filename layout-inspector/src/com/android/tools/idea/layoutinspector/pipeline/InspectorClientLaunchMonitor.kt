@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.errorCode
@@ -47,11 +48,18 @@ class InspectorClientLaunchMonitor(
   private var lastUpdate: Long = 0L
   private var currentProgress = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
   private var currentFuture: ScheduledFuture<*>? = null
+  private val clientLock = Any()
+
+  // This is to make sure we never schedule a timeout check after the monitor is stopped.
+  // Note: a stop() call could happen while updateProgress is being executed (on different threads).
+  @GuardedBy("clientLock")
   private var client: InspectorClient? = null
 
   fun start(client: InspectorClient) {
     assert(this.client == null)
-    this.client = client
+    synchronized(clientLock) {
+      this.client = client
+    }
     updateProgress(AttachErrorState.NOT_STARTED)
   }
 
@@ -65,7 +73,11 @@ class InspectorClientLaunchMonitor(
     currentProgress = progress
     if (currentProgress < CONNECTED_STATE) {
       lastUpdate = System.currentTimeMillis()
-      currentFuture = executorService.schedule(::handleTimeout, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+      synchronized(clientLock) {
+        if (client != null) {
+          currentFuture = executorService.schedule(::handleTimeout, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        }
+      }
     }
     InspectorBannerService.getInstance(project)?.removeNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
   }
@@ -81,7 +93,11 @@ class InspectorClientLaunchMonitor(
     val continueWaiting = object : AnAction("Continue Waiting") {
       override fun actionPerformed(event: AnActionEvent) {
         InspectorBannerService.getInstance(project)?.removeNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
-        currentFuture = executorService.schedule(::handleTimeout, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        synchronized(clientLock) {
+          if (client != null) {
+            currentFuture = executorService.schedule(::handleTimeout, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+          }
+        }
       }
     }
     val disconnectText = if (client?.clientType == ClientType.APP_INSPECTION_CLIENT) "Dump Views" else "Disconnect"
@@ -105,8 +121,10 @@ class InspectorClientLaunchMonitor(
   }
 
   fun stop() {
+    synchronized(clientLock) {
+      client = null
+    }
     currentFuture?.cancel(true)
     currentFuture = null
-    client = null
   }
 }

@@ -104,6 +104,11 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
 DONE.
 """.trim()
 
+  private val incompleteTreeSample = """
+com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1920 layout:getLocationOnScreen_x()=1,0 layout:getLocationOnScreen_y()=1,0 layout:getWidth()=4,1080
+  !
+""".trim().replace("!", "") // This avoids the warning for a line intentional left with trailing spaces
+
   /**
    * Creates a real [LegacyClient] that's good enough for most tests and provides access to an
    * internally constructed [LegacyTreeLoader]
@@ -122,12 +127,13 @@ DONE.
    *
    * Callers can continue to mock the returned client if necessary.
    */
-  private fun createMockLegacyClient(): LegacyClient {
+  private fun createMockLegacyClient(connected: Boolean = true): LegacyClient {
     val legacyClient = mock<LegacyClient>()
     whenever(legacyClient.latestScreenshots).thenReturn(mutableMapOf())
     whenever(legacyClient.treeLoader).thenReturn(LegacyTreeLoader(legacyClient))
     whenever(legacyClient.process).thenReturn(LEGACY_DEVICE.createProcess())
     whenever(legacyClient.launchMonitor).thenReturn(mock())
+    whenever(legacyClient.isConnected).thenReturn(connected)
     return legacyClient
   }
 
@@ -263,6 +269,39 @@ DONE.
     verify(resourceLookup).updateConfiguration(eq(560), isNull(), isNull())
     verify(legacyClient.launchMonitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_RECEIVED)
     verify(legacyClient.launchMonitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_SCREENSHOT_RECEIVED)
+  }
+
+  @Test
+  fun testLoadComponentTreeWhenClientIsDisconnected() {
+    val imageBytes = TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/image1.png").readBytes()
+    val lookup = mock<ViewNodeAndResourceLookup>()
+    val resourceLookup = mock<ResourceLookup>()
+    val legacyClient = createMockLegacyClient(connected = false)
+    val device = mock<IDevice>()
+    val client = mock<Client>()
+    whenever(lookup.resourceLookup).thenReturn(resourceLookup)
+    whenever(device.density).thenReturn(560)
+    whenever(client.device).thenReturn(device)
+    whenever(client.dumpViewHierarchy(eq("window1"), anyBoolean(), anyBoolean(), anyBoolean(),
+                                      any(DebugViewDumpHandler::class.java))).thenAnswer { invocation ->
+      verify(legacyClient.launchMonitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_REQUESTED)
+      invocation
+        .getArgument<DebugViewDumpHandler>(4)
+        .handleChunkData(ByteBuffer.wrap(incompleteTreeSample.toByteArray(Charsets.UTF_8)))
+    }
+    whenever(client.captureView(eq("window1"), any(), any())).thenAnswer { invocation ->
+      verify(legacyClient.launchMonitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_SCREENSHOT_REQUESTED)
+      invocation
+        .getArgument<DebugViewDumpHandler>(2)
+        .handleChunk(client, DebugViewDumpHandler.CHUNK_VUOP, ByteBuffer.wrap(imageBytes), true, 1234)
+    }
+    legacyClient.treeLoader.ddmClientOverride = client
+    val window = legacyClient.treeLoader.loadComponentTree(
+      LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")),
+      resourceLookup,
+      legacyClient.process
+    )
+    assertThat(window).isNull()
   }
 
   @Suppress("UndesirableClassUsage")

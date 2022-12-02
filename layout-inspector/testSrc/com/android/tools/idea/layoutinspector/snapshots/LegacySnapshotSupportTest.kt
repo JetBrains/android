@@ -34,6 +34,7 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
@@ -145,6 +146,7 @@ DONE.
     // This causes the current client to register its listeners
     val treeSettings = FakeTreeSettings()
     LayoutInspector(legacyClient, model, treeSettings)
+    legacyClient.state = InspectorClient.State.CONNECTED
     return legacyClient
   }
 

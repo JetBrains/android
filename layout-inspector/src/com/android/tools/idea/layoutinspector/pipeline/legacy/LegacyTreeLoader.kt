@@ -74,6 +74,10 @@ class LegacyTreeLoader(private val client: LegacyClient) : TreeLoader {
     val hierarchyData = hierarchyHandler.getData() ?: return null
     client.launchMonitor.updateProgress(AttachErrorState.LEGACY_HIERARCHY_RECEIVED)
     client.latestData[windowName] = hierarchyData
+    if (!client.isConnected) {
+      // The hierarchy data may be cut short if the client was closed under us
+      return null
+    }
     val (rootNode, hash) = LegacyTreeParser.parseLiveViewNode(hierarchyData, propertiesUpdater) ?: return null
     val imageHandler = CaptureByteArrayHandler()
     client.launchMonitor.updateProgress(AttachErrorState.LEGACY_SCREENSHOT_REQUESTED)

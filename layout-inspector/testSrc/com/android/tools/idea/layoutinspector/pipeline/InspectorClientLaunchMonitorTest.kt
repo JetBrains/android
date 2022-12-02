@@ -162,4 +162,23 @@ class InspectorClientLaunchMonitorTest {
     monitor.updateProgress(CONNECTED_STATE)
     assertThat(banner.notification).isNull()
   }
+
+  @Test
+  fun slowAttachedMessageNotScheduledWhenClientIsClosed() {
+    val project = projectRule.project
+    val projectSystem = projectRule.project.getProjectSystem() as DefaultProjectSystem
+    val moduleSystem = DefaultModuleSystem(projectRule.module)
+    projectSystem.setModuleSystem(moduleSystem.module, moduleSystem)
+    moduleSystem.usesCompose = true
+
+    val banner = InspectorBannerService.getInstance(project) ?: error("no banner")
+    val scheduler = VirtualTimeScheduler()
+    val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), scheduler)
+    val client = mock<InspectorClient>()
+    monitor.start(client)
+    monitor.stop()
+    monitor.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
+    scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
+    assertThat(banner.notification).isNull()
+  }
 }

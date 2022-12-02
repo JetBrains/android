@@ -46,7 +46,7 @@ object LegacyTreeParser {
       }
       // determine parent through the level of nesting by counting whitespaces
       var whitespaceCount = 0
-      while (line[whitespaceCount] == ' ') {
+      while (line.length > whitespaceCount && line[whitespaceCount] == ' ') {
         whitespaceCount++
       }
 

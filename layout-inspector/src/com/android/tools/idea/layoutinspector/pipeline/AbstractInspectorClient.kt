@@ -32,6 +32,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Base class for [InspectorClient] implementations with some boilerplate logic provided.
@@ -49,7 +50,8 @@ abstract class AbstractInspectorClient(
   }
 
   final override var state: InspectorClient.State = InspectorClient.State.INITIALIZED
-    private set(value) {
+    @VisibleForTesting
+    set(value) {
       if (field != value) {
         field = value
         fireState(value)
