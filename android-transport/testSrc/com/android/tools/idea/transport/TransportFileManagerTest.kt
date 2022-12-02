@@ -130,6 +130,7 @@ class TransportFileManagerTest {
 
     assertThat(hostPathCaptor.allValues).containsExactlyElementsIn(expectedPaths.map { it.first })
     assertThat(devicePathCaptor.allValues).containsExactlyElementsIn(expectedPaths.map { it.second })
+    verify(mockDevice, times(1)).executeShellCommand(eq("chmod 755 ${TransportFileManager.DEVICE_DIR}transport"), any())
   }
 
   @Test
@@ -238,7 +239,7 @@ class TransportFileManagerTest {
     val expectedDevicePaths = expectedAbis.map { "${TransportFileManager.DEVICE_DIR}${it.cpuArch}/perfetto" }
     assertThat(devicePathCaptor.allValues).containsExactlyElementsIn(expectedDevicePaths)
     expectedAbis.map {
-      verify(mockDevice, times(1)).executeShellCommand(eq("mkdir -p ${TransportFileManager.DEVICE_DIR}${it.cpuArch}"), any())
+      verify(mockDevice, times(1)).executeShellCommand(eq("mkdir -p -m 755 ${TransportFileManager.DEVICE_DIR}${it.cpuArch}"), any())
     }
   }
 }

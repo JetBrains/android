@@ -125,6 +125,7 @@ public final class TransportFileManager implements TransportFileCopier {
 
   public void copyFilesToDevice()
     throws AdbCommandRejectedException, IOException, ShellCommandUnresponsiveException, SyncException, TimeoutException {
+    myDevice.executeShellCommand("rm -rf " + DEVICE_DIR, new NullOutputReceiver());
     // Copy resources into device directory, all resources need to be included in profiler-artifacts target to build and
     // in AndroidStudioProperties.groovy to package in release.
     copyFileToDevice(HostFiles.TRANSPORT);
@@ -274,15 +275,22 @@ public final class TransportFileManager implements TransportFileCopier {
        */
       getLogger().info(String.format("Pushing %s to %s...", fileName, DEVICE_DIR));
       myDevice.executeShellCommand("rm -f " + deviceFilePath, new NullOutputReceiver());
-      myDevice.executeShellCommand("mkdir -p " + deviceFilePath.substring(0, deviceFilePath.lastIndexOf('/')), new NullOutputReceiver());
+      // Make the directory not writable for the group or the world. Otherwise, any unprivileged app running on device can replace the
+      // content of file in this directory and archive escalation of privileges when Android Studio will decide to launch the
+      // corresponding functionality.
+      myDevice.executeShellCommand("mkdir -p -m 755 " + deviceFilePath.substring(0, deviceFilePath.lastIndexOf('/')),
+                                   new NullOutputReceiver());
       myDevice.pushFile(localPath.toString(), deviceFilePath);
 
       if (executable) {
         /*
-         * In older devices, chmod letter usage isn't fully supported but CTS tests have been added for it since.
-         * Hence we first try the letter scheme which is guaranteed in newer devices, and fall back to the octal scheme only if necessary.
+         * Use chmod octal scheme to ensure the executable is not writable for the group or the world. Otherwise, any unprivileged app
+         * running on device can replace the content of file and archive escalation of privileges when Android Studio will decide to
+         * launch the corresponding functionality.
+         * We could use "chmod -w" and "chmod +x". However, in older devices, chmod letter usage isn't fully supported although CTS tests
+         * have been added for it since.
          */
-        String cmd = "chmod +x " + deviceFilePath + " || chmod 777 " + deviceFilePath;
+        String cmd = "chmod 755 " + deviceFilePath;
         myDevice.executeShellCommand(cmd, new NullOutputReceiver());
       }
       getLogger().info(String.format("Successfully pushed %s to %s.", fileName, DEVICE_DIR));
