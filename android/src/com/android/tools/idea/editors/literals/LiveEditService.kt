@@ -136,8 +136,6 @@ class LiveEditService private constructor(val project: Project, var listenerExec
     fun status(device: IDevice): EditStatus
 
     fun status(): Map<IDevice, EditStatus>
-
-    fun devices(): Set<IDevice>
   }
 
   private val onEditListeners = ListenerCollection.createWithExecutor<EditListener>(listenerExecutor)
@@ -223,10 +221,6 @@ class LiveEditService private constructor(val project: Project, var listenerExec
 
   fun mergeStatuses(statuses: Map<IDevice, EditStatus>): EditStatus {
     return deployMonitor.mergeStatuses(statuses)
-  }
-
-  fun devices(): Set<IDevice> {
-    return editStatusProviders.stream().map { it.devices() }.flatMap { it.stream() }.collect(Collectors.toSet())
   }
 
   fun notifyDebug(packageName: String, device: IDevice) {

@@ -262,19 +262,6 @@ public class AndroidLiveEditDeployMonitor {
       // Find all devices that were deployed by us (and not user-started).
       return editStatus.keySet().stream().filter(devices::contains).collect(Collectors.toMap(d -> d, this::status));
     }
-
-    @NotNull
-    @Override
-    public Set<IDevice> devices() {
-      if (StringUtil.isEmpty(applicationId)) {
-        return Collections.emptySet();
-      }
-
-      return deviceIterator(project)
-        .filter(
-          d -> Arrays.stream(d.getClients()).anyMatch(c -> applicationId.equals(c.getClientData().getPackageName())))
-        .collect(Collectors.toSet());
-    }
   }
 
   @VisibleForTesting
