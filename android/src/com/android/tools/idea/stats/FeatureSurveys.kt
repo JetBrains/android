@@ -29,7 +29,10 @@ object FeatureSurveys {
   private val lock = Any()
 
   fun processEvent(event: AndroidStudioEvent.Builder) {
-    val name = "${FEATURE_SURVEY_ROOT}${event.kind.valueDescriptor.name}"
+    triggerSurveyByName(event.kind.valueDescriptor.name)
+  }
+  fun triggerSurveyByName(surveyFileName: String) {
+    val name = "$FEATURE_SURVEY_ROOT$surveyFileName"
     val survey = ServerFlagService.instance
                    .getProtoOrNull(name, DEFAULT_SATISFACTION_SURVEY)
                  ?: return
