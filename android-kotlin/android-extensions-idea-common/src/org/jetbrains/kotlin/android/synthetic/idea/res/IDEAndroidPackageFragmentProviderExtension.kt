@@ -35,7 +35,7 @@ class IDEAndroidPackageFragmentProviderExtension(val project: Project) : Android
         return infoProvider.isAndroidModule() && !infoProvider.isGradleModule()
     }
 
-    override fun <T> createLazyValue(value: () -> T): () -> T {
+    override fun <T : Any> createLazyValue(value: () -> T): () -> T {
         return { ClearableLazyValue.create<T> { value() }.value }
     }
 }
