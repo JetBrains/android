@@ -1,7 +1,5 @@
 syntax = "proto2";
 
-package wireless.android.devtools.server_flags.protos;
-
 option java_package = "com.android.tools.idea.serverflags.protos";
 option java_multiple_files = true;
 
