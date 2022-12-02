@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.rendering;
 
-import static com.android.tools.compose.ComposeLibraryNamespaceKt.COMPOSE_VIEW_ADAPTER_FQN;
 import static com.android.tools.idea.configurations.AdditionalDeviceService.DEVICE_CLASS_DESKTOP_ID;
 import static com.android.tools.idea.configurations.AdditionalDeviceService.DEVICE_CLASS_TABLET_ID;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
-import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.DrawableParams;
@@ -86,10 +84,6 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -97,7 +91,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -107,7 +100,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.CompatibilityRenderTarget;
@@ -158,9 +150,6 @@ public class RenderTask {
    */
   private static final ExecutorService ourDisposeService =
     AppExecutorUtil.createBoundedApplicationPoolExecutor("RenderTask Dispose Thread", 1);
-  public static final String GAP_WORKER_CLASS_NAME = "androidx.recyclerview.widget.GapWorker";
-  private static final String WINDOW_RECOMPOSER_ANDROID_KT_FQN = "androidx.compose.ui.platform.WindowRecomposer_androidKt";
-  private static final String FONT_REQUEST_WORKER_FQN = "androidx.core.provider.FontRequestWorker";
 
   @NotNull private final ImagePool myImagePool;
   @NotNull private final RenderContext myContext;
@@ -369,35 +358,6 @@ public class RenderTask {
 
   public boolean isDisposed() {
     return isDisposed.get();
-  }
-
-  private void clearGapWorkerCache() {
-    if (!myLayoutlibCallback.hasLoadedClass(AndroidXConstants.RECYCLER_VIEW.newName()) &&
-        !myLayoutlibCallback.hasLoadedClass(AndroidXConstants.RECYCLER_VIEW.oldName())) {
-      // If RecyclerView has not been loaded, we do not need to care about the GapWorker cache
-      return;
-    }
-
-    try {
-      Class<?> gapWorkerClass = myLayoutlibCallback.findClass(GAP_WORKER_CLASS_NAME);
-      Field gapWorkerField = gapWorkerClass.getDeclaredField("sGapWorker");
-      gapWorkerField.setAccessible(true);
-
-      // Because we are clearing-up a ThreadLocal, the code must run on the Layoutlib Thread
-      RenderService.getRenderAsyncActionExecutor().runAsyncAction(myPriority, () -> {
-        try {
-          ThreadLocal<?> gapWorkerFieldValue = (ThreadLocal<?>)gapWorkerField.get(null);
-          gapWorkerFieldValue.set(null);
-          LOG.debug("GapWorker was cleared");
-        }
-        catch (IllegalAccessException e) {
-          LOG.debug(e);
-        }
-      });
-    }
-    catch (Throwable t) {
-      LOG.debug(t);
-    }
   }
 
   // Workaround for http://b/143378087
@@ -1075,7 +1035,7 @@ public class RenderTask {
           return result;
         }).handle((result, ex) -> {
           // After render clean-up. Dispose the GapWorker cache.
-          clearGapWorkerCache();
+          RenderSessionCleanerKt.clearGapWorkerCache(myLayoutlibCallback);
           return result.createWithStats(new RenderResultStats(
             inflateResult != null ? inflateResult.getStats().getInflateDurationMs() : result.getStats().getInflateDurationMs(),
             System.currentTimeMillis() - startRenderTimeMs,
@@ -1452,107 +1412,6 @@ public class RenderTask {
    */
   @NotNull
   private CompletableFuture<Void> disposeRenderSession(@NotNull RenderSession renderSession) {
-    Optional<Method> disposeMethod = Optional.empty();
-    AtomicReference<WeakReference<List<?>>> applyObserversRef = new AtomicReference<>(null);
-    if (myLayoutlibCallback.hasLoadedClass(COMPOSE_VIEW_ADAPTER_FQN)) {
-      try {
-        Class<?> composeViewAdapter = myLayoutlibCallback.findClass(COMPOSE_VIEW_ADAPTER_FQN);
-        // Kotlin bytecode generation converts dispose() method into dispose$ui_tooling() therefore we have to perform this filtering
-        disposeMethod = Arrays.stream(composeViewAdapter.getMethods()).filter(m -> m.getName().contains("dispose")).findFirst();
-      }
-      catch (ClassNotFoundException ex) {
-        LOG.debug(COMPOSE_VIEW_ADAPTER_FQN + " class not found", ex);
-      }
-
-      if (disposeMethod.isEmpty()) {
-        LOG.warn("Unable to find dispose method in ComposeViewAdapter");
-      }
-
-      try {
-        Class<?> windowRecomposer = myLayoutlibCallback.findClass(WINDOW_RECOMPOSER_ANDROID_KT_FQN);
-        Field animationScaleField = windowRecomposer.getDeclaredField("animationScale");
-        animationScaleField.setAccessible(true);
-        Object animationScale = animationScaleField.get(windowRecomposer);
-        if (animationScale instanceof Map) {
-          ((Map)animationScale).clear();
-        }
-      }
-      catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException ex) {
-        // If the WindowRecomposer does not exist or the animationScale does not exist anymore, ignore.
-        LOG.debug("Unable to dispose the recompose animationScale", ex);
-      }
-
-      applyObserversRef.set(new WeakReference<>(findApplyObservers(myLayoutlibCallback)));
-    }
-
-    try {
-      Class<?> fontRequestWorker = myLayoutlibCallback.findClass(FONT_REQUEST_WORKER_FQN);
-      Field pendingRepliesField = fontRequestWorker.getDeclaredField("PENDING_REPLIES");
-      pendingRepliesField.setAccessible(true);
-      Object pendingReplies = pendingRepliesField.get(fontRequestWorker);
-      // Clear the SimpleArrayMap
-      pendingReplies.getClass().getMethod("clear").invoke(pendingReplies);
-    }
-    catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException | NoSuchMethodException | InvocationTargetException ex) {
-      // If the FontRequestWorker does not exist or the PENDING_REPLIES does not exist anymore, ignore.
-      LOG.debug("Unable to dispose the PENDING_REPLIES", ex);
-    }
-
-    disposeMethod.ifPresent(m -> m.setAccessible(true));
-    Optional<Method> finalDisposeMethod = disposeMethod;
-    return RenderService.getRenderAsyncActionExecutor().runAsyncAction(RenderAsyncActionExecutor.RenderingPriority.HIGH, () -> {
-      finalDisposeMethod.ifPresent(
-        m -> renderSession.execute(
-          () -> renderSession.getRootViews().forEach(v -> disposeIfCompose(v, m))
-        )
-      );
-      WeakReference<List<?>> weakApplyObservers = applyObserversRef.get();
-      if (weakApplyObservers != null) {
-        List<?> applyObservers = weakApplyObservers.get();
-        if (applyObservers != null) {
-          applyObservers.clear();
-        }
-      }
-      renderSession.dispose();
-    });
-  }
-
-  /**
-   * Performs dispose() call against View object associated with {@link ViewInfo} if that object is an instance of ComposeViewAdapter
-   *
-   * @param viewInfo      a {@link ViewInfo} associated with the View object to be potentially disposed of
-   * @param disposeMethod a dispose method to be executed against View object
-   */
-  private static void disposeIfCompose(@NotNull ViewInfo viewInfo, @NotNull Method disposeMethod) {
-    Object viewObject = viewInfo.getViewObject();
-    if (viewObject == null || !COMPOSE_VIEW_ADAPTER_FQN.equals(viewObject.getClass().getName())) {
-      return;
-    }
-    try {
-      disposeMethod.invoke(viewObject);
-    }
-    catch (IllegalAccessException | InvocationTargetException ex) {
-      LOG.warn("Unexpected error while disposing compose view", ex);
-    }
-  }
-
-  private static final String SNAPSHOT_KT_FQN = "androidx.compose.runtime.snapshots.SnapshotKt";
-
-  @Nullable
-  private static List<?> findApplyObservers(@NotNull LayoutlibCallbackImpl layoutlibCallback) {
-    try {
-      Class<?> snapshotKt = layoutlibCallback.findClass(SNAPSHOT_KT_FQN);
-      Field applyObserversField = snapshotKt.getDeclaredField("applyObservers");
-      applyObserversField.setAccessible(true);
-      Object applyObservers = applyObserversField.get(null);
-      if (applyObservers instanceof List<?>) {
-        return (List<?>)applyObservers;
-      }
-      LOG.warn("SnapshotsKt.applyObservers found but it is not a List");
-    }
-    catch (ReflectiveOperationException ex) {
-      LOG.warn("Unable to find SnapshotsKt.applyObservers", ex);
-    }
-    return null;
+    return RenderSessionCleanerKt.dispose(renderSession, myLayoutlibCallback);
   }
 }
