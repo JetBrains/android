@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.deployment.liveedit
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.module.Module
 import com.intellij.util.io.exists
 import org.jetbrains.kotlin.codegen.inline.InlineCache
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
@@ -24,7 +23,6 @@ import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
 import org.jetbrains.kotlin.idea.base.utils.fqname.getKotlinFqName
 import org.jetbrains.kotlin.idea.codeInsight.DescriptorToSourceUtilsIde
-import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
@@ -32,10 +30,8 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.inline.InlineUtil
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedSimpleFunctionDescriptor
-import org.jetbrains.kotlin.utils.addIfNotNull
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.util.ArrayList
 import java.util.HashSet
 import java.util.LinkedHashSet
 
@@ -53,7 +49,7 @@ typealias SourceInlineCandidateCache = LinkedHashMap<String, SourceInlineCandida
  * This class represent a Kotlin source file and the location (memory or file) of the compiled bytecode that can be used to be injected
  * into the inline cache of the code generation process.
  */
-data class SourceInlineCandidate (val sourceFile: KtFile, val className : String, val module: Module) {
+data class SourceInlineCandidate (val sourceFile: KtFile, val className : String) {
   companion object {
     val LOGGER = Logger.getInstance(SourceInlineCandidate.javaClass)
   }
@@ -196,7 +192,7 @@ private fun analyzeElementWithOneLevelInline(
       val file = declaration.containingKtFile
       if (element != file) {
         requestedClasses.add(cache.computeIfAbsent(name) {
-          SourceInlineCandidate(file, it, declaration.module!!)
+          SourceInlineCandidate(file, it)
         })
       }
     } else {
@@ -204,7 +200,7 @@ private fun analyzeElementWithOneLevelInline(
       val file = declaration.containingKtFile
       if (element != file) {
         requestedClasses.add(cache.computeIfAbsent(name) {
-          SourceInlineCandidate(file, it, declaration.module!!)
+          SourceInlineCandidate(file, it)
         })
       }
     }

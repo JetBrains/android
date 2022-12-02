@@ -317,7 +317,7 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
         println("   Primary class: ${c.relativePath}")
         inlineCandidateCache?.let { cache ->
           cache.computeIfAbsent(internalClassName) {
-          SourceInlineCandidate(input, it, input.module!!)
+          SourceInlineCandidate(input, it)
         }.setByteCode(primaryClass)}
         continue
       }
@@ -330,7 +330,7 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
         supportClasses[name] = c.asByteArray()
         inlineCandidateCache?.let { cache ->
           cache.computeIfAbsent(name) {
-          SourceInlineCandidate(input, it, input.module!!)
+          SourceInlineCandidate(input, it)
         }.setByteCode(supportClasses[name]!!)}
         continue
       }
