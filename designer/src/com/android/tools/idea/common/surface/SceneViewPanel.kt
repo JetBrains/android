@@ -32,7 +32,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
-import io.ktor.util.reflect.instanceOf
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Graphics
