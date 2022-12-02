@@ -28,11 +28,13 @@ import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
+import com.intellij.ui.AnActionButton
 import icons.StudioIcons
 
 /** [AnAction] that can be used to show an icon according to the Compose Preview status */
-internal class ComposePreviewStatusIconAction(private val sceneView: SceneView?) : AnAction() {
-  override fun update(e: AnActionEvent) {
+internal class ComposePreviewStatusIconAction(private val sceneView: SceneView?) :
+  AnActionButton() {
+  override fun updateButton(e: AnActionEvent) {
     val composePreviewManager = e.getData(COMPOSE_PREVIEW_MANAGER) ?: return
     val project = e.project ?: return
     val previewStatus = composePreviewManager.status()
