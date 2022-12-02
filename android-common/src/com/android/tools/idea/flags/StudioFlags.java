@@ -977,6 +977,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> DAGGER_BUILT_IN_SEARCH_ENABLED = Flag.create(
+    EDITOR, "dagger.build.in.search.enabled",
+    "Enable using the built in annotation search for dagger",
+    "If enabled, uses the built in annotation search for dagger usages rather than the custom DaggerAnnotatedElementsSearch",
+    false
+  );
+
   public static final Flag<Boolean> TRANSLATIONS_EDITOR_SYNCHRONIZATION = Flag.create(
     EDITOR, "translations.editor.synchronization",
     "Synchronize translations editor with resource file updates",

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.dagger
 
+import com.android.flags.junit.RestoreFlagRule
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.TruthJUnit.assume
@@ -43,9 +45,34 @@ import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
 import java.io.File
 
-class DaggerUtilTest : DaggerTestCase() {
+class DaggerUtilBuiltInAnnotationSearchTest : DaggerUtilTest() {
+  override val daggerBuiltInSearchEnabled = true
+}
+
+class DaggerUtilCustomAnnotationSearchTest : DaggerUtilTest() {
+  override val daggerBuiltInSearchEnabled = false
+}
+
+abstract class DaggerUtilTest : DaggerTestCase() {
+
+  abstract val daggerBuiltInSearchEnabled: Boolean
+
+  @Before
+  override fun setUp() {
+    super.setUp()
+    StudioFlags.DAGGER_BUILT_IN_SEARCH_ENABLED.override(daggerBuiltInSearchEnabled)
+  }
+
+  @After
+  override fun tearDown() {
+    StudioFlags.DAGGER_BUILT_IN_SEARCH_ENABLED.clearOverride()
+    super.tearDown()
+  }
 
   private fun getProvidersForInjectedField_kotlin(fieldType: String, qualifier: String = ""): Collection<PsiNamedElement> {
     myFixture.configureByText(
