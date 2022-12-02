@@ -31,6 +31,7 @@ import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeVi
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 
+@org.junit.Ignore("b/256628803")
 public class SimpleIncludeViewNodeTest extends PlatformTestCase {
   @ClassRule
   public static LeakCheckerRule checker = new LeakCheckerRule();
