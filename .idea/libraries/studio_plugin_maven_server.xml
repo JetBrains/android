@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="intellij-updater">
+  <library name="studio-plugin-maven-server">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/updater-full.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/plugins/maven-server/lib/maven-server.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

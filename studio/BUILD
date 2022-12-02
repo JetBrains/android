@@ -303,12 +303,12 @@ studio_plugin(
     deps = [
         ":com.android.tools.idea.smali",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-IntelliLang",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-langInjection",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-webp",
@@ -501,9 +501,9 @@ studio_plugin(
         ":org.jetbrains.android",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-git4idea",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-git",
     ],
 )
 
@@ -524,8 +524,8 @@ studio_plugin(
     visibility = ["//visibility:public"],
     deps = [
         ":com.google.gct.login",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-git4idea",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-git",
     ],
 )
 
@@ -774,15 +774,11 @@ iml_module(
         "//tools/vendor/google/targetsdkversion-upgrade-assistant[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-configurationScript",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-copyright",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-coverage",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-editorconfig",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-git4idea",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-github",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-hg4idea",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-IntelliLang",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-langInjection",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-decompiler",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-i18n",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-ide-customization",
@@ -792,10 +788,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-repository-search",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-settings-repository",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-sh",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-stream-debugger",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-svn4idea",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-tasks",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-terminal",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-testng",
@@ -806,7 +799,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-cidr-base-plugin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-cidr-debugger-plugin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-completionMlRanking",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-ml-models-local",
     ],
 )
 

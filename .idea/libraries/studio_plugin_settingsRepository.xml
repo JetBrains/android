@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="intellij-updater">
+  <library name="studio-plugin-settingsRepository">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/updater-full.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/plugins/settingsRepository/lib/settingsRepository.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

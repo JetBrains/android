@@ -1,8 +1,6 @@
 # List of files containing native libraries that need to be unpacked then
 # codesigned. The paths here indicate the paths in the built Android Studio
 # macOS app bundle.
-%prefix%Contents/lib/grpc-netty-shaded.jar
-%prefix%Contents/lib/pty4j.jar
 %prefix%Contents/plugins/android/lib/ffmpeg-5.0-1.5.7-macosx-arm64.jar
 %prefix%Contents/plugins/android/lib/ffmpeg-5.0-1.5.7-macosx-x86_64.jar
 %prefix%Contents/plugins/android/lib/javacpp-1.5.7-macosx-arm64.jar

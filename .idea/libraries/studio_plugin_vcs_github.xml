@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="intellij-updater">
+  <library name="studio-plugin-vcs-github">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/updater-full.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/plugins/vcs-github/lib/vcs-github.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

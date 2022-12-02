@@ -35,7 +35,7 @@
     <orderEntry type="library" name="studio-plugin-Groovy" level="project" />
     <orderEntry type="library" name="studio-plugin-hg4idea" level="project" />
     <orderEntry type="library" name="studio-plugin-toml" level="project" />
-    <orderEntry type="library" name="studio-plugin-IntelliLang" level="project" />
+    <orderEntry type="library" name="studio-plugin-platform-langInjection" level="project" />
     <orderEntry type="library" name="studio-plugin-java-decompiler" level="project" />
     <orderEntry type="library" name="studio-plugin-java-i18n" level="project" />
     <orderEntry type="library" name="studio-plugin-java-ide-customization" level="project" />
