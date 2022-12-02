@@ -18,8 +18,6 @@ import android.view.View
 import android.widget.Button
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import com.myrbsdk.ICancellationSignal
-import com.myrbsdk.IIntTransactionCallback
 
 @SuppressLint("NewApi")
 class MainActivity : AppCompatActivity() {
@@ -93,22 +91,6 @@ class MainActivity : AppCompatActivity() {
         @SuppressLint("Override")
         override fun onError(error: LoadSdkException) {
             log("SDK loading failed: ${error.extraInformation}")
-        }
-    }
-
-    @RequiresApi(api = 33)
-    private inner class ApiCallResultCallbackImpl :
-        IIntTransactionCallback.Stub() {
-        override fun onCancellable(cancellationSignal: ICancellationSignal?) {
-
-        }
-
-        override fun onFailure(errorCode: Int, errorMessage: String?) {
-            log("Api call failed: $errorCode, $errorMessage")
-        }
-
-        override fun onSuccess(result: Int) {
-            log("The result is $result")
         }
     }
 

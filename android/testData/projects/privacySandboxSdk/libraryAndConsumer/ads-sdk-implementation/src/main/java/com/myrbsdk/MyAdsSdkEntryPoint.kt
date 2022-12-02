@@ -31,11 +31,6 @@ class MyAdsSdkEntryPoint : SandboxedSdkProvider() {
         return layout
     }
 
-    @SuppressLint("Override")
-    override fun onDataReceived(bundle: Bundle, dataReceivedCallback: DataReceivedCallback) {
-        log("onDataReceived called")
-    }
-
     private fun log(message: String) {
         Log.i("SDK", message)
     }
