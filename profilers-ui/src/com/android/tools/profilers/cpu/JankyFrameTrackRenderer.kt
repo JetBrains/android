@@ -49,50 +49,46 @@ class JankyFrameTrackRenderer(private val profilersView: StudioProfilersView,
         trackModel.dataModel.activeSeriesIndex = it
       }
       addItemClickedListener {
-        it?.let {
-          val runInBackground = profilersView.studioProfilers.ideServices.poolExecutor::execute
-          trackModel.dataModel.multiSelectionModel
-            .setSelection(it, setOf(JankAnalysisModel(it, trackModel.dataModel.capture, runInBackground)))
-        }
+        val runInBackground = profilersView.studioProfilers.ideServices.poolExecutor::execute
+        trackModel.dataModel.multiSelectionModel
+          .setSelection(it, setOf(JankAnalysisModel(it, trackModel.dataModel.capture, runInBackground)))
       }
     }.let { VsyncPanel.of(FrameTimelineSelectionOverlayPanel.of(it, trackModel.dataModel.viewRange,
                                                                 trackModel.dataModel.multiSelectionModel,
                                                                 GrayOutMode.None, true),
                           trackModel.dataModel.vsyncSeries, vsyncEnabler)}
 
-  private fun renderJankyFrame(multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>): Renderer<AndroidFrameTimelineEvent?> =
+  private fun renderJankyFrame(multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>): Renderer<AndroidFrameTimelineEvent> =
     { g, rect, fontMetrics, hovered, event ->
-      if (event != null) {
-        val borderY = 1
-        val borderX = 1
-        val textPadding = borderX + 1
-        val active = hovered || multiSelectionModel.activeSelectionKey === event
-        val duration = event.actualDurationUs
-        val blankRectWidth = when {
-          // Only fill the after-deadline portion for "deadline missed" jank type
-          event.isActionableJank -> rect.width * min(event.expectedDurationUs / duration.toFloat(), 1f)
-          else -> rect.width
-        }
+      val borderY = 1
+      val borderX = 1
+      val textPadding = borderX + 1
+      val active = hovered || multiSelectionModel.activeSelectionKey === event
+      val duration = event.actualDurationUs
+      val blankRectWidth = when {
+        // Only fill the after-deadline portion for "deadline missed" jank type
+        event.isActionableJank -> rect.width * min(event.expectedDurationUs / duration.toFloat(), 1f)
+        else -> rect.width
+      }
 
-        // draw entire frame
-        g.color = if (active) event.getActiveColor() else event.getPassiveColor()
-        g.fill(rect)
+      // draw entire frame
+      g.color = if (active) event.getActiveColor() else event.getPassiveColor()
+      g.fill(rect)
 
-        // draw non-jank portion
-        g.color = ProfilerColors.CPU_STATECHART_DEFAULT_STATE
-        g.fill(Rectangle2D.Float(rect.x + borderX, rect.y + borderY,
-                                 blankRectWidth - 2 * borderX, rect.height - 2 * borderY - 1))
+      // draw non-jank portion
+      g.color = ProfilerColors.CPU_STATECHART_DEFAULT_STATE
+      g.fill(Rectangle2D.Float(rect.x + borderX, rect.y + borderY,
+                               blankRectWidth - 2 * borderX, rect.height - 2 * borderY - 1))
 
-        // draw text
-        val availableTextSpace = blankRectWidth - textPadding * 2
-        if (availableTextSpace > 1) {
-          val fullText = "${event.surfaceFrameToken}: ${TimeFormatter.getSingleUnitDurationString(duration)}"
-          val text = AdtUiUtils.shrinkToFit(fullText, fontMetrics, availableTextSpace)
-          if (text.isNotEmpty()) {
-            g.color = if (active) JBUI.CurrentTheme.Label.foreground() else JBUI.CurrentTheme.Label.disabledForeground()
-            val textOffset = rect.y + (rect.height - fontMetrics.height) * .5f + fontMetrics.ascent.toFloat()
-            g.drawString(text, rect.x + textPadding, textOffset)
-          }
+      // draw text
+      val availableTextSpace = blankRectWidth - textPadding * 2
+      if (availableTextSpace > 1) {
+        val fullText = "${event.surfaceFrameToken}: ${TimeFormatter.getSingleUnitDurationString(duration)}"
+        val text = AdtUiUtils.shrinkToFit(fullText, fontMetrics, availableTextSpace)
+        if (text.isNotEmpty()) {
+          g.color = if (active) JBUI.CurrentTheme.Label.foreground() else JBUI.CurrentTheme.Label.disabledForeground()
+          val textOffset = rect.y + (rect.height - fontMetrics.height) * .5f + fontMetrics.ascent.toFloat()
+          g.drawString(text, rect.x + textPadding, textOffset)
         }
       }
     }
