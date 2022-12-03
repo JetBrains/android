@@ -16,7 +16,6 @@
 package com.android.tools.idea.diagnostics.hprof.classstore
 
 import com.android.tools.idea.diagnostics.hprof.parser.Type
-import gnu.trove.TLongObjectHashMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import java.util.function.LongUnaryOperator
 
