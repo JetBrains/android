@@ -81,7 +81,7 @@ class BasicAndroidMonitorTest {
 
     clients = clients.plus(client)
     service = LiveEditService(project)
-    monitor = AndroidLiveEditDeployMonitor(service, project)
+    monitor = service.getDeployMonitor()
 
     `when`(device.serialNumber).thenReturn("1")
     `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))

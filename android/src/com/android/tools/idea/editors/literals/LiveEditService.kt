@@ -40,6 +40,7 @@ import com.intellij.psi.PsiTreeChangeListener
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
 import com.intellij.util.concurrency.AppExecutorUtil
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
@@ -47,7 +48,6 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import java.util.concurrent.Callable
 import java.util.concurrent.Executor
-import java.util.stream.Collectors
 
 
 /**
@@ -132,24 +132,12 @@ class LiveEditService private constructor(val project: Project, var listenerExec
     operator fun invoke(method: EditEvent)
   }
 
-  interface EditStatusProvider {
-    fun status(device: IDevice): EditStatus
-
-    fun status(): Map<IDevice, EditStatus>
-  }
-
   private val onEditListeners = ListenerCollection.createWithExecutor<EditListener>(listenerExecutor)
 
   private val deployMonitor: AndroidLiveEditDeployMonitor
 
-  private val editStatusProviders = mutableListOf<EditStatusProvider>()
-
   fun addOnEditListener(listener: EditListener) {
     onEditListeners.add(listener)
-  }
-
-  fun addEditStatusProvider(provider: EditStatusProvider) {
-    editStatusProviders.add(provider)
   }
 
   init {
@@ -189,34 +177,18 @@ class LiveEditService private constructor(val project: Project, var listenerExec
     val UP_TO_DATE_STATUS = EditStatus(EditState.UP_TO_DATE, "All changes applied.", null)
   }
 
+  // TODO: Refactor this away when AndroidLiveEditDeployMonitor functionality is moved to LiveEditService/other classes.
+  @VisibleForTesting
+  fun getDeployMonitor(): AndroidLiveEditDeployMonitor {
+    return deployMonitor
+  }
+
   fun editStatus(device: IDevice): EditStatus {
-    var editStatus = DISABLED_STATUS
-    for (provider in editStatusProviders) {
-      val nextStatus = provider.status(device)
-      // TODO make this state transition more robust/centralized
-      if (nextStatus.editState.ordinal < editStatus.editState.ordinal) {
-        editStatus = nextStatus
-      }
-    }
-    return editStatus
+    return deployMonitor.status(device)
   }
 
   fun editStatus(): MutableMap<IDevice, EditStatus> {
-    val statuses = HashMap<IDevice, EditStatus>()
-    for (provider in editStatusProviders) {
-      val nextStatuses = provider.status()
-      nextStatuses.forEach { entry ->
-        statuses.compute(entry.key) { _, oldStatus ->
-          if (oldStatus == null) {
-            entry.value
-          }
-          else {
-            if (entry.value.editState.ordinal < oldStatus.editState.ordinal) entry.value else oldStatus
-          }
-        }
-      }
-    }
-    return statuses
+    return deployMonitor.status()
   }
 
   fun mergeStatuses(statuses: Map<IDevice, EditStatus>): EditStatus {

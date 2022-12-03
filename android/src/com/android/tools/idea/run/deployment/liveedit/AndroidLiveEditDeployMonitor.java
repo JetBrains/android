@@ -200,68 +200,64 @@ public class AndroidLiveEditDeployMonitor {
     filesWithCompilationErrors.clear();
   }
 
-  private class EditStatusGetter implements LiveEditService.EditStatusProvider {
-    @NotNull
-    @Override
-    public EditStatus status(@NotNull IDevice device) {
-      if (StringUtil.isEmpty(applicationId)) {
-        return LiveEditService.DISABLED_STATUS;
-      }
+  @NotNull
+  public EditStatus status(@NotNull IDevice device) {
+    if (StringUtil.isEmpty(applicationId)) {
+      return LiveEditService.DISABLED_STATUS;
+    }
 
-      return editStatus.compute(device, (d, s) -> {
-        EditStatus result;
-        if (!device.isOnline()) {
-          result = DISABLED_STATUS;
+    return editStatus.compute(device, (d, s) -> {
+      EditStatus result;
+      if (!device.isOnline()) {
+        result = DISABLED_STATUS;
+      }
+      else {
+        List<AndroidSessionInfo> info = AndroidSessionInfo.findActiveSession(project);
+        if (info != null &&
+            info.stream()
+              .filter(i -> DefaultDebugExecutor.getDebugExecutorInstance().getId().equals(i.getExecutorId()))
+              .map(AndroidSessionInfo::getProcessHandler)
+              .filter(p -> p instanceof AndroidRemoteDebugProcessHandler)
+              .map(p -> (AndroidRemoteDebugProcessHandler)p)
+              .anyMatch(p -> !(p.isProcessTerminating() || p.isProcessTerminated()) && p.isPackageRunning(d, applicationId))) {
+          result = DEBUGGER_ATTACHED;
         }
         else {
-          List<AndroidSessionInfo> info = AndroidSessionInfo.findActiveSession(project);
-          if (info != null &&
-              info.stream()
-                .filter(i -> DefaultDebugExecutor.getDebugExecutorInstance().getId().equals(i.getExecutorId()))
-                .map(AndroidSessionInfo::getProcessHandler)
-                .filter(p -> p instanceof AndroidRemoteDebugProcessHandler)
-                .map(p -> (AndroidRemoteDebugProcessHandler)p)
-                .anyMatch(p -> !(p.isProcessTerminating() || p.isProcessTerminated()) && p.isPackageRunning(d, applicationId))) {
-            result = DEBUGGER_ATTACHED;
+          boolean appAlive = Arrays.stream(device.getClients()).anyMatch(c -> applicationId.equals(c.getClientData().getPackageName()));
+          if (s == null) {
+            // Monitor for this device not initialized yet.
+            result = DISABLED_STATUS;
+          }
+          else if (s == LOADING && appAlive) {
+            // App has came online, so flip state to UP_TO_DATE.
+            result = UP_TO_DATE;
+          }
+          else if (s != LOADING && !appAlive) {
+            // App was running and has been terminated (or this was in disabled state already - this saves extra check), hide the indicator.
+            result = DISABLED_STATUS;
           }
           else {
-            boolean appAlive = Arrays.stream(device.getClients()).anyMatch(c -> applicationId.equals(c.getClientData().getPackageName()));
-            if (s == null) {
-              // Monitor for this device not initialized yet.
-              result = DISABLED_STATUS;
-            }
-            else if (s == LOADING && appAlive) {
-              // App has came online, so flip state to UP_TO_DATE.
-              result = UP_TO_DATE;
-            }
-            else if (s != LOADING && !appAlive) {
-              // App was running and has been terminated (or this was in disabled state already - this saves extra check), hide the indicator.
-              result = DISABLED_STATUS;
-            }
-            else {
-              result = s;
-            }
+            result = s;
           }
         }
-        return result;
-      });
-    }
-
-    @NotNull
-    @Override
-    public Map<IDevice, EditStatus> status() {
-      if (StringUtil.isEmpty(applicationId)) {
-        return Collections.emptyMap();
       }
-      // Get all devices that are running our app.
-      Set<IDevice> devices = deviceIterator(project)
-        .filter(
-          d -> Arrays.stream(d.getClients()).anyMatch(c -> applicationId.equals(c.getClientData().getPackageName())))
-        .collect(Collectors.toSet());
+      return result;
+    });
+  }
 
-      // Find all devices that were deployed by us (and not user-started).
-      return editStatus.keySet().stream().filter(devices::contains).collect(Collectors.toMap(d -> d, this::status));
+  @NotNull
+  public Map<IDevice, EditStatus> status() {
+    if (StringUtil.isEmpty(applicationId)) {
+      return Collections.emptyMap();
     }
+    // Get all devices that are running our app.
+    Set<IDevice> devices = deviceIterator(project)
+      .filter(
+        d -> Arrays.stream(d.getClients()).anyMatch(c -> applicationId.equals(c.getClientData().getPackageName())))
+      .collect(Collectors.toSet());
+
+    // Find all devices that were deployed by us (and not user-started).
+    return editStatus.keySet().stream().filter(devices::contains).collect(Collectors.toMap(d -> d, this::status));
   }
 
   @VisibleForTesting
@@ -339,7 +335,6 @@ public class AndroidLiveEditDeployMonitor {
     this.sourceInlineCandidateCache = liveEditService.getInlineCandidateCache();
     EditsListener editsListener = new EditsListener();
     liveEditService.addOnEditListener(editsListener::onLiteralsChanged);
-    liveEditService.addEditStatusProvider(new EditStatusGetter());
     Disposer.register(liveEditService, editsListener);
   }
 
