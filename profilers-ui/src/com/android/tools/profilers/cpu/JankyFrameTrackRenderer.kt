@@ -60,7 +60,7 @@ class JankyFrameTrackRenderer(private val profilersView: StudioProfilersView,
                                                                 GrayOutMode.None, true),
                           trackModel.dataModel.vsyncSeries, vsyncEnabler)}
 
-  private fun renderJankyFrame(multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>): Renderer<AndroidFrameTimelineEvent?> =
+  private fun renderJankyFrame(multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>): Renderer<AndroidFrameTimelineEvent> =
     { g, rect, fontMetrics, hovered, event ->
       if (event != null) {
         val borderY = 1

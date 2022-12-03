@@ -30,7 +30,7 @@ class AndroidFrameTimelineModel constructor(events: List<AndroidFrameTimelineEve
                                 vsyncs: List<SeriesData<Long>>,
                                 val viewRange: Range,
                                 val multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>,
-                                val capture: SystemTraceCpuCapture) : StateChartModel<AndroidFrameTimelineEvent?>() {
+                                val capture: SystemTraceCpuCapture) : StateChartModel<AndroidFrameTimelineEvent>() {
   val vsyncSeries = RangedSeries(viewRange, LazyDataSeries { vsyncs })
 
   var activeSeriesIndex = -1
