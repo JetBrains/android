@@ -26,7 +26,6 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.codeStyle.CodeStyleManager
-import org.jetbrains.annotations.NotNull
 import org.jetbrains.kotlin.idea.util.application.isUnitTestMode
 import java.io.File
 import java.io.IOException
@@ -58,7 +57,7 @@ class CreateFileQuickFix(
     createFile(project, context)
   }
 
-  private fun createFile(project: @NotNull Project, context: AndroidQuickfixContexts.Context) {
+  private fun createFile(project: Project, context: AndroidQuickfixContexts.Context) {
     try {
       val parent = VfsUtil.createDirectoryIfMissing(myFile.parentFile.path) ?: return
 
