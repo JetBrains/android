@@ -32,8 +32,6 @@ import com.intellij.openapi.util.JDOMUtil
 import org.jdom.Element
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.annotations.NotNull
-import org.jetbrains.annotations.Nullable
 import org.mockito.Mockito.mock
 
 class ComposePreviewRunConfigurationTest : AndroidTestCase() {
@@ -148,15 +146,15 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
 
     // Relax visibility to call the super method (which has protected visibility) in this test
     public override fun getApplicationLaunchTask(
-      applicationIdProvider: @NotNull ApplicationIdProvider,
-      facet: @NotNull AndroidFacet,
-      contributorsAmStartOptions: @NotNull String,
+      applicationIdProvider: ApplicationIdProvider,
+      facet: AndroidFacet,
+      contributorsAmStartOptions: String,
       waitForDebugger: Boolean,
-      launchStatus: @NotNull LaunchStatus,
-      apkProvider: @NotNull ApkProvider,
-      consolePrinter: @NotNull ConsolePrinter,
-      device: @NotNull IDevice
-    ): @Nullable AppLaunchTask? {
+      launchStatus: LaunchStatus,
+      apkProvider: ApkProvider,
+      consolePrinter: ConsolePrinter,
+      device: IDevice
+    ): AppLaunchTask? {
       return super.getApplicationLaunchTask(
         applicationIdProvider,
         facet,
