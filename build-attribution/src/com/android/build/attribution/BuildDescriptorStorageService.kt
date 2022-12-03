@@ -20,7 +20,8 @@ import com.intellij.openapi.components.RoamingType
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.project.Project
-import io.ktor.util.collections.ConcurrentList
+import com.intellij.util.containers.ConcurrentList
+import com.intellij.util.containers.ContainerUtil
 
 data class BuildDescriptorImpl(
   override var buildSessionID: String,
@@ -47,7 +48,7 @@ class BuildDescriptorStorageService(
   }
 
   data class State(
-    var descriptors: ConcurrentList<BuildDescriptorImpl> = ConcurrentList()
+    var descriptors: ConcurrentList<BuildDescriptorImpl> = ContainerUtil.createConcurrentList()
   )
 
   override fun getState(): State = buildDescriptorsState
