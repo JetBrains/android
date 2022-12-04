@@ -279,6 +279,7 @@ internal class LogcatMainPanel @TestOnly constructor(
       }, this@LogcatMainPanel)
 
       scrollPane.border = Borders.customLine(JBColor.border(), 1, 1, 0, 0)
+      UserInputHandlers(this).install()
     }
 
     toolbar.targetComponent = this

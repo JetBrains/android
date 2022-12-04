@@ -83,6 +83,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionGroup.EMPTY_GROUP
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnAction.ACTIONS_KEY
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem
@@ -102,6 +103,7 @@ import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.tools.SimpleActionGroup
+import com.intellij.ui.ClientProperty
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.util.ConcurrencyUtil
 import kotlinx.coroutines.runBlocking
@@ -1191,6 +1193,21 @@ class LogcatMainPanelTest {
         1970-01-01 04:00:01.000     1-2     tag2                    app2                                 W  message2
       """.trimIndent())
     }
+  }
+
+  @RunsInEdt
+  @Test
+  fun installsUserInputHandlers() {
+    val logcatMainPanel = logcatMainPanel()
+
+    // We don't even need to check that SpecialCharHandler was installed twice etc.
+    // We just want proof that UserInputHandlers.install() was called on logcatMainPanel.editor.contentComponent.
+    val actions = ClientProperty.get(logcatMainPanel.editor.contentComponent, ACTIONS_KEY)?.map { it::class.simpleName }
+    assertThat(actions).containsAllOf(
+      "DeleteBackspaceHandler",
+      "SpecialCharHandler",
+      "PasteHandler",
+    )
   }
 
   private fun logcatMainPanel(
