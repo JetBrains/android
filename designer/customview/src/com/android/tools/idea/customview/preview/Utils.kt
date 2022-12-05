@@ -21,6 +21,7 @@ import com.android.tools.idea.concurrency.runReadAction
 import com.android.tools.idea.concurrency.runReadActionWithWritePriority
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.vfs.VirtualFile
@@ -36,7 +37,7 @@ internal const val CUSTOM_VIEW_PREVIEW_ID = "android-custom-view"
 /**
  * [InMemoryLayoutVirtualFile] for custom views.
  */
-internal class CustomViewLightVirtualFile(
+class CustomViewLightVirtualFile(
   name: String,
   content: String,
   originFileProvider: () -> VirtualFile?

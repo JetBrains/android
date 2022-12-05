@@ -49,6 +49,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -80,7 +81,8 @@ private fun fqcn2name(fcqn: String) = fcqn.substringAfterLast('.')
 
 private fun layoutType(wrapContent: Boolean) = if (wrapContent) "wrap_content" else "match_parent"
 
-private fun getXmlLayout(qualifiedName: String, shrinkWidth: Boolean, shrinkHeight: Boolean): String {
+@VisibleForTesting
+fun getXmlLayout(qualifiedName: String, shrinkWidth: Boolean, shrinkHeight: Boolean): String {
   return """
 <$qualifiedName
     xmlns:android="http://schemas.android.com/apk/res/android"
