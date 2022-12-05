@@ -34,7 +34,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import java.nio.file.Path
 import java.util.EnumSet
-import java.util.concurrent.CompletableFuture
 
 /**
  * Client for communicating with the agent.
@@ -151,7 +150,7 @@ interface InspectorClient: Disposable {
    * If this client does not have the [Capability.SUPPORTS_CONTINUOUS_MODE] capability, then this
    * method should not be called, and doing so is undefined.
    */
-  fun stopFetching(): CompletableFuture<Unit>
+  suspend fun stopFetching()
 
   /**
    * Refresh the content of the inspector.
@@ -240,7 +239,7 @@ object DisconnectedClient : InspectorClient {
   override fun registerConnectionTimeoutCallback(callback: (AttachErrorState) -> Unit) = Unit
 
   override suspend fun startFetching() { }
-  override fun stopFetching(): CompletableFuture<Unit> = CompletableFuture.completedFuture(Unit)
+  override suspend fun stopFetching() { }
   override fun refresh() {}
   override fun saveSnapshot(path: Path) {}
 

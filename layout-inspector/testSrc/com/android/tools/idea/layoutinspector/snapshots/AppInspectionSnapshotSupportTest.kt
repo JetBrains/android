@@ -41,6 +41,7 @@ import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -140,7 +141,7 @@ class AppInspectionSnapshotSupportTest {
   @Test
   fun saveAndLoadNonLiveSnapshot() {
     inspectorClientSettings.isCapturingModeOn = false
-    inspectorRule.inspectorClient.stopFetching()
+    runBlocking { inspectorRule.inspectorClient.stopFetching() }
     appInspectorRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
       appInspectorRule.viewInspector.connection.sendEvent {
         rootsEventBuilder.apply {
@@ -218,7 +219,7 @@ class AppInspectionSnapshotSupportTest {
 
     // Now switch to non-live
     inspectorClientSettings.isCapturingModeOn = false
-    inspectorRule.inspectorClient.stopFetching().get()
+    runBlocking { inspectorRule.inspectorClient.stopFetching() }
 
     val startedLatch = CountDownLatch(1)
     // Try to save the snapshot right away, before we've gotten any events

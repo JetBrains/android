@@ -650,7 +650,7 @@ class DeviceViewPanel(
       if (currentClient.capabilities.contains(Capability.SUPPORTS_CONTINUOUS_MODE)) {
         when (state) {
           true -> coroutineScope.launch { currentClient.startFetching() }
-          false -> currentClient.stopFetching()
+          false -> coroutineScope.launch { currentClient.stopFetching() }
         }
       }
       inspectorClientSettings.isCapturingModeOn = state

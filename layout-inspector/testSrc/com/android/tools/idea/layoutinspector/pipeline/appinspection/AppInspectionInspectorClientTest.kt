@@ -675,7 +675,7 @@ class AppInspectionInspectorClientTest {
             else {
               handlingFirstBatch = false
               assertThat(viewEvent.screenshot.bytes.byteAt(0)).isEqualTo(10.toByte())
-              client.stopFetching() // Triggers second batch of layout events
+              runBlocking { client.stopFetching() } // Triggers second batch of layout events
             }
           }
           else {

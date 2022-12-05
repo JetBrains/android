@@ -239,8 +239,8 @@ class AppInspectionInspectorClient(
     viewInspector?.startFetching(continuous = true)
   }
 
-  override fun stopFetching() =
-    coroutineScope.launch(loggingExceptionHandler) {
+  override suspend fun stopFetching() {
+    try {
       // Reset the scale to 1 to support zooming while paused, and get an SKP if possible.
       if (capabilities.contains(Capability.SUPPORTS_SKP)) {
         updateScreenshotType(AndroidWindow.ImageType.SKP, 1.0f)
@@ -250,7 +250,11 @@ class AppInspectionInspectorClient(
       }
       stats.currentModeIsLive = false
       viewInspector?.stopFetching()
-    }.asCompletableFuture()
+    } catch (t: Throwable) {
+      fireError(t.message!!)
+      throw t
+    }
+  }
 
   override fun refresh() {
     coroutineScope.launch(loggingExceptionHandler) {

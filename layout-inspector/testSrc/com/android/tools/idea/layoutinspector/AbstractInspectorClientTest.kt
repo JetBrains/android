@@ -112,7 +112,7 @@ class AbstractInspectorClientTest {
 
     override suspend fun startFetching() { }
 
-    override fun stopFetching() = CompletableFuture.completedFuture(Unit)!!
+    override suspend fun stopFetching() { }
 
     override fun refresh() {}
 

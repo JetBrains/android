@@ -543,7 +543,7 @@ private open class FakeInspectorClient(
                             parentDisposable) {
 
   override suspend fun startFetching() = throw NotImplementedError()
-  override fun stopFetching() = throw NotImplementedError()
+  override suspend fun stopFetching() = throw NotImplementedError()
   override fun refresh() = throw NotImplementedError()
   override fun saveSnapshot(path: Path) = throw NotImplementedError()
 
