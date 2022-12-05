@@ -72,7 +72,6 @@ class VisualLintServiceTest {
   @Test
   fun runVisualLintAnalysis() {
     projectRule.load("projects/visualLintApplication")
-    projectRule.requestSyncAndWait()
 
     val visualLintService = VisualLintService.getInstance(projectRule.project)
     val visualLintIssueModel = visualLintService.issueModel

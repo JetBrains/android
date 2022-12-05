@@ -58,7 +58,6 @@ class PerfgateComplexRenderTest {
     val baseTestPath = resolveWorkspacePath("tools/adt/idea/designer-perf-tests/testData")
     gradleRule.fixture.testDataPath = baseTestPath.toString()
     gradleRule.load(PERFGATE_COMPLEX_LAYOUT)
-    gradleRule.requestSyncAndWait()
     facet = gradleRule.androidFacet(":app")
     val xmlPath = baseTestPath.resolve("projects/perfgateComplexLayout/app/src/main/res/layout/activity_main.xml")
     layoutFile = LocalFileSystem.getInstance().findFileByPath(xmlPath.toString())!!

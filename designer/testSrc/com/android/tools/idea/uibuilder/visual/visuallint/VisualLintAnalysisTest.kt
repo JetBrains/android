@@ -80,7 +80,6 @@ class VisualLintAnalysisTest {
   @Test
   fun visualLintAnalysis() {
     projectRule.load("projects/visualLintApplication")
-    projectRule.requestSyncAndWait()
 
     val module = projectRule.getModule("app")
     val facet = AndroidFacet.getInstance(module)!!

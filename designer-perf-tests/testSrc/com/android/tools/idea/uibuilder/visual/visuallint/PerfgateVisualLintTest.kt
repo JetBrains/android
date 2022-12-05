@@ -84,7 +84,6 @@ class PerfgateVisualLintTest {
   @Test
   fun backgroundLintingTimeForPhone() {
     projectRule.load("projects/visualLintApplication")
-    projectRule.requestSyncAndWait()
     val module = projectRule.getModule("app")
     val facet = AndroidFacet.getInstance(module)!!
     val visualLintIssueProvider = VisualLintIssueProvider(projectRule.fixture.testRootDisposable)
@@ -104,7 +103,6 @@ class PerfgateVisualLintTest {
   @Test
   fun backgroundLintingTimeForWear() {
     projectRule.load("projects/visualLintApplication")
-    projectRule.requestSyncAndWait()
     val module = projectRule.getModule("app")
     val facet = AndroidFacet.getInstance(module)!!
     val visualLintIssueProvider = VisualLintIssueProvider(projectRule.fixture.testRootDisposable)

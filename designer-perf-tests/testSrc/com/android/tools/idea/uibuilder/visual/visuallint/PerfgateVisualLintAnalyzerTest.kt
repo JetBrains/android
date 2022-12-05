@@ -116,7 +116,6 @@ class PerfgateVisualLintAnalyzerTest {
 
   private fun visualLintAnalyzerRun(analyzer: VisualLintAnalyzer) {
     projectRule.load("projects/visualLintApplication")
-    projectRule.requestSyncAndWait()
 
     val module = projectRule.getModule("app")
     val facet = AndroidFacet.getInstance(module)!!

@@ -103,7 +103,6 @@ class DataBindingInspectionVerificationTest {
 
     fixture.testDataPath = temporaryFolder.root.absolutePath
     projectRule.load("TestApp")
-    projectRule.requestSyncAndWait()
 
     // Trigger resource repository initialization
     ResourceRepositoryManager.getAppResources(projectRule.androidFacet(":app"))

@@ -105,7 +105,6 @@ class SafeArgsTrackerTest(private val params: TestParams) {
     try {
       UsageTracker.setWriterForTest(tracker)
       projectRule.load(params.project)
-      projectRule.requestSyncAndWait()
 
       val safeArgsEvent = tracker.usages
         .map { it.studioEvent }
