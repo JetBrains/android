@@ -184,15 +184,16 @@ class DeviceViewPanelWithFullInspectorTest {
 
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
-        deviceModel,
-        inspectorRule.processes,
-        {},
-        {},
-        {},
-        inspectorRule.inspector,
-        settings,
-        InspectorClientSettings(projectRule.project),
-        projectRule.fixture.testRootDisposable
+      AndroidCoroutineScope(projectRule.testRootDisposable),
+      deviceModel,
+      inspectorRule.processes,
+      {},
+      {},
+      {},
+      inspectorRule.inspector,
+      settings,
+      InspectorClientSettings(projectRule.project),
+      projectRule.fixture.testRootDisposable
     )
     val banner = InspectorBannerService.getInstance(inspectorRule.project) ?: error("no banner")
     val deviceModel = panel.getData(DEVICE_VIEW_MODEL_KEY.name) as RenderModel
@@ -254,6 +255,7 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
+        AndroidCoroutineScope(projectRule.testRootDisposable),
         deviceModel,
         inspectorRule.processes,
         {},
@@ -281,6 +283,7 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
+        AndroidCoroutineScope(projectRule.testRootDisposable),
         deviceModel,
         inspectorRule.processes,
         {},
@@ -309,6 +312,7 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
+        AndroidCoroutineScope(projectRule.testRootDisposable),
         deviceModel,
         inspectorRule.processes,
         {},
@@ -343,6 +347,7 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
+        AndroidCoroutineScope(projectRule.testRootDisposable),
         deviceModel,
         inspectorRule.processes,
         {},
@@ -377,6 +382,7 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
+        AndroidCoroutineScope(projectRule.testRootDisposable),
         deviceModel,
         inspectorRule.processes,
         {},
@@ -414,6 +420,7 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
+        AndroidCoroutineScope(projectRule.testRootDisposable),
         deviceModel,
         inspectorRule.processes,
         {},
@@ -454,6 +461,7 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
+        AndroidCoroutineScope(projectRule.testRootDisposable),
         deviceModel,
         inspectorRule.processes,
         {},
@@ -502,6 +510,7 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
+        AndroidCoroutineScope(projectRule.testRootDisposable),
         deviceModel,
         inspectorRule.processes,
         {},
@@ -543,6 +552,7 @@ class DeviceViewPanelWithFullInspectorTest {
     }
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
+      AndroidCoroutineScope(projectRule.testRootDisposable),
       deviceModel,
       inspectorRule.processes,
       {},
@@ -583,6 +593,7 @@ class DeviceViewPanelWithFullInspectorTest {
     }
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
+      AndroidCoroutineScope(projectRule.testRootDisposable),
       deviceModel,
       inspectorRule.processes,
       {},
@@ -631,6 +642,7 @@ class DeviceViewPanelWithFullInspectorTest {
   fun testSelectProcessDropDown() {
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
+      AndroidCoroutineScope(projectRule.testRootDisposable),
       deviceModel,
       inspectorRule.processes,
       {},
@@ -715,6 +727,7 @@ class DeviceViewPanelWithFullInspectorTest {
     model.resourceLookup.updateConfiguration(FolderConfiguration(), 1f, context, stringTable, MODERN_PROCESS)
     inspectorRule.inspector.treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(
+      AndroidCoroutineScope(projectRule.testRootDisposable),
       deviceModel,
       inspectorRule.processes,
       {},
@@ -823,6 +836,7 @@ class DeviceViewPanelTest {
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(
+      AndroidCoroutineScope(disposableRule.disposable),
       DeviceModel(disposableRule.disposable, processes),
       processes,
       {},
@@ -881,6 +895,7 @@ class DeviceViewPanelTest {
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = true
     val panel = DeviceViewPanel(
+      AndroidCoroutineScope(disposableRule.disposable),
       DeviceModel(disposableRule.disposable, processes),
       processes,
       {},
@@ -926,6 +941,7 @@ class DeviceViewPanelTest {
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = true
     val panel = DeviceViewPanel(
+      AndroidCoroutineScope(disposableRule.disposable),
       DeviceModel(disposableRule.disposable, processes),
       processes,
       {},
@@ -972,6 +988,7 @@ class DeviceViewPanelTest {
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(
+      AndroidCoroutineScope(disposableRule.disposable),
       DeviceModel(disposableRule.disposable, processes),
       processes,
       {},
@@ -1025,6 +1042,7 @@ class DeviceViewPanelTest {
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(
+      AndroidCoroutineScope(disposableRule.disposable),
       DeviceModel(disposableRule.disposable, processes),
       processes,
       {},
@@ -1083,6 +1101,7 @@ class DeviceViewPanelTest {
     treeSettings.hideSystemNodes = false
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
+      AndroidCoroutineScope(disposableRule.disposable),
       DeviceModel(disposableRule.disposable, processes),
       processes,
       {},
@@ -1179,6 +1198,7 @@ class DeviceViewPanelTest {
     }
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
+      AndroidCoroutineScope(disposableRule.disposable),
       deviceModel,
       processes,
       {},
@@ -1264,6 +1284,7 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
+        AndroidCoroutineScope(projectRule.testRootDisposable),
         DeviceModel(projectRule.testRootDisposable, inspectorRule.processes),
         inspectorRule.processes,
         {},
@@ -1290,6 +1311,7 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
+        AndroidCoroutineScope(projectRule.testRootDisposable),
         DeviceModel(projectRule.testRootDisposable, inspectorRule.processes),
         inspectorRule.processes,
         {},
@@ -1498,6 +1520,7 @@ class DeviceViewPanelWithNoClientsTest {
     inspectorRule.launchSynchronously = false
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
+      AndroidCoroutineScope(disposableRule.disposable),
       DeviceModel(disposableRule.disposable, inspectorRule.processes),
       inspectorRule.processes,
       {},
@@ -1531,6 +1554,7 @@ class DeviceViewPanelWithNoClientsTest {
     inspectorRule.launchSynchronously = false
     val deviceModel = DeviceModel(disposableRule.disposable, inspectorRule.processes)
     val panel = DeviceViewPanel(
+      AndroidCoroutineScope(disposableRule.disposable),
       deviceModel,
       inspectorRule.processes,
       {},

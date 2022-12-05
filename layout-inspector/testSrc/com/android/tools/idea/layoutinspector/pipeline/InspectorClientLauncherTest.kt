@@ -542,7 +542,7 @@ private open class FakeInspectorClient(
 ) : AbstractInspectorClient(ClientType.UNKNOWN_CLIENT_TYPE, project, process, isInstantlyAutoConnected = false, DisconnectedClient.stats,
                             parentDisposable) {
 
-  override fun startFetching() = throw NotImplementedError()
+  override suspend fun startFetching() = throw NotImplementedError()
   override fun stopFetching() = throw NotImplementedError()
   override fun refresh() = throw NotImplementedError()
   override fun saveSnapshot(path: Path) = throw NotImplementedError()

@@ -153,6 +153,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         )
 
         val deviceViewPanel = DeviceViewPanel(
+          coroutineScope = layoutInspectorCoroutineScope,
           processesModel = processesModel,
           deviceModel = deviceModel,
           onDeviceSelected = { newDevice -> foregroundProcessDetection?.startPollingDevice(newDevice) },

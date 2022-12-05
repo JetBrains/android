@@ -17,6 +17,8 @@ package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
@@ -67,6 +69,8 @@ private const val LAYOUT_INSPECTOR_SNAPSHOT_ID = "Layout Inspector Snapshot"
 class LayoutInspectorFileEditor(val project: Project, private val path: Path) : UserDataHolderBase(), FileEditor {
   private var metrics: LayoutInspectorSessionMetrics? = null
   private var stats: SessionStatistics = DisconnectedClient.stats
+
+  private val coroutineScope = AndroidCoroutineScope(this)
 
   override fun getFile() = VfsUtil.findFile(path, true)
 
@@ -127,6 +131,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
       val inspectorClientSettings = InspectorClientSettings(project)
       val layoutInspector = LayoutInspector(client, model, treeSettings)
       val deviceViewPanel = DeviceViewPanel(
+        coroutineScope = coroutineScope,
         deviceModel = null,
         processesModel = null,
         onDeviceSelected = { },

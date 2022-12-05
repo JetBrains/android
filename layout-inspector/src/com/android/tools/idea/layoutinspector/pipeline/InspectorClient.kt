@@ -141,7 +141,7 @@ interface InspectorClient: Disposable {
    * If this client does not have the [Capability.SUPPORTS_CONTINUOUS_MODE] capability, then this
    * method should not be called, and doing so is undefined.
    */
-  fun startFetching(): CompletableFuture<Unit>
+  suspend fun startFetching()
 
   /**
    * Stop fetching information off the device.
@@ -239,7 +239,7 @@ object DisconnectedClient : InspectorClient {
   override fun registerTreeEventCallback(callback: (Any) -> Unit) = Unit
   override fun registerConnectionTimeoutCallback(callback: (AttachErrorState) -> Unit) = Unit
 
-  override fun startFetching(): CompletableFuture<Unit> = CompletableFuture.completedFuture(Unit)
+  override suspend fun startFetching() { }
   override fun stopFetching(): CompletableFuture<Unit> = CompletableFuture.completedFuture(Unit)
   override fun refresh() {}
   override fun saveSnapshot(path: Path) {}

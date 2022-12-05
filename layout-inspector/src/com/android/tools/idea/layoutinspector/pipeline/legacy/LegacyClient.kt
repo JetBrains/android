@@ -146,7 +146,7 @@ class LegacyClient(
 
   class LegacyFetchingUnsupportedOperationException : UnsupportedOperationException("Fetching is not supported by legacy clients")
 
-  override fun startFetching() = throw LegacyFetchingUnsupportedOperationException()
+  override suspend fun startFetching() = throw LegacyFetchingUnsupportedOperationException()
 
   override fun stopFetching() = throw LegacyFetchingUnsupportedOperationException()
 }

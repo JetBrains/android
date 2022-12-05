@@ -110,7 +110,7 @@ class AbstractInspectorClientTest {
 
     override fun doDisconnect(): ListenableFuture<Nothing> = immediateFuture(null)
 
-    override fun startFetching() = CompletableFuture.completedFuture(Unit)!!
+    override suspend fun startFetching() { }
 
     override fun stopFetching() = CompletableFuture.completedFuture(Unit)!!
 

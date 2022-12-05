@@ -67,6 +67,8 @@ import com.intellij.ui.components.JBLoadingPanelListener
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons.LayoutInspector.LIVE_UPDATES
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
@@ -113,6 +115,7 @@ const val PERFORMANCE_WARNING_HIDDEN = "performance.warning.hidden"
  * @param onDeviceSelected is only invoked when [deviceModel] is used.
  */
 class DeviceViewPanel(
+  private val coroutineScope: CoroutineScope,
   val deviceModel: DeviceModel?,
   val processesModel: ProcessesModel?,
   onDeviceSelected: (newDevice: DeviceDescriptor) -> Unit,
@@ -646,7 +649,7 @@ class DeviceViewPanel(
       val currentClient = client(event)
       if (currentClient.capabilities.contains(Capability.SUPPORTS_CONTINUOUS_MODE)) {
         when (state) {
-          true -> currentClient.startFetching()
+          true -> coroutineScope.launch { currentClient.startFetching() }
           false -> currentClient.stopFetching()
         }
       }

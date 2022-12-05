@@ -115,10 +115,6 @@ class AppInspectionInspectorClient(
     fireError(t.message!!)
   }
 
-  private val bannerExceptionHandler = CoroutineExceptionHandler { _, t ->
-    handleException(t)
-  }
-
   private var debugViewAttributesChanged = false
 
   override val capabilities =
@@ -228,10 +224,15 @@ class AppInspectionInspectorClient(
     return future
   }
 
-  override fun startFetching() =
-    coroutineScope.launch(bannerExceptionHandler) {
+  override suspend fun startFetching() {
+    try {
       startFetchingInternal()
-    }.asCompletableFuture()
+    }
+    catch (t: Throwable) {
+      handleException(t)
+      throw t
+    }
+  }
 
   private suspend fun startFetchingInternal() {
     stats.currentModeIsLive = true
