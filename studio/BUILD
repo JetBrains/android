@@ -879,25 +879,6 @@ iml_test(
 )
 
 iml_test(
-    name = "StartUpAswbTest",
-    data = select({
-        "@platforms//os:linux": [
-            "//tools/vendor/google/aswb:aswb.linux.zip",
-        ],
-        "@platforms//os:macos": [
-            "//tools/vendor/google/aswb:aswb.mac.zip",
-        ],
-        "@platforms//os:windows": [
-            "//tools/vendor/google/aswb:aswb.win.zip",
-        ],
-    }),
-    module = ":intellij.android.studio.integration",
-    tags_linux = ["block-network"],
-    tags_windows = ["block-network"],
-    test_class = "com.android.tools.idea.StartUpAswbTest",
-)
-
-iml_test(
     name = "UpdateTest",
     data = select({
         "@platforms//os:linux": [
