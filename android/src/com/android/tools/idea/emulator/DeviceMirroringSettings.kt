@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.emulator
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
@@ -30,15 +29,14 @@ class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings
 
   private var initialized = false
 
-  var deviceMirroringEnabled: Boolean = StudioFlags.DEVICE_MIRRORING_ENABLED_BY_DEFAULT.get()
+  var deviceMirroringEnabled: Boolean = false
     set(value) {
       if (field != value) {
         field = value
         notifyListeners()
       }
     }
-
-  var synchronizeClipboard: Boolean = StudioFlags.DEVICE_CLIPBOARD_SYNCHRONIZATION_ENABLED.get()
+  var synchronizeClipboard: Boolean = false
     set(value) {
       if (field != value) {
         field = value
@@ -59,6 +57,9 @@ class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings
 
   override fun loadState(state: DeviceMirroringSettings) {
     XmlSerializerUtil.copyBean(state, this)
+
+    // Explicitly disable Device Mirroring feature for the IDEs that already have it enabled
+    this.deviceMirroringEnabled = false
   }
 
   override fun initializeComponent() {
