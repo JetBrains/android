@@ -19,6 +19,7 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.DeploymentApplicationService;
+import com.google.common.util.concurrent.ListenableFuture;
 import java.util.List;
 import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
@@ -30,9 +31,13 @@ public interface Deployable {
   @NotNull
   Future<AndroidVersion> getVersion();
 
+  @NotNull ListenableFuture<@NotNull List<@NotNull Client>> searchClientsForPackageAsync();
+
   /**
-   * Returns the {@link Client}s associated with the current project's application that are already running on this {@link Deployable}.
+   * @deprecated This is called by the EDT and must execute quickly. The current implementation calls {@link Future#get()} which can block
+   * for too long. Use {@link #searchClientsForPackageAsync} instead.
    */
+  @Deprecated
   @NotNull
   List<Client> searchClientsForPackage();
 
