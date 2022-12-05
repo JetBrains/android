@@ -21,6 +21,8 @@ import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidSystem;
 import com.android.tools.asdriver.tests.Emulator;
 import com.android.tools.asdriver.tests.MavenRepo;
+import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher;
+import com.android.tools.asdriver.tests.MemoryUsageReportProcessor;
 import java.nio.file.Path;
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,6 +30,9 @@ import org.junit.Test;
 public class DebuggerTest {
   @Rule
   public AndroidSystem system = AndroidSystem.standard();
+
+  @Rule
+  public MemoryDashboardNameProviderWatcher watcher = new MemoryDashboardNameProviderWatcher();
 
   @Test
   public void runDebuggerTest() throws Exception {
@@ -54,6 +59,7 @@ public class DebuggerTest {
 
       System.out.println("Setting a breakpoint");
       studio.executeAction("ToggleLineBreakpoint");
+      MemoryUsageReportProcessor.Companion.collectMemoryUsageStatistics(studio, system.getInstallation(), watcher, "breakpointSet");
 
       System.out.println("Debugging the application");
       studio.executeAction("android.deploy.DebugWithoutBuild");

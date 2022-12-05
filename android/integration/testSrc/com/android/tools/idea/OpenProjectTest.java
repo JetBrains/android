@@ -20,6 +20,8 @@ import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.AndroidSystem;
 import com.android.tools.asdriver.tests.MavenRepo;
+import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher;
+import com.android.tools.asdriver.tests.MemoryUsageReportProcessor;
 import com.android.tools.perflogger.Benchmark;
 import com.android.tools.perflogger.PerfData;
 import org.junit.After;
@@ -31,6 +33,9 @@ import org.junit.Test;
 public class OpenProjectTest {
   @Rule
   public AndroidSystem system = AndroidSystem.standard();
+
+  @Rule
+  public MemoryDashboardNameProviderWatcher watcher = new MemoryDashboardNameProviderWatcher();
 
   private Benchmark benchmark;
   private long startTimeMs;
@@ -62,6 +67,7 @@ public class OpenProjectTest {
 
     try (AndroidStudio studio = system.runStudio(project)) {
       studio.waitForSync();
+      MemoryUsageReportProcessor.Companion.collectMemoryUsageStatistics(studio, system.getInstallation(), watcher, "afterSync");
     }
   }
 

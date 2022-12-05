@@ -19,12 +19,17 @@ import com.android.testutils.TestUtils;
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidSystem;
 import com.android.tools.asdriver.tests.MavenRepo;
+import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher;
+import com.android.tools.asdriver.tests.MemoryUsageReportProcessor;
 import org.junit.Rule;
 import org.junit.Test;
 
 public class CreateProjectTest {
   @Rule
   public AndroidSystem system = AndroidSystem.standard();
+
+  @Rule
+  public MemoryDashboardNameProviderWatcher watcher = new MemoryDashboardNameProviderWatcher();
 
   @Test
   public void createProjectTest() throws Exception {
@@ -58,6 +63,7 @@ public class CreateProjectTest {
       studio.waitForIndex();
       studio.executeAction("MakeGradleProject");
       studio.waitForBuild();
+      MemoryUsageReportProcessor.Companion.collectMemoryUsageStatistics(studio, system.getInstallation(), watcher, "afterBuild");
     }
   }
 }

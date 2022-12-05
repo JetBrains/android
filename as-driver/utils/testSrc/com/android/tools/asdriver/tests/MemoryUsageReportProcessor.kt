@@ -98,5 +98,12 @@ class MemoryUsageReportProcessor {
       }
       println("Memory statistics collection finished successfully. Took ${TimeUnit.MILLISECONDS.toSeconds(reportCollectionTimeMs)}seconds.")
     }
+
+    fun collectMemoryUsageStatistics(studio: AndroidStudio,
+                                             installation: AndroidStudioInstallation,
+                                             watcher: MemoryDashboardNameProviderWatcher,
+                                             testLabel: String) {
+      collectMemoryUsageStatistics(studio, installation, "${watcher.dashboardName}_$testLabel");
+    }
   }
 }
