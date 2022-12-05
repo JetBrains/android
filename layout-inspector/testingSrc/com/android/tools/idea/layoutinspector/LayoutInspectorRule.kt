@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -240,11 +241,14 @@ class LayoutInspectorRule(
     projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
 
     inspectorModel = InspectorModel(projectRule.project)
-    launcher = InspectorClientLauncher(processes,
-                                       clientProviders.map { provider -> { params -> provider.create(params, inspector) } },
-                                       project,
-                                       launcherDisposable,
-                                       executor = launcherExecutor)
+    launcher = InspectorClientLauncher(
+      processes,
+      clientProviders.map { provider -> { params -> provider.create(params, inspector) } },
+      project,
+      AndroidCoroutineScope(projectRule.testRootDisposable),
+      launcherDisposable,
+      executor = launcherExecutor
+    )
     Disposer.register(projectRule.testRootDisposable, launcherDisposable)
     AndroidFacet.getInstance(projectRule.module)?.let { AndroidModel.set(it, TestAndroidModel("com.example")) }
 

@@ -62,6 +62,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.future.asCompletableFuture
@@ -114,22 +115,8 @@ class AppInspectionInspectorClient(
     fireError(t.message!!)
   }
 
-  private val bannerExceptionHandler = CoroutineExceptionHandler { ctx, t ->
-    loggingExceptionHandler.handleException(ctx, t)
-
-    val message = when {
-      t is ConnectionFailedException -> t.message!!
-      process.device.apiLevel >= 29 -> {
-        logUnexpectedError(InspectorConnectionError(t))
-        AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY)
-      }
-      else -> {
-        logUnexpectedError(InspectorConnectionError(t))
-        "Unknown error"
-      }
-    }
-
-    InspectorBannerService.getInstance(model.project)?.addNotification(message)
+  private val bannerExceptionHandler = CoroutineExceptionHandler { _, t ->
+    handleException(t)
   }
 
   private var debugViewAttributesChanged = false
@@ -155,31 +142,24 @@ class AppInspectionInspectorClient(
   override val isCapturing: Boolean
     get() = inspectorClientSettings.isCapturingModeOn
 
-  override fun doConnect(): ListenableFuture<Nothing> {
-    val future = SettableFuture.create<Nothing>()
-    try {
-      checkApi29Version(process, model.project, sdkHandler)
-    }
-    catch (exception: ConnectionFailedException) {
-      future.setException(exception)
-      return future
-    }
+  override suspend fun doConnect() {
+    // we run this function outside the runCatching because it sets a banner in case of exception.
+    // We don't want the runCatching to handle it.
+    checkApi29Version(process, model.project, sdkHandler)
 
-    val exceptionHandler = CoroutineExceptionHandler { ctx, t ->
-      bannerExceptionHandler.handleException(ctx, t)
-      future.setException(t)
-    }
-    coroutineScope.launch(exceptionHandler) {
+    runCatching {
       logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
 
       // Create the app inspection connection now, so we can log that it happened.
       apiServices.attachToProcess(process, model.project.name)
       launchMonitor.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ATTACH_SUCCESS)
 
-      composeInspector = ComposeLayoutInspectorClient.launch(apiServices, process, model, treeSettings, capabilities, launchMonitor,
-                                                             ::logComposeAttachError)
-      val viewIns = ViewLayoutInspectorClient.launch(apiServices, process, model, stats, coroutineScope, composeInspector,
-                                                     ::fireError, ::fireTreeEvent, launchMonitor)
+      composeInspector = ComposeLayoutInspectorClient.launch(
+        apiServices, process, model, treeSettings, capabilities, launchMonitor, ::logComposeAttachError
+      )
+      val viewIns = ViewLayoutInspectorClient.launch(
+        apiServices, process, model, stats, coroutineScope, composeInspector, ::fireError, ::fireTreeEvent, launchMonitor
+      )
       propertiesProvider = AppInspectionPropertiesProvider(viewIns.propertiesCache, composeInspector?.parametersCache, model)
       viewInspector = viewIns
 
@@ -190,20 +170,45 @@ class AppInspectionInspectorClient(
         showActivityRestartedInBanner(model.project, process)
       }
 
-      lateinit var updateListener: (AndroidWindow?, AndroidWindow?, Boolean) -> Unit
-      updateListener = { _, _, _ ->
-        future.set(null)
-        model.modificationListeners.remove(updateListener)
+      val completableDeferred = CompletableDeferred<Unit>()
+      val updateListener: (AndroidWindow?, AndroidWindow?, Boolean) -> Unit = { _, _, _ ->
+        completableDeferred.complete(Unit)
       }
+
       model.modificationListeners.add(updateListener)
+
       if (isCapturing) {
         startFetchingInternal()
       }
       else {
         refreshInternal()
       }
+
+      // wait until we start receiving updates
+      completableDeferred.await()
+      model.modificationListeners.remove(updateListener)
+    }.recover {
+      handleException(it)
+      throw it
     }
-    return future
+  }
+
+  private fun handleException(throwable: Throwable) {
+    fireError(throwable.message!!)
+
+    val message = when {
+      throwable is ConnectionFailedException -> throwable.message!!
+      process.device.apiLevel >= 29 -> {
+        logUnexpectedError(InspectorConnectionError(throwable))
+        AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY)
+      }
+      else -> {
+        logUnexpectedError(InspectorConnectionError(throwable))
+        "Unknown error"
+      }
+    }
+
+    InspectorBannerService.getInstance(model.project)?.addNotification(message)
   }
 
   override fun doDisconnect(): ListenableFuture<Nothing> {

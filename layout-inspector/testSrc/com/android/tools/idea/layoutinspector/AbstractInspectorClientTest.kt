@@ -35,6 +35,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -83,7 +84,7 @@ class AbstractInspectorClientTest {
     val client = MyClient(projectRule.project, disposableRule.disposable)
     val monitor = mock<InspectorClientLaunchMonitor>()
     client.launchMonitor = monitor
-    client.connect(projectRule.project)
+    runBlocking { client.connect (projectRule.project) }
     assertThat(client.isConnected).isTrue()
     verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
   }
@@ -95,7 +96,7 @@ class AbstractInspectorClientTest {
     val client = MyClient(projectRule.project, disposableRule.disposable)
     val monitor = mock<InspectorClientLaunchMonitor>()
     client.launchMonitor = monitor
-    client.connect(projectRule.project)
+    runBlocking { client.connect (projectRule.project) }
     assertThat(client.isConnected).isFalse()
     verify(monitor, times(0)).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
   }
@@ -105,7 +106,7 @@ class AbstractInspectorClientTest {
     disposable: Disposable
   ) : AbstractInspectorClient(ClientType.UNKNOWN_CLIENT_TYPE, project, MODERN_DEVICE.createProcess(), true, DisconnectedClient.stats,
                               disposable) {
-    override fun doConnect(): ListenableFuture<Nothing> = immediateFuture(null)
+    override suspend fun doConnect() { }
 
     override fun doDisconnect(): ListenableFuture<Nothing> = immediateFuture(null)
 

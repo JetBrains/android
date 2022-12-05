@@ -114,7 +114,7 @@ interface InspectorClient: Disposable {
    *
    * You are only supposed to call this once.
    */
-  fun connect(project: Project)
+  suspend fun connect(project: Project)
 
   fun updateProgress(state: AttachErrorState)
 
@@ -229,7 +229,7 @@ interface InspectorClient: Disposable {
 }
 
 object DisconnectedClient : InspectorClient {
-  override fun connect(project: Project) {}
+  override suspend fun connect(project: Project) {}
   override fun updateProgress(state: AttachErrorState) {}
 
   override fun disconnect() {}

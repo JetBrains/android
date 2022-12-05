@@ -16,13 +16,11 @@
 package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
 import com.android.tools.idea.util.ListenerCollection
-import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
@@ -31,6 +29,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import kotlinx.coroutines.guava.await
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -107,42 +106,40 @@ abstract class AbstractInspectorClient(
     treeEventCallbacks.forEach { callback -> callback(event) }
   }
 
-  final override fun connect(project: Project) {
+  final override suspend fun connect(project: Project) {
     launchMonitor.start(this)
     assert(state == InspectorClient.State.INITIALIZED)
     state = InspectorClient.State.CONNECTING
 
     // Test that we can actually contact the device via ADB, and fail fast if we can't.
-    val adb = AdbUtils.getAdbFuture(project).get() ?: return
+    val adb = AdbUtils.getAdbFuture(project).await() ?: return
     if (adb.executeShellCommand(process.device, "echo ok") != "ok") {
       state = InspectorClient.State.DISCONNECTED
       return
     }
     launchMonitor.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
 
-
-    doConnect().addCallback(MoreExecutors.directExecutor(), object : FutureCallback<Nothing> {
-      override fun onSuccess(value: Nothing?) {
-        state = InspectorClient.State.CONNECTED
-      }
-
-      override fun onFailure(t: Throwable) {
-        launchMonitor.onFailure(t)
-        disconnect()
-        Logger.getInstance(AbstractInspectorClient::class.java).warn(
-          "Connection failure with " +
-          "'use.dev.jar=${StudioFlags.APP_INSPECTION_USE_DEV_JAR.get()}' " +
-          "'use.snapshot.jar=${StudioFlags.APP_INSPECTION_USE_SNAPSHOT_JAR.get()}' " +
-          "cause:", t)
-      }
-    })
+    try {
+      doConnect()
+      state = InspectorClient.State.CONNECTED
+    }
+    catch (t: Throwable) {
+      // TODO(b/254222091) consider moving error handling in exception handler in the coroutine scope
+      launchMonitor.onFailure(t)
+      disconnect()
+      Logger.getInstance(AbstractInspectorClient::class.java).warn(
+        "Connection failure with " +
+        "'use.dev.jar=${StudioFlags.APP_INSPECTION_USE_DEV_JAR.get()}' " +
+        "'use.snapshot.jar=${StudioFlags.APP_INSPECTION_USE_SNAPSHOT_JAR.get()}' " +
+        "cause:", t)
+    }
   }
 
   override fun updateProgress(state: DynamicLayoutInspectorErrorInfo.AttachErrorState) {
     launchMonitor.updateProgress(state)
   }
 
-  protected abstract fun doConnect(): ListenableFuture<Nothing>
+  protected abstract suspend fun doConnect()
 
   private val disconnectStateLock = Any()
   final override fun disconnect() {

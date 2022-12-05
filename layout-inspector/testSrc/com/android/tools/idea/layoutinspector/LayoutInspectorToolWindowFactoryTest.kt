@@ -60,6 +60,7 @@ import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
+import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -124,6 +125,14 @@ class LayoutInspectorToolWindowFactoryTest {
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule)!!
+
+  @Before
+  fun setUp() {
+    val devices = listOf(MODERN_DEVICE, OLDER_LEGACY_DEVICE, LEGACY_DEVICE)
+    devices.forEach { device ->
+      inspectorRule.adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString())
+    }
+  }
 
   @Test
   fun clientOnlyLaunchedIfWindowIsNotMinimized() {

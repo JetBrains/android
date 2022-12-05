@@ -43,6 +43,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
@@ -810,8 +811,14 @@ class DeviceViewPanelTest {
     val viewSettings = EditorRenderSettings()
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessDiscovery())
-    val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
-                                           executor = MoreExecutors.directExecutor())
+    val launcher = InspectorClientLauncher(
+      processes,
+      listOf(),
+      projectRule.project,
+      AndroidCoroutineScope(disposableRule.disposable),
+      disposableRule.disposable,
+      executor = MoreExecutors.directExecutor()
+    )
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
@@ -862,8 +869,14 @@ class DeviceViewPanelTest {
     val viewSettings = EditorRenderSettings()
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessDiscovery())
-    val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
-                                           executor = MoreExecutors.directExecutor())
+    val launcher = InspectorClientLauncher(
+      processes,
+      listOf(),
+      projectRule.project,
+      AndroidCoroutineScope(disposableRule.disposable),
+      disposableRule.disposable,
+      executor = MoreExecutors.directExecutor()
+    )
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = true
@@ -901,8 +914,14 @@ class DeviceViewPanelTest {
     val viewSettings = EditorRenderSettings()
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessDiscovery())
-    val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
-                                           executor = MoreExecutors.directExecutor())
+    val launcher = InspectorClientLauncher(
+      processes,
+      listOf(),
+      projectRule.project,
+      AndroidCoroutineScope(disposableRule.disposable),
+      disposableRule.disposable,
+      executor = MoreExecutors.directExecutor()
+    )
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = true
@@ -941,8 +960,14 @@ class DeviceViewPanelTest {
     val viewSettings = EditorRenderSettings()
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessDiscovery())
-    val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
-                                           executor = MoreExecutors.directExecutor())
+    val launcher = InspectorClientLauncher(
+      processes,
+      listOf(),
+      projectRule.project,
+      AndroidCoroutineScope(disposableRule.disposable),
+      disposableRule.disposable,
+      executor = MoreExecutors.directExecutor()
+    )
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
@@ -1045,8 +1070,14 @@ class DeviceViewPanelTest {
   fun testFocusableActionButtons() {
     val model = model { view(1, 0, 0, 1200, 1600, qualifiedName = "RelativeLayout") }
     val processes = ProcessesModel(TestProcessDiscovery())
-    val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
-                                           executor = MoreExecutors.directExecutor())
+    val launcher = InspectorClientLauncher(
+      processes,
+      listOf(),
+      projectRule.project,
+      AndroidCoroutineScope(disposableRule.disposable),
+      disposableRule.disposable,
+      executor = MoreExecutors.directExecutor()
+    )
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false

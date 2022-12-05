@@ -82,14 +82,8 @@ class LegacyClient(
     loggedInitialRender = false
   }
 
-  override fun doConnect(): ListenableFuture<Nothing> {
-    return try {
-      doAttach()
-      Futures.immediateFuture(null)
-    }
-    catch (exception: Exception) {
-      Futures.immediateFailedFuture(exception)
-    }
+  override suspend fun doConnect() {
+    doAttach()
   }
 
   /**

@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
@@ -31,6 +32,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.jetbrains.rd.util.threadLocalWithInitial
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.CancellationException
@@ -53,6 +55,7 @@ class InspectorClientLauncher(
   private val processes: ProcessesModel,
   private val clientCreators: List<(Params) -> InspectorClient?>,
   private val project: Project,
+  private val scope: CoroutineScope,
   private val parentDisposable: Disposable,
   private val metrics: LayoutInspectorSessionMetrics? = null,
   @VisibleForTesting executor: Executor? = null
@@ -95,6 +98,7 @@ class InspectorClientLauncher(
           { params -> LegacyClient(params.process, params.isInstantlyAutoConnected, model, metrics, parentDisposable) }
         ),
         model.project,
+        coroutineScope,
         parentDisposable,
         metrics)
     }
@@ -262,7 +266,7 @@ class InspectorClientLauncher(
           field = value
         }
         clientChangedCallbacks.forEach { callback -> callback(value) }
-        value.connect(project)
+        scope.launch { value.connect(project) }
       }
     }
 
