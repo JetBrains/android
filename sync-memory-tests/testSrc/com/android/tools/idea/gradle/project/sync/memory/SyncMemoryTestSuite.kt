@@ -33,6 +33,11 @@ class Benchmark200MemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
   override val projectName = "200Modules"
 }
 
+class Benchmark500MemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
+  override val relativePath = "benchmark-500"
+  override val projectName = "500Modules"
+}
+
 @RunWith(JarTestSuiteRunner::class)
 object SyncMemoryTestSuite : IdeaTestSuiteBase() {
   @JvmField @ClassRule  val checker = LeakCheckerRule()
@@ -41,8 +46,10 @@ object SyncMemoryTestSuite : IdeaTestSuiteBase() {
   init {
     setUpProject("benchmark-100", "diff-100")
     setUpProject("benchmark-200", "diff-200")
+    setUpProject("benchmark-500", "diff-500")
     unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/extra-large.2022.9/repo.zip")
     unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip")
+    unzipIntoOfflineMavenRepo("tools/data-binding/data_binding_runtime.zip")
     linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest")
     linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest")
   }

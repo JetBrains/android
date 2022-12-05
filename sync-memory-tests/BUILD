@@ -52,6 +52,7 @@ generate_test_targets_with_multiple_runs(
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+        "//tools/data-binding:data_binding_runtime.zip",
     ],
     jvm_flags = [
         "-Dtest.suite.class=com.android.tools.idea.gradle.project.sync.memory.SyncMemoryTestSuite",
@@ -69,6 +70,7 @@ generate_test_targets_with_multiple_runs(
     tests = {
         "Benchmark100": "com.android.tools.idea.gradle.project.sync.memory.Benchmark100MemoryTest",
         "Benchmark200": "com.android.tools.idea.gradle.project.sync.memory.Benchmark200MemoryTest",
+        "Benchmark500": "com.android.tools.idea.gradle.project.sync.memory.Benchmark500MemoryTest",
     },
     runtime_deps = [":intellij.android.sync-memory-tests_testlib"],
 )

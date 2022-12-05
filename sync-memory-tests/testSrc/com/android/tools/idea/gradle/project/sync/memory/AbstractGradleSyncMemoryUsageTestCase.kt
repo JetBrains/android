@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.memory
 
+import com.android.SdkConstants
 import com.android.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.util.GradleProperties
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
@@ -76,6 +78,7 @@ abstract class AbstractGradleSyncMemoryUsageTestCase {
 
   @Test
   open fun testSyncMemory() {
+    reduceMaxMemory()
     projectRule.loadProject(relativePath)
     // Free up some memory by closing the Gradle Daemon
     DefaultGradleConnector.close()
@@ -102,5 +105,12 @@ abstract class AbstractGradleSyncMemoryUsageTestCase {
     }
     metricAfterSync.commit()
     metricBeforeSync.commit()
+  }
+
+  private fun reduceMaxMemory() {
+    GradleProperties(File(projectRule.resolveTestDataPath(relativePath), SdkConstants.FN_GRADLE_PROPERTIES)).apply {
+      setJvmArgs(jvmArgs.orEmpty().replace("-Xmx60g", "-Xmx8g"))
+      save()
+    }
   }
 }
