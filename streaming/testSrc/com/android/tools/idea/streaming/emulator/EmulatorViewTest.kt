@@ -543,8 +543,7 @@ class EmulatorViewTest {
   fun testMouseMoveNotSendWhenCameraOperating() {
     val view = emulatorViewRule.newEmulatorView()
     val emulator = emulatorViewRule.getFakeEmulator(view)
-    val panel = NotificationHolderPanel()
-    panel.add(view)
+    val panel = NotificationHolderPanel(view)
     val container = HeadlessRootPaneContainer(panel)
     container.rootPane.size = Dimension(200, 300)
     val ui = FakeUi(container.rootPane, 1.0)

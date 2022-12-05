@@ -52,7 +52,7 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
 ) : BorderLayoutPanel(), Disposable {
 
   private val scrollPane: JScrollPane
-  private val centerPanel: BorderLayoutPanel
+  private val centerPanel: NotificationHolderPanel
   private var floatingToolbar: JComponent
   protected val loadingPanel: StreamingLoadingPanel
   private var _displayView: T? = null
@@ -104,17 +104,15 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
       add(scrollPane, BorderLayout.CENTER)
     }
 
-    centerPanel = NotificationHolderPanel()
-
     floatingToolbar = ZoomToolbarProvider.createToolbar(this, this)
     floatingToolbar.isVisible = zoomToolbarVisible
     zoomControlsLayerPane.add(floatingToolbar, BorderLayout.EAST)
 
-    addToCenter(centerPanel)
-
     loadingPanel = StreamingLoadingPanel(this)
     loadingPanel.add(layeredPane, BorderLayout.CENTER)
-    centerPanel.addToCenter(loadingPanel)
+
+    centerPanel = NotificationHolderPanel(loadingPanel)
+    addToCenter(centerPanel)
   }
 
   fun showLongRunningOperationIndicator(text: String) {
