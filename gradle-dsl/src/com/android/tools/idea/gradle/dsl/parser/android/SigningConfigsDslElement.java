@@ -22,16 +22,16 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
-import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 
 public final class SigningConfigsDslElement extends GradleDslElementMap implements GradleDslNamedDomainContainer {
   public static final PropertiesElementDescription<SigningConfigsDslElement> SIGNING_CONFIGS =
     new PropertiesElementDescription<>("signingConfigs", SigningConfigsDslElement.class, SigningConfigsDslElement::new);
 
-  public static final List<String> implicitSigningConfigs = ContainerUtil.immutableList("debug");
+  public static final List<String> implicitSigningConfigs = List.of("debug");
 
   @Override
   public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
