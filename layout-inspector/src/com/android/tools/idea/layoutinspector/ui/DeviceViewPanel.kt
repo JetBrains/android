@@ -395,9 +395,7 @@ class DeviceViewPanel(
 
     processesModel?.addSelectedProcessListeners(newSingleThreadExecutor()) {
       if (processesModel.selectedProcess?.isRunning == true) {
-        if (model.isEmpty) {
           loadingPane.startLoading()
-        }
       }
       if (processesModel.selectedProcess == null) {
           loadingPane.stopLoading()
