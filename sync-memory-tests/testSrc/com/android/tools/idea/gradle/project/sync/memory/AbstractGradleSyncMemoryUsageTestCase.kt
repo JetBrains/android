@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.memory
 
+import com.android.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.perflogger.Benchmark
@@ -32,6 +33,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
+import java.nio.file.Files
 import java.time.Instant
 import kotlin.io.path.createDirectory
 import kotlin.system.measureTimeMillis
@@ -52,6 +54,7 @@ abstract class AbstractGradleSyncMemoryUsageTestCase {
 
   private val eclipseMatHelper = EclipseMatHelper()
   private lateinit var snapshotDirectory: String
+  private val keepSnapshots = System.getProperty("keep_snapshots").toBoolean()
 
   @Before
   open fun setUp() {
@@ -92,6 +95,10 @@ abstract class AbstractGradleSyncMemoryUsageTestCase {
         }
       }
       println("Analysis took $elapsedTime MS.")
+      if (keepSnapshots) {
+        val testOutputDir = TestUtils.getTestOutputDir()
+        Files.move(hprofPath.toPath(), testOutputDir.resolve(hprofPath.name))
+      }
     }
     metricAfterSync.commit()
     metricBeforeSync.commit()
