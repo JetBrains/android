@@ -86,6 +86,9 @@ public class Emulator implements AutoCloseable {
       // This port value needs to be unique for each emulator
       "-grpc", Integer.toString(grpcPort),
       "-no-snapshot",
+      // Turn off the modem simulator to avoid b/258836512
+      "-feature",
+      "-ModemSimulator",
       "-delay-adb",
       "-verbose");
     pb.environment().put("ANDROID_EMULATOR_HOME", fileSystem.getAndroidHome().toString());
@@ -142,7 +145,7 @@ public class Emulator implements AutoCloseable {
     if (process == null) {
       throw new IllegalStateException("Emulator not running yet.");
     }
-    logFile.waitForMatchingLine(".*Boot completed.*", 4, TimeUnit.MINUTES);
+    logFile.waitForMatchingLine(".*Boot completed.*", 12, TimeUnit.MINUTES);
   }
 
   public Path getHome() {
@@ -186,7 +189,8 @@ public class Emulator implements AutoCloseable {
   /** A particular supported {@link Emulator} image to use. */
   public enum SystemImage {
     API_29("system_image_android-29_default_x86_64"),
-    API_30("system_image_android-30_default_x86_64");
+    API_30("system_image_android-30_default_x86_64"),
+    API_31("system_image_android-31_default_x86_64");
     /** Path to the image for this emulator {@link SystemImage}. */
     @NotNull
     public final String path;
