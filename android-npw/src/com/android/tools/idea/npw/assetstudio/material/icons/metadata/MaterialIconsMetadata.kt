@@ -61,7 +61,7 @@ data class MaterialIconsMetadata(
       var metadata: MaterialIconsMetadata = EMPTY
 
       try {
-        metadata = BufferedReader(InputStreamReader(url.openStream())).use { reader ->
+        metadata = BufferedReader(InputStreamReader(url.openStream(), Charsets.UTF_8)).use { reader ->
           getGson().fromJson(reader, MaterialIconsMetadata::class.java)
         }
       }
@@ -70,7 +70,6 @@ data class MaterialIconsMetadata(
           is IOException,
           is JsonIOException,
           is JsonSyntaxException -> logger.warn("Error reading url", e)
-
           else -> throw e
         }
       }
@@ -86,7 +85,7 @@ data class MaterialIconsMetadata(
         return
       }
       try {
-        Files.newBufferedWriter(target).use { writer ->
+        Files.newBufferedWriter(target, Charsets.UTF_8).use { writer ->
           getGson().toJson(metadata, writer)
         }
       }

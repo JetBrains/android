@@ -56,25 +56,32 @@ class MaterialIconsMetadataTest {
       "      \"categories\": [\n" +
       "        \"maps\"\n" +
       "      ],\n" +
-      "      \"tags\": []\n" +
+      "      \"tags\": [\n" +
+      "        \"plaît\",\n" +
+      "        \"respond\",\n" +
+      "        \"répondez\"\n" +
+      "      ]\n" +
       "    }\n" +
       "  ]\n" +
       "}"
     )
     val iconsMetadata = MaterialIconsMetadata.parse(SdkUtils.fileToUrl(testMetadataFile), thisLogger())
     Truth.assertThat(iconsMetadata.families).hasLength(5)
-    assertEquals(iconsMetadata.families[0], "Material Icons")
-    assertEquals(iconsMetadata.families[1], "Material Icons Outlined")
-    assertEquals(iconsMetadata.families[2], "Material Icons Round")
-    assertEquals(iconsMetadata.families[3], "Material Icons Sharp")
-    assertEquals(iconsMetadata.families[4], "Material Icons Two Tone")
+    assertEquals("Material Icons", iconsMetadata.families[0])
+    assertEquals("Material Icons Outlined", iconsMetadata.families[1])
+    assertEquals("Material Icons Round", iconsMetadata.families[2])
+    assertEquals("Material Icons Sharp", iconsMetadata.families[3])
+    assertEquals("Material Icons Two Tone", iconsMetadata.families[4])
     Truth.assertThat(iconsMetadata.icons).hasLength(1)
     val iconMetadata = iconsMetadata.icons[0]
-    assertEquals(iconMetadata.name, "360")
-    assertEquals(iconMetadata.version, 1)
+    assertEquals("360", iconMetadata.name)
+    assertEquals(1, iconMetadata.version)
     Truth.assertThat(iconMetadata.unsupportedFamilies).isEmpty()
-    assertEquals(iconMetadata.categories[0], "maps")
-    Truth.assertThat(iconMetadata.tags).isEmpty()
+    assertEquals("maps", iconMetadata.categories[0])
+    assertEquals(3, iconMetadata.tags.size)
+    assertEquals("plaît", iconMetadata.tags[0])
+    assertEquals("respond", iconMetadata.tags[1])
+    assertEquals("répondez", iconMetadata.tags[2])
   }
 
   @Test
