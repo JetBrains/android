@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.intellij.openapi.diagnostic.Logger
 import java.lang.ref.WeakReference
+import java.lang.reflect.Field
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.util.Arrays
@@ -42,6 +43,7 @@ private val LOG = Logger.getInstance("RenderSessionDisposer")
 private const val SNAPSHOT_KT_FQN = "androidx.compose.runtime.snapshots.SnapshotKt"
 private const val FONT_REQUEST_WORKER_FQN = "androidx.core.provider.FontRequestWorker"
 private const val WINDOW_RECOMPOSER_ANDROID_KT_FQN = "androidx.compose.ui.platform.WindowRecomposer_androidKt"
+private const val LOCAL_BROADCAST_MANAGER_FQN = "androidx.localbroadcastmanager.content.LocalBroadcastManager"
 
 private const val GAP_WORKER_CLASS_NAME = "androidx.recyclerview.widget.GapWorker"
 
@@ -97,6 +99,8 @@ fun RenderSession.dispose(classLoader: LayoutlibCallbackImpl): CompletableFuture
     LOG.debug("Unable to dispose the PENDING_REPLIES", ex)
   }
 
+  val broadcastManagerInstanceField = WeakReference(findLocalBroadcastManagerInstance(classLoader))
+
   disposeMethod.ifPresent { m: Method -> m.isAccessible = true }
   val finalDisposeMethod = disposeMethod
   return RenderService.getRenderAsyncActionExecutor().runAsyncAction(RenderAsyncActionExecutor.RenderingPriority.HIGH) {
@@ -115,6 +119,7 @@ fun RenderSession.dispose(classLoader: LayoutlibCallbackImpl): CompletableFuture
       val applyObservers = weakApplyObservers.get()
       applyObservers?.clear()
     }
+    broadcastManagerInstanceField.get()?.set(null, null)
     this@dispose.dispose()
   }
 }
@@ -156,6 +161,16 @@ private fun findApplyObservers(classLoader: LayoutlibCallbackImpl): MutableColle
     LOG.warn("Unable to find SnapshotsKt.applyObservers", ex)
   }
   return null
+}
+
+private fun findLocalBroadcastManagerInstance(classLoader: LayoutlibCallbackImpl): Field? {
+  return try {
+    val broadcastManagerClass = classLoader.findClass(LOCAL_BROADCAST_MANAGER_FQN)
+    broadcastManagerClass.getDeclaredField("mInstance").apply { this.isAccessible = true }
+  } catch (ex: ReflectiveOperationException) {
+    LOG.debug("Unable to find $LOCAL_BROADCAST_MANAGER_FQN.mInstance", ex)
+    null
+  }
 }
 
 /**

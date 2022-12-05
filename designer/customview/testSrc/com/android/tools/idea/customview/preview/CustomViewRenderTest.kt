@@ -78,6 +78,6 @@ class CustomViewRenderTest {
 
     renderTask.dispose().get()
 
-    Assert.assertNotNull(instanceField.get(null)) // This means we are leaking BridgeContext
+    Assert.assertNull(instanceField.get(null))
   }
 }
