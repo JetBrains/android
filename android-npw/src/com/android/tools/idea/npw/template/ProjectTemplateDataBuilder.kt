@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.AgpVersion
 import com.android.repository.Revision
 import com.android.tools.idea.npw.project.determineAgpVersion
+import com.android.tools.idea.npw.project.determineKotlinVersion
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
@@ -28,7 +29,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.refactoring.isAndroidx
-import org.jetbrains.kotlin.idea.compiler.configuration.KotlinPluginLayout
 import java.io.File
 
 private val log: Logger get() = logger<ProjectTemplateDataBuilder>()
@@ -56,17 +56,12 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
 
   internal fun setEssentials(project: Project) {
     applicationName = project.name
-    kotlinVersion = getBestKotlinVersion()
+    kotlinVersion = determineKotlinVersion(project)
     agpVersion = determineAgpVersion(project)
     // If we create a new project, then we have a checkbox for androidX support
     if (!isNewProject) {
       androidXSupport = project.isAndroidx()
     }
-  }
-
-  private fun getBestKotlinVersion() : String {
-    // See IdeaKotlinVersionProviderService.getKotlinVersionFromCompiler().
-    return KotlinPluginLayout.standaloneCompilerVersion.artifactVersion
   }
 
   /**
@@ -90,6 +85,11 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   private fun determineAgpVersion(project: Project): AgpVersion {
     // Could be expensive to calculate, so return any cached value.
     return agpVersion ?: determineAgpVersion(project, isNewProject)
+  }
+
+  @Slow
+  private fun determineKotlinVersion(project: Project): String {
+    return determineKotlinVersion(project, isNewProject)
   }
 
   fun build() = ProjectTemplateData(
