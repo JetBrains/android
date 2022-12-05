@@ -40,7 +40,7 @@ kotlin_library(
 )
 
 generate_test_targets_with_multiple_runs(
-    size = "large",
+    size = "enormous",
     data = [
         "//prebuilts/studio/buildbenchmarks:ExtraLarge2022_project",
         "//prebuilts/studio/sdk:build-tools/latest",
@@ -56,7 +56,6 @@ generate_test_targets_with_multiple_runs(
     jvm_flags = [
         "-Dtest.suite.class=com.android.tools.idea.gradle.project.sync.memory.SyncMemoryTestSuite",
         "-Dtest.suite.jar=intellij.android.sync-memory-tests_test.jar",
-        "-Dtest.suite.jar=intellij.android.sync-memory-tests_test.jar",
     ],
     num_tests = 10,
     tags = [
@@ -64,6 +63,7 @@ generate_test_targets_with_multiple_runs(
         "cpu:3",
         "no_test_mac",
         "no_test_windows",
+        "perfgate",
     ],
     test_class = "com.android.tools.idea.gradle.project.sync.memory.SyncMemoryTestSuite",
     tests = {
