@@ -81,8 +81,7 @@ class BuildAttributionUiAnalytics(
     val eventType = when (tabOpenEventSource) {
       TabOpenEventSource.WNA_BUTTON -> BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_WNA_BUTTON
       TabOpenEventSource.BUILD_OUTPUT_LINK -> BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_BUILD_OUTPUT_LINK
-      //TODO(b/239174185) Update the event type
-      TabOpenEventSource.BUILD_MENU_ACTION -> BuildAttributionUiEvent.EventType.UNKNOWN_TYPE
+      TabOpenEventSource.BUILD_MENU_ACTION -> BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_ACTION
       TabOpenEventSource.TAB_HEADER -> BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_TAB_CLICK
       // Not opened by direct user action so don't report.
       TabOpenEventSource.AUTO_OPEN -> null
