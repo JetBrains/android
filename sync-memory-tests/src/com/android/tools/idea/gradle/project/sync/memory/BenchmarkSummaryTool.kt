@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.memory
 
 import com.google.gson.Gson
 import java.nio.file.Path
+import java.text.NumberFormat
 import java.util.zip.ZipFile
 
 data class Benchmark(val data: Map<String, Long>)
@@ -66,11 +67,13 @@ fun main(args : Array<String>) {
 
   metricNameToDataMap.entries.forEach{
     println("Metric: ${it.key}")
-    println("Mean  : ${it.value.average().toLong() shr 20} MBs")
-    println("Median: ${it.value.sorted()[it.value.size / 2] shr 20} MBs")
-    println("Min   : ${it.value.minOrNull()!! shr 20} MBs")
-    println("Max   : ${it.value.maxOrNull()!! shr 20} MBs")
+    println("Mean  : ${it.value.average().toLong().pretty()}")
+    println("Median: ${it.value.sorted()[it.value.size / 2].pretty()}")
+    println("Min   : ${it.value.minOrNull()!!.pretty()}")
+    println("Max   : ${it.value.maxOrNull()!!.pretty()}")
     println("-----------------")
   }
 }
+
+private fun Long.pretty() = "${"%.2f".format(this.toDouble() / (1L shl 20))} MB\t${NumberFormat.getNumberInstance().format(this)} bytes"
 
