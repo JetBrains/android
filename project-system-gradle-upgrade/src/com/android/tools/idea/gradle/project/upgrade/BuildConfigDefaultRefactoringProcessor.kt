@@ -18,18 +18,23 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
+import com.android.tools.idea.gradle.dsl.utils.FN_GRADLE_PROPERTIES
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.project.getPackageName
 import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
+import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.systemIndependentPath
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiManager
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
@@ -43,92 +48,26 @@ class BuildConfigDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPro
 
   override var necessityInfo = PointNecessity(AgpVersion.parse("8.0.0-alpha09"))
 
-  class SourcesNotGenerated(moduleNames: List<String>) : BlockReason(
-    shortDescription = "Generated BuildConfig sources are missing",
-    description = """
-      The project is configured to generate BuildConfig sources, but those
-      generated sources are missing from the project, in the following modules:
-      ${moduleNames.descriptionText}.
-      To proceed, execute the "Run Generate Sources Gradle Tasks" action and refresh
-      the AGP Upgrade Assistant.
-    """.trimIndent(),
-    readMoreUrl = ReadMoreUrlRedirect("build-config-sources-not-generated"),
-  )
-
-  override fun blockProcessorReasons(): List<BlockReason> {
-    val explicitProperty =
-      projectBuildModel.projectBuildModel?.propertiesModel?.declaredProperties
-        ?.any { it.name == "android.defaults.buildfeatures.buildconfig" }
-      ?: false
-    // If the user has already explicitly turned BuildConfig on or off, we should not block the upgrade.
-    if (explicitProperty) return listOf()
-
-    val moduleNames = mutableListOf<String>()
-    val modules = ModuleManager.getInstance(project).modules.filter { it.isMainModule() }
-
-    modules.forEach module@{ module ->
-      val facet = module.androidFacet ?: return@module
-      val generatedSourceFolders = GradleAndroidModel.get(facet)?.mainArtifact?.generatedSourceFolders ?: return@module
-      if (!generatedSourceFolders.any { it.systemIndependentPath.contains("generated/source/buildConfig")}) {
-        // If none of our generated source folders are for buildConfig, then the user must have turned it off.
-        return@module
-      }
-
-      projectBuildModel.getModuleBuildModel(module)?.let { buildModel ->
-        val buildConfigModel = buildModel.android().buildFeatures().buildConfig()
-        val buildConfigEnabled = buildConfigModel.getValue(BOOLEAN_TYPE)
-        // If we can find an explicit buildConfig directive for this module, true or false, then we should not block this processor.
-        if (buildConfigEnabled != null) return@module
-      }
-
-      val namespace = GradleAndroidModel.get(facet)?.androidProject?.namespace ?: getPackageName(module)
-      val className = "$namespace.BuildConfig"
-
-      val dumbService = DumbService.getInstance(project)
-      val psiFacade = JavaPsiFacade.getInstance(project)
-      var buildConfigClass: PsiClass? = null
-      dumbService.runReadActionInSmartMode { buildConfigClass = psiFacade.findClass(className, module.moduleContentScope) }
-      if (buildConfigClass == null) {
-        // If we cannot resolve the BuildConfig class, but there is a generated folder for it, then (most likely) the sources have
-        // not been generated; we should block this upgrade until the user generates sources.
-        moduleNames.add(module.name)
-      }
-    }
-    return when {
-      moduleNames.isEmpty() -> listOf()
-      else -> listOf(SourcesNotGenerated(moduleNames))
-    }
-  }
-
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
-    val explicitProperty =
-      projectBuildModel.projectBuildModel?.propertiesModel?.declaredProperties
-        ?.any { it.name == "android.defaults.buildfeatures.buildconfig" }
-      ?: false
-    if (explicitProperty) return UsageInfo.EMPTY_ARRAY
-    val modules = ModuleManager.getInstance(project).modules.filter { it.isMainModule() }
-
-    modules.forEach module@{ module ->
-      val buildModel = projectBuildModel.getModuleBuildModel(module) ?: return@module
-      val buildConfigModel = buildModel.android().buildFeatures().buildConfig()
-      val buildConfigEnabled = buildConfigModel.getValue(BOOLEAN_TYPE)
-      if (buildConfigEnabled != null) return@module
-
-      val facet = module.androidFacet ?: return@module
-      val namespace = GradleAndroidModel.get(facet)?.androidProject?.namespace ?: getPackageName(module)
-      val className = "$namespace.BuildConfig"
-      // This should succeed (given the check in blockProcessorReasons() above), but be defensive Just In Case.
-      val buildConfigClass = JavaPsiFacade.getInstance(project).findClass(className, module.moduleContentScope) ?: return@module
-      val references = ReferencesSearch.search(buildConfigClass, module.moduleContentScope)
-      if (references.findAll().isEmpty()) return@module
-
-      val buildFeaturesOrHigherPsiElement =
-        listOf(buildModel.android().buildFeatures(), buildModel.android(), buildModel)
-          .firstNotNullOfOrNull { it.psiElement }
-        ?: return@module
-      val psiElement = WrappedPsiElement(buildFeaturesOrHigherPsiElement, this, INSERT_BUILD_CONFIG_DIRECTIVE)
-      usages.add(BuildConfigEnableUsageInfo(psiElement, buildConfigModel))
+    val baseDir = project.baseDir ?: return usages.toTypedArray()
+    val gradlePropertiesVirtualFile = baseDir.findChild("gradle.properties")
+    if (gradlePropertiesVirtualFile != null && gradlePropertiesVirtualFile.exists()) {
+      val gradlePropertiesPsiFile = PsiManager.getInstance(project).findFile(gradlePropertiesVirtualFile)
+      if (gradlePropertiesPsiFile is PropertiesFile) {
+        val property = gradlePropertiesPsiFile.findPropertyByKey("android.defaults.buildfeatures.buildconfig")
+        if (property == null) {
+          val wrappedPsiElement = WrappedPsiElement(gradlePropertiesPsiFile, this, INSERT_PROPERTY)
+          usages.add(BuildConfigUsageInfo(wrappedPsiElement))
+        }
+      }
+    }
+    else if (baseDir.exists()) {
+      val baseDirPsiDirectory = PsiManager.getInstance(project).findDirectory(baseDir)
+      if (baseDirPsiDirectory is PsiElement) {
+        val wrappedPsiElement = WrappedPsiElement(baseDirPsiDirectory, this, INSERT_PROPERTY)
+        usages.add(BuildConfigUsageInfo(wrappedPsiElement))
+      }
     }
     return usages.toTypedArray()
   }
@@ -139,10 +78,12 @@ class BuildConfigDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPro
   override fun getCommandName() = AndroidBundle.message("project.upgrade.buildConfigDefaultRefactoringProcessor.commandName")
 
   override fun getShortDescription() = """
-    The default value for buildFeatures.buildConfig has changed, and some
-    modules in this project appear to be using BuildConfig.  Build files
-    will be modified to explicitly turn BuildConfig on in modules referring
-    to BuildConfig.
+    The default value for buildFeatures.buildConfig is changing, meaning that
+    the Android Gradle Plugin will no longer generate BuildConfig classes by default.
+    This processor adds a directive to preserve the previous behavior of generating
+    BuildConfig classes for all modules; if this project does not use BuildConfig, you
+    can remove the android.defaults.buildfeatures.buildconfig property from the
+    project's gradle.properties file after this upgrade.
   """.trimIndent()
 
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.buildConfigDefault"
@@ -161,17 +102,22 @@ class BuildConfigDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPro
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("build-config-default")
 
   companion object {
-    val INSERT_BUILD_CONFIG_DIRECTIVE = UsageType(AndroidBundle.messagePointer("project.upgrade.buildConfigDefaultRefactoringProcessor.enable.usageType"))
+    val INSERT_PROPERTY = UsageType(AndroidBundle.messagePointer("project.upgrade.buildConfigDefaultRefactoringProcessor.enable.usageType"))
   }
 }
 
-class BuildConfigEnableUsageInfo(
-  element: WrappedPsiElement,
-  private val resultModel: GradlePropertyModel,
-): GradleBuildModelUsageInfo(element) {
+class BuildConfigUsageInfo(private val wrappedElement: WrappedPsiElement): GradleBuildModelUsageInfo(wrappedElement) {
   override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.buildConfigBuildFeature.enable.tooltipText")
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    resultModel.setValue(true)
+    val (propertiesFile, psiFile) = when (val realElement = wrappedElement.realElement) {
+      is PropertiesFile -> realElement to (realElement as? PsiFile ?: return)
+      is PsiDirectory -> (realElement.findFile(FN_GRADLE_PROPERTIES) ?: realElement.createFile (FN_GRADLE_PROPERTIES)).let {
+        (it as? PropertiesFile ?: return) to (it as? PsiFile ?: return)
+      }
+      else -> return
+    }
+    otherAffectedFiles.add(psiFile)
+    propertiesFile.addProperty("android.defaults.buildfeatures.buildconfig", "true")
   }
 }

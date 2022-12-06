@@ -47,7 +47,6 @@ android {
     buildFeatures {
         // Requires androidx.databinding:viewbinding to be added to prebuilts
         viewBinding false
-        buildConfig true
     }
     packagingOptions {
         jniLibs {
