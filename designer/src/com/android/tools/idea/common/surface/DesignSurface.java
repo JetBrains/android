@@ -1837,16 +1837,12 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       return new Point(Coordinates.getSwingXDip(view, sceneComponent.getCenterX()),
                        Coordinates.getSwingYDip(view, sceneComponent.getCenterY()));
     }
-    else if (CommonDataKeys.PSI_ELEMENT.is(dataId)) {
+    else if (PlatformCoreDataKeys.BGT_DATA_PROVIDER.is(dataId)) {
       SceneView view = getFocusedSceneView();
-      if (view != null) {
-        SelectionModel selectionModel = view.getSelectionModel();
-        NlComponent primary = selectionModel.getPrimary();
-        if (primary != null) {
-          return primary.getTagDeprecated();
-        }
-      }
-    }
+      if (view == null) return null;
+      NlComponent primary = view.getSelectionModel().getPrimary();
+      return (DataProvider)slowId -> getSlowData(slowId, primary);
+    }  
     else if (LangDataKeys.PSI_ELEMENT_ARRAY.is(dataId)) {
       SceneView view = getFocusedSceneView();
       if (view != null) {
@@ -1867,6 +1863,16 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     }
 
     return null;
+  }
+
+  @Nullable
+  private static XmlTag getSlowData(@NonNls String slowId, NlComponent primary) {
+    if (CommonDataKeys.PSI_ELEMENT.is(slowId)) {
+      return primary != null ? primary.getTagDeprecated() : null;
+    }
+    else {
+      return null;
+    }
   }
 
   /**
