@@ -1,0 +1,1318 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/remote_global"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:tag="0,0,1080,1440"
+    tools:ignore="HardcodedText">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/upper_left"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_default="percent"
+        app:layout_constraintHeight_percent=".5"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
+        app:layout_constraintWidth_default="percent"
+        app:layout_constraintWidth_percent=".5"
+        >
+
+        <View
+            android:id="@+id/ul_remote_action_bar"
+            android:tag="0,6,1080,168"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="#999"
+            app:layout_constraintBottom_toTopOf="@+id/ul_remote_top_bar"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_chainStyle="packed" />
+
+        <View
+            android:id="@+id/ul_remote_top_bar"
+            android:tag="0,174,1080,168"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:background="#889"
+            app:layout_constraintBottom_toTopOf="@+id/ul_remote_control_buttons"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/ul_remote_action_bar"
+            app:layout_constraintVertical_chainStyle="spread_inside" />
+
+        <Space
+            android:id="@+id/ul_remote_control_buttons"
+            android:tag="0,342,1080,469"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toTopOf="@+id/ul_remote_control"
+            app:layout_constraintDimensionRatio="2.3"
+            app:layout_constraintTop_toBottomOf="@+id/ul_remote_top_bar"
+            app:layout_constraintVertical_chainStyle="spread_inside" />
+
+        <Space
+            android:id="@+id/ul_remote_control"
+            android:tag="0,811,1080,1080"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/ul_remote_control_buttons"
+            app:layout_constraintVertical_chainStyle="spread"
+            app:layout_constraintVertical_weight="0" />
+
+        <Space
+            android:id="@+id/ul_remote_top_left"
+            android:tag="0,811,360,360"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toTopOf="@+id/ul_remote_left"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toStartOf="@+id/ul_remote_up"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toStartOf="@id/ul_remote_control"
+            app:layout_constraintTop_toTopOf="@id/ul_remote_control"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <View
+            android:id="@+id/ul_remote_up"
+            android:tag="360,811,360,360"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#556"
+            app:layout_constraintBottom_toTopOf="@+id/ul_remote_select"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toStartOf="@+id/ul_remote_top_right"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@id/ul_remote_top_left"
+            app:layout_constraintTop_toTopOf="@id/ul_remote_control"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <Space
+            android:id="@+id/ul_remote_top_right"
+            android:tag="720,811,360,360"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toTopOf="@+id/ul_remote_right"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toEndOf="@id/ul_remote_control"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@+id/ul_remote_up"
+            app:layout_constraintTop_toTopOf="@id/ul_remote_control"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <View
+            android:id="@+id/ul_remote_left"
+            android:tag="0,1171,360,360"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#556"
+            app:layout_constraintBottom_toTopOf="@+id/ul_remote_back"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toStartOf="@+id/ul_remote_select"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toStartOf="@id/ul_remote_control"
+            app:layout_constraintTop_toBottomOf="@id/ul_remote_top_left"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <View
+            android:id="@+id/ul_remote_select"
+            android:tag="360,1171,360,360"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#556"
+            app:layout_constraintBottom_toTopOf="@+id/ul_remote_down"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toStartOf="@+id/ul_remote_right"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@+id/ul_remote_left"
+            app:layout_constraintTop_toBottomOf="@id/ul_remote_up"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <View
+            android:id="@+id/ul_remote_right"
+            android:tag="720,1171,360,360"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#556"
+            app:layout_constraintBottom_toTopOf="@+id/ul_remote_bottom_right"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toEndOf="@id/ul_remote_control"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@+id/ul_remote_select"
+            app:layout_constraintTop_toBottomOf="@id/ul_remote_top_right"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <View
+            android:id="@+id/ul_remote_back"
+            android:tag="0,1531,360,360"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@null"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@id/ul_remote_control"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toStartOf="@+id/ul_remote_down"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toStartOf="@id/ul_remote_control"
+            app:layout_constraintTop_toBottomOf="@id/ul_remote_left"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <View
+            android:id="@+id/ul_remote_down"
+            android:tag="360,1531,360,360"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#556"
+            app:layout_constraintBottom_toBottomOf="@id/ul_remote_control"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toStartOf="@+id/ul_remote_bottom_right"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@+id/ul_remote_back"
+            app:layout_constraintTop_toBottomOf="@id/ul_remote_select"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <Space
+            android:id="@+id/ul_remote_bottom_right"
+            android:tag="720,1531,360,360"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="@id/ul_remote_control"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toEndOf="@id/ul_remote_control"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@+id/ul_remote_down"
+            app:layout_constraintTop_toBottomOf="@id/ul_remote_right"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <!-- Custom view-->
+        <Space
+            android:id="@+id/ul_remote_touchpad"
+            android:tag="0,0,0,0"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="8dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/ul_remote_control"
+            app:layout_constraintEnd_toEndOf="@id/ul_remote_control"
+            app:layout_constraintStart_toStartOf="@id/ul_remote_control"
+            app:layout_constraintTop_toTopOf="@id/ul_remote_control" />
+
+        <View
+            android:id="@+id/ul_remote_gestureon"
+            android:tag="888,1699,168,168"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_margin="8dp"
+            android:alpha="0.4"
+            android:padding="12dp"
+            android:translationZ="12dp"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="@id/ul_remote_control"
+            app:layout_constraintRight_toRightOf="@id/ul_remote_control" />
+
+        <View
+            android:id="@+id/ul_remote_gestureoff"
+            android:tag="888,1699,168,168"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_margin="8dp"
+            android:alpha="0.4"
+            android:padding="12dp"
+            android:translationZ="12dp"
+            android:visibility="visible"
+            android:background="@color/colorAccent"
+            app:layout_constraintBottom_toBottomOf="@id/ul_remote_control"
+            app:layout_constraintRight_toRightOf="@id/ul_remote_control" />
+
+        <androidx.constraintlayout.widget.Group
+            android:id="@+id/ul_remote_keys"
+            android:tag="0,0,0,0"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:constraint_referenced_ids="ul_remote_top_left,ul_remote_up,ul_remote_top_right,ul_remote_left,ul_remote_select,ul_remote_right,ul_remote_down,ul_remote_bottom_right" />
+
+        <View
+            android:id="@+id/ul_remote_volume_left"
+            android:tag="0,354,216,216"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#755"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toTopOf="@+id/ul_remote_return"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toStartOf="@+id/ul_remote_volumedown"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toStartOf="@+id/ul_remote_control_buttons"
+            app:layout_constraintTop_toTopOf="@+id/ul_remote_control_buttons"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <View
+            android:id="@+id/ul_remote_volumedown"
+            android:tag="216,354,216,216"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#755"
+            app:layout_constraintBottom_toTopOf="@+id/ul_remote_display"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toStartOf="@+id/ul_remote_volumemute"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@+id/ul_remote_volume_left"
+            app:layout_constraintTop_toTopOf="@+id/ul_remote_control_buttons"
+            app:layout_constraintVertical_chainStyle="spread"/>
+
+        <View
+            android:id="@+id/ul_remote_volumemute"
+            android:tag="432,354,216,216"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#755"
+            app:layout_constraintBottom_toTopOf="@+id/ul_remote_info"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toStartOf="@+id/ul_remote_volumeup"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@+id/ul_remote_volumedown"
+            app:layout_constraintTop_toTopOf="@+id/ul_remote_control_buttons"
+            app:layout_constraintVertical_chainStyle="spread"/>
+
+        <View
+            android:id="@+id/ul_remote_volumeup"
+            android:tag="648,354,216,216"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#755"
+            app:layout_constraintBottom_toTopOf="@+id/ul_remote_keyboard"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toStartOf="@+id/ul_remote_volume_right"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@+id/ul_remote_volumemute"
+            app:layout_constraintTop_toTopOf="@+id/ul_remote_control_buttons"
+            app:layout_constraintVertical_chainStyle="spread"/>
+
+        <View
+            android:id="@+id/ul_remote_volume_right"
+            android:tag="864,354,216,216"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#755"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toTopOf="@+id/ul_remote_context"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toEndOf="@+id/ul_remote_control_buttons"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@+id/ul_remote_volumeup"
+            app:layout_constraintTop_toTopOf="@+id/ul_remote_control_buttons"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <View
+            android:id="@+id/ul_remote_return"
+            android:tag="0,582,216,216"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#755"
+            app:layout_constraintBottom_toBottomOf="@+id/ul_remote_control_buttons"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toStartOf="@+id/ul_remote_display"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toStartOf="@+id/ul_remote_control_buttons"
+            app:layout_constraintTop_toBottomOf="@+id/ul_remote_volume_left"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <View
+            android:id="@+id/ul_remote_display"
+            android:tag="216,582,216,216"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#755"
+            app:layout_constraintBottom_toBottomOf="@+id/ul_remote_control_buttons"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toStartOf="@+id/ul_remote_info"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@+id/ul_remote_return"
+            app:layout_constraintTop_toBottomOf="@+id/ul_remote_volumedown"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <View
+            android:id="@+id/ul_remote_info"
+            android:tag="432,582,216,216"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#755"
+            app:layout_constraintBottom_toBottomOf="@+id/ul_remote_control_buttons"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toStartOf="@+id/ul_remote_keyboard"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@id/ul_remote_display"
+            app:layout_constraintTop_toBottomOf="@id/ul_remote_volumemute"
+            app:layout_constraintVertical_chainStyle="spread"/>
+
+        <View
+            android:id="@+id/ul_remote_keyboard"
+            android:tag="648,582,216,216"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#755"
+            app:layout_constraintBottom_toBottomOf="@+id/ul_remote_control_buttons"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toStartOf="@+id/ul_remote_context"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@id/ul_remote_info"
+            app:layout_constraintTop_toBottomOf="@id/ul_remote_volumedown"
+            app:layout_constraintVertical_chainStyle="spread"/>
+
+        <View
+            android:id="@+id/ul_remote_context"
+            android:tag="864,582,216,216"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#755"
+            app:layout_constraintBottom_toBottomOf="@+id/ul_remote_control_buttons"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toEndOf="@+id/ul_remote_control_buttons"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@+id/ul_remote_keyboard"
+            app:layout_constraintTop_toBottomOf="@id/ul_remote_volume_right"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <View
+            android:id="@+id/ul_remote_home"
+            android:tag="40,174,168,168"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#575"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toStartOf="@+id/ul_remote_movies"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toStartOf="@+id/ul_remote_top_bar"
+            app:layout_constraintTop_toTopOf="@+id/ul_remote_top_bar" />
+
+        <View
+            android:id="@+id/ul_remote_movies"
+            android:tag="248,174,168,168"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#575"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toStartOf="@+id/ul_remote_tv"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@+id/ul_remote_home"
+            app:layout_constraintTop_toTopOf="@+id/ul_remote_top_bar" />
+
+        <View
+            android:id="@+id/ul_remote_tv"
+            android:tag="456,174,168,168"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#575"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toStartOf="@+id/ul_remote_music"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@+id/ul_remote_movies"
+            app:layout_constraintTop_toTopOf="@+id/ul_remote_top_bar" />
+
+        <View
+            android:id="@+id/ul_remote_music"
+            android:tag="664,174,168,168"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#575"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toStartOf="@+id/ul_remote_picture"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@+id/ul_remote_tv"
+            app:layout_constraintTop_toTopOf="@+id/ul_remote_top_bar" />
+
+        <View
+            android:id="@+id/ul_remote_picture"
+            android:tag="872,174,168,168"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#575"
+            app:layout_constraintBottom_toBottomOf="@+id/ul_remote_top_bar"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toEndOf="@id/ul_remote_top_bar"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@+id/ul_remote_music"
+            app:layout_constraintTop_toTopOf="@+id/ul_remote_top_bar" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/upper_right"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_default="percent"
+        app:layout_constraintHeight_percent=".5"
+        app:layout_constraintHorizontal_bias="50.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
+        app:layout_constraintWidth_default="percent"
+        app:layout_constraintWidth_percent=".5"
+        >
+
+        <View
+            android:id="@+id/ur_remote_top_bar"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:background="#999"
+            android:baselineAligned="false"
+            android:orientation="horizontal"
+            android:tag="0,0,1080,120"
+            app:layout_constraintBottom_toTopOf="@+id/ur_remote_control_buttons"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <View
+            android:id="@+id/ur_remote_control_buttons"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="8dp"
+            android:tag="108,144,864,864"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toTopOf="@+id/ur_remote_control"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/ur_remote_top_bar" />
+
+        <View
+            android:id="@+id/ur_remote_control"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginBottom="8dp"
+            android:background="@color/colorAccent"
+            android:tag="108,1032,864,864"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/ur_remote_control_buttons" />
+
+        <!--<include layout="@layout/include_remote_control" />-->
+
+        <View
+            android:id="@+id/ur_remote_volumedown"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#0F0"
+            android:hapticFeedbackEnabled="false"
+            android:scaleType="centerCrop"
+            android:soundEffectsEnabled="false"
+            android:tag="108,144,288,288"
+            app:layout_constraintBottom_toTopOf="@+id/ur_remote_display"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toStartOf="@+id/ur_remote_volumemute"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toStartOf="@+id/ur_remote_control_buttons"
+            app:layout_constraintTop_toTopOf="@+id/ur_remote_control_buttons"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <View
+            android:id="@+id/ur_remote_volumemute"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#0FF"
+            android:hapticFeedbackEnabled="false"
+            android:scaleType="centerCrop"
+            android:soundEffectsEnabled="false"
+            android:tag="396,144,288,288"
+            app:layout_constraintBottom_toTopOf="@+id/ur_remote_info"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toStartOf="@+id/ur_remote_volumeup"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@+id/ur_remote_volumedown"
+            app:layout_constraintTop_toTopOf="@+id/ur_remote_control_buttons"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <View
+            android:id="@+id/ur_remote_volumeup"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#0F0"
+            android:hapticFeedbackEnabled="false"
+            android:scaleType="centerCrop"
+            android:soundEffectsEnabled="false"
+            android:tag="684,144,288,288"
+            app:layout_constraintBottom_toTopOf="@+id/ur_remote_keyboard"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toEndOf="@+id/ur_remote_control_buttons"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@+id/ur_remote_volumemute"
+            app:layout_constraintTop_toTopOf="@+id/ur_remote_control_buttons"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <View
+            android:id="@+id/ur_remote_display"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#0FF"
+            android:hapticFeedbackEnabled="false"
+            android:scaleType="centerCrop"
+            android:soundEffectsEnabled="false"
+            android:tag="108,432,288,288"
+            app:layout_constraintBottom_toTopOf="@+id/ur_remote_return"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toStartOf="@+id/ur_remote_info"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toStartOf="@+id/ur_remote_control_buttons"
+            app:layout_constraintTop_toBottomOf="@+id/ur_remote_volumedown"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <View
+            android:id="@+id/ur_remote_info"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#0F0"
+            android:hapticFeedbackEnabled="false"
+            android:scaleType="centerCrop"
+            android:soundEffectsEnabled="false"
+            android:tag="396,432,288,288"
+            app:layout_constraintBottom_toTopOf="@+id/ur_remote_middle_bottom"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toStartOf="@+id/ur_remote_keyboard"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@id/ur_remote_display"
+            app:layout_constraintTop_toBottomOf="@id/ur_remote_volumemute"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <View
+            android:id="@+id/ur_remote_keyboard"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#0FF"
+            android:hapticFeedbackEnabled="false"
+            android:scaleType="centerCrop"
+            android:soundEffectsEnabled="false"
+            android:tag="684,432,288,288"
+            app:layout_constraintBottom_toTopOf="@+id/ur_remote_context"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toEndOf="@+id/ur_remote_control_buttons"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@id/ur_remote_info"
+            app:layout_constraintTop_toBottomOf="@id/ur_remote_volumedown"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <View
+            android:id="@+id/ur_remote_return"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#0F0"
+            android:hapticFeedbackEnabled="false"
+            android:scaleType="centerCrop"
+            android:soundEffectsEnabled="false"
+            android:tag="108,720,288,288"
+            app:layout_constraintBottom_toBottomOf="@+id/ur_remote_control_buttons"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toStartOf="@+id/ur_remote_middle_bottom"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toStartOf="@+id/ur_remote_control_buttons"
+            app:layout_constraintTop_toBottomOf="@+id/ur_remote_display"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <View
+            android:id="@+id/ur_remote_middle_bottom"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:tag="396,720,288,288"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/ur_remote_control_buttons"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toStartOf="@+id/ur_remote_context"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@+id/ur_remote_return"
+            app:layout_constraintTop_toBottomOf="@id/ur_remote_info"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <View
+            android:id="@+id/ur_remote_context"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#0F0"
+            android:hapticFeedbackEnabled="false"
+            android:scaleType="centerCrop"
+            android:soundEffectsEnabled="false"
+            android:tag="684,720,288,288"
+            app:layout_constraintBottom_toBottomOf="@+id/ur_remote_control_buttons"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toEndOf="@+id/ur_remote_control_buttons"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@+id/ur_remote_middle_bottom"
+            app:layout_constraintTop_toBottomOf="@id/ur_remote_keyboard"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <View
+            android:id="@+id/ur_remote_home"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#FF0"
+            android:hapticFeedbackEnabled="false"
+            android:scaleType="centerCrop"
+            android:soundEffectsEnabled="false"
+            android:tag="80,0,120,120"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toStartOf="@+id/ur_remote_movies"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toStartOf="@+id/ur_remote_top_bar"
+            app:layout_constraintTop_toTopOf="@+id/ur_remote_top_bar" />
+
+        <View
+            android:id="@+id/ur_remote_movies"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#F0F"
+            android:hapticFeedbackEnabled="false"
+            android:scaleType="centerCrop"
+            android:soundEffectsEnabled="false"
+            android:tag="280,0,120,120"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toStartOf="@+id/ur_remote_tv"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@+id/ur_remote_home"
+            app:layout_constraintTop_toTopOf="@+id/ur_remote_top_bar" />
+
+        <View
+            android:id="@+id/ur_remote_tv"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#FF0"
+            android:hapticFeedbackEnabled="false"
+            android:scaleType="centerCrop"
+            android:soundEffectsEnabled="false"
+            android:tag="480,0,120,120"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toStartOf="@+id/ur_remote_music"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@+id/ur_remote_movies"
+            app:layout_constraintTop_toTopOf="@+id/ur_remote_top_bar" />
+
+        <View
+            android:id="@+id/ur_remote_music"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#F0F"
+            android:hapticFeedbackEnabled="false"
+            android:scaleType="centerCrop"
+            android:soundEffectsEnabled="false"
+            android:tag="680,0,120,120"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toStartOf="@+id/ur_remote_picture"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@+id/ur_remote_tv"
+            app:layout_constraintTop_toTopOf="@+id/ur_remote_top_bar" />
+
+        <View
+            android:id="@+id/ur_remote_picture"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#FF0"
+            android:hapticFeedbackEnabled="false"
+            android:scaleType="centerCrop"
+            android:soundEffectsEnabled="false"
+            android:tag="880,0,120,120"
+            app:layout_constraintBottom_toBottomOf="@+id/ur_remote_top_bar"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toEndOf="@id/ur_remote_top_bar"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toEndOf="@+id/ur_remote_music"
+            app:layout_constraintTop_toTopOf="@+id/ur_remote_top_bar" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/bottom_left"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_default="percent"
+        app:layout_constraintHeight_percent=".5"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="50.0"
+        app:layout_constraintWidth_default="percent"
+        app:layout_constraintWidth_percent=".5"
+        >
+
+        <TextView
+            android:id="@+id/dialog_title"
+            android:tag="24,24,1032,57"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="About" />
+
+        <View
+            android:id="@+id/divider"
+            android:tag="24,93,1032,3"
+            app:layout_constraintTop_toBottomOf="@id/dialog_title"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="4dp"
+            android:layout_marginTop="4dp"
+            android:background="#eeeeee" />
+
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/barrier"
+            android:tag="319,24,0,0"
+            app:barrierDirection="right"
+            app:constraint_referenced_ids="app_label,device_label,android_label,support_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/app_label"
+            android:tag="24,96,141,69"
+            android:paddingTop="4dp"
+            app:layout_constraintTop_toBottomOf="@id/divider"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Version"
+            android:textColor="#DDDDDD" />
+        <TextView
+            android:id="@+id/app_version"
+            android:tag="319,96,737,85"
+            android:paddingTop="4dp"
+            app:layout_constraintTop_toBottomOf="@id/divider"
+            app:layout_constraintStart_toStartOf="@id/barrier"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:textColor="#000000"
+            android:textSize="18sp"
+            tools:text="{app version here}" />
+
+        <TextView
+            android:id="@+id/device_label"
+            android:tag="24,181,124,57"
+            app:layout_constraintTop_toBottomOf="@id/app_version"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Device"
+            android:textColor="#dddddd" />
+        <TextView
+            android:id="@+id/device_version"
+            android:tag="343,181,713,73"
+            app:layout_constraintTop_toBottomOf="@id/app_version"
+            app:layout_constraintStart_toEndOf="@id/barrier"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:gravity="end"
+            android:textColor="#000000"
+            android:textSize="18sp"
+            tools:text="{device version here}" />
+
+        <TextView
+            android:id="@+id/android_label"
+            android:tag="24,254,295,57"
+            app:layout_constraintTop_toBottomOf="@id/device_version"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Android Version"
+            android:textColor="#dddddd" />
+        <TextView
+            android:id="@+id/android_version"
+            android:tag="343,254,713,73"
+            app:layout_constraintTop_toBottomOf="@id/device_version"
+            app:layout_constraintStart_toEndOf="@id/barrier"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:gravity="end"
+            android:textColor="#000000"
+            android:textSize="18sp"
+            tools:text="{android version here}" />
+
+        <TextView
+            android:id="@+id/support_label"
+            android:tag="24,359,149,57"
+            app:layout_constraintTop_toBottomOf="@id/android_version"
+            app:layout_constraintBottom_toBottomOf="@id/support_email"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Support"
+            android:textColor="#dddddd" />
+
+        <TextView
+            android:id="@+id/support_email"
+            android:tag="24,327,1032,121"
+            app:layout_constraintTop_toBottomOf="@id/android_version"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autoLink="email"
+            android:gravity="end"
+            android:paddingBottom="8dp"
+            android:paddingTop="8dp"
+            android:text="email@address"
+            android:textColor="#0000ff"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/support_phone"
+            android:tag="24,448,1032,121"
+            app:layout_constraintTop_toBottomOf="@id/support_email"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autoLink="phone"
+            android:gravity="end"
+            android:paddingBottom="8dp"
+            android:paddingTop="8dp"
+            android:text="(913)555-1212"
+            android:textColor="#0000ff"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/support_terms"
+            android:tag="24,569,1032,121"
+            app:layout_constraintTop_toBottomOf="@id/support_phone"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:paddingBottom="8dp"
+            android:paddingTop="8dp"
+            android:text="Terms and Conditions"
+            android:textColor="#0000ff"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/support_privacy"
+            android:tag="24,690,1032,121"
+            app:layout_constraintTop_toBottomOf="@+id/support_terms"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:paddingBottom="8dp"
+            android:paddingTop="8dp"
+            android:text="Privacy Policy"
+            android:textColor="#0000ff"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/url_label"
+            android:tag="24,843,76,57"
+            app:layout_constraintTop_toBottomOf="@id/support_privacy"
+            app:layout_constraintBottom_toBottomOf="@id/support_url"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="URL"
+            android:textColor="#dddddd" />
+        <TextView
+            android:id="@+id/support_url"
+            android:tag="100,811,956,121"
+            app:layout_constraintTop_toBottomOf="@id/support_privacy"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/url_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:paddingBottom="8dp"
+            android:paddingTop="8dp"
+            android:textColor="#000000"
+            android:textSize="18sp"
+            tools:text="{base url here}" />
+
+        <TextView
+            android:id="@+id/api_label"
+            android:tag="24,964,65,57"
+            app:layout_constraintTop_toBottomOf="@id/support_url"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/support_api"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="API"
+            android:textColor="#dddddd" />
+        <TextView
+            android:id="@+id/support_api"
+            android:tag="89,932,967,121"
+            app:layout_constraintTop_toBottomOf="@id/support_url"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/api_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:paddingBottom="8dp"
+            android:paddingTop="8dp"
+            android:textColor="#000000"
+            android:textSize="18sp"
+            tools:text="{server api here}" />
+
+        <Button
+            android:id="@+id/button_debug"
+            android:tag="24,1053,121,57"
+            app:layout_constraintTop_toBottomOf="@id/support_api"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:text="Debug" />
+
+        <Button
+            android:id="@+id/button_close"
+            android:tag="951,1053,105,57"
+            app:layout_constraintTop_toBottomOf="@id/support_api"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:text="Close" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/bottom_right"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_default="percent"
+        app:layout_constraintHeight_percent=".5"
+        app:layout_constraintHorizontal_bias="50.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="50.0"
+        app:layout_constraintWidth_default="percent"
+        app:layout_constraintWidth_percent=".5"
+        >
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guidelineLeft"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:tag="60,0,0,0"
+            app:layout_constraintGuide_begin="20dp" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guidelineRight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:tag="870,0,0,0"
+            app:layout_constraintGuide_end="70dp" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/line1Top"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_begin="20dp" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/line2Bottom"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_begin="120dp" />
+
+        <Button
+            android:id="@+id/buttonA"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="A"
+            android:visibility="gone"
+            android:elevation="20dp"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintLeft_toLeftOf="@+id/guidelineLeft"
+            app:layout_constraintRight_toLeftOf="@+id/buttonB"
+            app:layout_constraintTop_toBottomOf="@+id/line1Top" />
+
+        <Button
+            android:id="@+id/buttonB"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="0dp"
+            android:tag="60,0,405,144"
+            android:text="B"
+            android:visibility="visible"
+            android:elevation="13dp"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintLeft_toRightOf="@+id/buttonA"
+            app:layout_constraintRight_toLeftOf="@+id/buttonC"
+            app:layout_constraintTop_toTopOf="@+id/buttonA"
+            tools:layout_editor_absoluteY="0dp" />
+
+        <Button
+            android:id="@+id/buttonC"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="0dp"
+            android:tag="465,0,405,144"
+            android:text="C"
+            android:visibility="visible"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintLeft_toRightOf="@+id/buttonB"
+            app:layout_constraintRight_toLeftOf="@+id/guidelineRight"
+            app:layout_constraintTop_toTopOf="@+id/buttonA"
+            tools:layout_editor_absoluteY="0dp" />
+
+
+        <Button
+            android:id="@+id/buttonD"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="0dp"
+            android:layout_marginRight="0dp"
+            android:tag="60,0,405,144"
+            android:text="D"
+            android:visibility="visible"
+            app:layout_constraintBottom_toTopOf="@+id/line2Bottom"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintLeft_toLeftOf="@+id/guidelineLeft"
+            app:layout_constraintRight_toLeftOf="@+id/buttonE"
+            tools:layout_editor_absoluteY="100dp" />
+
+        <Button
+            android:id="@+id/buttonE"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="0dp"
+            android:tag="0,0,0,0"
+            android:text="E"
+            android:visibility="gone"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintBottom_toBottomOf="@+id/buttonD"
+            app:layout_constraintLeft_toRightOf="@+id/buttonD"
+            app:layout_constraintRight_toLeftOf="@+id/buttonF"
+            tools:layout_editor_absoluteY="100dp" />
+
+        <Button
+            android:id="@+id/buttonF"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="0dp"
+            android:tag="465,0,405,144"
+            android:text="F"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="@+id/buttonD"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintLeft_toRightOf="@+id/buttonE"
+            app:layout_constraintRight_toLeftOf="@+id/guidelineRight"
+            tools:layout_editor_absoluteY="100dp" />
+
+        <Button
+            android:id="@+id/buttonG"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:tag="60,0,405,144"
+            android:text="G"
+            android:visibility="visible"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintLeft_toLeftOf="@+id/guidelineLeft"
+            app:layout_constraintRight_toLeftOf="@+id/buttonH"
+            app:layout_constraintTop_toBottomOf="@+id/buttonD" />
+
+        <Button
+            android:id="@+id/buttonH"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="0dp"
+            android:text="H"
+            android:visibility="visible"
+            app:layout_constraintTop_toTopOf="@+id/buttonG"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintLeft_toRightOf="@+id/buttonG"
+            app:layout_constraintRight_toLeftOf="@+id/buttonI"
+            tools:layout_editor_absoluteY="200dp" />
+
+        <Button
+            android:id="@+id/buttonI"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="0dp"
+            android:tag="0,0,0,0"
+            android:text="I"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@+id/buttonH"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintLeft_toRightOf="@+id/buttonH"
+            app:layout_constraintRight_toLeftOf="@+id/guidelineRight"
+            tools:layout_editor_absoluteY="200dp" />
+
+        <Button
+            android:id="@+id/buttonJ"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="0dp"
+            android:layout_marginRight="0dp"
+            android:layout_marginTop="40dp"
+            android:text="J"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@+id/buttonI"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintLeft_toLeftOf="@+id/guidelineLeft"
+            app:layout_constraintRight_toLeftOf="@+id/buttonK"
+            tools:layout_editor_absoluteY="300dp" />
+
+        <Button
+            android:id="@+id/buttonK"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="0dp"
+            android:tag="0,0,0,0"
+            android:text="K"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/buttonJ"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintLeft_toRightOf="@+id/buttonJ"
+            app:layout_constraintRight_toLeftOf="@+id/buttonL"
+            tools:layout_editor_absoluteY="300dp" />
+
+        <Button
+            android:id="@+id/buttonL"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="0dp"
+            android:tag="60,0,810,144"
+            android:text="L"
+            android:visibility="visible"
+            app:layout_constraintTop_toTopOf="@+id/buttonJ"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintLeft_toRightOf="@+id/buttonK"
+            app:layout_constraintRight_toLeftOf="@+id/guidelineRight"
+            tools:layout_editor_absoluteY="300dp" />
+
+        <Button
+            android:id="@+id/buttonM"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="0dp"
+            android:layout_marginRight="0dp"
+            android:layout_marginTop="40dp"
+            android:text="m"
+            android:visibility="visible"
+            app:layout_constraintTop_toBottomOf="@+id/buttonL"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintLeft_toLeftOf="@+id/guidelineLeft"
+            app:layout_constraintRight_toLeftOf="@+id/buttonN"
+            tools:layout_editor_absoluteY="400dp" />
+
+        <Button
+            android:id="@+id/buttonN"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="0dp"
+            android:tag="0,0,0,0"
+            android:text="M"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/buttonM"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintLeft_toRightOf="@+id/buttonM"
+            app:layout_constraintRight_toLeftOf="@+id/buttonO"
+            tools:layout_editor_absoluteY="400dp" />
+
+        <Button
+            android:id="@+id/buttonO"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="0dp"
+            android:tag="0,0,0,0"
+            android:text="O"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/buttonM"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintLeft_toRightOf="@+id/buttonN"
+            app:layout_constraintRight_toLeftOf="@+id/guidelineRight"
+            tools:layout_editor_absoluteY="400dp" />
+
+        <Button
+            android:id="@+id/buttonP"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="0dp"
+            android:layout_marginRight="0dp"
+            android:layout_marginTop="20dp"
+            android:tag="0,0,0,0"
+            android:text="A"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/buttonO"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintLeft_toLeftOf="@+id/guidelineLeft"
+            app:layout_constraintRight_toLeftOf="@+id/buttonQ"
+            tools:layout_editor_absoluteY="500dp" />
+
+        <Button
+            android:id="@+id/buttonQ"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="0dp"
+            android:tag="60,0,810,144"
+            android:text="Q"
+            android:visibility="visible"
+            android:elevation="30dp"
+            app:layout_constraintBottom_toBottomOf="@+id/buttonP"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintLeft_toRightOf="@+id/buttonP"
+            app:layout_constraintRight_toLeftOf="@+id/buttonR"
+            tools:layout_editor_absoluteY="500dp" />
+
+      <!--EASY TEXT FIND
+      <TextView
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:fontFamily="serif-monospace"
+          android:text="This is a sample text"
+          android:textSize="20sp"
+          app:layout_constraintBottom_toBottomOf="parent"
+          app:layout_constraintEnd_toEndOf="parent"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@+id/buttonM" />
+      EASY TEXT FIND-->
+
+      <Button
+            android:id="@+id/buttonR"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="0dp"
+            android:tag="0,0,0,0"
+            android:text="R"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/buttonQ"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintLeft_toRightOf="@+id/buttonQ"
+            app:layout_constraintRight_toLeftOf="@+id/guidelineRight"
+            tools:layout_editor_absoluteY="500dp" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

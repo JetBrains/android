@@ -207,7 +207,7 @@ maven_repository(
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
         "@maven//:com.android.tools.build.aapt2_7.2.0-7984345",
         "@maven//:com.android.tools.build.gradle_7.2.0",
-        "@maven//:com.google.android.material.material_1.4.0",
+        "@maven//:com.google.android.material.material_1.5.0",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20-Beta",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20-Beta",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20-Beta",
