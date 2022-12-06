@@ -22,9 +22,9 @@ import com.android.tools.idea.tests.gui.framework.waitForIdle
 import com.android.tools.property.panel.impl.ui.CollapsibleLabelPanel
 import com.google.common.collect.Lists
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.icons.AllIcons
 import org.fest.swing.core.Robot
 import org.jetbrains.kotlin.idea.util.application.invokeLater
-import javax.swing.JLabel
 
 /**
  * Fixture for a [CollapsibleLabelPanel] commonly used as a title for a section in the properties panel.
@@ -75,5 +75,9 @@ class CollapsibleLabelPanelFixture(
         robot().click(button)
       }
     }
+  }
+
+  fun addProperty() {
+    ActionButtonFixture.findByIcon(AllIcons.General.Add, robot(), label).click()
   }
 }

@@ -120,6 +120,7 @@ public class MoreFontsDialog extends DialogWrapper {
     myContentPanel.setPreferredSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
     myFontList.setMinimumSize(new Dimension(MIN_FONT_LIST_WIDTH, MIN_FONT_LIST_HEIGHT));
     myFontList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    myFontList.setName("Font list");
     myFontDetailList.setMinimumSize(new Dimension(MIN_FONT_PREVIEW_WIDTH, MIN_FONT_PREVIEW_HEIGHT));
     myFontDetailList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     ProjectFonts projectFonts = showExistingFonts? new ProjectFonts(facet) : null;
