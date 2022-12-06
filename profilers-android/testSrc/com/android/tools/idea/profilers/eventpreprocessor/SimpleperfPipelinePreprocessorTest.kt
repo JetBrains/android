@@ -35,8 +35,7 @@ class SimpleperfPipelinePreprocessorTest {
                                                               .setConfiguration(Trace.TraceConfiguration.newBuilder()
                                                                                   .setSimpleperfOptions(
                                                                                     Trace.SimpleperfOptions.newBuilder().addSymbolDirs(
-                                                                                      "/path"))
-                                                                                  .addSymbolDirs("/path")))))
+                                                                                      "/path"))))))
     .build()
 
   @Test

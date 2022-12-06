@@ -19,6 +19,7 @@ import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.TransportBytesPreprocessor;
 import com.android.tools.idea.transport.TransportEventPreprocessor;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.cpu.TracePreProcessor;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
@@ -57,8 +58,11 @@ public class SimpleperfPipelinePreprocessor implements TransportEventPreprocesso
   @Override
   @NotNull
   public Iterable<Common.Event> preprocessEvent(Common.Event event) {
-    myTraceIdsToSymbols.putIfAbsent(String.valueOf(event.getCpuTrace().getTraceStarted().getTraceInfo().getTraceId()),
-                                    event.getCpuTrace().getTraceStarted().getTraceInfo().getConfiguration().getSymbolDirsList());
+    Trace.TraceConfiguration config = event.getCpuTrace().getTraceStarted().getTraceInfo().getConfiguration();
+    if (config.hasSimpleperfOptions()) {
+      myTraceIdsToSymbols.putIfAbsent(String.valueOf(event.getCpuTrace().getTraceStarted().getTraceInfo().getTraceId()),
+                                      config.getSimpleperfOptions().getSymbolDirsList());
+    }
     return Collections.emptyList();
   }
 
