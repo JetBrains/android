@@ -978,7 +978,7 @@ public final class StudioFlags {
   );
 
   public static final Flag<Boolean> DAGGER_BUILT_IN_SEARCH_ENABLED = Flag.create(
-    EDITOR, "dagger.build.in.search.enabled",
+    EDITOR, "dagger.built.in.search.enabled",
     "Enable using the built in annotation search for dagger",
     "If enabled, uses the built in annotation search for dagger usages rather than the custom DaggerAnnotatedElementsSearch",
     false
