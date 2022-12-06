@@ -15,16 +15,21 @@
  */
 package com.android.tools.idea.uibuilder.actions
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlDependencyManager
 import com.android.tools.idea.common.util.XmlTagUtil
 import com.android.tools.idea.uibuilder.model.NlComponentHelper
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
+import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.TransactionGuard
 import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import org.jetbrains.android.facet.AndroidFacet
@@ -32,35 +37,37 @@ import org.jetbrains.android.facet.AndroidFacet
 /**
  * Action that shows a dialog to change the tag name of a component
  */
-class MorphComponentAction(component: NlComponent)
+class MorphComponentAction @JvmOverloads constructor(
+  component: NlComponent,
+  private val getMorphSuggestions: (NlComponent) -> List<String> = MorphManager::getMorphSuggestion)
   : AnAction("Convert view...") {
 
-  private val myFacet: AndroidFacet = component.model.facet
-  private val myProject = component.model.project
   private val myNlComponent = component
   private var myNewName = component.tagName
 
   /**
    * Apply the provided tag name to the component in the model
    */
+  @UiThread
   private fun applyTagEdit(newTagName: String) {
+    val project = myNlComponent.model.project
+    val facet = myNlComponent.model.facet
     val dependencyManager = NlDependencyManager.getInstance()
     val component = NlComponent(myNlComponent.model, XmlTagUtil.createTag(myNlComponent.model.project, "<$newTagName/>"))
     NlComponentRegistrar.accept(component)
-    dependencyManager.addDependencies(listOf(component), myFacet, true) { editTagNameAndAttributes(newTagName) }
+    dependencyManager.addDependencies(listOf(component), facet, true) { editTagNameAndAttributes(project, newTagName) }
   }
 
   /**
    * Edit the tag name and remove the attributes that are not needed anymore.
    */
-  private fun editTagNameAndAttributes(newTagName: String) {
-    DumbService.getInstance(myProject).runWhenSmart {
+  @UiThread
+  private fun editTagNameAndAttributes(project: Project, newTagName: String) {
+    DumbService.getInstance(project).runWhenSmart {
       NlWriteCommandActionUtil.run(myNlComponent, "Convert " + myNlComponent.tagName + " to ${newTagName.split(".").last()}") {
         myNlComponent.tagDeprecated.name = newTagName
-        TransactionGuard.getInstance().submitTransactionAndWait {
-          myNlComponent.removeObsoleteAttributes()
-          myNlComponent.children.forEach(NlComponent::removeObsoleteAttributes)
-        }
+        myNlComponent.removeObsoleteAttributes()
+        myNlComponent.children.forEach(NlComponent::removeObsoleteAttributes)
       }
     }
   }
@@ -77,22 +84,22 @@ class MorphComponentAction(component: NlComponent)
       .createPopup()
 
     morphPanel.setOkAction {
-      applyTagEdit(myNewName)
+      applyTagEdit(it)
       popup.closeOk(null)
     }
     return popup
   }
 
-  private fun showMorphPopup() {
+  override fun actionPerformed(e: AnActionEvent) {
     val oldTagName = myNlComponent.tagName
-    val morphSuggestion = MorphManager.getMorphSuggestion(myNlComponent)
-    val morphDialog = MorphPanel(myFacet, myProject, oldTagName, morphSuggestion)
+    val project = myNlComponent.model.project
+    val facet = myNlComponent.model.facet
+    val morphSuggestion = getMorphSuggestions(myNlComponent)
+    val morphDialog = MorphPanel(facet, project, oldTagName, morphSuggestion)
     morphDialog.setTagNameChangeConsumer { newName ->
       myNewName = newName
     }
-    createMorphPopup(morphDialog).showCenteredInCurrentWindow(myProject)
+    createMorphPopup(morphDialog).showCenteredInCurrentWindow(project)
   }
-
-  override fun actionPerformed(e: AnActionEvent) = showMorphPopup()
 }
 

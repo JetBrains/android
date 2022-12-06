@@ -26,6 +26,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
+import org.jetbrains.annotations.TestOnly
 
 private val LOGGER = Logger.getInstance(NlComponentBackendXml::class.java)
 
@@ -38,6 +39,9 @@ open class NlComponentBackendXml private constructor(
 
   companion object {
     val DEBUG = false
+
+    @TestOnly
+    fun getForTest(project: Project, xmlTag: XmlTag) = NlComponentBackendXml(project, xmlTag)
   }
 
   internal constructor(project: Project, tag: XmlTag) : this(project) {

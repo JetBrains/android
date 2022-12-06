@@ -137,9 +137,7 @@ open class FakeJBPopup<T>(
     TODO("Not yet implemented")
   }
 
-  override fun closeOk(e: InputEvent?) {
-    TODO("Not yet implemented")
-  }
+  override fun closeOk(e: InputEvent?) { }
 
   override fun cancel(e: InputEvent?) {
     TODO("Not yet implemented")
