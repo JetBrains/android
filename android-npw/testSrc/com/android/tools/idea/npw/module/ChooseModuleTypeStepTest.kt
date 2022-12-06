@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.module
 
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.npw.baselineprofiles.NewBaselineProfilesModuleDescriptionProvider
 import com.android.tools.idea.npw.benchmark.NewBenchmarkModuleDescriptionProvider
 import com.android.tools.idea.npw.dynamicapp.NewDynamicAppModuleDescriptionProvider
 import com.android.tools.idea.npw.importing.ImportModuleGalleryEntryProvider
@@ -57,9 +58,14 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
   }
 
   fun testSortExistingModuleEntries() {
-    val providers = listOf(ImportModuleGalleryEntryProvider(), NewAndroidModuleDescriptionProvider(),
-                           NewDynamicAppModuleDescriptionProvider(), NewLibraryModuleDescriptionProvider(),
-                           NewBenchmarkModuleDescriptionProvider())
+    val providers = listOf(
+      ImportModuleGalleryEntryProvider(),
+      NewAndroidModuleDescriptionProvider(),
+      NewDynamicAppModuleDescriptionProvider(),
+      NewLibraryModuleDescriptionProvider(),
+      NewBenchmarkModuleDescriptionProvider(),
+      NewBaselineProfilesModuleDescriptionProvider()
+    )
     val moduleDescriptions = providers.flatMap { it.getDescriptions(project) }
 
     val sortedEntries = sortModuleEntries(moduleDescriptions).map { it.name }
@@ -76,6 +82,7 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
       message("android.wizard.module.import.gradle.title"),
       message("android.wizard.module.import.eclipse.title"),
       message("android.wizard.module.new.java.or.kotlin.library"),
+      message("android.wizard.module.new.baselineprofiles.module.app"),
       message("android.wizard.module.new.benchmark.module.app")
     ).filterNot {
       it == message("android.wizard.module.import.gradle.title") || it == message("android.wizard.module.import.eclipse.title")

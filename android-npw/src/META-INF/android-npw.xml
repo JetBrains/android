@@ -25,6 +25,7 @@
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.importing.ImportModuleGalleryEntryProvider"/>
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.module.NewAndroidModuleDescriptionProvider"/>
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.dynamicapp.NewDynamicAppModuleDescriptionProvider"/>
+    <moduleDescriptionProvider implementation="com.android.tools.idea.npw.baselineprofiles.NewBaselineProfilesModuleDescriptionProvider"/>
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.benchmark.NewBenchmarkModuleDescriptionProvider"/>
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.java.NewLibraryModuleDescriptionProvider"/>
   </extensions>

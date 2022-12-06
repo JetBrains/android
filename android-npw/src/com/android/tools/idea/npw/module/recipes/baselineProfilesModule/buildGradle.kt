@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.android.tools.idea.npw.module.recipes.macrobenchmarkModule
+package com.android.tools.idea.npw.module.recipes.baselineProfilesModule
 
 import com.android.tools.idea.npw.module.recipes.androidModule.gradleToKtsIfKts
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.flavorsConfigurationsBuildGradle
-import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.FlavorNameAndDimension
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.npw.module.recipes.toAndroidFieldVersion
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
@@ -27,13 +25,14 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.renderIf
 import com.intellij.openapi.module.Module
 
-fun macrobenchmarksBuildGradle(
+
+fun baselineProfilesBuildGradle(
   newModule: ModuleTemplateData,
   flavorDimensionNames: List<String>,
   flavorNamesAndDimensions: List<FlavorNameAndDimension>,
   useGradleKts: Boolean,
   targetModule: Module,
-  benchmarkBuildTypeName: String,
+  useGmd: GmdSpec?,
 ): String {
   val packageName = newModule.packageName
   val apis = newModule.apis
@@ -43,24 +42,6 @@ fun macrobenchmarksBuildGradle(
   val targetModuleGradlePath = targetModule.getGradleProjectPath()?.path
   val flavorsConfiguration = flavorsConfigurationsBuildGradle(flavorDimensionNames, flavorNamesAndDimensions, useGradleKts)
 
-  val benchmarkBuildType: String
-  val debugSigningConfig: String
-  val matchingFallbacks: String
-  val addReceiverIfKts: String.() -> String
-
-  if (useGradleKts) {
-    benchmarkBuildType = """create("$benchmarkBuildTypeName")"""
-    debugSigningConfig = """getByName("debug").signingConfig"""
-    matchingFallbacks = "matchingFallbacks += listOf(\"release\")"
-    addReceiverIfKts = { "it.$this" }
-  }
-  else {
-    benchmarkBuildType = benchmarkBuildTypeName
-    debugSigningConfig = "debug.signingConfig"
-    matchingFallbacks = "matchingFallbacks = [\"release\"]"
-    addReceiverIfKts = { this }
-  }
-
   val kotlinOptionsBlock = renderIf(language == Language.Kotlin) {
     """
     kotlinOptions {
@@ -69,51 +50,73 @@ fun macrobenchmarksBuildGradle(
     """
   }
 
+  val gmdDefinition = renderIf(useGmd != null) {
+    useGmd!!
+
+    val createGMD: String = if (useGradleKts) {
+      "create<ManagedVirtualDevice>(\"${useGmd.identifier}\")"
+    }
+    else {
+      "${useGmd.identifier}(ManagedVirtualDevice)"
+    }
+
+    """
+    testOptions.managedDevices.devices {
+        $createGMD {
+            device = "${useGmd.deviceName}"
+            apiLevel = ${useGmd.apiLevel}
+            systemImageSource = "aosp"
+        }
+    }
+    """.trimIndent()
+  }
+
+  val pluginConfiguration = buildString {
+    appendLine("// This is the configuration block for the Baseline Profiles plugin.")
+    appendLine("// You can specify to run the generators on a managed devices or connected devices.")
+    appendLine("baselineProfilesProfileProducer {")
+    if (useGmd != null) {
+      appendLine("managedDevices += \"${useGmd.identifier}\"")
+      appendLine("useConnectedDevices = false")
+    }
+    else {
+      appendLine("useConnectedDevices = true")
+    }
+    append("}")
+  }
+
   return """
+${renderIf(useGmd != null) { "import com.android.build.api.dsl.ManagedVirtualDevice" }}
 ${emptyPluginsBlock()}
 
 android {
-    namespace '$packageName'
-    ${toAndroidFieldVersion("compileSdk", apis.buildApi.apiString, gradlePluginVersion)}
+  namespace '$packageName'
+  ${toAndroidFieldVersion("compileSdk", apis.buildApi.apiString, gradlePluginVersion)}
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
+  compileOptions {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+  }
 
-    $kotlinOptionsBlock
+  $kotlinOptionsBlock
 
-    defaultConfig {
+  defaultConfig {
         ${toAndroidFieldVersion("minSdk", apis.minApi.apiString, gradlePluginVersion)}
         ${toAndroidFieldVersion("targetSdk", apis.targetApi.apiString, gradlePluginVersion)}
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    buildTypes {
-        // This benchmark buildType is used for benchmarking, and should function like your
-        // release build (for example, with minification on). It's signed with a debug key
-        // for easy local/CI testing.
-        $benchmarkBuildType {
-            debuggable = true
-            signingConfig = $debugSigningConfig
-            $matchingFallbacks
-        }
-    }
+    targetProjectPath = "$targetModuleGradlePath"
 
     $flavorsConfiguration
 
-    targetProjectPath = "$targetModuleGradlePath"
-    experimentalProperties["android.experimental.self-instrumenting"] = true
+    $gmdDefinition
+
+    $pluginConfiguration
 }
 
 dependencies {
-}
-
-androidComponents {
-    beforeVariants(selector().all()) {
-        ${"enable".addReceiverIfKts()} = ${"buildType".addReceiverIfKts()} == "$benchmarkBuildTypeName"
-    }
 }
 
 """.gradleToKtsIfKts(useGradleKts)

@@ -170,6 +170,7 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
 
   "Android Project" -> TemplateRenderer.ANDROID_PROJECT
 
+  message("android.wizard.module.new.baselineprofiles.module.app") -> TemplateRenderer.BASELINE_PROFILES_MODULE
   message("android.wizard.module.new.benchmark.module.app") -> TemplateRenderer.BENCHMARK_LIBRARY_MODULE
   message("android.wizard.module.new.mobile") -> TemplateRenderer.ANDROID_MODULE
   message("android.wizard.module.new.java.or.kotlin.library") -> TemplateRenderer.JAVA_LIBRARY
