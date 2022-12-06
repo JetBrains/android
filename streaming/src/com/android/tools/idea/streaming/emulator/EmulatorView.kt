@@ -527,8 +527,10 @@ class EmulatorView(
     notificationFeed = null
   }
 
-  private fun showVirtualSceneCameraPrompt() {
-    findNotificationHolderPanel()?.showNotification("Hold Shift to control camera")
+  private fun showVirtualSceneCameraPrompt(prompt: String = "Hold Shift to control camera") {
+    if (EmulatorSettings.getInstance().showCameraControlPrompts) {
+      findNotificationHolderPanel()?.showNotification(prompt)
+    }
   }
 
   private fun hideVirtualSceneCameraPrompt() {
@@ -537,7 +539,7 @@ class EmulatorView(
 
   private fun startOperatingVirtualSceneCamera() {
     val keys = EmulatorSettings.getInstance().cameraVelocityControls.keys
-    findNotificationHolderPanel()?.showNotification("Move camera with $keys keys, rotate with mouse or arrow keys")
+    showVirtualSceneCameraPrompt("Move camera with $keys keys, rotate with mouse or arrow keys")
     val glass = IdeGlassPaneUtil.find(this)
     val cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.MOVE)
     val rootPane = glass.rootPane
@@ -571,7 +573,7 @@ class EmulatorView(
   private fun stopOperatingVirtualSceneCamera() {
     virtualSceneCameraVelocityController?.let(Disposer::dispose)
     virtualSceneCameraVelocityController = null
-    findNotificationHolderPanel()?.showNotification("Hold Shift to control camera")
+    showVirtualSceneCameraPrompt()
     val glass = IdeGlassPaneUtil.find(this)
     glass.setCursor(null, this)
     UIUtil.setCursor(glass.rootPane, null)

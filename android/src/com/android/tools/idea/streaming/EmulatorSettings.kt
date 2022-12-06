@@ -45,7 +45,7 @@ class EmulatorSettings : PersistentStateComponent<EmulatorSettings> {
       }
     }
 
-  var snapshotAutoDeletionPolicy = DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY
+  var showCameraControlPrompts = true
     set(value) {
       if (field != value) {
         field = value
@@ -54,6 +54,14 @@ class EmulatorSettings : PersistentStateComponent<EmulatorSettings> {
     }
 
   var cameraVelocityControls = DEFAULT_CAMERA_VELOCITY_CONTROLS
+    set(value) {
+      if (field != value) {
+        field = value
+        notifyListeners()
+      }
+    }
+
+  var snapshotAutoDeletionPolicy = DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY
     set(value) {
       if (field != value) {
         field = value

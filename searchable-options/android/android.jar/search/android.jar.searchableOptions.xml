@@ -1072,6 +1072,10 @@
     <option name="launch" hit="Launch in a tool window" />
     <option name="tool" hit="Launch in a tool window" />
     <option name="window" hit="Launch in a tool window" />
+    <option name="camera" hit="Show camera control prompts" />
+    <option name="control" hit="Show camera control prompts" />
+    <option name="prompts" hit="Show camera control prompts" />
+    <option name="show" hit="Show camera control prompts" />
     <option name="camera" hit="Velocity control keys for virtual scene camera:" />
     <option name="control" hit="Velocity control keys for virtual scene camera:" />
     <option name="for" hit="Velocity control keys for virtual scene camera:" />

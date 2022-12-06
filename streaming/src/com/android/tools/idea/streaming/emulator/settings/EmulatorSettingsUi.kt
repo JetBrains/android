@@ -41,10 +41,11 @@ class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
 
   private lateinit var launchInToolWindowCheckBox: JCheckBox
   private lateinit var synchronizeClipboardCheckBox: JCheckBox
-  private lateinit var snapshotAutoDeletionPolicyComboBox: ComboBox<SnapshotAutoDeletionPolicy>
-  private val snapshotAutoDeletionPolicyComboBoxModel = EnumComboBoxModel(SnapshotAutoDeletionPolicy::class.java)
+  private lateinit var showCameraControlPromptsCheckBox: JCheckBox
   private lateinit var cameraVelocityControlComboBox: ComboBox<CameraVelocityControls>
   private val cameraVelocityControlComboBoxModel = EnumComboBoxModel(CameraVelocityControls::class.java)
+  private lateinit var snapshotAutoDeletionPolicyComboBox: ComboBox<SnapshotAutoDeletionPolicy>
+  private val snapshotAutoDeletionPolicyComboBoxModel = EnumComboBoxModel(SnapshotAutoDeletionPolicy::class.java)
 
   private val state = EmulatorSettings.getInstance()
 
@@ -64,17 +65,9 @@ class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
           .component
     }.topGap(TopGap.SMALL).enabledIf(launchInToolWindowCheckBox.selected)
     row {
-      panel {
-        row("When encountering snapshots incompatible with the current configuration:") {}
-        row {
-          snapshotAutoDeletionPolicyComboBox =
-            comboBox(snapshotAutoDeletionPolicyComboBoxModel,
-                     renderer = SimpleListCellRenderer.create(DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY.displayName) { it.displayName })
-              .bindItem(snapshotAutoDeletionPolicyComboBoxModel::getSelectedItem,
-                        snapshotAutoDeletionPolicyComboBoxModel::setSelectedItem)
-              .component
-        }
-      }
+      showCameraControlPromptsCheckBox =
+        checkBox("Show camera control prompts")
+          .component
     }.topGap(TopGap.SMALL).enabledIf(launchInToolWindowCheckBox.selected)
     row {
       panel {
@@ -88,29 +81,45 @@ class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
               .component
         }
       }
+    }.enabledIf(launchInToolWindowCheckBox.selected)
+    row {
+      panel {
+        row("When encountering snapshots incompatible with the current configuration:") {}
+        row {
+          snapshotAutoDeletionPolicyComboBox =
+            comboBox(snapshotAutoDeletionPolicyComboBoxModel,
+                     renderer = SimpleListCellRenderer.create(DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY.displayName) { it.displayName })
+              .bindItem(snapshotAutoDeletionPolicyComboBoxModel::getSelectedItem,
+                        snapshotAutoDeletionPolicyComboBoxModel::setSelectedItem)
+              .component
+        }
+      }
     }.topGap(TopGap.SMALL).enabledIf(launchInToolWindowCheckBox.selected)
   }
 
   override fun isModified(): Boolean {
     return launchInToolWindowCheckBox.isSelected != state.launchInToolWindow ||
            synchronizeClipboardCheckBox.isSelected != state.synchronizeClipboard ||
-           snapshotAutoDeletionPolicyComboBoxModel.selectedItem != state.snapshotAutoDeletionPolicy ||
-           cameraVelocityControlComboBoxModel.selectedItem != state.cameraVelocityControls
+           showCameraControlPromptsCheckBox.isSelected != state.showCameraControlPrompts ||
+           cameraVelocityControlComboBoxModel.selectedItem != state.cameraVelocityControls ||
+           snapshotAutoDeletionPolicyComboBoxModel.selectedItem != state.snapshotAutoDeletionPolicy
   }
 
   @Throws(ConfigurationException::class)
   override fun apply() {
     state.launchInToolWindow = launchInToolWindowCheckBox.isSelected
     state.synchronizeClipboard = synchronizeClipboardCheckBox.isSelected
-    state.snapshotAutoDeletionPolicy = snapshotAutoDeletionPolicyComboBoxModel.selectedItem
+    state.showCameraControlPrompts = showCameraControlPromptsCheckBox.isSelected
     state.cameraVelocityControls = cameraVelocityControlComboBoxModel.selectedItem
+    state.snapshotAutoDeletionPolicy = snapshotAutoDeletionPolicyComboBoxModel.selectedItem
   }
 
   override fun reset() {
     launchInToolWindowCheckBox.isSelected = state.launchInToolWindow
     synchronizeClipboardCheckBox.isSelected = state.synchronizeClipboard
-    snapshotAutoDeletionPolicyComboBoxModel.setSelectedItem(state.snapshotAutoDeletionPolicy)
+    showCameraControlPromptsCheckBox.isSelected = state.showCameraControlPrompts
     cameraVelocityControlComboBoxModel.setSelectedItem(state.cameraVelocityControls)
+    snapshotAutoDeletionPolicyComboBoxModel.setSelectedItem(state.snapshotAutoDeletionPolicy)
   }
 
   @Nls
