@@ -1840,20 +1840,9 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     else if (PlatformCoreDataKeys.BGT_DATA_PROVIDER.is(dataId)) {
       SceneView view = getFocusedSceneView();
       if (view == null) return null;
-      NlComponent primary = view.getSelectionModel().getPrimary();
-      return (DataProvider)slowId -> getSlowData(slowId, primary);
-    }  
-    else if (LangDataKeys.PSI_ELEMENT_ARRAY.is(dataId)) {
-      SceneView view = getFocusedSceneView();
-      if (view != null) {
-        SelectionModel selectionModel = view.getSelectionModel();
-        List<NlComponent> selection = selectionModel.getSelection();
-        List<XmlTag> list = Lists.newArrayListWithCapacity(selection.size());
-        for (NlComponent component : selection) {
-          list.add(component.getTagDeprecated());
-        }
-        return list.toArray(XmlTag.EMPTY);
-      }
+
+      SelectionModel selectionModel = view.getSelectionModel();
+      return (DataProvider)slowId -> getSlowData(slowId, selectionModel);
     }
     else {
       NlModel model = getModel();
@@ -1866,9 +1855,18 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   }
 
   @Nullable
-  private static XmlTag getSlowData(@NonNls String slowId, NlComponent primary) {
+  private static Object getSlowData(@NonNls String slowId, SelectionModel selectionModel) {
     if (CommonDataKeys.PSI_ELEMENT.is(slowId)) {
+      NlComponent primary = selectionModel.getPrimary();
       return primary != null ? primary.getTagDeprecated() : null;
+    }
+    else if (LangDataKeys.PSI_ELEMENT_ARRAY.is(slowId)) {
+      List<NlComponent> selection = selectionModel.getSelection();
+      List<XmlTag> list = Lists.newArrayListWithCapacity(selection.size());
+      for (NlComponent component : selection) {
+        list.add(component.getTagDeprecated());
+      }
+      return list.toArray(XmlTag.EMPTY);
     }
     else {
       return null;
