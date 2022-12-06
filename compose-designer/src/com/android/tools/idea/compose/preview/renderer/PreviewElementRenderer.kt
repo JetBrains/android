@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.compose.preview.renderer
 
+import com.android.ide.common.rendering.api.SessionParams
+import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.applyTo
+import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.RenderResult
+import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTask
-import com.android.tools.idea.rendering.createRenderTaskFuture
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.awt.image.BufferedImage
@@ -39,18 +44,43 @@ fun createRenderTaskFuture(
   facet: AndroidFacet,
   previewElement: ComposePreviewElementInstance,
   privateClassLoader: Boolean = false,
-  classesToPreload: Collection<String> = emptyList(),
-) =
-  createRenderTaskFuture(
-    facet,
+  classesToPreload: Collection<String> = emptyList()
+): CompletableFuture<RenderTask> {
+  val project = facet.module.project
+
+  val file =
     ComposeAdapterLightVirtualFile(
       "singlePreviewElement.xml",
       previewElement.toPreviewXml().buildString()
-    ) { previewElement.previewElementDefinitionPsi?.virtualFile },
-    privateClassLoader,
-    classesToPreload,
-    previewElement::applyTo
-  )
+    ) { previewElement.previewElementDefinitionPsi?.virtualFile }
+  val psiFile =
+    AndroidPsiUtils.getPsiFileSafely(project, file)
+      ?: return CompletableFuture.completedFuture(null)
+  val configuration =
+    Configuration.create(
+      ConfigurationManager.getOrCreateInstance(facet),
+      null,
+      FolderConfiguration.createDefault()
+    )
+  previewElement.applyTo(configuration)
+
+  return RenderService.getInstance(project)
+    .taskBuilder(facet, configuration)
+    .withPsiFile(psiFile)
+    .disableDecorations()
+    .apply {
+      if (privateClassLoader) {
+        usePrivateClassLoader()
+      }
+      if (classesToPreload.isNotEmpty()) {
+        preloadClasses(classesToPreload)
+      }
+    }
+    .withRenderingMode(SessionParams.RenderingMode.SHRINK)
+    // Compose Preview has its own out-of-date reporting mechanism
+    .doNotReportOutOfDateUserClasses()
+    .build()
+}
 
 /**
  * Renders a single [ComposePreviewElement] and returns a [CompletableFuture] containing the result
