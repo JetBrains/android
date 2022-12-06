@@ -100,6 +100,12 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   @NotNull
   @Override
   public Collection<IDevice> getRunningDevices() {
+    if (Thread.currentThread().getName().equals("Action Updater (Common)") || EventQueue.isDispatchThread()) {
+      Logger.getInstance(DeviceAndSnapshotComboBoxExecutionTarget.class).error(
+        "Blocking Future::get calls on an Action Updater (Common) thread or the EDT http://b/259746412, http://b/259746444, " +
+        "http://b/259746749, http://b/259747002, http://b/259747870, and http://b/259747965");
+    }
+
     return deviceStream()
       .filter(Device::isConnected)
       .map(Device::getDdmlibDeviceAsync)
