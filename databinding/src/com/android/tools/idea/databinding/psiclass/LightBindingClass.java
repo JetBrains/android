@@ -22,7 +22,6 @@ import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.databinding.BindingLayout;
-import com.android.tools.idea.databinding.BindingLayoutFile;
 import com.android.tools.idea.databinding.index.BindingLayoutType;
 import com.android.tools.idea.databinding.index.BindingXmlData;
 import com.android.tools.idea.databinding.index.ImportData;
@@ -649,11 +648,9 @@ public class LightBindingClass extends AndroidLightClassBase {
   @Override
   public PsiElement getNavigationElement() {
     XmlFile xmlFile = myConfig.getTargetLayout().toXmlFile();
-    if (xmlFile == null) {
-      return super.getNavigationElement();
-    }
-
-    return new BindingLayoutFile(this, xmlFile);
+    if (xmlFile == null) return super.getNavigationElement();
+    PsiElement xmlNavElement = xmlFile.getNavigationElement();
+    return xmlNavElement != null ? xmlNavElement : xmlFile;
   }
 
   @Override

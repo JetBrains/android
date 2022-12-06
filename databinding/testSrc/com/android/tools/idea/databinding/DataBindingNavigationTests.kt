@@ -23,14 +23,12 @@ import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.psi.PsiAnchor
 import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiClassOwner
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import com.intellij.util.IncorrectOperationException
 import org.jetbrains.android.facet.AndroidFacet
-import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -104,24 +102,8 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
     binding.navigate(true)
     assertThat(editors.selectedFiles[0].name).isEqualTo("activity_main.xml")
 
-    // Additionally, let's verify the behavior of the LightBindingClass's navigation element, for
-    // code coverage purposes.
-    binding.navigationElement.let { navElement ->
-      assertThat(navElement).isInstanceOf(BindingLayoutFile::class.java)
-      assertThat(navElement.containingFile).isSameAs(navElement)
-      // This next cast has to be true or else Java code coverage will crash. More details in the
-      // header docs of BindingLayoutFile
-      val psiClassOwner = navElement.containingFile as PsiClassOwner
-      assertThat(psiClassOwner.classes).hasLength(1)
-      assertThat(psiClassOwner.classes[0]).isEqualTo(binding)
-      assertThat(psiClassOwner.packageName).isEqualTo("test.db.databinding")
-
-      try {
-        psiClassOwner.packageName = "setting.packages.is.not.supported"
-        fail()
-      }
-      catch (expected: IncorrectOperationException) {}
-    }
+    // Regression test for 261536892: PsiAnchor.create throws assertion error for LightBindingClass navigation element.
+    PsiAnchor.create(binding.navigationElement)
   }
 
   @Test

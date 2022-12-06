@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.databinding.viewbinding.gradle
 
-import com.android.tools.idea.databinding.BindingLayoutFile
 import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
@@ -28,7 +27,7 @@ import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.psi.PsiClassOwner
+import com.intellij.psi.PsiAnchor
 import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -93,18 +92,8 @@ class ViewBindingNavigationTest {
     binding.navigate(true)
     assertThat(editorManager.selectedFiles[0].name).isEqualTo("activity_main.xml")
 
-    // Additionally, let's verify the behavior of the LightBindingClass's navigation element, for
-    // code coverage purposes.
-    binding.navigationElement.let { navElement ->
-      assertThat(navElement).isInstanceOf(BindingLayoutFile::class.java)
-      assertThat(navElement.containingFile).isSameAs(navElement)
-      // This next cast has to be true or else Java code coverage will crash. More details in
-      // the header docs of BindingLayoutInfoFile.
-      val psiClassOwner = navElement.containingFile as PsiClassOwner
-      assertThat(psiClassOwner.classes).hasLength(1)
-      assertThat(psiClassOwner.classes[0]).isEqualTo(binding)
-      assertThat(psiClassOwner.packageName).isEqualTo("com.android.example.viewbinding.databinding")
-    }
+    // Regression test for 261536892: PsiAnchor.create throws assertion error for LightBindingClass navigation element.
+    PsiAnchor.create(binding.navigationElement)
   }
 
   @Test
