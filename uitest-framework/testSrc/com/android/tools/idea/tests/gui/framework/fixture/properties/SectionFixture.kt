@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.properties
 
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.property.ptable.impl.PTableImpl
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.testFramework.runInEdtAndGet
 import org.fest.swing.fixture.AbstractComponentFixture
 
 /**
@@ -29,5 +33,36 @@ class SectionFixture(val title: CollapsibleLabelPanelFixture?) {
   fun findEditorOf(attributeName: String): ActionButtonBindingFixture {
     val index = components.indexOfFirst { (it as? CollapsibleLabelPanelFixture)?.name == attributeName }
     return components[index + 1] as ActionButtonBindingFixture
+  }
+
+  fun expand() {
+    title?.expand()
+  }
+
+  fun collapse() {
+    title?.collapse()
+  }
+
+  fun getPTable(): PTableFixture {
+    for (table in components) {
+      if (table.toString().contains("PTableFixture")) {
+        return table as PTableFixture
+      }
+    }
+    throw AssertionError("PTableFixture not found in Declared Attributes Panel")
+  }
+
+  fun getPTableImpl(): PTableImpl {
+    return getPTable().target() as PTableImpl
+  }
+
+  fun clickAddAttributeActionButton() {
+    val buttonStringName = "Add"
+    title?.clickActionButton(buttonStringName)
+  }
+
+  fun clickRemoveAttributeActionButton() {
+    val buttonStringName = "Remove"
+    title?.clickActionButton(buttonStringName)
   }
 }

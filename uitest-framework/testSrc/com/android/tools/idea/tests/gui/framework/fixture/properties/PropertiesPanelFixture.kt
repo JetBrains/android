@@ -86,6 +86,9 @@ class PropertiesPanelFixture<P : PropertyItem>(private val propertiesPanel: Prop
   fun listSectionNames(): List<String> =
     scrollableSections.map { it.title?.name.toString()}
 
+  fun expandSectionByName(name: String) =
+    findSectionByName(name)?.title?.expand()
+
   fun listAllLabels(): List<String> =
     robot.finder().findAll(Matchers.byType(CollapsibleLabelPanel::class.java)).map { it.text.toString() }
 

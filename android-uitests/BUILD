@@ -1404,6 +1404,31 @@ java_test(
 )
 
 java_test(
+    name = "AddOrRemoveAttributesTest",
+    size = "enormous",
+    timeout = "long",
+    data = COMMON_DATA + [
+        # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
+        "//prebuilts/studio/layoutlib:build.prop",
+        "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
+        "//prebuilts/studio/layoutlib/data:native_libs",
+        "@maven//:com.android.support.support-annotations_28.0.0",
+        "@maven//:com.android.support.appcompat-v7_26.1.0",
+    ] + glob([
+        "testData/SimpleApplication/**",
+    ]) + glob(["testData/LayoutTest/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.AddOrRemoveAttributesTest"],
+    tags = COMMON_TAGS + [
+        "qa_smoke",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
     name = "CreateNavNIGraphTest",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",

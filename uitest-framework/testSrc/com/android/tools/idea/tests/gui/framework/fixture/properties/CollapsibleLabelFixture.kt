@@ -15,11 +15,19 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.properties
 
+import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.android.tools.idea.tests.gui.framework.waitForIdle
 import com.android.tools.property.panel.impl.ui.CollapsibleLabelPanel
+import com.google.common.collect.Lists
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import org.fest.swing.core.Robot
 import org.jetbrains.kotlin.idea.util.application.invokeLater
+import javax.swing.JLabel
+
+
+
 
 /**
  * Fixture for a [CollapsibleLabelPanel] commonly used as a title for a section in the properties panel.
@@ -45,6 +53,26 @@ class CollapsibleLabelPanelFixture(
         label.model.expanded = true
       }
       waitForIdle()
+    }
+  }
+  fun collapse() {
+    if (label.model.expandable) {
+      invokeLater {
+        label.model.expanded = false
+      }
+      waitForIdle()
+    }
+  }
+
+  fun clickActionButton(buttonName: String) {
+    val actionButtons: List<ActionButton> = Lists.newArrayList(robot().finder().findAll(target(), Matchers.byType(ActionButton::class.java)))
+    if (actionButtons.isEmpty()) {
+      throw AssertionError("Action Buttons not found !!!")
+    }
+    for (button in actionButtons) {
+      if (button.action.toString().contains(buttonName, true)) {
+        robot().click(button)
+      }
     }
   }
 }
