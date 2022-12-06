@@ -31,6 +31,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.jetbrains.rd.util.threadLocalWithInitial
+import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CountDownLatch
@@ -67,6 +68,7 @@ class InspectorClientLauncher(
       metrics: LayoutInspectorSessionMetrics,
       treeSettings: TreeSettings,
       inspectorClientSettings: InspectorClientSettings,
+      coroutineScope: CoroutineScope,
       parentDisposable: Disposable
     ): InspectorClientLauncher {
       return InspectorClientLauncher(
@@ -82,6 +84,7 @@ class InspectorClientLauncher(
                 metrics,
                 treeSettings,
                 inspectorClientSettings,
+                coroutineScope,
                 parentDisposable
               )
             }

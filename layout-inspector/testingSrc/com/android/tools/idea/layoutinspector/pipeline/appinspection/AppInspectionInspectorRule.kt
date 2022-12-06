@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.createResponse
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
@@ -67,6 +68,7 @@ fun AppInspectionClientProvider(
     metrics = LayoutInspectorSessionMetrics(inspector.layoutInspectorModel.project, params.process),
     treeSettings = inspector.treeSettings,
     inspectorClientSettings = getClientSettings(),
+    coroutineScope = AndroidCoroutineScope(getDisposable()),
     parentDisposable = getDisposable(),
     apiServices = apiServices).apply {
     launchMonitor = getMonitor()

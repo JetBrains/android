@@ -21,8 +21,8 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.ide.ui.RecentProcess
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidExecutors
-import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
@@ -57,6 +57,7 @@ import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.util.concurrency.EdtExecutorService
+import kotlinx.coroutines.CoroutineScope
 import java.awt.BorderLayout
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
@@ -89,10 +90,13 @@ object LayoutInspectorOpenProjectsTracker {
 class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
+    // Coroutine scope tied to the lifecycle of this tool window. It will be cancelled when the tool window is disposed.
+    val layoutInspectorCoroutineScope = AndroidCoroutineScope(toolWindow.disposable)
+
     LayoutInspectorOpenProjectsTracker.openProjects += 1
     Disposer.register(toolWindow.disposable) { LayoutInspectorOpenProjectsTracker.openProjects -= 1 }
 
-    val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, project)
+    val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, toolWindow.disposable)
     val viewSettings = InspectorRenderSettings()
     val inspectorClientSettings = InspectorClientSettings(project)
 
@@ -138,12 +142,15 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
           metrics,
           treeSettings,
           inspectorClientSettings,
+          layoutInspectorCoroutineScope,
           workbench
         )
         val layoutInspector = LayoutInspector(launcher, model, treeSettings)
 
         val deviceModel = DeviceModel(workbench, processesModel)
-        val foregroundProcessDetection = createForegroundProcessDetection(project, processesModel, deviceModel)
+        val foregroundProcessDetection = createForegroundProcessDetection(
+          project, processesModel, deviceModel, layoutInspectorCoroutineScope
+        )
 
         val deviceViewPanel = DeviceViewPanel(
           processesModel = processesModel,
@@ -179,13 +186,14 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     project: Project,
     processesModel: ProcessesModel,
     deviceModel: DeviceModel,
+    coroutineScope: CoroutineScope
   ): ForegroundProcessDetection? {
     return if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()) {
       ForegroundProcessDetectionInitializer.initialize(
         project = project,
         processModel = processesModel,
         deviceModel = deviceModel,
-        coroutineScope = project.coroutineScope,
+        coroutineScope = coroutineScope,
         metrics = ForegroundProcessDetectionMetrics
       )
     }

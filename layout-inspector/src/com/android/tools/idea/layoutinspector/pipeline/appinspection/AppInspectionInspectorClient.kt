@@ -26,9 +26,6 @@ import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.avdmanager.AvdManagerConnection
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.coroutineScope
-import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
@@ -66,6 +63,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
 import org.jetbrains.android.util.AndroidBundle
@@ -97,6 +95,7 @@ class AppInspectionInspectorClient(
   private val metrics: LayoutInspectorSessionMetrics,
   private val treeSettings: TreeSettings,
   private val inspectorClientSettings: InspectorClientSettings,
+  private val coroutineScope: CoroutineScope,
   parentDisposable: Disposable,
   @TestOnly private val apiServices: AppInspectionApiServices = AppInspectionDiscoveryService.instance.apiServices,
   @TestOnly private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
@@ -105,7 +104,6 @@ class AppInspectionInspectorClient(
 
   private var viewInspector: ViewLayoutInspectorClient? = null
   private lateinit var propertiesProvider: AppInspectionPropertiesProvider
-  private val scope = AndroidCoroutineScope(this)
 
   /** Compose inspector, may be null if user's app isn't using the compose library. */
   @VisibleForTesting
@@ -171,7 +169,7 @@ class AppInspectionInspectorClient(
       bannerExceptionHandler.handleException(ctx, t)
       future.setException(t)
     }
-    scope.launch(exceptionHandler) {
+    coroutineScope.launch(exceptionHandler) {
       logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
 
       // Create the app inspection connection now, so we can log that it happened.
@@ -180,7 +178,7 @@ class AppInspectionInspectorClient(
 
       composeInspector = ComposeLayoutInspectorClient.launch(apiServices, process, model, treeSettings, capabilities, launchMonitor,
                                                              ::logComposeAttachError)
-      val viewIns = ViewLayoutInspectorClient.launch(apiServices, process, model, stats, scope, composeInspector,
+      val viewIns = ViewLayoutInspectorClient.launch(apiServices, process, model, stats, coroutineScope, composeInspector,
                                                      ::fireError, ::fireTreeEvent, launchMonitor)
       propertiesProvider = AppInspectionPropertiesProvider(viewIns.propertiesCache, composeInspector?.parametersCache, model)
       viewInspector = viewIns
@@ -210,8 +208,7 @@ class AppInspectionInspectorClient(
 
   override fun doDisconnect(): ListenableFuture<Nothing> {
     val future = SettableFuture.create<Nothing>()
-    // Create a new scope since we might be disconnecting because the original one died.
-    model.project.coroutineScope.createChildScope(true).launch(loggingExceptionHandler) {
+    coroutineScope.launch(loggingExceptionHandler) {
       val debugViewAttributes = DebugViewAttributes.getInstance()
       if (debugViewAttributesChanged && !debugViewAttributes.usePerDeviceSettings()) {
         debugViewAttributes.clear(model.project, process)
@@ -227,7 +224,7 @@ class AppInspectionInspectorClient(
   }
 
   override fun startFetching() =
-    scope.launch(bannerExceptionHandler) {
+    coroutineScope.launch(bannerExceptionHandler) {
       startFetchingInternal()
     }.asCompletableFuture()
 
@@ -237,7 +234,7 @@ class AppInspectionInspectorClient(
   }
 
   override fun stopFetching() =
-    scope.launch(loggingExceptionHandler) {
+    coroutineScope.launch(loggingExceptionHandler) {
       // Reset the scale to 1 to support zooming while paused, and get an SKP if possible.
       if (capabilities.contains(Capability.SUPPORTS_SKP)) {
         updateScreenshotType(AndroidWindow.ImageType.SKP, 1.0f)
@@ -250,7 +247,7 @@ class AppInspectionInspectorClient(
     }.asCompletableFuture()
 
   override fun refresh() {
-    scope.launch(loggingExceptionHandler) {
+    coroutineScope.launch(loggingExceptionHandler) {
       refreshInternal()
     }
   }
@@ -279,7 +276,7 @@ class AppInspectionInspectorClient(
   }
 
   fun updateRecompositionCountSettings() {
-    scope.launch(loggingExceptionHandler) {
+    coroutineScope.launch(loggingExceptionHandler) {
       composeInspector?.updateSettings()
     }
   }

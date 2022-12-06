@@ -54,6 +54,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
@@ -1048,6 +1049,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
         metrics = mock(),
         treeSettings = mock(),
         inspectorClientSettings = InspectorClientSettings(projectRule.project),
+        coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable),
         parentDisposable = projectRule.testRootDisposable,
         apiServices = inspectionRule.inspectionService.apiServices,
         sdkHandler = sdkHandler
@@ -1083,6 +1085,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
         metrics = mock(),
         treeSettings = mock(),
         inspectorClientSettings = InspectorClientSettings(projectRule.project),
+        coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable),
         parentDisposable = projectRule.testRootDisposable,
         apiServices = inspectionRule.inspectionService.apiServices,
         sdkHandler = sdkHandler
@@ -1111,6 +1114,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
         metrics = mock(),
         treeSettings = mock(),
         inspectorClientSettings = InspectorClientSettings(projectRule.project),
+        coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable),
         parentDisposable = projectRule.testRootDisposable,
         apiServices = inspectionRule.inspectionService.apiServices,
         sdkHandler = sdkHandler
