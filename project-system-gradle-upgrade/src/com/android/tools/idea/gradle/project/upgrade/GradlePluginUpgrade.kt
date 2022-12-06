@@ -119,10 +119,12 @@ fun recommendPluginUpgrade(project: Project, current: AgpVersion, strongly: Bool
   if (existing.isEmpty()) {
     val notification = when (strongly) {
       false -> UpgradeSuggestion(
-        AndroidBundle.message("project.upgrade.notification.title"), AndroidBundle.message("project.upgrade.notification.body", current))
+        AndroidBundle.message("project.upgrade.notification.title"), AndroidBundle.message("project.upgrade.notification.body", current), project, current)
       true -> DeprecatedAgpUpgradeWarning(
         AndroidBundle.message("project.upgrade.deprecated.notification.title"),
-        AndroidBundle.message("project.upgrade.deprecated.notification.body", current, GRADLE_PLUGIN_NEXT_MINIMUM_VERSION)
+        AndroidBundle.message("project.upgrade.deprecated.notification.body", current, GRADLE_PLUGIN_NEXT_MINIMUM_VERSION),
+        project,
+        current
       )
     }
     notification.notify(project)

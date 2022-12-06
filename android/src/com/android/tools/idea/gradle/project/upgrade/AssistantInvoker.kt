@@ -35,7 +35,7 @@ interface AssistantInvoker {
   fun maybeRecommendPluginUpgrade(project: Project, info: AndroidPluginInfo)
 
   /**
-   * Expires all notifications related to Android Gradle plugin upgrade recommendations.
+   * Quietly expires all notifications related to Android Gradle plugin upgrade recommendations.
    */
   fun expireProjectUpgradeNotifications(project: Project)
 

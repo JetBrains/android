@@ -85,7 +85,7 @@ class AssistantInvokerImpl : AssistantInvoker {
     NotificationsManager
       .getNotificationsManager()
       .getNotificationsOfType(ProjectUpgradeNotification::class.java, project)
-      .forEach { it.expire() }
+      .forEach { it.expire(false) }
   }
 
   override fun displayForceUpdatesDisabledMessage(project: Project) {
