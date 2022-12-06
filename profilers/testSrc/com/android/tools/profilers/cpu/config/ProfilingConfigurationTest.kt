@@ -19,6 +19,7 @@ import com.android.tools.profiler.proto.Trace
 import com.android.tools.profiler.proto.Trace.TraceConfiguration
 import com.android.tools.profiler.proto.Trace.TraceMode
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.AdditionalOptions
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.SYSTEM_TRACE_BUFFER_SIZE_MB
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
@@ -93,15 +94,13 @@ class ProfilingConfigurationTest {
   @Test
   fun addOptionsAtraceConfigAddsSuccessfully() {
     val configBuilder = TraceConfiguration.getDefaultInstance().toBuilder()
-    val atraceConfiguration = AtraceConfiguration("MyConfiguration").apply {
-      profilingBufferSizeInMb = 1234
-    }
+    val atraceConfiguration = AtraceConfiguration("MyConfiguration")
 
     atraceConfiguration.addOptions(configBuilder, emptyMap())
     val config = configBuilder.build()
 
     assertThat(config.hasAtraceOptions()).isTrue()
-    assertThat(config.atraceOptions.bufferSizeInMb).isEqualTo(1234)
+    assertThat(config.atraceOptions.bufferSizeInMb).isEqualTo(SYSTEM_TRACE_BUFFER_SIZE_MB)
   }
 
   @Test
@@ -122,9 +121,7 @@ class ProfilingConfigurationTest {
   @Test
   fun addOptionsPerfettoConfigAddsSuccessfully() {
     val configBuilder = TraceConfiguration.getDefaultInstance().toBuilder()
-    val perfettoConfiguration = PerfettoConfiguration("MyConfiguration").apply {
-      profilingBufferSizeInMb = 1234
-    }
+    val perfettoConfiguration = PerfettoConfiguration("MyConfiguration")
 
     perfettoConfiguration.addOptions(configBuilder, mapOf(AdditionalOptions.APP_PKG_NAME to "foo"))
     val config = configBuilder.build()

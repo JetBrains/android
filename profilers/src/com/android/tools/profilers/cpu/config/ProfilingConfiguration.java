@@ -28,6 +28,8 @@ import org.jetbrains.annotations.NotNull;
 public abstract class ProfilingConfiguration implements OptionsProvider {
   public static final String DEFAULT_CONFIGURATION_NAME = "Unnamed";
   public static final int DEFAULT_BUFFER_SIZE_MB = 8;
+  // The default buffer size for both atrace and perfetto (system trace) configurations.
+  public static final int SYSTEM_TRACE_BUFFER_SIZE_MB = 4;
   public static final int DEFAULT_SAMPLING_INTERVAL_US = 1000;
   public static final String TRACE_CONFIG_GROUP = "Trace config";
 
@@ -124,14 +126,9 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
         }
       case PERFETTO_OPTIONS:
         PerfettoConfiguration perfetto = new PerfettoConfiguration("");
-        if (proto.getPerfettoOptions().getBuffersCount() > 0) {
-          // Perfetto buffer size is configured for the first buffer always. Value is fetched as Kb, so we convert to Mb.
-          perfetto.setProfilingBufferSizeInMb(proto.getPerfettoOptions().getBuffers(0).getSizeKb() / 1024);
-        }
         return perfetto;
       case ATRACE_OPTIONS:
         AtraceConfiguration atrace = new AtraceConfiguration("");
-        atrace.setProfilingBufferSizeInMb(proto.getAtraceOptions().getBufferSizeInMb());
         return atrace;
       case SIMPLEPERF_OPTIONS:
         SimpleperfConfiguration simpleperf = new SimpleperfConfiguration("");

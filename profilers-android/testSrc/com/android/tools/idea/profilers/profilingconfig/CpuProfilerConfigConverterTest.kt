@@ -95,7 +95,6 @@ class CpuProfilerConfigConverterTest {
     assertThat(profilingConfiguration).isInstanceOf(AtraceConfiguration::class.java)
     assertThat((profilingConfiguration as AtraceConfiguration).name).isEqualTo(config.name)
     assertThat(profilingConfiguration.traceType).isEqualTo(TraceType.ATRACE)
-    assertThat(profilingConfiguration.profilingBufferSizeInMb).isEqualTo(5678)
     assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(AndroidVersion.VersionCodes.N)
   }
 
@@ -112,7 +111,6 @@ class CpuProfilerConfigConverterTest {
     assertThat(profilingConfiguration).isInstanceOf(PerfettoConfiguration::class.java)
     assertThat((profilingConfiguration as PerfettoConfiguration).name).isEqualTo(config.name)
     assertThat(profilingConfiguration.traceType).isEqualTo(TraceType.PERFETTO)
-    assertThat(profilingConfiguration.profilingBufferSizeInMb).isEqualTo(5678)
     assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(AndroidVersion.VersionCodes.P)
   }
 
@@ -163,15 +161,13 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun toCpuProfilerConfigAtrace() {
-    val configuration = AtraceConfiguration("MyConfiguration").apply {
-      profilingBufferSizeInMb = 1234
-    }
+    val configuration = AtraceConfiguration("MyConfiguration")
 
     val cpuProfilerConfig = CpuProfilerConfigConverter.fromProfilingConfiguration(configuration)
     assertThat(cpuProfilerConfig.name).isEqualTo(configuration.name)
     assertThat(cpuProfilerConfig.technology).isEqualTo(CpuProfilerConfig.Technology.SYSTEM_TRACE)
     assertThat(cpuProfilerConfig.samplingIntervalUs).isEqualTo(ProfilingConfiguration.DEFAULT_SAMPLING_INTERVAL_US)
-    assertThat(cpuProfilerConfig.bufferSizeMb).isEqualTo(1234)
+    assertThat(cpuProfilerConfig.bufferSizeMb).isEqualTo(ProfilingConfiguration.SYSTEM_TRACE_BUFFER_SIZE_MB)
   }
 
   @Test
@@ -189,15 +185,13 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun toCpuProfilerConfigPerfetto() {
-    val configuration = PerfettoConfiguration("MyConfiguration").apply {
-      profilingBufferSizeInMb = 1234
-    }
+    val configuration = PerfettoConfiguration("MyConfiguration")
 
     val cpuProfilerConfig = CpuProfilerConfigConverter.fromProfilingConfiguration(configuration)
     assertThat(cpuProfilerConfig.name).isEqualTo(configuration.name)
     assertThat(cpuProfilerConfig.technology).isEqualTo(CpuProfilerConfig.Technology.SYSTEM_TRACE)
     assertThat(cpuProfilerConfig.samplingIntervalUs).isEqualTo(ProfilingConfiguration.DEFAULT_SAMPLING_INTERVAL_US)
-    assertThat(cpuProfilerConfig.bufferSizeMb).isEqualTo(1234)
+    assertThat(cpuProfilerConfig.bufferSizeMb).isEqualTo(ProfilingConfiguration.SYSTEM_TRACE_BUFFER_SIZE_MB)
   }
 
   @Test

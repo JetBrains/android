@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.profilers.profilingconfig;
 
+import static com.android.tools.profilers.cpu.config.ProfilingConfiguration.SYSTEM_TRACE_BUFFER_SIZE_MB;
+
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
@@ -59,12 +61,12 @@ public class CpuProfilerConfigConverter {
       case ATRACE:
         AtraceConfiguration atraceConfiguration = (AtraceConfiguration)config;
         cpuProfilerConfig = new CpuProfilerConfig(atraceConfiguration.getName(), CpuProfilerConfig.Technology.SYSTEM_TRACE);
-        cpuProfilerConfig.setBufferSizeMb(atraceConfiguration.getProfilingBufferSizeInMb());
+        cpuProfilerConfig.setBufferSizeMb(SYSTEM_TRACE_BUFFER_SIZE_MB);
         break;
       case PERFETTO:
         PerfettoConfiguration perfettoConfiguration = (PerfettoConfiguration)config;
         cpuProfilerConfig = new CpuProfilerConfig(perfettoConfiguration.getName(), CpuProfilerConfig.Technology.SYSTEM_TRACE);
-        cpuProfilerConfig.setBufferSizeMb(perfettoConfiguration.getProfilingBufferSizeInMb());
+        cpuProfilerConfig.setBufferSizeMb(SYSTEM_TRACE_BUFFER_SIZE_MB);
         break;
       case UNSPECIFIED:
         UnspecifiedConfiguration unspecifiedConfiguration = (UnspecifiedConfiguration)config;
@@ -100,11 +102,9 @@ public class CpuProfilerConfigConverter {
       case SYSTEM_TRACE:
         if (deviceApi >= AndroidVersion.VersionCodes.P) {
           configuration = new PerfettoConfiguration(name);
-          ((PerfettoConfiguration)configuration).setProfilingBufferSizeInMb(config.getBufferSizeMb());
         }
         else {
           configuration = new AtraceConfiguration(name);
-          ((AtraceConfiguration)configuration).setProfilingBufferSizeInMb(config.getBufferSizeMb());
         }
         break;
     }
