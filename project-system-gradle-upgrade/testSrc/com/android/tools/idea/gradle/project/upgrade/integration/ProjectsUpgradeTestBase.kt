@@ -182,26 +182,42 @@ open class ProjectsUpgradeTestBase {
     val projectRoot = File(projectRule.project.basePath!!)
 
     FileUtils.getAllFiles(goldenProjectRoot)
-      .filter { it != null && it.isFileToCompare() }
+      .filter { it != null }
+      .mapNotNull { it.getExpectFun(expectedProjectState)?.let { f -> it to f } }
       .forEach {
-        val expectedContent = it.readText()
-        val relativePath = FileUtil.getRelativePath(goldenProjectRoot, it)
+        val file = it.first
+        val expectedContent = file.readText()
+        val relativePath = FileUtil.getRelativePath(goldenProjectRoot, file)
         val actualContent = FileUtils.join(projectRoot, relativePath).readText()
-        expect.withMessage(relativePath).that(actualContent).isEqualTo(expectedContent)
+        it.second.invoke(relativePath, actualContent, expectedContent)
       }
-    val gradleWrapperFile = FileUtils.join(projectRoot, "gradle", "wrapper", "gradle-wrapper.properties")
-    val distributionUrlLine = gradleWrapperFile.readLines().first { it.contains("distributionUrl") }
-    Truth.assertThat(distributionUrlLine).contains("gradle-${expectedProjectState.gradleVersionString()}-bin.zip")
   }
 
-  private fun File.isFileToCompare() = isFile() && path.let {
-    it.endsWith(SdkConstants.DOT_GRADLE)
-    || it.endsWith(SdkConstants.EXT_GRADLE_KTS)
-    || it.endsWith(SdkConstants.DOT_XML)
-    || it.endsWith(SdkConstants.DOT_JAVA)
-    || it.endsWith(SdkConstants.DOT_KT)
-    //|| it.endsWith(SdkConstants.DOT_PROPERTIES) // TODO(b/200007322): need to avoid comparing timestamp first
-  }
+  private fun File.getExpectFun(expectedProjectState: AUATestProjectState): ((String?, String, String) -> Unit)? =
+    takeIf { it.isFile }?.let {
+      when {
+        path.endsWith(SdkConstants.DOT_GRADLE) ||
+        path.endsWith(SdkConstants.EXT_GRADLE_KTS) ||
+        path.endsWith(SdkConstants.DOT_XML) ||
+        path.endsWith(SdkConstants.DOT_JAVA) ||
+        path.endsWith(SdkConstants.DOT_KT) ->
+          { relativePath: String?, actualContent: String, goldenContent: String ->
+            expect.withMessage(relativePath).that(actualContent).isEqualTo(goldenContent)
+          }
+
+        path.endsWith(SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES) ->
+          { relativePath: String?, actualContent: String, goldenContent: String ->
+            val distributionUrlLine = actualContent.lines().first { it.contains("distributionUrl") }
+            expect.withMessage(distributionUrlLine).that(distributionUrlLine).contains(
+              "gradle-${expectedProjectState.gradleVersionString()}-bin.zip")
+          }
+
+        // TODO(b/200007322): need to avoid comparing timestamp first
+        // path.endsWith(SdkConstants.DOT_PROPERTIES) -> ...
+
+        else -> null
+      }
+    }
 
   private class FakeInvoker(val delegate: GradleSyncInvoker = GradleSyncInvokerImpl()) : GradleSyncInvoker by delegate {
     var callsCount = 0
