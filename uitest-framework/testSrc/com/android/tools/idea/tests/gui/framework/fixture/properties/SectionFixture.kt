@@ -52,10 +52,6 @@ class SectionFixture(val title: CollapsibleLabelPanelFixture?) {
     throw AssertionError("PTableFixture not found in Declared Attributes Panel")
   }
 
-  fun getPTableImpl(): PTableImpl {
-    return getPTable().target() as PTableImpl
-  }
-
   fun clickAddAttributeActionButton() {
     val buttonStringName = "Add"
     title?.clickActionButton(buttonStringName)

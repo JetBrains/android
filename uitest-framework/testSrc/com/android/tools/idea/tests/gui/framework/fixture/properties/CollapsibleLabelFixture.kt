@@ -26,9 +26,6 @@ import org.fest.swing.core.Robot
 import org.jetbrains.kotlin.idea.util.application.invokeLater
 import javax.swing.JLabel
 
-
-
-
 /**
  * Fixture for a [CollapsibleLabelPanel] commonly used as a title for a section in the properties panel.
  */
@@ -55,6 +52,7 @@ class CollapsibleLabelPanelFixture(
       waitForIdle()
     }
   }
+
   fun collapse() {
     if (label.model.expandable) {
       invokeLater {
@@ -65,7 +63,10 @@ class CollapsibleLabelPanelFixture(
   }
 
   fun clickActionButton(buttonName: String) {
-    val actionButtons: List<ActionButton> = Lists.newArrayList(robot().finder().findAll(target(), Matchers.byType(ActionButton::class.java)))
+    val actionButtons: List<ActionButton> =
+      Lists.newArrayList(
+        robot().finder().findAll(target(), Matchers.byType(ActionButton::class.java))
+      )
     if (actionButtons.isEmpty()) {
       throw AssertionError("Action Buttons not found !!!")
     }

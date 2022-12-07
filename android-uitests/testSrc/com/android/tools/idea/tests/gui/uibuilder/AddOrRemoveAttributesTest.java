@@ -29,7 +29,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.properties.PTableFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.properties.SectionFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.wizard.template.Language;
-import com.android.tools.property.ptable.impl.PTableImpl;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -42,12 +41,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-
 @RunWith(GuiTestRemoteRunner.class)
 public class AddOrRemoveAttributesTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
-  protected static final String BASIC_ACTIVITY_TEMPLATE = "Empty Views Activity";
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
+  protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Views Activity";
   protected static final String APP_NAME = "App";
   protected static final String PACKAGE_NAME = "android.com.app";
   protected static final int MIN_SDK_API = 30;
@@ -57,11 +55,10 @@ public class AddOrRemoveAttributesTest {
   private DesignSurface<?> myDesignSurface;
   SectionFixture declaredAttributes;
   PTableFixture myPTable;
-  PTableImpl myPTableImpl;
 
   @Before
   public void setUp() {
-    WizardUtils.createNewProject(guiTest, BASIC_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Language.Java);
+    WizardUtils.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Language.Java);
     guiTest.robot().waitForIdle();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
@@ -141,14 +138,14 @@ public class AddOrRemoveAttributesTest {
 
     //Click on CheckBox
     myNlEditorFixture.findView("CheckBox", 0).getSceneComponent().click();
-    myNlEditorFixture.findView("CheckBox", 0).getSceneComponent().click(); //Clicking twice to reduce flakiness.
+    myNlEditorFixture.getAttributesPanel()
+      .waitForId("checkBox");
 
     //Finding the initial location of the dragged checkBox location
     Point checkBoxInitialLocation = myNlEditorFixture.findView("CheckBox", 0).getSceneComponent().getMidPoint();
 
     SectionFixture declaredAttributesPanel =  myNlEditorFixture
       .getAttributesPanel()
-      .waitForId("checkBox")
       .findSectionByName("Declared Attributes");
 
     //Expand declared attributes section.
@@ -176,8 +173,8 @@ public class AddOrRemoveAttributesTest {
     Point checkBoxFinalLocation = myNlEditorFixture.findView("CheckBox", 0).getSceneComponent().getMidPoint();
 
     //Validating that the checkbox location is changed after adding layoutConstraints.
-    assertThat(checkBoxFinalLocation.x != checkBoxInitialLocation.x).isTrue();
-    assertThat(checkBoxFinalLocation.y != checkBoxInitialLocation.y).isTrue();
+    assertThat(checkBoxFinalLocation.x).isNotEqualTo(checkBoxInitialLocation.x);
+    assertThat(checkBoxFinalLocation.y).isNotEqualTo(checkBoxInitialLocation.y);
 
     //Dragging a new button
     myNlEditorFixture.dragComponentToSurface("Buttons", "Button", 0, screenViewSize.height / 2 - heightOffset)
@@ -189,7 +186,8 @@ public class AddOrRemoveAttributesTest {
     Point buttonInitialLocation = myNlEditorFixture.findView("Button", 0).getSceneComponent().getMidPoint();
 
     myNlEditorFixture.findView("Button", 0).getSceneComponent().click();
-    myNlEditorFixture.findView("Button", 0).getSceneComponent().click(); //To reduce flakiness.
+    myNlEditorFixture.getAttributesPanel()
+      .waitForId("button");
 
     //Adding baseline constraint attribute in the declared attributes panel.
     addLayoutConstraintInDeclaredAttributes("button","app:layout_constraintBaseline_toBaselineOf", "@id/checkBox");
@@ -201,24 +199,25 @@ public class AddOrRemoveAttributesTest {
     Point buttonFinalLocation = myNlEditorFixture.findView("Button", 0).getSceneComponent().getMidPoint();
 
     //Validating that the button location is changed after adding baseline constraint with respect to checkbox.
-    assertThat(buttonFinalLocation.x == buttonInitialLocation.x).isTrue();
-    assertThat(buttonFinalLocation.y != buttonInitialLocation.y).isTrue();
+    assertThat(buttonFinalLocation.x).isNotEqualTo(buttonInitialLocation.x);
+    assertThat(buttonFinalLocation.y).isNotEqualTo(buttonInitialLocation.y);
 
     //Validating that the added constraints can be observed in the declared attributes and are stored.
 
-    assertTrue(myPTable.findRowOf("layout_constraintBaseline_toBaselineOf") > 0);
+    assertThat(myPTable.findRowOf("layout_constraintBaseline_toBaselineOf")).isGreaterThan(0);
 
     //Validating added attributes with respect to checkbox
     myNlEditorFixture.findView("CheckBox", 0).getSceneComponent().click();
-    myNlEditorFixture.findView("CheckBox", 0).getSceneComponent().click();
+    myNlEditorFixture.getAttributesPanel()
+        .waitForId("checkBox");
 
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     refreshDeclaredAttributesTable("checkBox");
 
-    assertTrue(myPTable.findRowOf("layout_constraintRight_toRightOf") > 0);
-    assertTrue(myPTable.findRowOf("layout_constraintTop_toTopOf") > 0);
-    assertTrue(myPTable.findRowOf("layout_constraintBottom_toBottomOf") > 0);
+    assertThat(myPTable.findRowOf("layout_constraintRight_toRightOf")).isGreaterThan(0);
+    assertThat(myPTable.findRowOf("layout_constraintTop_toTopOf")).isGreaterThan(0);
+    assertThat(myPTable.findRowOf("layout_constraintBottom_toBottomOf")).isGreaterThan(0);
 
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
@@ -264,17 +263,19 @@ public class AddOrRemoveAttributesTest {
 
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
-  public void testRemoveAttributesToDeclaredAttributesPanel() {
-    SectionFixture declaredAttributesPanel =  myNlEditorFixture
+  public void testRemoveAttributesFromDeclaredAttributesPanel() {
+    //Finding textView in the design window and clicking on it
+    myNlEditorFixture.findView("TextView", 0).getSceneComponent().click();
+
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
+    SectionFixture declaredAttributesPanel = myNlEditorFixture
       .getAttributesPanel()
+      .waitForId("<unnamed>")
       .findSectionByName("Declared Attributes");
 
     //Expand declared attributes section.
     declaredAttributesPanel.expand();
-
-    //Finding textView in the design window and clicking on it
-    myNlEditorFixture.findView("TextView", 0).getSceneComponent().click();
-    myNlEditorFixture.findView("TextView", 0).getSceneComponent().click(); //To reduce flakiness
 
     //Finding the initial location of the dragged TextView location
     Point textViewInitialLocation = myNlEditorFixture.findView("TextView", 0).getSceneComponent().getMidPoint();
@@ -303,14 +304,14 @@ public class AddOrRemoveAttributesTest {
     Point textViewFinalLocation = myNlEditorFixture.findView("TextView", 0).getSceneComponent().getMidPoint();
 
     //Validating that the button location is changed after adding baseline constraint with respect to textView.
-    assertThat(textViewFinalLocation.x != textViewInitialLocation.x).isTrue();
-    assertThat(textViewFinalLocation.y != textViewInitialLocation.y).isTrue();
+    assertThat(textViewFinalLocation.x).isNotEqualTo(textViewInitialLocation.x);
+    assertThat(textViewFinalLocation.y).isNotEqualTo(textViewInitialLocation.y);
 
     //Validating that the attributes removed are not present in the declared attributes panel
-    assertTrue(myPTable.findRowOf("layout_constraintBottom_toBottomOf") < 0);
-    assertTrue(myPTable.findRowOf("layout_constraintStart_toStartOf") < 0);
-    assertTrue(myPTable.findRowOf("layout_constraintEnd_toEndOf") < 0);
-    assertTrue(myPTable.findRowOf("layout_constraintTop_toTopOf") < 0);
+    assertThat(myPTable.findRowOf("layout_constraintBottom_toBottomOf")).isLessThan(0);
+    assertThat(myPTable.findRowOf("layout_constraintStart_toStartOf")).isLessThan(0);
+    assertThat(myPTable.findRowOf("layout_constraintEnd_toEndOf")).isLessThan(0);
+    assertThat(myPTable.findRowOf("layout_constraintTop_toTopOf")).isLessThan(0);
 
     //Switching to code tab
     myEditorFixture.switchToTab("Text");
@@ -335,7 +336,7 @@ public class AddOrRemoveAttributesTest {
     refreshDeclaredAttributesTable(attributeID);
 
     //Getting the row value where the new row is created.
-    int rowCount = myPTableImpl.getRowCount()-1;
+    int rowCount = myPTable.rowCount()-1;
 
     //Adding the constraint layout information and pressing enter.
     myPTable.robot().typeText(constraintLayoutName);
@@ -377,6 +378,5 @@ public class AddOrRemoveAttributesTest {
 
     //Updating the Table information.
     myPTable = declaredAttributes.getPTable();
-    myPTableImpl = declaredAttributes.getPTableImpl();
   }
 }
