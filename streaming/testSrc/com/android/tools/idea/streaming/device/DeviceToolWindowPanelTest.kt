@@ -22,7 +22,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
-import com.android.tools.adtui.swing.SetPortableUiFontRule
+import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
@@ -68,7 +68,7 @@ class DeviceToolWindowPanelTest {
   private val agentRule = FakeScreenSharingAgentRule()
 
   @get:Rule
-  val ruleChain = RuleChain(agentRule, SetPortableUiFontRule(), EdtRule())
+  val ruleChain = RuleChain(agentRule, PortableUiFontRule(), EdtRule())
 
   private lateinit var device: FakeDevice
   private val panel: DeviceToolWindowPanel by lazy { createToolWindowPanel() }

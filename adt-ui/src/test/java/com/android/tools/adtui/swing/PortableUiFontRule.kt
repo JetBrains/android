@@ -29,7 +29,7 @@ import javax.swing.plaf.FontUIResource
  * To improve error detection it may be helpful to scale the font used up (to improve matches across platforms and detect text changes)
  * or down (to decrease the importance of text in generated images).
  */
-class SetPortableUiFontRule(val scale: Float = 1.0f) : ExternalResource() {
+class PortableUiFontRule(val scale: Float = 1.0f) : ExternalResource() {
 
   private val originalValues = mutableMapOf<Any, Any?>()
 

@@ -19,7 +19,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
-import com.android.tools.adtui.swing.SetPortableUiFontRule
+import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -52,7 +52,7 @@ class LayoutInspectorFileEditorTest {
   val disposableRule = DisposableRule()
 
   @get:Rule
-  val chain = RuleChain.outerRule(SetPortableUiFontRule()).around(projectRule).around(disposableRule).around(EdtRule())!!
+  val chain = RuleChain.outerRule(PortableUiFontRule()).around(projectRule).around(disposableRule).around(EdtRule())!!
 
   @Test
   fun editorShowsVersionError() {

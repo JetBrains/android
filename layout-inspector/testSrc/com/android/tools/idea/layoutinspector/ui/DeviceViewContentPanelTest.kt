@@ -34,7 +34,7 @@ import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.swing.FakeMouse
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
-import com.android.tools.adtui.swing.SetPortableUiFontRule
+import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
@@ -122,7 +122,7 @@ class DeviceViewContentPanelTest {
   val chain = RuleChain.outerRule(projectRule).around(EdtRule()).around(IconLoaderRule())!!
 
   @get:Rule
-  val fontRule = SetPortableUiFontRule()
+  val fontRule = PortableUiFontRule()
 
   private var testDataPath: Path = Path.of("")
 
@@ -1474,7 +1474,7 @@ class DeviceViewContentPanelWithScaledFontTest {
   val projectRule = ProjectRule()
 
   @get:Rule
-  val fontRule = SetPortableUiFontRule(2.0f)
+  val fontRule = PortableUiFontRule(2.0f)
 
   @get:Rule
   val disposable = DisposableRule()

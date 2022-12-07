@@ -25,7 +25,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
-import com.android.tools.adtui.swing.SetPortableUiFontRule
+import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ResolutionStackModel
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
@@ -72,7 +72,7 @@ class ResolutionElementEditorTest {
   private val projectRule = AndroidProjectRule.withSdk()
 
   @get:Rule
-  val lafRuleChain = RuleChain.outerRule(IntelliJLafRule()).around(SetPortableUiFontRule())!!
+  val lafRuleChain = RuleChain.outerRule(IntelliJLafRule()).around(PortableUiFontRule())!!
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule()).around(IconLoaderRule())!!

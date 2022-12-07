@@ -18,7 +18,7 @@ package com.android.tools.idea.ui.screenshot
 import com.android.SdkConstants
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.swing.SetPortableUiFontRule
+import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.adtui.swing.findModelessDialog
 import com.google.common.truth.Truth.assertThat
@@ -74,7 +74,7 @@ private val DISPLAY_INFO_WATCH =
 class ScreenshotViewerTest {
   private val projectRule = ProjectRule()
 
-  private val portableUiFontRule = SetPortableUiFontRule()
+  private val portableUiFontRule = PortableUiFontRule()
 
   @get:Rule
   val rule = RuleChain(projectRule, portableUiFontRule, EdtRule())

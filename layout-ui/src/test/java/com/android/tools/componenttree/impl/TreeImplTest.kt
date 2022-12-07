@@ -8,7 +8,7 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.swing.SetPortableUiFontRule
+import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.componenttree.api.ComponentTreeBuilder
 import com.android.tools.componenttree.api.ContextPopupHandler
 import com.android.tools.componenttree.api.DoubleClickHandler
@@ -63,7 +63,7 @@ class TreeImplTest {
   @get:Rule
   val rules: RuleChain = RuleChain
     .outerRule(EdtRule())
-    .around(SetPortableUiFontRule())
+    .around(PortableUiFontRule())
     .around(MockitoCleanerRule())
     .around(SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, false))
     .around(disposableRule)

@@ -30,7 +30,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.swing.IconLoaderRule
-import com.android.tools.adtui.swing.SetPortableUiFontRule
+import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
@@ -104,7 +104,7 @@ class RenderLogicTest {
   val chain = RuleChain.outerRule(projectRule).around(EdtRule()).around(IconLoaderRule())!!
 
   @get:Rule
-  val fontRule = SetPortableUiFontRule()
+  val fontRule = PortableUiFontRule()
 
   @Test
   fun testPaintBorders() {

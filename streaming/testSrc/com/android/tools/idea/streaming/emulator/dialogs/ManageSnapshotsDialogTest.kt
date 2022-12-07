@@ -18,7 +18,7 @@ package com.android.tools.idea.streaming.emulator.dialogs
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.swing.SetPortableUiFontRule
+import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.adtui.ui.ImagePanel
@@ -76,7 +76,7 @@ class ManageSnapshotsDialogTest {
   val ruleChain: RuleChain = RuleChain.outerRule(timeoutRule).around(emulatorViewRule).around(EdtRule())
 
   @get:Rule
-  val portableUiFontRule = SetPortableUiFontRule()
+  val portableUiFontRule = PortableUiFontRule()
 
   private var nullableEmulator: FakeEmulator? = null
   private var nullableEmulatorView: EmulatorView? = null

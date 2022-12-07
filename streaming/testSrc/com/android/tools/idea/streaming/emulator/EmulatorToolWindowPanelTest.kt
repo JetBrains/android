@@ -27,7 +27,7 @@ import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessRootPaneContainer
 import com.android.tools.adtui.swing.IconLoaderRule
-import com.android.tools.adtui.swing.SetPortableUiFontRule
+import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.editors.liveedit.ui.LiveEditAction
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
@@ -98,7 +98,7 @@ class EmulatorToolWindowPanelTest {
   val ruleChain: RuleChain = RuleChain(projectRule, emulatorRule, EdtRule())
 
   @get:Rule
-  val portableUiFontRule = SetPortableUiFontRule()
+  val portableUiFontRule = PortableUiFontRule()
 
   private var nullableEmulator: FakeEmulator? = null
 
