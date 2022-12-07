@@ -60,7 +60,7 @@ public class OpenProjectTest {
 
     // Create a new android project, and set a fixed distribution
     AndroidProject project = new AndroidProject("tools/adt/idea/android/integration/testData/minapp");
-    project.setDistribution("tools/external/gradle/gradle-7.2-bin.zip");
+    project.setDistribution("tools/external/gradle/gradle-7.5-bin.zip");
 
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(new MavenRepo("tools/adt/idea/android/integration/openproject_deps.manifest"));

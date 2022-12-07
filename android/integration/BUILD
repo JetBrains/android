@@ -32,7 +32,7 @@ open_project_data = select({
 }) + [
     ":minapp",
     ":openproject_deps",
-    "//tools/base/build-system:gradle-distrib-7.2",
+    "//tools/base/build-system:gradle-distrib",
 ]
 
 iml_test(
@@ -227,7 +227,7 @@ build_and_run_test_data = select({
     "//prebuilts/studio/sdk:build-tools/latest",
     "//prebuilts/studio/sdk:emulator",
     "//prebuilts/studio/sdk:platform-tools",
-    "//tools/base/build-system:gradle-distrib-7.2",
+    "//tools/base/build-system:gradle-distrib",
     "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
 ]
 
@@ -338,7 +338,7 @@ iml_test(
         ":buildproject_deps",
         ":minapp",
         "//prebuilts/studio/sdk:build-tools/latest",
-        "//tools/base/build-system:gradle-distrib-7.2",
+        "//tools/base/build-system:gradle-distrib",
     ],
     module = ":intellij.android.core.integration",
     tags_linux = ["block-network"],

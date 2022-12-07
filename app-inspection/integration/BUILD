@@ -38,7 +38,7 @@ iml_test(
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
-        "//tools/base/build-system:gradle-distrib-7.2",
+        "//tools/base/build-system:gradle-distrib",
         "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
     ],
     module = ":app-inspection.integration",

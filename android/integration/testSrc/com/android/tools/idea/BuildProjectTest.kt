@@ -34,7 +34,7 @@ class BuildProjectTest {
   fun buildProjectTest() {
     // Create a new android project, and set a fixed distribution
     val project = AndroidProject("tools/adt/idea/android/integration/testData/minapp")
-    project.setDistribution("tools/external/gradle/gradle-7.2-bin.zip")
+    project.setDistribution("tools/external/gradle/gradle-7.5-bin.zip")
 
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"))
