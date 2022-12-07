@@ -50,9 +50,13 @@ public interface Deployable {
   @Deprecated
   boolean isOnline();
 
+  @NotNull ListenableFuture<@NotNull Boolean> isUnauthorizedAsync();
+
   /**
-   * @return true if the underlying device is unauthorized, or false otherwise.
+   * @deprecated This is called by the EDT and must execute quickly. The current implementation calls {@link Future#get()} which can block
+   * for too long. Use {@link #isUnauthorizedAsync} instead.
    */
+  @Deprecated
   boolean isUnauthorized();
 
   @NotNull

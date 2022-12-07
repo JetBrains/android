@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IDevice.DeviceState;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvisionException;
@@ -32,6 +33,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.serviceContainer.NonInjectable;
 import java.awt.EventQueue;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
@@ -165,12 +167,28 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
     }
 
     @Override
-    public boolean isUnauthorized() {
-      IDevice iDevice = myDevice.getDdmlibDevice();
-      if (iDevice == null) {
-        return false;
+    public @NotNull ListenableFuture<@NotNull Boolean> isUnauthorizedAsync() {
+      if (!myDevice.getAndroidDevice().isRunning()) {
+        return Futures.immediateFuture(false);
       }
-      return iDevice.getState() == IDevice.DeviceState.UNAUTHORIZED;
+
+      var future = myDevice.getDdmlibDeviceAsync();
+
+      // TODO Use EdtExecutorService::getInstance when isUnauthorized is deleted
+      var executor = MoreExecutors.directExecutor();
+
+      // noinspection UnstableApiUsage
+      return Futures.transform(future, device -> Objects.equals(device.getState(), DeviceState.UNAUTHORIZED), executor);
+    }
+
+    @Override
+    public boolean isUnauthorized() {
+      if (EventQueue.isDispatchThread()) {
+        Loggers.errorConditionally(DeviceAndSnapshotComboBoxDeployableProvider.class,
+                                   "Blocking Future::get call on the EDT http://b/261768533");
+      }
+
+      return Futures.getUnchecked(isUnauthorizedAsync());
     }
 
     @Override
