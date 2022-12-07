@@ -143,12 +143,25 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
     }
 
     @Override
-    public boolean isOnline() {
-      IDevice iDevice = myDevice.getDdmlibDevice();
-      if (iDevice == null) {
-        return false;
+    public @NotNull ListenableFuture<@NotNull Boolean> isOnlineAsync() {
+      if (!myDevice.getAndroidDevice().isRunning()) {
+        return Futures.immediateFuture(false);
       }
-      return iDevice.isOnline();
+
+      // TODO Use EdtExecutorService::getInstance when isOnline is deleted
+
+      // noinspection UnstableApiUsage
+      return Futures.transform(myDevice.getDdmlibDeviceAsync(), IDevice::isOnline, MoreExecutors.directExecutor());
+    }
+
+    @Override
+    public boolean isOnline() {
+      if (EventQueue.isDispatchThread()) {
+        Loggers.errorConditionally(DeviceAndSnapshotComboBoxDeployableProvider.class,
+                                   "Blocking Future::get call on the EDT http://b/261756103");
+      }
+
+      return Futures.getUnchecked(isOnlineAsync());
     }
 
     @Override

@@ -41,9 +41,13 @@ public interface Deployable {
   @NotNull
   List<Client> searchClientsForPackage();
 
+  @NotNull ListenableFuture<@NotNull Boolean> isOnlineAsync();
+
   /**
-   * @return true if the underlying device is online, or false otherwise.
+   * @deprecated This is called by the EDT and must execute quickly. The current implementation calls {@link Future#get()} which can block
+   * for too long. Use {@link #isOnlineAsync} instead.
    */
+  @Deprecated
   boolean isOnline();
 
   /**
