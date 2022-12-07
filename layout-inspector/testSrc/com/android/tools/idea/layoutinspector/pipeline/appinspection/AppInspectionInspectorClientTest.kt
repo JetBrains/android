@@ -96,7 +96,6 @@ import com.intellij.execution.RunManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.CompletableDeferred
@@ -133,10 +132,9 @@ class AppInspectionInspectorClientTest {
 
   private lateinit var inspectorClientSettings: InspectorClientSettings
 
-  private val disposableRule = DisposableRule()
   private val treeRule = FlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true)
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
-  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable, projectRule)
+  private val inspectionRule = AppInspectionInspectorRule(projectRule)
   private val inspectorRule = LayoutInspectorRule(
     listOf(inspectionRule.createInspectorClientProvider({ monitor }, { inspectorClientSettings })), projectRule
   ) {
@@ -149,8 +147,7 @@ class AppInspectionInspectorClientTest {
     .around(inspectionRule)
     .around(inspectorRule)
     .around(treeRule)
-    .around(usageRule)
-    .around(disposableRule)!!
+    .around(usageRule)!!
 
   @Before
   fun before() {
@@ -173,7 +170,7 @@ class AppInspectionInspectorClientTest {
   @org.junit.Ignore("b/244336884")
   @Test
   fun treeRecompositionVisibilitySetAtConnectTime() {
-    val panel = LayoutInspectorTreePanel(disposableRule.disposable)
+    val panel = LayoutInspectorTreePanel(projectRule.testRootDisposable)
     var updateActionsCalled = 0
     var enabledActions = 0
     panel.registerCallbacks(object : ToolWindowCallback {
@@ -1015,13 +1012,12 @@ class AppInspectionInspectorClientTest {
 }
 
 class AppInspectionInspectorClientWithUnsupportedApi29 {
-  private val disposableRule = DisposableRule()
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
-  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable, projectRule)
+  private val inspectionRule = AppInspectionInspectorRule(projectRule)
   private val inspectorRule = LayoutInspectorRule(listOf(mock()), projectRule) { false }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule)!!
 
   @Test
   fun testApi29VersionBanner() = runBlocking {
@@ -1052,7 +1048,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
         metrics = mock(),
         treeSettings = mock(),
         inspectorClientSettings = InspectorClientSettings(projectRule.project),
-        parentDisposable = disposableRule.disposable,
+        parentDisposable = projectRule.testRootDisposable,
         apiServices = inspectionRule.inspectionService.apiServices,
         sdkHandler = sdkHandler
       )
@@ -1087,7 +1083,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
         metrics = mock(),
         treeSettings = mock(),
         inspectorClientSettings = InspectorClientSettings(projectRule.project),
-        parentDisposable = disposableRule.disposable,
+        parentDisposable = projectRule.testRootDisposable,
         apiServices = inspectionRule.inspectionService.apiServices,
         sdkHandler = sdkHandler
       )
@@ -1115,7 +1111,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
         metrics = mock(),
         treeSettings = mock(),
         inspectorClientSettings = InspectorClientSettings(projectRule.project),
-        parentDisposable = disposableRule.disposable,
+        parentDisposable = projectRule.testRootDisposable,
         apiServices = inspectionRule.inspectionService.apiServices,
         sdkHandler = sdkHandler
       )
@@ -1203,9 +1199,8 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
 
 class AppInspectionInspectorClientWithFailingClientTest {
   private val usageTrackerRule = MetricsTrackerRule()
-  private val disposableRule = DisposableRule()
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
-  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable, projectRule)
+  private val inspectionRule = AppInspectionInspectorRule(projectRule)
   private var throwOnState: AttachErrorState = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
   private var exceptionToThrow: Exception = RuntimeException("expected")
   private val getMonitor: () -> InspectorClientLaunchMonitor = {
@@ -1230,7 +1225,7 @@ class AppInspectionInspectorClientWithFailingClientTest {
   }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule).around(usageTrackerRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule).around(usageTrackerRule)!!
 
   @Before
   fun setUp() {

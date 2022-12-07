@@ -57,7 +57,6 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.psi.PsiClass
-import com.intellij.testFramework.DisposableRule
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
@@ -77,9 +76,8 @@ private val PARAM_NS = parameterNamespaceOf(PropertySection.PARAMETERS)
 private const val APP_NAMESPACE = "${URI_PREFIX}com.example"
 
 class AppInspectionPropertiesProviderTest {
-  private val disposableRule = DisposableRule()
   private val projectRule = AndroidProjectRule.withSdk()
-  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable, projectRule)
+  private val inspectionRule = AppInspectionInspectorRule(projectRule)
   private lateinit var inspectorClientSettings: InspectorClientSettings
   private val inspectorRule = LayoutInspectorRule(
     listOf(inspectionRule.createInspectorClientProvider(getClientSettings = { inspectorClientSettings })), projectRule
@@ -88,7 +86,7 @@ class AppInspectionPropertiesProviderTest {
   }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule)!!
 
   private lateinit var inspectorState: FakeInspectorState
 

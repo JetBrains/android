@@ -133,9 +133,8 @@ class DeviceViewPanelWithFullInspectorTest {
   private val scheduler = VirtualTimeScheduler()
   private val executorRule = PropertySetterRule({ scheduler }, Toggle3dAction::executorFactory)
   private val timeRule = PropertySetterRule({ scheduler.currentTimeMillis }, Toggle3dAction::getCurrentTimeMillis)
-  private val disposableRule = DisposableRule()
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
-  private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable, projectRule, withDefaultResponse = false)
+  private val appInspectorRule = AppInspectionInspectorRule(projectRule, withDefaultResponse = false)
   private val inspectorRule = LayoutInspectorRule(
     clientProviders = listOf(appInspectorRule.createInspectorClientProvider()),
     projectRule = projectRule,
@@ -152,8 +151,7 @@ class DeviceViewPanelWithFullInspectorTest {
     .around(IconLoaderRule())
     .around(EdtRule())
     .around(executorRule)
-    .around(timeRule)
-    .around(disposableRule)!!
+    .around(timeRule)!!
 
   // Used by all tests that install command handlers
   private var latch: CountDownLatch? = null
@@ -727,7 +725,7 @@ class DeviceViewPanelWithFullInspectorTest {
       projectRule.fixture.testRootDisposable
     )
     delegateDataProvider(panel)
-    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
+    val focusManager = FakeKeyboardFocusManager(projectRule.testRootDisposable)
     focusManager.focusOwner = flatten(panel).filterIsInstance<DeviceViewContentPanel>().single()
     val dispatcher = IdeKeyEventDispatcher(null)
     val modifier = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
@@ -1220,12 +1218,11 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
   @get:Rule
   val edtRule = EdtRule()
 
-  private val disposableRule = DisposableRule()
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
-  private val inspectorRule = LayoutInspectorRule(listOf(LegacyClientProvider(disposableRule.disposable)), projectRule)
+  private val inspectorRule = LayoutInspectorRule(listOf(LegacyClientProvider({ projectRule.testRootDisposable } )), projectRule)
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(inspectorRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(inspectorRule)!!
 
   @Test
   fun testLiveControlDisabledWithProcessFromLegacyDevice() {
@@ -1236,7 +1233,7 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        DeviceModel(disposableRule.disposable, inspectorRule.processes),
+        DeviceModel(projectRule.testRootDisposable, inspectorRule.processes),
         inspectorRule.processes,
         {},
         {},
@@ -1262,7 +1259,7 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        DeviceModel(disposableRule.disposable, inspectorRule.processes),
+        DeviceModel(projectRule.testRootDisposable, inspectorRule.processes),
         inspectorRule.processes,
         {},
         {},
@@ -1444,7 +1441,7 @@ class MyViewportLayoutManagerTest {
 class DeviceViewPanelWithNoClientsTest {
   private val disposableRule = DisposableRule()
   private val projectRule = AndroidProjectRule.onDisk()
-  private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable, projectRule, withDefaultResponse = false)
+  private val appInspectorRule = AppInspectionInspectorRule(projectRule, withDefaultResponse = false)
   private val postCreateLatch = CountDownLatch(1)
   private val inspectorRule = LayoutInspectorRule(
     clientProviders = listOf(InspectorClientProvider { _, _ ->

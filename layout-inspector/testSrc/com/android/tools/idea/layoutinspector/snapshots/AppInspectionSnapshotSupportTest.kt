@@ -41,7 +41,6 @@ import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -54,10 +53,8 @@ import kotlin.concurrent.thread
 private val PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 class AppInspectionSnapshotSupportTest {
-  private val disposableRule = DisposableRule()
-
   private val projectRule = AndroidProjectRule.withSdk()
-  private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable, projectRule)
+  private val appInspectorRule = AppInspectionInspectorRule(projectRule)
   private lateinit var inspectorClientSettings: InspectorClientSettings
   private val inspectorRule = LayoutInspectorRule(
     listOf(appInspectorRule.createInspectorClientProvider(getClientSettings = { inspectorClientSettings })), projectRule
@@ -66,7 +63,7 @@ class AppInspectionSnapshotSupportTest {
   }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(appInspectorRule).around(inspectorRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(appInspectorRule).around(inspectorRule)!!
 
   @Before
   fun setUp() {

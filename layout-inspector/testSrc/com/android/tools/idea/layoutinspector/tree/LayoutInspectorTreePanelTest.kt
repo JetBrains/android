@@ -77,7 +77,6 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
@@ -111,9 +110,8 @@ class LayoutInspectorTreePanelTreeTest : LayoutInspectorTreePanelTest(useTreeTab
 class LayoutInspectorTreePanelTreeTableTest : LayoutInspectorTreePanelTest(useTreeTable = true)
 
 abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
-  private val disposableRule = DisposableRule()
   private val projectRule = AndroidProjectRule.withSdk()
-  private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable, projectRule)
+  private val appInspectorRule = AppInspectionInspectorRule(projectRule)
   private val inspectorRule = LayoutInspectorRule(listOf(appInspectorRule.createInspectorClientProvider()), projectRule) {
     it.name == PROCESS.name
   }
@@ -129,8 +127,7 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
     .around(inspectorRule)
     .around(fileOpenCaptureRule)
     .around(treeRule)
-    .around(EdtRule())
-    .around(disposableRule)!!
+    .around(EdtRule())!!
 
   @Before
   fun setUp() {

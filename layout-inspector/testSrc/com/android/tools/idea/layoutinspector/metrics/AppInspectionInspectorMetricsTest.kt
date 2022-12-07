@@ -56,16 +56,14 @@ import java.util.concurrent.TimeUnit
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 class AppInspectionInspectorMetricsTest {
-  val disposableRule = DisposableRule()
-
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
-  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable, projectRule)
+  private val inspectionRule = AppInspectionInspectorRule(projectRule)
   private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider()), projectRule) {
     it.name == MODERN_PROCESS.name
   }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule)!!
 
   @get:Rule
   val usageTrackerRule = MetricsTrackerRule()

@@ -113,14 +113,19 @@ fun interface InspectorClientProvider {
  * Simple, convenient provider for generating a real [LegacyClient]
  */
 fun LegacyClientProvider(
-  parentDisposable: Disposable,
+  getDisposable: () -> Disposable,
   treeLoaderOverride: LegacyTreeLoader? = Mockito.mock(LegacyTreeLoader::class.java).also {
     whenever(it.getAllWindowIds(ArgumentMatchers.any())).thenReturn(listOf("1"))
   }
 ) = InspectorClientProvider { params, inspector ->
-  LegacyClient(params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel,
-               LayoutInspectorSessionMetrics(inspector.layoutInspectorModel.project, params.process),
-               parentDisposable, treeLoaderOverride)
+  LegacyClient(
+    params.process,
+    params.isInstantlyAutoConnected,
+    inspector.layoutInspectorModel,
+    LayoutInspectorSessionMetrics(inspector.layoutInspectorModel.project, params.process),
+    getDisposable(),
+    treeLoaderOverride
+  )
 }
 
 /**
@@ -189,6 +194,8 @@ class LayoutInspectorRule(
    */
   val project get() = projectRule.project
 
+  val disposable get() = projectRule.testRootDisposable
+
   /**
    * A notifier which acts as a source of processes being externally connected.
    */
@@ -238,7 +245,7 @@ class LayoutInspectorRule(
                                        project,
                                        launcherDisposable,
                                        executor = launcherExecutor)
-    Disposer.register(projectRule.fixture.testRootDisposable, launcherDisposable)
+    Disposer.register(projectRule.testRootDisposable, launcherDisposable)
     AndroidFacet.getInstance(projectRule.module)?.let { AndroidModel.set(it, TestAndroidModel("com.example")) }
 
     // Client starts disconnected, and will be updated after the ProcessesModel's selected process is updated

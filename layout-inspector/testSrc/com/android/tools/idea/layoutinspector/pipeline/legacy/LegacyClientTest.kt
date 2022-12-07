@@ -36,7 +36,6 @@ import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.ListenerCollection
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -52,21 +51,20 @@ import java.util.concurrent.TimeUnit
 class LegacyClientTest {
   private val windowIds = mutableListOf<String>()
 
-  private val disposableRule = DisposableRule()
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val scheduler = VirtualTimeScheduler()
 
   private val legacyClientProvider = InspectorClientProvider { params, inspector ->
     val loader = mock(LegacyTreeLoader::class.java)
     doAnswer { windowIds }.whenever(loader).getAllWindowIds(ArgumentMatchers.any())
-    val client = LegacyClientProvider(disposableRule.disposable, loader).create(params, inspector) as LegacyClient
+    val client = LegacyClientProvider({ projectRule.testRootDisposable }, loader).create(params, inspector) as LegacyClient
     client.launchMonitor = InspectorClientLaunchMonitor(projectRule.project, ListenerCollection.createWithDirectExecutor(), scheduler)
     client
   }
   private val inspectorRule = LayoutInspectorRule(listOf(legacyClientProvider), projectRule)
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(inspectorRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(inspectorRule)!!
 
   @Before
   fun setUp() {

@@ -42,7 +42,6 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProce
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
-import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -54,7 +53,6 @@ import java.util.concurrent.TimeUnit
 
 class LegacyInspectorMetricsTest {
 
-  private val disposableRule = DisposableRule()
   private val scheduler = VirtualTimeScheduler()
   private val windowIdsRetrievedLock = CountDownLatch(1)
 
@@ -66,7 +64,7 @@ class LegacyInspectorMetricsTest {
       windowIdsRetrievedLock.countDown()
       windowIds
     }
-    val client = LegacyClientProvider(disposableRule.disposable, loader).create(params, inspector) as LegacyClient
+    val client = LegacyClientProvider({ projectRule.testRootDisposable }, loader).create(params, inspector) as LegacyClient
     client.launchMonitor = InspectorClientLaunchMonitor(projectRule.project, ListenerCollection.createWithDirectExecutor(), scheduler)
     client
   }
@@ -74,7 +72,7 @@ class LegacyInspectorMetricsTest {
   private val inspectorRule = LayoutInspectorRule(listOf(legacyClientProvider), projectRule)
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(inspectorRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(inspectorRule)!!
 
   @get:Rule
   val usageTrackerRule = MetricsTrackerRule()
