@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import com.android.sdklib.internal.avd.AvdInfo;
 import java.util.EventObject;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class VirtualDeviceWatcherEvent extends EventObject {
   private final @NotNull Iterable<@NotNull AvdInfo> myAvds;
@@ -29,5 +30,19 @@ final class VirtualDeviceWatcherEvent extends EventObject {
 
   @NotNull Iterable<@NotNull AvdInfo> getAvds() {
     return myAvds;
+  }
+
+  @Override
+  public int hashCode() {
+    return 31 * source.hashCode() + myAvds.hashCode();
+  }
+
+  @Override
+  public boolean equals(@Nullable Object object) {
+    if (!(object instanceof VirtualDeviceWatcherEvent event)) {
+      return false;
+    }
+
+    return source.equals(event.source) && myAvds.equals(event.myAvds);
   }
 }
