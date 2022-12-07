@@ -74,6 +74,7 @@ public class NlDesignSurfacePositionableContentLayoutManager extends Positionabl
   public void setLayoutManager(@NotNull SurfaceLayoutManager manager, @NotNull DesignSurface.SceneViewAlignment sceneViewAlignment) {
     myLayoutManager = manager;
     myDesignSurface.setSceneViewAlignment(sceneViewAlignment);
+    myDesignSurface.setScrollPosition(0, 0);
     myDesignSurface.revalidateScrollArea();
   }
 }
