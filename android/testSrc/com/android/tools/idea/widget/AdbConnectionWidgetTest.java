@@ -94,11 +94,11 @@ public class AdbConnectionWidgetTest {
         @Override
         @Nullable
         public Void answer(@NotNull InvocationOnMock invocation) {
-          myLastIcon = myWidget.getIcon();
+          myLastIcon = myWidget.getIcon(myStatusBar);
           return null;
         }
       }).when(myStatusBar).updateWidget(AdbConnectionWidget.ID);
-      myLastIcon = myWidget.getIcon();
+      myLastIcon = myWidget.getIcon(myStatusBar);
     }
 
     @Override
