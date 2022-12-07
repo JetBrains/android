@@ -34,6 +34,7 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.LayeredIcon
 import com.intellij.ui.RoundedIcon
 import com.intellij.ui.RoundedLineBorder
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.IconUtil
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.EmptyIcon
@@ -46,10 +47,8 @@ import org.jetbrains.annotations.TestOnly
 import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import java.awt.Insets
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
-import javax.swing.BorderFactory
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JMenuItem
@@ -62,11 +61,6 @@ private const val TITLE_VERTICAL_BORDER = 2
 private const val WALLPAPER_ICON_SEPARATION = 2
 private const val WALLPAPER_ICON_PADDING = 2
 private const val ICON_SIZE = 24
-private val nullWallpaperIcon = LayeredIcon(2).apply {
-  setIcon(ColorIcon(ICON_SIZE, JBUI.CurrentTheme.ActionButton.hoverBackground()), 0)
-  val icon = StudioIcons.Common.CLEAR
-  setIcon(icon, 1, (ICON_SIZE - icon.iconWidth) / 2, (ICON_SIZE - icon.iconHeight) / 2)
-}
 private val sideBorderWidth = JBValue.UIInteger("PopupMenuSeparator.withToEdge", 1)
 private val separatorUI = object : DarculaMenuSeparatorUI(){
   override fun getPreferredSize(c: JComponent?): Dimension {
@@ -94,7 +88,7 @@ class SystemUiModeAction(private val renderContext: ConfigurationHolder)
     val menu = JPopupMenu().apply {
       isLightWeightPopupEnabled = false
       isOpaque = false
-      border = BorderFactory.createEmptyBorder(POPUP_VERTICAL_BORDER, 0, POPUP_VERTICAL_BORDER, 0)
+      border = JBUI.Borders.empty(POPUP_VERTICAL_BORDER, 0)
     }
     menu.layout = GridBagLayout()
     val numWallpapers = enumValues<Wallpaper>().size
@@ -130,12 +124,13 @@ class SystemUiModeAction(private val renderContext: ConfigurationHolder)
     gbc.gridy += 1
     menu.add(wallpaperTitle, gbc)
 
+    val wallpaperPadding = JBUIScale.scale(WALLPAPER_ICON_PADDING)
     gbc.apply {
       gridy += 1
       gridwidth = 1
       fill = GridBagConstraints.NONE
-      ipadx = WALLPAPER_ICON_PADDING
-      ipady = WALLPAPER_ICON_PADDING
+      ipadx = wallpaperPadding
+      ipady = wallpaperPadding
     }
     renderContext.configuration?.let {
       val wallpapers = mutableListOf<Wallpaper?>().apply {
@@ -146,9 +141,9 @@ class SystemUiModeAction(private val renderContext: ConfigurationHolder)
       wallpapers.forEachIndexed { index, wallpaper ->
         val menuItem = SetWallpaperAction(renderContext, wallpaper).toMenuItem(event, currentWallpaper == wallpaper)
         gbc.insets = when (index) {
-          0 -> Insets(4, sideBorderWidth.get(), 0, 0)
-          numWallpapers -> Insets(4, WALLPAPER_ICON_SEPARATION, 0, sideBorderWidth.get())
-          else -> Insets(4, WALLPAPER_ICON_SEPARATION, 0, 0)
+          0 -> JBUI.insets(4, sideBorderWidth.unscaled.toInt(), 0, 0)
+          numWallpapers -> JBUI.insets(4, WALLPAPER_ICON_SEPARATION, 0, sideBorderWidth.unscaled.toInt())
+          else -> JBUI.insets(4, WALLPAPER_ICON_SEPARATION, 0, 0)
         }
         menu.add(menuItem, gbc)
         gbc.gridx += 1
@@ -200,7 +195,7 @@ private class ActionItem(action: AnAction, dataContext: DataContext) : JBMenuIte
       selectedIcon = EmptyIcon.ICON_16
     }
 
-    border = BorderFactory.createEmptyBorder(2, sideBorderWidth.get(), 2, sideBorderWidth.get())
+    border = JBUI.Borders.empty(2, sideBorderWidth.unscaled.toInt())
 
     addActionListener {
       val anEvent = AnActionEvent.createFromDataContext(ActionPlaces.POPUP, action.templatePresentation, dataContext)
@@ -228,7 +223,7 @@ private class TitleItem(title: String) : JBMenuItem(title) {
   init {
     isEnabled = false
     horizontalTextPosition = SwingConstants.LEFT
-    border = BorderFactory.createEmptyBorder(TITLE_VERTICAL_BORDER, sideBorderWidth.get(), TITLE_VERTICAL_BORDER, sideBorderWidth.get())
+    border = JBUI.Borders.empty(TITLE_VERTICAL_BORDER, sideBorderWidth.unscaled.toInt())
   }
 
   override fun updateUI() {
@@ -240,9 +235,9 @@ private class WallpaperItem(action: AbstractAction, isSelected: Boolean) : JMenu
   init {
     iconTextGap = 0
     horizontalAlignment = SwingConstants.LEFT
-    preferredSize = Dimension(ICON_SIZE + 2, ICON_SIZE + 2)
+    preferredSize = JBUI.size(ICON_SIZE + 2)
     if (isSelected) {
-      border = RoundedLineBorder(selectionBackground, 2, 2)
+      border = RoundedLineBorder(selectionBackground, JBUI.scale(2), JBUI.scale(2))
     }
   }
 
@@ -265,8 +260,13 @@ private class SetWallpaperAction(renderContext: ConfigurationHolder, val wallpap
     configuration.useThemedIcon = wallpaper != null
   }
 
+  @Suppress("UnstableApiUsage")
   fun toMenuItem(event: AnActionEvent, isSelected: Boolean): JMenuItem {
-    val action = object : AbstractAction(null, wallpaper?.icon ?: nullWallpaperIcon) {
+    val scaledIconSize = JBUIScale.scale(ICON_SIZE)
+    val scaledWallpaperIcon = wallpaper?.let {
+      RoundedIcon(IconUtil.cropIcon(it.icon, scaledIconSize, scaledIconSize), 0.1)
+    } ?: getNullWallpaperIcon(scaledIconSize)
+    val action = object : AbstractAction(null, scaledWallpaperIcon) {
       override fun actionPerformed(e: ActionEvent) {
         val actionEvent = AnActionEvent.createFromDataContext(ActionPlaces.POPUP, this@SetWallpaperAction.templatePresentation,
                                                               event.dataContext)
@@ -291,8 +291,12 @@ private fun wallpaperFromPath(path: String?): Wallpaper? {
   return Wallpaper.values().firstOrNull { path == it.resourcePath }
 }
 
-@Suppress("UnstableApiUsage")
 private fun getWallpaperIcon(path: String): Icon {
-  val icon = IconLoader.getIcon(path, Wallpaper::class.java)
-  return RoundedIcon(IconUtil.cropIcon(icon, ICON_SIZE, ICON_SIZE), 0.1)
+  return IconLoader.getIcon(path, Wallpaper::class.java)
+}
+
+private fun getNullWallpaperIcon(scaledIconSize: Int) = LayeredIcon(2).apply {
+  setIcon(ColorIcon(scaledIconSize, JBUI.CurrentTheme.ActionButton.hoverBackground()), 0)
+  val icon = StudioIcons.Common.CLEAR
+  setIcon(icon, 1, (scaledIconSize - icon.iconWidth) / 2, (scaledIconSize - icon.iconHeight) / 2)
 }
