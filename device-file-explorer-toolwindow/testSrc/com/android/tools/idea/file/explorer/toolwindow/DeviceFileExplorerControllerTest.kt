@@ -13,28 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device.explorer.files
+package com.android.tools.idea.file.explorer.toolwindow
 
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.adb.AdbShellCommandException
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutures
-import com.android.tools.idea.device.explorer.files.DeviceFileExplorerController.Companion.getProjectController
-import com.android.tools.idea.device.explorer.files.DeviceFileExplorerController.NodeSorting.CustomComparator
-import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
-import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem
-import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystemService
-import com.android.tools.idea.device.explorer.files.fs.DeviceState
-import com.android.tools.idea.device.explorer.files.mocks.MockDeviceExplorerFileManager
-import com.android.tools.idea.device.explorer.files.mocks.MockDeviceExplorerView
-import com.android.tools.idea.device.explorer.files.mocks.MockDeviceFileEntry
-import com.android.tools.idea.device.explorer.files.mocks.MockDeviceFileSystem
-import com.android.tools.idea.device.explorer.files.mocks.MockDeviceFileSystemService
-import com.android.tools.idea.device.explorer.files.ui.TreeUtil
+import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerController.Companion.getProjectController
+import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerController.NodeSorting.CustomComparator
+import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileEntry
+import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystem
+import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystemService
+import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceState
+import com.android.tools.idea.file.explorer.toolwindow.mocks.MockDeviceExplorerFileManager
+import com.android.tools.idea.file.explorer.toolwindow.mocks.MockDeviceExplorerView
+import com.android.tools.idea.file.explorer.toolwindow.mocks.MockDeviceFileEntry
+import com.android.tools.idea.file.explorer.toolwindow.mocks.MockDeviceFileSystem
+import com.android.tools.idea.file.explorer.toolwindow.mocks.MockDeviceFileSystemRenderer
+import com.android.tools.idea.file.explorer.toolwindow.mocks.MockDeviceFileSystemService
+import com.android.tools.idea.file.explorer.toolwindow.ui.TreeUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ThreadingCheckRule
 import com.android.tools.idea.testing.onEdt
@@ -70,7 +70,6 @@ import com.intellij.util.Consumer
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.io.systemIndependentPath
 import com.intellij.util.ui.tree.TreeModelAdapter
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.ide.PooledThreadExecutor
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -110,7 +109,7 @@ import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 
 @RunsInEdt
-class DeviceExplorerControllerTest {
+class DeviceFileExplorerControllerTest {
 
   // We need to use a heavy fixture (i.e. on disk) so that the project gets disposed
   // at the end; otherwise, some state will be left over and interfere with other tests.
@@ -125,7 +124,7 @@ class DeviceExplorerControllerTest {
   private val project: Project
     get() = androidProjectRule.project
 
-  private lateinit var myModel: DeviceFileExplorerModel
+  private lateinit var myModel: DeviceExplorerModel
   private lateinit var myMockView: MockDeviceExplorerView
   private lateinit var myMockService: MockDeviceFileSystemService
   private lateinit var myMockFileManager: MockDeviceExplorerFileManager
@@ -138,6 +137,7 @@ class DeviceExplorerControllerTest {
   private lateinit var myFile1: MockDeviceFileEntry
   private lateinit var myFile2: MockDeviceFileEntry
   private lateinit var myDevice2: MockDeviceFileSystem
+  private lateinit var myMockRepaintManager: RepaintManager
   private lateinit var myFooDir: MockDeviceFileEntry
   private lateinit var myFooDirLink: MockDeviceFileEntry
   private var myInitialTestDialog: TestDialog? = null
@@ -150,7 +150,7 @@ class DeviceExplorerControllerTest {
   fun setUp() {
     myEdtExecutor = FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
     myTaskExecutor = FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)
-    myModel = object : DeviceFileExplorerModel() {
+    myModel = object : DeviceExplorerModel() {
       override fun setActiveDeviceTreeModel(
         device: DeviceFileSystem?,
         treeModel: DefaultTreeModel?,
@@ -165,7 +165,7 @@ class DeviceExplorerControllerTest {
       }
     }
     myMockService = MockDeviceFileSystemService(project, myEdtExecutor, myTaskExecutor)
-    myMockView = MockDeviceExplorerView(project, myModel)
+    myMockView = MockDeviceExplorerView(project, MockDeviceFileSystemRenderer<MockDeviceFileSystem>(), myModel)
     val downloadPath = FileUtil.createTempDirectory("device-explorer-temp", "", true)
     myDownloadLocation.set(downloadPath.toPath())
     myMockFileManager = MockDeviceExplorerFileManager(project, myDownloadLocation::get)
@@ -201,6 +201,12 @@ class DeviceExplorerControllerTest {
     ClipboardSynchronizer.getInstance().resetContent()
   }
 
+  private fun injectRepaintManagerMock() {
+    val current = RepaintManager.currentManager(null)
+    myMockRepaintManager = Mockito.spy(current)
+    RepaintManager.setCurrentManager(myMockRepaintManager)
+  }
+
   @Test
   fun controllerIsSetAsProjectKey() {
     // Prepare
@@ -212,20 +218,15 @@ class DeviceExplorerControllerTest {
 
   @Test
   fun startController() {
-    // Prepare // Act // Assert
-    createControllerAndVerifyViewInitialState()
-  }
-
-  @Test
-  fun showNoDeviceViewWithNoActiveDevice() {
     // Prepare
     val controller = createController()
 
     // Act
     controller.setup()
-    controller.setActiveConnectedDevice(null)
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
 
-    pumpEventsAndWaitForFuture(myMockView.showNoDeviceScreenTracker.consume())
+    // Assert
+    checkMockViewInitialState(controller, myDevice1)
   }
 
   @Test
@@ -237,7 +238,8 @@ class DeviceExplorerControllerTest {
 
     // Act
     controller.setup()
-    controller.setActiveConnectedDevice(myDevice1)
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewComboBox(controller)
     val errorMessage = pumpEventsAndWaitForFuture(myMockView.reportErrorRelatedToDeviceTracker.consume())
 
     // Assert
@@ -248,9 +250,13 @@ class DeviceExplorerControllerTest {
   @Test
   fun expandChildren() {
     // Prepare
-    val controller = createControllerAndVerifyViewInitialState()
+    val controller = createController()
 
     // Act
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
+
     // Set timers to ensure the "loading..." animation code is hit
     controller.showLoadingNodeDelayMillis = 10
     controller.transferringNodeRepaintMillis = 10
@@ -289,7 +295,10 @@ class DeviceExplorerControllerTest {
   @Test
   fun expandChildrenFailure() {
     // Prepare
-    createControllerAndVerifyViewInitialState()
+    val controller = createController()
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
     val errorMessage = "<Expected test error>"
     myFoo.getEntriesError = RuntimeException(errorMessage)
     val nodeExpandedFuture = createNodeExpandedFuture(myFoo)
@@ -309,27 +318,28 @@ class DeviceExplorerControllerTest {
 
   @Test
   fun openNodeInEditorDoesNothingForSymlinkToDirectory() {
-    // Prepare
     val mockFileManager: DeviceExplorerFileManager = Mockito.spy(myMockFileManager)
-    val controller = createController(myMockView, mockFileManager) { localPath: Path -> myMockFileManager.openFile(localPath) }
-    setupControllerAndVerifyViewInitialState(controller)
+    val controller = createController(
+      myMockView,
+      myMockService,
+      mockFileManager,
+      { localPath: Path -> myMockFileManager.openFile(localPath) })
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
     val listener = myMockView.listeners[0]
     val fooDirPath = getFileEntryPath(myFooDirLink)
     myMockView.tree.selectionPath = fooDirPath
     val node = fooDirPath.lastPathComponent as DeviceFileEntryNode
     val nodes: MutableList<DeviceFileEntryNode> = ArrayList()
-
-    // Act
     nodes.add(node)
     listener.openNodesInEditorInvoked(nodes)
-
-    // Verify
     Mockito.verifyNoMoreInteractions(mockFileManager)
   }
 
   @Test
   fun downloadFileWithEnterKey() {
-    createControllerAndVerifyViewInitialState()
+    downloadFileSetup()
 
     downloadFile(myFile1) {
 
@@ -342,7 +352,7 @@ class DeviceExplorerControllerTest {
 
   @Test
   fun downloadFileWithMouseClick() {
-    createControllerAndVerifyViewInitialState()
+    downloadFileSetup()
 
     downloadFile(myFile1) {
       val path = getFileEntryPath(myFile1)
@@ -357,7 +367,7 @@ class DeviceExplorerControllerTest {
 
   @Test
   fun downloadFileLocationWithMouseClick() {
-    createControllerAndVerifyViewInitialState()
+    downloadFileSetup()
 
     // This saves in the default location for test
     downloadFile(myFile1) {
@@ -392,9 +402,12 @@ class DeviceExplorerControllerTest {
   @Test
   fun downloadFileFailure() {
     // Prepare
-    createControllerAndVerifyViewInitialState()
+    val controller = createController()
 
     // Act
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
     val errorMessage = "<Expected test error>"
     myDevice1.downloadError = RuntimeException(errorMessage)
 
@@ -417,19 +430,22 @@ class DeviceExplorerControllerTest {
   @Test
   fun changeActiveDevice() {
     // Prepare
-    val controller = createControllerAndVerifyViewInitialState()
+    val controller = createController()
 
     // Act
-    controller.setActiveConnectedDevice(myDevice2)
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
+    myMockView.deviceCombo.selectedItem = myDevice2
 
     // Assert
-    checkMockViewActiveDevice()
+    checkMockViewActiveDevice(myDevice2)
   }
 
   @Test
   fun changeActiveDeviceDuringFileDownload() {
     // Prepare
-    val controller = createControllerAndVerifyViewInitialState()
+    downloadFileSetup()
 
     // Start file download.
     downloadFile(myFile1) {
@@ -443,20 +459,143 @@ class DeviceExplorerControllerTest {
     myMockView.reportMessageRelatedToNodeTracker.clear()
 
     // Change selected device.
-    controller.setActiveConnectedDevice(myDevice2)
+    myMockView.deviceCombo.selectedItem = myDevice2
 
     // Check that the view shows the second device.
-    checkMockViewActiveDevice()
+    checkMockViewActiveDevice(myDevice2)
     // Check that the download from the first device finished successfully.
     pumpEventsAndWaitForFuture(myMockView.openNodesInEditorInvokedTracker.consume())
   }
 
   @Test
+  fun updateActiveDeviceState() {
+    // Prepare
+    val controller = createController()
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
+    val model: TreeModel? = myModel.treeModel
+
+    // Act
+    injectRepaintManagerMock()
+    myDevice1.deviceStateFlow.value = DeviceState.OFFLINE
+    pumpEventsAndWaitForFuture(myMockView.deviceUpdatedTracker.consume())
+
+    // Assert
+    // The device went offline, so the tree model is now null, and the
+    // combo box UI has been invalidated.
+    assertEquals(myDevice1, myModel.activeDevice)
+    assertNull(myModel.treeModel)
+    Mockito.verify(myMockRepaintManager).addDirtyRegion(
+      myMockView.deviceCombo,
+      0,
+      0,
+      myMockView.deviceCombo.width,
+      myMockView.deviceCombo.height
+    )
+  }
+
+  @Test
+  fun setActiveDeviceFromSerialNumber() {
+    // Prepare
+    val controller = createController()
+
+    // Act
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
+    controller.selectActiveDevice(myDevice2.deviceSerialNumber)
+
+    // Assert
+    checkMockViewActiveDevice(myDevice2)
+  }
+
+  @Test
+  fun setActiveDeviceFromSerialNumberNotFound() {
+    // Prepare
+    val controller = createController()
+
+    // Act
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
+    controller.selectActiveDevice("Nonexistent")
+    val selectError = pumpEventsAndWaitForFuture(myMockView.reportErrorGenericTracker.consume())
+
+    // Assert
+    checkNotNull(selectError)
+    assertTrue(selectError.contains("Unable to find device with serial number"))
+
+    // Check the file system tree is displaying the file system of the first device
+    val rootEntry = DeviceFileEntryNode.fromNode(myMockView.tree.model.root)
+    assertEquals(myDevice1.root, rootEntry?.entry)
+  }
+
+  @Test
+  fun addDevice() {
+    // Prepare
+    val controller = createController()
+
+    // Act
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
+    val futureItemAdded = SettableFuture.create<Void>()
+    myMockView.deviceCombo.model.addListDataListener(object : ListDataListener {
+      override fun intervalAdded(e: ListDataEvent) {
+        futureItemAdded.set(null)
+      }
+
+      override fun intervalRemoved(e: ListDataEvent) {}
+      override fun contentsChanged(e: ListDataEvent) {}
+    })
+    val newFileSystem: DeviceFileSystem = myMockService.addDevice("TestDevice-3")
+    val addedFileSystem = pumpEventsAndWaitForFuture(myMockView.deviceAddedTracker.consume())
+    pumpEventsAndWaitForFuture(futureItemAdded)
+
+    // Assert
+    assertEquals(newFileSystem, addedFileSystem)
+    assertEquals(3, myMockView.deviceCombo.itemCount)
+  }
+
+  @Test
+  fun removeActiveDevice() {
+    // Prepare
+    val controller = createController()
+
+    // Act
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
+    val futureItemRemoved = SettableFuture.create<Void>()
+    myMockView.deviceCombo.model.addListDataListener(object : ListDataListener {
+      override fun intervalAdded(e: ListDataEvent) {}
+      override fun intervalRemoved(e: ListDataEvent) {
+        futureItemRemoved.set(null)
+      }
+
+      override fun contentsChanged(e: ListDataEvent) {}
+    })
+    assertTrue(myMockService.removeDevice(myDevice1))
+    pumpEventsAndWaitForFuture(myMockView.deviceRemovedTracker.consume())
+    pumpEventsAndWaitForFuture(futureItemRemoved)
+
+    // Assert
+    assertEquals(1, myMockView.deviceCombo.itemCount)
+    checkMockViewActiveDevice(myDevice2)
+  }
+
+  @Test
   fun fileSystemTree_ContextMenu_Items_Present() {
     // Prepare
-    createControllerAndVerifyViewInitialState()
+    val controller = createController()
 
-    // Act // Assert
+    // Act
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
+
+    // Assert
     val actionGroup = myMockView.fileTreeActionGroup
     assertEquals(9, actionGroup.getChildren(null).size)
     val subGroup = getSubGroup(actionGroup, "New")
@@ -472,7 +611,7 @@ class DeviceExplorerControllerTest {
 
   @Test
   fun fileSystemTree_ContextMenu_Open_Works() {
-    createControllerAndVerifyViewInitialState()
+    downloadFileSetup()
 
     downloadFile(myFile1) {
       val actionGroup = myMockView.fileTreeActionGroup
@@ -495,7 +634,7 @@ class DeviceExplorerControllerTest {
 
   @Test
   fun fileSystemTree_ContextMenu_SaveFileAs_Works() {
-    createControllerAndVerifyViewInitialState()
+    downloadFileSetup()
 
     val tempFile = FileUtil.createTempFile("foo", "bar")
     downloadFile(myFile1) {
@@ -545,7 +684,10 @@ class DeviceExplorerControllerTest {
   @Test
   fun fileSystemTree_ContextMenu_SaveDirectoryAs_Works() {
     // Prepare
-    createControllerAndVerifyViewInitialState()
+    val controller = createController()
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
 
     // Act
     // Select node
@@ -602,7 +744,10 @@ class DeviceExplorerControllerTest {
   @Test
   fun fileSystemTree_ContextMenu_SaveMultipleFilesAs_Works() {
     // Prepare
-    createControllerAndVerifyViewInitialState()
+    val controller = createController()
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
 
     // Act
     // Select nodes
@@ -662,7 +807,10 @@ class DeviceExplorerControllerTest {
   @Test
   fun fileSystemTree_ContextMenu_SaveDirectoryAs_ShowsProblems() {
     // Prepare
-    createControllerAndVerifyViewInitialState()
+    val controller = createController()
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
 
     // Act
     // Select node
@@ -730,7 +878,10 @@ class DeviceExplorerControllerTest {
   @Test
   fun fileSystemTree_ContextMenu_New_IsHiddenForFiles() {
     // Prepare
-    createControllerAndVerifyViewInitialState()
+    val controller = createController()
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
 
     // Act
     myMockView.tree.selectionPath = getFileEntryPath(myFile1)
@@ -743,7 +894,10 @@ class DeviceExplorerControllerTest {
   @Test
   fun fileSystemTree_ContextMenu_New_IsVisibleForDirectories() {
     // Prepare
-    createControllerAndVerifyViewInitialState()
+    val controller = createController()
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
 
     // Act
     expandEntry(myFoo)
@@ -757,7 +911,10 @@ class DeviceExplorerControllerTest {
   @Test
   fun fileSystemTree_ContextMenu_NewFile_Works() {
     // Prepare
-    createControllerAndVerifyViewInitialState()
+    val controller = createController()
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
     expandEntry(myFoo)
     val fooDirPath = getFileEntryPath(myFooDir)
     myMockView.tree.selectionPath = fooDirPath
@@ -786,7 +943,10 @@ class DeviceExplorerControllerTest {
   @Test
   fun fileSystemTree_ContextMenu_NewDirectory_Works() {
     // Prepare
-    createControllerAndVerifyViewInitialState()
+    val controller = createController()
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
     expandEntry(myFoo)
     val fooDirPath = getFileEntryPath(myFooDir)
     myMockView.tree.selectionPath = fooDirPath
@@ -815,7 +975,10 @@ class DeviceExplorerControllerTest {
   @Test
   fun fileSystemTree_ContextMenu_NewDirectory_ExistingPath_Fails() {
     // Prepare
-    createControllerAndVerifyViewInitialState()
+    val controller = createController()
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
     val fooPath = getFileEntryPath(myFoo)
     myMockView.tree.selectionPath = fooPath
     val newDirectoryName = myFooDir.name // Existing name to create conflict
@@ -852,9 +1015,12 @@ class DeviceExplorerControllerTest {
   @Test
   fun fileSystemTree_ContextMenu_CopyPath_Works() {
     // Prepare
-    createControllerAndVerifyViewInitialState()
+    val controller = createController()
 
     // Act
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
     myMockView.tree.selectionPath = getFileEntryPath(myFile1)
     val actionGroup = myMockView.fileTreeActionGroup
     val action = getActionByText(actionGroup, "Copy Path")
@@ -879,9 +1045,12 @@ class DeviceExplorerControllerTest {
   @Test
   fun fileSystemTree_ContextMenu_CopyPaths_Works() {
     // Prepare
-    createControllerAndVerifyViewInitialState()
+    val controller = createController()
 
     // Act
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
     myMockView.tree.selectionPath = getFileEntryPath(myFile1)
     myMockView.tree.addSelectionPath(getFileEntryPath(myFile2))
     val actionGroup = myMockView.fileTreeActionGroup
@@ -912,9 +1081,12 @@ class DeviceExplorerControllerTest {
   @Test
   fun fileSystemTree_ContextMenu_Delete_Works() {
     // Prepare
-    createControllerAndVerifyViewInitialState()
+    val controller = createController()
 
     // Act
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
     expandEntry(myFoo)
     myMockView.tree.selectionPath = getFileEntryPath(myFooFile1)
     myMockView.tree.addSelectionPath(getFileEntryPath(myFooFile2))
@@ -944,9 +1116,12 @@ class DeviceExplorerControllerTest {
   @Test
   fun fileSystemTree_ContextMenu_Delete_ShowProblems() {
     // Prepare
-    createControllerAndVerifyViewInitialState()
+    val controller = createController()
 
     // Act
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
     expandEntry(myFoo)
     myFooFile1.deleteError = AdbShellCommandException("Error deleting file")
     myMockView.tree.selectionPath = getFileEntryPath(myFooFile1)
@@ -982,10 +1157,14 @@ class DeviceExplorerControllerTest {
     assertEquals(3, fooNode.childCount)
   }
 
+  @org.junit.Ignore("b/255320854")
   @Test
   fun fileSystemTree_ContextMenu_Upload_SingleFile_Works() {
     // Prepare
-    createControllerAndVerifyViewInitialState()
+    val controller = createController()
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
     expandEntry(myFoo)
     myMockView.tree.selectionPath = getFileEntryPath(myFoo)
     val futureTreeChanged = createNodeExpandedFuture(myFoo)
@@ -1036,10 +1215,14 @@ class DeviceExplorerControllerTest {
     assertEquals(5, fooNode.childCount)
   }
 
+  @org.junit.Ignore("b/255320854")
   @Test
   fun fileSystemTree_ContextMenu_Upload_SingleFile_Cancellation_Works() {
     // Prepare
-    val controller = createControllerAndVerifyViewInitialState()
+    val controller = createController()
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
     expandEntry(myFoo)
     myMockView.tree.selectionPath = getFileEntryPath(myFoo)
     val actionGroup = myMockView.fileTreeActionGroup
@@ -1089,7 +1272,10 @@ class DeviceExplorerControllerTest {
   @Test
   fun fileSystemTree_DropFile_SingleFile_Works() {
     // Prepare
-    createControllerAndVerifyViewInitialState()
+    val controller = createController()
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
     expandEntry(myFoo)
     val path = getFileEntryPath(myFoo)
     val bounds = myMockView.tree.ui.getPathBounds(myMockView.tree, path)
@@ -1138,12 +1324,16 @@ class DeviceExplorerControllerTest {
     assertEquals(5, fooNode.childCount)
   }
 
+  @org.junit.Ignore("b/255320854")
   @Test
   fun fileSystemTree_ContextMenu_Upload_DirectoryAndFile_Works() {
     // Prepare
-    createControllerAndVerifyViewInitialState()
+    val controller = createController()
 
     // Act
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
     expandEntry(myFoo)
     myMockView.tree.selectionPath = getFileEntryPath(myFoo)
     val futureTreeChanged = createNodeExpandedFuture(myFoo)
@@ -1203,9 +1393,12 @@ class DeviceExplorerControllerTest {
   @Test
   fun fileSystemTree_ContextMenu_Upload_ShowsProblems() {
     // Prepare
-    createControllerAndVerifyViewInitialState()
+    val controller = createController()
 
     // Act
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
     expandEntry(myFoo)
     myMockView.tree.selectionPath = getFileEntryPath(myFoo)
     val futureTreeChanged = createNodeExpandedFuture(myFoo)
@@ -1262,7 +1455,10 @@ class DeviceExplorerControllerTest {
   @Test
   fun fileSystemTree_ContextMenu_Synchronize_Works() {
     // Prepare
-    createControllerAndVerifyViewInitialState()
+    val controller = createController()
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
 
     // Expand 2 directories
     expandEntry(myFoo)
@@ -1323,9 +1519,12 @@ class DeviceExplorerControllerTest {
   @Test
   fun openFileInEditorFailure() {
     // Prepare
-    createControllerAndVerifyViewInitialState()
+    val controller = createController()
 
     // Act
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
     val errorMessage = "<Expected test error>"
     myMockFileManager.openFileInEditorError = RuntimeException(errorMessage)
 
@@ -1350,7 +1549,9 @@ class DeviceExplorerControllerTest {
     val controller = createController(fileOpener = { localPath -> openPath[0] = localPath })
 
     // Act
-    setupControllerAndVerifyViewInitialState(controller)
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
 
     // Select node
     myMockView.tree.selectionPath = getFileEntryPath(myFile1)
@@ -1449,8 +1650,9 @@ class DeviceExplorerControllerTest {
     return isNodeExpandedFuture
   }
 
-  private fun checkMockViewInitialState(activeDevice: MockDeviceFileSystem) {
-    checkMockViewActiveDevice()
+  private fun checkMockViewInitialState(controller: DeviceExplorerController, activeDevice: MockDeviceFileSystem) {
+    checkMockViewComboBox(controller)
+    checkMockViewActiveDevice(activeDevice)
 
     // Check the file system tree is displaying the file system of the first device
     val rootEntry = DeviceFileEntryNode.fromNode(myMockView.tree.model.root)
@@ -1464,7 +1666,21 @@ class DeviceExplorerControllerTest {
     )
   }
 
-  private fun checkMockViewActiveDevice() {
+  private fun checkMockViewComboBox(controller: DeviceExplorerController) {
+    // Check we have 2 devices available
+    val devices = pumpEventsAndWaitForFutures(myMockView.deviceAddedTracker.consumeMany(2))
+    assertThat(devices.map { it.name }).containsExactlyElementsIn(listOf("TestDevice-1", "TestDevice-2"))
+
+    // The device combo box should contain both devices, and the first one should be selected
+    assertEquals(2, myMockView.deviceCombo.itemCount)
+
+    // The first device should be selected automatically
+    pumpEventsAndWaitForFuture(myMockView.deviceSelectedTracker.consume())
+    assertEquals(0, myMockView.deviceCombo.selectedIndex)
+    assertTrue(controller.hasActiveDevice())
+  }
+
+  private fun checkMockViewActiveDevice(activeDevice: MockDeviceFileSystem) {
     pumpEventsAndWaitForFuture(myMockView.startTreeBusyIndicatorTacker.consume())
     pumpEventsAndWaitForFuture(myMockView.stopTreeBusyIndicatorTacker.consume())
 
@@ -1475,19 +1691,14 @@ class DeviceExplorerControllerTest {
     pumpEventsAndWaitForFuture(myMockView.treeModelChangedTracker.consume())
   }
 
-  private fun setupControllerAndVerifyViewInitialState(controller: DeviceFileExplorerController) {
-    controller.setup()
-    controller.setActiveConnectedDevice(myDevice1)
-    checkMockViewInitialState(myDevice1)
-  }
-
-  private fun createControllerAndVerifyViewInitialState(): DeviceFileExplorerController {
+  private fun downloadFileSetup() {
     // Prepare
     val controller = createController()
 
     // Act
-    setupControllerAndVerifyViewInitialState(controller)
-    return controller
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
   }
 
   private fun downloadFile(file: MockDeviceFileEntry, trigger: Runnable): VirtualFile {
@@ -1522,12 +1733,13 @@ class DeviceExplorerControllerTest {
   }
 
   private fun createController(
-    view: DeviceFileExplorerView = myMockView,
+    view: DeviceExplorerView = myMockView,
+    service: DeviceFileSystemService<*> = myMockService,
     deviceExplorerFileManager: DeviceExplorerFileManager = myMockFileManager,
     fileOpener: suspend (Path) -> Unit = myMockFileManager::openFile
-  ): DeviceFileExplorerController {
-    return DeviceFileExplorerController(project, myModel, view, deviceExplorerFileManager,
-                                    object : DeviceFileExplorerController.FileOpener {
+  ): DeviceExplorerController {
+    return DeviceExplorerController(project, myModel, view, service, deviceExplorerFileManager,
+                                    object : DeviceExplorerController.FileOpener {
                                       override suspend fun openFile(localPath: Path) { fileOpener(localPath) }
                                     })
   }

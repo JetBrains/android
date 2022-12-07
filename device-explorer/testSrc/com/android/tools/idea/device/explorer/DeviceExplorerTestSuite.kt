@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device.explorer.monitor
+package com.android.tools.idea.device.explorer
 
-import javax.swing.JComponent
+import com.android.testutils.JarTestSuiteRunner
+import com.android.tools.tests.IdeaTestSuiteBase
+import org.junit.runner.RunWith
 
-interface DeviceMonitorController {
-  fun setup()
-  fun setActiveConnectedDevice(serialNumber: String?)
-  fun getViewComponent(): JComponent
-}
+@RunWith(JarTestSuiteRunner::class)
+@JarTestSuiteRunner.ExcludeClasses(DeviceExplorerTestSuite::class)
+class DeviceExplorerTestSuite : IdeaTestSuiteBase()

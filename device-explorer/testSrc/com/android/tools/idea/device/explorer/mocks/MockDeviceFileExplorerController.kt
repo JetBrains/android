@@ -13,13 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device.explorer.files
+package com.android.tools.idea.device.explorer.mocks
 
+import com.android.tools.idea.FutureValuesTracker
+import com.android.tools.idea.device.explorer.files.DeviceFileExplorerController
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem
 import javax.swing.JComponent
+import javax.swing.JPanel
 
-interface DeviceFileExplorerController {
-  fun setup()
-  fun setActiveConnectedDevice(fileSystem: DeviceFileSystem?)
-  fun getViewComponent(): JComponent
+class MockDeviceFileExplorerController : DeviceFileExplorerController {
+  val activeDeviceTracker: FutureValuesTracker<DeviceFileSystem?> = FutureValuesTracker<DeviceFileSystem?>()
+
+  override fun setup() {}
+
+  override fun setActiveConnectedDevice(fileSystem: DeviceFileSystem?) {
+    activeDeviceTracker.produce(fileSystem)
+  }
+
+  override fun getViewComponent(): JComponent {
+    return JPanel()
+  }
 }
