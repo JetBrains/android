@@ -56,6 +56,9 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
       .map(device -> device.isRunningAsync(appPackage))
       .collect(Collectors.toList());
 
+    // The EDT and Action Updater (Common) threads call into this. Ideally we'd use the respective executors here instead of the direct
+    // executor. But we don't have access to the Action Updater (Common) executor.
+
     // noinspection UnstableApiUsage, SpellCheckingInspection
     return Futures.transform(Futures.successfulAsList(futures), runnings -> runnings.contains(true), MoreExecutors.directExecutor());
   }
@@ -84,6 +87,9 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
 
     @SuppressWarnings("UnstableApiUsage")
     var future = Futures.successfulAsList(futures);
+
+    // The EDT and Action Updater (Common) threads call into this. Ideally we'd use the respective executors here instead of the direct
+    // executor. But we don't have access to the Action Updater (Common) executor.
 
     // noinspection UnstableApiUsage
     return Futures.transform(future, DeviceAndSnapshotComboBoxExecutionTarget::filterNonNull, MoreExecutors.directExecutor());

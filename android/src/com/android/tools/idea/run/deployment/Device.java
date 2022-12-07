@@ -136,6 +136,9 @@ public abstract class Device {
       return Futures.immediateFuture(false);
     }
 
+    // The EDT and Action Updater (Common) threads call into this. Ideally we'd use the respective executors here instead of the direct
+    // executor. But we don't have access to the Action Updater (Common) executor.
+
     // noinspection UnstableApiUsage
     return Futures.transform(getDdmlibDeviceAsync(), device -> isRunning(device, appPackage), MoreExecutors.directExecutor());
   }

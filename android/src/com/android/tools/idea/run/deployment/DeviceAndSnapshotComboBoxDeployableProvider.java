@@ -125,6 +125,8 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
       // because it'll wait for Deployable.searchClientsForPackage here which has been scheduled for after the wait. Hence, MoreExecutors
       // .directExecutor().
 
+      // TODO Use EdtExecutorService::getInstance when searchClientsForPackage is deleted
+
       // noinspection UnstableApiUsage
       return Futures.transform(future, device -> Deployable.searchClientsForPackage(device, myPackageName), MoreExecutors.directExecutor());
     }
