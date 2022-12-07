@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.tools.idea.annotations.TestDumbService
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.util.ComposePreviewElement
@@ -82,7 +82,7 @@ class AnnotationFileComposePreviewElementFinderTest(
   private val COMPOSABLE_ANNOTATION_FQN = "$composableAnnotationPackage.Composable"
   private val PREVIEW_TOOLING_PACKAGE = previewAnnotationPackage
 
-  @get:Rule val multiPreviewRule = SetFlagRule(StudioFlags.COMPOSE_MULTIPREVIEW, true)
+  @get:Rule val multiPreviewRule = FlagRule(StudioFlags.COMPOSE_MULTIPREVIEW, true)
 
   @get:Rule
   val projectRule =

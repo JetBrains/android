@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.logcat.filters
 
-import com.android.flags.junit.RestoreFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.FakePackageNamesProvider
@@ -76,7 +76,7 @@ class LogcatFilterParserTest {
   private val project by lazy(projectRule::project)
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule(), LogcatFilterLanguageRule(), RestoreFlagRule(StudioFlags.LOGCAT_IS_FILTER))
+  val rule = RuleChain(projectRule, EdtRule(), LogcatFilterLanguageRule(), FlagRule(StudioFlags.LOGCAT_IS_FILTER))
 
   @Test
   fun parse_emptyFilter() {

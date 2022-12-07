@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.tracker.gradle
 
-import com.android.flags.junit.RestoreFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -92,7 +92,7 @@ class SafeArgsTrackerTest(private val params: TestParams) {
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   @get:Rule
-  val restoreSafeArgsFlagRule = RestoreFlagRule(StudioFlags.NAV_SAFE_ARGS_SUPPORT)
+  val restoreSafeArgsFlagRule = FlagRule(StudioFlags.NAV_SAFE_ARGS_SUPPORT)
 
   private val fixture get() = projectRule.fixture as JavaCodeInsightTestFixture
 

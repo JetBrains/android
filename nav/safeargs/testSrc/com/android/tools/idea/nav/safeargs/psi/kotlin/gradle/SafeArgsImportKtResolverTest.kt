@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.psi.kotlin.gradle
 
-import com.android.flags.junit.RestoreFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.TestDataPaths
 import com.android.tools.idea.nav.safeargs.extensions.setText
@@ -40,7 +40,7 @@ class SafeArgsImportKtResolverTest {
   private val projectRule = AndroidGradleProjectRule()
 
   @get:Rule
-  val restoreSafeArgsFlagRule = RestoreFlagRule(StudioFlags.NAV_SAFE_ARGS_SUPPORT)
+  val restoreSafeArgsFlagRule = FlagRule(StudioFlags.NAV_SAFE_ARGS_SUPPORT)
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
   @get:Rule

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.dagger
 
-import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat

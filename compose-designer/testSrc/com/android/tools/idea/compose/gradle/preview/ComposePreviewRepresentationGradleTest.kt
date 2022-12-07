@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.gradle.preview
 
-import com.android.flags.junit.RestoreFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.testutils.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
@@ -86,7 +86,7 @@ class ComposePreviewRepresentationGradleTest {
   private val logger = Logger.getInstance(ComposePreviewRepresentationGradleTest::class.java)
 
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
-  @get:Rule val resetFastPreviewFlag = RestoreFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW)
+  @get:Rule val resetFastPreviewFlag = FlagRule(StudioFlags.COMPOSE_FAST_PREVIEW)
 
   private val project: Project
     get() = projectRule.project

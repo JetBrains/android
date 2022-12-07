@@ -19,7 +19,7 @@ import com.android.ddmlib.Log.LogLevel
 import com.android.ddmlib.Log.LogLevel.INFO
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.ExpressionFilterManager.ExpressionException
 import com.google.common.truth.Truth.assertThat
@@ -46,7 +46,7 @@ class ExpressionFilterManagerTest {
   private val expressionFilterManager = ExpressionFilterManager()
 
   @get:Rule
-  val flagRule = SetFlagRule(StudioFlags.LOGCAT_EXPRESSION_FILTER_ENABLE, true)
+  val flagRule = FlagRule(StudioFlags.LOGCAT_EXPRESSION_FILTER_ENABLE, true)
 
   @Test
   fun isSupported_returnsTrue() {

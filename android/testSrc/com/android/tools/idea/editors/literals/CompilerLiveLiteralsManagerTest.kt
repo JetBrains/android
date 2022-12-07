@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.literals
 
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import junit.framework.Assert.assertFalse
@@ -30,7 +30,7 @@ internal class CompilerLiveLiteralsManagerTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
   @get:Rule
-  val fastPreviewRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, true)
+  val fastPreviewRule = FlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, true)
   @Test
   fun `check invalid class file does not throw`() {
     val file = projectRule.fixture.addFileToProject(

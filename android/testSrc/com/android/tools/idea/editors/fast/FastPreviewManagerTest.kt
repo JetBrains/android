@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.fast
 
-import com.android.flags.junit.RestoreFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
@@ -80,7 +80,7 @@ internal class FastPreviewManagerTest {
     .around(FastPreviewRule())
 
   @get:Rule
-  val autoDisableFlagRule = RestoreFlagRule(COMPOSE_FAST_PREVIEW_AUTO_DISABLE)
+  val autoDisableFlagRule = FlagRule(COMPOSE_FAST_PREVIEW_AUTO_DISABLE)
 
   private val testTracker = TestFastPreviewTrackerManager(showTimes = false)
 

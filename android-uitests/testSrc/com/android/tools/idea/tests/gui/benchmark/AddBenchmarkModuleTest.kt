@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.benchmark
 
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.benchmark.BenchmarkModuleType
@@ -37,7 +37,7 @@ class AddBenchmarkModuleTest {
   val guiTest = GuiTestRule().withTimeout(10, TimeUnit.MINUTES)
 
   @get:Rule
-  val flagRule = SetFlagRule(StudioFlags.NPW_NEW_MACRO_BENCHMARK_MODULE, true)
+  val flagRule = FlagRule(StudioFlags.NPW_NEW_MACRO_BENCHMARK_MODULE, true)
 
   /**
    * Verifies that user is able to add a Benchmark Module through the

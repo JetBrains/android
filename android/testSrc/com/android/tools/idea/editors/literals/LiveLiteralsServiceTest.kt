@@ -1,6 +1,6 @@
 package com.android.tools.idea.editors.literals
 
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsDeploymentReportService
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsFinder
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
@@ -26,7 +26,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
@@ -37,7 +36,7 @@ internal class LiveLiteralsServiceTest {
   val projectRule = AndroidProjectRule.inMemory()
 
   @get:Rule
-  val liveEditFlagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, false)
+  val liveEditFlagRule = FlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, false)
 
   private val project: Project
     get() = projectRule.project

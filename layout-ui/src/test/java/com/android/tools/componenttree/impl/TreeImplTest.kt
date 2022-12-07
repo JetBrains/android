@@ -2,7 +2,7 @@
 package com.android.tools.componenttree.impl
 
 import com.android.SdkConstants
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
@@ -65,7 +65,7 @@ class TreeImplTest {
     .outerRule(EdtRule())
     .around(PortableUiFontRule())
     .around(MockitoCleanerRule())
-    .around(SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, false))
+    .around(FlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, false))
     .around(disposableRule)
 
   private val style1 = Style("style1")

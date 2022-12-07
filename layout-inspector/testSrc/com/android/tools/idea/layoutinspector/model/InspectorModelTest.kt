@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.io.readImage
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
@@ -37,7 +37,8 @@ private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
 class InspectorModelTest {
   @get:Rule
-  val highlightFlag = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS, true)
+  val highlightFlag =
+    FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS, true)
 
   @Test
   fun testUpdatePropertiesOnly() {

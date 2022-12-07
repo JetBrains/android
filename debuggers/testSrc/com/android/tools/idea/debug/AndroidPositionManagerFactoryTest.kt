@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.debug
 
-import com.android.flags.junit.RestoreFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.flags.StudioFlags
@@ -32,7 +32,7 @@ class AndroidPositionManagerFactoryTest {
   val myMockitoRule = MockitoJUnit.rule()
 
   @get:Rule
-  val myRestoreFlagRule = RestoreFlagRule(StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE)
+  val myFlagRule = FlagRule(StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE)
 
   @get:Rule
   val myAndroidProjectRule = inMemory()

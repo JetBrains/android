@@ -17,7 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
-import com.android.flags.junit.RestoreFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
@@ -87,8 +87,8 @@ class ComposeLayoutInspectorClientTest {
 
   private val projectRule = AndroidProjectRule.inMemory()
   private val adbRule = FakeAdbRule()
-  private val devFlagRule = RestoreFlagRule(StudioFlags.APP_INSPECTION_USE_DEV_JAR)
-  private val devFolderFlagRule = RestoreFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER)
+  private val devFlagRule = FlagRule(StudioFlags.APP_INSPECTION_USE_DEV_JAR)
+  private val devFolderFlagRule = FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER)
 
   @get:Rule
   val rule = RuleChain.outerRule(projectRule).around(adbRule).around(devFlagRule).around(devFolderFlagRule)!!

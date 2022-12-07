@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.skia
 
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
@@ -29,14 +29,11 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.layoutinspector.InvalidPictureException
 import com.android.tools.layoutinspector.LayoutInspectorUtils
 import com.google.common.truth.Truth.assertThat
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.runBlocking
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import java.awt.image.BufferedImage
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.assertTrue
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
@@ -123,7 +120,7 @@ class SkiaParserWithSdkTest {
 
 class SkiaParserIntegrationTest {
   @get:Rule
-  val flagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER, true)
+  val flagRule = FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER, true)
 
   @Test
   fun testRunServer() {

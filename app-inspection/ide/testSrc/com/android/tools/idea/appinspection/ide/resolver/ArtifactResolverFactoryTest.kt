@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver
 
-import com.android.flags.junit.RestoreFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.tools.idea.appinspection.ide.resolver.blaze.BlazeArtifactResolver
 import com.android.tools.idea.appinspection.ide.resolver.http.HttpArtifactResolver
 import com.android.tools.idea.appinspection.ide.resolver.moduleSystem.ModuleSystemArtifactResolver
@@ -43,7 +43,7 @@ class ArtifactResolverFactoryTest(private val ideBrand: IdeBrand) {
   val projectRule = AndroidProjectRule.inMemory()
 
   @get:Rule
-  val restoreFlagRule = RestoreFlagRule(APP_INSPECTION_USE_SNAPSHOT_JAR)
+  val FlagRule = FlagRule(APP_INSPECTION_USE_SNAPSHOT_JAR)
 
   @Test
   fun createResolver() {

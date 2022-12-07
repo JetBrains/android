@@ -17,7 +17,7 @@
 
 package com.android.tools.idea.nav.safeargs.codegen.gradle
 
-import com.android.flags.junit.RestoreFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
@@ -61,7 +61,7 @@ class SafeArgsGeneratedJavaCodeMatchTest {
   val expect: Expect = Expect.create()
 
   @get:Rule
-  val enableSafeArgsCodeGen = RestoreFlagRule(StudioFlags.NAV_SAFE_ARGS_SUPPORT)
+  val enableSafeArgsCodeGen = FlagRule(StudioFlags.NAV_SAFE_ARGS_SUPPORT)
 
   @get:Rule
   val temporaryFolder = TemporaryFolder()

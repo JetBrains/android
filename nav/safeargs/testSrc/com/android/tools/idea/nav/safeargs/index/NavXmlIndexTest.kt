@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.index
 
-import com.android.flags.junit.RestoreFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -35,7 +35,7 @@ class NavXmlIndexTest {
   private val projectRule = AndroidProjectRule.onDisk()
 
   @get:Rule
-  val navArgsFlagRule = RestoreFlagRule(StudioFlags.NAV_SAFE_ARGS_SUPPORT)
+  val navArgsFlagRule = FlagRule(StudioFlags.NAV_SAFE_ARGS_SUPPORT)
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!

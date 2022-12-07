@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.strings
 
-import com.android.flags.junit.RestoreFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
@@ -58,7 +58,7 @@ class StringResourceEditorTest {
   val projectRule = AndroidProjectRule.inMemory()
 
   @get:Rule
-  val myRestoreFlagRule = RestoreFlagRule(StudioFlags.TRANSLATIONS_EDITOR_SYNCHRONIZATION)
+  val myFlagRule = FlagRule(StudioFlags.TRANSLATIONS_EDITOR_SYNCHRONIZATION)
 
   private val font = Font(Font.DIALOG, Font.PLAIN, 12)
   private val oldScale = JBUIScale.scale(1.0f)

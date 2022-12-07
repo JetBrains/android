@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
@@ -69,10 +69,11 @@ class TreeSettingsActionsTest {
   }
 
   @get:Rule
-  val recompositionFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS, true)
+  val recompositionFlagRule =
+    FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS, true)
 
   @get:Rule
-  val treeTableFlagRule = SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true)
+  val treeTableFlagRule = FlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true)
 
   private val treeSettings = FakeTreeSettings()
   private val model = createModel()

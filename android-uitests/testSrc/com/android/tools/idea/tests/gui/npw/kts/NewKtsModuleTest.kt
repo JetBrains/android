@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.npw.kts
 
 import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.benchmark.BenchmarkModuleType
@@ -36,10 +36,10 @@ class NewKtsModuleTest {
   val guiTest = GuiTestRule()
 
   @get:Rule
-  val gradleKtsFlagRule = SetFlagRule(StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION, true)
+  val gradleKtsFlagRule = FlagRule(StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION, true)
 
   @get:Rule
-  val macroBenchmarkFlagRule = SetFlagRule(StudioFlags.NPW_NEW_MACRO_BENCHMARK_MODULE, true)
+  val macroBenchmarkFlagRule = FlagRule(StudioFlags.NPW_NEW_MACRO_BENCHMARK_MODULE, true)
 
   /**
    * Verifies that adding new Mobile/Tablet Java Module, with kts, has the expected content and builds.

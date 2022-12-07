@@ -18,7 +18,7 @@ package com.android.tools.idea.devicemanager;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import com.android.flags.junit.SetFlagRule;
+import com.android.flags.junit.FlagRule;
 import com.android.tools.idea.devicemanager.physicaltab.TestPhysicalDevices;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.ConnectionState;
@@ -39,7 +39,7 @@ import org.mockito.Mockito;
 @RunWith(JUnit4.class)
 public final class DeviceTableCellRendererTest {
   @Rule
-  public SetFlagRule<Boolean> setWearPairingFlag = new SetFlagRule<>(StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED, true);
+  public FlagRule<Boolean> setWearPairingFlag = new FlagRule<>(StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED, true);
 
   private final JTable myTable = new JBTable();
 

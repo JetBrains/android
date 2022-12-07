@@ -16,7 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.fakeadbserver.DeviceState
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.repository.Revision
 import com.android.repository.api.LocalPackage
 import com.android.repository.api.RemotePackage
@@ -135,7 +135,7 @@ class AppInspectionInspectorClientTest {
   private lateinit var inspectorClientSettings: InspectorClientSettings
 
   private val disposableRule = DisposableRule()
-  private val treeRule = SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true)
+  private val treeRule = FlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true)
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable, projectRule)
   private val inspectorRule = LayoutInspectorRule(

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
@@ -56,9 +56,9 @@ class ViewMenuActionTest {
   @get:Rule
   val rules: RuleChain = RuleChain
     .outerRule(MockitoCleanerRule())
-    .around(SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true))
-    .around(SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS, true))
-    .around(SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS, true))
+    .around(FlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true))
+    .around(FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS, true))
+    .around(FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS, true))
 
   private val treeSettings = FakeTreeSettings().apply { showRecompositions = true }
   private val viewSettings = FakeRenderSettings()

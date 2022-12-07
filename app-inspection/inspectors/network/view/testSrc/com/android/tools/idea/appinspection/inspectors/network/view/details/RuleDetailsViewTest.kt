@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
@@ -103,7 +103,7 @@ class RuleDetailsViewTest {
   }
 
   @get:Rule
-  val setFlagRule = SetFlagRule(StudioFlags.ENABLE_NETWORK_INTERCEPTION, true)
+  val flagRule = FlagRule(StudioFlags.ENABLE_NETWORK_INTERCEPTION, true)
 
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory().onEdt()

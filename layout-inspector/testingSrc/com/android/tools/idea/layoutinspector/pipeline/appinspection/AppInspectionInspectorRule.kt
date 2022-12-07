@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
@@ -85,7 +85,7 @@ class AppInspectionInspectorRule(
   private val transportService = FakeTransportService(timer)
 
   // This flag allows us to avoid a path in Compose inspector client construction so we don't need to mock a bunch of services
-  private val devModeFlagRule = SetFlagRule(StudioFlags.APP_INSPECTION_USE_DEV_JAR, true)
+  private val devModeFlagRule = FlagRule(StudioFlags.APP_INSPECTION_USE_DEV_JAR, true)
   private val grpcServer = FakeGrpcServer.createFakeGrpcServer("AppInspectionInspectorRuleServer", transportService)
   val inspectionService = AppInspectionServiceRule(timer, transportService, grpcServer)
 

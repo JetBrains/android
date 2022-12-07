@@ -16,7 +16,7 @@
 package com.android.tools.componenttree.treetable
 
 import com.android.SdkConstants
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
@@ -74,7 +74,7 @@ class TreeTableDropTargetHandlerTest {
 
   @get:Rule
   val chain = RuleChain
-    .outerRule(SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true))
+    .outerRule(FlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true))
     .around(MockitoCleanerRule())
     .around(IconLoaderRule())
     .around(EdtRule())!!

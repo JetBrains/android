@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.cpp
 
-import com.android.flags.junit.RestoreFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.getInstance
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
@@ -42,7 +42,7 @@ class AddCppToModuleActionTest {
   val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
 
   @get:Rule
-  val restoreNpwNativeModuleFlagRule = RestoreFlagRule(StudioFlags.NPW_NEW_NATIVE_MODULE)
+  val restoreNpwNativeModuleFlagRule = FlagRule(StudioFlags.NPW_NEW_NATIVE_MODULE)
 
   @Before
   fun setup() {

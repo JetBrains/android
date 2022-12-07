@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors
 
-import com.android.flags.junit.RestoreFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider.AttachAndroidSdkSourcesCallback
@@ -52,7 +52,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
   val myMockitoRule = MockitoJUnit.rule()
 
   @get:Rule
-  val myRestoreFlagRule = RestoreFlagRule(StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE)
+  val myFlagRule = FlagRule(StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE)
 
   @Mock
   lateinit var myFileEditor: FileEditor

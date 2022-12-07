@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.analytics
 
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
 import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import com.android.tools.idea.annotations.findAnnotatedMethodsValues
@@ -40,7 +40,7 @@ private const val PREVIEW_TOOLING_PACKAGE = "androidx.compose.ui.tooling.preview
 
 class MultiPreviewUsageTrackerTest {
 
-  @get:Rule val multiPreviewRule = SetFlagRule(StudioFlags.COMPOSE_MULTIPREVIEW, true)
+  @get:Rule val multiPreviewRule = FlagRule(StudioFlags.COMPOSE_MULTIPREVIEW, true)
 
   @get:Rule
   val projectRule =

@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.annotator
 
 import com.android.SdkConstants
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -41,7 +41,7 @@ internal class SpringPickerLineMarkerProviderTest {
   @get:Rule
   val chain =
     RuleChain.outerRule(rule)
-      .around(SetFlagRule(StudioFlags.COMPOSE_SPRING_PICKER, true))
+      .around(FlagRule(StudioFlags.COMPOSE_SPRING_PICKER, true))
       .around(EdtRule())!!
 
   private val fixture
