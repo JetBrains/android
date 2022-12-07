@@ -88,7 +88,7 @@ open class ProjectsUpgradeTestBase {
     loadAUATestProject(baseProject)
     fakeSyncInvoker.fakeNextSyncSuccess = true
     //TODO run upgrade through FakeUI instead.
-    val processor = AgpUpgradeRefactoringProcessor(projectRule.project, baseProject.agpGradleVersion(), to.agpGradleVersion())
+    val processor = AgpUpgradeRefactoringProcessor(projectRule.project, baseProject.agpVersion(), to.agpVersion())
     processor.componentRefactoringProcessors.forEach {
       it.isEnabled = when (it.necessity()) {
         AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE -> false
@@ -107,7 +107,7 @@ open class ProjectsUpgradeTestBase {
     loadAUATestProject(baseProject)
     fakeSyncInvoker.fakeNextSyncSuccess = true
     //TODO run upgrade through FakeUI instead.
-    val processor = AgpUpgradeRefactoringProcessor(projectRule.project, baseProject.agpGradleVersion(), to.agpGradleVersion())
+    val processor = AgpUpgradeRefactoringProcessor(projectRule.project, baseProject.agpVersion(), to.agpVersion())
     processor.componentRefactoringProcessors.forEach {
       it.isEnabled = when (it.necessity()) {
         AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT -> true
@@ -172,7 +172,7 @@ open class ProjectsUpgradeTestBase {
       applyProjectPatch(expectedProjectState, projectRoot)
       // Setting actual expected gradle version here as described above.
       val wrapper = GradleWrapper.create(projectRoot, null)
-      wrapper.updateDistributionUrl(wrapper.getUpdatedDistributionUrl(expectedProjectState.gradleVersion(), true))
+      wrapper.updateDistributionUrl(wrapper.getUpdatedDistributionUrl(expectedProjectState.gradleVersionString(), true))
     }
     return temporaryFolder.root
   }
@@ -191,7 +191,7 @@ open class ProjectsUpgradeTestBase {
       }
     val gradleWrapperFile = FileUtils.join(projectRoot, "gradle", "wrapper", "gradle-wrapper.properties")
     val distributionUrlLine = gradleWrapperFile.readLines().first { it.contains("distributionUrl") }
-    Truth.assertThat(distributionUrlLine).contains("gradle-${expectedProjectState.gradleVersion()}-bin.zip")
+    Truth.assertThat(distributionUrlLine).contains("gradle-${expectedProjectState.gradleVersionString()}-bin.zip")
   }
 
   private fun File.isFileToCompare() = isFile() && path.let {
@@ -214,19 +214,19 @@ open class ProjectsUpgradeTestBase {
     }
   }
 
-  private fun AUATestProjectState.agpVersion() = version.agpVersion ?: BuildEnvironment.getInstance().gradlePluginVersion
-  private fun AUATestProjectState.agpGradleVersion() = AgpVersion.parse(agpVersion())
-  private fun AUATestProjectState.gradleVersion() = CompatibleGradleVersion.getCompatibleGradleVersion(
-    agpGradleVersion()
-  ).version.version.toString()
+  private fun AUATestProjectState.agpVersionString() = version.agpVersion ?: BuildEnvironment.getInstance().gradlePluginVersion
+  private fun AUATestProjectState.agpVersion() = AgpVersion.parse(agpVersionString())
+  private fun AUATestProjectState.gradleVersionString() = CompatibleGradleVersion.getCompatibleGradleVersion(
+    agpVersion()
+  ).version.version
 
   private fun AUATestProjectState.jdkVersion() = version.jdkVersion
   private fun AUATestProjectState.kotlinVersion() = version.kotlinVersion
 
   private fun AUATestProjectState.agpVersionDef(): AgpVersionSoftwareEnvironment =
     CustomAgpVersionSoftwareEnvironment(
-      agpVersion = agpVersion(),
-      gradleVersion = gradleVersion(),
+      agpVersion = agpVersionString(),
+      gradleVersion = gradleVersionString(),
       jdkVersion = jdkVersion(),
       kotlinVersion = kotlinVersion()
     )
