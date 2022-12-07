@@ -45,6 +45,37 @@ class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
                                @SwingCoordinate dimension: Dimension?) =
     getSize(content, PositionableContent::scaledContentSize, { scale }, dimension)
 
+  @SurfaceScale
+  override fun getFitIntoScale(content: Collection<PositionableContent>,
+                               @SwingCoordinate availableWidth: Int,
+                               @SwingCoordinate availableHeight: Int): Double {
+    if (content.isEmpty()) {
+      // No content. Use 100% as zoom level
+      return 1.0
+    }
+    // We reserve the spaces for margins paddings when calculate the zoom-to-fit scale. So there is always enough spaces for them.
+
+    val margins = content.map { it.margin }
+    // Reserve the canvas and frame paddings, so the scaled content must be able to fit into the area.
+    val reducedAvailableWidth = availableWidth - 2 * previewFramePaddingProvider(1.0) - margins.sumOf { it.horizontal }
+    val reducedAvailableHeight =
+      availableHeight - canvasTopPadding - previewFramePaddingProvider(1.0) * 2 * content.size - margins.sumOf { it.vertical }
+
+    if (reducedAvailableWidth <= 0 || reducedAvailableHeight <= 0) {
+      // There is not even enough space for paddings. In this case, force using (available size / 100% size) as the fit into scale.
+      // This is an extreme case, be aware that this scale does not really fit the content.
+      val preferredSize = getSize(content, PositionableContent::contentSize, { 1.0 }, null)
+      return minOf(availableWidth.toDouble() / preferredSize.width, availableHeight.toDouble() / preferredSize.height)
+    }
+
+    // The total size of contents when zoom level is 100%. The padding space is reserved, just calculate the raw size.
+    val sizes = content.map { it.contentSize }
+    val listWidth = sizes.maxOf { it.width }
+    val listHeight = sizes.sumOf { it.height }
+
+    return minOf( reducedAvailableWidth.toDouble() / listWidth, reducedAvailableHeight.toDouble() / listHeight)
+  }
+
   private fun getSize(content: Collection<PositionableContent>,
                       sizeFunc: PositionableContent.() -> Dimension,
                       scaleFunc: PositionableContent.() -> Double,
@@ -73,16 +104,6 @@ class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
 
     dim.setSize(requiredWidth, max(0, totalRequiredHeight))
     return dim
-  }
-
-  @SurfaceScale
-  override fun getFitIntoScale(content: Collection<PositionableContent>,
-                      @SwingCoordinate availableWidth: Int,
-                      @SwingCoordinate availableHeight: Int): Double {
-    val contentSize = getPreferredSize(content, availableWidth, availableHeight, null)
-    @SurfaceScale val scaleX: Double = if (contentSize.width == 0) 1.0 else availableWidth.toDouble() / contentSize.width
-    @SurfaceScale val scaleY: Double = if (contentSize.height == 0) 1.0 else availableHeight.toDouble() / contentSize.height
-    return minOf(scaleX, scaleY)
   }
 
   override fun layout(content: Collection<PositionableContent>,

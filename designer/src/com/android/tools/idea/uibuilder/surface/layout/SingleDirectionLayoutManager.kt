@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface.layout
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.SurfaceScale
 import java.awt.Dimension
 import kotlin.math.max
@@ -100,12 +101,47 @@ open class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalP
 
   @SurfaceScale
   override fun getFitIntoScale(content: Collection<PositionableContent>,
-                      @SwingCoordinate availableWidth: Int,
-                      @SwingCoordinate availableHeight: Int): Double {
-    val contentSize = getPreferredSize(content, availableWidth, availableHeight, null)
-    @SurfaceScale val scaleX: Double = if (contentSize.width == 0) 1.0 else availableWidth.toDouble() / contentSize.width
-    @SurfaceScale val scaleY: Double = if (contentSize.height == 0) 1.0 else availableHeight.toDouble() / contentSize.height
-    return minOf(scaleX, scaleY)
+                               @SwingCoordinate availableWidth: Int,
+                               @SwingCoordinate availableHeight: Int): Double {
+    if (content.isEmpty()) {
+      // No content. Use 100% as zoom level
+      return 1.0
+    }
+
+    val vertical = isVertical(content, availableWidth, availableHeight)
+    // We reserve the spaces for margins and paddings when calculate the zoom-to-fit scale. So there is always enough spaces for them.
+    val margins = content.map { it.margin }
+    val reducedAvailableWidth: Int
+    val reducedAvailableHeight: Int
+    if (vertical) {
+      reducedAvailableWidth = availableWidth - 2 * horizontalPadding - margins.sumOf { it.horizontal }
+      reducedAvailableHeight = availableHeight - 2 * verticalPadding - (content.size - 1) * verticalViewDelta - margins.sumOf { it.vertical }
+    }
+    else {
+      reducedAvailableWidth = availableWidth - 2 * horizontalPadding - (content.size - 1) * horizontalViewDelta - margins.sumOf { it.horizontal }
+      reducedAvailableHeight = availableHeight - 2 * verticalPadding - margins.sumOf { it.vertical }
+    }
+
+    if (reducedAvailableWidth <= 0 || reducedAvailableHeight <= 0) {
+      // There is not even enough space for paddings. In this case, force using (available size / 100% size) as the fit into scale.
+      // This is an extreme case, be aware that this scale does not really fit the content.
+      val preferredSize = getSize(content, PositionableContent::contentSize, availableWidth, availableHeight, null)
+      return minOf(availableWidth.toDouble() / preferredSize.width, availableHeight.toDouble() / preferredSize.height)
+    }
+
+    // Get the raw width and height without paddings and view deltas.
+    val listWidth: Int
+    val listHeight: Int
+    if (vertical) {
+      listWidth = content.maxOf { contentSize.width }!!
+      listHeight = content.sumOf { contentSize.height }
+    }
+    else {
+      listWidth = content.sumOf { contentSize.width }
+      listHeight = content.maxOf { contentSize.height }!!
+    }
+
+    return minOf( reducedAvailableWidth.toDouble() / listWidth, reducedAvailableHeight.toDouble() / listHeight)
   }
 
   override fun layout(content: Collection<PositionableContent>,

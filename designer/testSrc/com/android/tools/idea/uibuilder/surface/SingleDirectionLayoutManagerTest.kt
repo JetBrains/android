@@ -18,8 +18,10 @@ package com.android.tools.idea.uibuilder.surface
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.surface.layout.TestPositionableContent
 import com.android.tools.idea.uibuilder.LayoutTestCase
+import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
+import org.junit.Test
 
 private class ForcedDirectoryLayoutManager(@SwingCoordinate private val horizontalPadding: Int,
                                            @SwingCoordinate private val verticalPadding: Int,
@@ -137,6 +139,154 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
       assertEquals(paddingY, sceneView1.y)
       assertEquals(paddingX, sceneView2.x)
       assertEquals(paddingY + h + screenDeltaY, sceneView2.y)
+    }
+  }
+
+  fun testFitIntoScaleWithoutPaddingsVertically() {
+    val manager = SingleDirectionLayoutManager(0, 0, 0, 0)
+
+    val contents = listOf(TestPositionableContent(0, 0, 100, 100),
+                          TestPositionableContent(0, 0, 100, 100),
+                          TestPositionableContent(0, 0, 100, 100),
+                          TestPositionableContent(0, 0, 100, 100),
+                          TestPositionableContent(0, 0, 100, 100))
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 100, 500)
+      assertEquals(1.0, scale)
+    }
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 400, 1000)
+      assertEquals(2.0, scale)
+    }
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 200, 4000)
+      assertEquals(2.0, scale)
+    }
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 50, 1000)
+      assertEquals(0.5, scale)
+    }
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 50, 100)
+      assertEquals(0.2, scale)
+    }
+  }
+
+  fun testFitIntoScaleWithoutPaddingsHorizontally() {
+    val manager = SingleDirectionLayoutManager(0, 0, 0, 0)
+
+    val contents = listOf(TestPositionableContent(0, 0, 100, 100),
+                          TestPositionableContent(0, 0, 100, 100),
+                          TestPositionableContent(0, 0, 100, 100),
+                          TestPositionableContent(0, 0, 100, 100),
+                          TestPositionableContent(0, 0, 100, 100))
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 500, 100)
+      assertEquals(1.0, scale)
+    }
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 1000, 400)
+      assertEquals(2.0, scale)
+    }
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 4000, 200)
+      assertEquals(2.0, scale)
+    }
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 1000, 50)
+      assertEquals(0.5, scale)
+    }
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 100, 50)
+      assertEquals(0.2, scale)
+    }
+  }
+
+  fun testFitIntoScaleWithPaddingsHorizontally() {
+    val paddingX = 10
+    val paddingY = 20
+    val screenDeltaX = 30
+    val screenDeltaY = 30
+    val manager = SingleDirectionLayoutManager(paddingX, paddingY, screenDeltaX, screenDeltaY)
+
+    val contents = listOf(TestPositionableContent(0, 0, 100, 100),
+                          TestPositionableContent(0, 0, 100, 100),
+                          TestPositionableContent(0, 0, 100, 100),
+                          TestPositionableContent(0, 0, 100, 100),
+                          TestPositionableContent(0, 0, 100, 100))
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 1000, 100)
+      assertEquals(0.6, scale)
+    }
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 1000, 400)
+      assertEquals(1.72, scale)
+    }
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 1000, 200)
+      assertEquals(1.6, scale)
+    }
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 1000, 50)
+      assertEquals(0.1, scale)
+    }
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 1000, 100)
+      assertEquals(0.6, scale)
+    }
+  }
+
+  fun testFitIntoScaleWithPaddingsVertically() {
+    val paddingX = 10
+    val paddingY = 20
+    val screenDeltaX = 30
+    val screenDeltaY = 30
+    val manager = SingleDirectionLayoutManager(paddingX, paddingY, screenDeltaX, screenDeltaY)
+
+    val contents = listOf(TestPositionableContent(0, 0, 100, 100),
+                          TestPositionableContent(0, 0, 100, 100),
+                          TestPositionableContent(0, 0, 100, 100),
+                          TestPositionableContent(0, 0, 100, 100),
+                          TestPositionableContent(0, 0, 100, 100))
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 100, 1000)
+      assertEquals(0.8, scale)
+    }
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 400, 1000)
+      assertEquals(1.68, scale)
+    }
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 200, 1000)
+      assertEquals(1.68, scale)
+    }
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 50, 1000)
+      assertEquals(0.3, scale)
+    }
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 100, 1000)
+      assertEquals(0.8, scale)
     }
   }
 
