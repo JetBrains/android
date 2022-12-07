@@ -216,9 +216,8 @@ open class ProjectsUpgradeTestBase {
 
   private fun AUATestProjectState.agpVersionString() = version.agpVersion ?: BuildEnvironment.getInstance().gradlePluginVersion
   private fun AUATestProjectState.agpVersion() = AgpVersion.parse(agpVersionString())
-  private fun AUATestProjectState.gradleVersionString() = CompatibleGradleVersion.getCompatibleGradleVersion(
-    agpVersion()
-  ).version.version
+  private fun AUATestProjectState.gradleVersion() = CompatibleGradleVersion.getCompatibleGradleVersion(agpVersion()).version
+  private fun AUATestProjectState.gradleVersionString() = gradleVersion().version
 
   private fun AUATestProjectState.jdkVersion() = version.jdkVersion
   private fun AUATestProjectState.kotlinVersion() = version.kotlinVersion
