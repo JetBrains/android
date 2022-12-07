@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2021 The Android Open Source Project
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")!!
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -23,6 +23,8 @@ import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
+import com.android.tools.idea.run.editor.DeployTarget
+import com.android.tools.idea.run.editor.DeployTargetState
 import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTasksProvider
@@ -30,12 +32,15 @@ import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.stats.RunStats
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.util.concurrent.Futures
+import com.intellij.execution.ExecutionTarget
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.filters.HyperlinkInfo
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.project.Project
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -76,6 +81,9 @@ class LaunchTaskRunnerTest {
   @Mock
   lateinit var mockRunConfiguration: RunConfiguration
 
+  @Mock
+  lateinit var mockExecutionTarget: ExecutionTarget
+
 
   private val progressIndicator: ProgressIndicator by lazy {
     EmptyProgressIndicator()
@@ -85,12 +93,13 @@ class LaunchTaskRunnerTest {
   fun setUp() {
     whenever(mockExecutionEnvironment.executor).thenReturn(mockExecutor)
     whenever(mockExecutionEnvironment.runProfile).thenReturn(mockRunConfiguration)
+    whenever(mockExecutionEnvironment.executionTarget).thenReturn(mockExecutionTarget)
     whenever(mockRunConfiguration.name).thenReturn("app")
     whenever(mockExecutor.toolWindowId).thenReturn("toolWindowId")
     whenever(mockExecutor.id).thenReturn("id")
   }
 
-  private fun createDeviceFutures(numDevices: Int = 1): DeviceFutures {
+  private fun createDeployTarget(numDevices: Int = 1): DeployTarget {
     val devices = (1..numDevices).map {
       val device = mock<AndroidDevice>()
       val iDevice = mock<IDevice>()
@@ -99,7 +108,15 @@ class LaunchTaskRunnerTest {
       whenever(device.launchedDevice).thenReturn(Futures.immediateFuture(iDevice))
       device
     }.toList()
-    return DeviceFutures(devices)
+    return object : DeployTarget {
+      override fun hasCustomRunProfileState(executor: Executor) = false
+
+      override fun getRunProfileState(executor: Executor, env: ExecutionEnvironment, state: DeployTargetState): RunProfileState {
+        throw UnsupportedOperationException()
+      }
+
+      override fun getDevices(project: Project) = DeviceFutures(devices)
+    }
   }
 
   private fun setFailingLaunchTask(targetDevice: IDevice? = null) {
@@ -126,15 +143,13 @@ class LaunchTaskRunnerTest {
     whenever(mockExecutionEnvironment.getUserData(eq(SwapInfo.SWAP_INFO_KEY))).thenReturn(SwapInfo(SwapInfo.SwapType.APPLY_CHANGES))
   }
 
-  private fun createLaunchTaskRunner(deviceFutures: DeviceFutures): LaunchTaskRunner {
+  private fun createLaunchTaskRunner(deployTarget: DeployTarget): LaunchTaskRunner {
     return LaunchTaskRunner(
       projectRule.project,
-      "configName",
       "applicationId",
-      "executionTargetName",
       mockExecutionEnvironment,
       mockProcessHandler,
-      deviceFutures,
+      deployTarget,
       mockLaunchTasksProvider,
       mockRunStats,
       mockConsoleConsumer
@@ -143,8 +158,9 @@ class LaunchTaskRunnerTest {
 
   @Test
   fun runSucceeded() {
-    val deviceFutures = createDeviceFutures()
-    val runner = createLaunchTaskRunner(deviceFutures)
+    val deployTarget = createDeployTarget()
+    val deviceFutures = deployTarget.getDevices(projectRule.project)!!
+    val runner = createLaunchTaskRunner(deployTarget)
 
     runner.run(progressIndicator)
 
@@ -162,9 +178,10 @@ class LaunchTaskRunnerTest {
   fun runWithWarnings() {
     // Ideally, we would like to assert that the warning text is emitted to the console and the notifications expose it, but the current
     // test infra doesn't have mechanism to do that so all we can do is assert that the warnings do not fail the launch.
-    val deviceFutures = createDeviceFutures()
+    val deployTarget = createDeployTarget()
+    val deviceFutures = deployTarget.getDevices(projectRule.project)!!
     setWarningLaunchTask()
-    val runner = createLaunchTaskRunner(deviceFutures)
+    val runner = createLaunchTaskRunner(deployTarget)
 
     runner.run(progressIndicator)
 
@@ -180,10 +197,11 @@ class LaunchTaskRunnerTest {
 
   @Test
   fun swapRunSucceeded() {
-    val deviceFutures = createDeviceFutures()
-    val runner = createLaunchTaskRunner(deviceFutures)
-
+    val deployTarget = createDeployTarget()
+    val deviceFutures = deployTarget.getDevices(projectRule.project)!!
     setSwapInfo()
+    val runner = createLaunchTaskRunner(deployTarget)
+
     runner.run(progressIndicator)
 
     verify(mockProcessHandler, never()).addTargetDevice(eq(deviceFutures.get()[0].get()))
@@ -196,8 +214,9 @@ class LaunchTaskRunnerTest {
 
   @Test
   fun runFailedAndProcessHandlerShouldBeDestroyed() {
-    val deviceFutures = createDeviceFutures()
-    val runner = createLaunchTaskRunner(deviceFutures)
+    val deployTarget = createDeployTarget()
+    val deviceFutures = deployTarget.getDevices(projectRule.project)!!
+    val runner = createLaunchTaskRunner(deployTarget)
 
     setFailingLaunchTask()
     runner.run(progressIndicator)
@@ -211,8 +230,9 @@ class LaunchTaskRunnerTest {
 
   @Test
   fun runFailedWithMultipleDevicesAndProcessHandlerShouldBeDestroyed() {
-    val deviceFutures = createDeviceFutures(numDevices = 2)
-    val runner = createLaunchTaskRunner(deviceFutures)
+    val deployTarget = createDeployTarget(numDevices = 2)
+    val deviceFutures = deployTarget.getDevices(projectRule.project)!!
+    val runner = createLaunchTaskRunner(deployTarget)
 
     setFailingLaunchTask()
     runner.run(progressIndicator)
@@ -228,8 +248,9 @@ class LaunchTaskRunnerTest {
 
   @Test
   fun runFailedOnOneDeviceWithMultipleDevicesAndProcessHandlerShouldNotBeDestroyed() {
-    val deviceFutures = createDeviceFutures(numDevices = 2)
-    val runner = createLaunchTaskRunner(deviceFutures)
+    val deployTarget = createDeployTarget(numDevices = 2)
+    val deviceFutures = deployTarget.getDevices(projectRule.project)!!
+    val runner = createLaunchTaskRunner(deployTarget)
 
     val device1 = deviceFutures.get()[0].get()
     val device2 = deviceFutures.get()[1].get()
@@ -248,10 +269,11 @@ class LaunchTaskRunnerTest {
 
   @Test
   fun swapRunFailedButProcessHandlerShouldNotBeDetached() {
-    val deviceFutures = createDeviceFutures()
-    val runner = createLaunchTaskRunner(deviceFutures)
-
+    val deployTarget = createDeployTarget()
+    val deviceFutures = deployTarget.getDevices(projectRule.project)!!
     setSwapInfo()
+    val runner = createLaunchTaskRunner(deployTarget)
+
     setFailingLaunchTask()
     runner.run(progressIndicator)
 

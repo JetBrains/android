@@ -322,7 +322,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       createLaunchTasksProvider(env, facet, applicationIdProvider, apkProvider, launchOptions.build());
 
     return new AndroidRunState(env, getName(), module, applicationIdProvider,
-                               getConsoleProvider(deviceFutures.getDevices().size() > 1), deviceFutures, launchTasksProvider);
+                               getConsoleProvider(deviceFutures.getDevices().size() > 1), deployTarget, launchTasksProvider);
   }
 
   /**

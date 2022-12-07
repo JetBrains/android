@@ -26,6 +26,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.DeploymentApplicationService.Companion.instance
 import com.android.tools.idea.run.ShowLogcatListener.Companion.getShowLogcatLinkText
 import com.android.tools.idea.run.debug.captureLogcatOutputToProcessHandler
+import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTask
@@ -39,6 +40,7 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.execution.ExecutionException
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.filters.HyperlinkInfo
 import com.intellij.execution.process.ProcessHandler
@@ -47,7 +49,6 @@ import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.Task
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Ref
@@ -65,34 +66,28 @@ import java.util.concurrent.TimeoutException
 import java.util.function.BiConsumer
 
 class LaunchTaskRunner(
-  project: Project,
-  private val myConfigName: String,
+  val project: Project,
   private val myApplicationId: String,
-  // Change to NotNull once everything is moved over to DeviceAndSnapshot
-  private val myExecutionTargetName: String?,
   private val myEnv: ExecutionEnvironment,
   private val myProcessHandler: ProcessHandler,
-  private val myDeviceFutures: DeviceFutures,
+  val deployTarget: DeployTarget,
   private val myLaunchTasksProvider: LaunchTasksProvider,
   private val myStats: RunStats,
   private val myConsoleConsumer: BiConsumer<String, HyperlinkInfo>
-) : Task.Backgroundable(project, "Launching $myConfigName") {
-  private val myOnFinished: MutableList<Runnable>
+) {
+
   private var myError: String? = null
+  private val myOnFinished = ArrayList<Runnable>()
+  val configuration = myEnv.runProfile as RunConfiguration
 
-  init {
-    myOnFinished = ArrayList()
-  }
-
-  override fun run(indicator: ProgressIndicator) {
+  fun run(indicator: ProgressIndicator) {
     myStats.beginLaunchTasks()
     try {
       val destroyProcessOnCancellation = !isSwap
-      indicator.text = title
       indicator.isIndeterminate = false
       val launchStatus = ProcessHandlerLaunchStatus(myProcessHandler)
       val consolePrinter = ProcessHandlerConsolePrinter(myProcessHandler)
-      val listenableDeviceFutures = myDeviceFutures.get()
+      val listenableDeviceFutures = deployTarget.getDevices(project)?.get() ?: throw ExecutionException("No devices found")
       val shouldConnectDebugger = myEnv.executor is DefaultDebugExecutor && !isSwap
       if (shouldConnectDebugger && listenableDeviceFutures.size != 1) {
         launchStatus.terminateLaunch("Cannot launch a debug session on more than 1 device.", true)
@@ -167,7 +162,7 @@ class LaunchTaskRunner(
       for ((device, value) in launchTaskMap) {
         val isSucceeded = runLaunchTasks(
           value,
-          LaunchContext(myProject!!, myEnv.executor, device!!, launchStatus, consolePrinter, myProcessHandler, indicator),
+          LaunchContext(project, myEnv.executor, device!!, launchStatus, consolePrinter, myProcessHandler, indicator),
           destroyProcessOnCancellation,
           completedStepsCount,
           totalScheduledStepsCount
@@ -217,6 +212,15 @@ class LaunchTaskRunner(
     }
     finally {
       myStats.endLaunchTasks()
+      if (myError != null) {
+        myStats.fail()
+      }
+      else {
+        myStats.success()
+        for (runnable in myOnFinished) {
+          ApplicationManager.getApplication().invokeLater(runnable)
+        }
+      }
     }
   }
 
@@ -249,16 +253,16 @@ class LaunchTaskRunner(
           launchContext.consolePrinter.stderr(launchResult.consoleMessage)
           if (!launchResult.message.isEmpty()) {
             if (result == LaunchResult.Result.ERROR) {
-              notifyError(myProject!!, myEnv.runProfile.name, launchResult.message)
+              notifyError(project, configuration.name, launchResult.message)
             }
             else {
-              notifyWarning(myProject!!, myEnv.runProfile.name, launchResult.message)
+              notifyWarning(project, configuration.name, launchResult.message)
             }
           }
           // Show the tool window when we have an error.
           ApplicationManager.getApplication().invokeLater {
             RunContentManager.getInstance(
-              myProject!!
+              project
             ).toFrontRunContent(
               myEnv.executor, myProcessHandler
             )
@@ -273,7 +277,7 @@ class LaunchTaskRunner(
         }
 
         // Notify listeners of the deployment.
-        myProject!!.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).deviceNeedsAttention(device.serialNumber, myProject)
+        project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).deviceNeedsAttention(device.serialNumber, project)
       }
 
       // Update the indicator progress.
@@ -290,13 +294,13 @@ class LaunchTaskRunner(
     val launchType = myLaunchTasksProvider.launchTypeDisplayName
     if (numWarnings == 0) {
       notifyInfo(
-        myProject!!, myEnv.runProfile.name,
+        project, configuration.name,
         AndroidBundle.message("android.launch.task.succeeded", launchType)
       )
     }
     else {
       notifyWarning(
-        myProject!!, myEnv.runProfile.name,
+        project, configuration.name,
         AndroidBundle.message(
           "android.launch.task.succeeded.with.warnings", launchType,
           numWarnings
@@ -317,29 +321,13 @@ class LaunchTaskRunner(
     val dateFormat: DateFormat = SimpleDateFormat("MM/dd HH:mm:ss")
     launchString.append(dateFormat.format(Date())).append(": ")
     launchString.append(launchVerb).append(" ")
-    launchString.append("'").append(myConfigName).append("'")
-    if (!StringUtil.isEmpty(myExecutionTargetName)) {
+    launchString.append("'").append(configuration.name).append("'")
+    if (!StringUtil.isEmpty(myEnv.executionTarget.displayName)) {
       launchString.append(" on ")
-      launchString.append(myExecutionTargetName)
+      launchString.append(myEnv.executionTarget.displayName)
     }
     launchString.append(".")
     consolePrinter.stdout(launchString.toString())
-  }
-
-  override fun onSuccess() {
-    if (myError == null) {
-      myStats.success()
-    }
-  }
-
-  override fun onFinished() {
-    super.onFinished()
-    if (myError != null) {
-      myStats.fail()
-    }
-    for (runnable in myOnFinished) {
-      ApplicationManager.getApplication().invokeLater(runnable)
-    }
   }
 
   private fun waitForDevice(
