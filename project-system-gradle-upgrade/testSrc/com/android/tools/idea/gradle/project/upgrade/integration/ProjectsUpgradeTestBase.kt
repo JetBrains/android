@@ -158,7 +158,7 @@ open class ProjectsUpgradeTestBase {
       // Load project with base gradle version first. We can not pass expected updated version here because
       // it will try to verify the binary actually exists. That would require to get all versions of gradle
       // for every test target. But we don't care about binary existing in this case, we are not going to run
-      // this project, we just need it's source files for comparison.
+      // this project, we just need its source files for comparison.
       // So set existing gradle version here and change it to expected one after project is prepared.
       val baseGradleVersion = OldAgpSuite.GRADLE_VERSION?.takeIf { it != "LATEST" }
       AndroidGradleTests.defaultPatchPreparedProject(
