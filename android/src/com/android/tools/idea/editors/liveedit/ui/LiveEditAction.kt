@@ -181,19 +181,21 @@ class LiveEditAction(private val instanceEditor: Editor? = null) : DropDownActio
   fun update(project: Project, presentation: Presentation, dataContext: DataContext) {
     val editor: Editor? = dataContext.getData(CommonDataKeys.EDITOR)
     val editStatus: EditStatus
+    val liveEditService = LiveEditService.getInstance(project)
     if (editor != null) {
-      val statuses = LiveEditService.getInstance(project).editStatus()
+      val allDevices = liveEditService.devices()
       val insetDevices = deviceMap[project]?.devices()?.let { HashSet<IDevice>(it) } ?: Collections.emptySet()
-      statuses.keys.removeIf { insetDevices.contains(it) }
-      editStatus = LiveEditService.getInstance(project).mergeStatuses(statuses)
+
+      editStatus = allDevices
+        .filter { it !in insetDevices }
+        .map { liveEditService.editStatus(it) }
+        .fold(LiveEditService.DISABLED_STATUS, EditStatus::merge)
 
       val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.document)
       if (!project.isInitialized ||
           psiFile == null ||
-          statuses.isEmpty() ||
           !psiFile.virtualFile.isKotlinFileType() ||
-          !editor.document.isWritable ||
-          editStatus.editState == EditState.DISABLED) {
+          !editor.document.isWritable) {
         presentation.isEnabledAndVisible = false
         return
       }
@@ -204,7 +206,7 @@ class LiveEditAction(private val instanceEditor: Editor? = null) : DropDownActio
         presentation.isEnabledAndVisible = false
         return
       }
-      editStatus = LiveEditService.getInstance(project).editStatus(device)
+      editStatus = liveEditService.editStatus(device)
     }
     presentation.icon = stateToIcon[editStatus.editState]
     presentation.isEnabledAndVisible = (editStatus.editState != EditState.DISABLED)

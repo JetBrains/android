@@ -28,6 +28,7 @@ import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -51,6 +52,7 @@ class BasicAndroidMonitorTest {
   private lateinit var service: LiveEditService
   private lateinit var editList: AndroidLiveEditDeployMonitor.EditsListener
   private lateinit var client: ClientImpl
+  private lateinit var connection: FakeDeviceConnection
 
   private var clients: Array<Client> = arrayOf<Client>()
 
@@ -72,6 +74,7 @@ class BasicAndroidMonitorTest {
     Logger.getInstance(AndroidLiveEditDeployMonitor::class.java).setLevel(LogLevel.ALL)
     project = projectRule.project
     client = MockitoKt.mock()
+    `when`(client.device).thenReturn(device)
 
     project.replaceService(GradleSyncState::class.java, mySyncState, projectRule.testRootDisposable)
 
@@ -79,8 +82,9 @@ class BasicAndroidMonitorTest {
     `when`(client.clientData).thenReturn(clientData)
     `when`(clientData.packageName).thenReturn(appId)
 
+    connection = FakeDeviceConnection()
     clients = clients.plus(client)
-    service = LiveEditService(project)
+    service = LiveEditService(project, connection, MoreExecutors.directExecutor())
     monitor = service.getDeployMonitor()
 
     `when`(device.serialNumber).thenReturn("1")
@@ -97,12 +101,11 @@ class BasicAndroidMonitorTest {
     val callback = monitor.getCallback(appId, device)
 
     callback.call()
-
-    Disposer.register(project, service)
   }
 
   @Test
   fun upToDateTest(){
+    connection.clientChanged(client, Client.CHANGE_NAME)
     val status = service.editStatus(device)
 
     assertThat(status.editState).isEqualTo(EditState.UP_TO_DATE)
@@ -110,6 +113,8 @@ class BasicAndroidMonitorTest {
 
   @Test
   fun gradleSyncTest(){
+    connection.clientChanged(client, Client.CHANGE_NAME)
+
     val editEvent = MockitoKt.mock<EditEvent>()
     `when`(mySyncState.isSyncNeeded()).thenReturn(ThreeState.YES)
 
@@ -123,6 +128,8 @@ class BasicAndroidMonitorTest {
 
   @Test
   fun gradeTimeSyncTest(){
+    connection.clientChanged(client, Client.CHANGE_NAME)
+
     val editEvent = MockitoKt.mock<EditEvent>()
     `when`(mySyncState.isSyncNeeded()).thenReturn(ThreeState.NO)
 
@@ -146,6 +153,5 @@ class BasicAndroidMonitorTest {
   @After
   fun dispose(){
     Disposer.dispose(service)
-    editList.dispose()
   }
 }

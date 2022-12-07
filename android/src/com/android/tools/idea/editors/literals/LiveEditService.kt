@@ -21,7 +21,9 @@ import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.ui.EmulatorLiveEditAdapter
 import com.android.tools.idea.editors.liveedit.ui.LiveEditAction
+import com.android.tools.idea.run.deployment.liveedit.AdbConnection
 import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditDeployMonitor
+import com.android.tools.idea.run.deployment.liveedit.DeviceConnection
 import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
@@ -75,17 +77,22 @@ enum class EditState {
   DISABLED                // LiveEdit has been disabled (via UI or custom properties).
 }
 
-data class EditStatus(val editState: EditState, val message: String, val actionId: String?)
+data class EditStatus(val editState: EditState, val message: String, val actionId: String?) {
+  fun merge(other: EditStatus) = if (other.editState.ordinal < editState.ordinal) other else this
+}
 
 /**
  * Allows any component to listen to all method body edits of a project.
  */
 @Service
-class LiveEditService private constructor(val project: Project, var listenerExecutor: Executor) : Disposable {
+class LiveEditService constructor(val project: Project,
+                                  val deviceConnection: DeviceConnection,
+                                  var listenerExecutor: Executor) : Disposable {
 
   val inlineCandidateCache = SourceInlineCandidateCache()
 
   constructor(project: Project) : this(project,
+                                       AdbConnection,
                                        AppExecutorUtil.createBoundedApplicationPoolExecutor(
                                          "Document changed listeners executor", 1))
 
@@ -183,20 +190,12 @@ class LiveEditService private constructor(val project: Project, var listenerExec
     return deployMonitor
   }
 
+  fun devices(): Set<IDevice> {
+    return deployMonitor.devices();
+  }
+
   fun editStatus(device: IDevice): EditStatus {
     return deployMonitor.status(device)
-  }
-
-  fun editStatus(): MutableMap<IDevice, EditStatus> {
-    return deployMonitor.status()
-  }
-
-  fun mergeStatuses(statuses: Map<IDevice, EditStatus>): EditStatus {
-    return deployMonitor.mergeStatuses(statuses)
-  }
-
-  fun notifyDebug(packageName: String, device: IDevice) {
-    deployMonitor.notifyDebug(packageName, device)
   }
 
   fun getCallback(packageName: String, device: IDevice) : Callable<*>? {
