@@ -22,8 +22,10 @@ import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditLanguageVer
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.analyzeSingleDepthInlinedFunctions
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
+import com.intellij.ide.plugins.PluginManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -48,6 +50,7 @@ import java.nio.file.Path
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutionException
 
+private const val kotlinPluginId = "org.jetbrains.kotlin"
 private val defaultRetryTimes = Integer.getInteger("fast.preview.224875189.retries", 3)
 
 private fun Throwable?.isCompilationError(): Boolean =
@@ -65,6 +68,13 @@ private fun Throwable?.isCompilationError(): Boolean =
   }
 
 class NonRetriableException(cause: Throwable): Exception(cause)
+
+/**
+ * [Throwable] used by the [EmbeddedCompilerClientImpl] during a compilation when the embedded plugin is not being used. This signals
+ * to the caller that the error *might* have been caused by an incompatibility of the Kotlin Plugin.
+ */
+private class NotUsingKotlinBundledPlugin(cause: Throwable):
+  Exception(FastPreviewBundle.message("fast.preview.error.needs.bundled.plugin"), cause)
 
 /**
  * Retries the [retryBlock] [retryTimes] or until it does not throw an exception. The block will be executed in a
@@ -129,19 +139,42 @@ fun <T> retryInNonBlockingReadAction(retryTimes: Int = defaultRetryTimes,
   } ?: throw ProcessCanceledException()
 }
 
+private fun isKotlinPluginBundled() =
+  PluginManager.getInstance().findEnabledPlugin(PluginId.getId(kotlinPluginId))?.isBundled ?: false
+
+
 /**
  * Implementation of the [CompilerDaemonClient] that uses the embedded compiler in Android Studio. This allows
  * to compile fragments of code in-process similar to how Live Edit does for the emulator.
  *
  * [useInlineAnalysis] should return the value of the Live Edit inline analysis setting.
+ *
+ * [isKotlinPluginBundled] is a method that returns if the available Kotlin Plugin is the version bundled with Android Studio. This
+ * is used to diagnose problems and inform users when there is a failure that might have been caused by the user updating the Kotlin
+ * Plugin.
+ *
+ * [beforeCompilationStarts] can be used during testing to trigger error conditions, by default in production, it does nothing.
  */
-class EmbeddedCompilerClientImpl(
+class EmbeddedCompilerClientImpl private constructor(
   private val project: Project,
   private val log: Logger,
-  private val useInlineAnalysis: () -> Boolean = { LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis }) : CompilerDaemonClient {
+  private val useInlineAnalysis: () -> Boolean,
+  private val isKotlinPluginBundled: () -> Boolean,
+  private val beforeCompilationStarts: () -> Unit) : CompilerDaemonClient {
+
+  constructor(project: Project, log: Logger):
+    this(project, log, { LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis }, ::isKotlinPluginBundled, {})
 
   @TestOnly
-  constructor(project: Project, log: Logger, useInlineAnalysis: Boolean): this(project, log, { useInlineAnalysis })
+  constructor(project: Project,
+              log: Logger,
+              useInlineAnalysis: Boolean,
+              isKotlinPluginBundled: Boolean = true,
+              beforeCompilationStarts: () -> Unit = {}) :
+    this(project, log,
+         useInlineAnalysis = { useInlineAnalysis },
+         isKotlinPluginBundled = { isKotlinPluginBundled },
+         beforeCompilationStarts = beforeCompilationStarts)
 
   private val daemonLock = Mutex()
   override val isRunning: Boolean
@@ -163,6 +196,8 @@ class EmbeddedCompilerClientImpl(
     // Retry is a temporary workaround for b/224875189
     val generationState = retryInNonBlockingReadAction(indicator = indicator) {
       runWithCompileLock {
+        beforeCompilationStarts()
+
         log.debug("fetchResolution")
         val resolution = fetchResolution(project, inputs)
         ProgressManager.checkCanceled()
@@ -253,10 +288,15 @@ class EmbeddedCompilerClientImpl(
         result.complete(CompilationResult.CompilationAborted())
       }
       catch (t: Throwable) {
-        if (t.isCompilationError() || t.cause.isCompilationError())
-          result.complete(CompilationResult.CompilationError(t))
-        else
-          result.complete(CompilationResult.RequestException(t))
+        when {
+          t.isCompilationError() || t.cause.isCompilationError() -> result.complete(CompilationResult.CompilationError(t))
+          !isKotlinPluginBundled() -> {
+            // The embedded Compiler is only guaranteed to work with the bundled plugin. If the user has changed the plugin,
+            // we can not guarantee Fast Preview to work.
+            result.complete(CompilationResult.RequestException(NotUsingKotlinBundledPlugin(t)))
+          }
+          else -> result.complete(CompilationResult.RequestException(t))
+        }
       }
 
       result.await()
