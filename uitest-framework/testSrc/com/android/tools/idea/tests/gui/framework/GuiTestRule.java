@@ -76,6 +76,7 @@ import javax.swing.SwingUtilities;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
+import org.gradle.util.GradleVersion;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
@@ -493,7 +494,7 @@ public class GuiTestRule implements TestRule {
   }
 
   protected boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
-    GradleWrapper wrapper = GradleWrapper.create(projectDirPath, gradleVersion, null);
+    GradleWrapper wrapper = GradleWrapper.create(projectDirPath, GradleVersion.version(gradleVersion), null);
     File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
     assertAbout(file()).that(path).named("Gradle distribution path").isFile();
     wrapper.updateDistributionUrl(path);

@@ -172,7 +172,7 @@ open class ProjectsUpgradeTestBase {
       applyProjectPatch(expectedProjectState, projectRoot)
       // Setting actual expected gradle version here as described above.
       val wrapper = GradleWrapper.create(projectRoot, null)
-      wrapper.updateDistributionUrl(wrapper.getUpdatedDistributionUrl(expectedProjectState.gradleVersionString(), true))
+      wrapper.updateDistributionUrl(expectedProjectState.gradleVersion())
     }
     return temporaryFolder.root
   }

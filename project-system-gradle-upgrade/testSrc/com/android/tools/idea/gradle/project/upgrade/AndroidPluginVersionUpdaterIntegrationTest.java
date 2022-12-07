@@ -94,7 +94,7 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
     GradleWrapper wrapper = GradleWrapper.find(getProject());
     assertNotNull(wrapper);
     try {
-      wrapper.updateDistributionUrl(version);
+      wrapper.updateDistributionUrl(GradleVersion.version(version));
     }
     catch (IOException e) {
       fail(e.toString());

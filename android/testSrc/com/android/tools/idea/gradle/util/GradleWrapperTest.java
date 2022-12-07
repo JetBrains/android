@@ -38,6 +38,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 
 public class GradleWrapperTest extends PlatformTestCase {
@@ -126,15 +127,15 @@ public class GradleWrapperTest extends PlatformTestCase {
     StudioFlags.AGP_VERSION_TO_USE.override(specifiedVersion);
 
     assertEquals(specifiedVersion, LatestKnownPluginVersionProvider.INSTANCE.get());
-    assertEquals("7.3.3", GradleWrapper.getGradleVersionToUse());
+    assertEquals("7.3.3", GradleWrapper.getGradleVersionToUse().getVersion());
 
     StudioFlags.AGP_VERSION_TO_USE.override("");
     assertEquals(Version.ANDROID_GRADLE_PLUGIN_VERSION, LatestKnownPluginVersionProvider.INSTANCE.get());
-    assertEquals(SdkConstants.GRADLE_LATEST_VERSION, GradleWrapper.getGradleVersionToUse());
+    assertEquals(SdkConstants.GRADLE_LATEST_VERSION, GradleWrapper.getGradleVersionToUse().getVersion());
   }
 
   public void testLocalDistributionUrl() {
-    String version = "1.2.3";
+    GradleVersion version = GradleVersion.version("1.2.3");
     boolean binOnly = true;
 
     String localPath = "file:///some/local/path/";
@@ -181,19 +182,19 @@ public class GradleWrapperTest extends PlatformTestCase {
     );
 
     GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath, myProject);
-    String updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", true);
+    String updatedUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.1.1"), true);
     assertEquals("https://services.gradle.org/distributions/gradle-6.1.1-bin.zip", updatedUrl);
-    String updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl("6.7-rc-4", true);
+    String updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.7-rc-4"), true);
     assertEquals("https://services.gradle.org/distributions/gradle-6.7-rc-4-bin.zip", updatedPreviewUrl);
-    String updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl("7.0-alpha-1+0000", true);
-    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1+0000-bin.zip", updatedSnapshotUrl);
+    String updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("7.0-alpha-1-20220101123456+0000"), true);
+    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1-20220101123456+0000-bin.zip", updatedSnapshotUrl);
 
-    updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", false);
+    updatedUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.1.1"), false);
     assertEquals("https://services.gradle.org/distributions/gradle-6.1.1-all.zip", updatedUrl);
-    updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl("6.7-rc-4", false);
+    updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.7-rc-4"), false);
     assertEquals("https://services.gradle.org/distributions/gradle-6.7-rc-4-all.zip", updatedPreviewUrl);
-    updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl("7.0-alpha-1+0000", false);
-    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1+0000-all.zip", updatedSnapshotUrl);
+    updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("7.0-alpha-1-20220101123456+0000"), false);
+    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1-20220101123456+0000-all.zip", updatedSnapshotUrl);
   }
 
   public void testUpdatedDistributionUrlFromStandard() throws IOException {
@@ -211,19 +212,19 @@ public class GradleWrapperTest extends PlatformTestCase {
     );
 
     GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath, myProject);
-    String updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", true);
+    String updatedUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.1.1"), true);
     assertEquals("https://services.gradle.org/distributions/gradle-6.1.1-bin.zip", updatedUrl);
-    String updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl("6.7-rc-4", true);
+    String updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.7-rc-4"), true);
     assertEquals("https://services.gradle.org/distributions/gradle-6.7-rc-4-bin.zip", updatedPreviewUrl);
-    String updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl("7.0-alpha-1+0000", true);
-    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1+0000-bin.zip", updatedSnapshotUrl);
+    String updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("7.0-alpha-1-20220101123456+0000"), true);
+    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1-20220101123456+0000-bin.zip", updatedSnapshotUrl);
 
-    updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", false);
+    updatedUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.1.1"), false);
     assertEquals("https://services.gradle.org/distributions/gradle-6.1.1-bin.zip", updatedUrl);
-    updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl("6.7-rc-4", false);
+    updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.7-rc-4"), false);
     assertEquals("https://services.gradle.org/distributions/gradle-6.7-rc-4-bin.zip", updatedPreviewUrl);
-    updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl("7.0-alpha-1+0000", false);
-    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1+0000-bin.zip", updatedSnapshotUrl);
+    updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("7.0-alpha-1-20220101123456+0000"), false);
+    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1-20220101123456+0000-bin.zip", updatedSnapshotUrl);
   }
 
   public void testUpdatedDistributionUrlFromStandardAll() throws IOException {
@@ -241,19 +242,19 @@ public class GradleWrapperTest extends PlatformTestCase {
     );
 
     GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath, myProject);
-    String updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", true);
+    String updatedUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.1.1"), true);
     assertEquals("https://services.gradle.org/distributions/gradle-6.1.1-all.zip", updatedUrl);
-    String updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl("6.7-rc-4", true);
+    String updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.7-rc-4"), true);
     assertEquals("https://services.gradle.org/distributions/gradle-6.7-rc-4-all.zip", updatedPreviewUrl);
-    String updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl("7.0-alpha-1+0000", true);
-    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1+0000-all.zip", updatedSnapshotUrl);
+    String updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("7.0-alpha-1-20220101123456+0000"), true);
+    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1-20220101123456+0000-all.zip", updatedSnapshotUrl);
 
-    updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", false);
+    updatedUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.1.1"), false);
     assertEquals("https://services.gradle.org/distributions/gradle-6.1.1-all.zip", updatedUrl);
-    updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl("6.7-rc-4", false);
+    updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.7-rc-4"), false);
     assertEquals("https://services.gradle.org/distributions/gradle-6.7-rc-4-all.zip", updatedPreviewUrl);
-    updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl("7.0-alpha-1+0000", false);
-    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1+0000-all.zip", updatedSnapshotUrl);
+    updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("7.0-alpha-1-20220101123456+0000"), false);
+    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1-20220101123456+0000-all.zip", updatedSnapshotUrl);
   }
 
   public void testUpdatedDistributionUrlFromStandardPreview() throws IOException {
@@ -271,19 +272,19 @@ public class GradleWrapperTest extends PlatformTestCase {
     );
 
     GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath, myProject);
-    String updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", true);
+    String updatedUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.1.1"), true);
     assertEquals("https://services.gradle.org/distributions/gradle-6.1.1-bin.zip", updatedUrl);
-    String updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl("6.7-rc-4", true);
+    String updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.7-rc-4"), true);
     assertEquals("https://services.gradle.org/distributions/gradle-6.7-rc-4-bin.zip", updatedPreviewUrl);
-    String updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl("7.0-alpha-1+0000", true);
-    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1+0000-bin.zip", updatedSnapshotUrl);
+    String updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("7.0-alpha-1-20220101123456+0000"), true);
+    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1-20220101123456+0000-bin.zip", updatedSnapshotUrl);
 
-    updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", false);
+    updatedUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.1.1"), false);
     assertEquals("https://services.gradle.org/distributions/gradle-6.1.1-bin.zip", updatedUrl);
-    updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl("6.7-rc-4", false);
+    updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.7-rc-4"), false);
     assertEquals("https://services.gradle.org/distributions/gradle-6.7-rc-4-bin.zip", updatedPreviewUrl);
-    updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl("7.0-alpha-1+0000", false);
-    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1+0000-bin.zip", updatedSnapshotUrl);
+    updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("7.0-alpha-1-20220101123456+0000"), false);
+    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1-20220101123456+0000-bin.zip", updatedSnapshotUrl);
   }
 
   public void testUpdatedDistributionUrlFromStandardSnapshot() throws IOException {
@@ -301,19 +302,19 @@ public class GradleWrapperTest extends PlatformTestCase {
     );
 
     GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath, myProject);
-    String updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", true);
+    String updatedUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.1.1"), true);
     assertEquals("https://services.gradle.org/distributions/gradle-6.1.1-bin.zip", updatedUrl);
-    String updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl("6.7-rc-4", true);
+    String updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.7-rc-4"), true);
     assertEquals("https://services.gradle.org/distributions/gradle-6.7-rc-4-bin.zip", updatedPreviewUrl);
-    String updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl("7.0-alpha-1+0000", true);
-    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1+0000-bin.zip", updatedSnapshotUrl);
+    String updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("7.0-alpha-1-20220101123456+0000"), true);
+    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1-20220101123456+0000-bin.zip", updatedSnapshotUrl);
 
-    updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", false);
+    updatedUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.1.1"), false);
     assertEquals("https://services.gradle.org/distributions/gradle-6.1.1-bin.zip", updatedUrl);
-    updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl("6.7-rc-4", false);
+    updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.7-rc-4"), false);
     assertEquals("https://services.gradle.org/distributions/gradle-6.7-rc-4-bin.zip", updatedPreviewUrl);
-    updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl("7.0-alpha-1+0000", false);
-    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1+0000-bin.zip", updatedSnapshotUrl);
+    updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("7.0-alpha-1-20220101123456+0000"), false);
+    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1-20220101123456+0000-bin.zip", updatedSnapshotUrl);
   }
 
   public void testUpdatedDistributionUrlFromStandardUnparsed() throws IOException {
@@ -332,19 +333,19 @@ public class GradleWrapperTest extends PlatformTestCase {
     );
 
     GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath, myProject);
-    String updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", true);
+    String updatedUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.1.1"), true);
     assertEquals("https://services.gradle.org/distributions/gradle-6.1.1-bin.zip", updatedUrl);
-    String updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl("6.7-rc-4", true);
+    String updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.7-rc-4"), true);
     assertEquals("https://services.gradle.org/distributions/gradle-6.7-rc-4-bin.zip", updatedPreviewUrl);
-    String updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl("7.0-alpha-1+0000", true);
-    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1+0000-bin.zip", updatedSnapshotUrl);
+    String updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("7.0-alpha-1-20220101123456+0000"), true);
+    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1-20220101123456+0000-bin.zip", updatedSnapshotUrl);
 
-    updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", false);
+    updatedUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.1.1"), false);
     assertEquals("https://services.gradle.org/distributions/gradle-6.1.1-all.zip", updatedUrl);
-    updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl("6.7-rc-4", false);
+    updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.7-rc-4"), false);
     assertEquals("https://services.gradle.org/distributions/gradle-6.7-rc-4-all.zip", updatedPreviewUrl);
-    updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl("7.0-alpha-1+0000", false);
-    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1+0000-all.zip", updatedSnapshotUrl);
+    updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("7.0-alpha-1-20220101123456+0000"), false);
+    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1-20220101123456+0000-all.zip", updatedSnapshotUrl);
   }
 
   public void testUpdatedDistributionUrlFromFile() throws IOException {
@@ -362,19 +363,19 @@ public class GradleWrapperTest extends PlatformTestCase {
     );
 
     GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath, myProject);
-    String updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", true);
+    String updatedUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.1.1"), true);
     assertEquals("file:/usr/local/home/studio-master-dev/tools/external/gradle/gradle-6.1.1-bin.zip", updatedUrl);
-    String updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl("6.7-rc-4", true);
+    String updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.7-rc-4"), true);
     assertEquals("file:/usr/local/home/studio-master-dev/tools/external/gradle/gradle-6.7-rc-4-bin.zip", updatedPreviewUrl);
-    String updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl("7.0-alpha-1+0000", true);
-    assertEquals("file:/usr/local/home/studio-master-dev/tools/external/gradle/gradle-7.0-alpha-1+0000-bin.zip", updatedSnapshotUrl);
+    String updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("7.0-alpha-1-20220101123456+0000"), true);
+    assertEquals("file:/usr/local/home/studio-master-dev/tools/external/gradle/gradle-7.0-alpha-1-20220101123456+0000-bin.zip", updatedSnapshotUrl);
 
-    updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", false);
+    updatedUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.1.1"), false);
     assertEquals("file:/usr/local/home/studio-master-dev/tools/external/gradle/gradle-6.1.1-bin.zip", updatedUrl);
-    updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl("6.7-rc-4", false);
+    updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.7-rc-4"), false);
     assertEquals("file:/usr/local/home/studio-master-dev/tools/external/gradle/gradle-6.7-rc-4-bin.zip", updatedPreviewUrl);
-    updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl("7.0-alpha-1+0000", false);
-    assertEquals("file:/usr/local/home/studio-master-dev/tools/external/gradle/gradle-7.0-alpha-1+0000-bin.zip", updatedSnapshotUrl);
+    updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("7.0-alpha-1-20220101123456+0000"), false);
+    assertEquals("file:/usr/local/home/studio-master-dev/tools/external/gradle/gradle-7.0-alpha-1-20220101123456+0000-bin.zip", updatedSnapshotUrl);
   }
 
   public void testUpdatedDistributionUrlFromFileAll() throws IOException {
@@ -392,19 +393,19 @@ public class GradleWrapperTest extends PlatformTestCase {
     );
 
     GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath, myProject);
-    String updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", true);
+    String updatedUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.1.1"), true);
     assertEquals("file:/usr/local/home/studio-master-dev/tools/external/gradle/gradle-6.1.1-all.zip", updatedUrl);
-    String updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl("6.7-rc-4", true);
+    String updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.7-rc-4"), true);
     assertEquals("file:/usr/local/home/studio-master-dev/tools/external/gradle/gradle-6.7-rc-4-all.zip", updatedPreviewUrl);
-    String updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl("7.0-alpha-1+0000", true);
-    assertEquals("file:/usr/local/home/studio-master-dev/tools/external/gradle/gradle-7.0-alpha-1+0000-all.zip", updatedSnapshotUrl);
+    String updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("7.0-alpha-1-20220101123456+0000"), true);
+    assertEquals("file:/usr/local/home/studio-master-dev/tools/external/gradle/gradle-7.0-alpha-1-20220101123456+0000-all.zip", updatedSnapshotUrl);
 
-    updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", false);
+    updatedUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.1.1"), false);
     assertEquals("file:/usr/local/home/studio-master-dev/tools/external/gradle/gradle-6.1.1-all.zip", updatedUrl);
-    updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl("6.7-rc-4", false);
+    updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.7-rc-4"), false);
     assertEquals("file:/usr/local/home/studio-master-dev/tools/external/gradle/gradle-6.7-rc-4-all.zip", updatedPreviewUrl);
-    updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl("7.0-alpha-1+0000", false);
-    assertEquals("file:/usr/local/home/studio-master-dev/tools/external/gradle/gradle-7.0-alpha-1+0000-all.zip", updatedSnapshotUrl);
+    updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("7.0-alpha-1-20220101123456+0000"), false);
+    assertEquals("file:/usr/local/home/studio-master-dev/tools/external/gradle/gradle-7.0-alpha-1-20220101123456+0000-all.zip", updatedSnapshotUrl);
   }
 
   public void testUpdatedDistributionUrlFromUnparsedFile() throws IOException {
@@ -422,19 +423,19 @@ public class GradleWrapperTest extends PlatformTestCase {
     );
 
     GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath, myProject);
-    String updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", true);
+    String updatedUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.1.1"), true);
     assertEquals("https://services.gradle.org/distributions/gradle-6.1.1-bin.zip", updatedUrl);
-    String updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl("6.7-rc-4", true);
+    String updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.7-rc-4"), true);
     assertEquals("https://services.gradle.org/distributions/gradle-6.7-rc-4-bin.zip", updatedPreviewUrl);
-    String updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl("7.0-alpha-1+0000", true);
-    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1+0000-bin.zip", updatedSnapshotUrl);
+    String updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("7.0-alpha-1-20220101123456+0000"), true);
+    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1-20220101123456+0000-bin.zip", updatedSnapshotUrl);
 
-    updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", false);
+    updatedUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.1.1"), false);
     assertEquals("https://services.gradle.org/distributions/gradle-6.1.1-all.zip", updatedUrl);
-    updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl("6.7-rc-4", false);
+    updatedPreviewUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("6.7-rc-4"), false);
     assertEquals("https://services.gradle.org/distributions/gradle-6.7-rc-4-all.zip", updatedPreviewUrl);
-    updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl("7.0-alpha-1+0000", false);
-    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1+0000-all.zip", updatedSnapshotUrl);
+    updatedSnapshotUrl = gradlewrapper.getUpdatedDistributionUrl(GradleVersion.version("7.0-alpha-1-20220101123456+0000"), false);
+    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-7.0-alpha-1-20220101123456+0000-all.zip", updatedSnapshotUrl);
   }
 
   public void testGetPropertiesFilePath() {
@@ -453,7 +454,7 @@ public class GradleWrapperTest extends PlatformTestCase {
     File projectWrapperDirPath = new File(projectPath, FD_GRADLE_WRAPPER);
     assertFalse(projectWrapperDirPath.exists());
 
-    String gradleVersion = "1.5";
+    GradleVersion gradleVersion = GradleVersion.version("1.5");
     GradleWrapper gradleWrapper = GradleWrapper.create(projectPath, gradleVersion, myProject);
     assertNotNull(gradleWrapper);
     assertWrapperCreated(projectWrapperDirPath, gradleVersion);
@@ -467,38 +468,38 @@ public class GradleWrapperTest extends PlatformTestCase {
 
     GradleWrapper gradleWrapper = GradleWrapper.create(projectPath, myProject);
     assertNotNull(gradleWrapper);
-    assertWrapperCreated(projectWrapperDirPath, SdkConstants.GRADLE_LATEST_VERSION);
+    assertWrapperCreated(projectWrapperDirPath, GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION));
   }
 
   // See https://code.google.com/p/android/issues/detail?id=357944
-  private static void assertWrapperCreated(@NotNull File projectWrapperFolderPath, @NotNull String gradleVersion) throws IOException {
+  private static void assertWrapperCreated(@NotNull File projectWrapperFolderPath, @NotNull GradleVersion gradleVersion) throws IOException {
     assertTrue(projectWrapperFolderPath.isDirectory());
     File[] wrapperFiles = notNullize(projectWrapperFolderPath.listFiles());
     assertEquals(2, wrapperFiles.length);
 
     Properties gradleProperties = getProperties(new File(projectWrapperFolderPath, FN_GRADLE_WRAPPER_PROPERTIES));
     String distributionUrl = gradleProperties.getProperty(DISTRIBUTION_URL_PROPERTY);
-    String folderName = GradleWrapper.isSnapshot(gradleVersion) ? "distributions-snapshots" : "distributions";
-    assertEquals("https://services.gradle.org/" + folderName + "/gradle-" + gradleVersion + "-bin.zip", distributionUrl);
+    String folderName = gradleVersion.isSnapshot() ? "distributions-snapshots" : "distributions";
+    assertEquals("https://services.gradle.org/" + folderName + "/gradle-" + gradleVersion.getVersion() + "-bin.zip", distributionUrl);
   }
 
   public void testGetDistributionUrlWithBinReleaseVersion() {
-    String url = GradleWrapper.getDistributionUrl("4.0", true /* bin only */);
+    String url = GradleWrapper.getDistributionUrl(GradleVersion.version("4.0"), true /* bin only */);
     assertEquals("https://services.gradle.org/distributions/gradle-4.0-bin.zip", url);
   }
 
   public void testGetDistributionUrlWithAllReleaseVersion() {
-    String url = GradleWrapper.getDistributionUrl("4.0", false /* all */);
+    String url = GradleWrapper.getDistributionUrl(GradleVersion.version("4.0"), false /* all */);
     assertEquals("https://services.gradle.org/distributions/gradle-4.0-all.zip", url);
   }
 
   public void testGetDistributionUrlWithBinSnapshotVersion() {
-    String url = GradleWrapper.getDistributionUrl("4.0-20170406000015+0000", true /* bin only */);
+    String url = GradleWrapper.getDistributionUrl(GradleVersion.version("4.0-20170406000015+0000"), true /* bin only */);
     assertEquals("https://services.gradle.org/distributions-snapshots/gradle-4.0-20170406000015+0000-bin.zip", url);
   }
 
   public void testGetDistributionUrlWithAllSnapshotVersion() {
-    String url = GradleWrapper.getDistributionUrl("4.0-20170406000015+0000", false /* all */);
+    String url = GradleWrapper.getDistributionUrl(GradleVersion.version("4.0-20170406000015+0000"), false /* all */);
     assertEquals("https://services.gradle.org/distributions-snapshots/gradle-4.0-20170406000015+0000-all.zip", url);
   }
 

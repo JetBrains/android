@@ -49,7 +49,7 @@ public class FixGradleVersionInWrapperHyperlink extends SyncIssueNotificationHyp
   public static SyncIssueNotificationHyperlink createIfProjectUsesGradleWrapper(@NotNull Project project, @Nullable String gradleVersion) {
     GradleWrapper gradleWrapper = GradleWrapper.find(project);
     if (gradleWrapper != null) {
-      String version = gradleVersion != null ? gradleVersion : GradleWrapper.getGradleVersionToUse();
+      String version = gradleVersion != null ? gradleVersion : GradleWrapper.getGradleVersionToUse().getVersion();
       return new FixGradleVersionInWrapperHyperlink(gradleWrapper, version);
     }
     return null;
