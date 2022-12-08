@@ -701,6 +701,7 @@ MODULE                        : NonStandardSourceSetDependencies
                     _internal-unified-test-platform-android-driver-instrumentation        : <empty>
                     _internal-unified-test-platform-android-test-plugin         : <empty>
                     _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
+                    _internal-unified-test-platform-android-test-plugin-host-apk-installer          : <empty>
                     _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
                     _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                     _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>

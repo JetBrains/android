@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.instrumented
 
-import com.android.AndroidProjectTypes
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.GradleBuilds
 import com.android.tools.idea.run.AndroidRunConfigurationBase
@@ -65,9 +64,6 @@ class CreateLaunchTasksProvider : LaunchTasksProvider.Provider {
   }
 
   private fun isRunAndroidTestUsingGradleSupported(facet: AndroidFacet): Boolean {
-    if (facet.configuration.projectType == AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE) {
-      return false
-    }
     val model = GradleAndroidModel.get(facet) ?: return false
     return model.androidProject.agpFlags.unifiedTestPlatformEnabled
   }
