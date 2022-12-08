@@ -84,7 +84,7 @@ class EmulatorToolWindowPanel(
 
   private val toolbarPanel = BorderLayoutPanel()
   private val mainToolbar: ActionToolbar
-  private val northEastToolbar: ActionToolbar
+  private val secondaryToolbar: ActionToolbar
   private val centerPanel = BorderLayoutPanel()
   private val displayPanels = Int2ObjectRBTreeMap<EmulatorDisplayPanel>()
   private val displayConfigurator = DisplayConfigurator()
@@ -146,24 +146,24 @@ class EmulatorToolWindowPanel(
     background = primaryPanelBackground
 
     mainToolbar = createToolbar(EMULATOR_MAIN_TOOLBAR_ID, isToolbarHorizontal)
-    northEastToolbar = createToolbar(EMULATOR_SECONDARY_TOOLBAR_ID, isToolbarHorizontal)
-    northEastToolbar.component.border = EmptyBorder(JBUI.emptyInsets())
+    secondaryToolbar = createToolbar(EMULATOR_SECONDARY_TOOLBAR_ID, isToolbarHorizontal)
+    secondaryToolbar.component.border = EmptyBorder(JBUI.emptyInsets())
 
     addToCenter(centerPanel)
 
     if (isToolbarHorizontal) {
       mainToolbar.setOrientation(SwingConstants.HORIZONTAL)
-      northEastToolbar.setOrientation(SwingConstants.HORIZONTAL)
+      secondaryToolbar.setOrientation(SwingConstants.HORIZONTAL)
       toolbarPanel.add(mainToolbar.component, BorderLayout.CENTER)
-      toolbarPanel.add(northEastToolbar.component, BorderLayout.EAST)
+      toolbarPanel.add(secondaryToolbar.component, BorderLayout.EAST)
       centerPanel.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.TOP)
       addToTop(toolbarPanel)
     }
     else {
       mainToolbar.setOrientation(SwingConstants.VERTICAL)
-      northEastToolbar.setOrientation(SwingConstants.VERTICAL)
+      secondaryToolbar.setOrientation(SwingConstants.VERTICAL)
       toolbarPanel.add(mainToolbar.component, BorderLayout.CENTER)
-      toolbarPanel.add(northEastToolbar.component, BorderLayout.SOUTH)
+      toolbarPanel.add(secondaryToolbar.component, BorderLayout.SOUTH)
       centerPanel.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.LEFT)
       addToLeft(toolbarPanel)
     }
@@ -202,10 +202,10 @@ class EmulatorToolWindowPanel(
     val emulatorView = primaryDisplayPanel.displayView
     primaryEmulatorView = emulatorView
     mainToolbar.targetComponent = emulatorView
-    northEastToolbar.targetComponent = emulatorView
+    secondaryToolbar.targetComponent = emulatorView
     emulatorView.addPropertyChangeListener(DISPLAY_MODE_PROPERTY) {
       mainToolbar.updateActionsImmediately()
-      northEastToolbar.updateActionsImmediately()
+      secondaryToolbar.updateActionsImmediately()
     }
     installFileDropHandler(this, id.serialNumber, emulatorView, project)
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", focusOwnerListener)
@@ -284,7 +284,7 @@ class EmulatorToolWindowPanel(
     displayPanels.clear()
     primaryEmulatorView = null
     mainToolbar.targetComponent = this
-    northEastToolbar.targetComponent = this
+    secondaryToolbar.targetComponent = this
     clipboardSynchronizer = null
     lastUiState = uiState
     return uiState
@@ -355,7 +355,7 @@ class EmulatorToolWindowPanel(
       displayDescriptors = newDisplays
       setRootPanel(rootPanel)
       mainToolbar.updateActionsImmediately()
-      northEastToolbar.updateActionsImmediately()
+      secondaryToolbar.updateActionsImmediately()
     }
 
     fun buildLayout(multiDisplayState: MultiDisplayState) {
@@ -404,7 +404,7 @@ class EmulatorToolWindowPanel(
 
     private fun setRootPanel(rootPanel: JPanel) {
       mainToolbar.updateActionsImmediately() // Rotation buttons are hidden in multi-display mode.
-      northEastToolbar.updateActionsImmediately()
+      secondaryToolbar.updateActionsImmediately()
       centerPanel.removeAll()
       centerPanel.addToCenter(rootPanel)
       centerPanel.validate()
