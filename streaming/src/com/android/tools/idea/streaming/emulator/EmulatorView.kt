@@ -589,9 +589,9 @@ class EmulatorView(
 
   private fun getButtonBit(button: Int): Int {
     return when(button) {
-      BUTTON1 -> BUTTON1_BIT
-      BUTTON2 -> BUTTON2_BIT
-      BUTTON3 -> BUTTON3_BIT
+      BUTTON1 -> ANDROID_BUTTON1_BIT
+      BUTTON2 -> ANDROID_BUTTON2_BIT
+      BUTTON3 -> ANDROID_BUTTON3_BIT
       else -> 0
     }
   }
@@ -1192,16 +1192,17 @@ private val SAMPLE_MODEL_BIT_MASKS = intArrayOf(0xFF0000, 0xFF00, 0xFF, ALPHA_MA
 private val COLOR_MODEL = DirectColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
                                            32, 0xFF0000, 0xFF00, 0xFF, ALPHA_MASK, false, DataBuffer.TYPE_INT)
 private const val CACHED_IMAGE_LIVE_TIME_MILLIS = 2000
-// In Android MotionEvent, the right button is secondary and the middle button is tertiary, while in AWT the middle button is secondary and
-// the right button is tertiary. Here the bits are for the Android (and the emulator gRPC) definition.
-private const val BUTTON1_BIT = 1 shl 0 // Left
-private const val BUTTON2_BIT = 1 shl 2 // Middle
-private const val BUTTON3_BIT = 1 shl 1 // Right
 
+// Android (and the emulator gRPC) button bits corresponding to the AWT button definitions.
+// The middle and the right buttons are ordered differently in Android compared to AWT.
+private const val ANDROID_BUTTON1_BIT = 1 shl 0 // Left
+private const val ANDROID_BUTTON2_BIT = 1 shl 2 // Middle
+private const val ANDROID_BUTTON3_BIT = 1 shl 1 // Right
 
 private val STATS_LOG_INTERVAL_MILLIS = StudioFlags.EMBEDDED_EMULATOR_STATISTICS_INTERVAL_SECONDS.get().toLong() * 1000
 
-// Keep the value in sync with goldfish's MTS_PRESSURE_RANGE_MAX.
+// The same as MTS_PRESSURE_RANGE_MAX defined in
+// https://android.googlesource.com/platform/external/qemu/+/refs/heads/emu-master-dev/android/android-emu/android/multitouch-screen.h
 private const val PRESSURE_RANGE_MAX = 0x400
 
 private val LOG = Logger.getInstance(EmulatorView::class.java)
