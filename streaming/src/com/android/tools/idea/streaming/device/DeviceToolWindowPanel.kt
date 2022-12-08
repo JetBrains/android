@@ -25,6 +25,7 @@ import com.android.tools.idea.streaming.RunningDevicePanel
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionState
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionStateListener
 import com.android.tools.idea.streaming.device.screenshot.DeviceScreenshotOptions
+import com.android.tools.idea.streaming.emulator.EMULATOR_SECONDARY_TOOLBAR_ID
 import com.android.tools.idea.streaming.installFileDropHandler
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
@@ -40,11 +41,14 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.JBColor
 import com.intellij.ui.SideBorder
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons
+import java.awt.BorderLayout
 import java.awt.EventQueue
 import javax.swing.JComponent
 import javax.swing.SwingConstants
+import javax.swing.border.EmptyBorder
 
 /**
  * Provides view of one physical device in the Running Devices tool window.
@@ -57,7 +61,9 @@ internal class DeviceToolWindowPanel(
   deviceProperties: Map<String, String>,
 ) : RunningDevicePanel(DeviceId.ofPhysicalDevice(deviceSerialNumber)) {
 
+  private val toolbarPanel = BorderLayoutPanel()
   private val mainToolbar: ActionToolbar
+  private val secondaryToolbar: ActionToolbar
   private val centerPanel = BorderLayoutPanel()
   private var displayPanel: DeviceDisplayPanel? = null
   private var contentDisposable: Disposable? = null
@@ -92,18 +98,25 @@ internal class DeviceToolWindowPanel(
     background = primaryPanelBackground
 
     mainToolbar = createToolbar(DEVICE_MAIN_TOOLBAR_ID, isToolbarHorizontal)
+    secondaryToolbar = createToolbar(EMULATOR_SECONDARY_TOOLBAR_ID, isToolbarHorizontal)
 
     addToCenter(centerPanel)
 
     if (isToolbarHorizontal) {
       mainToolbar.setOrientation(SwingConstants.HORIZONTAL)
+      secondaryToolbar.setOrientation(SwingConstants.HORIZONTAL)
+      toolbarPanel.add(mainToolbar.component, BorderLayout.CENTER)
+      toolbarPanel.add(secondaryToolbar.component, BorderLayout.EAST)
       centerPanel.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.TOP)
-      addToTop(mainToolbar.component)
+      addToTop(toolbarPanel)
     }
     else {
       mainToolbar.setOrientation(SwingConstants.VERTICAL)
+      secondaryToolbar.setOrientation(SwingConstants.VERTICAL)
+      toolbarPanel.add(mainToolbar.component, BorderLayout.CENTER)
+      toolbarPanel.add(secondaryToolbar.component, BorderLayout.SOUTH)
       centerPanel.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.LEFT)
-      addToLeft(mainToolbar.component)
+      addToLeft(toolbarPanel)
     }
   }
 
@@ -130,12 +143,14 @@ internal class DeviceToolWindowPanel(
     val deviceView = primaryDisplayPanel.displayView
     primaryDeviceView = deviceView
     mainToolbar.targetComponent = deviceView
+    secondaryToolbar.targetComponent = deviceView
     centerPanel.addToCenter(primaryDisplayPanel)
     deviceView.addConnectionStateListener(object : ConnectionStateListener {
       @AnyThread
       override fun connectionStateChanged(deviceSerialNumber: String, connectionState: ConnectionState) {
         EventQueue.invokeLater {
           mainToolbar.updateActionsImmediately()
+          secondaryToolbar.updateActionsImmediately()
         }
       }
     })
@@ -160,6 +175,7 @@ internal class DeviceToolWindowPanel(
     displayPanel = null
     primaryDeviceView = null
     mainToolbar.targetComponent = this
+    secondaryToolbar.targetComponent = this
     return uiState
   }
 
