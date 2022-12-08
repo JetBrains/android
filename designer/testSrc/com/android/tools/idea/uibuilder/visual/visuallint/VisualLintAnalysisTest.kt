@@ -19,7 +19,6 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlModel.TagSnapshotTreeNode
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -36,6 +35,7 @@ import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.codeInsight.daemon.HighlightDisplayKey
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.profile.codeInspection.InspectionProfileManager
 import com.intellij.psi.xml.XmlFile
@@ -82,28 +82,16 @@ class VisualLintAnalysisTest {
     projectRule.load("projects/visualLintApplication")
 
     val module = projectRule.getModule("app")
-    val facet = AndroidFacet.getInstance(module)!!
     val activityLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
     val dashboardLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_dashboard.xml")!!
     val notificationsLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_notifications.xml")!!
     val homeLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_home.xml")!!
     var filesToAnalyze = listOf(activityLayout, dashboardLayout, notificationsLayout, homeLayout)
 
-    val phoneConfiguration = RenderTestUtil.getConfiguration(module, activityLayout, "_device_class_phone")
-    phoneConfiguration.setTheme("Theme.MaterialComponents.DayNight.DarkActionBar")
-    analyzeFile(facet, filesToAnalyze, phoneConfiguration)
-
-    val foldableConfiguration = RenderTestUtil.getConfiguration(module, activityLayout, "_device_class_foldable")
-    foldableConfiguration.setTheme("Theme.MaterialComponents.DayNight.DarkActionBar")
-    analyzeFile(facet, filesToAnalyze, foldableConfiguration)
-
-    val tabletConfiguration = RenderTestUtil.getConfiguration(module, activityLayout, "_device_class_tablet")
-    tabletConfiguration.setTheme("Theme.MaterialComponents.DayNight.DarkActionBar")
-    analyzeFile(facet, filesToAnalyze, tabletConfiguration)
-
-    val desktopConfiguration = RenderTestUtil.getConfiguration(module, activityLayout, "_device_class_desktop")
-    desktopConfiguration.setTheme("Theme.MaterialComponents.DayNight.DarkActionBar")
-    analyzeFile(facet, filesToAnalyze, desktopConfiguration)
+    analyzeFile(module, filesToAnalyze, "_device_class_phone")
+    analyzeFile(module, filesToAnalyze, "_device_class_foldable")
+    analyzeFile(module, filesToAnalyze, "_device_class_tablet")
+    analyzeFile(module, filesToAnalyze, "_device_class_desktop")
 
     val issues = issueProvider.getIssues()
     assertEquals(6, issues.size)
@@ -177,10 +165,10 @@ class VisualLintAnalysisTest {
 
     projectRule.fixture.disableInspections(BoundsAnalyzerInspection, TextFieldSizeAnalyzerInspection)
     issueProvider.clear()
-    analyzeFile(facet, filesToAnalyze, phoneConfiguration)
-    analyzeFile(facet, filesToAnalyze, tabletConfiguration)
-    analyzeFile(facet, filesToAnalyze, foldableConfiguration)
-    analyzeFile(facet, filesToAnalyze, desktopConfiguration)
+    analyzeFile(module, filesToAnalyze, "_device_class_phone")
+    analyzeFile(module, filesToAnalyze, "_device_class_foldable")
+    analyzeFile(module, filesToAnalyze, "_device_class_tablet")
+    analyzeFile(module, filesToAnalyze, "_device_class_desktop")
     assertEquals(4, issues.size)
     issues.map {it as VisualLintRenderIssue }.forEach {
       assertNotEquals(VisualLintErrorType.BOUNDS, it.type)
@@ -190,21 +178,17 @@ class VisualLintAnalysisTest {
     val wearLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/wear_layout.xml")!!
     filesToAnalyze = listOf(wearLayout)
     issueProvider.clear()
-    analyzeFile(facet, filesToAnalyze, phoneConfiguration)
+    analyzeFile(module, filesToAnalyze, "_device_class_phone")
     assertEquals(7, issues.size)
     issues.map {it as VisualLintRenderIssue }.forEach {
       assertNotEquals(VisualLintErrorType.WEAR_MARGIN, it.type)
     }
 
     issueProvider.clear()
-    val wearSquareConfiguration = RenderTestUtil.getConfiguration(module, wearLayout, "wearos_square")
-    analyzeFile(facet, filesToAnalyze, wearSquareConfiguration)
-    val wearRectConfiguration = RenderTestUtil.getConfiguration(module, wearLayout, "wearos_rect")
-    analyzeFile(facet, filesToAnalyze, wearRectConfiguration)
-    val wearSmallRoundConfiguration = RenderTestUtil.getConfiguration(module, wearLayout, "wearos_small_round")
-    analyzeFile(facet, filesToAnalyze, wearSmallRoundConfiguration)
-    val wearLargeRoundConfiguration = RenderTestUtil.getConfiguration(module, wearLayout, "wearos_large_round")
-    analyzeFile(facet, filesToAnalyze, wearLargeRoundConfiguration)
+    analyzeFile(module, filesToAnalyze, "wearos_square")
+    analyzeFile(module, filesToAnalyze, "wearos_rect")
+    analyzeFile(module, filesToAnalyze, "wearos_small_round")
+    analyzeFile(module, filesToAnalyze, "wearos_large_round")
     assertEquals(12, issues.size)
     val wearIssues = issues.filterIsInstance<VisualLintRenderIssue>().filter { it.type == VisualLintErrorType.WEAR_MARGIN }
     assertEquals(5, wearIssues.size)
@@ -261,10 +245,12 @@ class VisualLintAnalysisTest {
   }
 
   private fun analyzeFile(
-    facet: AndroidFacet,
+    module: Module,
     files: List<VirtualFile>,
-    configuration: Configuration,
+    deviceId: String,
   ) {
+    val facet = AndroidFacet.getInstance(module)!!
+    val configuration = RenderTestUtil.getConfiguration(module, files[0], deviceId, "Theme.MaterialComponents.DayNight.DarkActionBar")
     files.forEach { file ->
       val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, file, configuration)
       val psiFile = AndroidPsiUtils.getPsiFileSafely(projectRule.project, file) as XmlFile

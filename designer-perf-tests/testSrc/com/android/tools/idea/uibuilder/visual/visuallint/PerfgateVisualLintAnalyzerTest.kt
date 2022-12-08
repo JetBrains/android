@@ -124,20 +124,13 @@ class PerfgateVisualLintAnalyzerTest {
     val notificationsLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_notifications.xml")!!
     val homeLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_home.xml")!!
     val filesToAnalyze = listOf(activityLayout, dashboardLayout, notificationsLayout, homeLayout)
-    val phoneConfiguration = RenderTestUtil.getConfiguration(module, activityLayout, "_device_class_phone")
-    phoneConfiguration.setTheme("Theme.MaterialComponents.DayNight.DarkActionBar")
-    val foldableConfiguration = RenderTestUtil.getConfiguration(module, activityLayout, "_device_class_foldable")
-    foldableConfiguration.setTheme("Theme.MaterialComponents.DayNight.DarkActionBar")
-    val tabletConfiguration = RenderTestUtil.getConfiguration(module, activityLayout, "_device_class_tablet")
-    tabletConfiguration.setTheme("Theme.MaterialComponents.DayNight.DarkActionBar")
-    val desktopConfiguration = RenderTestUtil.getConfiguration(module, activityLayout, "_device_class_desktop")
-    desktopConfiguration.setTheme("Theme.MaterialComponents.DayNight.DarkActionBar")
-    val configurations = listOf(phoneConfiguration, foldableConfiguration, tabletConfiguration, desktopConfiguration)
+    val deviceIds = listOf("_device_class_phone", "_device_class_foldable", "_device_class_tablet", "_device_class_desktop")
 
     val modelResultMap = mutableMapOf<NlModel, RenderResult>()
-    configurations.forEach { configuration ->
+    deviceIds.forEach { deviceId ->
+      val configuration = RenderTestUtil.getConfiguration(module, activityLayout, deviceId, "Theme.MaterialComponents.DayNight.DarkActionBar")
       filesToAnalyze.forEach { file ->
-        val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, file, configuration)
+        val nlModel = SyncNlModel.create(projectRule.fixture.projectDisposable, NlComponentRegistrar, null, null, facet, file, configuration)
         val psiFile = AndroidPsiUtils.getPsiFileSafely(projectRule.project, file) as XmlFile
         nlModel.syncWithPsi(AndroidPsiUtils.getRootTagSafely(psiFile)!!, emptyList<NlModel.TagSnapshotTreeNode>())
         RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
