@@ -96,7 +96,7 @@ public class ConversionTestUtil {
   }
 
   @NotNull
-  protected static void changeKotlinVersion(@NotNull GuiTestRule guiTest) throws Exception {
+  public static void changeKotlinVersion(@NotNull GuiTestRule guiTest) throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
     // TODO: the following is a hack. See http://b/79752752 for removal of the hack
@@ -116,7 +116,7 @@ public class ConversionTestUtil {
     //String kotlinVersion = kotlinCompilerVersionShort();
     String newBuildGradleContents = buildGradleContents.replaceAll(
         "id\\s\\'org\\.jetbrains\\.kotlin\\.android\\'\\sversion\\s\\'\\d+\\.\\d+\\.\\d+\\'\\sapply\\sfalse",
-        "id 'org.jetbrains.kotlin.android' version '1.6.21' apply false"
+        "id 'org.jetbrains.kotlin.android' version '1.7.21' apply false"
       );
 
     OutputStream buildGradleOutput = ideFrameFixture.getEditor()

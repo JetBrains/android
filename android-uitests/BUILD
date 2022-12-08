@@ -2619,12 +2619,14 @@ java_test(
 
 java_test(
     name = "JavaToKotlinConversionTest",
+    size = "enormous",
+    timeout = "long",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.JavaToKotlinConversionTest"],
     tags = COMMON_TAGS + [
-        "qa_fast",
+        "qa_smoke",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
