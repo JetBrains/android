@@ -149,6 +149,8 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
     else {
       null
     }
+    // Clear the existing provider first, which happens when another toolbar is created.
+    DataManager.removeDataProvider(panel)
     DataManager.registerDataProvider(panel) { if (ANIMATION_TOOLBAR.`is`(it)) toolbar else null }
     if (toolbar != null) {
       myProject.messageBus.connect(toolbar).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
