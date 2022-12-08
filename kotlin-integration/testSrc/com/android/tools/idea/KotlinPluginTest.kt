@@ -52,6 +52,9 @@ class KotlinPluginTest {
     val idePluginVersion = KotlinIdePluginVersion.parse(KotlinIdePlugin.version).getOrThrow()
     assertThat(idePluginVersion.isAndroidStudio).isTrue()
     assertThat(idePluginVersion.kotlinCompilerVersion).isEqualTo(standaloneCompilerVersion)
-    assertThat(idePluginVersion.platformVersion).isEqualTo(ApplicationInfo.getInstance().shortVersion)
+
+    // The following assertion is desirable, but infeasible because the Android Studio platform version
+    // string is generally updated before we integrate the corresponding Kotlin IDE plugin.
+    // assertThat(idePluginVersion.platformVersion).isEqualTo(ApplicationInfo.getInstance().shortVersion)
   }
 }
