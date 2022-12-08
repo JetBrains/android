@@ -27,7 +27,6 @@ import com.android.tools.idea.run.deployment.liveedit.DeviceConnection
 import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
-import com.android.tools.idea.util.ListenerCollection
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
@@ -87,10 +86,12 @@ data class EditStatus(val editState: EditState, val message: String, val actionI
 @Service
 class LiveEditService constructor(val project: Project,
                                   val deviceConnection: DeviceConnection,
-                                  var listenerExecutor: Executor) : Disposable {
+                                  var executor: Executor) : Disposable {
 
   val inlineCandidateCache = SourceInlineCandidateCache()
 
+  // We quickly hand off the processing of PSI events to our own executor, since PSI events are likely
+  // dispatched from the UI thread, and we do not want to block it.
   constructor(project: Project) : this(project,
                                        AdbConnection,
                                        AppExecutorUtil.createBoundedApplicationPoolExecutor(
@@ -135,21 +136,11 @@ class LiveEditService constructor(val project: Project,
     deployMonitor.resetState()
   }
 
-  fun interface EditListener {
-    operator fun invoke(method: EditEvent)
-  }
-
-  private val onEditListeners = ListenerCollection.createWithExecutor<EditListener>(listenerExecutor)
-
   private val deployMonitor: AndroidLiveEditDeployMonitor
-
-  fun addOnEditListener(listener: EditListener) {
-    onEditListeners.add(listener)
-  }
 
   init {
     // TODO: Deactivate this when not needed.
-    val listener = MyPsiListener(::onMethodBodyUpdated)
+    val listener = MyPsiListener()
     PsiManager.getInstance(project).addPsiTreeChangeListener(listener, this)
     deployMonitor = AndroidLiveEditDeployMonitor(this, project)
     // TODO: Delete if it turns our we don't need Hard-refresh trigger.
@@ -203,7 +194,7 @@ class LiveEditService constructor(val project: Project,
   }
 
   @com.android.annotations.Trace
-  private fun onMethodBodyUpdated(event: EditEvent) {
+  private fun onPsiChanged(event: EditEvent) {
     // Drop any invalid events.
     // As mention in other parts of the code. The type of PSI event sent are really unpredictable. Intermediate events
     // sometimes contains event origins that is not valid or no longer exist in any file. In automatic mode this might not be a big
@@ -213,12 +204,10 @@ class LiveEditService constructor(val project: Project,
       return
     }
 
-    onEditListeners.forEach {
-      it(event)
-    }
+    executor.execute { deployMonitor.onPsiChanged(event) }
   }
 
-  private inner class MyPsiListener(private val editListener: EditListener) : PsiTreeChangeListener {
+  private inner class MyPsiListener : PsiTreeChangeListener {
     @com.android.annotations.Trace
     private fun handleChangeEvent(event: PsiTreeChangeEvent) {
       // THIS CODE IS EXTREMELY FRAGILE AT THE MOMENT.
@@ -242,7 +231,7 @@ class LiveEditService constructor(val project: Project,
         when (parent) {
           is KtNamedFunction -> {
             val event = EditEvent(file, parent)
-            editListener(event)
+            onPsiChanged(event)
             break;
           }
           is KtFunction -> {
@@ -263,12 +252,12 @@ class LiveEditService constructor(val project: Project,
               }
               groupParent = groupParent.parent
             }
-            editListener(event)
+            onPsiChanged(event)
             break;
           }
           is KtClass -> {
             val event = EditEvent(file, parent)
-            editListener(event)
+            onPsiChanged(event)
             break;
           }
         }
@@ -281,7 +270,7 @@ class LiveEditService constructor(val project: Project,
       if (!LiveEditAdvancedConfiguration.getInstance().usePartialRecompose) {
         // If there's no Kotlin construct to use as a parent for this event, use the KtFile itself as the parent.
         val event = EditEvent(file, file)
-        editListener(event)
+        onPsiChanged(event)
       }
     }
 

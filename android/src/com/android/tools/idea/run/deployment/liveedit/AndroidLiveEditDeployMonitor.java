@@ -75,7 +75,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * Helper to set up Live Literal deployment monitoring.
@@ -206,75 +205,70 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     return status == null ? DISABLED_STATUS : status;
   }
 
-  @VisibleForTesting
-  public class EditsListener {
-    // Care should be given when modifying this field to preserve atomicity.
-    private final ConcurrentLinkedQueue<EditEvent> changedMethodQueue = new ConcurrentLinkedQueue<>();
+  // Care should be given when modifying this field to preserve atomicity.
+  private final ConcurrentLinkedQueue<EditEvent> changedMethodQueue = new ConcurrentLinkedQueue<>();
 
 
-    public EditsListener(){
-      gradleTimeSync.set(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp());
+  // This method is invoked on the listener executor thread in LiveEditService and does not block the UI thread.
+  public void onPsiChanged(EditEvent event) {
+    if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit()) {
+      return;
     }
 
-    // This method is invoked on the listener executor thread in LiveEditService and does not block the UI thread.
-    public void onLiteralsChanged(EditEvent event) {
-      if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit()) {
-        return;
-      }
-
-      if (StringUtil.isEmpty(applicationId)) {
-        return;
-      }
-
-      if (deviceStatusManager.hasAny(EditState.ERROR)) {
-        return;
-      }
-
-      if (GradleSyncState.getInstance(project).isSyncNeeded() != ThreeState.NO || gradleTimeSync.get().compareTo(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp()) != 0 ){
-        updateEditStatus(GRADLE_SYNC_ERROR);
-        return;
-      }
-
-      changedMethodQueue.add(event);
-      methodChangesExecutor.schedule(this::processChanges, LiveEditAdvancedConfiguration.getInstance().getRefreshRateMs(), TimeUnit.MILLISECONDS);
+    if (StringUtil.isEmpty(applicationId)) {
+      return;
     }
 
-    private void processChanges() {
-      if (changedMethodQueue.isEmpty()) {
-        return;
+    if (deviceStatusManager.hasAny(EditState.ERROR)) {
+      return;
+    }
+
+    if (GradleSyncState.getInstance(project).isSyncNeeded() != ThreeState.NO ||
+        gradleTimeSync.get().compareTo(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp()) != 0) {
+      updateEditStatus(GRADLE_SYNC_ERROR);
+      return;
+    }
+
+    changedMethodQueue.add(event);
+    methodChangesExecutor.schedule(this::processQueuedChanges, LiveEditAdvancedConfiguration.getInstance().getRefreshRateMs(),
+                                   TimeUnit.MILLISECONDS);
+  }
+
+  private void processQueuedChanges() {
+    if (changedMethodQueue.isEmpty()) {
+      return;
+    }
+
+    List<EditEvent> copy = new ArrayList<>();
+    changedMethodQueue.removeIf(e -> {
+      copy.add(e);
+      return true;
+    });
+
+    deviceStatusManager.update(status -> {
+      switch (status.getEditState()) {
+        case PAUSED:
+        case UP_TO_DATE:
+        case LOADING:
+        case IN_PROGRESS:
+        case RECOMPOSE_ERROR:
+          return UPDATE_IN_PROGRESS;
+        default:
+          return status;
       }
+    });
 
-      List<EditEvent> copy = new ArrayList<>();
-      changedMethodQueue.removeIf(e -> {
-        copy.add(e);
-        return true;
-      });
-
-      deviceStatusManager.update(status -> {
-        switch (status.getEditState()) {
-          case PAUSED:
-          case UP_TO_DATE:
-          case LOADING:
-          case IN_PROGRESS:
-          case RECOMPOSE_ERROR:
-            return UPDATE_IN_PROGRESS;
-          default:
-            return status;
-        }
-      });
-
-      if (!handleChangedMethods(project, copy)) {
-        changedMethodQueue.addAll(copy);
-        methodChangesExecutor.schedule(this::processChanges, LiveEditAdvancedConfiguration.getInstance().getRefreshRateMs(), TimeUnit.MILLISECONDS);
-      }
+    if (!handleChangedMethods(project, copy)) {
+      changedMethodQueue.addAll(copy);
+      methodChangesExecutor.schedule(this::processQueuedChanges, LiveEditAdvancedConfiguration.getInstance().getRefreshRateMs(),
+                                     TimeUnit.MILLISECONDS);
     }
   }
 
   public AndroidLiveEditDeployMonitor(@NotNull LiveEditService liveEditService, @NotNull Project project) {
     this.project = project;
     this.sourceInlineCandidateCache = liveEditService.getInlineCandidateCache();
-    EditsListener editsListener = new EditsListener();
-    liveEditService.addOnEditListener(editsListener::onLiteralsChanged);
+    gradleTimeSync.set(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp());
     Disposer.register(liveEditService, this);
 
     deviceWatcher.addListener(this::handleAdbEvents);

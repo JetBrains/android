@@ -50,7 +50,6 @@ class BasicAndroidMonitorTest {
   private lateinit var project: Project
   private lateinit var monitor: AndroidLiveEditDeployMonitor
   private lateinit var service: LiveEditService
-  private lateinit var editList: AndroidLiveEditDeployMonitor.EditsListener
   private lateinit var client: ClientImpl
   private lateinit var connection: FakeDeviceConnection
 
@@ -93,8 +92,6 @@ class BasicAndroidMonitorTest {
     `when`(device.clients).thenReturn(clients)
     `when`(mySyncState.lastSyncFinishedTimeStamp).thenReturn(1)
 
-    editList = monitor.EditsListener()
-
     LiveEditApplicationConfiguration.getInstance().leTriggerMode = LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_AUTOMATIC
     LiveEditApplicationConfiguration.getInstance().mode = LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 
@@ -118,7 +115,7 @@ class BasicAndroidMonitorTest {
     val editEvent = MockitoKt.mock<EditEvent>()
     `when`(mySyncState.isSyncNeeded()).thenReturn(ThreeState.YES)
 
-    editList.onLiteralsChanged(editEvent)
+    monitor.onPsiChanged(editEvent)
 
     val status = service.editStatus(device)
 
@@ -134,7 +131,7 @@ class BasicAndroidMonitorTest {
     `when`(mySyncState.isSyncNeeded()).thenReturn(ThreeState.NO)
 
 
-    editList.onLiteralsChanged(editEvent)
+    monitor.onPsiChanged(editEvent)
 
     val status = service.editStatus(device)
 
@@ -142,7 +139,7 @@ class BasicAndroidMonitorTest {
 
     `when`(mySyncState.lastSyncFinishedTimeStamp).thenReturn(2)
 
-    editList.onLiteralsChanged(editEvent)
+    monitor.onPsiChanged(editEvent)
 
     val status2 = service.editStatus(device)
 
