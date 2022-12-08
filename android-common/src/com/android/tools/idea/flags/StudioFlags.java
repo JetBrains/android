@@ -462,11 +462,6 @@ public final class StudioFlags {
     "If enabled, AS executes Run Configuration via new.AndroidRunProfileState",
     false);
 
-  public static final Flag<Boolean> ALLOW_RUN_WEAR_CONFIGURATIONS_FROM_GUTTER = Flag.create(
-    RUNDEBUG, "run.wear.configuration.gutter.enabled", "Run Wear Configurations from gutter",
-    "If enabled, allow to Run Wear Configurations from the gutter.",
-    true);
-
   /**
    * The level of APK change that will be supported by the deployment pipeline's optimistic
    * "deploy-without-installing" path. Deploying changes that exceed the level of support

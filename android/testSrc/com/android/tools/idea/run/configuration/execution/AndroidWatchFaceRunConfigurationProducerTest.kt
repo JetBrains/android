@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfiguration
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
 import com.android.tools.idea.run.configuration.AndroidWatchFaceRunConfigurationProducer
@@ -29,13 +28,11 @@ class AndroidWatchFaceRunConfigurationProducerTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
 
-    StudioFlags.ALLOW_RUN_WEAR_CONFIGURATIONS_FROM_GUTTER.override(true)
     myFixture.addWearDependenciesToProject()
   }
 
   override fun tearDown() {
     super.tearDown()
-    StudioFlags.ALLOW_RUN_WEAR_CONFIGURATIONS_FROM_GUTTER.clearOverride()
   }
 
   @Test

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.configuration
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.execution.JavaExecutionUtil
 import com.intellij.execution.lineMarker.ExecutorAction
 import com.intellij.execution.lineMarker.RunLineMarkerContributor
@@ -32,9 +31,6 @@ import org.jetbrains.kotlin.lexer.KtTokens
  */
 class AndroidWearRunMarkerContributor : RunLineMarkerContributor() {
   override fun getInfo(e: PsiElement): Info? {
-    if (!StudioFlags.ALLOW_RUN_WEAR_CONFIGURATIONS_FROM_GUTTER.get()) {
-      return null
-    }
     if (e.node.elementType != KtTokens.CLASS_KEYWORD && e.node.elementType != JavaTokenType.CLASS_KEYWORD) {
       return null
     }

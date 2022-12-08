@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.configuration
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.intellij.execution.JavaExecutionUtil
 import com.intellij.execution.actions.ConfigurationContext
@@ -40,9 +39,6 @@ abstract class AndroidWearRunConfigurationProducer<T : AndroidWearConfiguration>
     ConfigurationTypeUtil.findConfigurationType(type).configurationFactories[0]
 
   override fun isConfigurationFromContext(configuration: T, context: ConfigurationContext): Boolean {
-    if (!StudioFlags.ALLOW_RUN_WEAR_CONFIGURATIONS_FROM_GUTTER.get()) {
-      return false
-    }
     val serviceName = context.psiLocation.getPsiClass()?.qualifiedName
     return configuration.componentLaunchOptions.componentName == serviceName
   }
@@ -50,9 +46,6 @@ abstract class AndroidWearRunConfigurationProducer<T : AndroidWearConfiguration>
   public override fun setupConfigurationFromContext(configuration: T,
                                                     context: ConfigurationContext,
                                                     sourceElement: Ref<PsiElement>): Boolean {
-    if (!StudioFlags.ALLOW_RUN_WEAR_CONFIGURATIONS_FROM_GUTTER.get()) {
-      return false
-    }
     val psiClass = context.psiLocation.getPsiClass()
     if (psiClass == null || !isValidService(psiClass)) {
       return false
