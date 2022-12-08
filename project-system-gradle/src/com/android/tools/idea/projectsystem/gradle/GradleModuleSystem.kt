@@ -382,8 +382,8 @@ class GradleModuleSystem(
   override fun getApplicationIdProvider(): ApplicationIdProvider {
     val androidFacet = AndroidFacet.getInstance(module) ?: error("Cannot find AndroidFacet. Module: ${module.name}")
     val androidModel = GradleAndroidModel.get(androidFacet) ?: error("Cannot find AndroidModuleModel. Module: ${module.name}")
-    return GradleApplicationIdProvider(
-      androidFacet, false, androidModel, androidModel.selectedVariant
+    return GradleApplicationIdProvider.create(
+      androidFacet, false, androidModel, androidModel.selectedBasicVariant, androidModel.selectedVariant
     )
   }
 

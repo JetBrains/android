@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
 import com.android.tools.idea.gradle.model.IdeClassField
 import com.android.tools.idea.gradle.model.IdeDependencies
@@ -66,6 +67,8 @@ class GradleAndroidModel constructor(
   private val myBuildTypesByName: Map<String, IdeBuildTypeContainer> = androidProject.buildTypes.associateBy { it.buildType.name }
   private val myProductFlavorsByName: Map<String, IdeProductFlavorContainer> =
     androidProject.productFlavors.associateBy { it.productFlavor.name }
+  private val myCachedBasicVariantsByName: Map<String, IdeBasicVariant> =
+    data.androidProject.basicVariants.associateBy { it.name }
   private val myCachedVariantsByName: Map<String, IdeVariantCore> = data.variants.associateBy { it.name }
   private val myCachedResolvedVariantsByName: Map<String, IdeVariant> =
     myCachedVariantsByName.mapValues { (_, value) -> IdeVariantImpl(value, ideLibraryModelResolver) }
@@ -76,6 +79,7 @@ class GradleAndroidModel constructor(
   val rootDirPath: File get() = data.rootDirPath
   val androidProject: IdeAndroidProject get() = data.androidProject
   val selectedVariantName: String get() = data.selectedVariantName
+  val selectedBasicVariant: IdeBasicVariant get() = myCachedBasicVariantsByName[selectedVariantName] ?: unknownSelectedVariant()
   val selectedVariant: IdeVariant get() = myCachedResolvedVariantsByName[selectedVariantName] ?: unknownSelectedVariant()
   val selectedVariantCore: IdeVariantCore get() = myCachedVariantsByName[selectedVariantName] ?: unknownSelectedVariant()
 
@@ -90,6 +94,7 @@ class GradleAndroidModel constructor(
 
   fun findBuildType(name: String): IdeBuildTypeContainer? = myBuildTypesByName[name]
   fun findProductFlavor(name: String): IdeProductFlavorContainer? = myProductFlavorsByName[name]
+  fun findBasicVariantByName(variantName: String): IdeBasicVariant? = myCachedBasicVariantsByName[variantName]
   fun findVariantByName(variantName: String): IdeVariant? = myCachedResolvedVariantsByName[variantName]
 
   /**

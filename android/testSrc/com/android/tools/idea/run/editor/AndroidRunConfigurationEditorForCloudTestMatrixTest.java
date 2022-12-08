@@ -29,7 +29,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public final class AndroidRunConfigurationEditorTest {
+public final class AndroidRunConfigurationEditorForCloudTestMatrixTest {
   @Rule
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
 

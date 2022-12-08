@@ -16,6 +16,8 @@
 package com.android.tools.idea.run;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.projectsystem.ModuleSystemUtil.isMainModule;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.model.component.ComponentType;
@@ -183,7 +185,28 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
     return new AndroidRunConfigurationEditor<>(
       getProject(),
-      facet -> false,
+      module -> {
+        if (module == null) return false;
+        final var facet = AndroidFacet.getInstance(module);
+        if (facet == null) return false;
+        final var moduleSystem = getModuleSystem(facet);
+        final var moduleType = moduleSystem.getType();
+        switch (moduleType) {
+          case TYPE_APP:
+          case TYPE_DYNAMIC_FEATURE:
+            return isMainModule(module);
+          case TYPE_ATOM:
+          case TYPE_FEATURE:
+          case TYPE_INSTANTAPP:
+            return false; // Legacy not-supported module types.
+          case TYPE_NON_ANDROID:
+            return false;
+          case TYPE_LIBRARY:
+          case TYPE_TEST:
+            return false; // Supported via AndroidTestRunConfiguration.
+        }
+        return false;
+      },
       this,
       true,
       false,

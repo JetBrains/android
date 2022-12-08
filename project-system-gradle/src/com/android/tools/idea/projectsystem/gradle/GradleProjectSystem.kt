@@ -148,10 +148,11 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     val androidModel = GradleAndroidModel.get(androidFacet) ?: return null
     val isTestConfiguration = if (runConfiguration is AndroidRunConfigurationBase) runConfiguration.isTestConfiguration else false
 
-    return GradleApplicationIdProvider(
+    return GradleApplicationIdProvider.create(
       androidFacet,
       isTestConfiguration,
       androidModel,
+      androidModel.selectedBasicVariant,
       androidModel.selectedVariant
     )
   }
@@ -189,10 +190,11 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
 
     return GradleApkProvider(
       androidFacet,
-      GradleApplicationIdProvider(
+      GradleApplicationIdProvider.create(
         androidFacet,
         forTests,
         androidModel,
+        androidModel.selectedBasicVariant,
         androidModel.selectedVariant
       ),
       postBuildModelProvider,

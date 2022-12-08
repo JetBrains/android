@@ -62,6 +62,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
@@ -89,6 +90,9 @@ import org.jetbrains.annotations.TestOnly;
  * global across all the profilers, device management, process management, current state of the tool etc.
  */
 public class StudioProfilers extends AspectModel<ProfilerAspect> implements Updatable {
+
+  private static Logger getLogger() { return Logger.getInstance(StudioProfilers.class); }
+
   /**
    * The collection of data used to select a new process when we don't have a process to profile.
    */
@@ -879,17 +883,49 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myProcess;
   }
 
+  /**
+   * Returns the support level for the live process of given PID. Assumes the process is running.
+   * If the assumption cannot be guaranteed, use `getProcessForStreamIdPidTimestamp`, which may be slower.
+   */
   @NotNull
-  public SupportLevel getProcessSupportLevel(int pid) {
+  public SupportLevel getLiveProcessSupportLevel(int pid) {
     return myProcesses.values().stream().flatMap(Collection::stream)
       .filter(p -> p.getPid() == pid).findFirst()
       .map(p -> SupportLevel.of(p.getExposureLevel()))
       .orElse(SupportLevel.NONE);
   }
 
+  /**
+   * Returns the process protobuf object from the given stream, of the given PID, at the given timestamp.
+   */
+  @NotNull
+  private Common.Process getProcessForStreamIdPidTimestamp(long streamId, int pid, long timestamp) {
+    GetEventGroupsRequest request = GetEventGroupsRequest.newBuilder()
+      .setKind(Event.Kind.PROCESS)
+      .setStreamId(streamId)
+      .setPid(pid)
+      .setFromTimestamp(timestamp)
+      .setToTimestamp(timestamp + 1)  // Any detectable process should last more than 1 nanosecond.
+      .build();
+    GetEventGroupsResponse response = myClient.getTransportClient().getEventGroups(request);
+    if (response.getGroupsCount() == 1) {
+      EventGroup group = response.getGroups(0);
+      if (group.getEventsCount() >= 1) {
+        return group.getEvents(0).getProcess().getProcessStarted().getProcess();
+      }
+    }
+    if (pid != 0) {
+      // When PID is 0, e.g., during initialization of profilers, it's expected that no process is found.
+      getLogger().warn("Cannot find the unique process for the given criteria.");
+    }
+    return Common.Process.getDefaultInstance();
+  }
+
   @NotNull
   public SupportLevel getSelectedSessionSupportLevel() {
-    return getProcessSupportLevel(mySessionsManager.getSelectedSession().getPid());
+    Common.Session session = mySessionsManager.getSelectedSession();
+    return SupportLevel.of(
+      getProcessForStreamIdPidTimestamp(session.getStreamId(), session.getPid(), session.getStartTimestamp()).getExposureLevel());
   }
 
   public boolean isAgentAttached() {
