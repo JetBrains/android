@@ -53,9 +53,7 @@ public:
   // Records the timestamp of the last simulated touch event in milliseconds according to the monotonic clock.
   static void RecordTouchEvent();
 
-  static int32_t flags() {
-    return flags_;
-  }
+  static int32_t flags() { return flags_; }
 
 private:
   static std::string socket_name_;

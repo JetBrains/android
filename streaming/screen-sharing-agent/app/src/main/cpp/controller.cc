@@ -175,7 +175,7 @@ void Controller::Run() {
       } catch (IoTimeout& e) {
         continue;
       }
-      SetReceiveTimeoutMillis(0, socket_fd_);  //
+      SetReceiveTimeoutMillis(0, socket_fd_);  // Remove receive timeout for reading the rest of the message.
       unique_ptr<ControlMessage> message = ControlMessage::Deserialize(message_type, input_stream_);
       ProcessMessage(*message);
     }
@@ -370,7 +370,7 @@ void Controller::ProcessClipboardChange() {
   }
   last_clipboard_text_ = text;
 
-  ClipboardChangedNotification message(move(text));
+  ClipboardChangedNotification message(std::move(text));
   try {
     message.Serialize(output_stream_);
     output_stream_.Flush();

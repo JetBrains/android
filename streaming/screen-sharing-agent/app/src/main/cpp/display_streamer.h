@@ -66,7 +66,7 @@ private:
     void OnRotationChanged(int rotation) override;
 
     DisplayStreamer* display_streamer;
-    std::atomic<int32_t> display_rotation;
+    std::atomic_int32_t display_rotation;
   };
 
   bool ProcessFramesUntilStopped(AMediaCodec* codec, VideoPacketHeader* packet_header, const AMediaFormat* sync_frame_request);

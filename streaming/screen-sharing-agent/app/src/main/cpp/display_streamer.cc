@@ -51,6 +51,14 @@ struct CodecInfo {
 namespace {
 
 constexpr int MAX_SUBSEQUENT_ERRORS = 10;
+constexpr double MIN_VIDEO_RESOLUTION = 128;
+constexpr int COLOR_FormatSurface = 0x7F000789;  // See android.media.MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
+constexpr int BIT_RATE = 8000000;
+constexpr int BIT_RATE_REDUCED = 1000000;
+constexpr int I_FRAME_INTERVAL_SECONDS = 10;
+constexpr int REPEAT_FRAME_DELAY_MILLIS = 100;
+constexpr int CHANNEL_HEADER_LENGTH = 20;
+constexpr char const* AMEDIACODEC_KEY_REQUEST_SYNC_FRAME = "request-sync";  // Introduced in API 31.
 
 struct CodecOutputBuffer {
   explicit CodecOutputBuffer(AMediaCodec* codec)
@@ -106,15 +114,6 @@ struct CodecOutputBuffer {
 };
 
 int CodecOutputBuffer::consequent_error_count = 0;
-
-constexpr double MIN_VIDEO_RESOLUTION = 128;
-constexpr int COLOR_FormatSurface = 0x7F000789;  // See android.media.MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
-constexpr int BIT_RATE = 8000000;
-constexpr int BIT_RATE_REDUCED = 1000000;
-constexpr int I_FRAME_INTERVAL_SECONDS = 10;
-constexpr int REPEAT_FRAME_DELAY_MILLIS = 100;
-constexpr int CHANNEL_HEADER_LENGTH = 20;
-constexpr char const* AMEDIACODEC_KEY_REQUEST_SYNC_FRAME = "request-sync";  // Introduced in API 31.
 
 bool IsCodecResolutionLessThanDisplayResolution(Size codec_resolution, Size display_resolution) {
   return max(codec_resolution.width, codec_resolution.height) < max(display_resolution.width, display_resolution.height);
@@ -190,7 +189,7 @@ DisplayStreamer::DisplayStreamer(int32_t display_id, string codec_name, Size max
                                  int32_t max_bit_rate, int socket_fd)
     : display_rotation_watcher_(this),
       display_id_(display_id),
-      codec_name_(move(codec_name)),
+      codec_name_(std::move(codec_name)),
       socket_fd_(socket_fd),
       presentation_timestamp_offset_(0),
       stopped_(),

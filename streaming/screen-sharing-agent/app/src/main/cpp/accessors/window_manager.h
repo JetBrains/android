@@ -51,7 +51,7 @@ private:
   jmethodID freeze_rotation_method_;
   jmethodID thaw_rotation_method_;
   jmethodID is_rotation_frozen_method_;
-  std::atomic<int32_t> rotation_;
+  std::atomic_int32_t rotation_;
   JObject watcher_object_;
   // Copy-on-write set of display_rotation watchers.
   std::atomic<std::set<RotationWatcher*>*> rotation_watchers_;

@@ -77,7 +77,7 @@ MotionEventMessage* MotionEventMessage::Deserialize(Base128InputStream& stream) 
   }
   int32_t action = stream.ReadInt32();
   int32_t display_id = stream.ReadInt32();
-  return new MotionEventMessage(move(pointers), action, display_id);
+  return new MotionEventMessage(std::move(pointers), action, display_id);
 }
 
 KeyEventMessage* KeyEventMessage::Deserialize(Base128InputStream& stream) {
@@ -96,20 +96,20 @@ TextInputMessage* TextInputMessage::Deserialize(Base128InputStream& stream) {
 }
 
 SetDeviceOrientationMessage* SetDeviceOrientationMessage::Deserialize(Base128InputStream& stream) {
-  uint32_t orientation = stream.ReadUInt32();
+  int32_t orientation = stream.ReadInt32();
   return new SetDeviceOrientationMessage(orientation);
 }
 
 SetMaxVideoResolutionMessage* SetMaxVideoResolutionMessage::Deserialize(Base128InputStream& stream) {
-  uint32_t width = stream.ReadUInt32();
-  uint32_t height = stream.ReadUInt32();
+  int32_t width = stream.ReadInt32();
+  int32_t height = stream.ReadInt32();
   return new SetMaxVideoResolutionMessage(width, height);
 }
 
 StartClipboardSyncMessage* StartClipboardSyncMessage::Deserialize(Base128InputStream& stream) {
   int max_sync_length = stream.ReadInt32();
   string text = stream.ReadBytes();
-  return new StartClipboardSyncMessage(max_sync_length, move(text));
+  return new StartClipboardSyncMessage(max_sync_length, std::move(text));
 }
 
 StopClipboardSyncMessage* StopClipboardSyncMessage::Deserialize(Base128InputStream& stream) {

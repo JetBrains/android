@@ -162,13 +162,13 @@ private:
 // Represents one or more characters typed on a keyboard.
 class SetDeviceOrientationMessage : ControlMessage {
 public:
-  SetDeviceOrientationMessage(uint32_t orientation)
+  SetDeviceOrientationMessage(int32_t orientation)
       : ControlMessage(TYPE),
         orientation_(orientation) {
   }
   virtual ~SetDeviceOrientationMessage() {};
 
-  uint32_t orientation() const { return orientation_; }
+  int32_t orientation() const { return orientation_; }
 
   static constexpr int TYPE = 4;
 
@@ -177,7 +177,7 @@ private:
 
   static SetDeviceOrientationMessage* Deserialize(Base128InputStream& stream);
 
-  uint32_t orientation_;
+  int32_t orientation_;
 
   DISALLOW_COPY_AND_ASSIGN(SetDeviceOrientationMessage);
 };
@@ -185,15 +185,15 @@ private:
 // Sets maximum display streaming resolution.
 class SetMaxVideoResolutionMessage : ControlMessage {
 public:
-  SetMaxVideoResolutionMessage(uint32_t width, uint32_t height)
+  SetMaxVideoResolutionMessage(int32_t width, int32_t height)
       : ControlMessage(TYPE),
         width_(width),
         height_(height) {
   }
   virtual ~SetMaxVideoResolutionMessage() {};
 
-  uint32_t width() const { return width_; }
-  uint32_t height() const { return height_; }
+  int32_t width() const { return width_; }
+  int32_t height() const { return height_; }
 
   static constexpr int TYPE = 5;
 
@@ -202,8 +202,8 @@ private:
 
   static SetMaxVideoResolutionMessage* Deserialize(Base128InputStream& stream);
 
-  uint32_t width_;
-  uint32_t height_;
+  int32_t width_;
+  int32_t height_;
 
   DISALLOW_COPY_AND_ASSIGN(SetMaxVideoResolutionMessage);
 };
