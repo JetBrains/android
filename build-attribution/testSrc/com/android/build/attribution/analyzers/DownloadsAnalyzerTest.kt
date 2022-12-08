@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,18 @@ package com.android.build.attribution.analyzers
 
 import com.android.SdkConstants
 import com.android.build.attribution.BuildAnalyzerStorageManager
-import com.android.build.attribution.BuildAttributionManagerImpl
 import com.android.build.attribution.getSuccessfulResult
 import com.android.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.Request.Companion.builder
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
+import com.android.tools.idea.testing.buildAndWait
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth
 import com.intellij.openapi.Disposable
@@ -38,49 +39,133 @@ import com.intellij.openapi.util.io.FileUtil
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import org.jetbrains.plugins.gradle.settings.GradleSettings
+import org.junit.After
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import java.net.InetSocketAddress
-import java.nio.file.Paths
 import java.util.Base64
 
-class DownloadsAnalyzerTest : AndroidGradleTestCase()  {
+class DownloadsAnalyzerTest {
+  @get:Rule
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule
+  val temporaryFolder = TemporaryFolder()
 
-  private val tracker = TestUsageTracker(VirtualTimeScheduler())
 
   private lateinit var server1: HttpServerWrapper
   private lateinit var server2: HttpServerWrapper
 
-  override fun setUp() {
-    super.setUp()
+  @After
+  fun cleanUp() {
+    UsageTracker.cleanAfterTesting()
+  }
+
+  @Test
+  fun testRunningBuildWithDownloadsFromLocalServers() {
+    val tracker = TestUsageTracker(VirtualTimeScheduler())
     UsageTracker.setWriterForTest(tracker)
-    StudioFlags.BUILD_ANALYZER_DOWNLOADS_ANALYSIS.override(true)
+
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.BUILD_ANALYZER_CHECK_ANALYZERS)
+
+    val gradleHome = temporaryFolder.newFolder("gradleHome").toString()
 
     // Set up servers.
-    server1 = HttpServerWrapper("Server1", myFixture.testRootDisposable)
-    server2 = HttpServerWrapper("Server2", myFixture.testRootDisposable)
-  }
+    server1 = HttpServerWrapper("Server1", projectRule.testRootDisposable)
+    server2 = HttpServerWrapper("Server2", projectRule.testRootDisposable)
+    setupServerFiles()
+    addBuildFileContent(preparedProject)
 
-  override fun tearDown() {
-    UsageTracker.cleanAfterTesting()
-    StudioFlags.BUILD_ANALYZER_DOWNLOADS_ANALYSIS.clearOverride()
-    super.tearDown()
-  }
-
-  fun testRunningBuildWithDownloadsFromLocalServers() {
-    val gradleHome = Paths.get(myFixture.tempDirPath, "gradleHome").toString()
-
-    if (!TestUtils.runningFromBazel()) {
-    //TODO (b/240887542): this section seems to be the root cause for the Directory not empty failure.
-    //      Changing gradle home starts a new daemon and it seems that sometimes it does not stop before test tries to clean this up.
-    //      This actually only needed for running tests locally because gradle home is likely not clean in this case.
-    //      Let's try like this and see if it indeed helps with the flake.
-      invokeAndWaitIfNeeded {
-        ApplicationManager.getApplication().runWriteAction {
-          println(GradleSettings.getInstance(myFixture.project).serviceDirectoryPath)
-          GradleSettings.getInstance(myFixture.project).serviceDirectoryPath = gradleHome
+    preparedProject.runTest {
+      if (!TestUtils.runningFromBazel()) {
+        //TODO (b/240887542): this section seems to be the root cause for the Directory not empty failure.
+        //      Changing gradle home starts a new daemon and it seems that sometimes it does not stop before test tries to clean this up.
+        //      This actually only needed for running tests locally because gradle home is likely not clean in this case.
+        //      Let's try like this and see if it indeed helps with the flake.
+        invokeAndWaitIfNeeded {
+          ApplicationManager.getApplication().runWriteAction {
+            GradleSettings.getInstance(project).serviceDirectoryPath = gradleHome
+          }
         }
       }
-    }
 
+      // Clear any requests happened on sync.
+      HttpServerWrapper.detectedHttpRequests.clear()
+
+      val invocationResult = project.buildAndWait {
+        it.executeTasks(GradleBuildInvoker.Request.builder(project, projectDir, "myTestTask").build())
+      }
+
+      invocationResult.buildError?.let { throw it }
+
+      // Verify interaction with server was as expected.
+      // Sometimes requests can change the order so compare without order.
+      Truth.assertThat(HttpServerWrapper.detectedHttpRequests).containsExactlyElementsIn("""
+      Server1: GET on /example/A/1.0/A-1.0.pom - return error 404
+      Server1: HEAD on /example/A/1.0/A-1.0.jar - return error 404
+      Server2: GET on /example/A/1.0/A-1.0.pom - OK
+      Server1: GET on /example/B/1.0/B-1.0.pom - return error 403
+      Server2: GET on /example/B/1.0/B-1.0.pom - OK
+      Server2: GET on /example/A/1.0/A-1.0.jar - OK
+      Server2: GET on /example/B/1.0/B-1.0.jar - OK
+    """.trimIndent().split("\n"))
+
+      // Verify analyzer result.
+      val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
+      val results = buildAnalyzerStorageManager.getSuccessfulResult()
+      val result = results.getDownloadsAnalyzerResult()
+
+      val testRepositoryResult = (result as DownloadsAnalyzer.ActiveResult).repositoryResults.map { TestingRepositoryResult(it) }
+      Truth.assertThat(testRepositoryResult).containsExactly(
+        // Only one missed because HEAD request is not reported by gradle currently.
+        TestingRepositoryResult(DownloadsAnalyzer.OtherRepository(server1.authority), 0, 1, 1),
+        TestingRepositoryResult(DownloadsAnalyzer.OtherRepository(server2.authority), 4, 0, 0),
+      )
+    }
+  }
+
+  fun addBuildFileContent(preparedProject: PreparedTestProject) {
+    FileUtils.join(preparedProject.root, "app", SdkConstants.FN_BUILD_GRADLE).let { file ->
+      val newContent = file.readText()
+        .plus("\n\n")
+        .plus("""
+          repositories {
+              maven {
+                  url "${server1.url}"
+                  allowInsecureProtocol = true
+                  metadataSources() {
+                      mavenPom()
+                      artifact()
+                  }
+              }
+              maven {
+                  url "${server2.url}"
+                  allowInsecureProtocol = true
+                  metadataSources() {
+                      mavenPom()
+                      artifact()
+                  }
+              }
+          }
+          configurations {
+              myExtraDependencies
+          }
+          dependencies {
+              myExtraDependencies 'example:A:1.0'
+          }
+          tasks.register('myTestTask') {
+              dependsOn configurations.myExtraDependencies
+              doLast {
+                  println "classpath = ${'$'}{configurations.myExtraDependencies.collect { File file -> file.name }}"
+              }
+          }
+        """.trimIndent()
+        )
+      FileUtil.writeToFile(file, newContent)
+    }
+  }
+
+  fun setupServerFiles() {
     //Add files to server2. Server1 will return errors (404 for everything and 403 for one for a change).
     val emptyJarBytes = Base64.getDecoder().decode("UEsFBgAAAAAAAAAAAAAAAAAAAAAAAA==")
     val aPomBytes = """
@@ -138,89 +223,10 @@ class DownloadsAnalyzerTest : AndroidGradleTestCase()  {
       bytes = bPomBytes
     ))
     server1.createErrorContext("/example/B/1.0/", 403, "Forbidden")
-
-    prepareProjectForImport(TestProjectPaths.SIMPLE_APPLICATION)
-    FileUtils.join(projectFolderPath, "app", SdkConstants.FN_BUILD_GRADLE).let { file ->
-      val newContent = file.readText()
-        .plus("""
-          repositories {
-              maven {
-                  url "${server1.url}"
-                  allowInsecureProtocol = true
-                  metadataSources() {
-                      mavenPom()
-                      artifact()
-                  }
-              }
-              maven {
-                  url "${server2.url}"
-                  allowInsecureProtocol = true
-                  metadataSources() {
-                      mavenPom()
-                      artifact()
-                  }
-              }
-          }
-          configurations {
-              myExtraDependencies
-          }
-          dependencies {
-              myExtraDependencies 'example:A:1.0'
-          }
-          tasks.register('myTestTask') {
-              dependsOn configurations.myExtraDependencies
-              doLast {
-                  println "classpath = ${'$'}{configurations.myExtraDependencies.collect { File file -> file.name }}"
-              }
-          }
-        """.trimIndent()
-        )
-      FileUtil.writeToFile(file, newContent)
-    }
-    importProject()
-    prepareProjectForTest(project, null)
-
-    // Clear any requests happened on sync.
-    HttpServerWrapper.detectedHttpRequests.clear()
-
-    //Run build WITHOUT --offline as we need to contact local server
-    val buildResult = invokeGradle(project) { gradleInvoker ->
-      gradleInvoker.executeTasks(builder(project, projectFolderPath, "myTestTask").build())
-    }
-
-    // Build expected to succeed, if not - fail the test
-    buildResult.buildError?.let { throw it }
-
-    // Verify interaction with server was as expected.
-    // Sometimes requests can change the order so compare without order.
-    Truth.assertThat(HttpServerWrapper.detectedHttpRequests).containsExactlyElementsIn("""
-      Server1: GET on /example/A/1.0/A-1.0.pom - return error 404
-      Server1: HEAD on /example/A/1.0/A-1.0.jar - return error 404
-      Server2: GET on /example/A/1.0/A-1.0.pom - OK
-      Server1: GET on /example/B/1.0/B-1.0.pom - return error 403
-      Server2: GET on /example/B/1.0/B-1.0.pom - OK
-      Server2: GET on /example/A/1.0/A-1.0.jar - OK
-      Server2: GET on /example/B/1.0/B-1.0.jar - OK
-    """.trimIndent().split("\n"))
-
-    // Verify analyzer result.
-    val buildAttributionManager = project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
-    val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getSuccessfulResult()
-    val result = results.getDownloadsAnalyzerResult()
-
-    val testRepositoryResult = (result as DownloadsAnalyzer.ActiveResult).repositoryResults.map { TestingRepositoryResult(it) }
-    Truth.assertThat(testRepositoryResult).containsExactly(
-      // Only one missed because HEAD request is not reported by gradle currently.
-      TestingRepositoryResult(DownloadsAnalyzer.OtherRepository(server1.authority), 0, 1, 1),
-      TestingRepositoryResult(DownloadsAnalyzer.OtherRepository(server2.authority), 4, 0, 0),
-    )
   }
-
-  //TODO (mlazeba): add test for a partially broken download
 }
 
-private data class TestingRepositoryResult(
+data class TestingRepositoryResult(
   val repository: DownloadsAnalyzer.Repository,
   val successRequestsCount: Int,
   val failedRequestsCount: Int,
@@ -234,13 +240,13 @@ private data class TestingRepositoryResult(
   )
 }
 
-private class FileRequest(
+class FileRequest(
   val path: String,
   val mime: String,
   val bytes: ByteArray
 )
 
-private class HttpServerWrapper(
+class HttpServerWrapper(
   val name: String,
   val parentDisposable: Disposable
 ) : Disposable {
