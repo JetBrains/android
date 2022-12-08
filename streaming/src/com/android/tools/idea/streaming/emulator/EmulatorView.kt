@@ -895,7 +895,7 @@ class EmulatorView(
       if (EMBEDDED_EMULATOR_TRACE_SCREENSHOTS.get()) {
         val latency = arrivalTime - frameOriginationTime
         val foldedState = if (imageFormat.hasFoldedDisplay()) " ${imageFormat.foldedDisplay}" else ""
-        val mode = imageFormat.displayMode?.let { " $it"} ?: ""
+        val mode = if (emulatorConfig.displayModes.size > 1) " ${imageFormat.displayMode}" else ""
         LOG.info("Screenshot ${response.seq} ${imageFormat.width}x${imageFormat.height}$mode$foldedState $imageRotation" +
                  " $latency ms latency")
       }
