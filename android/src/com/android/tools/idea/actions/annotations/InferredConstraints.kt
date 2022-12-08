@@ -124,10 +124,10 @@ import org.jetbrains.uast.UParameter
 import org.jetbrains.uast.UPostfixExpression
 import org.jetbrains.uast.UPrefixExpression
 import org.jetbrains.uast.UReferenceExpression
+import org.jetbrains.uast.UUnknownExpression
 import org.jetbrains.uast.UastFacade
 import org.jetbrains.uast.getContainingUClass
 import org.jetbrains.uast.getParentOfType
-import org.jetbrains.uast.java.UnknownJavaExpression
 import java.util.Locale
 
 /**
@@ -1199,7 +1199,7 @@ class InferredConstraints private constructor(
           val qualifiedName = this.type?.canonicalText ?: error("Unresolved class expression")
           return qualifiedName + if (kotlin) "::class.java" else ".class"
         }
-        is UnknownJavaExpression -> {
+        is UUnknownExpression -> {
           val sourcePsi = sourcePsi
           if (sourcePsi is PsiAnnotationMemberValue) {
             return sourcePsi.toSource(kotlin)
