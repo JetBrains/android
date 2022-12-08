@@ -16,9 +16,17 @@
 package com.android.tools.idea.uibuilder.surface.layout
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.SurfaceScale
 import java.awt.Dimension
 import kotlin.math.max
+import kotlin.math.sqrt
+
+/**
+ * The unit of scale when calculating the zoom-to-fit scale by calling [GridSurfaceLayoutManager.getFitIntoScale].
+ * The recursion stops when the differences of two zoom-to-fit value is smaller than this value.
+ */
+private const val SCALE_UNIT = 0.01
 
 /**
  * [SurfaceLayoutManager] that layouts [PositionableContent]s in grid style. It tries to fill the [PositionableContent]s horizontally then
@@ -38,6 +46,8 @@ open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPaddi
 
   private var previousHorizontalPadding = 0
   private var previousVerticalPadding = 0
+
+  private var fitIntoCache: Pair<FitIntoScaleData, Double>? = null
 
   override fun getPreferredSize(content: Collection<PositionableContent>,
                                 @SwingCoordinate availableWidth: Int,
@@ -114,12 +124,75 @@ open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPaddi
 
   @SurfaceScale
   override fun getFitIntoScale(content: Collection<PositionableContent>,
-                      @SwingCoordinate availableWidth: Int,
-                      @SwingCoordinate availableHeight: Int): Double {
-    val contentSize = getPreferredSize(content, availableWidth, availableHeight, null)
-    @SurfaceScale val scaleX: Double = if (contentSize.width == 0) 1.0 else availableWidth.toDouble() / contentSize.width
-    @SurfaceScale val scaleY: Double = if (contentSize.height == 0) 1.0 else availableHeight.toDouble() / contentSize.height
-    return minOf(scaleX, scaleY)
+                               @SwingCoordinate availableWidth: Int,
+                               @SwingCoordinate availableHeight: Int): Double {
+    if (content.isEmpty()) {
+      return 1.0
+    }
+
+    val previousData = fitIntoCache
+    if (previousData != null) {
+      val arguments = previousData.first
+      if (arguments.content == content && arguments.availableWidth == availableWidth && arguments.availableHeight == availableHeight) {
+        return previousData.second
+      }
+    }
+
+    // Find the upper and lower bounds, then do binary search to find the best scaling size.
+
+    // Calculate the sum of the area of the original content sizes. This considers the margins of every content.
+    val rawSizes = content.map {
+      val contentSize = it.contentSize
+      val margin = it.margin
+      Dimension(contentSize.width + margin.horizontal, contentSize.height + margin.vertical)
+    }
+
+    val upperBound = run {
+      // Find the scale the total areas of contents equals to the available spaces.
+      // This happens when the contents perfectly full-fill the available space.
+      // It is not possible that the zoom-to-fit scale is larger than this value.
+      val contentAreas = rawSizes.sumOf { it.width * it.height }
+      val availableArea = (availableWidth - 2 * horizontalPadding) * (availableHeight - 2 * verticalPadding)
+      sqrt(availableArea.toDouble() / contentAreas)
+    }
+
+    val lowerBound = run {
+      // This scale can fit all the content in a single row or a single column, which is the worst case.
+      // The zoom-to-fit scale should not be smaller than this value.
+      val totalWidth = rawSizes.sumOf { it.width } + (content.size - 1) * horizontalViewDelta + 2 * horizontalPadding
+      val totalHeight = rawSizes.sumOf { it.height } + (content.size - 1) * verticalViewDelta + 2 * verticalPadding
+      maxOf(SCALE_UNIT, minOf(availableWidth.toDouble() / totalWidth, availableHeight.toDouble() / totalHeight))
+    }
+
+    // Do binary search to find the most proper scale.
+    val scale = getMaxScale(content, lowerBound, upperBound, availableWidth, availableHeight, Dimension())
+    fitIntoCache = FitIntoScaleData(content, availableWidth, availableHeight) to scale
+    return scale
+  }
+
+  /**
+   * Binary search to find the largest scale for [width] x [height] space.
+   */
+  @SurfaceScale
+  private fun getMaxScale(content: Collection<PositionableContent>,
+                          @SurfaceScale min: Double,
+                          @SurfaceScale max: Double,
+                          @SwingCoordinate width: Int,
+                          @SwingCoordinate height: Int,
+                          cache: Dimension): Double {
+    if (max - min <= SCALE_UNIT) {
+      // Last attempt.
+      val dim = getSize(content, { contentSize.scaleBy(max) }, width, cache)
+      return if (dim.width <= width && dim.height <= height) max else min
+    }
+    val scale = (min + max) / 2
+    val dim = getSize(content, { contentSize.scaleBy(scale) }, width, cache)
+    return if (dim.width <= width && dim.height <= height) {
+      getMaxScale(content, scale, max, width, height, cache)
+    }
+    else {
+      getMaxScale(content, min, scale, width, height, cache)
+    }
   }
 
   override fun layout(content: Collection<PositionableContent>,
@@ -170,4 +243,11 @@ open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPaddi
 
     content.filterNot { it.isVisible }.forEach { it.setLocation(-1, -1) }
   }
+
+  /**
+   * The data when calculating the [getFitIntoScale] value. This is used to avoid duplicated calculation.
+   */
+  private data class FitIntoScaleData(val content: Collection<PositionableContent>,
+                                      val availableWidth: Int,
+                                      val availableHeight: Int)
 }
