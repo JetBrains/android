@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -24,15 +27,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixtu
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.awt.event.KeyEvent;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertEquals;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class BasicLayoutEditTest {
@@ -46,30 +45,34 @@ public class BasicLayoutEditTest {
    * <pre>
    *   1. Create a new project
    *   2. Open the layout xml file
-   *   3. Switch to design view
-   *   4. Drag and drop components TextView, Button
+   *   3. Switch to design view (Verify 1)
+   *   4. Drag and drop components TextView, Button to the design surface (Verify 2)
    *   5. Select the TextView added and Open Attributes panel
-   *   6. Change the text attribute to `@string/app_name` (Verify 2) (Verify 3)
-   *   7. Switch back to Text view (Verify 1)
+   *   6. Change the text attribute to `@string/app_name` (Verify 4)
+   *   7. Switch back to Text view (Verify 3) (Verify 5)
    *   Verification:
-   *   1. The added component shows up in the xml
-   *   2. The text render correctly with the app name
-   *   3. Make sure TextView xml tag has attribute "android:text:="@string/app_name"
+   *   1. Preview pane shows a preview of the default layout
+   *   2. The component appears on the design area
+   *   3. The added component shows up in the xml
+   *   4. The text render correctly with the app name (Simple Application)
+   *   5. Make sure TextView xml tag has attribute {@code android:text="@string/app_name"}
    * </pre>
    */
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void basicLayoutEdit() throws Exception {
-    NlEditorFixture editorFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication", Wait.seconds(120))
-                                           .getEditor()
-                                           .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
-                                           .getLayoutEditor()
-                                           .waitForSurfaceToLoad();
+    NlEditorFixture editorFixture = guiTest
+      .importProjectAndWaitForProjectSyncToFinish("SimpleApplication", Wait.seconds(120))
+      .getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
+      .getLayoutEditor()
+      .waitForSurfaceToLoad();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     assertThat(editorFixture.canInteractWithSurface()).isTrue();
 
-    editorFixture.dragComponentToSurface("Buttons", "Button")
+    editorFixture
+      .dragComponentToSurface("Buttons", "Button")
       .waitForRenderToFinish();
 
     editorFixture
@@ -84,17 +87,21 @@ public class BasicLayoutEditTest {
       .enterText("@string/app_name");
 
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    List<NlComponentFixture>  components = editorFixture.getAllComponents();
+    List<NlComponentFixture> components = editorFixture.getAllComponents();
+    // The components list is expected to have 4 elements in the following order:
+    // * A RelativeLayout containing all the other components
+    // * A TextView containing the text "Hello world!", which was already present in activity_my.xml
+    // * A Button, added in this test
+    // * Another TextView, added in this test. This is the component we want to verify.
+    assertEquals("Simple Application", components.get(3).getText());
 
-    assertEquals("Hello world!", components.get(components.size() - 3).getText());
-
-
-
-    String layoutFileContents = guiTest.ideFrame()
-                                       .getEditor()
-                                       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
-                                       .getCurrentFileContents();
+    String layoutFileContents = guiTest
+      .ideFrame()
+      .getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
+      .getCurrentFileContents();
     assertThat(layoutFileContents).contains("<TextView");
     assertThat(layoutFileContents).contains("android:text=\"@string/app_name\"");
     assertThat(layoutFileContents).contains("<Button");
