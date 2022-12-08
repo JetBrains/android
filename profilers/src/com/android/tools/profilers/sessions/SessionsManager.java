@@ -309,16 +309,16 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       changed(SessionAspect.SESSIONS);
       mySessionArtifacts.forEach(artifact -> myProfilers.getUpdater().register(artifact));
 
-      detectImplicitlySelectedArtifactProto(mySessionArtifacts, previousArtifactProtos);
+      registerImplicitlySelectedArtifactProto(mySessionArtifacts, previousArtifactProtos);
     }
   }
 
   /**
-   * Attempt to detect and register the implicit selection of newly added
+   * Attempt to register the implicit selection of newly added
    * artifacts done by the UI. These registered selections prevent reparsing
    * on reselection of an artifact.
    */
-  private void detectImplicitlySelectedArtifactProto(List<SessionArtifact> sessionArtifacts,
+  private void registerImplicitlySelectedArtifactProto(List<SessionArtifact> sessionArtifacts,
                                                      List<GeneratedMessageV3> previousArtifactProtos) {
     // Get the newly added artifacts based off their backing proto
     SessionArtifact[] newlyAddedArtifacts =
@@ -332,8 +332,13 @@ public class SessionsManager extends AspectModel<SessionAspect> {
 
       // User started new session
       if (onlyOneArtifactIsNew && artifact.isTopLevelArtifact() && artifact.isOngoing() ||
-          // User recording/capture ends and artifact is generated
-          onlyOneArtifactIsNew && !artifact.isTopLevelArtifact() && !artifact.isOngoing() ||
+          // User recording/capture ends and artifact is generated, and is non-api initiated.
+          // Api-initiated selections are not registered here because in most cases the profiler
+          // does not jump to the captured trace in the UI. If we registered it here as the selected
+          // artifact, then in these aforementioned cases, the ui and state of selection would be out
+          // of sync. Thus, we only register the selection of an api-initiated trace when the ui
+          // transitions to the capture stage in CpuProfilerStage's InProgressTraceHandler.
+          onlyOneArtifactIsNew && !artifact.isTopLevelArtifact() && !artifact.isOngoing() && !artifact.isInitiatedByApi() ||
           // User's current session ends or user is importing session(s)
           // Also checks to make sure that the current selection is not a child
           // artifact of ending session. This avoids the selection being
@@ -341,7 +346,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
           artifact.isTopLevelArtifact() && !artifact.isOngoing() &&
           ((SessionItem)artifact).getChildArtifacts().stream().noneMatch(x -> x.getArtifactProto().equals(getSelectedArtifactProto()))
       ) {
-        setSelectedArtifactProto(artifact.getArtifactProto());
+        registerSelectedArtifactProto(artifact.getArtifactProto());
       }
     }
   }
@@ -423,12 +428,12 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     changed(SessionAspect.PROFILING_SESSION);
   }
 
-  public void setSelectedArtifactProto(GeneratedMessageV3 selectedArtifactProto) {
+  public void registerSelectedArtifactProto(GeneratedMessageV3 selectedArtifactProto) {
     mySelectedArtifactProto = selectedArtifactProto;
   }
 
   public void resetSelectedArtifactProto() {
-    setSelectedArtifactProto(null);
+    registerSelectedArtifactProto(null);
   }
 
   /**
@@ -764,7 +769,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     }
 
     // If it was not reselected, register this current selection
-    setSelectedArtifactProto(artifactProto);
+    registerSelectedArtifactProto(artifactProto);
     return true;
   }
 

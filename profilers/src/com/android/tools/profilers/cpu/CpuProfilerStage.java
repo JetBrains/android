@@ -642,6 +642,16 @@ public class CpuProfilerStage extends StreamingStage {
         myInProgressTraceInfo = Cpu.CpuTraceInfo.getDefaultInstance();
         if (finishedTraceToSelect.getStopStatus().getStatus() == Trace.TraceStopStatus.Status.SUCCESS) {
           setAndSelectCapture(finishedTraceToSelect.getTraceId());
+          // The following registration of the selected artifact is done to make sure that api-initiated
+          // trace artifacts that cause a jump to the cpu capture stage to be displayed are taken into account.
+          // We cannot include this implicit selection with all other implicit artifact selections (in SessionManger's
+          // registerImplicitlySelectedArtifactProto) as there are multiple cases where api-initiated, unlike other
+          // initiation techniques, does not jump to the capture stage on artifact generation.
+          // Note: In the scenario of non-api initiated trace generation where the profiler automatically jumps
+          // to the recorded capture, the selected artifact proto will be set twice. Once by the following
+          // line and once by SessionManager's registerImplicitlySelectedArtifactProto method. This is known
+          // and harmless as both times it will set the exact same proto.
+          getStudioProfilers().getSessionsManager().registerSelectedArtifactProto(finishedTraceToSelect);
         }
         else {
           setCaptureState(CaptureState.IDLE);

@@ -20,7 +20,9 @@ import com.android.tools.adtui.model.updater.Updatable
 import com.android.tools.idea.protobuf.GeneratedMessageV3
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.SessionMetaData
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
 import java.io.OutputStream
 
 /**
@@ -75,7 +77,7 @@ interface SessionArtifact<T : GeneratedMessageV3> : Updatable {
    */
   fun onSelect() {
     if (isTopLevelArtifact()) {
-      profilers.sessionsManager.selectedArtifactProto = this.artifactProto
+      profilers.sessionsManager.registerSelectedArtifactProto(this.artifactProto)
     }
     else if (!profilers.sessionsManager.selectArtifactProto(this.artifactProto)) {
       return;
@@ -102,6 +104,16 @@ interface SessionArtifact<T : GeneratedMessageV3> : Updatable {
    */
   fun isTopLevelArtifact(): Boolean {
     return this is SessionItem
+  }
+
+  /**
+   * Detects whether the artifact was generated using the tracing api.
+   */
+  fun isInitiatedByApi(): Boolean {
+    // Only CPU traces can be initialed via api
+    return this is CpuCaptureSessionArtifact &&
+           this.artifactProto.hasConfiguration() &&
+           this.artifactProto.configuration.initiationType == Trace.TraceInitiationType.INITIATED_BY_API
   }
 
   companion object {
