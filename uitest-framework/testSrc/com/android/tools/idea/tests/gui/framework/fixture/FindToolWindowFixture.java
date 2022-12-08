@@ -52,6 +52,20 @@ public class FindToolWindowFixture {
         });
     }
 
+    /**
+     * Checks if the text is present in content tree of find tool window.
+     *
+     * @param text search text that needs to checked in content tree.
+     */
+    public boolean contains(String text) {
+      return GuiQuery.getNonNull(
+        () -> {
+          GroupNode rootNode = (GroupNode)getContentsTree().getModel().getRoot();
+          return rootNode.getSubGroups().toString().contains(text);
+        }
+      );
+    }
+
     @NotNull
     private Tree getContentsTree() {
       JComponent component = myContent.getComponent();

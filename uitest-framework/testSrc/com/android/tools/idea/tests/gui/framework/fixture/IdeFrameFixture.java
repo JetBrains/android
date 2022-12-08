@@ -855,4 +855,17 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       .deselect();
     return this;
   }
+
+  /**
+   * Checks for text present in find tool window
+   *
+   * @param text string that need to checked in content tree.
+   *
+   * @return boolean returns whether the text is present in content tree.
+   */
+  public boolean findToolWindowContains(String text){
+    return new FindToolWindowFixture.ContentFixture(this).contains(text);
+  }
+
+
 }

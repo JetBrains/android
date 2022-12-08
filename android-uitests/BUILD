@@ -162,6 +162,8 @@ maven_repository(
         "@maven//:androidx.navigation.navigation-ui_2.5.2",
         "@maven//:androidx.palette.palette-ktx_1.0.0",
         "@maven//:androidx.recyclerview.recyclerview_1.2.1",
+        "@maven//:androidx.room.room-compiler_2.0.0",
+        "@maven//:androidx.room.room-runtime_2.0.0",
         "@maven//:androidx.slice.slice-builders_1.0.0",
         "@maven//:androidx.test.espresso.espresso-core_3.4.0",
         "@maven//:androidx.test.ext.junit_1.1.3",
@@ -1436,6 +1438,22 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.naveditor.CreateNavNIGraphTest"],
+    tags = COMMON_TAGS + [
+        "qa_smoke",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "RoomComponentTest",
+    size = "large",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+    ] + glob([
+        "testData/RoomSampleProject/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.archcomponents.RoomComponentTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
     ],
