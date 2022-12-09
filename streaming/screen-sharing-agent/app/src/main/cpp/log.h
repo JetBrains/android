@@ -64,4 +64,6 @@ private:
   Log() = delete;
 };
 
+#define TRACE Log::D("%s:%d", __FILE__, __LINE__)
+
 }  // namespace screensharing
