@@ -8,7 +8,6 @@ import static org.jetbrains.android.uipreview.ModuleClassLoaderUtil.INTERNAL_PAC
 
 import com.android.layoutlib.reflection.TrackingThreadLocal;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.classloading.CooperativeInterruptTransform;
@@ -162,7 +161,9 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
           // Do not allow to load kotlin standard library from the plugin class loader since it can lead to
           // a version mismatch.
           FilteringClassLoader.disallowedPrefixes(parent, PACKAGES_TO_RENAME)),
-        renderContext.getModule()), loader);
+        renderContext.getModule(),
+        loader
+      ), loader);
 
     myParentAtConstruction = parent;
     myImpl = loader;
