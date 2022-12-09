@@ -40,6 +40,7 @@ import com.android.tools.idea.compose.preview.animation.timeline.TransitionCurve
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATED_CONTENT
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_INFINITE_TRANSITION
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
@@ -379,10 +380,13 @@ class AnimationPreview(
         ComposeAnimationType.ANIMATED_CONTENT ->
           if (COMPOSE_ANIMATION_PREVIEW_ANIMATED_CONTENT.get()) SupportedAnimationManager(animation)
           else UnsupportedAnimationManager(animation, tabNames.createName(animation))
+        ComposeAnimationType.INFINITE_TRANSITION ->
+          if (COMPOSE_ANIMATION_PREVIEW_INFINITE_TRANSITION.get())
+            SupportedAnimationManager(animation)
+          else UnsupportedAnimationManager(animation, tabNames.createName(animation))
         ComposeAnimationType.ANIMATABLE,
         ComposeAnimationType.ANIMATE_CONTENT_SIZE,
         ComposeAnimationType.DECAY_ANIMATION,
-        ComposeAnimationType.INFINITE_TRANSITION,
         ComposeAnimationType.TARGET_BASED_ANIMATION,
         ComposeAnimationType.UNSUPPORTED ->
           UnsupportedAnimationManager(animation, tabNames.createName(animation))
