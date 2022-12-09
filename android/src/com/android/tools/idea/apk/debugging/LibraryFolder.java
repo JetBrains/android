@@ -34,7 +34,7 @@ public final class LibraryFolder {
     File baseDirPath = Projects.getBaseDirPath(project);
     File libFolderPath = new File(baseDirPath, getName());
     if (libFolderPath.isDirectory()) {
-      return findFileByIoFile(libFolderPath, true /* refresh if needed */);
+      return findFileByIoFile(libFolderPath, false /* refresh if needed */);
     }
     return null;
   }
