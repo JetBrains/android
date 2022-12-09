@@ -289,10 +289,6 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     return compiler;
   }
 
-  public void notifyDebug(String applicationId, IDevice device) {
-    updateEditStatus(device, DEBUGGER_ATTACHED);
-  }
-
   public Callable<?> getCallback(String applicationId, IDevice device) {
     if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit()) {
       LOGGER.info("Live Edit on device disabled via settings.");
