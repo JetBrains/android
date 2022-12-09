@@ -569,7 +569,8 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
       assertInstanceOf<LabelCard>(cards[3])
       assertInstanceOf<LabelCard>(cards[4])
       assertInstanceOf<AnimationCard>(cards[5])
-      for (i in 6 until ComposeAnimationType.values().size) assertInstanceOf<LabelCard>(cards[i])
+      assertInstanceOf<AnimationCard>(cards[6])
+      for (i in 7 until ComposeAnimationType.values().size) assertInstanceOf<LabelCard>(cards[i])
       assertEquals(11, timeline.sliderUI.elements.size)
       // Only coordination tab is opened.
       assertEquals(1, inspector.tabbedPane.tabCount)
@@ -588,7 +589,8 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
     assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[3])
     assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[4])
     assertInstanceOf<AnimationManager>(inspector.animations[5])
-    for (i in 6 until ComposeAnimationType.values().size) assertInstanceOf<
+    assertInstanceOf<AnimationManager>(inspector.animations[6])
+    for (i in 7 until ComposeAnimationType.values().size) assertInstanceOf<
       UnsupportedAnimationManager>(inspector.animations[i])
   }
   @Test
