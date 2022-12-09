@@ -36,7 +36,7 @@ private fun String.isSystemPrefix(): Boolean = startsWith("java.") ||
 
 /**
  * A [DelegatingClassLoader.Loader] that loads the classes from a given IntelliJ [Module].
- * It relies in the given [findClassVirtualFileImpl] to find the [VirtualFile] mapping to a given FQCN.
+ * It relies on the given [findClassVirtualFileImpl] to find the [VirtualFile] mapping to a given FQCN.
  */
 class ProjectSystemClassLoader(
   jarLoaderCache: Cache<String, EntryCache>,
