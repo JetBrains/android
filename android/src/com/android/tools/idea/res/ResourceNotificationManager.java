@@ -29,6 +29,7 @@ import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
 import com.android.utils.HashCodes;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -57,7 +58,6 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -349,14 +349,14 @@ public class ResourceNotificationManager {
 
   private void scheduleFinalNotification() {
     ApplicationManager.getApplication().invokeLater(() -> {
-      EnumSet<Reason> reason = myEvents;
+      ImmutableSet<Reason> reason = ImmutableSet.copyOf(myEvents);
       myEvents = EnumSet.noneOf(Reason.class);
       notifyListeners(reason);
       myEvents.clear();
     });
   }
 
-  private void notifyListeners(@NotNull EnumSet<Reason> reason) {
+  private void notifyListeners(@NotNull ImmutableSet<Reason> reason) {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     List<ModuleEventObserver> observers;
@@ -432,7 +432,7 @@ public class ResourceNotificationManager {
       }
     }
 
-    private void notifyListeners(@NotNull EnumSet<Reason> reason) {
+    private void notifyListeners(@NotNull ImmutableSet<Reason> reason) {
       if (myFacet.isDisposed()) {
         return;
       }
@@ -872,7 +872,7 @@ public class ResourceNotificationManager {
      *
      * @param reason the set of reasons that the resources have changed since the last notification
      */
-    void resourcesChanged(@NotNull Set<Reason> reason);
+    void resourcesChanged(@NotNull ImmutableSet<Reason> reason);
   }
 
   /**

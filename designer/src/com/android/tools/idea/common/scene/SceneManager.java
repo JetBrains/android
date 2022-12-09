@@ -30,6 +30,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderUtils;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -374,7 +375,7 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
   // ---- Implements ResourceNotificationManager.ResourceChangeListener ----
 
   @Override
-  public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reasons) {
+  public void resourcesChanged(@NotNull ImmutableSet<ResourceNotificationManager.Reason> reasons) {
     for (ResourceNotificationManager.Reason reason : reasons) {
       switch (reason) {
         case RESOURCE_EDIT:

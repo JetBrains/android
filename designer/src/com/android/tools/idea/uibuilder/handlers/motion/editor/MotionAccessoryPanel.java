@@ -45,6 +45,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
@@ -60,7 +61,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import javax.swing.JPanel;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -336,7 +336,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   private ResourceNotificationManager.ResourceChangeListener createResourceChangeListener() {
     return new ResourceNotificationManager.ResourceChangeListener() {
       @Override
-      public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
+      public void resourcesChanged(@NotNull ImmutableSet<ResourceNotificationManager.Reason> reason) {
         // When a motion editor item is selected: the MTags of the MotionEditor must be updated (they are now stale).
         // When a layout view is selected: Ignore this notification. The properties panel is reading from XmlTags directly there is
         // no need to update the MTags of the MotionEditor. A selection change may have side effects for the Nele property panel if

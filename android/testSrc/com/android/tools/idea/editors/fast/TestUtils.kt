@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.fast
 import com.android.tools.idea.editors.build.ProjectBuildStatusManagerForTests
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.res.ResourceNotificationManager
+import com.google.common.collect.ImmutableSet
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
@@ -49,5 +50,5 @@ internal fun ProjectBuildStatusManagerForTests.simulateProjectSystemBuild(buildM
 
 
 internal fun ProjectBuildStatusManagerForTests.simulateResourcesChange() {
-  getResourcesListenerForTest().resourcesChanged(setOf(ResourceNotificationManager.Reason.RESOURCE_EDIT))
+  getResourcesListenerForTest().resourcesChanged(ImmutableSet.of(ResourceNotificationManager.Reason.RESOURCE_EDIT))
 }

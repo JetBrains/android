@@ -79,6 +79,7 @@ import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -1757,7 +1758,7 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   @Override
-  public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reasons) {
+  public void resourcesChanged(@NotNull ImmutableSet<ResourceNotificationManager.Reason> reasons) {
     if (myListenResourceChange) {
       super.resourcesChanged(reasons);
     }

@@ -83,12 +83,12 @@ private class CodeOutOfDateTrackerImpl constructor(module: Module,
     lang.`is`(KotlinLanguage.INSTANCE) || lang.`is`(JavaLanguage.INSTANCE)
   }
 
-  private val resourceChangeListener: ((MutableSet<ResourceNotificationManager.Reason>) -> Unit) = { reasons ->
+  private val resourceChangeListener: ((Set<ResourceNotificationManager.Reason>) -> Unit) = { reasons ->
     // If this listener was triggered by any reason but a project build or a configuration change,
     // then we need to refresh the previews on the next successful build.
-    reasons.remove(ResourceNotificationManager.Reason.PROJECT_BUILD)
-    reasons.remove(ResourceNotificationManager.Reason.CONFIGURATION_CHANGED)
-    if (reasons.isNotEmpty()) invalidateSavedBuildStatus()
+    if (reasons.any { it != ResourceNotificationManager.Reason.PROJECT_BUILD && it != ResourceNotificationManager.Reason.CONFIGURATION_CHANGED }) {
+      invalidateSavedBuildStatus()
+    }
   }
 
   init {
