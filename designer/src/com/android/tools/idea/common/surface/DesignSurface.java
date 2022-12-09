@@ -1841,8 +1841,10 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       SceneView view = getFocusedSceneView();
       if (view == null) return null;
 
-      SelectionModel selectionModel = view.getSelectionModel();
-      return (DataProvider)slowId -> getSlowData(slowId, selectionModel);
+      List<NlComponent> selectedPsiComponents = getSelectedPsiComponents(dataId, view.getSelectionModel());
+      if (selectedPsiComponents == null) return null;
+
+      return (DataProvider)slowId -> getSlowData(slowId, selectedPsiComponents);
     }
     else {
       NlModel model = getModel();
@@ -1855,15 +1857,28 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   }
 
   @Nullable
-  private static Object getSlowData(@NonNls String slowId, SelectionModel selectionModel) {
+  private static List<NlComponent> getSelectedPsiComponents(@NotNull @NonNls String dataId, SelectionModel selectionModel) {
+    List<NlComponent> selectedPsiComponents = null;
+
+    if (CommonDataKeys.PSI_ELEMENT.is(dataId)) {
+      selectedPsiComponents = Collections.singletonList(selectionModel.getPrimary());
+    }
+    else if (LangDataKeys.PSI_ELEMENT_ARRAY.is(dataId)) {
+      selectedPsiComponents = new ArrayList<>(selectionModel.getSelection());
+    }
+
+    return selectedPsiComponents;
+  }
+
+  @Nullable
+  private static Object getSlowData(@NonNls String slowId, List<NlComponent> selectedPsiComponents) {
     if (CommonDataKeys.PSI_ELEMENT.is(slowId)) {
-      NlComponent primary = selectionModel.getPrimary();
-      return primary != null ? primary.getTagDeprecated() : null;
+      NlComponent selectedComponent = selectedPsiComponents.get(0);
+      return selectedComponent != null ? selectedComponent.getTagDeprecated() : null;
     }
     else if (LangDataKeys.PSI_ELEMENT_ARRAY.is(slowId)) {
-      List<NlComponent> selection = selectionModel.getSelection();
-      List<XmlTag> list = Lists.newArrayListWithCapacity(selection.size());
-      for (NlComponent component : selection) {
+      List<XmlTag> list = Lists.newArrayListWithCapacity(selectedPsiComponents.size());
+      for (NlComponent component : selectedPsiComponents) {
         list.add(component.getTagDeprecated());
       }
       return list.toArray(XmlTag.EMPTY);
