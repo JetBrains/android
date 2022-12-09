@@ -130,11 +130,12 @@ public class NavGraphSanityTest {
    *   Verify:
    *   1. Zoom and Pan controls located on the bottom right.
    *   </pre>
-   *
+   *   Note:
+   *   As Split View cannot be accessed as of today, Zoom functionality is validated only in design view.
    */
   @Test
   @RunIn(TestGroup.SANITY_BAZEL)
-  public void verifyZoomPanButtons(){
+  public void verifyZoomPanButtons() {
     editorFixture.waitForRenderToFinish();
 
     double originalScale = editorFixture.getScale();
@@ -149,9 +150,66 @@ public class NavGraphSanityTest {
     System.out.println("***** Scale after Zoom In click: " + zoomInScale);
     System.out.println("***** Scale after Zoom Out click: " + zoomOutScale);
 
+    assertThat(zoomInScale).isGreaterThan(originalScale);
+    assertThat(zoomOutScale).isLessThan(zoomInScale);
 
-    assertTrue(zoomInScale > originalScale);
-    assertTrue(zoomOutScale < zoomInScale);
+    assertTrue(editorFixture.panButtonPresent());
+  }
+
+  /**
+   * Verifies Sections display when Root navigation is selected.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: 1485c170-c1cf-477c-beee-6730637f432a
+   * TT ID: b2fd3688-1b9b-4cb6-98b7-af928019b526
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Create a new project using the Basic Views Activity template.
+   *   2. Under the navigation resource directory, open the nav_graph.xml file.
+   *   3. Click the "Design" mode button from the top-right corner (right most button).
+   *   4. Use the keyboard keys (Verify 1)
+   *      Zoom in : Ctrl + Plus or  Cmd + Plus for mac
+   *      Zoom Out: Ctrl + Minus or  Cmd + Minus for mac
+   *      Zoom to 100% : Ctrl + / or  Cmd + / for mac
+   *      Zoom to Fit : Ctrl + 0 (zero) or  Cmd + 0 (zero) for mac
+   *
+   *   Verify:
+   *   1. Zoom and Pan controls located on the bottom right.
+   *   </pre>
+   *   Note:
+   *   As Split View cannot be accessed as of today, Zoom functionality is validated only in design view.
+   */
+  @Test
+  @RunIn(TestGroup.SANITY_BAZEL)
+  public void verifyZoomShortcutKeysFunctionality() {
+    editorFixture.waitForRenderToFinish();
+    assertTrue(editorFixture.panButtonPresent());
+    double originalScale = editorFixture.getScale();
+    System.out.println("***** Original scale: " + originalScale);
+
+    editorFixture.zoomInByShortcutKeys();
+    editorFixture.zoomInByShortcutKeys(); //Doing it twice to reduce flakiness
+    double zoomInScale =  editorFixture.getScale();
+    System.out.println("***** Scale after Zoom In shortcutKeys: " + zoomInScale);
+    assertThat(zoomInScale).isGreaterThan(originalScale);
+
+    editorFixture.zoomOutByShortcutKeys();
+    double zoomOutScale = editorFixture.getScale();
+    System.out.println("***** Scale after Zoom out shortcutKeys: " + zoomOutScale);
+    assertThat(zoomOutScale).isLessThan(zoomInScale);
+
+    editorFixture.zoomto100PercentByShortcutKeys();
+    double zoomScale = editorFixture.getScale();
+    System.out.println("***** Scale after Zoom to 100% shortcutKeys: " + zoomScale);
+    assertThat(zoomInScale).isEqualTo(1.0);
+
+    editorFixture.zoomtoFitByShortcutKeys();
+    zoomScale = editorFixture.getScale();
+    System.out.println("***** Scale after Zoom to fit shortcutKeys: " + zoomScale);
+    assertThat(zoomScale).isNotEqualTo(1.0);
+
     assertTrue(editorFixture.panButtonPresent());
   }
 }
