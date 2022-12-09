@@ -322,7 +322,7 @@ class GradleConnectedAndroidTestInvoker(
         var testTypeArgs = "-Pandroid.testInstrumentationRunnerArguments"
         if (testPackageName != "") {
           testTypeArgs += ".package=$testPackageName"
-        } else if (testClassName != "") {
+        } else {
           testTypeArgs += ".class=$testClassName"
           if (testMethodName != "") {
             testTypeArgs += "#$testMethodName"

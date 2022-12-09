@@ -102,7 +102,7 @@ class JSingleDigitTextField : JBTextField(), KeyboardAwareFocusOwner {
                          attrs: AttributeSet?) {
       if (text == null) {
         // Deletion case
-        super.replace(fb, offset, length, text, attrs)
+        super.replace(fb, offset, length, null, attrs)
       }
       else {
         // Insert or replace case: Filter out any non digit character

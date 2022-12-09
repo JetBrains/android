@@ -110,7 +110,7 @@ private fun generateUniqueBenchmarkBuildTypeName(targetModule: Module): String {
   val androidBuildModel = projectBuildModel.getModuleBuildModel(targetModule)?.android() ?: return "benchmark"
 
   var benchmarkBuildTypeSuffix: Int? = null
-  var benchmarkBuildTypeName = "benchmark${benchmarkBuildTypeSuffix ?: ""}"
+  var benchmarkBuildTypeName = "benchmark"
   while (androidBuildModel.signingConfigs().any { it.name() == benchmarkBuildTypeName }) {
     benchmarkBuildTypeSuffix = benchmarkBuildTypeSuffix?.inc() ?: 1
     benchmarkBuildTypeName = "benchmark${benchmarkBuildTypeSuffix}"

@@ -36,7 +36,7 @@ class FloatConverter: ResolvingConverter<String>() {
   }
 
   override fun getErrorMessage(s: String?, context: ConvertContext?): String? {
-    return s?.let { AndroidBundle.message("cannot.resolve.float.literal.error", s) } ?: super.getErrorMessage(s, context)
+    return s?.let { AndroidBundle.message("cannot.resolve.float.literal.error", s) } ?: super.getErrorMessage(null, context)
   }
 
   override fun getVariants(context: ConvertContext?): Collection<String> = emptyList()

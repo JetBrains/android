@@ -41,7 +41,7 @@ internal class PsiEditorProvider(
   ): Pair<PropertyEditorModel, JComponent> {
     return if (editable) {
       // Use existing components for ComboBox
-      val model = ComboBoxPropertyEditorModel(property, enumSupport, editable)
+      val model = ComboBoxPropertyEditorModel(property, enumSupport, editable = true)
       val comboBox = PropertyComboBox(model, asTableCellEditor)
       comboBox.renderer = enumSupport.renderer
       Pair(model, addActionButtonBinding(model, comboBox))

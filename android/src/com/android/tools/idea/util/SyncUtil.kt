@@ -71,10 +71,10 @@ fun Project.runWhenSmartAndSynced(parentDisposable: Disposable = this,
   LOG.debug { "runWhenSmartAndSynced isDumb=${dumbService.isDumb} runOnEdt=${runOnEdt} callback=${callback}" }
   if (dumbService.isDumb) {
     if (runOnEdt) {
-      dumbService.smartInvokeLater { runWhenSmartAndSynced(parentDisposable, callback, runOnEdt, syncManager) }
+      dumbService.smartInvokeLater { runWhenSmartAndSynced(parentDisposable, callback, runOnEdt = true, syncManager) }
     }
     else {
-      dumbService.runWhenSmart { runWhenSmartAndSynced(parentDisposable, callback, runOnEdt, syncManager) }
+      dumbService.runWhenSmart { runWhenSmartAndSynced(parentDisposable, callback, runOnEdt = false, syncManager) }
     }
     return
   }
@@ -98,7 +98,7 @@ fun Project.runWhenSmartAndSynced(parentDisposable: Disposable = this,
 
   if (runOnEdt && !ApplicationManager.getApplication().isDispatchThread) {
     LOG.debug { "runWhenSmartAndSynced needs EDT callback=${callback}" }
-    UIUtil.invokeLaterIfNeeded { runWhenSmartAndSynced(parentDisposable, callback, runOnEdt, syncManager) }
+    UIUtil.invokeLaterIfNeeded { runWhenSmartAndSynced(parentDisposable, callback, runOnEdt = true, syncManager) }
     return
   }
 
