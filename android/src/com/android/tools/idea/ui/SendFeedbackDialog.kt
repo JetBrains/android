@@ -15,14 +15,21 @@
  */
 package com.android.tools.idea.ui
 
+import com.android.tools.idea.diagnostics.report.DiagnosticsSummaryFileProvider
 import com.android.tools.idea.diagnostics.report.FileInfo
+import com.android.tools.idea.util.ZipData
+import com.android.tools.idea.util.zipFiles
+import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.application.ex.ApplicationInfoEx
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
-import com.intellij.ui.components.JBCheckBox
+import com.intellij.ui.CheckboxTree
+import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.treeStructure.Tree
+import com.intellij.util.io.URLUtil
 import java.awt.Color
 import java.awt.Desktop
 import java.awt.Dimension
@@ -32,9 +39,10 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.Insets
 import java.awt.RenderingHints
-import java.nio.file.Path
-import java.util.Arrays
-import java.util.Collections
+import java.awt.Toolkit
+import java.awt.datatransfer.StringSelection
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import javax.swing.Action
 import javax.swing.JButton
 import javax.swing.JComponent
@@ -42,44 +50,44 @@ import javax.swing.JEditorPane
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JScrollPane
+import javax.swing.JTree
 import javax.swing.event.HyperlinkEvent
 import javax.swing.tree.DefaultMutableTreeNode
-import javax.swing.tree.MutableTreeNode
-import javax.swing.tree.TreeNode
 
 private const val REPRO_TEXT = "Please enter the series of steps necessary to reproduce this bug."
 private const val EXPECTED_TEXT = "What was the expected behavior?"
 private const val ACTUAL_TEXT = "What was the actual behavior?"
-private const val CONSENT_TEXT = "We may email your for more information or updates."
 private const val PRIVACY_TEXT = "Information entered in the bug description will be publicly visible. To learn more about how Google uses your data, see <a href=\"http://www.google.com/policies/privacy/\">Google's Privacy Policy</a>."
-private const val DATA_TEXT = "<a href=\"http://www.google.com/policies/privacy/\">See what information we collect.</a>"
+private const val UNKNOWN_VERSION = "Unknown"
 
-class SendFeedbackDialog(project: Project?, files: List<FileInfo>) : DialogWrapper(project) {
+private const val URL = "https://issuetracker.google.com/issues/new?component=192708&template=840533&foundIn=\$STUDIO_VERSION&format=MARKDOWN&title=\$TITLE&description=\$DESCR"
+
+class SendFeedbackDialog(private val project: Project?, files: List<FileInfo>) : DialogWrapper(project) {
   private val titleText = JBTextField().apply {
     name = "titleText"
-    preferredSize = Dimension(800, 40)
+    preferredSize = Dimension(600, 40)
   }
 
   private val reproText = PlaceholderTextArea(REPRO_TEXT).apply {
     name = "reproText"
-    preferredSize = Dimension(800, 200)
+    preferredSize = Dimension(600, 150)
   }
 
   private val expectedText = PlaceholderTextArea(EXPECTED_TEXT).apply {
     name = "expectedText"
-    preferredSize = Dimension(800, 200)
+    preferredSize = Dimension(600, 150)
   }
 
   private val actualText = PlaceholderTextArea(ACTUAL_TEXT).apply {
     name = "actualText"
-    preferredSize = Dimension(800, 200)
+    preferredSize = Dimension(600, 150)
   }
 
-  private val consentChkbox = JBCheckBox().apply {
-    text = CONSENT_TEXT
-  }
+  private val fileTree: Tree
 
   private val grid = JPanel(GridBagLayout())
+
+  private val zipFilePath: String
 
   val issueTitle: String
     get() = titleText.text
@@ -96,6 +104,10 @@ class SendFeedbackDialog(project: Project?, files: List<FileInfo>) : DialogWrapp
     isResizable = false
     isModal = true
     myOKAction.putValue(Action.NAME, "Submit")
+
+    val datetime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))
+    val dir = DiagnosticsSummaryFileProvider.getDiagnosticsDirectoryPath(PathManager.getLogPath())
+    zipFilePath = dir.resolve("DiagnosticsReport${datetime}.zip").toString()
 
     val titleLabel = JLabel().apply {
       text = "Title:"
@@ -115,7 +127,7 @@ class SendFeedbackDialog(project: Project?, files: List<FileInfo>) : DialogWrapp
         text = "Repro steps:"
       }
 
-      constraints.gridy = 1
+      constraints.gridy++
 
       add(reproLabel, constraints)
 
@@ -123,7 +135,7 @@ class SendFeedbackDialog(project: Project?, files: List<FileInfo>) : DialogWrapp
         text = "<html>Actual<br/>behavior:</html>"
       }
 
-      constraints.gridy = 2
+      constraints.gridy++
 
       add(actualLabel, constraints)
 
@@ -131,87 +143,56 @@ class SendFeedbackDialog(project: Project?, files: List<FileInfo>) : DialogWrapp
         text = "<html>Expected<br/>behavior:</html>"
       }
 
-      constraints.gridy = 3
+      constraints.gridy++
 
       add(expectedLabel, constraints)
 
       val filesLabel = JLabel().apply {
         text = "Attached Files:"
       }
-      constraints.gridy = 4
+      constraints.gridy++
 
       add(filesLabel, constraints)
 
       constraints.apply {
         gridx = 1
         gridy = 0
-        gridwidth = 3
       }
 
       add(titleText, constraints)
 
-      constraints.apply {
-        gridy = 1
-      }
+      constraints.gridy++
 
       add(reproText, constraints)
 
-      constraints.apply {
-        gridy = 2
-      }
+      constraints.gridy++
 
       add(actualText, constraints)
 
-      constraints.apply {
-        gridy = 3
-      }
+      constraints.gridy++
 
       add(expectedText, constraints)
 
-      constraints.apply {
-        gridx = 1
-        gridy = 4
-        gridwidth = 2
-        gridheight = 2
+      constraints.gridy++
+
+      fileTree = buildTree(files)
+
+      val scrollPane = JScrollPane(fileTree).apply {
+        preferredSize = Dimension(600, 200)
       }
 
-      val scrollPane = JScrollPane(buildTree(files)).apply {
-        preferredSize = Dimension(300, 200)
+      add(scrollPane, constraints)
+
+      val copyButton = JButton().apply {
+        text = "Copy Path"
+        addActionListener {
+          Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(zipFilePath), null)
+        }
       }
 
-      add(JScrollPane(buildTree(files)), constraints)
+      constraints.gridy++
 
-      val addButton = JButton().apply {
-        text = "Add"
-      }
-
-      constraints.apply {
-        gridwidth = 2
-        gridheight = 1
-        gridx = 3
-        gridy = 4
-      }
-
-      add(addButton, constraints)
-
-      val removeButton = JButton().apply {
-        text = "Remove"
-      }
-
-      constraints.apply {
-        gridy = 5
-      }
-
-      add(removeButton, constraints)
-
-      constraints.apply {
-        gridwidth = 1
-        gridheight = 1
-        gridx = 1
-        gridy = 6
-      }
-
-      add(consentChkbox, constraints)
+      add(copyButton, constraints)
 
       val privacy = JEditorPane("text/html", PRIVACY_TEXT).apply {
         isEditable = false
@@ -228,32 +209,9 @@ class SendFeedbackDialog(project: Project?, files: List<FileInfo>) : DialogWrapp
         }
       }
 
-      constraints.apply {
-        gridy = 7
-      }
+      constraints.gridy++
 
       add(privacy, constraints)
-
-      val data = JEditorPane("text/html", DATA_TEXT).apply {
-        isEditable = false
-        background = Color(0, 0, 0, 0)
-        preferredSize = Dimension(400, 20)
-        putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true)
-
-        addHyperlinkListener { e ->
-          if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-            if (Desktop.isDesktopSupported()) {
-              Desktop.getDesktop().browse(e.url.toURI());
-            }
-          }
-        }
-      }
-
-      constraints.apply {
-        gridy = 8
-      }
-
-      add(data, constraints)
     }
 
     init()
@@ -274,60 +232,103 @@ class SendFeedbackDialog(project: Project?, files: List<FileInfo>) : DialogWrapp
     return null
   }
 
-  private fun buildTree(list: List<FileInfo>) : Tree {
-    val root = FileNode("Attached Files")
+  override fun doOKAction() {
+    val list = buildList()
+    val zipInfo = list.map { ZipData(it.source.toString(), it.destination.toString()) }.toTypedArray()
+    zipFiles(zipInfo, zipFilePath)
 
-    for(file in list) {
-      addFile(root, file)
+    val url = URL.replace("\$TITLE", URLUtil.encodeURIComponent(this.issueTitle))
+      .replace("\$STUDIO_VERSION", getVersion(ApplicationInfoEx.getInstanceEx()))
+
+    com.intellij.ide.actions.SendFeedbackAction.submit(project, url, buildDescription())
+  }
+
+  private fun buildTree(list: List<FileInfo>): Tree {
+    val root = FileTreeNode("Attached Files")
+
+    for (file in list.sortedBy { it.destination.toString() }) {
+      addFilesToTree(root, file)
     }
 
-    return Tree(root).apply {
+    return CheckboxTree(FileTreeRenderer(), root).apply {
       preferredSize = Dimension(300, 200)
     }
   }
 
-  private fun addFile(root: FileNode, file: FileInfo) {
+  private fun addFilesToTree(root: DefaultMutableTreeNode, file: FileInfo) {
     val tokens = file.destination.toString().split('/')
     var current = root
     for (i in 0..tokens.size - 2) {
-      current = current.addNode(tokens[i], null)
+      val token = tokens[i]
+      if (current.childCount > 0) {
+        val lastChild = current.lastChild as DefaultMutableTreeNode
+        if (lastChild.userObject as String == token) {
+          current = lastChild
+          continue
+        }
+      }
+      val newNode = FileTreeNode(token)
+      current.add(newNode)
+      current = newNode
     }
-    current.addNode(tokens[tokens.size - 1], file.source)
+
+    current.add(FileTreeNode(tokens.last(), file))
+  }
+  private fun buildList(): List<FileInfo> {
+    val root = fileTree.model.root as FileTreeNode
+    val list = mutableListOf<FileInfo>()
+    addFilesToList(root, list)
+    return list
   }
 
-  private class FileNode(name: String, path: Path? = null) : DefaultMutableTreeNode(name, path == null) {
-    fun addNode(name: String, path: Path?) : FileNode {
-      val node = FileNode(name, path)
-      if (this.children == null) {
-        this.add(node)
-        return node
-      }
+  private fun addFilesToList(node: FileTreeNode, list: MutableList<FileInfo>) {
+    if (node.isChecked) {
+      node.fileInfo?.let { list.add(it) }
+    }
 
-      val index = Collections.binarySearch(this.children, node, NodeComparator())
-      if (index >= 0) {
-        return this.children.get(index) as FileNode
-      }
-
-      this.insert(node, -index - 1)
-      return node
+    for (child in node.children()) {
+      addFilesToList(child as FileTreeNode, list)
     }
   }
 
-  private class NodeComparator : Comparator<TreeNode> {
-    override fun compare(o1: TreeNode?, o2: TreeNode?): Int {
-      val node1 = o1 as FileNode
-      val node2 = o2 as FileNode
+  private fun getVersion(applicationInfo: ApplicationInfoEx): String {
+    val major = applicationInfo.majorVersion ?: return UNKNOWN_VERSION
+    val minor = applicationInfo.minorVersion ?: return UNKNOWN_VERSION
+    val micro = applicationInfo.microVersion ?: return UNKNOWN_VERSION
+    val patch = applicationInfo.patchVersion ?: return UNKNOWN_VERSION
+    return java.lang.String.join(".", major, minor, micro, patch)
+  }
 
-      if (node1.allowsChildren != node2.allowsChildren) {
-        return node1.allowsChildren.compareTo(node2.allowsChildren)
+  private fun buildDescription(): String {
+    val blocks = mutableListOf(buildBlock("Repro Steps", reproSteps), buildBlock("Actual Behavior", actual))
+    if (expected.isNotEmpty()) {
+      blocks.add(buildBlock("Expected Behavior", expected))
+    }
+
+    return blocks.joinToString("\n\n", "```\n", "\n```")
+  }
+
+  private fun buildBlock(title: String, content: String): String {
+    return "$title:\n$content"
+  }
+
+  class FileTreeRenderer : CheckboxTree.CheckboxTreeCellRenderer() {
+    override fun customizeRenderer(tree: JTree?,
+                                   value: Any?,
+                                   selected: Boolean,
+                                   expanded: Boolean,
+                                   leaf: Boolean,
+                                   row: Int,
+                                   hasFocus: Boolean) {
+      (value as? DefaultMutableTreeNode)?.let {
+        textRenderer.append(it.userObject as String)
       }
 
-      val name1 = node1.userObject as String
-      val name2 = node2.userObject as String
-
-      return name1.compareTo(name2)
+      super.customizeRenderer(tree, value, selected, expanded, leaf, row, hasFocus)
     }
   }
+
+  class FileTreeNode(userObject: String, val fileInfo: FileInfo? = null) : CheckedTreeNode(userObject)
 }
 
 private class PlaceholderTextArea(private val placeHolderText: String?) : JBTextArea() {
