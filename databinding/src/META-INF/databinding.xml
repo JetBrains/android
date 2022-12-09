@@ -29,7 +29,11 @@
     <automaticRenamerFactory implementation="com.android.tools.idea.databinding.renamer.DataBindingRenamerFactory"/>
     <moduleService serviceImplementation="com.android.tools.idea.databinding.module.LayoutBindingModuleCache" />
     <xml.elementDescriptorProvider implementation="com.android.tools.idea.databinding.xml.DataBindingDomElementDescriptorProvider" order="first"/>
-    <refactoring.safeDeleteProcessor implementation="com.android.tools.idea.databinding.safedelete.LayoutBindingSafeDeleteProcessor" order="before android_resource_file"/>
+
+    <!-- b/261154541 and https://youtrack.jetbrains.com/issue/CPP-31462: the CMake processor
+         "handles" all PsiFiles (even those it knows nothing about), so positioning this before it
+         allows it a chance to run. -->
+    <refactoring.safeDeleteProcessor implementation="com.android.tools.idea.databinding.safedelete.LayoutBindingSafeDeleteProcessor" order="before android_resource_file, before cmake_safe_delete_processor"/>
 
     <projectService serviceInterface="com.android.tools.idea.databinding.analytics.api.DataBindingTracker"
                     serviceImplementation="com.android.tools.idea.databinding.analytics.LayoutBindingTracker"
