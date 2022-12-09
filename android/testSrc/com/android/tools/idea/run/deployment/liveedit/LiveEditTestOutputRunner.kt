@@ -23,7 +23,7 @@ import java.net.URLClassLoader
  *
  * Support classes will also be loaded in the SAME classloader.
  */
-internal fun loadClass(output: AndroidLiveEditCodeGenerator.CodeGeneratorOutput, target : String = output.className) : Class<*> {
+internal fun loadClass(output: LiveEditCompilerOutput, target : String = output.className) : Class<*> {
   // We use a temp classloader so we can have the same class name across different classes without conflict.
   val tempLoader = object : URLClassLoader(arrayOf(URL("jar:file:$composeRuntimePath!/"))) {
     override fun findClass(name: String): Class<*>? {

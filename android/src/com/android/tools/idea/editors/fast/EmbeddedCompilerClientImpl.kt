@@ -18,7 +18,7 @@ package com.android.tools.idea.editors.fast
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
-import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditLanguageVersionSettings
+import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerLanguageSettings
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.analyzeSingleDepthInlinedFunctions
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
@@ -184,7 +184,7 @@ class EmbeddedCompilerClientImpl private constructor(
    * The Live Edit inline candidates cache. The cache can only be accessed with the Compile lock (see [runWithCompileLock]).
    * The cache is automatically invalidated on build.
    */
-  private val inlineCandidateCache = LiveEditService.getInstance(project).inlineCandidateCache
+  private val inlineCandidateCache = LiveEditService.getInstance(project).inlineCandidateCache()
 
   /**
    * Compiles the given list of inputs using [module] as context. The output will be generated in the given [outputDirectory] and progress
@@ -211,7 +211,7 @@ class EmbeddedCompilerClientImpl private constructor(
         log.debug("backCodeGen")
         try {
           backendCodeGen(project, analysisResult, inputs, module, inlineCandidates,
-                         AndroidLiveEditLanguageVersionSettings(languageVersionSettings))
+                         LiveEditCompilerLanguageSettings(languageVersionSettings))
         }
         catch (e: LiveEditUpdateException) {
           if (e.isCompilationError() || e.cause.isCompilationError()) {
@@ -238,7 +238,7 @@ class EmbeddedCompilerClientImpl private constructor(
           // We will need to start using the new analysis for code gen.
           log.debug("backCodeGen retry")
           backendCodeGen(project, newAnalysisResult, inputFilesWithInlines, module, inlineCandidates,
-                         AndroidLiveEditLanguageVersionSettings(languageVersionSettings))
+                         LiveEditCompilerLanguageSettings(languageVersionSettings))
         }
       }
     }

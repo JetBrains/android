@@ -31,7 +31,9 @@ import com.android.tools.idea.editors.fast.toFileNameSet
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditCodeGenerator
+import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiler
+import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerInput
+import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerOutput
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.replaceText
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -227,7 +229,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
 
     val deviceCompilations = AtomicLong(0)
     val deviceThread = thread {
-      val output = mutableListOf<AndroidLiveEditCodeGenerator.CodeGeneratorOutput>()
+      val output = mutableListOf<LiveEditCompilerOutput>()
       val function = runReadAction {
         psiMainFile.collectDescendantsOfType<KtNamedFunction>().first {
           it.name?.contains("TwoElementsPreview") ?: false
@@ -236,11 +238,8 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
 
       startCountDownLatch.await()
       while (compile) {
-        AndroidLiveEditCodeGenerator(projectRule.project)
-          .compile(
-            listOf(AndroidLiveEditCodeGenerator.CodeGeneratorInput(psiMainFile, function)),
-            output
-          )
+        LiveEditCompiler(projectRule.project)
+          .compile(listOf(LiveEditCompilerInput(psiMainFile, function)), output)
         deviceCompilations.incrementAndGet()
       }
     }

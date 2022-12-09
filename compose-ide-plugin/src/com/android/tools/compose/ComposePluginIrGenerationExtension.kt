@@ -18,12 +18,10 @@ package com.android.tools.compose
 
 import androidx.compose.compiler.plugins.kotlin.ComposeIrGenerationExtension
 import androidx.compose.compiler.plugins.kotlin.IncompatibleComposeRuntimeVersionException
-import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditCodeGenerator
 import com.android.tools.idea.run.deployment.liveedit.CompileScope
 import com.intellij.openapi.progress.ProcessCanceledException
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
-import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 
 private val liveEditPackageName = "${CompileScope::class.java.packageName}."

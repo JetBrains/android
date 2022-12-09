@@ -68,8 +68,6 @@ class LiveEditService constructor(val project: Project,
                                   val deviceConnection: DeviceConnection,
                                   var executor: Executor) : Disposable {
 
-  val inlineCandidateCache = SourceInlineCandidateCache()
-
   // We quickly hand off the processing of PSI events to our own executor, since PSI events are likely
   // dispatched from the UI thread, and we do not want to block it.
   constructor(project: Project) : this(project,
@@ -111,8 +109,12 @@ class LiveEditService constructor(val project: Project,
     }
   }
 
+  fun inlineCandidateCache() : SourceInlineCandidateCache {
+    return deployMonitor.compiler.inlineCandidateCache
+  }
+
+  // TODO: Find out why we can't just recreate deployMonitor
   fun resetState() {
-    inlineCandidateCache.clear()
     deployMonitor.resetState()
   }
 

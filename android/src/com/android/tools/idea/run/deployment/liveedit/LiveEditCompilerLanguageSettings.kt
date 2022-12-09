@@ -30,7 +30,7 @@ import org.jetbrains.kotlin.config.LanguageVersionSettings
  * for autocomplete / resolution purpose. Should it be inlined in the currently editing class, the application will get
  * invalid index value.
  */
-class AndroidLiveEditLanguageVersionSettings (val delegate : LanguageVersionSettings) : LanguageVersionSettings {
+class LiveEditCompilerLanguageSettings (val delegate : LanguageVersionSettings) : LanguageVersionSettings {
   override val apiVersion: ApiVersion
     get() = delegate.apiVersion
   override val languageVersion: LanguageVersion

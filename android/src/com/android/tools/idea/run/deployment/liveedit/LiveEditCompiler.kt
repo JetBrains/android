@@ -17,7 +17,6 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.annotations.Trace
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
-import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonPrivateInlineFunctionFailure
@@ -39,7 +38,6 @@ import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedDeclarationUtil
@@ -50,21 +48,10 @@ import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
-class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCache: SourceInlineCandidateCache? = null) {
-  data class CodeGeneratorInput(val file: PsiFile, var element: KtElement, var parentGroups: List<KtFunction>? = null)
+class LiveEditCompiler(val project: Project) {
 
-  enum class FunctionType {
-    NONE, KOTLIN, COMPOSABLE
-  }
-
-  data class CodeGeneratorOutput(val className: String,
-                                 val methodName: String,
-                                 val methodDesc: String,
-                                 val classData: ByteArray,
-                                 val functionType: FunctionType,
-                                 val hasGroupId: Boolean,
-                                 val groupId: Int,
-                                 val supportClasses: Map<String, ByteArray>)
+  // Cache of fully-qualified class name to inlineable bytecode on disk or in memory
+  var inlineCandidateCache = SourceInlineCandidateCache()
 
   /**
    * Compile a given set of MethodReferences to Java .class files and populates the output list with the compiled code.
@@ -75,12 +62,12 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
    * LiveEditException detailing the failure.
    */
   @Trace
-  fun compile(inputs: List<CodeGeneratorInput>, outputs: MutableList<CodeGeneratorOutput>, giveWritePriority : Boolean = true) : Boolean {
+  fun compile(inputs: List<LiveEditCompilerInput>, outputs: MutableList<LiveEditCompilerOutput>, giveWritePriority : Boolean = true) : Boolean {
     outputs.clear()
 
     // Bundle changes per-file to prevent wasted recompilation of the same file. The most common
     // scenario is multiple pending changes in the same file, so this is somewhat important.
-    val changedFiles = HashMultimap.create<KtFile, CodeGeneratorInput>()
+    val changedFiles = HashMultimap.create<KtFile, LiveEditCompilerInput>()
     for (input in inputs) {
       if (input.file is KtFile) {
         changedFiles.put(input.file, input)
@@ -113,7 +100,7 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
     }
   }
 
-  private fun compileKtFile(file: KtFile, inputs: Collection<CodeGeneratorInput>) : List<CodeGeneratorOutput> {
+  private fun compileKtFile(file: KtFile, inputs: Collection<LiveEditCompilerInput>) : List<LiveEditCompilerOutput> {
     val tracker = PerformanceTracker()
     var inputFiles = listOf(file)
 
@@ -128,9 +115,7 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
 
       ProgressManager.checkCanceled()
       val analysisResult = tracker.record({ analyze(inputFiles, resolution) }, "analysis")
-      val inlineCandidates = inlineCandidateCache?.let {
-        analyzeSingleDepthInlinedFunctions(file, analysisResult.bindingContext, it)
-      }
+      val inlineCandidates = analyzeSingleDepthInlinedFunctions(file, analysisResult.bindingContext, inlineCandidateCache)
 
       // 2) Invoke the backend with the inputs and the binding context computed from step 1.
       //    This is the one of the most time-consuming step with 80 to 500ms turnaround, depending on
@@ -145,7 +130,7 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
                            inputFiles,
                            inputFiles.first().module!!,
                            inlineCandidates,
-                           AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))
+                           LiveEditCompilerLanguageSettings(file.languageVersionSettings))
           },
           "codegen")
       } catch (e : LiveEditUpdateException) {
@@ -169,7 +154,7 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
                              inputFiles,
                              inputFiles.first().module!!,
                              inlineCandidates,
-                             AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))
+                             LiveEditCompilerLanguageSettings(file.languageVersionSettings))
             },
             "codegen_inline")
         }
@@ -192,12 +177,12 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
   /**
    * Pick out what classes we need from the generated list of .class files.
    */
-  private fun getGeneratedCode(input: CodeGeneratorInput, generationState: GenerationState): CodeGeneratorOutput {
+  private fun getGeneratedCode(input: LiveEditCompilerInput, generationState: GenerationState): LiveEditCompilerOutput {
     val compilerOutput = generationState.factory.asList()
     val bindingContext = generationState.bindingContext
 
     if (compilerOutput.isEmpty()) {
-      throw LiveEditUpdateException.internalError("No compiler output.", input.file)
+      throw internalError("No compiler output.", input.file)
     }
 
     if (input.element.containingFile == null) {
@@ -228,7 +213,11 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
         val desc = bindingContext[BindingContext.CLASS, targetClass]!!
         val internalClassName = getInternalClassName(desc.containingPackage(), targetClass.fqName.toString(), input.file)
         val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, input.file as KtFile, compilerOutput)
-        return CodeGeneratorOutput(internalClassName, "", "", primaryClass, FunctionType.NONE, false,0, supportClasses)
+        return LiveEditCompilerOutput.Builder()
+          .className(internalClassName)
+          .classData(primaryClass)
+          .supportClasses(supportClasses)
+          .build()
       }
 
       // When the edit was at top level
@@ -236,14 +225,18 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
         val targetFile = input.element as KtFile
         val internalClassName = getInternalClassName(targetFile.packageFqName, targetFile.javaFileFacadeFqName.toString(), input.file)
         val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, input.file as KtFile, compilerOutput)
-        return CodeGeneratorOutput(internalClassName, "", "", primaryClass, FunctionType.NONE, false,0, supportClasses)
+        return LiveEditCompilerOutput.Builder()
+          .className(internalClassName)
+          .classData(primaryClass)
+          .supportClasses(supportClasses)
+          .build()
       }
     }
 
-    throw LiveEditUpdateException.compilationError("Event was generated for unsupported kotlin element")
+    throw compilationError("Event was generated for unsupported kotlin element")
   }
 
-  private fun getGeneratedMethodCode(compilerOutput: List<OutputFile>, targetFunction: KtFunction, groupId: Int?, generationState: GenerationState) : CodeGeneratorOutput {
+  private fun getGeneratedMethodCode(compilerOutput: List<OutputFile>, targetFunction: KtFunction, groupId: Int?, generationState: GenerationState) : LiveEditCompilerOutput {
     val desc = generationState.bindingContext[BindingContext.FUNCTION, targetFunction]!!
     val methodSignature = remapFunctionSignatureIfNeeded(desc, generationState.typeMapper)
     val isCompose = desc.hasComposableAnnotation()
@@ -256,7 +249,7 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
         //
         // We would not be able to find a named function with the current implementation. What we need to do is figure out the name
         // of the function in the .class that is changed. This can only be done with something like a class differ.
-        throw LiveEditUpdateException.internalError("Unsupported edit of unnamed function", elem.containingFile);
+        throw internalError("Unsupported edit of unnamed function", elem.containingFile);
       }
       elem = elem.parent
     }
@@ -271,20 +264,25 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
     }
 
     if (className.isEmpty() || methodSignature.isEmpty()) {
-      throw LiveEditUpdateException.internalError("Empty class name / method signature.", function.containingFile)
+      throw internalError("Empty class name / method signature.", function.containingFile)
     }
 
     val internalClassName = getInternalClassName(desc.containingPackage(), className, function.containingFile)
     val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, elem.containingFile as KtFile, compilerOutput)
 
     val idx = methodSignature.indexOf('(')
-    val methodName = methodSignature.substring(0, idx);
-    val methodDesc = methodSignature.substring(idx)
-    val functionType = if (isCompose) FunctionType.COMPOSABLE else FunctionType.KOTLIN
-    val result = CodeGeneratorOutput(
-      internalClassName, methodName, methodDesc, primaryClass, functionType, groupId != null, groupId?: 0, supportClasses)
+
+    val result = LiveEditCompilerOutput.Builder()
+      .className(internalClassName)
+      .methodName(methodSignature.substring(0, idx))
+      .methodDesc(methodSignature.substring(idx))
+      .classData(primaryClass)
+      .functionType(if (isCompose) LiveEditFunctionType.COMPOSABLE else LiveEditFunctionType.KOTLIN)
+      .supportClasses(supportClasses)
+    groupId?.let {result.groupId(groupId)}
+
     checkNonPrivateInline(desc, function.containingFile)
-    return result;
+    return result.build();
   }
 
   private inline fun checkNonPrivateInline(desc: SimpleFunctionDescriptor, file: PsiFile) {
@@ -293,6 +291,7 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
     }
   }
 
+  // TODO (next CL): This should return a compilerOutput that contains all the results.
   private fun getCompiledClasses(internalClassName: String, input: KtFile, compilerOutput: List<OutputFile>) : Pair<ByteArray, Map<String, ByteArray>> {
     var primaryClass = ByteArray(0)
     val supportClasses = mutableMapOf<String, ByteArray>()
@@ -315,10 +314,9 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
       if (c.relativePath == "$internalClassName.class") {
         primaryClass = c.asByteArray()
         println("   Primary class: ${c.relativePath}")
-        inlineCandidateCache?.let { cache ->
-          cache.computeIfAbsent(internalClassName) {
+        inlineCandidateCache.computeIfAbsent(internalClassName) {
           SourceInlineCandidate(input, it)
-        }.setByteCode(primaryClass)}
+        }.setByteCode(primaryClass)
         continue
       }
 
@@ -328,10 +326,9 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
         println("   Proxiable class: ${c.relativePath}")
         val name = c.relativePath.substringBefore(".class")
         supportClasses[name] = c.asByteArray()
-        inlineCandidateCache?.let { cache ->
-          cache.computeIfAbsent(name) {
+        inlineCandidateCache.computeIfAbsent(name) {
           SourceInlineCandidate(input, it)
-        }.setByteCode(supportClasses[name]!!)}
+        }.setByteCode(supportClasses[name]!!)
         continue
       }
 
@@ -389,9 +386,13 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
       packagePrefix = "$packageName."
     }
     if (!className.contains(packagePrefix)) {
-      throw LiveEditUpdateException.internalError("Expected package prefix '$packagePrefix' not found in class name '$className'")
+      throw internalError("Expected package prefix '$packagePrefix' not found in class name '$className'")
     }
     val classSuffix = className.substringAfter(packagePrefix)
     return packagePrefix.replace(".", "/") + classSuffix.replace(".", "$")
+  }
+
+  fun resetState() {
+    inlineCandidateCache.clear()
   }
 }

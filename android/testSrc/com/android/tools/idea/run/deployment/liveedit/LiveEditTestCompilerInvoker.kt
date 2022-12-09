@@ -23,23 +23,23 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
 internal fun compile(file: PsiFile?, functionName: String, useInliner: Boolean = false) :
-  List<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> {
+  List<LiveEditCompilerOutput> {
   return compile(file!!, findFunction(file, functionName), useInliner)
 }
 
 internal fun compile(file: PsiFile, function: KtNamedFunction, useInliner: Boolean = false) :
-  List<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> {
+  List<LiveEditCompilerOutput> {
   LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis = useInliner
   LiveEditAdvancedConfiguration.getInstance().usePartialRecompose = true
-  val output = mutableListOf<AndroidLiveEditCodeGenerator.CodeGeneratorOutput>()
+  val output = mutableListOf<LiveEditCompilerOutput>()
 
   // The real Live Edit / Fast Preview has a retry system should the compilation got cancelled.
   // We are going to use a simplified version of that here and continue to try until
   // compilation succeeds.
   var finished = false
   while (!finished) {
-    finished = AndroidLiveEditCodeGenerator(file.project).compile(
-      listOf(AndroidLiveEditCodeGenerator.CodeGeneratorInput(file, function)), output)
+    finished = LiveEditCompiler(file.project).compile(
+      listOf(LiveEditCompilerInput(file, function)), output)
   }
   return output
 }
@@ -53,7 +53,7 @@ internal fun findFunction(file: PsiFile?, name: String): KtNamedFunction {
   }
 }
 
-internal fun List<AndroidLiveEditCodeGenerator.CodeGeneratorOutput>.singleOutput() : AndroidLiveEditCodeGenerator.CodeGeneratorOutput{
+internal fun List<LiveEditCompilerOutput>.singleOutput() : LiveEditCompilerOutput{
   Assert.assertEquals(1, this.size)
   return this[0]
 }

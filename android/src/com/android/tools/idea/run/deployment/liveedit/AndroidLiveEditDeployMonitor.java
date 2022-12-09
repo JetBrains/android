@@ -58,7 +58,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -147,6 +146,7 @@ import org.jetbrains.annotations.NotNull;
  * ensure that the same file is not re-compiled multiple times.
  */
 public class AndroidLiveEditDeployMonitor implements Disposable {
+
   // TODO: The logging is overly excessive for now given we have no UI to provide feedback to the user
   // when things go wrong. This will be changed in the final product.
   private static final LogWrapper LOGGER = new LogWrapper(Logger.getInstance(AndroidLiveEditDeployMonitor.class));
@@ -169,8 +169,6 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
 
   private final @NotNull Project project;
 
-  private final @NotNull LinkedHashMap<String, SourceInlineCandidate> sourceInlineCandidateCache;
-
   private @Nullable String applicationId;
 
   private final ScheduledExecutorService methodChangesExecutor = Executors.newSingleThreadScheduledExecutor();
@@ -188,9 +186,12 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
 
   private AtomicReference<Long> gradleTimeSync = new AtomicReference<>(Integer.toUnsignedLong(0));
 
+  private final LiveEditCompiler compiler;
+
   public void resetState() {
     bufferedEvents.clear();
     filesWithCompilationErrors.clear();
+    compiler.resetState();
   }
 
   @NotNull
@@ -266,7 +267,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
 
   public AndroidLiveEditDeployMonitor(@NotNull LiveEditService liveEditService, @NotNull Project project) {
     this.project = project;
-    this.sourceInlineCandidateCache = liveEditService.getInlineCandidateCache();
+    this.compiler = new LiveEditCompiler(project);
     gradleTimeSync.set(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp());
     Disposer.register(liveEditService, this);
 
@@ -282,6 +283,14 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     deviceStatusManager.clear();
     deviceWatcher.clearListeners();
     methodChangesExecutor.shutdownNow();
+  }
+
+  public LiveEditCompiler getCompiler() {
+    return compiler;
+  }
+
+  public void notifyDebug(String applicationId, IDevice device) {
+    updateEditStatus(device, DEBUGGER_ATTACHED);
   }
 
   public Callable<?> getCallback(String applicationId, IDevice device) {
@@ -370,15 +379,15 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     long start = System.nanoTime();
     long compileFinish, pushFinish;
 
-    ArrayList<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> compiled = new ArrayList<>();
+    ArrayList<LiveEditCompilerOutput> compiled = new ArrayList<>();
 
     try {
       PrebuildChecks(project, changes);
-      List<AndroidLiveEditCodeGenerator.CodeGeneratorInput> inputs = changes.stream().map(
+      List<LiveEditCompilerInput> inputs = changes.stream().map(
         change ->
-          new AndroidLiveEditCodeGenerator.CodeGeneratorInput(change.getFile(), change.getOrigin(), change.getParentGroup()))
+          new LiveEditCompilerInput(change.getFile(), change.getOrigin(), change.getParentGroup()))
         .collect(Collectors.toList());
-      if (!new AndroidLiveEditCodeGenerator(project, sourceInlineCandidateCache).compile(inputs, compiled, !LiveEditService.isLeTriggerManual())) {
+      if (!compiler.compile(inputs, compiled, !LiveEditService.isLeTriggerManual())) {
         return false;
       }
       // Remove files successfully compiled from the error set.
@@ -396,7 +405,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
 
     // Ignore FunctionType.NONE, since those are changes to non-function elements. Counting any change to a non-function as a non-compose
     // change might make the data useless, as a lot of "noisy" class-level/file-level PSI events are generated along with function edits.
-    event.setHasNonCompose(compiled.stream().anyMatch(c -> c.getFunctionType() == AndroidLiveEditCodeGenerator.FunctionType.KOTLIN));
+    event.setHasNonCompose(compiled.stream().anyMatch(c -> c.getFunctionType() == LiveEditFunctionType.KOTLIN));
 
     compileFinish = System.nanoTime();
     event.setCompileDurationMs(TimeUnit.NANOSECONDS.toMillis(compileFinish - start));
@@ -539,7 +548,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
   }
 
   private List<LiveUpdateDeployer.UpdateLiveEditError> pushUpdatesToDevice(
-      String applicationId, IDevice device, List<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> updates) {
+      String applicationId, IDevice device, List<LiveEditCompilerOutput> updates) {
     LiveUpdateDeployer deployer = new LiveUpdateDeployer(LOGGER);
     Installer installer = newInstaller(device);
     AdbClient adb = new AdbClient(device, LOGGER);
@@ -548,10 +557,10 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     //  generated from a single keystroke, leading to multiple LEs and multiple recomposes.
     List<LiveUpdateDeployer.UpdateLiveEditError> results = new ArrayList<>();
     boolean recomposeNeeded = false;
-    for (AndroidLiveEditCodeGenerator.CodeGeneratorOutput update : updates) {
+    for (LiveEditCompilerOutput update : updates) {
       boolean useDebugMode = LiveEditAdvancedConfiguration.getInstance().getUseDebugMode();
       boolean usePartialRecompose = LiveEditAdvancedConfiguration.getInstance().getUsePartialRecompose() &&
-                                    (update.getFunctionType() == AndroidLiveEditCodeGenerator.FunctionType.COMPOSABLE ||
+                                    (update.getFunctionType() == LiveEditFunctionType.COMPOSABLE ||
                                      update.getHasGroupId());
 
       // In manual mode we don't recompose automatically if priming happened.
