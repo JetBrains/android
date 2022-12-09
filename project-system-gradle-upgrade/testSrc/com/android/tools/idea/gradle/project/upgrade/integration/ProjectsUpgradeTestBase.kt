@@ -40,6 +40,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeRefactoringProcessor
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -179,9 +180,12 @@ open class ProjectsUpgradeTestBase {
       // Note: one could think that we only need to check these files instead of comparing all files recursively
       // but checking all project files allows us to make sure no unexpected changes were made to any other not listed files.
       applyProjectPatch(expectedProjectState, projectRoot)
-      // Setting actual expected gradle version here as described above.
+      // Setting actual expected gradle path here, which does not use EmbeddedDistributionPaths.findEmbeddedGradleDistributionFile() or
+      // AndroidGradleTests.createGradleWrapper() because the file does not necessarily exist (because of bazel sandboxing, for example).
       val wrapper = GradleWrapper.create(projectRoot, null)
-      wrapper.updateDistributionUrl(expectedProjectState.gradleVersion())
+      EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionPath()
+        ?.resolve("gradle-${expectedProjectState.gradleVersionString()}-bin.zip")
+        ?.let { file -> wrapper.updateDistributionUrl(file) } ?: error("failed to set expected Gradle path")
     }
     return temporaryFolder.root
   }
@@ -212,13 +216,6 @@ open class ProjectsUpgradeTestBase {
         path.endsWith(SdkConstants.DOT_KT) ->
           { relativePath: String?, actualContent: String, goldenContent: String ->
             expect.withMessage(relativePath).that(actualContent).isEqualTo(goldenContent)
-          }
-
-        path.endsWith(SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES) ->
-          { relativePath: String?, actualContent: String, goldenContent: String ->
-            val distributionUrlLine = actualContent.lines().first { it.contains("distributionUrl") }
-            expect.withMessage(distributionUrlLine).that(distributionUrlLine).contains(
-              "gradle-${expectedProjectState.gradleVersionString()}-bin.zip")
           }
 
         path.endsWith(SdkConstants.DOT_PROPERTIES) ->
