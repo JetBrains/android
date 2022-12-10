@@ -32,9 +32,9 @@ import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.configurations.RunnerSettings;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.runners.AsyncProgramRunner;
 import com.intellij.execution.runners.DefaultProgramRunnerKt;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.execution.runners.GenericProgramRunner;
 import com.intellij.execution.ui.ExecutionConsole;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.execution.ui.RunContentDescriptorReusePolicy;
@@ -54,12 +54,14 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.concurrency.Promise;
+import org.jetbrains.concurrency.Promises;
 
 /**
  * Base {@link com.intellij.execution.runners.ProgramRunner} for all Android Studio (not ASWB) program runners.
  * It provides the necessary support and management for working with hot swap (Apply (Code) Changes).
  */
-public abstract class StudioProgramRunner extends GenericProgramRunner<RunnerSettings> {
+public abstract class StudioProgramRunner extends AsyncProgramRunner<RunnerSettings> {
 
   final private @NotNull BiFunction<@NotNull Project, @NotNull RunConfiguration, @Nullable AndroidExecutionTarget> myGetAndroidTarget;
 
@@ -103,11 +105,10 @@ public abstract class StudioProgramRunner extends GenericProgramRunner<RunnerSet
     return !syncState.isSyncInProgress() && syncState.isSyncNeeded().equals(ThreeState.NO);
   }
 
+  @NotNull
   @Override
-  @Nullable
-  protected RunContentDescriptor doExecute(@NotNull final RunProfileState state, @NotNull final ExecutionEnvironment env)
+  protected Promise<RunContentDescriptor> execute(@NotNull ExecutionEnvironment env, @NotNull RunProfileState state)
     throws ExecutionException {
-
     Project project = env.getProject();
     Executor executor = env.getExecutor();
     String executorId = executor.getId();
@@ -159,7 +160,7 @@ public abstract class StudioProgramRunner extends GenericProgramRunner<RunnerSet
       AndroidSessionInfo.create(processHandler, runConfiguration, executorId, env.getExecutionTarget());
     }
 
-    return descriptor;
+    return Promises.resolvedPromise(descriptor);
   }
 
   protected abstract boolean canRunWithMultipleDevices(@NotNull String executorId);

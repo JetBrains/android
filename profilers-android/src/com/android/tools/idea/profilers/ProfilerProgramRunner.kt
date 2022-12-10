@@ -38,6 +38,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.components.JBLabel
+import org.jetbrains.concurrency.Promise
+import org.jetbrains.concurrency.resolvedPromise
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -54,7 +56,7 @@ class ProfilerProgramRunner : StudioProgramRunner() {
   override fun canRunWithMultipleDevices(executorId: String) = false
 
   @Throws(ExecutionException::class)
-  override fun doExecute(state: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
+  override fun execute(environment: ExecutionEnvironment, state: RunProfileState): Promise<RunContentDescriptor?> {
     val executorId = environment.executor.id
     return if (ProfileRunExecutor.EXECUTOR_ID == executorId) {
       // Profile executor for ASwB.
@@ -65,13 +67,13 @@ class ProfilerProgramRunner : StudioProgramRunner() {
       when (AbstractProfilerExecutorGroup.getExecutorSetting(executorId)?.profilingMode) {
         ProfilingMode.DEBUGGABLE, ProfilingMode.NOT_SET -> doExecuteInternal(state, environment)
         ProfilingMode.PROFILEABLE -> checkProfileableSupportAndExecute(state, environment)
-        else -> null
+        else -> resolvedPromise(null)
       }
     }
   }
 
-  private fun doExecuteInternal(state: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
-    val descriptor = super.doExecute(state, environment)
+  private fun doExecuteInternal(state: RunProfileState, environment: ExecutionEnvironment): Promise<RunContentDescriptor?> {
+    val descriptor = super.execute(environment, state)
     createProfilerToolWindow(environment.project,
                              environment.runnerAndConfigurationSettings,
                              environment.getUserData(SwapInfo.SWAP_INFO_KEY) != null,
@@ -83,7 +85,7 @@ class ProfilerProgramRunner : StudioProgramRunner() {
    * Checks if Profileable Builds is supported. If so process to execution. Otherwise, prompt user to choose if they want to continue with
    * the debuggable fallback or abort.
    */
-  private fun checkProfileableSupportAndExecute(state: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
+  private fun checkProfileableSupportAndExecute(state: RunProfileState, environment: ExecutionEnvironment): Promise<RunContentDescriptor?> {
     if (isAgpVersionSupported(environment.project) && isDeviceSupported(environment)) {
       return doExecuteInternal(state, environment)
     }
@@ -106,7 +108,7 @@ class ProfilerProgramRunner : StudioProgramRunner() {
       return doExecuteInternal(state, environment)
     }
     // Cancel the profiling session.
-    return null
+    return resolvedPromise()
   }
 
   companion object {
