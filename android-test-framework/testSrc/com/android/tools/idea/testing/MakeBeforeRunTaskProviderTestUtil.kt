@@ -24,8 +24,8 @@ import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors
 import com.android.tools.idea.gradle.run.MakeBeforeRunTask
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider
-import com.android.tools.idea.run.AndroidProgramRunner
 import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.run.StudioProgramRunner
 import com.google.common.truth.Truth
 import com.intellij.execution.BeforeRunTaskProvider
 import com.intellij.execution.ExecutionTargetManager
@@ -81,7 +81,7 @@ fun RunConfiguration.executeMakeBeforeRunStepInTest(deviceFutures: DeviceFutures
       ExecutionTargetManager.getInstance(this.project).activeTarget = target
     }
 
-    val programRunner = object : AndroidProgramRunner() {
+    val programRunner = object : StudioProgramRunner() {
       override fun getRunnerId(): String = "runner_id"
       override fun canRunWithMultipleDevices(executorId: String): Boolean = false
     }

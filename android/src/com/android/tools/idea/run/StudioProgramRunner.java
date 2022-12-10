@@ -24,14 +24,17 @@ import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigura
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
+import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.Executor;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.configurations.RunProfileState;
+import com.intellij.execution.configurations.RunnerSettings;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.DefaultProgramRunnerKt;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.runners.GenericProgramRunner;
 import com.intellij.execution.ui.ExecutionConsole;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.execution.ui.RunContentDescriptorReusePolicy;
@@ -56,28 +59,39 @@ import org.jetbrains.annotations.Nullable;
  * Base {@link com.intellij.execution.runners.ProgramRunner} for all Android Studio (not ASWB) program runners.
  * It provides the necessary support and management for working with hot swap (Apply (Code) Changes).
  */
-public abstract class StudioProgramRunner extends AndroidProgramRunner {
+public abstract class StudioProgramRunner extends GenericProgramRunner<RunnerSettings> {
+
+  final private @NotNull BiFunction<@NotNull Project, @NotNull RunConfiguration, @Nullable AndroidExecutionTarget> myGetAndroidTarget;
+
   @NotNull
   private final Function<Project, GradleSyncState> mySyncStateGetter;
 
   public StudioProgramRunner() {
-    mySyncStateGetter = project -> GradleSyncState.getInstance(project);
+    this(GradleSyncState::getInstance, StudioProgramRunner::getAvailableAndroidTarget);
   }
 
   // @VisibleForTesting
   StudioProgramRunner(@NotNull Function<Project, GradleSyncState> syncStateGetter,
                       @NotNull BiFunction<@NotNull Project, @NotNull RunConfiguration, @NotNull AndroidExecutionTarget> executionTargetGetter) {
-    super(executionTargetGetter);
+    myGetAndroidTarget = executionTargetGetter;
     mySyncStateGetter = syncStateGetter;
   }
 
   @Override
   public boolean canRun(@NotNull String executorId,
                         @NotNull RunProfile profile) {
-    if (!super.canRun(executorId, profile) || !(profile instanceof AndroidRunConfigurationBase)) {
+    if (!(profile instanceof AndroidRunConfigurationBase)) {
       return false;
     }
     AndroidRunConfigurationBase config = (AndroidRunConfigurationBase)profile;
+
+    AndroidExecutionTarget target = myGetAndroidTarget.apply(config.getProject(), (RunConfiguration)profile);
+    if (target == null) {
+      return false;
+    }
+    if (target.getAvailableDeviceCount() > 1 && !canRunWithMultipleDevices(executorId)) {
+      return false;
+    }
     if (config.canRunWithoutSync()) {
       return true;
     }
@@ -148,6 +162,16 @@ public abstract class StudioProgramRunner extends AndroidProgramRunner {
     return descriptor;
   }
 
+  protected abstract boolean canRunWithMultipleDevices(@NotNull String executorId);
+
+  @Nullable
+  private static AndroidExecutionTarget getAvailableAndroidTarget(Project project, RunConfiguration profile) {
+    return ExecutionTargetManager.getInstance(project).getTargetsFor(profile).stream()
+      .filter(AndroidExecutionTarget.class::isInstance)
+      .map(AndroidExecutionTarget.class::cast)
+      .findFirst()
+      .orElse(null);
+  }
 
   @VisibleForTesting
   static class HiddenRunContentDescriptor extends RunContentDescriptor {
