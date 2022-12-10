@@ -34,6 +34,15 @@ public:
 
   static void Run();
 
+  static void StartVideoStream() {
+    display_streamer_->Start();
+  }
+  static void StopVideoStream() {
+    display_streamer_->Stop();
+  }
+
+  static void Shutdown();
+
   // Sets orientation of the device display. A negative value tells the agent to update
   // the app-level orientation according to the previously set display orientation.
   static void SetVideoOrientation(int32_t orientation);
@@ -46,12 +55,12 @@ public:
   // May be called on any thread. Safe to be called multiple times.
   static void RestoreEnvironment();
 
-  static void Shutdown();
-
   // Returns the timestamp of the end of last simulated touch event in milliseconds according to the monotonic clock.
   static int64_t GetLastTouchEventTime();
   // Records the timestamp of the last simulated touch event in milliseconds according to the monotonic clock.
   static void RecordTouchEvent();
+
+  static bool IsShuttingDown() { return shutting_down_; }
 
   static int32_t flags() { return flags_; }
 

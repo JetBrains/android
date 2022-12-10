@@ -17,7 +17,6 @@
 #pragma once
 
 #include <atomic>
-#include <thread>
 
 #include "accessors/clipboard_manager.h"
 #include "accessors/key_character_map.h"
@@ -37,7 +36,7 @@ public:
   Controller(int socket_fd);
   ~Controller();
 
-  void Start();
+  void Run();
   void Shutdown();
 
 private:
@@ -53,23 +52,27 @@ private:
   };
 
   void Initialize();
-  void Run();
   void ProcessMessage(const ControlMessage& message);
   void ProcessMotionEvent(const MotionEventMessage& message);
-  void ProcessKeyboardEvent(const KeyEventMessage& message);
+  void ProcessKeyboardEvent(const KeyEventMessage& message) {
+    ProcessKeyboardEvent(jni_, message);
+  }
+  static void ProcessKeyboardEvent(Jni jni, const KeyEventMessage& message);
   void ProcessTextInput(const TextInputMessage& message);
   static void ProcessSetDeviceOrientation(const SetDeviceOrientationMessage& message);
   static void ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage& message);
+  static void StopVideoStream();
+  void StartVideoStream();
   void StartClipboardSync(const StartClipboardSyncMessage& message);
   void StopClipboardSync();
   void OnPrimaryClipChanged();
   void ProcessClipboardChange();
+  static void WakeUpDevice();
 
   Jni jni_ = nullptr;
   int socket_fd_;  // Owned.
   Base128InputStream input_stream_;
   Base128OutputStream output_stream_;
-  std::thread thread_;
   PointerHelper* pointer_helper_;  // Owned.
   JObjectArray pointer_properties_;  // MotionEvent.PointerProperties[]
   JObjectArray pointer_coordinates_;  // MotionEvent.PointerCoords[]

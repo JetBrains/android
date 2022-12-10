@@ -17,17 +17,33 @@
 #include "session_environment.h"
 
 #include "accessors/surface_control.h"
+#include "log.h"
 #include "num_to_string.h"
 #include "settings.h"
 
 namespace screensharing {
+
+using namespace std;
+
+namespace {
 
 // Constants from android.os.BatteryManager.
 constexpr int BATTERY_PLUGGED_AC = 1;
 constexpr int BATTERY_PLUGGED_USB = 2;
 constexpr int BATTERY_PLUGGED_WIRELESS = 4;
 
-using namespace std;
+// Names an location of the screen sharing agent's files.
+#define SCREEN_SHARING_AGENT_JAR_NAME "screen-sharing-agent.jar"
+#define SCREEN_SHARING_AGENT_SO_NAME "libscreen-sharing-agent.so"
+#define DEVICE_PATH_BASE "/data/local/tmp/.studio"
+
+// Removes files of the screen sharing agent from the persistent storage.
+void RemoveAgentFiles() {
+  remove(DEVICE_PATH_BASE "/" SCREEN_SHARING_AGENT_JAR_NAME);
+  remove(DEVICE_PATH_BASE "/" SCREEN_SHARING_AGENT_SO_NAME);
+}
+
+}  // namespace
 
 SessionEnvironment::SessionEnvironment(bool turn_off_display)
     : accelerometer_rotation_(Settings::Table::SYSTEM, "accelerometer_rotation"),
@@ -47,6 +63,8 @@ SessionEnvironment::SessionEnvironment(bool turn_off_display)
       restore_normal_display_power_mode_ = true;
     }
   }
+
+  RemoveAgentFiles();
 }
 
 SessionEnvironment::~SessionEnvironment() {
@@ -57,6 +75,9 @@ SessionEnvironment::~SessionEnvironment() {
       surface_control.SetDisplayPowerMode(display_token, DisplayPowerMode::POWER_MODE_NORMAL);
     }
   }
+  stay_on_.Restore();
+  accelerometer_rotation_.Restore();
+  Log::D("Restored original system settings");
 }
 
 }  // namespace screensharing

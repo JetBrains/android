@@ -31,6 +31,7 @@ public:
   ~ScopedSetting();
 
   void Set(const char* value);
+  void Restore();
 
 private:
   Settings::Table table_;

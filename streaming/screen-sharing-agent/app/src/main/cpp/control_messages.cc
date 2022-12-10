@@ -44,6 +44,12 @@ unique_ptr<ControlMessage> ControlMessage::Deserialize(int32_t type, Base128Inpu
     case SetMaxVideoResolutionMessage::TYPE:
       return unique_ptr<ControlMessage>(SetMaxVideoResolutionMessage::Deserialize(stream));
 
+    case StartVideoStreamMessage::TYPE:
+      return unique_ptr<ControlMessage>(StartVideoStreamMessage::Deserialize(stream));
+
+    case StopVideoStreamMessage::TYPE:
+      return unique_ptr<ControlMessage>(StopVideoStreamMessage::Deserialize(stream));
+
     case StartClipboardSyncMessage::TYPE:
       return unique_ptr<ControlMessage>(StartClipboardSyncMessage::Deserialize(stream));
 
@@ -104,6 +110,14 @@ SetMaxVideoResolutionMessage* SetMaxVideoResolutionMessage::Deserialize(Base128I
   int32_t width = stream.ReadInt32();
   int32_t height = stream.ReadInt32();
   return new SetMaxVideoResolutionMessage(width, height);
+}
+
+StopVideoStreamMessage* StopVideoStreamMessage::Deserialize(Base128InputStream& stream) {
+  return new StopVideoStreamMessage();
+}
+
+StartVideoStreamMessage* StartVideoStreamMessage::Deserialize(Base128InputStream& stream) {
+  return new StartVideoStreamMessage();
 }
 
 StartClipboardSyncMessage* StartClipboardSyncMessage::Deserialize(Base128InputStream& stream) {

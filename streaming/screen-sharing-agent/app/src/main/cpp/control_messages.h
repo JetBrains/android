@@ -208,6 +208,42 @@ private:
   DISALLOW_COPY_AND_ASSIGN(SetMaxVideoResolutionMessage);
 };
 
+// Starts video stream if it was stopped, otherwise has no effect.
+class StartVideoStreamMessage : ControlMessage {
+public:
+  StartVideoStreamMessage()
+      : ControlMessage(TYPE) {
+  }
+  virtual ~StartVideoStreamMessage() {};
+
+  static constexpr int TYPE = 6;
+
+private:
+  friend class ControlMessage;
+
+  static StartVideoStreamMessage* Deserialize(Base128InputStream& stream);
+
+  DISALLOW_COPY_AND_ASSIGN(StartVideoStreamMessage);
+};
+
+// Stops video stream if it was started, otherwise has no effect.
+class StopVideoStreamMessage : ControlMessage {
+public:
+  StopVideoStreamMessage()
+      : ControlMessage(TYPE) {
+  }
+  virtual ~StopVideoStreamMessage() {};
+
+  static constexpr int TYPE = 7;
+
+private:
+  friend class ControlMessage;
+
+  static StopVideoStreamMessage* Deserialize(Base128InputStream& stream);
+
+  DISALLOW_COPY_AND_ASSIGN(StopVideoStreamMessage);
+};
+
 // Sets contents of the clipboard and requests notifications of clipboard changes.
 class StartClipboardSyncMessage : ControlMessage {
 public:
@@ -221,7 +257,7 @@ public:
   const std::string& text() const { return text_; }
   int max_synced_length() const { return max_synced_length_; }
 
-  static constexpr int TYPE = 6;
+  static constexpr int TYPE = 8;
 
 private:
   friend class ControlMessage;
@@ -242,7 +278,7 @@ public:
   }
   virtual ~StopClipboardSyncMessage() {};
 
-  static constexpr int TYPE = 7;
+  static constexpr int TYPE = 9;
 
 private:
   friend class ControlMessage;
@@ -269,7 +305,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 8;
+  static constexpr int TYPE = 10;
 
 private:
   friend class ControlMessage;

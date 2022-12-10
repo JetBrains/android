@@ -25,6 +25,7 @@
 #include "accessors/key_event.h"
 #include "accessors/motion_event.h"
 #include "agent.h"
+#include "flags.h"
 #include "jvm.h"
 #include "log.h"
 
@@ -32,11 +33,6 @@ namespace screensharing {
 
 using namespace std;
 using namespace std::chrono;
-
-// Names an location of the screen sharing agent's files.
-#define SCREEN_SHARING_AGENT_JAR_NAME "screen-sharing-agent.jar"
-#define SCREEN_SHARING_AGENT_SO_NAME "libscreen-sharing-agent.so"
-#define DEVICE_PATH_BASE "/data/local/tmp/.studio"
 
 namespace {
 
@@ -79,12 +75,6 @@ Point AdjustedDisplayCoordinates(int32_t x, int32_t y, const DisplayInfo& displa
   }
 }
 
-// Removes files of the screen sharing agent from the persistent storage.
-void RemoveAgentFiles() {
-  remove(DEVICE_PATH_BASE "/" SCREEN_SHARING_AGENT_JAR_NAME);
-  remove(DEVICE_PATH_BASE "/" SCREEN_SHARING_AGENT_SO_NAME);
-}
-
 // Sets the receive timeout for the given socket. Zero timeout value means that reading
 // from the socket will never time out.
 void SetReceiveTimeoutMillis(int timeout_millis, int socket_fd) {
@@ -98,7 +88,6 @@ Controller::Controller(int socket_fd)
     : socket_fd_(socket_fd),
       input_stream_(socket_fd, BUFFER_SIZE),
       output_stream_(socket_fd, BUFFER_SIZE),
-      thread_(),
       pointer_helper_(),
       motion_event_start_time_(0),
       key_character_map_(),
@@ -112,31 +101,18 @@ Controller::Controller(int socket_fd)
 
 Controller::~Controller() {
   Shutdown();
-  if (thread_.joinable()) {
-    thread_.join();
-  }
-  close(socket_fd_);
   delete pointer_helper_;
   delete key_character_map_;
-}
-
-void Controller::Start() {
-  Log::D("Controller::Start");
-  thread_ = thread([this]() {
-    jni_ = Jvm::AttachCurrentThread("Controller");
-    Initialize();
-    Run();
-    Agent::Shutdown();
-    Jvm::DetachCurrentThread();
-  });
 }
 
 void Controller::Shutdown() {
   input_stream_.Close();
   output_stream_.Close();
+  close(socket_fd_);
 }
 
 void Controller::Initialize() {
+  jni_ = Jvm::GetJni();
   pointer_helper_ = new PointerHelper(jni_);
   pointer_properties_ = pointer_helper_->NewPointerPropertiesArray(MotionEventMessage::MAX_POINTERS);
   pointer_coordinates_ = pointer_helper_->NewPointerCoordsArray(MotionEventMessage::MAX_POINTERS);
@@ -152,23 +128,26 @@ void Controller::Initialize() {
 
   pointer_properties_.MakeGlobal();
   pointer_coordinates_.MakeGlobal();
-
-  ProcessKeyboardEvent(KeyEventMessage(KeyEventMessage::ACTION_DOWN_AND_UP, AKEYCODE_WAKEUP, 0));
+  if ((Agent::flags() & START_VIDEO_STREAM) != 0) {
+    WakeUpDevice();
+  }
   Agent::InitializeSessionEnvironment();
-
-  SetReceiveTimeoutMillis(SOCKET_RECEIVE_TIMEOUT_MILLIS, socket_fd_);
-  RemoveAgentFiles();
 }
 
 void Controller::Run() {
   Log::D("Controller::Run");
+  Initialize();
+
   try {
     for (;;) {
-      if (clipboard_changed_.exchange(false)) {
-        ProcessClipboardChange();
+      if (max_synced_clipboard_length_ != 0) {
+        if (clipboard_changed_.exchange(false)) {
+          ProcessClipboardChange();
+        }
+        // Set a receive timeout to check for clipboard changes frequently.
+        SetReceiveTimeoutMillis(SOCKET_RECEIVE_TIMEOUT_MILLIS, socket_fd_);
       }
 
-      SetReceiveTimeoutMillis(SOCKET_RECEIVE_TIMEOUT_MILLIS, socket_fd_);
       int32_t message_type;
       try {
         message_type = input_stream_.ReadInt32();
@@ -206,6 +185,14 @@ void Controller::ProcessMessage(const ControlMessage& message) {
 
     case SetMaxVideoResolutionMessage::TYPE:
       ProcessSetMaxVideoResolution((const SetMaxVideoResolutionMessage&) message);
+      break;
+
+    case StopVideoStreamMessage::TYPE:
+      StopVideoStream();
+      break;
+
+    case StartVideoStreamMessage::TYPE:
+      StartVideoStream();
       break;
 
     case StartClipboardSyncMessage::TYPE:
@@ -283,9 +270,9 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
   }
 }
 
-void Controller::ProcessKeyboardEvent(const KeyEventMessage& message) {
+void Controller::ProcessKeyboardEvent(Jni jni, const KeyEventMessage& message) {
   int64_t now = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
-  KeyEvent event(jni_);
+  KeyEvent event(jni);
   event.down_time_millis = now;
   event.event_time_millis = now;
   int32_t action = message.action();
@@ -294,11 +281,11 @@ void Controller::ProcessKeyboardEvent(const KeyEventMessage& message) {
   event.meta_state = message.meta_state();
   event.source = KeyCharacterMap::VIRTUAL_KEYBOARD;
   JObject key_event = event.ToJava();
-  InputManager::InjectInputEvent(jni_, key_event, InputEventInjectionSync::NONE);
+  InputManager::InjectInputEvent(jni, key_event, InputEventInjectionSync::NONE);
   if (action == KeyEventMessage::ACTION_DOWN_AND_UP) {
     event.action = AKEY_EVENT_ACTION_UP;
     key_event = event.ToJava();
-    InputManager::InjectInputEvent(jni_, key_event, InputEventInjectionSync::NONE);
+    InputManager::InjectInputEvent(jni, key_event, InputEventInjectionSync::NONE);
   }
 }
 
@@ -333,6 +320,15 @@ void Controller::ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage
     return;
   }
   Agent::SetMaxVideoResolution(Size(message.width(), message.height()));
+}
+
+void Controller::StopVideoStream() {
+  Agent::StopVideoStream();
+}
+
+void Controller::StartVideoStream() {
+  Agent::StartVideoStream();
+  WakeUpDevice();
 }
 
 void Controller::StartClipboardSync(const StartClipboardSyncMessage& message) {
@@ -388,6 +384,10 @@ Controller::ClipboardListener::~ClipboardListener() = default;
 
 void Controller::ClipboardListener::OnPrimaryClipChanged() {
   controller_->OnPrimaryClipChanged();
+}
+
+void Controller::WakeUpDevice() {
+  ProcessKeyboardEvent(Jvm::GetJni(), KeyEventMessage(KeyEventMessage::ACTION_DOWN_AND_UP, AKEYCODE_WAKEUP, 0));
 }
 
 }  // namespace screensharing

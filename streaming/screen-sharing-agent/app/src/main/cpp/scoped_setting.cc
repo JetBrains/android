@@ -22,12 +22,17 @@ using namespace std;
 
 ScopedSetting::ScopedSetting(Settings::Table table, string key)
     : table_(table),
-      key_(move(key)),
+      key_(std::move(key)),
       restore_required_(false) {
 }
 
 ScopedSetting::~ScopedSetting() {
+  Restore();
+}
+
+void ScopedSetting::Restore() {
   if (restore_required_) {
+    restore_required_ = false;
     Settings::Put(table_, key_.c_str(), saved_value_.c_str());
   }
 }

@@ -21,6 +21,7 @@
 
 #include <atomic>
 #include <mutex>
+#include <thread>
 
 #include "accessors/display_manager.h"
 #include "accessors/window_manager.h"
@@ -31,15 +32,24 @@
 
 namespace screensharing {
 
+struct CodecInfo;
+
 // Processes control socket commands.
 class DisplayStreamer : public DisplayManager::DisplayListener {
 public:
   // The display streamer takes ownership of the socket file descriptor and closes it when destroyed.
   DisplayStreamer(
       int display_id, std::string codec_name, Size max_video_resolution, int initial_video_orientation, int max_bitrate, int socket_fd);
-  virtual ~DisplayStreamer() = default;
+  virtual ~DisplayStreamer();
 
-  void Run();
+  // Starts the streamer's thread.
+  void Start();
+  // Stops the streamer without closing the file descriptor. Waits for the streamer's thread.
+  // to terminate.
+  void Stop();
+  // Shuts down the streamer.  Waits for the streamer's thread. Once shut down, the streamer cannot be restarted.
+  void Shutdown();
+
   // Sets orientation of the device display. A negative value tells the agent to update
   // the app-level orientation according to the previously set display orientation.
   void SetVideoOrientation(int32_t orientation);
@@ -56,8 +66,6 @@ public:
 
   virtual void OnDisplayChanged(int32_t display_id);
 
-  void Shutdown();
-
 private:
   struct DisplayRotationWatcher : public WindowManager::RotationWatcher {
     DisplayRotationWatcher(DisplayStreamer* display_streamer);
@@ -69,25 +77,28 @@ private:
     std::atomic_int32_t display_rotation;
   };
 
-  bool ProcessFramesUntilStopped(AMediaCodec* codec, VideoPacketHeader* packet_header, const AMediaFormat* sync_frame_request);
-
+  void Run();
+  bool ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPacketHeader* packet_header, const AMediaFormat* sync_frame_request);
   void StopCodec();
   void StopCodecUnlocked();  // REQUIRES(mutex_)
   bool IsCodecRunning();
+  void StopCodecAndWaitForThreadToTerminate();
 
+  std::thread thread_;
   DisplayRotationWatcher display_rotation_watcher_;
   int display_id_;
   std::string codec_name_;
+  CodecInfo* codec_info_ = nullptr;
   int socket_fd_;
   int64_t presentation_timestamp_offset_;
-  std::atomic<bool> stopped_;
   int32_t max_bit_rate_;
+  std::atomic_bool streamer_stopped_ = true;
 
   std::mutex mutex_;
   DisplayInfo display_info_;  // GUARDED_BY(mutex_)
   Size max_video_resolution_;  // GUARDED_BY(mutex_)
   int32_t video_orientation_;  // GUARDED_BY(mutex_)
-  AMediaCodec* running_codec_;  // GUARDED_BY(mutex_)
+  AMediaCodec* running_codec_ = nullptr;  // GUARDED_BY(mutex_)
 
   DISALLOW_COPY_AND_ASSIGN(DisplayStreamer);
 };

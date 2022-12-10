@@ -37,14 +37,16 @@ using namespace std;
 using namespace std::chrono;
 
 struct CodecInfo {
-  string name;
+  std::string mime_type;
+  std::string name;
   Size max_resolution;
   Size size_alignment;
 
-  CodecInfo(string name, Size max_resolution, Size size_alignment)
-    : name(move(name)),
-      max_resolution(max_resolution),
-      size_alignment(size_alignment) {
+  CodecInfo(std::string mime_type, std::string name, Size max_resolution, Size size_alignment)
+      : mime_type(std::move(mime_type)),
+        name(std::move(name)),
+        max_resolution(max_resolution),
+        size_alignment(size_alignment) {
   }
 };
 
@@ -130,7 +132,8 @@ AMediaFormat* CreateMediaFormat(const char* mime_type) {
   return media_format;
 }
 
-unique_ptr<CodecInfo> SelectCodec(Jni jni, const string& mime_type) {
+CodecInfo* SelectCodec(const string& mime_type) {
+  Jni jni = Jvm::GetJni();
   JClass clazz = jni.GetClass("com/android/tools/screensharing/CodecInfo");
   jmethodID method = clazz.GetStaticMethodId("selectVideoEncoderForType",
                                              "(Ljava/lang/String;)Lcom/android/tools/screensharing/CodecInfo;");
@@ -144,7 +147,25 @@ unique_ptr<CodecInfo> SelectCodec(Jni jni, const string& mime_type) {
   int max_height = codec_info.GetIntField(clazz.GetFieldId("maxHeight", "I"));
   int width_alignment = codec_info.GetIntField(clazz.GetFieldId("widthAlignment", "I"));
   int height_alignment = codec_info.GetIntField(clazz.GetFieldId("heightAlignment", "I"));
-  return make_unique<CodecInfo>(codec_name, Size(max_width, max_height), Size(width_alignment, height_alignment));
+  return new CodecInfo(mime_type, codec_name, Size(max_width, max_height), Size(width_alignment, height_alignment));
+}
+
+void WriteChannelHeader(const string& codec_name, int socket_fd) {
+  string buf;
+  int buf_size = 1 + CHANNEL_HEADER_LENGTH;
+  buf.reserve(buf_size);  // Single-byte channel marker followed by header.
+  buf.append("V");  // Video channel marker.
+  buf.append(codec_name);
+  // Pad with spaces to the fixed length.
+  while (buf.length() < buf_size) {
+    buf.insert(buf.end(), ' ');
+  }
+  if (write(socket_fd, buf.c_str(), buf_size) != buf_size) {
+    if (errno != EBADF && errno != EPIPE) {
+      Log::Fatal("Error writing to video socket - %s", strerror(errno));
+    }
+    Agent::Shutdown();
+  }
 }
 
 int32_t RoundUpToMultipleOf(int32_t value, int32_t power_of_two) {
@@ -192,50 +213,76 @@ DisplayStreamer::DisplayStreamer(int32_t display_id, string codec_name, Size max
       codec_name_(std::move(codec_name)),
       socket_fd_(socket_fd),
       presentation_timestamp_offset_(0),
-      stopped_(),
       max_bit_rate_(max_bit_rate),
-      display_info_(),
       max_video_resolution_(max_video_resolution),
-      video_orientation_(initial_video_orientation),
-      running_codec_() {
+      video_orientation_(initial_video_orientation) {
   assert(socket_fd > 0);
+  string mime_type = (codec_name_.compare(0, 2, "vp") == 0 ? "video/x-vnd.on2." : "video/") + codec_name_;
+  codec_info_ = SelectCodec(mime_type);
+  WriteChannelHeader(codec_name_, socket_fd_);
+}
+
+DisplayStreamer::~DisplayStreamer() {
+  if (thread_.joinable()) {
+    thread_.join();
+  }
+  delete codec_info_;
+}
+
+void DisplayStreamer::Start() {
+  if (streamer_stopped_) {
+    Log::D("Starting display stream");
+    streamer_stopped_ = false;
+    thread_ = thread([this]() {
+      Jvm::AttachCurrentThread("DisplayStreamer");
+      Run();
+      Jvm::DetachCurrentThread();
+    });
+  }
+}
+
+void DisplayStreamer::Stop() {
+  if (!streamer_stopped_) {
+    Log::D("Stopping display stream");
+    streamer_stopped_ = true;
+    StopCodecAndWaitForThreadToTerminate();
+  }
+}
+
+void DisplayStreamer::Shutdown() {
+  if (socket_fd_ > 0) {
+    close(socket_fd_);
+    StopCodec();
+    if (thread_.joinable()) {
+      thread_.join();
+    }
+  }
+}
+
+void DisplayStreamer::StopCodecAndWaitForThreadToTerminate() {
+  StopCodec();
+  if (thread_.joinable()) {
+    thread_.join();
+  }
 }
 
 void DisplayStreamer::Run() {
   Jni jni = Jvm::GetJni();
 
-  string mime_type = (codec_name_.compare(0, 2, "vp") == 0 ? "video/x-vnd.on2." : "video/") + codec_name_;
-  unique_ptr<CodecInfo> codec_info = SelectCodec(jni, mime_type);
-  AMediaCodec* codec = AMediaCodec_createCodecByName(codec_info->name.c_str());
-  if (codec == nullptr) {
-    Log::Fatal("Unable to create a %s video encoder", codec_info->name.c_str());
-  }
   Log::D("Using %s video encoder with %dx%d max resolution",
-         codec_info->name.c_str(), codec_info->max_resolution.width, codec_info->max_resolution.height);
-  AMediaFormat* media_format = CreateMediaFormat(mime_type.c_str());
-
-  string buf;
-  int buf_size = 1 + CHANNEL_HEADER_LENGTH;
-  buf.reserve(buf_size);  // Single-byte channel marker followed by header.
-  buf.append("V");  // Video channel marker.
-  buf.append(codec_name_);
-  // Pad with spaces to the fixed length.
-  while (buf.length() < buf_size) {
-    buf.insert(buf.end(), ' ');
-  }
-  write(socket_fd_, buf.c_str(), buf_size);
+         codec_info_->name.c_str(), codec_info_->max_resolution.width, codec_info_->max_resolution.height);
+  AMediaFormat* media_format = CreateMediaFormat(codec_info_->mime_type.c_str());
 
   WindowManager::WatchRotation(jni, &display_rotation_watcher_);
   DisplayManager::RegisterDisplayListener(jni, this);
   SurfaceControl surface_control(jni);
-  VideoPacketHeader packet_header = { .frame_number = 1 };
+  VideoPacketHeader packet_header = {.frame_number = 1};
 
-  while (!stopped_) {
+  bool end_of_stream = false;
+  while (!streamer_stopped_ && !end_of_stream && !Agent::IsShuttingDown()) {
+    AMediaCodec* codec = AMediaCodec_createCodecByName(codec_info_->name.c_str());
     if (codec == nullptr) {
-      codec = AMediaCodec_createCodecByName(codec_info->name.c_str());
-      if (codec == nullptr) {
-        Log::Fatal("Unable to create a %s video encoder", codec_info->name.c_str());
-      }
+      Log::Fatal("Unable to create a %s video encoder", codec_info_->name.c_str());
     }
     int api_level = android_get_device_api_level();
     bool secure = android_get_device_api_level() < 31;  // Creation of secure displays is not allowed on API 31+.
@@ -246,7 +293,8 @@ void DisplayStreamer::Run() {
     DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni, display_id_);
     Log::D("display_info: %s", display_info.ToDebugString().c_str());
     // Use heuristics for determining a bit rate value that doesn't cause SIGABRT in the encoder (b/251659422).
-    int32_t bit_rate = api_level < 32 && IsCodecResolutionLessThanDisplayResolution(codec_info->max_resolution, display_info.logical_size) ?
+    int32_t bit_rate =
+        api_level < 32 && IsCodecResolutionLessThanDisplayResolution(codec_info_->max_resolution, display_info.logical_size) ?
         BIT_RATE_REDUCED : BIT_RATE;
     if (max_bit_rate_ > 0 && bit_rate > max_bit_rate_) {
       bit_rate = max_bit_rate_;
@@ -257,7 +305,7 @@ void DisplayStreamer::Run() {
       scoped_lock lock(mutex_);
       display_info_ = display_info;
       int32_t rotation_correction = video_orientation_ >= 0 ? NormalizeRotation(video_orientation_ - display_info.rotation) : 0;
-      Size video_size = ConfigureCodec(codec, *codec_info, max_video_resolution_, media_format, display_info);
+      Size video_size = ConfigureCodec(codec, *codec_info_, max_video_resolution_, media_format, display_info);
       Log::D("rotation_correction = %d video_size = %dx%d", rotation_correction, video_size.width, video_size.height);
       media_status_t status = AMediaCodec_createInputSurface(codec, &surface);  // Requires API 26.
       if (status != AMEDIA_OK) {
@@ -274,20 +322,74 @@ void DisplayStreamer::Run() {
     }
     AMediaFormat* sync_frame_request = AMediaFormat_new();
     AMediaFormat_setInt32(sync_frame_request, AMEDIACODEC_KEY_REQUEST_SYNC_FRAME, 0);
-    bool end_of_stream = ProcessFramesUntilStopped(codec, &packet_header, sync_frame_request);
+    end_of_stream = ProcessFramesUntilCodecStopped(codec, &packet_header, sync_frame_request);
     StopCodec();
     AMediaFormat_delete(sync_frame_request);
     surface_control.DestroyDisplay(display);
     AMediaCodec_delete(codec);
-    codec = nullptr;
     ANativeWindow_release(surface);
-    if (end_of_stream) {
-      break;
+  }
+
+  AMediaFormat_delete(media_format);
+  WindowManager::RemoveRotationWatcher(jni, &display_rotation_watcher_);
+  DisplayManager::UnregisterDisplayListener(jni, this);
+
+  if (end_of_stream) {
+    Agent::Shutdown();
+  }
+}
+
+bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPacketHeader* packet_header,
+                                                     const AMediaFormat* sync_frame_request) {
+  bool end_of_stream = false;
+  bool first_frame_after_start = true;
+  while (!end_of_stream && IsCodecRunning()) {
+    CodecOutputBuffer codec_buffer(codec);
+    if (!codec_buffer.Deque(-1)) {
+      continue;
+    }
+    end_of_stream = codec_buffer.IsEndOfStream();
+    if (!IsCodecRunning()) {
+      return false;
+    }
+    if (first_frame_after_start) {
+      // Request another sync frame to prevent a green bar that sometimes appears at the bottom
+      // of the first frame.
+      media_status_t status = AMediaCodec_setParameters(codec, sync_frame_request);
+      if (status != AMEDIA_OK) {
+        Log::E("AMediaCodec_setParameters returned %d", status);
+      }
+      first_frame_after_start = false;
+    }
+    int64_t delta = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count() - Agent::GetLastTouchEventTime();
+    if (delta < 1000) {
+      Log::D("Video packet of %d bytes at %" PRIi64 " ms since last touch event", codec_buffer.info.size, delta);
+    }
+    packet_header->origination_timestamp_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
+    if (codec_buffer.IsConfig()) {
+      packet_header->presentation_timestamp_us = 0;
+    } else {
+      if (presentation_timestamp_offset_ == 0) {
+        presentation_timestamp_offset_ = codec_buffer.info.presentationTimeUs - 1;
+      }
+      packet_header->presentation_timestamp_us = codec_buffer.info.presentationTimeUs - presentation_timestamp_offset_;
+    }
+    packet_header->packet_size = codec_buffer.info.size;
+    Log::V("DisplayStreamer::ProcessFramesUntilCodecStopped: writing video packet %s", packet_header->ToDebugString().c_str());
+    iovec buffers[] = { { packet_header, sizeof(*packet_header) }, { codec_buffer.buffer, static_cast<size_t>(codec_buffer.info.size) } };
+    if (writev(socket_fd_, buffers, 2) != buffers[0].iov_len + buffers[1].iov_len) {
+      if (errno != EBADF && errno != EPIPE) {
+        Log::Fatal("Error writing to video socket - %s", strerror(errno));
+      }
+      end_of_stream = true;
+    }
+    if (!codec_buffer.IsConfig()) {
+      packet_header->frame_number++;
     }
   }
-  AMediaFormat_delete(media_format);
-  Agent::Shutdown();
+  return end_of_stream;
 }
+
 
 void DisplayStreamer::SetVideoOrientation(int32_t orientation) {
   Jni jni = Jvm::GetJni();
@@ -335,65 +437,6 @@ void DisplayStreamer::OnDisplayChanged(int32_t display_id) {
   if (display_id == DEFAULT_DISPLAY) {
     StopCodec();
   }
-}
-
-void DisplayStreamer::Shutdown() {
-  if (socket_fd_ > 0) {
-    close(socket_fd_);
-    StopCodec();
-    DisplayManager::UnregisterDisplayListener(Jvm::GetJni(), this);
-  }
-}
-
-bool DisplayStreamer::ProcessFramesUntilStopped(AMediaCodec* codec, VideoPacketHeader* packet_header,
-                                                const AMediaFormat* sync_frame_request) {
-  bool end_of_stream = false;
-  bool first_frame_after_start = true;
-  while (!end_of_stream && IsCodecRunning()) {
-    CodecOutputBuffer codec_buffer(codec);
-    if (!codec_buffer.Deque(-1)) {
-      continue;
-    }
-    end_of_stream = codec_buffer.IsEndOfStream();
-    if (!IsCodecRunning()) {
-      return false;
-    }
-    if (first_frame_after_start) {
-      // Request another sync frame to prevent a green bar that sometimes appears at the bottom
-      // of the first frame.
-      media_status_t status = AMediaCodec_setParameters(codec, sync_frame_request);
-      if (status != AMEDIA_OK) {
-        Log::E("AMediaCodec_setParameters returned %d", status);
-      }
-      first_frame_after_start = false;
-    }
-    int64_t delta = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count() - Agent::GetLastTouchEventTime();
-    if (delta < 1000) {
-      Log::D("Video packet of %d bytes at %" PRIi64 " ms since last touch event", codec_buffer.info.size, delta);
-    }
-    packet_header->origination_timestamp_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
-    if (codec_buffer.IsConfig()) {
-      packet_header->presentation_timestamp_us = 0;
-    } else {
-      if (presentation_timestamp_offset_ == 0) {
-        presentation_timestamp_offset_ = codec_buffer.info.presentationTimeUs - 1;
-      }
-      packet_header->presentation_timestamp_us = codec_buffer.info.presentationTimeUs - presentation_timestamp_offset_;
-    }
-    packet_header->packet_size = codec_buffer.info.size;
-    Log::V("DisplayStreamer::ProcessFramesUntilStopped: writing video packet %s", packet_header->ToDebugString().c_str());
-    iovec buffers[] = { { packet_header, sizeof(*packet_header) }, { codec_buffer.buffer, static_cast<size_t>(codec_buffer.info.size) } };
-    if (writev(socket_fd_, buffers, 2) != buffers[0].iov_len + buffers[1].iov_len) {
-      if (errno != EBADF && errno != EPIPE) {
-        Log::Fatal("Error writing to video socket - %s", strerror(errno));
-      }
-      end_of_stream = true;
-    }
-    if (!codec_buffer.IsConfig()) {
-      packet_header->frame_number++;
-    }
-  }
-  return end_of_stream;
 }
 
 void DisplayStreamer::StopCodec() {

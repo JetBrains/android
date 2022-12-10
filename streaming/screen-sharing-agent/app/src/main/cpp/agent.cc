@@ -127,8 +127,7 @@ Agent::Agent(const vector<string>& args) {
 Agent::~Agent() = default;
 
 void Agent::Run() {
-  struct sigaction action = {};
-  action.sa_handler = sighup_handler;
+  struct sigaction action = { .sa_handler = sighup_handler };
   int res = sigaction(SIGHUP, &action, nullptr);
   if (res < 0) {
     Log::D("Unable to set SIGHUP handler - sigaction returned %d", res);
@@ -138,8 +137,11 @@ void Agent::Run() {
       display_id_, codec_name_, max_video_resolution_, initial_video_orientation_, max_bit_rate_, CreateAndConnectSocket(socket_name_));
   controller_ = new Controller(CreateAndConnectSocket(socket_name_));
   Log::D("Created video and control sockets");
-  controller_->Start();
-  display_streamer_->Run();
+  if ((flags_ & START_VIDEO_STREAM) != 0) {
+    StartVideoStream();
+  }
+  controller_->Run();
+  Shutdown();
 }
 
 void Agent::SetVideoOrientation(int32_t orientation) {

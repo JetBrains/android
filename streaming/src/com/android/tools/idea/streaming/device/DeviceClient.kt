@@ -59,11 +59,13 @@ internal const val SCREEN_SHARING_AGENT_JAR_NAME = "screen-sharing-agent.jar"
 internal const val SCREEN_SHARING_AGENT_SO_NAME = "libscreen-sharing-agent.so"
 internal const val SCREEN_SHARING_AGENT_SOURCE_PATH = "tools/adt/idea/streaming/screen-sharing-agent"
 internal const val DEVICE_PATH_BASE = "/data/local/tmp/.studio"
-const val TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x01 // Keep in sync with flags.h
 const val MAX_BIT_RATE_EMULATOR = 2000000
 const val DEFAULT_AGENT_LOG_LEVEL = "info"
 const val VIDEO_CHANNEL_MARKER = 'V'.code.toByte()
 const val CONTROL_CHANNEL_MARKER = 'C'.code.toByte()
+// Flag definitions. Keep in sync with flags.h
+const val START_VIDEO_STREAM = 0x01
+const val TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x02
 
 internal class DeviceClient(
   disposableParent: Disposable,
@@ -241,11 +243,13 @@ internal class DeviceClient(
       socketName: String,
       maxVideoSize: Dimension,
       initialDisplayOrientation: Int,
-      agentTerminationListener: AgentTerminationListener) {
+      agentTerminationListener: AgentTerminationListener,
+      startVideoStream: Boolean = true) {
     startAgentTime = System.currentTimeMillis()
     val orientationArg = if (initialDisplayOrientation == UNKNOWN_ORIENTATION) "" else " --orientation=$initialDisplayOrientation"
-    val flagsArg = if (DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring) " --flags=$TURN_OFF_DISPLAY_WHILE_MIRRORING"
-                   else ""
+    val flags = (if (startVideoStream) START_VIDEO_STREAM else 0) or
+                (if (DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring) TURN_OFF_DISPLAY_WHILE_MIRRORING else 0)
+    val flagsArg = if (flags != 0) " --flags=$flags" else ""
     val maxBitRateArg = when {
       deviceSerialNumber.startsWith("emulator-") -> " --max_bit_rate=$MAX_BIT_RATE_EMULATOR"
       StudioFlags.DEVICE_MIRRORING_MAX_BIT_RATE.get() > 0 -> " --max_bit_rate=${StudioFlags.DEVICE_MIRRORING_MAX_BIT_RATE.get()}"

@@ -139,6 +139,7 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
 
   private var maxVideoResolution = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
   private var displayOrientation = 0
+  private var videoStreamActive = false
   private var shellProtocol: ShellV2Protocol? = null
 
   /**
@@ -207,6 +208,10 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
 
         arg.startsWith("--orientation=") -> {
           displayOrientation = arg.substring("--orientation=".length).toInt()
+        }
+
+        arg.startsWith("--flags=") -> {
+          videoStreamActive = (arg.substring("--flags=".length).toInt() and START_VIDEO_STREAM) != 0
         }
       }
     }
@@ -417,6 +422,10 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
      */
     suspend fun renderDisplay(imageFlavor: Int) {
       lastImageFlavor = imageFlavor
+
+      if (!videoStreamActive) {
+        return
+      }
 
       val size = getScaledAndRotatedDisplaySize()
       val encoderContext = avcodec_alloc_context3(encoder)?.apply {
@@ -648,6 +657,8 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
       when (message) {
         is SetDeviceOrientationMessage -> setDeviceOrientation(message)
         is SetMaxVideoResolutionMessage -> setMaxVideoResolutionMessage(message)
+        is StartVideoStreamMessage -> videoStreamActive = true
+        is StopVideoStreamMessage -> videoStreamActive = false
         is StartClipboardSyncMessage -> startClipboardSync(message)
         is StopClipboardSyncMessage -> stopClipboardSync()
         else -> {}

@@ -30,12 +30,15 @@ public:
   SessionEnvironment(bool turn_off_display);
   ~SessionEnvironment();
 
+  void Restore();
+
 private:
   ScopedSetting accelerometer_rotation_;
   ScopedSetting stay_on_;
   bool restore_normal_display_power_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(SessionEnvironment);
+
 };
 
 }  // namespace screensharing
