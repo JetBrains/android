@@ -27,11 +27,14 @@ import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.util.CommonAndroidUtil
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.TestLibraries
+import com.intellij.facet.ProjectFacetManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
+import org.jetbrains.android.facet.AndroidFacet
 import java.nio.file.Path
 
 /**
@@ -486,3 +489,19 @@ fun Module.isLinkedAndroidModule() = getUserData(CommonAndroidUtil.LINKED_ANDROI
  * Returns the type of Android project this module represents.
  */
 fun Module.androidProjectType(): AndroidModuleSystem.Type = getModuleSystem().type
+
+/** Returns all [AndroidFacet]s on the project. It uses a sequence in order to avoid allocations. */
+fun Project.androidFacetsForNonHolderModules(): Sequence<AndroidFacet> {
+  return ProjectFacetManager.getInstance(this).getModulesWithFacet(AndroidFacet.ID).asSequence().let {
+    if (ApplicationManager.getApplication().isUnitTestMode) {
+      // We are running some tests that don't set up real-world project structure, so fetch all modules.
+      // See http://b/258162266 for more details.
+      it
+    }
+    else {
+      // Holder module has associated facet, but it can be ignored.
+      it.filter { module -> !module.isHolderModule() }
+    }
+  }.mapNotNull { it.androidFacet }
+}
+
