@@ -34,6 +34,8 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.containers.ContainerUtil.createLockFreeCopyOnWriteList
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -53,7 +55,10 @@ import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.PosixFilePermission
+import java.util.concurrent.CancellationException
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 
 internal const val SCREEN_SHARING_AGENT_JAR_NAME = "screen-sharing-agent.jar"
 internal const val SCREEN_SHARING_AGENT_SO_NAME = "libscreen-sharing-agent.so"
@@ -69,33 +74,73 @@ const val TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x02
 
 internal class DeviceClient(
   disposableParent: Disposable,
-  private val deviceSerialNumber: String,
+  val deviceSerialNumber: String,
+  val deviceConfig: DeviceConfiguration,
   private val deviceAbi: String,
-  private val deviceName: String,
   private val project: Project
 ) : Disposable {
 
   private val coroutineScope = AndroidCoroutineScope(this)
   private lateinit var controlChannel: SuspendingSocketChannel
   private lateinit var videoChannel: SuspendingSocketChannel
-  lateinit var videoDecoder: VideoDecoder
-  lateinit var deviceController: DeviceController
+  @Volatile
+  var videoDecoder: VideoDecoder? = null
     private set
+  @Volatile
+  var deviceController: DeviceController? = null
+    private set
+  private val connectionState = AtomicReference<CompletableDeferred<Unit>>()
+  private var videoStreamActive = AtomicBoolean()
   internal var startTime = 0L // Time when startAgentAndConnect was called.
   internal var pushEndTime = 0L // Time when the agent push completed.
   internal var startAgentTime = 0L // Time when the command to start the agent was issued.
   internal var channelConnectedTime = 0L // Time when the channels were connected.
   private val logger = thisLogger()
+  private val agentTerminationListeners = createLockFreeCopyOnWriteList<AgentTerminationListener>()
+  val deviceName: String = deviceConfig.deviceName ?: deviceSerialNumber
 
   init {
     Disposer.register(disposableParent, this)
   }
 
-  suspend fun startAgentAndConnect(
-      maxVideoSize: Dimension,
-      initialDisplayOrientation: Int,
-      frameListener: VideoDecoder.FrameListener,
-      agentTerminationListener: AgentTerminationListener) {
+  /**
+   * Asynchronously establishes connection to the screen sharing agent without activating the video stream.
+   */
+  fun establishAgentConnectionWithoutVideoStreamAsync() {
+    coroutineScope.launch { establishAgentConnection(Dimension(), UNKNOWN_ORIENTATION, false)}
+  }
+
+  /**
+   * Establishes connection to the screen sharing agent. If the process of establishing connection
+   * has already been started, waits for it to complete.
+   */
+  suspend fun establishAgentConnection(maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean) {
+    val completion = CompletableDeferred<Unit>()
+    val connection = connectionState.compareAndExchange(null, completion) ?: completion
+    if (connection === completion) {
+      try {
+        startAgentAndConnect(maxVideoSize, initialDisplayOrientation, startVideoStream)
+        connection.complete(Unit)
+      }
+      catch (e: CancellationException) {
+        throw e
+      }
+      catch (e: Throwable) {
+        connectionState.set(null)
+        connection.completeExceptionally(e)
+      }
+    }
+    connection.await()
+
+    if (startVideoStream && !videoStreamActive.get()) {
+      startVideoStream(maxVideoSize)
+    }
+  }
+
+  /**
+   * Starts the screen sharing agent and connects to it.
+   */
+  private suspend fun startAgentAndConnect(maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean) {
     startTime = System.currentTimeMillis()
     val adb = AdbLibService.getSession(project).deviceServices
     val deviceSelector = DeviceSelector.fromSerialNumber(deviceSerialNumber)
@@ -114,15 +159,35 @@ internal class DeviceClient(
       ClosableReverseForwarding(deviceSelector, SocketSpec.LocalAbstract(socketName), SocketSpec.Tcp(port), adb).use {
         it.startForwarding()
         agentPushed.await()
-        startAgent(deviceSelector, adb, socketName, maxVideoSize, initialDisplayOrientation, agentTerminationListener)
+        startAgent(deviceSelector, adb, socketName, maxVideoSize, initialDisplayOrientation, startVideoStream)
         connectChannels(serverSocketChannel)
         // Port forwarding can be removed since the already established connections will continue to work without it.
       }
     }
     deviceController = DeviceController(this, controlChannel)
-    videoDecoder = VideoDecoder(videoChannel, maxVideoSize)
-    videoDecoder.addFrameListener(frameListener)
-    videoDecoder.start(coroutineScope)
+    videoDecoder = VideoDecoder(videoChannel, coroutineScope, maxVideoSize).apply { start() }
+    videoStreamActive.set(startVideoStream)
+  }
+
+  fun addAgentTerminationListener(listener: AgentTerminationListener) {
+    agentTerminationListeners.add(listener)
+  }
+
+  fun removeAgentTerminationListener(listener: AgentTerminationListener) {
+    agentTerminationListeners.remove(listener)
+  }
+
+  private fun startVideoStream(maxOutputSize: Dimension) {
+    if (videoStreamActive.compareAndSet(false, true)) {
+      deviceController?.sendControlMessage(SetMaxVideoResolutionMessage(maxOutputSize.width, maxOutputSize.height))
+      deviceController?.sendControlMessage(StartVideoStreamMessage.instance)
+    }
+  }
+
+  fun stopVideoStream() {
+    if (videoStreamActive.compareAndSet(true, false)) {
+      deviceController?.sendControlMessage(StopVideoStreamMessage.instance)
+    }
   }
 
   private suspend fun connectChannels(serverSocketChannel: SuspendingServerSocketChannel) {
@@ -243,8 +308,7 @@ internal class DeviceClient(
       socketName: String,
       maxVideoSize: Dimension,
       initialDisplayOrientation: Int,
-      agentTerminationListener: AgentTerminationListener,
-      startVideoStream: Boolean = true) {
+      startVideoStream: Boolean) {
     startAgentTime = System.currentTimeMillis()
     val orientationArg = if (initialDisplayOrientation == UNKNOWN_ORIENTATION) "" else " --orientation=$initialDisplayOrientation"
     val flags = (if (startVideoStream) START_VIDEO_STREAM else 0) or
@@ -277,19 +341,31 @@ internal class DeviceClient(
             is ShellCommandOutputElement.StdoutLine -> if (it.contents.isNotBlank()) log.info(it.contents)
             is ShellCommandOutputElement.StderrLine -> if (it.contents.isNotBlank()) log.warn(it.contents)
             is ShellCommandOutputElement.ExitCode -> {
+              onDisconnection()
               if (it.exitCode == 0) log.info("terminated") else log.warn("terminated with code ${it.exitCode}")
-              agentTerminationListener.agentTerminated(it.exitCode)
+              for (listener in agentTerminationListeners) {
+                listener.agentTerminated(it.exitCode)
+              }
               cancel()
             }
           }
         }
       }
-      catch (_: EOFException) {
+      catch (e: EOFException) {
         // Device disconnected. This is not an error.
         log.info("device disconnected")
-        agentTerminationListener.deviceDisconnected()
+        onDisconnection()
+        for (listener in agentTerminationListeners) {
+          listener.deviceDisconnected()
+        }
       }
     }
+  }
+
+  private fun onDisconnection() {
+    deviceController = null
+    videoDecoder = null
+    connectionState.set(null)
   }
 
   interface AgentTerminationListener {

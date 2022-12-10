@@ -43,16 +43,19 @@ private val ICON = ExecutionUtil.getLiveIndicator(StudioIcons.Avd.DEVICE_PHONE)
  */
 internal class DeviceToolWindowPanel(
   private val project: Project,
-  private val deviceSerialNumber: String,
-  private val deviceAbi: String,
-  override val title: String,
-  deviceProperties: Map<String, String>,
-) : RunningDevicePanel(DeviceId.ofPhysicalDevice(deviceSerialNumber), DEVICE_MAIN_TOOLBAR_ID, STREAMING_SECONDARY_TOOLBAR_ID) {
+  private val deviceClient: DeviceClient,
+) : RunningDevicePanel(DeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber), DEVICE_MAIN_TOOLBAR_ID, STREAMING_SECONDARY_TOOLBAR_ID) {
 
   private var displayPanel: DeviceDisplayPanel? = null
   private var contentDisposable: Disposable? = null
-
   private var primaryDeviceView: DeviceView? = null
+  private val deviceSerialNumber: String
+    get() = deviceClient.deviceSerialNumber
+  private val deviceConfig
+    get() = deviceClient.deviceConfig
+
+  override val title: String
+    get() = deviceClient.deviceName
 
   override val icon
     get() = ICON
@@ -61,8 +64,6 @@ internal class DeviceToolWindowPanel(
 
   val component: JComponent
     get() = this
-
-  private val deviceConfiguration = DeviceConfiguration(deviceProperties)
 
   override val preferredFocusableComponent: JComponent
     get() = primaryDeviceView ?: this
@@ -88,8 +89,7 @@ internal class DeviceToolWindowPanel(
 
     savedUiState as DeviceUiState?
     val initialOrientation = savedUiState?.orientation ?: UNKNOWN_ORIENTATION
-    val primaryDisplayPanel =
-        DeviceDisplayPanel(disposable, deviceSerialNumber, deviceAbi, title, initialOrientation, project, zoomToolbarVisible)
+    val primaryDisplayPanel = DeviceDisplayPanel(disposable, deviceClient, initialOrientation, project, zoomToolbarVisible)
     savedUiState?.zoomScrollState?.let { primaryDisplayPanel.zoomScrollState = it }
 
     displayPanel = primaryDisplayPanel
@@ -135,13 +135,13 @@ internal class DeviceToolWindowPanel(
   override fun getData(dataId: String): Any? {
     return when (dataId) {
       DEVICE_VIEW_KEY.name, ZOOMABLE_KEY.name -> primaryDeviceView
-      DEVICE_CONTROLLER_KEY.name -> primaryDeviceView?.deviceController
-      DEVICE_CONFIGURATION_KEY.name -> deviceConfiguration
+      DEVICE_CONTROLLER_KEY.name -> deviceClient.deviceController
+      DEVICE_CONFIGURATION_KEY.name -> deviceConfig
       ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name ->
-          primaryDeviceView?.let { if (it.isConnected) DeviceScreenshotOptions(deviceSerialNumber, deviceConfiguration, it) else null }
+          primaryDeviceView?.let { if (it.isConnected) DeviceScreenshotOptions(deviceSerialNumber, deviceConfig, it) else null }
       ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name ->
           primaryDeviceView?.let {
-            ScreenRecorderAction.Parameters(deviceSerialNumber, deviceConfiguration.apiLevel, deviceConfiguration.avdName, it)
+            ScreenRecorderAction.Parameters(deviceSerialNumber, deviceConfig.apiLevel, deviceConfig.avdName, it)
           }
       else -> super.getData(dataId)
     }

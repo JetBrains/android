@@ -17,26 +17,40 @@ package com.android.tools.idea.streaming.device
 
 import com.android.adblib.DevicePropertyNames
 import com.android.sdklib.SdkVersionInfo
+import com.intellij.openapi.util.text.StringUtil
 
 /**
  * Characteristics of a mirrored Android device.
  */
-class DeviceConfiguration(val deviceProperties: Map<String, String>) {
+class DeviceConfiguration(deviceProperties: Map<String, String>) {
 
-  val apiLevel: Int
-    get() = deviceProperties[DevicePropertyNames.RO_BUILD_VERSION_SDK]?.toInt() ?: SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
+  val apiLevel: Int = deviceProperties[DevicePropertyNames.RO_BUILD_VERSION_SDK]?.toInt() ?: SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 
-  val avdName: String?
-    get() = deviceProperties[DevicePropertyNames.RO_BOOT_QEMU_AVD_NAME] ?: deviceProperties[DevicePropertyNames.RO_KERNEL_QEMU_AVD_NAME]
+  val avdName: String? =
+      deviceProperties[DevicePropertyNames.RO_BOOT_QEMU_AVD_NAME] ?: deviceProperties[DevicePropertyNames.RO_KERNEL_QEMU_AVD_NAME]
 
-  val deviceModel: String?
-    get() = deviceProperties[DevicePropertyNames.RO_PRODUCT_MODEL]
+  val deviceModel: String? = deviceProperties[DevicePropertyNames.RO_PRODUCT_MODEL]
 
-  val isWatch: Boolean
-    get() = deviceProperties[DevicePropertyNames.RO_BUILD_CHARACTERISTICS]?.contains("watch") ?: false
+  val isWatch: Boolean = deviceProperties[DevicePropertyNames.RO_BUILD_CHARACTERISTICS]?.contains("watch") ?: false
 
-  val isAutomotive: Boolean
-    get() = deviceProperties[DevicePropertyNames.RO_BUILD_CHARACTERISTICS]?.contains("automotive") ?: false
+  val isAutomotive: Boolean = deviceProperties[DevicePropertyNames.RO_BUILD_CHARACTERISTICS]?.contains("automotive") ?: false
+
+  val deviceName: String?
+
+  init {
+    var name = avdName?.replace('_', ' ')
+    if (name == null) {
+      name = deviceModel
+      if (name != null && !name.startsWith("Pixel")) {
+        val manufacturer = deviceProperties[DevicePropertyNames.RO_PRODUCT_MANUFACTURER]
+        if (!manufacturer.isNullOrBlank() && manufacturer != "unknown") {
+          name = "${StringUtil.capitalize(manufacturer)} $name"
+        }
+      }
+      name += " API $apiLevel"
+    }
+    deviceName = name
+  }
 
   val hasOrientationSensors: Boolean = true // TODO Obtain sensor info from the device.
 }

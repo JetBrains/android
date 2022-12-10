@@ -33,9 +33,9 @@ import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.bytedeco.ffmpeg.avcodec.AVCodec
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avcodec.AVPacket
@@ -99,8 +99,9 @@ import kotlin.math.roundToInt
 internal class FakeScreenSharingAgent(val displaySize: Dimension, private val deviceState: DeviceState) : Disposable {
 
   private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor(
-      "FakeScreenSharingAgent", AndroidExecutors.getInstance().workerThreadExecutor,1, this)
-  private val coroutineScope = CoroutineScope(executor.asCoroutineDispatcher() + Job())
+     "FakeScreenSharingAgent", AndroidExecutors.getInstance().workerThreadExecutor, 1)
+  private val singleThreadedDispatcher = executor.asCoroutineDispatcher()
+  private val coroutineScope = CoroutineScope(singleThreadedDispatcher + Job())
   private var startTime = 0L
 
   private val displayId = PRIMARY_DISPLAY_ID
@@ -136,17 +137,19 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
     private set
   @Volatile
   var crashOnStart = false
+  @Volatile
+  var videoStreamActive = false
+    private set
 
   private var maxVideoResolution = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
   private var displayOrientation = 0
-  private var videoStreamActive = false
   private var shellProtocol: ShellV2Protocol? = null
 
   /**
    * Runs the agent. Returns when the agen terminates.
    */
   suspend fun run(protocol: ShellV2Protocol, command: String, hostPort: Int) {
-    coroutineScope.async {
+    withContext(singleThreadedDispatcher) {
       commandLine = command
       shellProtocol = protocol
       commandLog.clear()
@@ -160,7 +163,7 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
       controlChannel.connect(socketAddress)
       if (crashOnStart) {
         terminateAgent(139)
-        return@async
+        return@withContext
       }
       videoChannel.write(ByteBuffer.wrap("V".toByteArray()))
       controlChannel.write(ByteBuffer.wrap("C".toByteArray()))
@@ -172,25 +175,32 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
       deviceState.deleteFile("$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_SO_NAME")
       deviceState.deleteFile("$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME")
       deviceState.deleteFile(DEVICE_PATH_BASE)
-      isRunning = true
-      controller.run()
-    }.await()
+      if (startTime == 0L) {
+        // Shutdown has been triggered - abort run.
+        shutdownChannels()
+      }
+      else {
+        isRunning = true
+        controller.run()
+        isRunning = false
+      }
+    }
   }
 
   /**
    * Stops the agent.
    */
   suspend fun stop() {
-    coroutineScope.run {
+    withContext(singleThreadedDispatcher) {
       terminateAgent(0)
     }
   }
 
   /**
-   * Simulates a crash of the agent. The agent dies without a normal shutdown
+   * Simulates a crash of the agent. The agent dies without a normal shutdown.
    */
   suspend fun crash() {
-    coroutineScope.run {
+    withContext(singleThreadedDispatcher) {
       terminateAgent(139)
     }
   }
@@ -233,31 +243,35 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
 
   override fun dispose() {
     runBlocking {
-      coroutineScope.run {
+      withContext(singleThreadedDispatcher) {
         shutdown()
       }
     }
+    executor.shutdown()
   }
 
   private suspend fun shutdown() {
     if (startTime != 0L) {
       startTime = 0
-      controller?.let {
-        it.shutdown()
-        Disposer.dispose(it)
-        controller = null
-      }
-      displayStreamer?.let {
-        it.shutdown()
-        Disposer.dispose(it)
-        displayStreamer = null
-      }
-      isRunning = false
+      shutdownChannels()
+    }
+  }
+
+  private suspend fun shutdownChannels() {
+    controller?.let {
+      it.shutdown()
+      Disposer.dispose(it)
+      controller = null
+    }
+    displayStreamer?.let {
+      it.shutdown()
+      Disposer.dispose(it)
+      displayStreamer = null
     }
   }
 
   suspend fun renderDisplay(flavor: Int) {
-    return coroutineScope.run {
+    return withContext(singleThreadedDispatcher) {
       displayStreamer?.renderDisplay(flavor)
     }
   }
@@ -361,6 +375,15 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
     displayStreamer?.renderDisplay()
   }
 
+  private suspend fun startVideoStream() {
+    videoStreamActive = true
+    displayStreamer?.renderDisplay()
+  }
+
+  private fun stopVideoStream() {
+    videoStreamActive = false
+  }
+
   private fun startClipboardSync(message: StartClipboardSyncMessage) {
     clipboardInternal.set(message.text)
     clipboardSynchronizationActive.set(true)
@@ -377,13 +400,7 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
   private inner class DisplayStreamer(private val channel: SuspendingSocketChannel) : Disposable {
 
     private val codecName = StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()
-    private val encoder: AVCodec
-    private val packetHeader = VideoPacketHeader(displaySize)
-    private var presentationTimestampOffset = 0L
-    private var lastImageFlavor: Int = 0
-    @Volatile var stopped = false
-
-    init {
+    private val encoder: AVCodec by lazy {
       // Use avcodec_find_encoder instead of avcodec_find_encoder_by_name because the names of encoders and decoders don't match.
       val codecId = when (codecName) {
         "vp8" -> AV_CODEC_ID_VP8
@@ -393,8 +410,12 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
         else -> throw RuntimeException("$codecName encoder not found")
       }
 
-      encoder = avcodec_find_encoder(codecId) ?: throw RuntimeException("$codecName encoder not found")
+      avcodec_find_encoder(codecId) ?: throw RuntimeException("$codecName encoder not found")
     }
+    private val packetHeader = VideoPacketHeader(displaySize)
+    private var presentationTimestampOffset = 0L
+    private var lastImageFlavor: Int = 0
+    @Volatile var stopped = false
 
     suspend fun start() {
       // Send the channel header with the name of the codec.
@@ -569,9 +590,6 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
     private fun Int.roundUpToMultipleOf8(): Int =
       (this + 7) and 7.inv()
 
-    fun Int.roundToMultipleOf2(): Int =
-      this and 1.inv()
-
     private fun BufferedImage.rotatedByQuadrants(quadrants: Int): BufferedImage =
       ImageUtils.rotateByQuadrants(this, quadrants)
 
@@ -657,8 +675,8 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
       when (message) {
         is SetDeviceOrientationMessage -> setDeviceOrientation(message)
         is SetMaxVideoResolutionMessage -> setMaxVideoResolutionMessage(message)
-        is StartVideoStreamMessage -> videoStreamActive = true
-        is StopVideoStreamMessage -> videoStreamActive = false
+        is StartVideoStreamMessage -> startVideoStream()
+        is StopVideoStreamMessage -> stopVideoStream()
         is StartClipboardSyncMessage -> startClipboardSync(message)
         is StopClipboardSyncMessage -> stopClipboardSync()
         else -> {}

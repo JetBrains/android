@@ -105,26 +105,27 @@ import kotlin.math.min
  * A view of a mirrored device display.
  *
  * @param disposableParent the disposable parent determining the lifespan of the view
- * @param deviceSerialNumber the serial number of the device
- * @param deviceAbi the application binary interface of the device
- * @param deviceName the name of the device to be used in user-facing messages
+ * @param deviceClient the client for communicating with the device agent
  * @param initialDisplayOrientation initial orientation of the device display in quadrants counterclockwise
  * @param project the project associated with the view
  */
 internal class DeviceView(
   disposableParent: Disposable,
-  override val deviceSerialNumber: String,
-  private val deviceAbi: String,
-  private val deviceName: String,
+  private val deviceClient: DeviceClient,
   private val initialDisplayOrientation: Int,
   private val project: Project,
 ) : AbstractDisplayView(PRIMARY_DISPLAY_ID), Disposable, DeviceMirroringSettingsListener {
 
   val isConnected: Boolean
     get() = connectionState == ConnectionState.CONNECTED
+
+  override val deviceSerialNumber: String
+    get() = deviceClient.deviceSerialNumber
+
   /** The difference between [displayOrientationQuadrants] and the orientation according to the DisplayInfo Android data structure. */
   override var displayOrientationQuadrants: Int = 0
     private set
+
   internal var displayOrientationCorrectionQuadrants: Int = 0
     private set
 
@@ -137,16 +138,19 @@ internal class DeviceView(
         }
       }
     }
-  private var deviceClient: DeviceClient? = null
+
   internal val deviceController: DeviceController?
-    get() = deviceClient?.deviceController
-  private val videoDecoder: VideoDecoder?
-    get() = deviceClient?.videoDecoder
-  private var clipboardSynchronizer: DeviceClipboardSynchronizer? = null
-  private val connectionStateListeners = mutableListOf<ConnectionStateListener>()
+    get() = deviceClient.deviceController
 
   override val deviceDisplaySize = Dimension()
 
+  private var clipboardSynchronizer: DeviceClipboardSynchronizer? = null
+  private val connectionStateListeners = mutableListOf<ConnectionStateListener>()
+  private val agentTerminationListener = object: AgentTerminationListener {
+    override fun agentTerminated(exitCode: Int) { disconnected(initialDisplayOrientation) }
+    override fun deviceDisconnected() { disconnected(initialDisplayOrientation) }
+  }
+  private val frameListener = MyFrameListener()
   private val displayTransform = AffineTransform()
   private var disposed = false
 
@@ -173,11 +177,7 @@ internal class DeviceView(
         }
       }
     }
-
-  /**
-   * Last coordinates of the mouse pointer while the first button was pressed.
-   * Set to null when the first mouse button is released.
-   */
+  /** Last coordinates of the mouse pointer while the first button is pressed, null when the first button is released. */
   private var lastTouchCoordinates: Point? = null
 
   init {
@@ -186,7 +186,7 @@ internal class DeviceView(
     addComponentListener(object : ComponentAdapter() {
       override fun componentShown(event: ComponentEvent) {
         if (physicalWidth > 0 && physicalHeight > 0 && connectionState == ConnectionState.INITIAL) {
-          initializeAgentAsync(initialDisplayOrientation)
+          connectToAgentAsync(initialDisplayOrientation)
         }
       }
     })
@@ -211,7 +211,7 @@ internal class DeviceView(
     super.setBounds(x, y, width, height)
     if (resized && physicalWidth > 0 && physicalHeight > 0) {
       if (connectionState == ConnectionState.INITIAL) {
-        initializeAgentAsync(initialDisplayOrientation)
+        connectToAgentAsync(initialDisplayOrientation)
       }
       else {
         updateVideoSize()
@@ -220,25 +220,27 @@ internal class DeviceView(
   }
 
   /** Starts asynchronous initialization of the Screen Sharing Agent. */
-  private fun initializeAgentAsync(initialDisplayOrientation: Int) {
+  private fun connectToAgentAsync(initialDisplayOrientation: Int) {
     connectionState = ConnectionState.CONNECTING
     val maxOutputSize = physicalSize
-    AndroidCoroutineScope(this@DeviceView).launch { initializeAgent(maxOutputSize, initialDisplayOrientation) }
+    AndroidCoroutineScope(this@DeviceView).launch {
+      connectToAgent(maxOutputSize, initialDisplayOrientation)
+    }
   }
 
-  private suspend fun initializeAgent(maxOutputSize: Dimension, initialDisplayOrientation: Int) {
+  private suspend fun connectToAgent(maxOutputSize: Dimension, initialDisplayOrientation: Int) {
     try {
-      val deviceClient = DeviceClient(this, deviceSerialNumber, deviceAbi, deviceName, project)
-      val agentTerminationListener = object: AgentTerminationListener {
-        override fun agentTerminated(exitCode: Int) { disconnected(initialDisplayOrientation) }
-        override fun deviceDisconnected() { disconnected(initialDisplayOrientation) }
-      }
-      deviceClient.startAgentAndConnect(maxOutputSize, initialDisplayOrientation, MyFrameListener(), agentTerminationListener)
-      EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+      deviceClient.addAgentTerminationListener(agentTerminationListener)
+      deviceClient.establishAgentConnection(maxOutputSize, initialDisplayOrientation, startVideoStream = true)
+      val videoDecoder = deviceClient.videoDecoder ?: return
+      videoDecoder.addFrameListener(frameListener)
+
+      UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
         if (!disposed) {
-          this.deviceClient = deviceClient
+          connected()
           if (DeviceMirroringSettings.getInstance().synchronizeClipboard) {
-            clipboardSynchronizer = DeviceClipboardSynchronizer(deviceClient.deviceController)
+            startClipboardSynchronization()
+            clipboardSynchronizer = DeviceClipboardSynchronizer(this, deviceClient)
           }
           repaint()
           updateVideoSize() // Update video size in case the view was resized during agent initialization.
@@ -254,44 +256,52 @@ internal class DeviceView(
   }
 
   private fun updateVideoSize() {
-    val deviceClient = deviceClient ?: return
-    val videoDecoder = deviceClient.videoDecoder
+    val videoDecoder = deviceClient.videoDecoder ?: return
     if (videoDecoder.maxOutputSize != physicalSize) {
       videoDecoder.maxOutputSize = physicalSize
-      deviceClient.deviceController.sendControlMessage(SetMaxVideoResolutionMessage(physicalWidth, physicalHeight))
+      deviceController?.sendControlMessage(SetMaxVideoResolutionMessage(physicalWidth, physicalHeight))
+    }
+  }
+
+  private fun connected() {
+    if (connectionState == ConnectionState.CONNECTING) {
+      hideDisconnectedStateMessage()
+      connectionState = ConnectionState.CONNECTED
     }
   }
 
   private fun disconnected(initialDisplayOrientation: Int, exception: Throwable? = null) {
+    deviceClient.removeAgentTerminationListener(agentTerminationListener)
     UIUtil.invokeLaterIfNeeded {
       if (disposed) {
         return@invokeLaterIfNeeded
       }
+      stopClipboardSynchronization()
       val message: String
       val reconnector: Reconnector
       when (connectionState) {
         ConnectionState.CONNECTING -> {
           thisLogger().error("Failed to initialize the screen sharing agent", exception)
           message = "Failed to initialize the device agent. See the error log."
-          reconnector = Reconnector("Retry", "Connecting to the device") { initializeAgentAsync(initialDisplayOrientation) }
+          reconnector = Reconnector("Retry", "Connecting to the device") { connectToAgentAsync(initialDisplayOrientation) }
         }
 
         ConnectionState.CONNECTED -> {
           message = "Lost connection to the device. See the error log."
-          reconnector = Reconnector("Reconnect", "Attempting to reconnect") { initializeAgentAsync(UNKNOWN_ORIENTATION) }
+          reconnector = Reconnector("Reconnect", "Attempting to reconnect") { connectToAgentAsync(UNKNOWN_ORIENTATION) }
         }
 
         else -> return@invokeLaterIfNeeded
       }
 
-      deviceClient?.let { Disposer.dispose(it) }
-      deviceClient = null
       connectionState = ConnectionState.DISCONNECTED
       showDisconnectedStateMessage(message, reconnector)
     }
   }
 
   override fun dispose() {
+    deviceClient.stopVideoStream()
+    deviceClient.removeAgentTerminationListener(agentTerminationListener)
     disposed = true
   }
 
@@ -311,7 +321,7 @@ internal class DeviceView(
       return
     }
 
-    val decoder = videoDecoder ?: return
+    val decoder = deviceClient.videoDecoder ?: return
     g as Graphics2D
     val physicalToVirtualScale = 1.0 / screenScale
     g.scale(physicalToVirtualScale, physicalToVirtualScale) // Set the scale to draw in physical pixels.
@@ -347,7 +357,7 @@ internal class DeviceView(
       frameNumber = displayFrame.frameNumber
       notifyFrameListeners(displayRect, displayFrame.image)
 
-      deviceClient?.apply {
+      with (deviceClient) {
         if (startTime != 0L) {
           val delay = System.currentTimeMillis() - startTime
           val pushDelay = pushEndTime - startTime
@@ -371,24 +381,34 @@ internal class DeviceView(
 
   @UiThread
   override fun settingsChanged(settings: DeviceMirroringSettings) {
-    val controller = deviceClient?.deviceController ?: return
+    if (deviceController == null) {
+      return
+    }
     if (settings.synchronizeClipboard) {
-      val synchronizer = clipboardSynchronizer
-      if (synchronizer == null) {
-        // Start clipboard synchronization.
-        clipboardSynchronizer = DeviceClipboardSynchronizer(controller)
-      }
-      else {
-        // Pass the new value of maxSyncedClipboardLength to the device.
-        synchronizer.setDeviceClipboard()
-      }
+      startClipboardSynchronization()
     }
     else {
-      clipboardSynchronizer?.let {
-        // Stop clipboard synchronization.
-        Disposer.dispose(it)
-        clipboardSynchronizer = null
-      }
+      stopClipboardSynchronization()
+    }
+  }
+
+  private fun startClipboardSynchronization() {
+    val synchronizer = clipboardSynchronizer
+    if (synchronizer == null) {
+      // Start clipboard synchronization.
+      clipboardSynchronizer = DeviceClipboardSynchronizer(this, deviceClient)
+    }
+    else {
+      // Pass the new value of maxSyncedClipboardLength to the device.
+      synchronizer.setDeviceClipboard()
+    }
+  }
+
+  private fun stopClipboardSynchronization() {
+    clipboardSynchronizer?.let {
+      // Stop clipboard synchronization.
+      Disposer.dispose(it)
+      clipboardSynchronizer = null
     }
   }
 
@@ -409,15 +429,17 @@ internal class DeviceView(
   }
 
   private fun sendMotionEventDisplayCoordinates(p: Point, action: Int) {
-    val deviceController = deviceController ?: return
+    if (!isConnected) {
+      return
+    }
     val message = when {
       action == MotionEventMessage.ACTION_POINTER_DOWN || action == MotionEventMessage.ACTION_POINTER_UP ->
-        MotionEventMessage(originalAndMirroredPointer(p),action or (1 shl MotionEventMessage.ACTION_POINTER_INDEX_SHIFT), displayId)
+          MotionEventMessage(originalAndMirroredPointer(p),action or (1 shl MotionEventMessage.ACTION_POINTER_INDEX_SHIFT), displayId)
       multiTouchMode -> MotionEventMessage(originalAndMirroredPointer(p), action, displayId)
       else -> MotionEventMessage(originalPointer(p), action, displayId)
     }
 
-    deviceController.sendControlMessage(message)
+    deviceController?.sendControlMessage(message)
   }
 
   private fun originalPointer(p: Point): List<MotionEventMessage.Pointer> {
@@ -501,11 +523,8 @@ internal class DeviceView(
 
     override fun onNewFrameAvailable() {
       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-        if (connectionState == ConnectionState.CONNECTING) {
-          hideDisconnectedStateMessage()
-          connectionState = ConnectionState.CONNECTED
-        }
-        if (width != 0 && height != 0 && deviceClient != null) {
+        connected()
+        if (width != 0 && height != 0) {
           repaint()
         }
       }
@@ -518,6 +537,9 @@ internal class DeviceView(
   private inner class MyKeyListener  : KeyAdapter() {
 
     override fun keyTyped(event: KeyEvent) {
+      if (!isConnected) {
+        return
+      }
       val c = event.keyChar
       if (c == CHAR_UNDEFINED || Character.isISOControl(c)) {
         return
@@ -557,19 +579,21 @@ internal class DeviceView(
         return
       }
 
-      val deviceController = deviceController ?: return
+      if (!isConnected) {
+        return
+      }
       val androidKeystroke = hostKeyStrokeToAndroidKeyStroke(keyCode, modifiers)
       if (androidKeystroke == null) {
         if (modifiers == 0) {
           val androidKeyCode = hostKeyCodeToDeviceKeyCode(keyCode)
           if (androidKeyCode != AKEYCODE_UNKNOWN) {
             val action = if (event.id == KEY_PRESSED) ACTION_DOWN else ACTION_UP
-            deviceController.sendControlMessage(KeyEventMessage(action, androidKeyCode, modifiersToMetaState(modifiers)))
+            deviceController?.sendControlMessage(KeyEventMessage(action, androidKeyCode, modifiersToMetaState(modifiers)))
           }
         }
       }
       else if (event.id == KEY_PRESSED) {
-        deviceController.sendKeystroke(androidKeystroke)
+        deviceController?.sendKeystroke(androidKeystroke)
       }
       event.consume()
     }

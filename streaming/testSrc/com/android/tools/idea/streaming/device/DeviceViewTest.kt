@@ -32,7 +32,6 @@ import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
-import com.android.tools.idea.streaming.device.StartClipboardSyncMessage
 import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.executeDeviceAction
 import com.android.tools.idea.testing.AndroidExecutorsRule
@@ -61,6 +60,7 @@ import com.intellij.openapi.actionSystem.IdeActions.ACTION_PASTE
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_SELECT_ALL
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.keymap.KeymapUtil
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
@@ -69,7 +69,6 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ConcurrencyUtil
 import kotlinx.coroutines.runBlocking
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -122,11 +121,10 @@ internal class DeviceViewTest {
   private val agentRule = FakeScreenSharingAgentRule()
   private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = Executors.newCachedThreadPool())
   @get:Rule
-  val ruleChain = RuleChain(agentRule, androidExecutorsRule, EdtRule())
+  val ruleChain = RuleChain(agentRule, ClipboardSynchronizationDisablementRule(), androidExecutorsRule, EdtRule())
   private lateinit var device: FakeScreenSharingAgentRule.FakeDevice
   private lateinit var view: DeviceView
   private lateinit var fakeUi: FakeUi
-  private var savedClipboardSynchronizationState = false
 
   private val testRootDisposable
     get() = agentRule.testRootDisposable
@@ -137,14 +135,7 @@ internal class DeviceViewTest {
 
   @Before
   fun setUp() {
-    savedClipboardSynchronizationState = DeviceMirroringSettings.getInstance().synchronizeClipboard
-    DeviceMirroringSettings.getInstance().synchronizeClipboard = false
     device = agentRule.connectDevice("Pixel 5", 30, Dimension(1080, 2340), "arm64-v8a")
-  }
-
-  @After
-  fun tearDown() {
-    DeviceMirroringSettings.getInstance().synchronizeClipboard = savedClipboardSynchronizationState
   }
 
   @Test
@@ -570,9 +561,12 @@ internal class DeviceViewTest {
   }
 
   private fun createDeviceView(width: Int, height: Int, screenScale: Double = 2.0) {
-    val deviceState = device.deviceState
-    val deviceName = "${deviceState.manufacturer} ${deviceState.model} API ${deviceState.buildVersionSdk}"
-    view = DeviceView(testRootDisposable, device.serialNumber, deviceState.cpuAbi, deviceName, UNKNOWN_ORIENTATION, agentRule.project)
+    val deviceClient =
+        DeviceClient(testRootDisposable, device.serialNumber, DeviceConfiguration(device.properties), device.deviceState.cpuAbi, project)
+    // DeviceView has to be disposed before DeviceClient.
+    val disposable = Disposer.newDisposable()
+    Disposer.register(testRootDisposable, disposable)
+    view = DeviceView(disposable, deviceClient, UNKNOWN_ORIENTATION, agentRule.project)
     fakeUi = FakeUi(wrapInScrollPane(view, width, height), screenScale)
     waitForCondition(15, TimeUnit.SECONDS) { agent.isRunning }
   }

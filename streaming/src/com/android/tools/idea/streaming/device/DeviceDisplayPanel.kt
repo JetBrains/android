@@ -26,16 +26,14 @@ import com.intellij.openapi.project.Project
  */
 internal class DeviceDisplayPanel(
   disposableParent: Disposable,
-  deviceSerialNumber: String,
-  deviceAbi: String,
-  deviceName: String,
+  deviceClient: DeviceClient,
   initialDisplayOrientation: Int,
   project: Project,
   zoomToolbarVisible: Boolean,
 ) : AbstractDisplayPanel<DeviceView>(disposableParent, zoomToolbarVisible), DataProvider {
 
   init {
-    displayView = DeviceView(this, deviceSerialNumber, deviceAbi, deviceName, initialDisplayOrientation, project)
+    displayView = DeviceView(this, deviceClient, initialDisplayOrientation, project)
 
     loadingPanel.setLoadingText("Connecting to the device")
     loadingPanel.startLoading() // The stopLoading method is called by DeviceView after a connection to the device is established.

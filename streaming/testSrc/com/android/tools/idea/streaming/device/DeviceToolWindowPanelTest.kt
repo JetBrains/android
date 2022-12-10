@@ -24,7 +24,6 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
@@ -41,7 +40,6 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestDataProvider
-import org.junit.After
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
@@ -68,7 +66,7 @@ class DeviceToolWindowPanelTest {
   private val agentRule = FakeScreenSharingAgentRule()
 
   @get:Rule
-  val ruleChain = RuleChain(agentRule, PortableUiFontRule(), EdtRule())
+  val ruleChain = RuleChain(agentRule, ClipboardSynchronizationDisablementRule(), PortableUiFontRule(), EdtRule())
 
   private lateinit var device: FakeDevice
   private val panel: DeviceToolWindowPanel by lazy { createToolWindowPanel() }
@@ -77,8 +75,6 @@ class DeviceToolWindowPanelTest {
   private val testRootDisposable get() = agentRule.testRootDisposable
   private val agent: FakeScreenSharingAgent get() = device.agent
 
-  private var savedClipboardSynchronizationState = false
-
   @Before
   fun setUp() {
     HeadlessDataManager.fallbackToProductionDataManager(testRootDisposable)
@@ -86,13 +82,6 @@ class DeviceToolWindowPanelTest {
     val mockScreenRecordingCache = MockitoKt.mock<ScreenRecordingSupportedCache>()
     MockitoKt.whenever(mockScreenRecordingCache.isScreenRecordingSupported(MockitoKt.any(), Mockito.anyInt())).thenReturn(true)
     project.registerServiceInstance(ScreenRecordingSupportedCache::class.java, mockScreenRecordingCache, testRootDisposable)
-    savedClipboardSynchronizationState = DeviceMirroringSettings.getInstance().synchronizeClipboard
-    DeviceMirroringSettings.getInstance().synchronizeClipboard = false
-  }
-
-  @After
-  fun tearDown() {
-    DeviceMirroringSettings.getInstance().synchronizeClipboard = savedClipboardSynchronizationState
   }
 
   @Test
@@ -150,7 +139,7 @@ class DeviceToolWindowPanelTest {
 
     panel.destroyContent()
     assertThat(panel.deviceView).isNull()
-    waitForCondition(2, TimeUnit.SECONDS) { !agent.isRunning }
+    waitForCondition(2, TimeUnit.SECONDS) { !agent.videoStreamActive }
   }
 
   @Test
@@ -209,7 +198,7 @@ class DeviceToolWindowPanelTest {
 
     panel.destroyContent()
     assertThat(panel.deviceView).isNull()
-    waitForCondition(2, TimeUnit.SECONDS) { !agent.isRunning }
+    waitForCondition(2, TimeUnit.SECONDS) { !agent.videoStreamActive }
   }
 
   @Test
@@ -245,12 +234,12 @@ class DeviceToolWindowPanelTest {
     // Recreate panel content.
     val uiState = panel.destroyContent()
     assertThat(panel.deviceView).isNull()
-    waitForCondition(2, TimeUnit.SECONDS) { !agent.isRunning }
+    waitForCondition(2, TimeUnit.SECONDS) { !agent.videoStreamActive }
     panel.createContent(false, uiState)
     assertThat(panel.deviceView).isNotNull()
     deviceView = panel.deviceView!!
     fakeUi.layoutAndDispatchEvents()
-    waitForCondition(5, TimeUnit.SECONDS) { agent.isRunning && panel.isConnected }
+    waitForCondition(5, TimeUnit.SECONDS) { agent.videoStreamActive && panel.isConnected }
     waitForFrame()
 
     // Check that zoom level and scroll position are restored.
@@ -260,7 +249,7 @@ class DeviceToolWindowPanelTest {
 
     panel.destroyContent()
     assertThat(panel.deviceView).isNull()
-    waitForCondition(2, TimeUnit.SECONDS) { !agent.isRunning }
+    waitForCondition(2, TimeUnit.SECONDS) { !agent.videoStreamActive }
   }
 
   private fun FakeUi.mousePressOn(component: Component) {
@@ -281,8 +270,13 @@ class DeviceToolWindowPanelTest {
   }
 
   private fun createToolWindowPanel(): DeviceToolWindowPanel {
-    val panel = DeviceToolWindowPanel(project, device.serialNumber, device.deviceState.cpuAbi, "Test device", device.properties)
-    Disposer.register(testRootDisposable) {
+    val deviceClient =
+        DeviceClient(testRootDisposable, device.serialNumber, DeviceConfiguration(device.properties), device.deviceState.cpuAbi, project)
+    val panel = DeviceToolWindowPanel(project, deviceClient)
+    // The panel has to be destroyed before disposal of DeviceClient.
+    val disposable = Disposer.newDisposable()
+    Disposer.register(testRootDisposable, disposable)
+    Disposer.register(disposable) {
       if (panel.deviceView != null) {
         panel.destroyContent()
       }
@@ -300,14 +294,13 @@ class DeviceToolWindowPanelTest {
 
   /** Waits for all video frames to be received. */
   private fun waitForFrame() {
-    waitForCondition(5, TimeUnit.SECONDS) { panel.isConnected && agent.frameNumber > 0 && renderAndGetFrameNumber() == agent.frameNumber }
+    waitForCondition(2, TimeUnit.SECONDS) { panel.isConnected && agent.frameNumber > 0 && renderAndGetFrameNumber() == agent.frameNumber }
   }
 
   private fun renderAndGetFrameNumber(): Int {
     fakeUi.render() // The frame number may get updated as a result of rendering.
     return panel.frameNumber
   }
-
 
   @Suppress("SameParameterValue")
   private fun assertAppearance(goldenImageName: String, maxPercentDifferent: Double = 0.0) {

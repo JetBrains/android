@@ -27,6 +27,7 @@ import com.android.tools.tests.IdeaTestSuiteBase
 import com.android.utils.executeWithRetries
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
@@ -293,17 +294,22 @@ class ScreenSharingAgentTest {
 
     private val system: AndroidSystem = AndroidSystem.basic()
     private val projectRule = ProjectRule()
+    private val disposableRule = DisposableRule()
 
     @get:ClassRule
     @get:JvmStatic
-    val ruleChain: RuleChain = RuleChain(projectRule, system, EdtRule())
+    val ruleChain: RuleChain = RuleChain(projectRule, disposableRule, system, EdtRule())
 
     private lateinit var adb: Adb
     private lateinit var emulator: Emulator
     private lateinit var deviceView: DeviceView
     private lateinit var fakeUi: FakeUi
 
-    private var framesReceived = 0;
+    private var framesReceived = 0
+    private val project
+      get() = projectRule.project
+    private val testRootDisposable
+      get() = disposableRule.disposable
 
     @JvmStatic
     @BeforeClass
@@ -334,14 +340,8 @@ class ScreenSharingAgentTest {
         waitForLog("0", SHORT_DEVICE_OPERATION_TIMEOUT)
       }
 
-      deviceView = DeviceView(
-        disposableParent = projectRule.project.earlyDisposable,
-        deviceSerialNumber = emulator.serialNumber,
-        deviceAbi = "x86_64",
-        deviceName = "My Great Device",
-        initialDisplayOrientation = 0,
-        project = projectRule.project,
-      )
+      val deviceClient = DeviceClient(testRootDisposable, emulator.serialNumber, DeviceConfiguration(mapOf()), "x86_64", project)
+      deviceView = DeviceView(testRootDisposable, deviceClient, 0, project)
 
       fakeUi = FakeUi(deviceView.wrapInScrollPane(200, 300))
       fakeUi.render()

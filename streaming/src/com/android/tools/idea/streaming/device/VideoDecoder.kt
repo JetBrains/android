@@ -80,7 +80,11 @@ import java.nio.channels.ClosedChannelException
 import java.util.function.Consumer
 import kotlin.text.Charsets.UTF_8
 
-internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @Volatile var maxOutputSize: Dimension) {
+internal class VideoDecoder(
+  private val videoChannel: SuspendingSocketChannel,
+  private val coroutineScope: CoroutineScope,
+  @Volatile var maxOutputSize: Dimension,
+) {
 
   private val imageLock = Any()
   @GuardedBy("imageLock")
@@ -106,7 +110,7 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
    * Starts the decoder and returns. The decoder will continue to run until the video channel
    * is disconnected or [coroutineScope] is cancelled.
    */
-  fun start(coroutineScope: CoroutineScope) {
+  fun start() {
     firstPacketArrival = 0L
     coroutineScope.launch {
       val header = ByteBuffer.allocate(CHANNEL_HEADER_LENGTH)

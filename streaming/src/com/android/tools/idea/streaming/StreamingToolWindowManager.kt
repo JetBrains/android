@@ -17,12 +17,8 @@ package com.android.tools.idea.streaming
 
 import com.android.adblib.DeviceInfo
 import com.android.adblib.DevicePropertyNames
-import com.android.adblib.DevicePropertyNames.RO_BOOT_QEMU_AVD_NAME
 import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
-import com.android.adblib.DevicePropertyNames.RO_KERNEL_QEMU_AVD_NAME
 import com.android.adblib.DevicePropertyNames.RO_PRODUCT_CPU_ABI
-import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MANUFACTURER
-import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MODEL
 import com.android.adblib.DeviceSelector
 import com.android.adblib.DeviceState
 import com.android.adblib.deviceProperties
@@ -37,6 +33,8 @@ import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.streaming.RunningDevicePanel.UiState
+import com.android.tools.idea.streaming.device.DeviceClient
+import com.android.tools.idea.streaming.device.DeviceConfiguration
 import com.android.tools.idea.streaming.device.DeviceToolWindowPanel
 import com.android.tools.idea.streaming.device.dialogs.MirroringConfirmationDialog
 import com.android.tools.idea.streaming.emulator.EmulatorController
@@ -77,7 +75,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import org.apache.commons.lang.WordUtils
 import java.awt.EventQueue
 import java.text.Collator
 import java.time.Duration
@@ -98,8 +95,9 @@ private val COLLATOR = Collator.getInstance()
 private val PANEL_COMPARATOR = compareBy<RunningDevicePanel, Any?>(COLLATOR) { it.title }.thenBy { it.id }
 
 /**
- * Manages contents of the Running Devices tool window. Listens to connected devices' changes
- * and maintains [RunningDevicePanel]s, one per running AVD or a mirrored physical device.
+ * Manages contents of the Running Devices tool window. Listens to device connections and
+ * disconnections and maintains [RunningDevicePanel]s, one per running AVD or a mirrored physical
+ * device.
  */
 @UiThread
 internal class StreamingToolWindowManager @AnyThread constructor(
@@ -107,9 +105,10 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 ) : RunningEmulatorCatalog.Listener, DeviceMirroringSettingsListener, DumbAware, Disposable {
 
   private val project
-    get() = toolWindow.project
+    @AnyThread get() = toolWindow.project
   private val deviceMirroringSettings = DeviceMirroringSettings.getInstance()
   private var contentCreated = false
+  private var mirroringConfirmationDialogShowing = false
   private var physicalDeviceWatcher: PhysicalDeviceWatcher? = null
   private val panels = arrayListOf<RunningDevicePanel>()
   private var selectedPanel: RunningDevicePanel? = null
@@ -118,8 +117,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   /** When the tool window is hidden, the state of the UI for all emulators, otherwise empty. */
   private val savedUiState = hashMapOf<DeviceId, UiState>()
   private val emulators = hashSetOf<EmulatorController>()
-  /** Properties of mirrorable devices keyed by serial numbers. */
-  private var mirrorableDeviceProperties = mutableMapOf<String, Map<String, String>>()
+  /** Clients for mirrorable devices keyed by serial numbers. */
+  private var deviceClients = mutableMapOf<String, DeviceClient>()
   /** Serial numbers of mirrored devices. */
   private var mirroredDevices = mutableSetOf<String>()
   private val properties = PropertiesComponent.getInstance(project)
@@ -234,7 +233,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun onDeviceHeadsUp(deviceSerialNumber: String) {
-    if (mirrorableDeviceProperties.contains(deviceSerialNumber)) {
+    if (deviceClients.contains(deviceSerialNumber)) {
       onPhysicalDeviceHeadsUp(deviceSerialNumber)
     }
     else {
@@ -323,9 +322,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         }
       }
       is DeviceId.PhysicalDeviceId -> {
-        val deviceProperties = mirrorableDeviceProperties[activeDeviceId.serialNumber]
-        if (deviceProperties != null) {
-          physicalDeviceWatcher?.deviceConnected(activeDeviceId.serialNumber, deviceProperties)
+        val deviceClient = deviceClients[activeDeviceId.serialNumber]
+        if (deviceClient != null) {
+          physicalDeviceWatcher?.deviceConnected(activeDeviceId.serialNumber, deviceClient)
         }
       }
       else -> {}
@@ -337,9 +336,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       }
     }
 
-    for ((serialNumber, deviceProperties) in mirrorableDeviceProperties) {
+    for ((serialNumber, deviceClient) in deviceClients) {
       if (serialNumber != lastSelectedDeviceId?.serialNumber) {
-        physicalDeviceWatcher?.deviceConnected(serialNumber, deviceProperties)
+        physicalDeviceWatcher?.deviceConnected(serialNumber, deviceClient)
       }
     }
 
@@ -386,8 +385,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     addPanel(EmulatorToolWindowPanel(project, emulator))
   }
 
-  private fun addPhysicalDevicePanel(serialNumber: String, abi: String, title: String, deviceProperties: Map<String, String>) {
-    addPanel(DeviceToolWindowPanel(project, serialNumber, abi, title, deviceProperties))
+  private fun addPhysicalDevicePanel(deviceClient: DeviceClient) {
+    addPanel(DeviceToolWindowPanel(project, deviceClient))
   }
 
   private fun addPanel(panel: RunningDevicePanel) {
@@ -447,16 +446,20 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun removePhysicalDevicePanel(serialNumber: String) {
-    val panel = findPanelBySerialNumber(serialNumber) ?: return
+    val panel = findPanelBySerialNumber(serialNumber) as? DeviceToolWindowPanel ?: return
+    removePhysicalDevicePanel(panel)
+  }
+
+  private fun removePhysicalDevicePanel(panel: DeviceToolWindowPanel) {
+    deviceClients.remove(panel.id.serialNumber)?.let { Disposer.dispose(it)}
     removePanel(panel)
   }
 
   private fun removeAllPhysicalDevicePanels() {
-    panels.filterIsInstance<DeviceToolWindowPanel>().forEach(::removePanel)
+    panels.filterIsInstance<DeviceToolWindowPanel>().forEach(::removePhysicalDevicePanel)
   }
 
   private fun removePanel(panel: RunningDevicePanel) {
-    val toolWindow = toolWindow
     val contentManager = toolWindow.contentManager
     val content = contentManager.getContent(panel)
     contentManager.removeContent(content, true)
@@ -621,13 +624,12 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
 
     private fun onlineDevicesChanged() {
-      val removed = mirrorableDeviceProperties.keys.minus(onlineDevices)
+      val removed = deviceClients.keys.minus(onlineDevices)
       mirroredDevices.removeAll(removed)
-      mirrorableDeviceProperties.keys.removeAll(removed)
       for (device in removed) {
         removePhysicalDevicePanel(device)
       }
-      if (!toolWindow.isVisible && mirrorableDeviceProperties.isEmpty() && emulators.isEmpty()) {
+      if (!toolWindow.isVisible && deviceClients.isEmpty() && emulators.isEmpty()) {
         hideLiveIndicator()
       }
       for (deviceSerialNumber in onlineDevices) {
@@ -641,41 +643,41 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
     @AnyThread
     private suspend fun deviceConnected(deviceSerialNumber: String) {
-      val deviceProperties = getMirrorableDeviceProperties(deviceSerialNumber)
-      if (deviceProperties != null) {
-        UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
-          if (deviceSerialNumber in onlineDevices && mirrorableDeviceProperties.put(deviceSerialNumber, deviceProperties) == null) {
-            showLiveIndicator()
-            if (contentCreated) {
-              deviceConnected(deviceSerialNumber, deviceProperties)
+      val deviceProperties = getMirrorableDeviceProperties(deviceSerialNumber) ?: return
+      val cpuAbi = deviceProperties[RO_PRODUCT_CPU_ABI] ?: return
+      val config = DeviceConfiguration(deviceProperties)
+
+      UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
+        if (deviceSerialNumber in onlineDevices) {
+          val deviceClient = deviceClients.computeIfAbsent(deviceSerialNumber) { serial ->
+            DeviceClient(this, serial, config, cpuAbi, project).apply {
+              establishAgentConnectionWithoutVideoStreamAsync() // Start the agent and connect to it proactively.
             }
-            else if (recentAttentionRequests.getIfPresent(deviceSerialNumber) != null) {
-              recentAttentionRequests.invalidate(deviceSerialNumber)
-              lastSelectedDeviceId = DeviceId.ofPhysicalDevice(deviceSerialNumber)
-              toolWindow.showAndActivate()
-            }
+          }
+          showLiveIndicator()
+          if (contentCreated) {
+            deviceConnected(deviceSerialNumber, deviceClient)
+          }
+          else if (recentAttentionRequests.getIfPresent(deviceSerialNumber) != null) {
+            recentAttentionRequests.invalidate(deviceSerialNumber)
+            lastSelectedDeviceId = DeviceId.ofPhysicalDevice(deviceSerialNumber)
+            toolWindow.showAndActivate()
           }
         }
       }
     }
 
-    fun deviceConnected(deviceSerialNumber: String, deviceProperties: Map<String, String>) {
+    fun deviceConnected(deviceSerialNumber: String, deviceClient: DeviceClient) {
       if (!mirroredDevices.contains(deviceSerialNumber)) {
-        val deviceName = getDeviceName(deviceProperties, deviceSerialNumber)
-        val deviceAbi = deviceProperties[RO_PRODUCT_CPU_ABI]
-        if (deviceAbi == null) {
-          thisLogger().warn("Unable to determine ABI of $deviceName")
-          return
-        }
-
         if (deviceMirroringSettings.confirmationDialogShown) {
-          startMirroring(deviceSerialNumber, deviceAbi, deviceName, deviceProperties)
+          startMirroring(deviceSerialNumber, deviceClient)
         }
-        else {
-          val dialog = MirroringConfirmationDialog(deviceName)
-          val dialogWrapper = dialog.createWrapper(project).apply { show() }
+        else if (!mirroringConfirmationDialogShowing) { // Ignore a recursive call inside the dialog's event loop.
+          mirroringConfirmationDialogShowing = true
+          val dialogWrapper = MirroringConfirmationDialog(deviceClient.deviceName).createWrapper(project).apply { show() }
+          mirroringConfirmationDialogShowing = false
           when (dialogWrapper.exitCode) {
-            MirroringConfirmationDialog.ACCEPT_EXIT_CODE -> startMirroring(deviceSerialNumber, deviceAbi, deviceName, deviceProperties)
+            MirroringConfirmationDialog.ACCEPT_EXIT_CODE -> startMirroring(deviceSerialNumber, deviceClient)
             MirroringConfirmationDialog.REJECT_EXIT_CODE -> deviceMirroringSettings.deviceMirroringEnabled = false
             else -> return
           }
@@ -684,10 +686,10 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       }
     }
 
-    private fun startMirroring(deviceSerialNumber: String, deviceAbi: String, deviceName: String, deviceProperties: Map<String, String>) {
+    private fun startMirroring(deviceSerialNumber: String, deviceClient: DeviceClient) {
       if (deviceSerialNumber in onlineDevices && mirroredDevices.add(deviceSerialNumber)) {
         if (contentCreated) {
-          addPhysicalDevicePanel(deviceSerialNumber, deviceAbi, deviceName, deviceProperties)
+          addPhysicalDevicePanel(deviceClient)
         }
       }
     }
@@ -724,18 +726,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         thisLogger().warn(e)
         return null
       }
-    }
-
-    private fun getDeviceName(deviceProperties: Map<String, String>, deviceSerialNumber: String): String {
-      var name = (deviceProperties[RO_BOOT_QEMU_AVD_NAME] ?: deviceProperties[RO_KERNEL_QEMU_AVD_NAME])?.replace('_', ' ')
-      if (name == null) {
-        name = deviceProperties[RO_PRODUCT_MODEL] ?: deviceSerialNumber
-        val manufacturer = deviceProperties[RO_PRODUCT_MANUFACTURER]
-        if (!manufacturer.isNullOrBlank() && manufacturer != "unknown") {
-          name = "${WordUtils.capitalize(manufacturer)} $name"
-        }
-      }
-      return name
     }
 
     override fun dispose() {

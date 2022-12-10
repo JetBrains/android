@@ -321,10 +321,11 @@ class StreamingToolWindowManagerTest {
     toolWindow.show()
 
     waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
-    assertThat(contentManager.contents[0].displayName).isEqualTo("Google Pixel 4")
+    assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
 
     agentRule.disconnectDevice(device)
-    waitForCondition(10, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
+    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
+    waitForCondition(2, TimeUnit.SECONDS) { !device.agent.isRunning }
   }
 
   @Test
@@ -341,13 +342,13 @@ class StreamingToolWindowManagerTest {
     requestAttention(device2.serialNumber)
 
     waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 2 }
-    assertThat(contentManager.contents[0].displayName).isEqualTo("Google Pixel 4")
-    assertThat(contentManager.contents[1].displayName).isEqualTo("Google Pixel 6")
-    assertThat(contentManager.selectedContent?.displayName).isEqualTo("Google Pixel 6")
+    assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
+    assertThat(contentManager.contents[1].displayName).isEqualTo("Pixel 6 API 32")
+    assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 6 API 32")
     assertThat(toolWindow.isVisible).isTrue()
 
     requestAttention(device1.serialNumber)
-    assertThat(contentManager.selectedContent?.displayName).isEqualTo("Google Pixel 4")
+    assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 4 API 30")
 
     agentRule.disconnectDevice(device1)
     agentRule.disconnectDevice(device2)
@@ -391,7 +392,7 @@ class StreamingToolWindowManagerTest {
     }
 
     waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
-    assertThat(contentManager.contents[0].displayName).isEqualTo("Google Pixel 4")
+    assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
 
     agentRule.disconnectDevice(device)
     waitForCondition(10, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }

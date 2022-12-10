@@ -27,6 +27,8 @@ import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import kotlinx.coroutines.runBlocking
+import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VP8
+import org.bytedeco.ffmpeg.global.avcodec.avcodec_find_encoder
 import org.junit.rules.ExternalResource
 import org.junit.rules.TestRule
 import org.junit.runner.Description
@@ -48,7 +50,12 @@ internal class FakeScreenSharingAgentRule : TestRule {
   private val fakeAdbRule: FakeAdbRule
   private val fakeAdbServiceRule: FakeAdbServiceRule
   private val testEnvironment = object : ExternalResource() {
+
     override fun before() {
+      if (isFFmpegAvailableToTest()) {
+        // Preload FFmpeg codec native libraries before the test to avoid a race condition when unpacking them.
+        avcodec_find_encoder(AV_CODEC_ID_VP8).close()
+      }
       val binDir = Paths.get(StudioPathManager.getBinariesRoot())
       // Create fake screen-sharing-agent.jar and libscreen-sharing-agent.so files if they don't exist.
       createEmptyFileIfNotExists(binDir.resolve("$SCREEN_SHARING_AGENT_SOURCE_PATH/$SCREEN_SHARING_AGENT_JAR_NAME"))
