@@ -19,6 +19,7 @@ import com.intellij.codeInsight.daemon.JavaErrorBundle;
 import com.intellij.codeInsight.daemon.impl.analysis.HighlightMessageUtil;
 import com.intellij.codeInsight.daemon.impl.analysis.JavaHighlightUtil;
 import com.intellij.codeInspection.*;
+import com.intellij.codeInspection.options.OptPane;
 import com.intellij.codeInspection.ui.MultipleCheckboxOptionsPanel;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
@@ -88,14 +89,15 @@ public class AndroidDeprecationInspection extends AbstractBaseJavaLocalInspectio
   }
 
   @Override
-  public JComponent createOptionsPanel() {
-    final MultipleCheckboxOptionsPanel panel = new MultipleCheckboxOptionsPanel(this);
-    panel.addCheckbox("Ignore inside deprecated members", "IGNORE_INSIDE_DEPRECATED");
-    panel.addCheckbox("Ignore inside non-static imports", "IGNORE_IMPORT_STATEMENTS");
-    panel.addCheckbox("<html>Ignore overrides of deprecated abstract methods from non-deprecated supers</html>", "IGNORE_ABSTRACT_DEPRECATED_OVERRIDES");
-    panel.addCheckbox("Ignore members of deprecated classes", IGNORE_METHODS_OF_DEPRECATED_NAME);
-    return panel;
-
+  @NotNull
+  public OptPane getOptionsPane() {
+    return OptPane.pane(
+      OptPane.checkbox("IGNORE_INSIDE_DEPRECATED", "Ignore inside deprecated members"),
+      OptPane.checkbox("IGNORE_IMPORT_STATEMENTS", "Ignore inside non-static imports"),
+      OptPane.checkbox(
+          "IGNORE_ABSTRACT_DEPRECATED_OVERRIDES",
+          "<html>Ignore overrides of deprecated abstract methods from non-deprecated supers</html>"),
+      OptPane.checkbox(IGNORE_METHODS_OF_DEPRECATED_NAME, "Ignore members of deprecated classes"));
   }
 
   private static class DeprecationElementVisitor extends JavaElementVisitor {
