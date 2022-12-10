@@ -289,8 +289,9 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
     private fun processDataPacket(packet: AVPacket, header: PacketHeader) {
       val outData = BytePointer()
       val outLen = IntPointer(0)
-      val r = av_parser_parse2(parserContext, codecContext, outData, outLen, packet.data(), packet.size(), AV_NOPTS_VALUE, AV_NOPTS_VALUE, -1)
-      assert(r == packet.size()) // Due to PARSER_FLAG_COMPLETE_FRAMES.
+      val ret =
+          av_parser_parse2(parserContext, codecContext, outData, outLen, packet.data(), packet.size(), AV_NOPTS_VALUE, AV_NOPTS_VALUE, -1)
+      assert(ret == packet.size()) // Due to PARSER_FLAG_COMPLETE_FRAMES.
       assert(outLen.get() == packet.size())
       if (parserContext.key_frame() == 1) {
         packet.flags(packet.flags() or AV_PKT_FLAG_KEY)
