@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.tools.idea.editors.literals.EditEvent
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile

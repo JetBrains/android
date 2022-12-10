@@ -32,7 +32,6 @@ import com.android.tools.deployer.AdbInstaller;
 import com.android.tools.deployer.Installer;
 import com.android.tools.deployer.MetricsRecorder;
 import com.android.tools.deployer.tasks.LiveUpdateDeployer;
-import com.android.tools.idea.editors.literals.EditEvent;
 import com.android.tools.idea.editors.literals.EditState;
 import com.android.tools.idea.editors.literals.EditStatus;
 import com.android.tools.idea.editors.literals.LiveEditService;

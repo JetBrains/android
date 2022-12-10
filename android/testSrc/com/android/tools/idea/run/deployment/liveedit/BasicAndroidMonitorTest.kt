@@ -21,7 +21,6 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.ClientImpl
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt
-import com.android.tools.idea.editors.literals.EditEvent
 import com.android.tools.idea.editors.literals.EditState
 import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration

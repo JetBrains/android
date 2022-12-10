@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.tools.idea.editors.literals.EditEvent
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
