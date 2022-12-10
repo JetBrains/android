@@ -426,8 +426,6 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                    runtimeClasspath              : IdeDependenciesImpl
                 ApplicationId                 : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -455,16 +453,12 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl)
-                                buildId                       : <ROOT>
-                                projectPath                   : :app
-                                sourceSet                     : MAIN
-                                variant                       : debug
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::app@debug (IdeModuleLibraryImpl)
+                        buildId                       : <ROOT>
+                        projectPath                   : :app
+                        sourceSet                     : MAIN
+                        variant                       : debug
+                    - runtimeClasspath            : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                 ApplicationId                 : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -488,12 +482,8 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     SelectedVariantName           : debug
     SelectedAbiName               : x86

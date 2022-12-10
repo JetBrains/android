@@ -395,56 +395,38 @@ MODULE                        : withGradleMetadata.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-                                artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                                artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
-                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-                                artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                                artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-                                artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                                artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-                                artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                                artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryImpl)
-                                artifact                      : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-android/1.5.2/kotlinx-coroutines-android-1.5.2.jar
-                                artifactAddress               : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2@jar
-                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryImpl)
-                                artifact                      : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.5.2/kotlinx-coroutines-core-jvm-1.5.2.jar
-                                artifactAddress               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2@jar
-                        - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl)
-                                artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                                artifactAddress               : org.jetbrains:annotations:13.0@jar
-                        - unknownDependencies         : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2 (IdeUnknownDependencyImpl)
-                            target                        : IdeUnknownLibraryImpl
-                                key                           : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
-                        - unknownDependencies         : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-runtime, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2 (IdeUnknownDependencyImpl)
-                            target                        : IdeUnknownLibraryImpl
-                                key                           : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-runtime, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
+                    - compileClasspath            : IdeUnknownLibraryImpl
+                        key                           : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
+                    - compileClasspath            : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+                        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                    - compileClasspath            : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+                        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                    - compileClasspath            : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+                        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                    - compileClasspath            : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+                        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                    - compileClasspath            : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryImpl)
+                        artifact                      : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-android/1.5.2/kotlinx-coroutines-android-1.5.2.jar
+                        artifactAddress               : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2@jar
+                    - compileClasspath            : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryImpl)
+                        artifact                      : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.5.2/kotlinx-coroutines-core-jvm-1.5.2.jar
+                        artifactAddress               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2@jar
+                    - compileClasspath            : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl)
+                        artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        artifactAddress               : org.jetbrains:annotations:13.0@jar
+                    - runtimeClasspath            : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : IdeUnknownLibraryImpl
+                        key                           : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-runtime, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
                 ApplicationId                 : come.example.with.gradle.metadata
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -475,30 +457,19 @@ MODULE                        : withGradleMetadata.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl)
-                                buildId                       : <ROOT>
-                                projectPath                   : :app
-                                sourceSet                     : MAIN
-                                variant                       : debug
-                        - unknownDependencies         : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2 (IdeUnknownDependencyImpl)
-                            target                        : IdeUnknownLibraryImpl (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
+                    - compileClasspath            : <ROOT>::app@debug (IdeModuleLibraryImpl)
+                        buildId                       : <ROOT>
+                        projectPath                   : :app
+                        sourceSet                     : MAIN
+                        variant                       : debug
+                    - compileClasspath            : IdeUnknownLibraryImpl (*seen*)
+                    - compileClasspath            : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                    - compileClasspath            : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                    - compileClasspath            : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                    - compileClasspath            : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                    - compileClasspath            : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryImpl) (*seen*)
+                    - compileClasspath            : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryImpl) (*seen*)
+                    - compileClasspath            : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                 ProvidedDependencies
                     - provided                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
@@ -529,44 +500,24 @@ MODULE                        : withGradleMetadata.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
-                        - unknownDependencies         : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2 (IdeUnknownDependencyImpl)
-                            target                        : IdeUnknownLibraryImpl (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
-                        - unknownDependencies         : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-runtime, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2 (IdeUnknownDependencyImpl)
-                            target                        : IdeUnknownLibraryImpl (*seen*)
+                    - compileClasspath            : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : IdeUnknownLibraryImpl (*seen*)
+                    - compileClasspath            : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                    - compileClasspath            : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                    - compileClasspath            : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                    - compileClasspath            : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                    - compileClasspath            : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryImpl) (*seen*)
+                    - compileClasspath            : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryImpl) (*seen*)
+                    - compileClasspath            : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                    - runtimeClasspath            : IdeUnknownLibraryImpl (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : withGradleMetadata.app.androidTest

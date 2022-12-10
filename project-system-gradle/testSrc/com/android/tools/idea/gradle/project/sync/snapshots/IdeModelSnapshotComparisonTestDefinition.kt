@@ -245,7 +245,7 @@ private fun Sequence<String>.nameProperties() = nameProperties(this)
  * `runetimeClasspath` as it is not available in V1.
  */
 private val PROPERTIES_TO_SKIP = setOf(
-  "/Dependencies/compileClasspath/androidLibraries/target/lintJar",
+  "/Dependencies/compileClasspath/lintJar",
   "MODULE/IdeVariants/IdeVariant/DeprecatedPreMergedApplicationId",
   "MODULE/IdeVariants/IdeVariant/DeprecatedPreMergedTestApplicationId",
   "MODULE/IdeVariants/IdeVariant/MainArtifact/DesugaredMethodFiles",
@@ -253,8 +253,7 @@ private val PROPERTIES_TO_SKIP = setOf(
 )
 
 private val ENTITIES_TO_SKIP = setOf(
-  "/Dependencies/compileClasspath/moduleDependencies/target",
-  "/Dependencies/compileClasspath/unknownDependencies",
+  "/Dependencies/compileClasspath",
   "/Dependencies/runtimeClasspath",
   "/MainArtifact/ModelSyncFile",
 )
@@ -267,9 +266,8 @@ private val ENTITIES_TO_SKIP = setOf(
  * AndroidLibrary.ArtifactAddress: the same rules from above apply to ArtifactAddress as well, plus the distinction of local aars paths.
  */
 private val VALUES_TO_SUPPRESS = mapOf(
-  "/Dependencies/compileClasspath/androidLibraries" to listOf("__wrapped_aars__", "artifacts"),
-  "/Dependencies/compileClasspath/androidLibraries/target" to listOf("__wrapped_aars__", "artifacts"),
-  "/Dependencies/compileClasspath/androidLibraries/target/artifactAddress" to listOf("__local_aars__", "__wrapped_aars__", "artifacts")
+  "/Dependencies/compileClasspath" to listOf("__wrapped_aars__", "artifacts"),
+  "/Dependencies/compileClasspath/artifactAddress" to listOf("__local_aars__", "__wrapped_aars__", "artifacts")
 )
 
 private const val IDE_MODEL_SNAPSHOT_DIR = "tools/adt/idea/android/testData/snapshots/ideModels"

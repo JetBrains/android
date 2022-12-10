@@ -565,29 +565,25 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - androidLibraries            : artifacts:library-debug:unspecified (IdeAndroidLibraryDependencyImpl)
-                            target                        : artifacts:library-debug:unspecified (IdeAndroidLibraryImpl)
-                                aidlFolder                    : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/aidl [-]
-                                artifact                      : <ROOT>/library-debug/library-debug.aar
-                                artifactAddress               : artifacts:library-debug:unspecified@jar
-                                assetsFolder                  : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/assets
-                                - compileJarFiles             : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/jars/classes.jar
-                                externalAnnotations           : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/annotations.zip [-]
-                                folder                        : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug
-                                jniFolder                     : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/jni [-]
-                                lintJar                       : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/jars/lint.jar [-]
-                                manifest                      : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/AndroidManifest.xml
-                                proguardRules                 : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/proguard.txt [-]
-                                publicResources               : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/public.txt [-]
-                                renderscriptFolder            : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/rs [-]
-                                resFolder                     : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/res
-                                resStaticLibrary              : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/res.apk [-]
-                                - runtimeJarFiles             : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/jars/classes.jar
-                                symbolFile                    : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/R.txt
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - androidLibraries            : artifacts:library-debug:unspecified (IdeAndroidLibraryDependencyImpl)
-                            target                        : artifacts:library-debug:unspecified (IdeAndroidLibraryImpl) (*seen*)
+                    - compileClasspath            : artifacts:library-debug:unspecified (IdeAndroidLibraryImpl)
+                        aidlFolder                    : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/aidl [-]
+                        artifact                      : <ROOT>/library-debug/library-debug.aar
+                        artifactAddress               : artifacts:library-debug:unspecified@jar
+                        assetsFolder                  : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/assets
+                        - compileJarFiles             : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/jars/classes.jar
+                        externalAnnotations           : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/annotations.zip [-]
+                        folder                        : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug
+                        jniFolder                     : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/jni [-]
+                        lintJar                       : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/jars/lint.jar [-]
+                        manifest                      : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/AndroidManifest.xml
+                        proguardRules                 : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/proguard.txt [-]
+                        publicResources               : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/public.txt [-]
+                        renderscriptFolder            : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/rs [-]
+                        resFolder                     : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/res
+                        resStaticLibrary              : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/res.apk [-]
+                        - runtimeJarFiles             : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/jars/classes.jar
+                        symbolFile                    : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/library-debug/R.txt
+                    - runtimeClasspath            : artifacts:library-debug:unspecified (IdeAndroidLibraryImpl) (*seen*)
                 ApplicationId                 : com.android.test.localaarsasmodules
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -614,18 +610,13 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - androidLibraries            : artifacts:library-debug:unspecified (IdeAndroidLibraryDependencyImpl)
-                            target                        : artifacts:library-debug:unspecified (IdeAndroidLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl)
-                                buildId                       : <ROOT>
-                                projectPath                   : :app
-                                sourceSet                     : MAIN
-                                variant                       : debug
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::app@debug (IdeModuleLibraryImpl)
+                        buildId                       : <ROOT>
+                        projectPath                   : :app
+                        sourceSet                     : MAIN
+                        variant                       : debug
+                    - compileClasspath            : artifacts:library-debug:unspecified (IdeAndroidLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                 ProvidedDependencies
                     - provided                    : artifacts:library-debug:unspecified
                 ApplicationId                 : com.android.test.localaarsasmodules.test
@@ -650,16 +641,10 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - androidLibraries            : artifacts:library-debug:unspecified (IdeAndroidLibraryDependencyImpl)
-                            target                        : artifacts:library-debug:unspecified (IdeAndroidLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - androidLibraries            : artifacts:library-debug:unspecified (IdeAndroidLibraryDependencyImpl)
-                            target                        : artifacts:library-debug:unspecified (IdeAndroidLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : artifacts:library-debug:unspecified (IdeAndroidLibraryImpl) (*seen*)
+                    - runtimeClasspath            : artifacts:library-debug:unspecified (IdeAndroidLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : project.app.androidTest
@@ -924,8 +909,6 @@ MODULE                        : project.library
                 ClassesFolder                 : <ROOT>/library/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/library/build/intermediates/javac/debug/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                    runtimeClasspath              : IdeDependenciesImpl
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -946,17 +929,13 @@ MODULE                        : project.library
                 ClassesFolder                 : <ROOT>/library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/library/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl)
-                                buildId                       : <ROOT>
-                                lintJar                       : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                                projectPath                   : :library
-                                sourceSet                     : MAIN
-                                variant                       : debug
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::library@debug (IdeModuleLibraryImpl)
+                        buildId                       : <ROOT>
+                        lintJar                       : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                        projectPath                   : :library
+                        sourceSet                     : MAIN
+                        variant                       : debug
+                    - runtimeClasspath            : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
                 ApplicationId                 : com.android.test.library.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -979,12 +958,8 @@ MODULE                        : project.library
                 ClassesFolder                 : <ROOT>/library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/library/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/android.jar
     externalProject               : :library (DefaultExternalProject) (*seen*)
 MODULE                        : project.library-debug

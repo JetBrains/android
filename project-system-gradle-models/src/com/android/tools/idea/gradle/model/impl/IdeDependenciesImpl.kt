@@ -32,14 +32,19 @@ data class IdeDependenciesImpl(
   private val classpath: IdeDependenciesCore,
   private val resolver: IdeLibraryModelResolver
 ) : IdeDependencies {
+  @Deprecated("does not respect classpath order", ReplaceWith("this.libraries"))
   override val androidLibraries: Collection<IdeAndroidLibraryDependency> =
     classpath.dependencies.flatMap(resolver::resolveAndroidLibrary)
+  @Deprecated("does not respect classpath order", ReplaceWith("this.libraries"))
   override val javaLibraries: Collection<IdeJavaLibraryDependency> =
     classpath.dependencies.flatMap(resolver::resolveJavaLibrary)
+  @Deprecated("does not respect classpath order", ReplaceWith("this.libraries"))
   override val moduleDependencies: Collection<IdeModuleDependency> =
     classpath.dependencies.flatMap(resolver::resolveModule)
+  @Deprecated("does not respect classpath order", ReplaceWith("this.libraries"))
   override val unknownDependencies: Collection<IdeUnknownDependency> =
     classpath.dependencies.flatMap(resolver::resolveUnknownLibrary)
+  override val libraries = classpath.dependencies.flatMap { resolver.resolve(it) }
 }
 
 fun throwingIdeDependencies(): IdeDependenciesCoreImpl {

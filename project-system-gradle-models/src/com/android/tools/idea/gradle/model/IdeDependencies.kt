@@ -21,6 +21,7 @@ interface IdeDependencies {
    *
    * @return the list of libraries of type LIBRARY_ANDROID.
    */
+  @Deprecated("does not respect classpath order", ReplaceWith("this.libraries"))
   val androidLibraries: Collection<IdeAndroidLibraryDependency>
 
   /**
@@ -28,6 +29,7 @@ interface IdeDependencies {
    *
    * @return the list of libraries of type LIBRARY_JAVA.
    */
+  @Deprecated("does not respect classpath order", ReplaceWith("this.libraries"))
   val javaLibraries: Collection<IdeJavaLibraryDependency>
 
   /**
@@ -35,6 +37,7 @@ interface IdeDependencies {
    *
    * @return the list of libraries of type LIBRARY_MODULE.
    */
+  @Deprecated("does not respect classpath order", ReplaceWith("this.libraries"))
   val moduleDependencies: Collection<IdeModuleDependency>
 
   /**
@@ -42,5 +45,14 @@ interface IdeDependencies {
    *
    * @return the list of libraries of all other types.
    */
+  @Deprecated("does not respect classpath order", ReplaceWith("this.libraries"))
   val unknownDependencies: Collection<IdeUnknownDependency>
+
+
+  /**
+   * Returns the list of all dependencies, both direct and transitive
+   *
+   * @return the list of libraries of all types.
+   */
+  val libraries: List<IdeLibrary>
 }
