@@ -18,7 +18,9 @@ package com.android.tools.idea.run
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner.Companion.useNewExecutionForActivities
+import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.google.common.annotations.VisibleForTesting
@@ -85,6 +87,9 @@ internal constructor(
 
   @Throws(ExecutionException::class)
   override fun execute(environment: ExecutionEnvironment, state: RunProfileState): Promise<RunContentDescriptor?> {
+    if (state is AndroidConfigurationExecutor) {
+      return executeWithExecutor(environment, state)
+    }
     val project = environment.project
     val executor = environment.executor
     val executorId = executor.id
@@ -126,6 +131,10 @@ internal constructor(
       AndroidSessionInfo.create(processHandler, runConfiguration, executorId, environment.executionTarget)
     }
     return resolvedPromise(descriptor)
+  }
+
+  private fun executeWithExecutor(environment: ExecutionEnvironment, state: RunProfileState): Promise<RunContentDescriptor?> {
+    return AndroidConfigurationProgramRunner().execute(environment, state)
   }
 
   protected abstract fun canRunWithMultipleDevices(executorId: String): Boolean
