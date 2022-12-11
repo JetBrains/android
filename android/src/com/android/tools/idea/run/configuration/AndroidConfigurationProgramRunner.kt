@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.user.settings.AndroidConfigurationExecutionSettings
+import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.stats.RunStats
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RunProfile
@@ -61,7 +62,7 @@ class AndroidConfigurationProgramRunner : AsyncProgramRunner<RunnerSettings>() {
   }
 
   @Throws(ExecutionException::class)
-  override fun execute(environment: ExecutionEnvironment, state: RunProfileState): Promise<RunContentDescriptor?> {
+  public override fun execute(environment: ExecutionEnvironment, state: RunProfileState): Promise<RunContentDescriptor?> {
     val runProfile = environment.runProfile
 
     val executor = state as AndroidConfigurationExecutor
@@ -78,21 +79,26 @@ class AndroidConfigurationProgramRunner : AsyncProgramRunner<RunnerSettings>() {
     ProgressManager.getInstance().run(object : Task.Backgroundable(environment.project, "Launching ${runProfile.name}") {
       override fun run(indicator: ProgressIndicator) {
 
-        when (environment.executor.id) {
-          DefaultRunExecutor.EXECUTOR_ID -> {
-            executor.run(indicator)
-              .onSuccess { promise.setResult(it) }
-              .onError(::handleError)
+        val swapInfo = environment.getUserData(SwapInfo.SWAP_INFO_KEY)
+
+        val runner: (ProgressIndicator) -> Promise<RunContentDescriptor> =
+          if (swapInfo != null) {
+            when (swapInfo.type) {
+              SwapInfo.SwapType.APPLY_CHANGES -> executor::applyChanges
+              SwapInfo.SwapType.APPLY_CODE_CHANGES -> executor::applyCodeChanges
+            }
           }
-          DefaultDebugExecutor.EXECUTOR_ID -> {
-            executor.debug(indicator)
-              .onSuccess { promise.setResult(it) }
-              .onError(::handleError)
+          else {
+            when (environment.executor.id) {
+              DefaultRunExecutor.EXECUTOR_ID -> executor::run
+              DefaultDebugExecutor.EXECUTOR_ID -> executor::debug
+              else -> throw RuntimeException("Unsupported executor")
+            }
           }
-          else -> {
-            throw RuntimeException("Unsupported executor")
-          }
-        }
+
+        runner(indicator)
+          .onSuccess { promise.setResult(it) }
+          .onError(::handleError)
       }
 
       override fun onThrowable(error: Throwable) = handleError(error)
