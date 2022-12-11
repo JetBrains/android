@@ -529,8 +529,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         node.data
       },
       artifactLookup::apply,
-      androidModelNode.data.selectedVariant(libraryResolver),
-      project
+      androidModelNode.data.selectedVariant(libraryResolver)
     )
   }
 

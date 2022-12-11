@@ -17,7 +17,7 @@
 
 package com.android.tools.idea.gradle.project.sync.idea
 
-import com.android.tools.idea.gradle.model.variant
+import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -325,15 +325,15 @@ private fun AndroidModules.validateVariants(moduleId: GradleProjectPath, selecte
       queue.addAll(
         head.module.androidModel.selectedVariant(libraryResolver)
           .let {
-            it.mainArtifact.compileClasspath.moduleDependencies +
-              it.unitTestArtifact?.compileClasspath?.moduleDependencies.orEmpty() +
-              it.androidTestArtifact?.compileClasspath?.moduleDependencies.orEmpty() +
-              it.testFixturesArtifact?.compileClasspath?.moduleDependencies.orEmpty()
-          }
-          .mapNotNull { dependency ->
+            it.mainArtifact.compileClasspath.libraries +
+              it.unitTestArtifact?.compileClasspath?.libraries.orEmpty() +
+              it.androidTestArtifact?.compileClasspath?.libraries.orEmpty() +
+              it.testFixturesArtifact?.compileClasspath?.libraries.orEmpty()
+          }.filterIsInstance<IdeModuleLibrary>()
+          .mapNotNull { library ->
             WorkItem(
-              module = modulesByGradleProjectPath[computeModuleIdForLibraryTarget(dependency).toHolder()] ?: return@mapNotNull null,
-              expectedVariant = dependency.variant
+              module = modulesByGradleProjectPath[computeModuleIdForLibrary(library).toHolder()] ?: return@mapNotNull null,
+              expectedVariant = library.variant
             )
           }
       )
