@@ -18,29 +18,27 @@ package com.android.tools.idea.lint.model
 import com.android.AndroidProjectTypes
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.LintOptions
+import com.android.ide.common.repository.AgpVersion
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeApiVersion
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeBuildType
 import com.android.tools.idea.gradle.model.IdeClassField
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
+import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeLintOptions
+import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
+import com.android.tools.idea.gradle.model.IdeUnknownLibrary
 import com.android.tools.idea.gradle.model.IdeVariant
-import com.android.ide.common.repository.AgpVersion
-import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
-import com.android.tools.idea.gradle.model.IdeArtifactLibrary
-import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
-import com.android.tools.idea.gradle.model.IdeModuleDependency
-import com.android.tools.idea.gradle.model.projectPath
-import com.android.tools.idea.gradle.model.sourceSet
 import com.android.tools.lint.model.DefaultLintModelAndroidArtifact
 import com.android.tools.lint.model.DefaultLintModelAndroidLibrary
 import com.android.tools.lint.model.DefaultLintModelBuildFeatures
@@ -164,10 +162,19 @@ class LintModelFactory : LintModelModuleLoader {
       )
     )
 
-    private fun getLibrary(dependency: IdeAndroidLibraryDependency, isProvided: Boolean): LintModelLibrary {
-        val library = dependency.target
-        // TODO: Construct file objects lazily!
-        return DefaultLintModelAndroidLibrary(
+    /**
+     * Ensures that the given [library] (if applicable, module or artifact) has a corresponding object within [libraryResolverMap].
+     * If one already exists this method does nothing otherwise we create a [LintModelLibrary] for the given [IdeLibrary].
+     */
+    private fun maybeRegisterLintModelLibrary(library: IdeLibrary, isProvided: Boolean): Boolean {
+      if (!(library is IdeModuleLibrary || (library is IdeArtifactLibrary && library.artifactAddress.isNotEmpty()))) return false
+
+      libraryResolverMap[library.getIdentifier()]?.let {
+        return true
+      }
+
+      val lintLibrary = when (library) {
+        is IdeAndroidLibrary -> DefaultLintModelAndroidLibrary(
           identifier = library.getIdentifier(),
           manifest = library.manifest,
           // TODO - expose compile jar vs impl jar?
@@ -180,64 +187,40 @@ class LintModelFactory : LintModelModuleLoader {
           symbolFile = library.symbolFile,
           externalAnnotations = library.externalAnnotations,
           provided = isProvided,
-          resolvedCoordinates = library.getMavenName(),
+          resolvedCoordinates = getMavenName(library.artifactAddress),
           proguardRules = library.proguardRules
         )
-    }
-
-    private fun getLibrary(dependency: IdeJavaLibraryDependency, isProvided: Boolean): LintModelLibrary {
-        val library = dependency.target
-        return DefaultLintModelJavaLibrary(
+        is IdeJavaLibrary -> DefaultLintModelJavaLibrary(
           identifier = library.getIdentifier(),
           // TODO - expose compile jar vs impl jar?
           jarFiles = listOf(library.artifact),
           provided = isProvided,
-          resolvedCoordinates = library.getMavenName()
+          resolvedCoordinates = getMavenName(library.artifactAddress)
         )
-    }
-
-    private fun getLibrary(dependency: IdeModuleDependency): LintModelLibrary {
-        val projectPath = dependency.projectPath
-        return DefaultLintModelModuleLibrary(
-          identifier = dependency.getIdentifier(),
-          projectPath = projectPath,
-          lintJar = dependency.target.lintJar,
+        is IdeModuleLibrary -> DefaultLintModelModuleLibrary(
+          identifier = library.getIdentifier(),
+          projectPath = library.projectPath,
+          lintJar = library.lintJar,
           provided = false
         )
+        is IdeUnknownLibrary -> null
+      } ?: return false
+
+      libraryResolverMap[library.getIdentifier()] = lintLibrary
+      return true
     }
 
-    private fun IdeAndroidLibrary.getArtifactName(): String =
-        getMavenName().let { mavenName -> "${mavenName.groupId}:${mavenName.artifactId}" }
-
-    private fun IdeJavaLibrary.getArtifactName(): String =
-        getMavenName().let { mavenName -> "${mavenName.groupId}:${mavenName.artifactId}" }
-
-    private fun IdeModuleDependency.getArtifactName(): String = "artifacts:$projectPath"
-
-    private fun IdeArtifactLibrary.getMavenName(): LintModelMavenName = getMavenName(artifactAddress)
-
-    private fun IdeModuleDependency.getIdentifier(): String = "$projectPath@${sourceSet.sourceSetName}"
-
-    private fun IdeArtifactLibrary.getIdentifier(): String = name
-
-    private fun getGraphItem(
-        identifier: String,
-        artifactName: String,
-        lintModelLibrary: () -> LintModelLibrary
-    ): LintModelDependency {
-        @Suppress("UNUSED_VARIABLE")
-        val lintLibrary = libraryResolverMap[identifier]
-            ?: lintModelLibrary().also { libraryResolverMap[identifier] = it }
-
-        return DefaultLintModelDependency(
-          identifier = identifier,
-          artifactName = artifactName,
-          requestedCoordinates = null, // Always null in builder models and not present in Ide* models.
-          // Deep copy
-          dependencies = emptyList(), // Dependency hierarchy is not yet supported.
-          libraryResolver = libraryResolver
-        )
+    private fun IdeLibrary.getArtifactName(): String = when(this) {
+      is IdeArtifactLibrary -> getMavenName(artifactAddress).let { "${it.groupId}:${it.artifactId}" }
+      is IdeModuleLibrary -> "artifacts:$projectPath"
+      else -> throw IllegalArgumentException("The library $this can't produce an artifact name")
     }
+
+    private fun IdeLibrary.getIdentifier(): String = when(this) {
+        is IdeModuleLibrary -> "$projectPath@${sourceSet.sourceSetName}"
+        is IdeArtifactLibrary -> name
+        else -> throw IllegalArgumentException("The library $this can't produce an identifier")
+      }
 
     private fun getDependencies(
         artifact: IdeBaseArtifact
@@ -245,51 +228,26 @@ class LintModelFactory : LintModelModuleLoader {
         val compileItems = mutableListOf<LintModelDependency>()
         val packagedItems = mutableListOf<LintModelDependency>()
         val dependencies = artifact.compileClasspath
-        val runtimeAndroid = artifact.runtimeClasspath.androidLibraries.map { it.target.getIdentifier() }.toSet()
-        val runtimeJava = artifact.runtimeClasspath.javaLibraries.associateBy { it.target.getIdentifier() }
+        val runtime = artifact.runtimeClasspath
 
-        for (dependency in dependencies.androidLibraries) {
-            val androidLibrary = dependency.target
-            if (androidLibrary.isValid()) {
-                val isProvided = !runtimeAndroid.contains(androidLibrary.getIdentifier())
-                val lintModelDependency = getGraphItem(
-                  androidLibrary.getIdentifier(),
-                  androidLibrary.getArtifactName(),
-                ) {
-                    getLibrary(dependency, isProvided)
-                }
-                compileItems.add(lintModelDependency)
-                if (!isProvided) {
-                    packagedItems.add(lintModelDependency)
-                }
-            }
-        }
-        for (dependency in dependencies.javaLibraries) {
-            val javaLibrary = dependency.target
-            if (javaLibrary.isValid()) {
-                val isProvided = !runtimeJava.containsKey(javaLibrary.getIdentifier())
-                val lintModelDependency = getGraphItem(
-                  javaLibrary.getIdentifier(),
-                  javaLibrary.getArtifactName(),
-                ) {
-                    getLibrary(dependency, isProvided)
-                }
-                compileItems.add(lintModelDependency)
-                if (!isProvided) {
-                    packagedItems.add(lintModelDependency)
-                }
-            }
-        }
+        for (library in dependencies.libraries) {
+            val isProvided = !runtime.libraries.contains(library)
+            val packaged = library is IdeModuleLibrary || !isProvided
+            if (maybeRegisterLintModelLibrary(library, isProvided)) {
+                val lintDependency = DefaultLintModelDependency(
+                  identifier = library.getIdentifier(),
+                  artifactName = library.getArtifactName(),
+                  requestedCoordinates = null, // Always null in builder models and not present in Ide* models.
+                  // Deep copy
+                  dependencies = emptyList(), // Dependency hierarchy is not yet supported.
+                  libraryResolver = libraryResolver
+                )
 
-        for (dependency in dependencies.moduleDependencies) {
-            val lintModelDependency = getGraphItem(
-                dependency.getIdentifier(),
-                dependency.getArtifactName(),
-            ) {
-                getLibrary(dependency)
+                compileItems.add(lintDependency)
+                if (packaged) {
+                  packagedItems.add(lintDependency)
+                }
             }
-            compileItems.add(lintModelDependency)
-            packagedItems.add(lintModelDependency)
         }
 
         val compileDependencies = DefaultLintModelDependencyGraph(compileItems, libraryResolver)
@@ -300,10 +258,6 @@ class LintModelFactory : LintModelModuleLoader {
           packageDependencies = packageDependencies,
           libraryResolver = libraryResolver
         )
-    }
-
-    private fun IdeArtifactLibrary.isValid(): Boolean {
-        return artifactAddress.isNotEmpty()
     }
 
     private fun getArtifact(
@@ -752,7 +706,7 @@ class LintModelFactory : LintModelModuleLoader {
         override val mergedManifest: File? get() = null // Injected by legacy AGP lint runner
         override val manifestMergeReport: File? get() = null // Injected by legacy AGP lint runner
         override val `package`: String?
-            get() = null // no in the old builder model
+            get() = null // not in the old builder model
         override val minSdkVersion: AndroidVersion?
             get() = variant.minSdkVersion.toAndroidVersion()
         override val targetSdkVersion: AndroidVersion?
