@@ -77,6 +77,8 @@ class InspectorBanner(project: Project) : JPanel(BorderLayout()) {
       notifications = bannerService?.notifications ?: emptyList()
       isVisible = notifications.isNotEmpty()
       model.fireTableDataChanged()
+      // Update the InspectorBanner height:
+      revalidate()
     }
   }
 
