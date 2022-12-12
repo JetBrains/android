@@ -145,18 +145,6 @@ public class EmbeddedDistributionPaths {
     return null;
   }
 
-  @NotNull
-  private static Logger getLog() {
-    return Logger.getInstance(EmbeddedDistributionPaths.class);
-  }
-
-  @Nullable
-  private static File getDefaultRootDirPath() {
-    String ideHomePath = getIdeHomePath();
-    File rootDirPath = new File(ideHomePath, "gradle");
-    return rootDirPath.isDirectory() ? rootDirPath : null;
-  }
-
   @Nullable
   public Path tryToGetEmbeddedJdkPath() {
     try {
