@@ -29,7 +29,9 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -42,6 +44,7 @@ abstract class AbstractInspectorClient(
   final override val process: ProcessDescriptor,
   final override val isInstantlyAutoConnected: Boolean,
   final override val stats: SessionStatistics,
+  private val coroutineScope: CoroutineScope,
   parentDisposable: Disposable
 ) : InspectorClient {
   init {
@@ -143,20 +146,22 @@ abstract class AbstractInspectorClient(
 
   private val disconnectStateLock = Any()
   final override fun disconnect() {
-    synchronized(disconnectStateLock) {
-      if (state == InspectorClient.State.DISCONNECTED || state == InspectorClient.State.DISCONNECTING) {
-        return
+    coroutineScope.launch {
+      synchronized(disconnectStateLock) {
+        if (state == InspectorClient.State.DISCONNECTED || state == InspectorClient.State.DISCONNECTING) {
+          return@launch
+        }
+        state = InspectorClient.State.DISCONNECTING
       }
-      state = InspectorClient.State.DISCONNECTING
+
+      doDisconnect()
+
+      state = InspectorClient.State.DISCONNECTED
+      treeEventCallbacks.clear()
+      stateCallbacks.clear()
+      errorCallbacks.clear()
     }
-    doDisconnect().addListener(
-      {
-        state = InspectorClient.State.DISCONNECTED
-        treeEventCallbacks.clear()
-        stateCallbacks.clear()
-        errorCallbacks.clear()
-      }, MoreExecutors.directExecutor())
   }
 
-  protected abstract fun doDisconnect(): ListenableFuture<Nothing>
+  protected abstract suspend fun doDisconnect()
 }

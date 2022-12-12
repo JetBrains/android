@@ -26,6 +26,7 @@ import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
@@ -67,6 +68,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
@@ -100,8 +102,15 @@ class AppInspectionInspectorClient(
   parentDisposable: Disposable,
   @TestOnly private val apiServices: AppInspectionApiServices = AppInspectionDiscoveryService.instance.apiServices,
   @TestOnly private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-) : AbstractInspectorClient(APP_INSPECTION_CLIENT, model.project, process, isInstantlyAutoConnected,
-                            SessionStatisticsImpl(APP_INSPECTION_CLIENT), parentDisposable) {
+) : AbstractInspectorClient(
+  APP_INSPECTION_CLIENT,
+  model.project,
+  process,
+  isInstantlyAutoConnected,
+  SessionStatisticsImpl(APP_INSPECTION_CLIENT),
+  coroutineScope,
+  parentDisposable
+) {
 
   private var viewInspector: ViewLayoutInspectorClient? = null
   private lateinit var propertiesProvider: AppInspectionPropertiesProvider
@@ -207,21 +216,22 @@ class AppInspectionInspectorClient(
     InspectorBannerService.getInstance(model.project)?.addNotification(message)
   }
 
-  override fun doDisconnect(): ListenableFuture<Nothing> {
-    val future = SettableFuture.create<Nothing>()
-    coroutineScope.launch(loggingExceptionHandler) {
+  override suspend fun doDisconnect() = withContext(AndroidDispatchers.workerThread) {
+    try {
       val debugViewAttributes = DebugViewAttributes.getInstance()
       if (debugViewAttributesChanged && !debugViewAttributes.usePerDeviceSettings()) {
         debugViewAttributes.clear(model.project, process)
       }
       viewInspector?.disconnect()
       composeInspector?.disconnect()
+      // TODO: skiaParser#shutdown is a blocking function. Should be ported to coroutines
       skiaParser.shutdown()
       logEvent(DynamicLayoutInspectorEventType.SESSION_DATA)
 
-      future.set(null)
+    } catch (t: Throwable) {
+      fireError(t.message!!)
+      throw t
     }
-    return future
   }
 
   override suspend fun startFetching() {

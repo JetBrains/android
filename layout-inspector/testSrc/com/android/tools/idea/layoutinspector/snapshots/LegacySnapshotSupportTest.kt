@@ -24,6 +24,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -138,9 +139,14 @@ DONE.
   private fun setUpLegacyClient(): LegacyClient {
     val model = model(project = projectRule.project) {}
     val process = LEGACY_DEVICE.createProcess()
-    val legacyClient = LegacyClient(process, isInstantlyAutoConnected = true, model,
-                                    LayoutInspectorSessionMetrics(projectRule.project, process),
-                                    disposableRule.disposable).apply {
+    val legacyClient = LegacyClient(
+      process,
+      isInstantlyAutoConnected = true,
+      model,
+      LayoutInspectorSessionMetrics(projectRule.project, process),
+      AndroidCoroutineScope(disposableRule.disposable),
+      disposableRule.disposable
+    ).apply {
       launchMonitor = mock()
     }
     // This causes the current client to register its listeners

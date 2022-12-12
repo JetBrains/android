@@ -95,7 +95,7 @@ class InspectorClientLauncher(
               null
             }
           },
-          { params -> LegacyClient(params.process, params.isInstantlyAutoConnected, model, metrics, parentDisposable) }
+          { params -> LegacyClient(params.process, params.isInstantlyAutoConnected, model, metrics, coroutineScope, parentDisposable) }
         ),
         model.project,
         coroutineScope,

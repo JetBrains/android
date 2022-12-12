@@ -31,8 +31,6 @@ import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandl
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.Futures.immediateFuture
-import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
@@ -47,6 +45,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import java.nio.file.Path
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 class InspectorClientLauncherTest {
@@ -133,11 +132,17 @@ class InspectorClientLauncherTest {
 
     val launcherDisposable = Disposer.newDisposable()
     var clientWasDisconnected = false
+    val disconnectLatch = CountDownLatch(1)
     val launcher = InspectorClientLauncher(
       processes,
       listOf { params ->
         val client = FakeInspectorClient("Client", projectRule.project, params.process, disposableRule.disposable)
-        client.registerStateCallback { state -> if (state == InspectorClient.State.DISCONNECTED) clientWasDisconnected = true }
+        client.registerStateCallback { state ->
+          if (state == InspectorClient.State.DISCONNECTED) {
+            clientWasDisconnected = true
+            disconnectLatch.countDown()
+          }
+        }
         client
       },
       projectRule.project,
@@ -150,6 +155,7 @@ class InspectorClientLauncherTest {
 
     assertThat(clientWasDisconnected).isFalse()
     Disposer.dispose(launcherDisposable)
+    disconnectLatch.await(10, TimeUnit.SECONDS)
     assertThat(clientWasDisconnected).isTrue()
     assertThat(launcher.activeClient.isConnected).isFalse()
   }
@@ -539,8 +545,15 @@ class InspectorClientLauncherMetricsTest {
 
 private open class FakeInspectorClient(
   val name: String, project: Project, process: ProcessDescriptor, parentDisposable: Disposable
-) : AbstractInspectorClient(ClientType.UNKNOWN_CLIENT_TYPE, project, process, isInstantlyAutoConnected = false, DisconnectedClient.stats,
-                            parentDisposable) {
+) : AbstractInspectorClient(
+  ClientType.UNKNOWN_CLIENT_TYPE,
+  project,
+  process,
+  isInstantlyAutoConnected = false,
+  DisconnectedClient.stats,
+  AndroidCoroutineScope(parentDisposable),
+  parentDisposable
+) {
 
   override suspend fun startFetching() = throw NotImplementedError()
   override suspend fun stopFetching() = throw NotImplementedError()
@@ -548,7 +561,7 @@ private open class FakeInspectorClient(
   override fun saveSnapshot(path: Path) = throw NotImplementedError()
 
   override suspend fun doConnect() { }
-  override fun doDisconnect(): ListenableFuture<Nothing> = immediateFuture(null)
+  override suspend fun doDisconnect() { }
 
   override val capabilities
     get() = throw NotImplementedError()

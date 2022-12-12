@@ -29,6 +29,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.LEGACY_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.Disposable
+import kotlinx.coroutines.CoroutineScope
 import java.nio.file.Path
 
 /**
@@ -40,10 +41,18 @@ class LegacyClient(
   isInstantlyAutoConnected: Boolean,
   val model: InspectorModel,
   private val metrics: LayoutInspectorSessionMetrics,
+  coroutineScope: CoroutineScope,
   parentDisposable: Disposable,
   treeLoaderForTest: LegacyTreeLoader? = null
-) : AbstractInspectorClient(LEGACY_CLIENT, model.project, process, isInstantlyAutoConnected, SessionStatisticsImpl(LEGACY_CLIENT),
-                            parentDisposable) {
+) : AbstractInspectorClient(
+  LEGACY_CLIENT,
+  model.project,
+  process,
+  isInstantlyAutoConnected,
+  SessionStatisticsImpl(LEGACY_CLIENT),
+  coroutineScope,
+  parentDisposable
+) {
 
   private val lookup: ViewNodeAndResourceLookup = model
 
@@ -138,10 +147,9 @@ class LegacyClient(
     return true
   }
 
-  override fun doDisconnect(): ListenableFuture<Nothing> {
+  override suspend fun doDisconnect() {
     logEvent(DynamicLayoutInspectorEventType.SESSION_DATA)
     latestScreenshots.clear()
-    return Futures.immediateFuture(null)
   }
 
   class LegacyFetchingUnsupportedOperationException : UnsupportedOperationException("Fetching is not supported by legacy clients")

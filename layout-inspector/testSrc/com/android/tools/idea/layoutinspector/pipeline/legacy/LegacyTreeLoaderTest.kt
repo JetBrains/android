@@ -29,6 +29,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
@@ -116,8 +117,14 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
   private fun createSimpleLegacyClient(): LegacyClient {
     val model = model {}
     val process = LEGACY_DEVICE.createProcess()
-    return LegacyClient(process, isInstantlyAutoConnected = false, model, LayoutInspectorSessionMetrics(model.project, process),
-                        disposableRule.disposable).apply {
+    return LegacyClient(
+      process,
+      isInstantlyAutoConnected = false,
+      model,
+      LayoutInspectorSessionMetrics(model.project, process),
+      AndroidCoroutineScope(disposableRule.disposable),
+      disposableRule.disposable
+    ).apply {
       launchMonitor = mock()
     }
   }
