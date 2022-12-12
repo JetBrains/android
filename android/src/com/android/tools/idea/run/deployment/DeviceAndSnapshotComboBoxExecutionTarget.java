@@ -23,12 +23,10 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.UserDataHolderBase;
 import icons.StudioIcons;
 import java.awt.EventQueue;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -65,8 +63,8 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   @Override
   public boolean isApplicationRunning(@NotNull String appPackage) {
     if (Thread.currentThread().getName().equals("Action Updater (Common)") || EventQueue.isDispatchThread()) {
-      Logger.getInstance(DeviceAndSnapshotComboBoxExecutionTarget.class)
-        .error("Blocking Future::get call on an Action Updater (Common) thread or the EDT http://b/261501171");
+      Loggers.errorOrWarn(DeviceAndSnapshotComboBoxExecutionTarget.class,
+                          "Blocking Future::get call on an Action Updater (Common) thread or the EDT http://b/261501171");
     }
 
     return Futures.getUnchecked(isApplicationRunningAsync(appPackage));
@@ -101,9 +99,9 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   @Override
   public Collection<IDevice> getRunningDevices() {
     if (Thread.currentThread().getName().equals("Action Updater (Common)") || EventQueue.isDispatchThread()) {
-      Logger.getInstance(DeviceAndSnapshotComboBoxExecutionTarget.class).error(
-        "Blocking Future::get calls on an Action Updater (Common) thread or the EDT http://b/259746412, http://b/259746444, " +
-        "http://b/259746749, http://b/259747002, http://b/259747870, and http://b/259747965");
+      Loggers.errorOrWarn(DeviceAndSnapshotComboBoxExecutionTarget.class,
+                          "Blocking Future::get calls on an Action Updater (Common) thread or the EDT http://b/259746412, " +
+                          "http://b/259746444, http://b/259746749, http://b/259747002, http://b/259747870, and http://b/259747965");
     }
 
     return deviceStream()
@@ -133,22 +131,19 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   @NotNull
   @Override
   public String getDisplayName() {
-    List<Device> devices = deviceStream().collect(Collectors.toList());
+    var devices = deviceStream().toList();
 
-    switch (devices.size()) {
-      case 0:
-        return "No Devices";
-      case 1:
-        return devices.get(0).getName();
-      default:
-        return "Multiple Devices";
-    }
+    return switch (devices.size()) {
+      case 0 -> "No Devices";
+      case 1 -> devices.get(0).getName();
+      default -> "Multiple Devices";
+    };
   }
 
   @NotNull
   @Override
   public Icon getIcon() {
-    List<Device> devices = deviceStream().collect(Collectors.toList());
+    var devices = deviceStream().toList();
 
     if (devices.size() == 1) {
       return devices.get(0).getIcon();

@@ -59,10 +59,9 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
 
   @Override
   public @Nullable Deployable getDeployable(@NotNull RunConfiguration runConfiguration) {
-    if (!(runConfiguration instanceof AndroidRunConfigurationBase)) {
+    if (!(runConfiguration instanceof AndroidRunConfigurationBase androidRunConfiguration)) {
       return null;
     }
-    AndroidRunConfigurationBase androidRunConfiguration = (AndroidRunConfigurationBase)runConfiguration;
 
     List<Device> devices = myDeviceAndSnapshotComboBoxActionGetInstance.get().getSelectedDevices(androidRunConfiguration.getProject());
 
@@ -134,8 +133,7 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
     @Override
     public List<Client> searchClientsForPackage() {
       if (EventQueue.isDispatchThread()) {
-        Logger.getInstance(DeviceAndSnapshotComboBoxDeployableProvider.class)
-          .error("Blocking Future::get call on the EDT http://b/261492787");
+        Loggers.errorOrWarn(DeviceAndSnapshotComboBoxDeployableProvider.class, "Blocking Future::get call on the EDT http://b/261492787");
       }
 
       return Futures.getUnchecked(searchClientsForPackageAsync());
@@ -166,11 +164,10 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
 
     @Override
     public boolean equals(@Nullable Object object) {
-      if (!(object instanceof DeployableDevice)) {
+      if (!(object instanceof DeployableDevice device)) {
         return false;
       }
 
-      DeployableDevice device = (DeployableDevice)object;
       return myDevice.equals(device.myDevice) && myPackageName.equals(device.myPackageName);
     }
   }
