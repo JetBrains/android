@@ -57,7 +57,6 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.DumbAware
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.wm.ToolWindow
@@ -84,15 +83,31 @@ import java.text.Collator
 import java.time.Duration
 import java.util.concurrent.CancellationException
 
+private const val DEVICE_FRAME_VISIBLE_PROPERTY = "com.android.tools.idea.streaming.emulator.frame.visible"
+private const val DEVICE_FRAME_VISIBLE_DEFAULT = true
+private const val ZOOM_TOOLBAR_VISIBLE_PROPERTY = "com.android.tools.idea.streaming.emulator.zoom.toolbar.visible"
+private const val ZOOM_TOOLBAR_VISIBLE_DEFAULT = true
+private const val EMULATOR_DISCOVERY_INTERVAL_MILLIS = 1000
+
+private val ID_KEY = Key.create<DeviceId>("device-id")
+
+private val ATTENTION_REQUEST_EXPIRATION = Duration.ofSeconds(30)
+
+private val COLLATOR = Collator.getInstance()
+
+private val PANEL_COMPARATOR = compareBy<RunningDevicePanel, Any?>(COLLATOR) { it.title }.thenBy { it.id }
+
 /**
- * Manages contents of the Running Devices tool window. Listens to changes in [RunningEmulatorCatalog]
+ * Manages contents of the Running Devices tool window. Listens to connected devices' changes
  * and maintains [RunningDevicePanel]s, one per running AVD or a mirrored physical device.
  */
 @UiThread
-internal class StreamingToolWindowManager @AnyThread private constructor(
-  private val project: Project
-) : RunningEmulatorCatalog.Listener, DeviceMirroringSettingsListener, DumbAware {
+internal class StreamingToolWindowManager @AnyThread constructor(
+  private val toolWindow: ToolWindow
+) : RunningEmulatorCatalog.Listener, DeviceMirroringSettingsListener, DumbAware, Disposable {
 
+  private val project
+    get() = toolWindow.project
   private val deviceMirroringSettings = DeviceMirroringSettings.getInstance()
   private var contentCreated = false
   private var physicalDeviceWatcher: PhysicalDeviceWatcher? = null
@@ -112,11 +127,11 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
   private val recentAttentionRequests = CacheBuilder.newBuilder().expireAfterWrite(ATTENTION_REQUEST_EXPIRATION).build<String, String>()
   // IDs of recently launched AVDs keyed by themselves.
   private val recentEmulatorLaunches = CacheBuilder.newBuilder().expireAfterWrite(ATTENTION_REQUEST_EXPIRATION).build<String, String>()
-  private val alarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, project.earlyDisposable)
+  private val alarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
 
   private val contentManagerListener = object : ContentManagerListener {
     override fun selectionChanged(event: ContentManagerEvent) {
-      viewSelectionChanged(getToolWindow())
+      viewSelectionChanged()
     }
 
     override fun contentRemoveQuery(event: ContentManagerEvent) {
@@ -129,7 +144,7 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
       savedUiState.remove(panel.id)
       if (panels.isEmpty()) {
         createEmptyStatePanel()
-        hideLiveIndicator(getToolWindow())
+        hideLiveIndicator()
       }
     }
   }
@@ -166,23 +181,22 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
     }
 
   init {
-    Disposer.register(project.earlyDisposable) {
-      ToolWindowManager.getInstance(project).getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)?.let { destroyContent(it) }
-    }
+    Disposer.register(toolWindow.disposable, this)
 
     // Lazily initialize content since we can only have one frame.
-    val messageBusConnection = project.messageBus.connect(project.earlyDisposable)
+    val messageBusConnection = project.messageBus.connect(this)
     messageBusConnection.subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
+
       override fun stateChanged(toolWindowManager: ToolWindowManager) {
         val toolWindow = toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID) ?: return
 
         toolWindowManager.invokeLater {
-          if (!project.isDisposed) {
+          if (!toolWindow.isDisposed) {
             if (toolWindow.isVisible) {
-              createContent(toolWindow)
+              createContent()
             }
             else {
-              destroyContent(toolWindow)
+              destroyContent()
             }
           }
         }
@@ -191,7 +205,7 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
 
     messageBusConnection.subscribe(AvdLaunchListener.TOPIC,
                                    AvdLaunchListener { avd, commandLine, project ->
-                                     if (project == this.project && isEmbeddedEmulator(commandLine)) {
+                                     if (project == toolWindow.project && isEmbeddedEmulator(commandLine)) {
                                        RunningEmulatorCatalog.getInstance().updateNow()
                                        EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
                                          onEmulatorHeadsUp(avd.name)
@@ -201,7 +215,7 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
 
     messageBusConnection.subscribe(DeviceHeadsUpListener.TOPIC,
                                    DeviceHeadsUpListener { deviceSerialNumber, project ->
-                                     if (project == this.project) {
+                                     if (project == toolWindow.project) {
                                        UIUtil.invokeLaterIfNeeded {
                                          onDeviceHeadsUp(deviceSerialNumber)
                                        }
@@ -212,26 +226,10 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
 
     if (deviceMirroringSettings.deviceMirroringEnabled) {
       UIUtil.invokeLaterIfNeeded {
-        createPhysicalDeviceWatcherIfToolWindowAvailable(ToolWindowManager.getInstance(project))
-        if (physicalDeviceWatcher == null) {
-          messageBusConnection.subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
-
-            override fun toolWindowsRegistered(ids: List<String>, toolWindowManager: ToolWindowManager) {
-              if (ids.contains(RUNNING_DEVICES_TOOL_WINDOW_ID) && deviceMirroringSettings.deviceMirroringEnabled &&
-                  physicalDeviceWatcher == null) {
-                createPhysicalDeviceWatcherIfToolWindowAvailable(toolWindowManager)
-              }
-            }
-          })
+        if (!toolWindow.isDisposed) {
+          physicalDeviceWatcher = PhysicalDeviceWatcher(toolWindow.disposable)
         }
       }
-    }
-  }
-
-  private fun createPhysicalDeviceWatcherIfToolWindowAvailable(toolWindowManager: ToolWindowManager) {
-    val toolWindow = toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)
-    if (toolWindow != null) {
-      physicalDeviceWatcher = PhysicalDeviceWatcher(toolWindow.disposable)
     }
   }
 
@@ -256,7 +254,6 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
   }
 
   private fun onPhysicalDeviceHeadsUp(deviceSerialNumber: String) {
-    val toolWindow = getToolWindow()
     if (!toolWindow.isVisible) {
       lastSelectedDeviceId = DeviceId.ofPhysicalDevice(deviceSerialNumber)
       toolWindow.showAndActivate()
@@ -264,7 +261,7 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
     else {
       val panel = findPanelBySerialNumber(deviceSerialNumber)
       if (panel != null) {
-        selectPanel(panel, toolWindow)
+        selectPanel(panel)
         toolWindow.showAndActivate()
       }
     }
@@ -279,7 +276,6 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
   }
 
   private fun onEmulatorHeadsUp(avdId: String) {
-    val toolWindow = getToolWindow()
     toolWindow.showAndActivate()
 
     val panel = findPanelByAvdId(avdId)
@@ -289,11 +285,11 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
       alarm.addRequest(recentEmulatorLaunches::cleanUp, ATTENTION_REQUEST_EXPIRATION.toMillis())
     }
     else {
-      selectPanel(panel, toolWindow)
+      selectPanel(panel)
     }
   }
 
-  private fun selectPanel(panel: RunningDevicePanel, toolWindow: ToolWindow) {
+  private fun selectPanel(panel: RunningDevicePanel) {
     if (selectedPanel != panel) {
       val contentManager = toolWindow.contentManager
       val content = contentManager.getContent(panel)
@@ -301,7 +297,7 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
     }
   }
 
-  private fun createContent(toolWindow: ToolWindow) {
+  private fun createContent() {
     if (contentCreated) {
       return
     }
@@ -356,10 +352,10 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
     }
 
     contentManager.addContentManagerListener(contentManagerListener)
-    viewSelectionChanged(toolWindow)
+    viewSelectionChanged()
   }
 
-  private fun destroyContent(toolWindow: ToolWindow) {
+  private fun destroyContent() {
     if (!contentCreated) {
       return
     }
@@ -395,11 +391,10 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
   }
 
   private fun addPanel(panel: RunningDevicePanel) {
-    val toolWindow = getToolWindow()
     val contentManager = toolWindow.contentManager
     var placeholderContent: Content? = null
     if (panels.isEmpty()) {
-      showLiveIndicator(toolWindow)
+      showLiveIndicator()
       if (!contentManager.isEmpty) {
         // Remember the placeholder panel content to remove it later. Deleting it now would leave
         // the tool window empty and cause the contentRemoved method in ToolWindowContentUi to
@@ -461,7 +456,7 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
   }
 
   private fun removePanel(panel: RunningDevicePanel) {
-    val toolWindow = getToolWindow()
+    val toolWindow = toolWindow
     val contentManager = toolWindow.contentManager
     val content = contentManager.getContent(panel)
     contentManager.removeContent(content, true)
@@ -478,7 +473,7 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
     contentManager.setSelectedContent(content)
   }
 
-  private fun viewSelectionChanged(toolWindow: ToolWindow) {
+  private fun viewSelectionChanged() {
     val contentManager = toolWindow.contentManager
     val content = contentManager.selectedContent
     val id = content?.getUserData(ID_KEY)
@@ -513,19 +508,14 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
   }
 
   private fun getContentManager(): ContentManager {
-    return getToolWindow().contentManager
+    return toolWindow.contentManager
   }
 
-  private fun getToolWindow(): ToolWindow {
-    return ToolWindowManager.getInstance(project).getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID) ?:
-           throw IllegalStateException("Could not find the $RUNNING_DEVICES_TOOL_WINDOW_TITLE tool window")
-  }
-
-  private fun showLiveIndicator(toolWindow: ToolWindow) {
+  private fun showLiveIndicator() {
     toolWindow.setIcon(ExecutionUtil.getLiveIndicator(StudioIcons.Shell.ToolWindows.EMULATOR))
   }
 
-  private fun hideLiveIndicator(toolWindow: ToolWindow) {
+  private fun hideLiveIndicator() {
     toolWindow.setIcon(StudioIcons.Shell.ToolWindows.EMULATOR)
   }
 
@@ -554,7 +544,7 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
   override fun settingsChanged(settings: DeviceMirroringSettings) {
     if (settings.deviceMirroringEnabled) {
       if (physicalDeviceWatcher == null) {
-        createPhysicalDeviceWatcherIfToolWindowAvailable(ToolWindowManager.getInstance(project))
+        physicalDeviceWatcher = PhysicalDeviceWatcher(this)
       }
     }
     else {
@@ -573,6 +563,10 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
         activate(null)
       }
     }
+  }
+
+  override fun dispose() {
+    destroyContent()
   }
 
   private inner class ToggleDeviceFrameAction : ToggleAction("Show Device Frame"), DumbAware {
@@ -607,47 +601,6 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
   }
 
-  companion object {
-    private const val DEVICE_FRAME_VISIBLE_PROPERTY = "com.android.tools.idea.streaming.emulator.frame.visible"
-    private const val DEVICE_FRAME_VISIBLE_DEFAULT = true
-    private const val ZOOM_TOOLBAR_VISIBLE_PROPERTY = "com.android.tools.idea.streaming.emulator.zoom.toolbar.visible"
-    private const val ZOOM_TOOLBAR_VISIBLE_DEFAULT = true
-    private const val EMULATOR_DISCOVERY_INTERVAL_MILLIS = 1000
-
-    @JvmStatic
-    private val ID_KEY = Key.create<DeviceId>("device-id")
-
-    @JvmStatic
-    private val ATTENTION_REQUEST_EXPIRATION = Duration.ofSeconds(30)
-
-    @JvmStatic
-    private val COLLATOR = Collator.getInstance()
-
-    @JvmStatic
-    private val PANEL_COMPARATOR = compareBy<RunningDevicePanel, Any?>(COLLATOR) { it.title }.thenBy { it.id }
-
-    @JvmStatic
-    private val registeredProjects: MutableSet<Project> = hashSetOf()
-
-    /**
-     * Initializes [StreamingToolWindowManager] for the given project. Repeated calls for the same project
-     * are ignored.
-     */
-    @AnyThread
-    @JvmStatic
-    fun initializeForProject(project: Project) {
-      if (registeredProjects.add(project)) {
-        Disposer.register(project.earlyDisposable) { registeredProjects.remove(project) }
-        StreamingToolWindowManager(project)
-      }
-    }
-
-    @AnyThread
-    @JvmStatic
-    private fun isEmbeddedEmulator(commandLine: GeneralCommandLine) =
-      commandLine.parametersList.parameters.contains("-qt-hide-window")
-  }
-
   private inner class PhysicalDeviceWatcher(disposableParent: Disposable) : Disposable {
     private val adbSession = AdbLibService.getSession(project)
     private val coroutineScope: CoroutineScope
@@ -674,9 +627,8 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
       for (device in removed) {
         removePhysicalDevicePanel(device)
       }
-      val toolWindow = getToolWindow()
       if (!toolWindow.isVisible && mirrorableDeviceProperties.isEmpty() && emulators.isEmpty()) {
-        hideLiveIndicator(toolWindow)
+        hideLiveIndicator()
       }
       for (deviceSerialNumber in onlineDevices) {
         if (!mirroredDevices.contains(deviceSerialNumber)) {
@@ -693,8 +645,7 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
       if (deviceProperties != null) {
         UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
           if (deviceSerialNumber in onlineDevices && mirrorableDeviceProperties.put(deviceSerialNumber, deviceProperties) == null) {
-            val toolWindow = getToolWindow()
-            showLiveIndicator(toolWindow)
+            showLiveIndicator()
             if (contentCreated) {
               deviceConnected(deviceSerialNumber, deviceProperties)
             }
@@ -791,3 +742,7 @@ internal class StreamingToolWindowManager @AnyThread private constructor(
     }
   }
 }
+
+@AnyThread
+private fun isEmbeddedEmulator(commandLine: GeneralCommandLine) =
+    commandLine.parametersList.parameters.contains("-qt-hide-window")

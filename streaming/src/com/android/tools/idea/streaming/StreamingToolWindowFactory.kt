@@ -34,14 +34,15 @@ class StreamingToolWindowFactory : ToolWindowFactory, DumbAware {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     toolWindow.setDefaultContentUiType(ToolWindowContentUiType.TABBED)
-    StreamingToolWindowManager.initializeForProject(project)
   }
 
   override fun init(toolWindow: ToolWindow) {
+    StreamingToolWindowManager(toolWindow)
+
     toolWindow.stripeTitle = RUNNING_DEVICES_TOOL_WINDOW_TITLE
     toolWindow.setTitleActions(listOf(object : ToolWindowWindowAction() {
       override fun update(e: AnActionEvent) {
-        if (getToolWindow(e)?.type.let { it == ToolWindowType.FLOATING || it == ToolWindowType.WINDOWED }) {
+        if (toolWindow.type.let { it == ToolWindowType.FLOATING || it == ToolWindowType.WINDOWED }) {
           e.presentation.isEnabledAndVisible = false
           return
         }
@@ -52,11 +53,7 @@ class StreamingToolWindowFactory : ToolWindowFactory, DumbAware {
   }
 
   override fun isApplicable(project: Project): Boolean {
-    val available = isAndroidEnvironment(project) && (canLaunchEmulator() || DeviceMirroringSettings.getInstance().deviceMirroringEnabled)
-    if (available) {
-      StreamingToolWindowManager.initializeForProject(project)
-    }
-    return available
+    return isAndroidEnvironment(project) && (canLaunchEmulator() || DeviceMirroringSettings.getInstance().deviceMirroringEnabled)
   }
 
   private fun canLaunchEmulator(): Boolean =
