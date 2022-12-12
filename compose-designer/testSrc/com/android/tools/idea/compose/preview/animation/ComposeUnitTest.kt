@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimatedProperty
+import java.awt.Color
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
@@ -522,6 +523,12 @@ class ComposeUnitTest {
     val composeUnit = ComposeUnit.Color(0.1f, 0.1f, 0.1f, 0.1f)
     assertNotNull(composeUnit)
     assertNotNull(composeUnit.color)
+  }
+
+  @Test
+  fun createUnitFromColor() {
+    val composeUnit = ComposeUnit.Color.create(Color.cyan)
+    assertEquals(Color.cyan, composeUnit.color)
   }
 
   @Test

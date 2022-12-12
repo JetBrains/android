@@ -15,10 +15,51 @@
  */
 package com.android.tools.idea.compose.preview.animation.state
 
+import androidx.compose.animation.tooling.ComposeAnimation
+import androidx.compose.animation.tooling.ComposeAnimationType
+import com.android.tools.idea.compose.preview.animation.ComposeAnimationEventTracker
+import com.android.tools.idea.compose.preview.animation.ComposeUnit
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.AnAction
 
 /** Animation state. */
 abstract class AnimationState(callback: () -> Unit = {}) {
+
+  companion object {
+
+    /** Create an [AnimationState] based on [ComposeAnimationType] and type of state. */
+    fun ComposeAnimation.createState(
+      tracker: ComposeAnimationEventTracker,
+      callback: () -> Unit
+    ): AnimationState {
+      val unit = ComposeUnit.parseValue(this.states.firstOrNull())
+      return when (this.type) {
+        ComposeAnimationType.TRANSITION_ANIMATION -> FromToState(tracker, callback)
+        ComposeAnimationType.ANIMATED_VISIBILITY -> SingleState(tracker, callback)
+        ComposeAnimationType.ANIMATE_X_AS_STATE ->
+          if (StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE.get()) {
+            when (unit) {
+              is ComposeUnit.Color -> ColorPickerState(tracker, callback)
+              else -> PickerState(tracker, callback)
+            }
+          } else EmptyState()
+        ComposeAnimationType.ANIMATED_CONTENT ->
+          if (StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATED_CONTENT.get()) {
+            when (unit) {
+              is ComposeUnit.Color -> ColorPickerState(tracker, callback)
+              else -> PickerState(tracker, callback)
+            }
+          } else EmptyState()
+        ComposeAnimationType.ANIMATED_VALUE,
+        ComposeAnimationType.ANIMATABLE,
+        ComposeAnimationType.ANIMATE_CONTENT_SIZE,
+        ComposeAnimationType.DECAY_ANIMATION,
+        ComposeAnimationType.INFINITE_TRANSITION,
+        ComposeAnimationType.TARGET_BASED_ANIMATION,
+        ComposeAnimationType.UNSUPPORTED -> EmptyState()
+      }
+    }
+  }
 
   var callbackEnabled = false
 

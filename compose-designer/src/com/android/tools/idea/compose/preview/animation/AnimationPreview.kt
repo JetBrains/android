@@ -27,11 +27,7 @@ import com.android.tools.idea.compose.preview.animation.AnimationPreview.Timelin
 import com.android.tools.idea.compose.preview.animation.actions.FreezeAction
 import com.android.tools.idea.compose.preview.animation.managers.AnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.UnsupportedAnimationManager
-import com.android.tools.idea.compose.preview.animation.state.AnimationState
-import com.android.tools.idea.compose.preview.animation.state.EmptyState
-import com.android.tools.idea.compose.preview.animation.state.FromToState
-import com.android.tools.idea.compose.preview.animation.state.PickerState
-import com.android.tools.idea.compose.preview.animation.state.SingleState
+import com.android.tools.idea.compose.preview.animation.state.AnimationState.Companion.createState
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.compose.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
@@ -555,7 +551,7 @@ class AnimationPreview(
   private open inner class SupportedAnimationManager(animation: ComposeAnimation) :
     AnimationManager(animation, tabNames.createName(animation)) {
 
-    val stateComboBox = createState()
+    val stateComboBox = animation.createState(tracker, animation.findCallback())
 
     /** State of animation, shared between single animation tab and coordination panel. */
     final override val elementState =
@@ -647,43 +643,27 @@ class AnimationPreview(
       }
     }
 
-    private fun createState(): AnimationState {
-      return when (animation.type) {
-        ComposeAnimationType.TRANSITION_ANIMATION ->
-          FromToState(tracker) {
+    private fun ComposeAnimation.findCallback(): () -> Unit {
+      return when (type) {
+        ComposeAnimationType.TRANSITION_ANIMATION,
+        ComposeAnimationType.ANIMATE_X_AS_STATE,
+        ComposeAnimationType.ANIMATED_CONTENT -> { ->
             updateAnimationStartAndEndStates()
             loadTransitionFromCacheOrLib()
             loadProperties()
           }
-        ComposeAnimationType.ANIMATED_VISIBILITY ->
-          SingleState(tracker) {
+        ComposeAnimationType.ANIMATED_VISIBILITY -> { ->
             updateAnimatedVisibility()
             loadTransitionFromCacheOrLib()
             loadProperties()
           }
-        ComposeAnimationType.ANIMATE_X_AS_STATE ->
-          if (COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE.get())
-            PickerState(tracker) {
-              updateAnimationStartAndEndStates()
-              loadTransitionFromCacheOrLib()
-              loadProperties()
-            }
-          else EmptyState()
-        ComposeAnimationType.ANIMATED_CONTENT ->
-          if (COMPOSE_ANIMATION_PREVIEW_ANIMATED_CONTENT.get())
-            PickerState(tracker) {
-              updateAnimationStartAndEndStates()
-              loadTransitionFromCacheOrLib()
-              loadProperties()
-            }
-          else EmptyState()
         ComposeAnimationType.ANIMATED_VALUE,
         ComposeAnimationType.ANIMATABLE,
         ComposeAnimationType.ANIMATE_CONTENT_SIZE,
         ComposeAnimationType.DECAY_ANIMATION,
         ComposeAnimationType.INFINITE_TRANSITION,
         ComposeAnimationType.TARGET_BASED_ANIMATION,
-        ComposeAnimationType.UNSUPPORTED -> EmptyState()
+        ComposeAnimationType.UNSUPPORTED -> { -> }
       }
     }
 

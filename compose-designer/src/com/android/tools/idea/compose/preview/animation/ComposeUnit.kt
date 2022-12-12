@@ -430,6 +430,9 @@ object ComposeUnit {
         }
         return null
       }
+
+      fun create(color: java.awt.Color) =
+        Color(color.red / 255f, color.green / 255f, color.blue / 255f, color.alpha / 255f)
     }
 
     val color: java.awt.Color? =

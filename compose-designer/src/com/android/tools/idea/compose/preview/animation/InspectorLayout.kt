@@ -47,6 +47,7 @@ object InspectorLayout {
       )
     simpleStroke = BasicStroke(JBUI.scale(1).toFloat())
     freezeLineStroke = BasicStroke(JBUI.scale(3).toFloat())
+    colorButtonOffset = JBUI.scale(5)
   }
 
   /** Size of the outline padding. */
@@ -133,5 +134,8 @@ object InspectorLayout {
 
   /** Vertical line showing the freeze position. */
   lateinit var freezeLineStroke: Stroke
+    private set
+
+  var colorButtonOffset = JBUI.scale(5)
     private set
 }
