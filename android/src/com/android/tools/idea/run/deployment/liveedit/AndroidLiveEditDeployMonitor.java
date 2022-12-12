@@ -285,11 +285,6 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
   }
 
   public Callable<?> getCallback(String applicationId, IDevice device) {
-    String deviceId = device.getSerialNumber();
-
-    // TODO: Don't use Live Literal's reporting
-    LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(deviceId + "#" + applicationId);
-
     if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit()) {
       LOGGER.info("Live Edit on device disabled via settings.");
       return null;
@@ -312,16 +307,6 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
           this.gradleTimeSync.set(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp());
           LiveEditService.getInstance(project).resetState();
           deviceWatcher.setApplicationId(applicationId);
-
-          LiveLiteralsMonitorHandler.DeviceType deviceType;
-          if (device.isEmulator()) {
-            deviceType = LiveLiteralsMonitorHandler.DeviceType.EMULATOR;
-          }
-          else {
-            deviceType = LiveLiteralsMonitorHandler.DeviceType.PHYSICAL;
-          }
-
-          LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(deviceId + "#" + applicationId, deviceType);
         },
         0L,
         TimeUnit.NANOSECONDS)
