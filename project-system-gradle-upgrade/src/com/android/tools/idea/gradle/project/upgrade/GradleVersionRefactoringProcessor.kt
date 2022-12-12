@@ -65,7 +65,10 @@ class GradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
           val updatedUrl = gradleWrapper.getUpdatedDistributionUrl(compatibleGradleVersion.version, true)
           val virtualFile = VfsUtil.findFileByIoFile(ioFile, true) ?: return@forEach
           val propertiesFile = PsiManager.getInstance(project).findFile(virtualFile) as? PropertiesFile ?: return@forEach
-          val property = propertiesFile.findPropertyByKey(SdkConstants.GRADLE_DISTRIBUTION_URL_PROPERTY) ?: return@forEach
+          // This line looks like it should use propertiesFile.findPropertyByKey().  However, that is implemented by looking in indexes,
+          // which for some reason under some circumstances doesn't actually contain the keys in gradle-wrapper.properties.  Filtering
+          // all the properties of the file ourselves is a workaround for this unexplained behavior.
+          val property = propertiesFile.properties.firstOrNull { SdkConstants.GRADLE_DISTRIBUTION_URL_PROPERTY == it.key } ?: return@forEach
           val wrappedPsiElement = WrappedPsiElement(property.psiElement, this, GRADLE_URL_USAGE_TYPE)
           usages.add(GradleVersionUsageInfo(wrappedPsiElement, compatibleGradleVersion.version, updatedUrl))
         }
