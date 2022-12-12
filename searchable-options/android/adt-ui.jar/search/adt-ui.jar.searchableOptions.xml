@@ -35,10 +35,6 @@
     <option name="the" path="ActionManager" hit="Zoom the preview to fit the screen size" />
     <option name="to" path="ActionManager" hit="Zoom the preview to fit the screen size" />
     <option name="zoom" path="ActionManager" hit="Zoom the preview to fit the screen size" />
-    <option name="actual" path="ActionManager" hit="Zoom to Actual Size (100%)" />
-    <option name="size" path="ActionManager" hit="Zoom to Actual Size (100%)" />
-    <option name="to" path="ActionManager" hit="Zoom to Actual Size (100%)" />
-    <option name="zoom" path="ActionManager" hit="Zoom to Actual Size (100%)" />
     <option name="fit" path="ActionManager" hit="Zoom to Fit Screen" />
     <option name="screen" path="ActionManager" hit="Zoom to Fit Screen" />
     <option name="to" path="ActionManager" hit="Zoom to Fit Screen" />

@@ -126,7 +126,7 @@ class InspectorBannerTest {
     val actions2 = cellRenderer.getTableCellRendererComponent(table, null, false, false, 1, 1) as JPanel
     assertThat(text2.text).isEqualTo("There is another error somewhere else")
     assertThat(actions2.components.filterIsInstance<HyperlinkLabel>().map(HyperlinkLabel::getText))
-      .isEqualTo(listOf("Zoom to Fit Screen", "Zoom to Actual Size (100%)"))
+      .isEqualTo(listOf("Zoom to Fit Screen", "100%"))
   }
 
   @Test

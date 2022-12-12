@@ -46,15 +46,13 @@ abstract public class SetZoomAction extends AnAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     super.update(e);
-    if (e.getPlace().contains("Surface")) {
-      // Use floating set of icons for zoom actions on the Design Surface. To make the distinction from the usual editor toolbars, we check
-      // for 'Surface' in the place to cover for expected names like 'NlSurfaceLayoutToolbar' instead of 'NlLayoutToolbar'.
-      e.getPresentation().setIcon(myType.getFloatingIcon());
-      e.getPresentation().setText(myType.getFloatingLabel());
-    }
-    else {
-      e.getPresentation().setIcon(myType.getIcon());
-      e.getPresentation().setText(myType.getLabel());
+    e.getPresentation().setIcon(myType.getIcon());
+    e.getPresentation().setText(myType.getLabel());
+
+    String optionalDescription = myType.getDescription();
+
+    if (optionalDescription != null) {
+      e.getPresentation().setDescription(optionalDescription);
     }
   }
 }

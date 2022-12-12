@@ -26,50 +26,48 @@ public enum ZoomType {
   /**
    * Zoom to fit (the screen view port)
    */
-  FIT("Zoom to Fit Screen", "Zoom to Fit Screen", AllIcons.General.FitContent, AllIcons.General.FitContent),
+  FIT("Zoom to Fit Screen", AllIcons.General.FitContent),
 
   /**
    * Zoom to actual size (100%)
    */
-  ACTUAL("Zoom to Actual Size (100%)", "100%", null, AllIcons.General.ActualZoom),
+  ACTUAL("100%", "Zoom to Actual Size (100%)", AllIcons.General.ActualZoom),
 
   /**
    * Zoom in
    */
-  IN("Zoom In", "Zoom In", AllIcons.General.ZoomIn, AllIcons.General.Add),
+  IN("Zoom In",  AllIcons.General.Add),
 
   /**
    * Zoom out
    */
-  OUT("Zoom Out", "Zoom Out", AllIcons.General.ZoomOut, AllIcons.General.Remove);
+  OUT("Zoom Out",  AllIcons.General.Remove);
 
-  ZoomType(@NotNull String normalLabel, @NotNull String floatingLabel, @Nullable Icon normalIcon, @Nullable Icon floatingIcon) {
-    myLabel = normalLabel;
-    myFloatingLabel = floatingLabel;
-    myIcon = normalIcon;
-    myFloatingIcon = floatingIcon;
+  ZoomType(@NotNull String label, @Nullable String description, @Nullable Icon icon) {
+    myLabel = label;
+    myDescription = description;
+    myIcon = icon;
   }
 
-  /** Describes the zoom action to the user */
-  public String getLabel() {
-    return myLabel;
+  ZoomType(@NotNull String label, @Nullable Icon icon) {
+    this(label, null, icon);
   }
 
-  /** Returns the icon for this zoom type. Null if this icon is not set. */
+  /** Returns the icon for this zoom type when used on the DesignSurface. Null for actions not used on the DesignSurface. */
   @Nullable
   public Icon getIcon() {
     return myIcon;
   }
 
-  /** Returns the icon for this zoom type when used on the DesignSurface. Null for actions not used on the DesignSurface. */
-  @Nullable
-  public Icon getFloatingIcon() {
-    return myFloatingIcon;
+  /** Returns the label for this zoom type when used on the DesignSurface. */
+  public String getLabel() {
+    return myLabel;
   }
 
   /** Returns the label for this zoom type when used on the DesignSurface. */
-  public String getFloatingLabel() {
-    return myFloatingLabel;
+  @Nullable
+  public String getDescription() {
+    return myDescription;
   }
 
   @Override
@@ -78,9 +76,8 @@ public enum ZoomType {
   }
 
   private final String myLabel;
-  private final String myFloatingLabel;
+  private final String myDescription;
   private final Icon myIcon;
-  private final Icon myFloatingIcon;
 
   // Zoom percentages
   // 25%, 33%, 50%, 67%, 75%, 90%, 100%, 110%, 125%, 150%, 200%, 300%, 400%, .... +100%
