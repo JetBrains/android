@@ -32,18 +32,15 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.configurations.RunProfileState;
-import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.ConsoleView;
-import com.intellij.execution.ui.ExecutionConsole;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import java.util.function.BiConsumer;
 import kotlin.Unit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -78,7 +75,7 @@ public class AndroidRunState implements RunProfileState {
   public ExecutionResult execute(Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
     ExistingSession prevHandler = ApplyChangesUtilsKt.findExistingSessionAndMaybeDetachForColdSwap(myEnv);
     ProcessHandler processHandler = prevHandler.getProcessHandler();
-    ExecutionConsole console = prevHandler.getExecutionConsole();
+    ConsoleView console = (ConsoleView)prevHandler.getExecutionConsole();
 
     if (processHandler == null) {
       String appId = getMasterAndroidProcessId(myEnv.getRunProfile());
@@ -96,10 +93,6 @@ public class AndroidRunState implements RunProfileState {
       console = myConsoleProvider.createAndAttach(project, processHandler, executor);
     }
 
-    BiConsumer<String, HyperlinkInfo> hyperlinkConsumer =
-      console instanceof ConsoleView ? ((ConsoleView)console)::printHyperlink : (s, h) -> {
-      };
-
     LaunchTaskRunner taskRunner = new LaunchTaskRunner(project,
                                                        getApplicationId(),
                                                        myEnv,
@@ -107,11 +100,18 @@ public class AndroidRunState implements RunProfileState {
                                                        myDeviceFutures,
                                                        myLaunchTasksProvider,
                                                        createRunStats(),
-                                                       hyperlinkConsumer);
+                                                       console);
+    ProcessHandler finalProcessHandler = processHandler;
     ProgressManager.getInstance().run(new Task.Backgroundable(project, "Launching " + myLaunchConfigName) {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
         taskRunner.run(indicator);
+      }
+
+      @Override
+      public void onThrowable(@NotNull Throwable error) {
+        finalProcessHandler.destroyProcess();
+        super.onThrowable(error);
       }
     });
     return new DefaultExecutionResult(console, processHandler);

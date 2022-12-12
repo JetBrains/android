@@ -23,8 +23,8 @@ import com.android.tools.idea.execution.common.RunConfigurationNotifier.notifyIn
 import com.android.tools.idea.execution.common.RunConfigurationNotifier.notifyWarning
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.run.DeploymentApplicationService.Companion.instance
 import com.android.tools.idea.run.ShowLogcatListener.Companion.getShowLogcatLinkText
+import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.debug.captureLogcatOutputToProcessHandler
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.tasks.LaunchContext
@@ -42,9 +42,10 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.executors.DefaultDebugExecutor
-import com.intellij.execution.filters.HyperlinkInfo
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.ConsoleView
+import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -55,15 +56,15 @@ import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.ContainerUtil
-import com.intellij.xdebugger.impl.XDebugSessionImpl
 import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.concurrency.Promise
+import org.jetbrains.concurrency.resolvedPromise
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.concurrent.CancellationException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
-import java.util.function.BiConsumer
 
 class LaunchTaskRunner(
   val project: Project,
@@ -73,14 +74,14 @@ class LaunchTaskRunner(
   val deployTarget: DeployTarget,
   private val myLaunchTasksProvider: LaunchTasksProvider,
   private val myStats: RunStats,
-  private val myConsoleConsumer: BiConsumer<String, HyperlinkInfo>
+  private val myConsole: ConsoleView
 ) {
 
   private var myError: String? = null
   private val myOnFinished = ArrayList<Runnable>()
   val configuration = myEnv.runProfile as RunConfiguration
 
-  fun run(indicator: ProgressIndicator) {
+  fun run(indicator: ProgressIndicator): Promise<RunContentDescriptor> {
     myStats.beginLaunchTasks()
     try {
       val destroyProcessOnCancellation = !isSwap
@@ -90,8 +91,7 @@ class LaunchTaskRunner(
       val listenableDeviceFutures = deployTarget.getDevices(project)?.get() ?: throw ExecutionException("No devices found")
       val shouldConnectDebugger = myEnv.executor is DefaultDebugExecutor && !isSwap
       if (shouldConnectDebugger && listenableDeviceFutures.size != 1) {
-        launchStatus.terminateLaunch("Cannot launch a debug session on more than 1 device.", true)
-        return
+        throw ExecutionException("Cannot launch a debug session on more than 1 device.")
       }
       printLaunchTaskStartedMessage(consolePrinter)
       indicator.text = "Waiting for all target devices to come online"
@@ -100,7 +100,7 @@ class LaunchTaskRunner(
       }
       if (devices.size != listenableDeviceFutures.size) {
         // Halt execution if any of target devices are unavailable.
-        return
+        throw ExecutionException("Some of target devices are unavailable")
       }
 
       // Wait for the previous android process with the same application ID to be terminated before we start the new process.
@@ -127,8 +127,7 @@ class LaunchTaskRunner(
 
         ProgressIndicatorUtils.awaitWithCheckCanceled(waitApplicationTerminationTask, indicator)
         if (waitApplicationTerminationTask.isCancelled) {
-          launchStatus.terminateLaunch(String.format("Couldn't terminate the existing process for %s.", myApplicationId), true)
-          return
+          throw ExecutionException(String.format("Couldn't terminate the existing process for %s.", myApplicationId))
         }
       }
       myLaunchTasksProvider.fillStats(myStats)
@@ -140,22 +139,14 @@ class LaunchTaskRunner(
           val launchTasks = myLaunchTasksProvider.getTasks(device, launchStatus, consolePrinter)
           launchTaskMap[device] = launchTasks
         }
-        catch (e: ExecutionException) {
-          launchStatus.terminateLaunch(e.message, !isSwap)
-          return
-        }
         catch (e: IllegalStateException) {
           launchStatus.terminateLaunch(e.message, !isSwap)
           Logger.getInstance(LaunchTaskRunner::class.java).error(e)
-          return
+          throw ExecutionException(e)
         }
       }
       val completedStepsCount = Ref(0)
-      val totalScheduledStepsCount = launchTaskMap
-        .values
-        .stream()
-        .mapToInt { launchTasks: List<LaunchTask> -> getTotalDuration(launchTasks, shouldConnectDebugger) }
-        .sum()
+      val totalScheduledStepsCount = launchTaskMap.values.sumOf { getTotalDuration(it, shouldConnectDebugger) }
 
       // A list of devices that we have launched application successfully.
       val launchedDevices: MutableList<IDevice?> = ArrayList()
@@ -180,8 +171,7 @@ class LaunchTaskRunner(
         }
       }
       if (launchedDevices.isEmpty()) {
-        launchStatus.terminateLaunch("Failed to launch an application on all devices", destroyProcessOnCancellation)
-        return
+        throw ExecutionException("Failed to launch an application on all devices")
       }
 
       // A debug session task should be performed sequentially at the end.
@@ -192,22 +182,35 @@ class LaunchTaskRunner(
                            ?: throw RuntimeException(
                              "ConnectDebuggerTask is null for task provider " + myLaunchTasksProvider.javaClass.name)
         indicator.text = "Connecting debugger"
-        debuggerTask.perform(device!!, myApplicationId, myEnv, myProcessHandler)
-          .onSuccess { session: XDebugSessionImpl ->
+        return debuggerTask.perform(device!!, myApplicationId, myEnv, myProcessHandler)
+          .onSuccess { session ->
             ApplicationManager.getApplication().executeOnPooledThread {
-              instance
-                .findClient(device, myApplicationId).stream().findAny()
-                .ifPresent { client: Client? ->
-                  captureLogcatOutputToProcessHandler(
-                    client!!, session.consoleView,
-                    session.debugProcess.processHandler
-                  )
+              DeploymentApplicationService.instance
+                .findClient(device, myApplicationId).firstOrNull()?.let { client: Client? ->
+                  captureLogcatOutputToProcessHandler(client!!, session.consoleView, session.debugProcess.processHandler)
                 }
             }
           }
-        // Update the indicator progress bar.
-        completedStepsCount.set(completedStepsCount.get() + LaunchTaskDurations.CONNECT_DEBUGGER)
-        indicator.fraction = (completedStepsCount.get().toFloat() / totalScheduledStepsCount).toDouble()
+          .then { session ->
+            // Update the indicator progress bar.
+            completedStepsCount.set(completedStepsCount.get() + LaunchTaskDurations.CONNECT_DEBUGGER)
+            indicator.fraction = (completedStepsCount.get().toFloat() / totalScheduledStepsCount).toDouble()
+            session.runContentDescriptor
+          }
+      }
+      var descriptor: RunContentDescriptor? = null
+      if (isSwap) {
+        // If we're hotswapping, we want to use the currently-running ContentDescriptor,
+        // instead of making a new one (which "show"RunContent actually does).
+        val manager = RunContentManager.getInstance(project)
+        // Note we may still end up with a null descriptor since the user could close the tool tab after starting a hotswap.
+        descriptor = manager.findContentDescriptor(myEnv.executor, myProcessHandler)
+      }
+      return if (descriptor == null || descriptor.attachedContent == null) {
+        createRunContentDescriptor(myProcessHandler, myConsole, myEnv)
+      }
+      else {
+        resolvedPromise(descriptor)
       }
     }
     finally {
@@ -285,11 +288,9 @@ class LaunchTaskRunner(
       indicator.fraction = (completedStepsCount.get().toFloat() / totalScheduledStepsCount).toDouble()
     }
     if (!StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.get()) {
-      myConsoleConsumer.accept(
-        getShowLogcatLinkText(device),
-        HyperlinkInfo { project: Project ->
-          project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, myApplicationId)
-        })
+      myConsole.printHyperlink(getShowLogcatLinkText(device)) { project ->
+        project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, myApplicationId)
+      }
     }
     val launchType = myLaunchTasksProvider.launchTypeDisplayName
     if (numWarnings == 0) {

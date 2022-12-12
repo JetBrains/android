@@ -32,12 +32,13 @@ import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.stats.RunStats
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.util.concurrent.Futures
+import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionTarget
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.configurations.RunProfileState
-import com.intellij.execution.filters.HyperlinkInfo
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
@@ -49,7 +50,6 @@ import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnit
-import java.util.function.BiConsumer
 
 /**
  * Unit test for [LaunchTaskRunner].
@@ -70,7 +70,7 @@ class LaunchTaskRunnerTest {
   lateinit var mockRunStats: RunStats
 
   @Mock
-  lateinit var mockConsoleConsumer: BiConsumer<String, HyperlinkInfo>
+  lateinit var mockConsole: ConsoleView
 
   @Mock
   lateinit var mockExecutor: Executor
@@ -99,23 +99,26 @@ class LaunchTaskRunnerTest {
     whenever(mockExecutor.id).thenReturn("id")
   }
 
-  private fun createDeployTarget(numDevices: Int = 1): DeployTarget {
-    val devices = (1..numDevices).map {
-      val device = mock<AndroidDevice>()
-      val iDevice = mock<IDevice>()
-      whenever(iDevice.isOnline).thenReturn(true)
-      whenever(iDevice.version).thenReturn(AndroidVersion(MIN_RECOMMENDED_API, null))
-      whenever(device.launchedDevice).thenReturn(Futures.immediateFuture(iDevice))
-      device
-    }.toList()
-    return object : DeployTarget {
-      override fun hasCustomRunProfileState(executor: Executor) = false
+  companion object {
+    fun createDeployTarget(numDevices: Int = 1): DeployTarget {
+      val devices = (1..numDevices).map {
+        val device = mock<AndroidDevice>()
+        val iDevice = mock<IDevice>()
+        whenever(iDevice.isOnline).thenReturn(true)
+        whenever(iDevice.version).thenReturn(AndroidVersion(MIN_RECOMMENDED_API, null))
+        whenever(iDevice.serialNumber).thenReturn("serialNumber")
+        whenever(device.launchedDevice).thenReturn(Futures.immediateFuture(iDevice))
+        device
+      }.toList()
+      return object : DeployTarget {
+        override fun hasCustomRunProfileState(executor: Executor) = false
 
-      override fun getRunProfileState(executor: Executor, env: ExecutionEnvironment, state: DeployTargetState): RunProfileState {
-        throw UnsupportedOperationException()
+        override fun getRunProfileState(executor: Executor, env: ExecutionEnvironment, state: DeployTargetState): RunProfileState {
+          throw UnsupportedOperationException()
+        }
+
+        override fun getDevices(project: Project) = DeviceFutures(devices)
       }
-
-      override fun getDevices(project: Project) = DeviceFutures(devices)
     }
   }
 
@@ -152,7 +155,7 @@ class LaunchTaskRunnerTest {
       deployTarget,
       mockLaunchTasksProvider,
       mockRunStats,
-      mockConsoleConsumer
+      mockConsole
     )
   }
 
@@ -219,13 +222,16 @@ class LaunchTaskRunnerTest {
     val runner = createLaunchTaskRunner(deployTarget)
 
     setFailingLaunchTask()
-    runner.run(progressIndicator)
-
+    try {
+      runner.run(progressIndicator)
+    }
+    catch (_: ExecutionException) {
+    }
     verify(mockProcessHandler).addTargetDevice(eq(deviceFutures.get()[0].get()))
     verify(mockProcessHandler).detachDevice(eq(deviceFutures.get()[0].get()))
-    verify(mockProcessHandler).destroyProcess()
 
     verify(mockRunStats).endLaunchTasks()
+    verify(mockRunStats).fail()
   }
 
   @Test
@@ -235,15 +241,17 @@ class LaunchTaskRunnerTest {
     val runner = createLaunchTaskRunner(deployTarget)
 
     setFailingLaunchTask()
-    runner.run(progressIndicator)
+    try {
+      runner.run(progressIndicator)
+    }
+    catch (_: ExecutionException) {
+    }
 
     verify(mockProcessHandler).addTargetDevice(eq(deviceFutures.get()[0].get()))
     verify(mockProcessHandler).addTargetDevice(eq(deviceFutures.get()[1].get()))
-    verify(mockProcessHandler).detachDevice(eq(deviceFutures.get()[0].get()))
-    verify(mockProcessHandler).detachDevice(eq(deviceFutures.get()[1].get()))
-    verify(mockProcessHandler).destroyProcess()
 
     verify(mockRunStats).endLaunchTasks()
+    verify(mockRunStats).fail()
   }
 
   @Test
@@ -256,15 +264,16 @@ class LaunchTaskRunnerTest {
     val device2 = deviceFutures.get()[1].get()
 
     setFailingLaunchTask(device1)
-    runner.run(progressIndicator)
-
+    try {
+      runner.run(progressIndicator)
+    }
+    catch (_: ExecutionException) {
+    }
     verify(mockProcessHandler).addTargetDevice(eq(device1))
     verify(mockProcessHandler).addTargetDevice(eq(device2))
-    verify(mockProcessHandler).detachDevice(eq(device1))
-    verify(mockProcessHandler, never()).detachDevice(eq(device2))
-    verify(mockProcessHandler, never()).destroyProcess()
 
     verify(mockRunStats).endLaunchTasks()
+    verify(mockRunStats).fail()
   }
 
   @Test
@@ -275,7 +284,11 @@ class LaunchTaskRunnerTest {
     val runner = createLaunchTaskRunner(deployTarget)
 
     setFailingLaunchTask()
-    runner.run(progressIndicator)
+    try {
+      runner.run(progressIndicator)
+    }
+    catch (_: ExecutionException) {
+    }
 
     verify(mockProcessHandler, never()).addTargetDevice(eq(deviceFutures.get()[0].get()))
     verify(mockProcessHandler, never()).detachDevice(any())
@@ -283,5 +296,6 @@ class LaunchTaskRunnerTest {
     verify(mockProcessHandler, never()).destroyProcess()
 
     verify(mockRunStats).endLaunchTasks()
+    verify(mockRunStats).fail()
   }
 }
