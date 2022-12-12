@@ -18,20 +18,51 @@ package com.android.tools.idea.adblib
 import com.android.adblib.AdbLogger
 import com.android.adblib.AdbLoggerFactory
 import com.intellij.openapi.diagnostic.Logger
+import java.util.concurrent.ConcurrentHashMap
+import java.util.function.Function
 
 /**
  * Implementation of [AdbLoggerFactory] that integrates with the IntelliJ/Android Studio platform [Logger].
  */
 internal class AndroidAdbLoggerFactory : AdbLoggerFactory {
-  override val logger: AdbLogger by lazy {
-    createLogger("adblib")
-  }
+  /**
+   * We cache `class` loggers in memory because
+   *
+   * * there are only a few dozens created in practice, and
+   * * the use of the cache decreases GC allocation pressure, as adblib code tends
+   *   to use non-static fields for [AdbLogger] instances.
+   */
+  private val classLoggerCache = LoggerCache<Class<*>> { AndroidAdbLogger(Logger.getInstance(it)) }
+
+  /**
+   * We cache `category` loggers in memory, see [classLoggerCache] for justification.
+   */
+  private val categoryLoggerCache = LoggerCache<String> { AndroidAdbLogger(Logger.getInstance(it)) }
+
+  override val logger: AdbLogger = createLogger("adblib")
 
   override fun createLogger(cls: Class<*>): AdbLogger {
-    return AndroidAdbLogger(Logger.getInstance(cls))
+    return classLoggerCache.computeIfAbsent(cls)
   }
 
   override fun createLogger(category: String): AdbLogger {
-    return AndroidAdbLogger(Logger.getInstance(category))
+    return categoryLoggerCache.computeIfAbsent(category)
+  }
+
+  private class LoggerCache<TKey>(
+    /**
+     * Note: We use a [Function] lambda (as opposed to a `Kotlin` lambda) to ensure no allocation is
+     * performed when calling [ConcurrentHashMap.computeIfAbsent]
+     */
+    private val mappingFunction: Function<TKey, AdbLogger>
+  ) {
+    /**
+     * Note: We use a [ConcurrentHashMap] so that we get a lock-free lookup.
+     */
+    private val loggers = ConcurrentHashMap<TKey, AdbLogger>()
+
+    fun computeIfAbsent(key: TKey): AdbLogger {
+      return loggers.computeIfAbsent(key, mappingFunction)
+    }
   }
 }

@@ -1,21 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 7.4.0-dev">
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/adblib/AndroidAdbLoggerFactory.kt"
-            line="26"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/adblib/AndroidAdbSessionHost.kt"
-            line="28"/>
-    </issue>
+<issues format="5" by="lint 8.1.0-dev">
 
     <issue
         id="AvoidByLazy"
@@ -78,7 +62,7 @@
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/com/android/tools/idea/adb/wireless/WiFiPairingNotificationServiceImpl.kt"
-            line="26"/>
+            line="27"/>
     </issue>
 
     <issue
