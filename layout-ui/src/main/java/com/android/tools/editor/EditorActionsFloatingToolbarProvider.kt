@@ -40,6 +40,10 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.Timer
 
+const val zoomActionPlace = "ZoomActionsToolbar"
+const val zoomLabelPlace = "ZoomLabelToolbar"
+const val otherActionsPlace = "DesignSurfaceFloatingOtherActionsToolbar"
+
 private val VERTICAL_PANEL_MARGINS get() = JBUI.insets(0, 4, 4, 0)
 
 /**
@@ -117,10 +121,10 @@ abstract class EditorActionsFloatingToolbarProvider(
     val actionGroups = getActionGroups()
     val actionManager = ActionManager.getInstance()
     val zoomActionGroup = actionGroups.zoomControlsGroup?.let {
-      createToolbar(actionManager, it, component)
+      createToolbar("ZoomActionsToolbar", actionManager, it, component)
     }
     val zoomLabelToolbar = actionGroups.zoomLabelGroup?.let {
-      createToolbar(actionManager, it, component).apply {
+      createToolbar("ZoomLabelToolbar", actionManager, it, component).apply {
         component.border = JBUI.Borders.empty(2)
       }
     }
@@ -134,7 +138,7 @@ abstract class EditorActionsFloatingToolbarProvider(
       }
     }
     otherToolbars.clear()
-    actionGroups.otherGroups.associateWithTo(otherToolbars) { createToolbar(actionManager, it, component) }
+    actionGroups.otherGroups.associateWithTo(otherToolbars) { createToolbar("DesignSurfaceFloatingOtherActionsToolbar", actionManager, it, component) }
 
     floatingToolbar.removeAll()
     if (zoomActionGroup != null || otherToolbars.isNotEmpty() || zoomLabelToolbar != null) {
@@ -229,9 +233,11 @@ private fun JComponent.wrapInDesignSurfaceUI(): JPanel {
   return DesignSurfaceToolbarUI.createPanel(this).apply { layout = BoxLayout(this, BoxLayout.Y_AXIS) }
 }
 
-private fun createToolbar(actionManager: ActionManager, actionGroup: ActionGroup, target: JComponent): ActionToolbar {
+private fun createToolbar(
+  place: String,
+  actionManager: ActionManager, actionGroup: ActionGroup, target: JComponent): ActionToolbar {
   // Place must be "DesignSurface" to get the correct variation for zoom icons.
-  val toolbar = actionManager.createActionToolbar("DesignSurface", actionGroup, false).apply {
+  val toolbar = actionManager.createActionToolbar(place, actionGroup, false).apply {
     layoutPolicy = ActionToolbar.WRAP_LAYOUT_POLICY
     setTargetComponent(target)
     setMinimumButtonSize(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)

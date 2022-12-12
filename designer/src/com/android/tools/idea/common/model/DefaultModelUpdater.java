@@ -352,7 +352,7 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
   }
 
   private void updateHierarchy(@NotNull NlModel.TagSnapshotTreeNode node, ModelUpdaterData data) {
-    TagSnapshot snapshot = node.getTagSnapshot();
+    TagSnapshot snapshot = ApplicationManager.getApplication().runReadAction((Computable<? extends TagSnapshot>)node::getTagSnapshot);
     NlComponent component;
     if (snapshot != null) {
       component = data.mySnapshotToComponent.get(snapshot);
