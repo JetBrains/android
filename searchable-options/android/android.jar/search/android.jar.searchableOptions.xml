@@ -264,6 +264,15 @@
     <option name="enable" path="ActionManager" hit="Enable Instant Apps Support..." />
     <option name="instant" path="ActionManager" hit="Enable Instant Apps Support..." />
     <option name="support" path="ActionManager" hit="Enable Instant Apps Support..." />
+    <option name="buildconfig" path="ActionManager" hit="Enable buildConfig for those modules that need it only" />
+    <option name="enable" path="ActionManager" hit="Enable buildConfig for those modules that need it only" />
+    <option name="for" path="ActionManager" hit="Enable buildConfig for those modules that need it only" />
+    <option name="it" path="ActionManager" hit="Enable buildConfig for those modules that need it only" />
+    <option name="modules" path="ActionManager" hit="Enable buildConfig for those modules that need it only" />
+    <option name="need" path="ActionManager" hit="Enable buildConfig for those modules that need it only" />
+    <option name="only" path="ActionManager" hit="Enable buildConfig for those modules that need it only" />
+    <option name="that" path="ActionManager" hit="Enable buildConfig for those modules that need it only" />
+    <option name="those" path="ActionManager" hit="Enable buildConfig for those modules that need it only" />
     <option name="a" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
     <option name="apps" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
     <option name="enables" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
@@ -404,6 +413,12 @@
     <option name="edit" path="ActionManager" hit="Manual Live Edit" />
     <option name="live" path="ActionManager" hit="Manual Live Edit" />
     <option name="manual" path="ActionManager" hit="Manual Live Edit" />
+    <option name="build" path="ActionManager" hit="Migrate BuildConfig to Gradle Build Files" />
+    <option name="buildconfig" path="ActionManager" hit="Migrate BuildConfig to Gradle Build Files" />
+    <option name="files" path="ActionManager" hit="Migrate BuildConfig to Gradle Build Files" />
+    <option name="gradle" path="ActionManager" hit="Migrate BuildConfig to Gradle Build Files" />
+    <option name="migrate" path="ActionManager" hit="Migrate BuildConfig to Gradle Build Files" />
+    <option name="to" path="ActionManager" hit="Migrate BuildConfig to Gradle Build Files" />
     <option name="androidx" path="ActionManager" hit="Migrate to AndroidX..." />
     <option name="migrate" path="ActionManager" hit="Migrate to AndroidX..." />
     <option name="to" path="ActionManager" hit="Migrate to AndroidX..." />

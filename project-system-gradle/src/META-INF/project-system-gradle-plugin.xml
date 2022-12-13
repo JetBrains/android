@@ -288,6 +288,12 @@
             description="Migrates the project to use Non-Transitive R classes">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
+    <action id="AndroidMigrateBuildConfigFromGradlePropertiesToDsl"
+            class="org.jetbrains.android.refactoring.MigrateBuildConfigFromGradlePropertiesAction"
+            text="Migrate BuildConfig to Gradle Build Files"
+            description="Enable buildConfig for those modules that need it only">
+      <add-to-group group-id="RefactoringMenu"/>
+    </action>
   </actions>
 
   <extensionPoints>
