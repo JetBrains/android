@@ -1058,6 +1058,25 @@ java_test(
 )
 
 java_test(
+    name = "ComponentSelectionSplitViewTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:build.prop",
+        "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
+        "//prebuilts/studio/layoutlib/data:native_libs",
+    ] + glob(["testData/SimpleApplication/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ComponentSelectionSplitViewTest"],
+    tags = COMMON_TAGS + [
+        "ui_test",
+        "very_flaky",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
     name = "OpenCloseVisualizationToolTest",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:build.prop",

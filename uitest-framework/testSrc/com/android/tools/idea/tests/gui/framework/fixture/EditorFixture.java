@@ -426,20 +426,20 @@ public class EditorFixture {
   }
 
   /**
-   * Given a {@link Tab}, selects the corresponding mode in the {@link TextEditorWithPreview}, i.e. "Text only" when tab is {@link Tab#EDITOR} and
-   * "Design only" when tab is {@link Tab#DESIGN}.
+   * Given a {@link Tab}, selects the corresponding mode in the {@link TextEditorWithPreview}, i.e. "Text" when tab is {@link Tab#EDITOR},
+   * "Split" when tab is {@link Tab#SPLIT} and "Design" when tab is {@link Tab#DESIGN}.
    * @return Whether this method effectively changed tabs. This only returns false if tab is not {@link Tab#EDITOR} or {@link Tab#DESIGN}.
    */
   private boolean selectSplitEditorTab(@NotNull Tab tab, @NotNull TextEditorWithPreview editor) {
-    if (!(tab == Tab.EDITOR || tab == Tab.DESIGN)) {
-      // Only text and design are supported by split editor at the moment.
+    if (!(tab == Tab.EDITOR || tab == Tab.SPLIT || tab == Tab.DESIGN)) {
+      // If we're not selecting a tab supported by split editor, e.g. MERGED_MANIFEST, we return early.
       return false;
     }
     // The concept of tabs can be mapped to the split editor toolbar, where there are three actions to change the editor to (in this order):
     // 1) text-only, 2) split view, 3) preview(design)-only. We try to find this toolbar and select the corresponding action.
     SplitEditorToolbar toolbar = robot.finder().find(
       editor.getComponent(),
-      new GenericTypeMatcher<SplitEditorToolbar>(SplitEditorToolbar.class) {
+      new GenericTypeMatcher<>(SplitEditorToolbar.class) {
         @Override
         protected boolean isMatching(@NotNull SplitEditorToolbar component) {
           return true;
@@ -449,7 +449,7 @@ public class EditorFixture {
 
     ActionToolbar actionToolbar = robot.finder().find(
       toolbar,
-      new GenericTypeMatcher<ActionToolbarImpl>(ActionToolbarImpl.class) {
+      new GenericTypeMatcher<>(ActionToolbarImpl.class) {
         @Override
         protected boolean isMatching(@NotNull ActionToolbarImpl component) {
           return component.getPlace().equals("TextEditorWithPreview");
@@ -473,11 +473,15 @@ public class EditorFixture {
     int actionToSelect = -1;
     switch (tab) {
       case EDITOR:
-        // Text-only is the first action in the toolbar
+        // `Text` is the first action in the toolbar
         actionToSelect = 0;
         break;
+      case SPLIT:
+        // `Split` is the first action in the toolbar
+        actionToSelect = 1;
+        break;
       case DESIGN:
-        // Design is the third action in the toolbar
+        // `Design` is the third action in the toolbar
         actionToSelect = 2;
         break;
       default: fail("Wrong tab action to select " + tab);
@@ -949,6 +953,7 @@ public class EditorFixture {
    */
   public enum Tab {
     EDITOR("Text"),
+    SPLIT("Split"),
     DESIGN("Design"),
     DEFAULT(null),
     MERGED_MANIFEST("Merged Manifest"),
