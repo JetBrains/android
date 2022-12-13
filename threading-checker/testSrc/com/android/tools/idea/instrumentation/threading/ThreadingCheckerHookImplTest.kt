@@ -17,10 +17,17 @@ package com.android.tools.idea.instrumentation.threading
 
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.analytics.TestUsageTracker
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerTrampoline
 import com.google.common.truth.Truth
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.ThreadingAgentUsageEvent
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
@@ -39,6 +46,17 @@ class ThreadingCheckerHookImplTest {
 
   private val mockThreadingViolationNotifier = mock<ThreadingViolationNotifier>()
   private val threadingCheckerHook = ThreadingCheckerHookImpl(mockThreadingViolationNotifier)
+  private val tracker = TestUsageTracker(VirtualTimeScheduler())
+
+  @Before
+  fun setUp() {
+    UsageTracker.setWriterForTest(tracker)
+  }
+
+  @After
+  fun cleanUp() {
+    UsageTracker.cleanAfterTesting()
+  }
 
   init {
     ThreadingCheckerTrampoline.installHook(threadingCheckerHook)
@@ -63,6 +81,15 @@ class ThreadingCheckerHookImplTest {
     Truth.assertThat(threadingCheckerHook.threadingViolations.keys).containsExactly(expectedViolatingMethod)
     Truth.assertThat(threadingCheckerHook.threadingViolations[expectedViolatingMethod]!!.get()).isEqualTo(2L)
     verifyNoMoreInteractions(mockThreadingViolationNotifier)
+
+    Truth.assertThat(tracker.usages.map { u -> u.studioEvent.toBuilder().clearStudioSessionId().clearIdeBrand().build() })
+      .containsExactly(AndroidStudioEvent.newBuilder()
+                         .setKind(AndroidStudioEvent.EventKind.THREADING_AGENT_STATS)
+                         .setThreadingAgentUsageEvent(
+                           ThreadingAgentUsageEvent.newBuilder()
+                             .setVerifyUiThreadCount(1) // The value is 1 and not 2 since we limit the frequency of logged events
+                             .setVerifyWorkerThreadCount(0))
+                         .build())
   }
 
   private fun checkForUiThreadOnWorkerThread() {
@@ -88,6 +115,15 @@ class ThreadingCheckerHookImplTest {
     Truth.assertThat(threadingCheckerHook.threadingViolations.keys).containsExactly(expectedViolatingMethod)
     Truth.assertThat(threadingCheckerHook.threadingViolations[expectedViolatingMethod]!!.get()).isEqualTo(2L)
     verifyNoMoreInteractions(mockThreadingViolationNotifier)
+
+    Truth.assertThat(tracker.usages.map { u -> u.studioEvent.toBuilder().clearStudioSessionId().clearIdeBrand().build() })
+      .containsExactly(AndroidStudioEvent.newBuilder()
+                         .setKind(AndroidStudioEvent.EventKind.THREADING_AGENT_STATS)
+                         .setThreadingAgentUsageEvent(
+                           ThreadingAgentUsageEvent.newBuilder()
+                             .setVerifyUiThreadCount(0)
+                             .setVerifyWorkerThreadCount(1)) // The value is 1 and not 2 since we limit the frequency of logged events
+                         .build())
   }
 
   @Test

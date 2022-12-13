@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.instrumentation.threading
 
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerHook
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.ThreadingAgentUsageEvent
 import com.intellij.openapi.diagnostic.thisLogger
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
@@ -25,6 +28,9 @@ import java.util.stream.Collectors
 import java.util.stream.Stream
 import javax.swing.SwingUtilities
 
+// Send the usage report only if more than 60 seconds have passed since the last report
+private const val REPORT_FREQUENCY_MS = 60_000L
+
 /** Connects to the threading java agent from Android Studio. */
 class ThreadingCheckerHookImpl(
   private val threadingViolationNotifier: ThreadingViolationNotifier =
@@ -32,11 +38,22 @@ class ThreadingCheckerHookImpl(
 ) : ThreadingCheckerHook {
 
   private val logger = thisLogger()
+  private val lock = Any()
+
+  @Volatile
+  private var lastReportedUsageTimeMs = 0L
+
+  // These counters are not precise, but they are good enough for being included in the usage metrics.
+  private var uiThreadCheckCount = 0L
+  private var workerThreadCheckCount = 0L
 
   @VisibleForTesting
   val threadingViolations: ConcurrentMap<String, AtomicLong> = ConcurrentHashMap()
 
   override fun verifyOnUiThread() {
+    ++uiThreadCheckCount
+    maybeReportUsageStats()
+
     if (SwingUtilities.isEventDispatchThread()) {
       return
     }
@@ -44,10 +61,38 @@ class ThreadingCheckerHookImpl(
   }
 
   override fun verifyOnWorkerThread() {
+    ++workerThreadCheckCount
+    maybeReportUsageStats()
+
     if (!SwingUtilities.isEventDispatchThread()) {
       return
     }
     recordViolation("Threading violation: methods annotated with @WorkerThread should not be called on the UI thread")
+  }
+
+  private fun maybeReportUsageStats() {
+    val currentTimeMs = System.currentTimeMillis()
+    if (currentTimeMs - lastReportedUsageTimeMs < REPORT_FREQUENCY_MS) {
+      return
+    }
+
+    synchronized(lock) {
+      if (currentTimeMs - lastReportedUsageTimeMs < REPORT_FREQUENCY_MS) {
+        return
+      }
+      lastReportedUsageTimeMs = currentTimeMs
+    }
+
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.THREADING_AGENT_STATS)
+        .setThreadingAgentUsageEvent(
+          ThreadingAgentUsageEvent.newBuilder()
+            .setVerifyUiThreadCount(uiThreadCheckCount)
+            .setVerifyWorkerThreadCount(workerThreadCheckCount))
+    )
+    uiThreadCheckCount = 0
+    workerThreadCheckCount = 0
   }
 
   private fun recordViolation(warningMessage: String) {
