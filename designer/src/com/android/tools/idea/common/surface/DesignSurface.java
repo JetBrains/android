@@ -1068,12 +1068,16 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
   @Override
   public boolean canZoomIn() {
-    return getScale() < getMaxScale();
+    double currentScale = getScale();
+    double maxScale = getMaxScale();
+    return currentScale < maxScale && !isScaleSame(currentScale, maxScale);
   }
 
   @Override
   public boolean canZoomOut() {
-    return getScale() > getMinScale();
+    double minScale = getMinScale();
+    double currentScale = getScale();
+    return minScale < currentScale && !isScaleSame(minScale, currentScale);
   }
 
   @Override
@@ -1192,7 +1196,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   public boolean setScale(@SurfaceScale double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
     @SurfaceScale final double newScale = Math.min(Math.max(scale, getMinScale()), getMaxScale());
-    if (Math.abs(newScale - myScale) < SCALING_THRESHOLD / getScreenScalingFactor()) {
+    if (isScaleSame(myScale, newScale)) {
       return false;
     }
 
@@ -1206,6 +1210,14 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     revalidateScrollArea();
     notifyScaleChanged(previousScale, myScale);
     return true;
+  }
+
+  /**
+   * If the differences of two scales are smaller than tolerance, they are considered as the same scale.
+   */
+  private boolean isScaleSame(@SurfaceScale double scaleA, @SurfaceScale double scaleB) {
+    double tolerance = SCALING_THRESHOLD / getScreenScalingFactor();
+    return Math.abs(scaleA - scaleB) < tolerance;
   }
 
   protected boolean isKeepingScaleWhenReopen() {

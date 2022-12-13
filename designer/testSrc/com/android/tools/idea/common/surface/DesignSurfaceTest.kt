@@ -266,6 +266,48 @@ class DesignSurfaceTest : LayoutTestCase() {
     surface.magnificationFinished(0.0)
     TestCase.assertEquals(10.0, surface.scale)
   }
+
+  fun testCanZoom() {
+    val surface = TestDesignSurface(project, testRootDisposable)
+
+    // Test min
+    surface.setScale(0.104)
+    assertFalse(surface.canZoomOut())
+    surface.setScale(0.11)
+    assertTrue(surface.canZoomOut())
+
+    // Test max
+    surface.setScale(9.996)
+    assertFalse(surface.canZoomIn())
+    surface.setScale(9.99)
+    assertTrue(surface.canZoomIn())
+
+    // Test some normal cases.
+    surface.setScale(0.25)
+    surface.canZoomIn()
+    surface.canZoomOut()
+    surface.setScale(0.5)
+    surface.canZoomIn()
+    surface.canZoomOut()
+    surface.setScale(1.0)
+    surface.canZoomIn()
+    surface.canZoomOut()
+    surface.setScale(2.0)
+    surface.canZoomIn()
+    surface.canZoomOut()
+  }
+
+  fun testSetScale() {
+    val surface = TestDesignSurface(project, testRootDisposable)
+
+    surface.setScale(1.0)
+
+    // Setting scale is restricted between min and max
+    surface.setScale(0.01)
+    assertEquals(0.1, surface.scale)
+    surface.setScale(20.0)
+    assertEquals(10.0, surface.scale)
+  }
 }
 
 class TestInteractionHandler(surface: DesignSurface<*>) : InteractionHandlerBase(surface) {
