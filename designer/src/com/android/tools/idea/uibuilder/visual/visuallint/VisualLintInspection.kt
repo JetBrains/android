@@ -17,21 +17,21 @@ package com.android.tools.idea.uibuilder.visual.visuallint
 
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.intellij.codeInspection.GlobalInspectionTool
-import com.intellij.codeInspection.ui.InspectionOptionsPanel
-import java.awt.event.ItemEvent
-import javax.swing.JCheckBox
+import com.intellij.codeInspection.options.OptPane
+import com.intellij.codeInspection.options.OptPane.checkbox
+import com.intellij.codeInspection.options.OptPane.pane
 
 abstract class VisualLintInspection(val type: VisualLintErrorType, val varName: String): GlobalInspectionTool() {
   override fun worksInBatchModeOnly() = false
 
   override fun getShortName() = type.shortName
 
-  override fun createOptionsPanel() = object : InspectionOptionsPanel(this) {
-    init {
-      addCheckbox("Run in background", varName)
-      components.filterIsInstance(JCheckBox::class.java).firstOrNull()?.addItemListener {
-        VisualLintUsageTracker.getInstance().trackBackgroundRuleStatusChanged(type, it.stateChange == ItemEvent.SELECTED)
-      }
+  override fun getOptionsPane(): OptPane = pane(checkbox(varName, "Run in background"))
+
+  override fun setOption(bindId: String, value: Any?) {
+    super.setOption(bindId, value)
+    if (bindId == varName) {
+      VisualLintUsageTracker.getInstance().trackBackgroundRuleStatusChanged(type, value as Boolean)
     }
   }
 }
