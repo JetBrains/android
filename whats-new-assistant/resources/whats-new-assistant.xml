@@ -19,14 +19,14 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="2022.2.1.1">
+    version="2022.3.1.1">
   <feature
-      name="What's New in Flamingo">
+      name="What's New in Giraffe">
     <tutorial
         key="whats-new"
-        label=" What's New in Flamingo"
+        label=" What's New in Giraffe"
         icon="preview/whats_new_icon.png"
-        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/preview-release-notes/2022-2-1"
+        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/preview-release-notes/2022-3-1"
         remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
@@ -272,7 +272,7 @@
         <stepElement>
           <section>
             <![CDATA[
-              <br><em>Last updated 7/06/2022</em><br><br>
+              <br><em>Last updated 12/13/2022</em><br><br>
             ]]>
           </section>
         </stepElement>
