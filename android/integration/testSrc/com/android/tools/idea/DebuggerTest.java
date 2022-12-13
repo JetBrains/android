@@ -37,7 +37,7 @@ public class DebuggerTest {
   @Test
   public void runDebuggerTest() throws Exception {
     AndroidProject project = new AndroidProject("tools/adt/idea/android/integration/testData/minapp");
-    project.setDistribution("tools/external/gradle/gradle-7.2-bin.zip");
+    project.setDistribution("tools/external/gradle/gradle-7.5-bin.zip");
 
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(new MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"));
