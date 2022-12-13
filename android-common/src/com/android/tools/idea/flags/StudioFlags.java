@@ -567,6 +567,14 @@ public final class StudioFlags {
     "Use adblib instead of ddmlib for Pair Device over Wi-Fi",
     true);
 
+  /** b/262404780: forces the use of legacy shell to collect ps output. */
+  public static final Flag<Boolean> ADBLIB_LEGACY_SHELL_FOR_PS_MONITOR = Flag.create(
+    RUNDEBUG,
+    "adblib.legacy.shell.for.psname.monitor",
+    "Use adblib's legacy shell connection to monitor process names",
+    "Use adblib's legacy shell instead of shell-v2 to monitor process names",
+    true);
+
   public static final Flag<Boolean> ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER = Flag.create(
     RUNDEBUG,
     "adblib.migration.ddmlib.clientmanager",
