@@ -16,8 +16,8 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import static com.google.common.truth.Truth.assertThat;
-import static junit.framework.Assert.assertTrue;
 
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -37,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.data.TableCell;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -176,6 +177,15 @@ public class AddOrRemoveAttributesTest {
     assertThat(checkBoxFinalLocation.x).isNotEqualTo(checkBoxInitialLocation.x);
     assertThat(checkBoxFinalLocation.y).isNotEqualTo(checkBoxInitialLocation.y);
 
+    refreshDeclaredAttributesTable("checkBox");
+
+    //Validating added attributes with respect to checkbox
+    assertThat(myPTable.findRowOf("layout_constraintRight_toRightOf")).isGreaterThan(0);
+    assertThat(myPTable.findRowOf("layout_constraintTop_toTopOf")).isGreaterThan(0);
+    assertThat(myPTable.findRowOf("layout_constraintBottom_toBottomOf")).isGreaterThan(0);
+
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
     //Dragging a new button
     myNlEditorFixture.dragComponentToSurface("Buttons", "Button", 0, screenViewSize.height / 2 - heightOffset)
       .waitForRenderToFinish();
@@ -189,6 +199,8 @@ public class AddOrRemoveAttributesTest {
     myNlEditorFixture.getAttributesPanel()
       .waitForId("button");
 
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
     //Adding baseline constraint attribute in the declared attributes panel.
     addLayoutConstraintInDeclaredAttributes("button","app:layout_constraintBaseline_toBaselineOf", "@id/checkBox");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
@@ -199,27 +211,14 @@ public class AddOrRemoveAttributesTest {
     Point buttonFinalLocation = myNlEditorFixture.findView("Button", 0).getSceneComponent().getMidPoint();
 
     //Validating that the button location is changed after adding baseline constraint with respect to checkbox.
-    assertThat(buttonFinalLocation.x).isNotEqualTo(buttonInitialLocation.x);
+    assertThat(buttonFinalLocation.x).isEqualTo(buttonInitialLocation.x);
     assertThat(buttonFinalLocation.y).isNotEqualTo(buttonInitialLocation.y);
 
     //Validating that the added constraints can be observed in the declared attributes and are stored.
-
     assertThat(myPTable.findRowOf("layout_constraintBaseline_toBaselineOf")).isGreaterThan(0);
 
-    //Validating added attributes with respect to checkbox
-    myNlEditorFixture.findView("CheckBox", 0).getSceneComponent().click();
-    myNlEditorFixture.getAttributesPanel()
-        .waitForId("checkBox");
-
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-
-    refreshDeclaredAttributesTable("checkBox");
-
-    assertThat(myPTable.findRowOf("layout_constraintRight_toRightOf")).isGreaterThan(0);
-    assertThat(myPTable.findRowOf("layout_constraintTop_toTopOf")).isGreaterThan(0);
-    assertThat(myPTable.findRowOf("layout_constraintBottom_toBottomOf")).isGreaterThan(0);
-
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    myIdeFrameFixture.takeScreenshot();
 
     //Switching to code tab
     myEditorFixture.switchToTab("Text");
@@ -242,6 +241,8 @@ public class AddOrRemoveAttributesTest {
 
     assertThat(contentInFile).contains("        android:text=\"Button\"\n" +
                                        "        app:layout_constraintBaseline_toBaselineOf=\"@id/checkBox\"");
+
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 
   /**
@@ -341,6 +342,7 @@ public class AddOrRemoveAttributesTest {
     //Adding the constraint layout information and pressing enter.
     myPTable.robot().typeText(constraintLayoutName);
     myPTable.robot().pressAndReleaseKeys(KeyEvent.VK_ENTER);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     //refreshing the table.
     refreshDeclaredAttributesTable(attributeID);
@@ -351,6 +353,7 @@ public class AddOrRemoveAttributesTest {
     //Adding the component and pressing enter.
     myPTable.robot().enterText(constraintComponent);
     myPTable.robot().pressAndReleaseKeys(KeyEvent.VK_ENTER);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     refreshDeclaredAttributesTable(attributeID);
   }
