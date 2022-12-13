@@ -19,6 +19,7 @@ import com.android.adblib.DeviceSelector
 import com.android.adblib.testing.FakeAdbSession
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.use
 import com.intellij.testFramework.ProjectRule
@@ -55,6 +56,9 @@ class ProcessNameClientMonitorTest {
   @Before
   fun setUp() {
     fakeAdbDeviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(device.serialNumber), PS_COMMAND, "")
+    if (StudioFlags.ADBLIB_LEGACY_SHELL_FOR_PS_MONITOR.get()) {
+      fakeAdbDeviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(device.serialNumber), "getprop", "")
+    }
   }
 
   @Test

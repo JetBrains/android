@@ -16,18 +16,25 @@
 package com.android.tools.idea.adb.processnamemonitor
 
 import com.android.adblib.AdbDeviceServices
+import com.android.adblib.AdbInputChannel
+import com.android.adblib.DEFAULT_SHELL_BUFFER_SIZE
 import com.android.adblib.DeviceSelector
+import com.android.adblib.INFINITE_DURATION
 import com.android.adblib.ShellCommandOutputElement
-import com.android.adblib.shellAsLines
+import com.android.adblib.shellCommand
+import com.android.adblib.withLineCollector
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor.Companion.LOGGER
 import com.android.tools.idea.concurrency.createChildScope
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
 
@@ -108,11 +115,36 @@ internal class ProcessNameClientMonitor(
   private inner class DeviceProcessUpdater {
     private val lastKnownPids = AtomicReference(mapOf<Int, ProcessNames>())
 
+    /**
+     * A copy of [AdbDeviceServices.shellAsLines] that forces the use of legacy shell rather than shell-v2.
+     * It is inlined here and made private since we don't want this to be generally used.
+     */
+    private fun AdbDeviceServices.legacyShellAsLines(
+      device: DeviceSelector,
+      command: String,
+      stdinChannel: AdbInputChannel? = null,
+      commandTimeout: Duration = INFINITE_DURATION,
+      bufferSize: Int = DEFAULT_SHELL_BUFFER_SIZE,
+    ): Flow<ShellCommandOutputElement> {
+      val cmd = shellCommand(device, command)
+        .withLineCollector()
+        .withStdin(stdinChannel)
+        .withCommandTimeout(commandTimeout)
+        .withBufferSize(bufferSize)
+
+      if (StudioFlags.ADBLIB_LEGACY_SHELL_FOR_PS_MONITOR.get()) {
+        cmd
+          .allowShellV2(false)
+          .allowLegacyShell(true)
+      }
+      return cmd.execute()
+    }
+
     suspend fun updateNow() {
       try {
         val names = mutableMapOf<Int, ProcessNames>()
-        adbDeviceServicesFactory().shellAsLines(DeviceSelector.fromSerialNumber(device.serialNumber),
-                                                "ps -A -o PID,NAME").collect shellAsLines@{
+        adbDeviceServicesFactory().legacyShellAsLines(DeviceSelector.fromSerialNumber(device.serialNumber),
+                                                      "ps -A -o PID,NAME").collect shellAsLines@{
           //TODO: Check for `stderr` and `exitCode` to report errors
           if (it is ShellCommandOutputElement.StdoutLine) {
             val split = it.contents.trim().split(" ")
