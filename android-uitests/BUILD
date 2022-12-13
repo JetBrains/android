@@ -2686,6 +2686,8 @@ java_test(
 
 java_test(
     name = "AgpUpgradeTest",
+    size = "enormous",
+    timeout = "long",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
     ]),

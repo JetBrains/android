@@ -26,7 +26,6 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.AGPProjectUpdateNotificationCenterPanelFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.gradle.AGPUpgradeAssistantDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.AGPUpgradeAssistantToolWindowFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.File;
