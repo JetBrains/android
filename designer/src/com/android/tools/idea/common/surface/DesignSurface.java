@@ -107,9 +107,11 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -1841,10 +1843,8 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       SceneView view = getFocusedSceneView();
       if (view == null) return null;
 
-      List<NlComponent> selectedPsiComponents = getSelectedPsiComponents(dataId, view.getSelectionModel());
-      if (selectedPsiComponents == null) return null;
-
-      return (DataProvider)slowId -> getSlowData(slowId, selectedPsiComponents);
+      Map<String, List<NlComponent>> selectedPsiComponentsCache = getSelectedPsiComponentsCache(view.getSelectionModel());
+      return (DataProvider)slowId -> getSlowData(slowId, selectedPsiComponentsCache);
     }
     else {
       NlModel model = getModel();
@@ -1856,29 +1856,23 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     return null;
   }
 
-  @Nullable
-  private static List<NlComponent> getSelectedPsiComponents(@NotNull @NonNls String dataId, SelectionModel selectionModel) {
-    List<NlComponent> selectedPsiComponents = null;
-
-    if (CommonDataKeys.PSI_ELEMENT.is(dataId)) {
-      selectedPsiComponents = Collections.singletonList(selectionModel.getPrimary());
-    }
-    else if (LangDataKeys.PSI_ELEMENT_ARRAY.is(dataId)) {
-      selectedPsiComponents = new ArrayList<>(selectionModel.getSelection());
-    }
-
+  private static Map<String, List<NlComponent>> getSelectedPsiComponentsCache(SelectionModel selectionModel) {
+    Map<String, List<NlComponent>> selectedPsiComponents = new HashMap<>(2);
+    selectedPsiComponents.put(CommonDataKeys.PSI_ELEMENT.getName(), Collections.singletonList(selectionModel.getPrimary()));
+    selectedPsiComponents.put(LangDataKeys.PSI_ELEMENT_ARRAY.getName(), selectionModel.getSelection());
     return selectedPsiComponents;
   }
 
   @Nullable
-  private static Object getSlowData(@NonNls String slowId, List<NlComponent> selectedPsiComponents) {
+  private static Object getSlowData(@NonNls String slowId, Map<String, List<NlComponent>> selectedPsiComponentsCache) {
     if (CommonDataKeys.PSI_ELEMENT.is(slowId)) {
-      NlComponent selectedComponent = selectedPsiComponents.get(0);
+      NlComponent selectedComponent = selectedPsiComponentsCache.get(CommonDataKeys.PSI_ELEMENT.getName()).get(0);
       return selectedComponent != null ? selectedComponent.getTagDeprecated() : null;
     }
     else if (LangDataKeys.PSI_ELEMENT_ARRAY.is(slowId)) {
-      List<XmlTag> list = Lists.newArrayListWithCapacity(selectedPsiComponents.size());
-      for (NlComponent component : selectedPsiComponents) {
+      List<NlComponent> selectedComponents = selectedPsiComponentsCache.get(LangDataKeys.PSI_ELEMENT_ARRAY.getName());
+      List<XmlTag> list = Lists.newArrayListWithCapacity(selectedComponents.size());
+      for (NlComponent component : selectedComponents) {
         list.add(component.getTagDeprecated());
       }
       return list.toArray(XmlTag.EMPTY);
