@@ -399,7 +399,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
 
     // Ignore FunctionType.NONE, since those are changes to non-function elements. Counting any change to a non-function as a non-compose
     // change might make the data useless, as a lot of "noisy" class-level/file-level PSI events are generated along with function edits.
-    event.setHasNonCompose(compiled.stream().anyMatch(c -> c.getFunctionType() == LiveEditFunctionType.KOTLIN));
+    event.setHasNonCompose(compiled.stream().anyMatch(c -> !c.getHasGroupId()));
 
     compileFinish = System.nanoTime();
     event.setCompileDurationMs(TimeUnit.NANOSECONDS.toMillis(compileFinish - start));
@@ -529,13 +529,11 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     List<LiveUpdateDeployer.UpdateLiveEditError> results = new ArrayList<>();
     for (LiveEditCompilerOutput update : updates) {
       boolean useDebugMode = LiveEditAdvancedConfiguration.getInstance().getUseDebugMode();
-      boolean usePartialRecompose = LiveEditAdvancedConfiguration.getInstance().getUsePartialRecompose() &&
-                                    (update.getFunctionType() == LiveEditFunctionType.COMPOSABLE ||
-                                     update.getHasGroupId());
+      boolean usePartialRecompose = LiveEditAdvancedConfiguration.getInstance().getUsePartialRecompose() && update.getHasGroupId();
 
       LiveUpdateDeployer.UpdateLiveEditsParam param =
         new LiveUpdateDeployer.UpdateLiveEditsParam(
-          update.getClassName(), update.getMethodName(), update.getMethodDesc(),
+          update.getClassName(),
           usePartialRecompose,
           update.getGroupId(),
           update.getClassData(),

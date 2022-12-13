@@ -16,30 +16,20 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 data class LiveEditCompilerOutput private constructor (val className: String,
-                                                  val methodName: String,
-                                                  val methodDesc: String,
                                                   val classData: ByteArray,
-                                                  val functionType: LiveEditFunctionType,
                                                   val hasGroupId : Boolean,
                                                   val groupId: Int ,
                                                   val supportClasses: Map<String, ByteArray>) {
   class Builder(
     var className: String = "",
-    var methodName: String = "",
-    var methodDesc: String = "",
     var classData: ByteArray = ByteArray(0),
-    var functionType: LiveEditFunctionType = LiveEditFunctionType.NONE,
     var hasGroupId : Boolean = false,
     var groupId: Int = 0,
     var supportClasses: Map<String, ByteArray> = emptyMap()) {
 
     fun className(className: String) = apply { this.className = className }
-    fun methodName(methodName: String) = apply { this.methodName = methodName }
-    fun methodDesc(methodDesc: String) = apply { this.methodDesc = methodDesc }
 
     fun classData(classData: ByteArray) = apply { this.classData = classData }
-
-    fun functionType(functionType: LiveEditFunctionType) = apply { this.functionType = functionType }
 
     fun groupId(groupId: Int) = apply {
       this.groupId = groupId
@@ -48,6 +38,6 @@ data class LiveEditCompilerOutput private constructor (val className: String,
 
     fun supportClasses(supportClasses: Map<String, ByteArray>) = apply { this.supportClasses = supportClasses }
 
-    fun build() = LiveEditCompilerOutput(className, methodName, methodDesc, classData, functionType, hasGroupId, groupId, supportClasses)
+    fun build() = LiveEditCompilerOutput(className, classData, hasGroupId, groupId, supportClasses)
   }
 }

@@ -73,8 +73,6 @@ class ComposableCompileTest {
   @Test
   fun simpleComposeNested() {
     var output = compile(files["ComposeNested.kt"], "composableNested").singleOutput()
-    Assert.assertEquals("composableNested", output.methodName)
-    Assert.assertEquals("(Landroidx/compose/runtime/Composer;I)Lkotlin/jvm/functions/Function3;", output.methodDesc)
     Assert.assertEquals(-1050554150, output.groupId)
   }
 
