@@ -509,7 +509,7 @@ internal class DeviceViewTest {
     agent.clipboard = "device clipboard"
     waitForCondition(2, TimeUnit.SECONDS) { ClipboardSynchronizer.getInstance().getData(DataFlavor.stringFlavor) == "device clipboard" }
     settings.synchronizeClipboard = false
-    assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(StopClipboardSyncMessage())
+    assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(StopClipboardSyncMessage.instance)
   }
 
   @Test

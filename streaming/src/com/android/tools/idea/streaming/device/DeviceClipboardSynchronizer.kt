@@ -60,7 +60,7 @@ internal class DeviceClipboardSynchronizer(
   override fun dispose() {
     KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", focusOwnerListener)
     deviceController.removeDeviceClipboardListener(this)
-    val message = StopClipboardSyncMessage()
+    val message = StopClipboardSyncMessage.instance
     deviceController.sendControlMessage(message)
     lastClipboardText = ""
   }

@@ -23,12 +23,24 @@ import kotlin.text.Charsets.UTF_8
 // Classes in this file have to be kept in sync with tools/adt/idea/streaming/screen-sharing-agent/app/src/main/cpp/control_messages.h.
 
 /**
- * Common base of all control messages.
+ * Common base of all control messages. All subclassed containing data should be data classes.
  */
 sealed class ControlMessage(val type: Int) {
 
   open fun serialize(stream: Base128OutputStream) {
     stream.writeInt(type)
+  }
+
+  override fun equals(other: Any?): Boolean {
+    return javaClass == other?.javaClass
+  }
+
+  override fun hashCode(): Int {
+    return javaClass.hashCode()
+  }
+
+  override fun toString(): String {
+    return javaClass.simpleName
   }
 
   interface Deserializer {
@@ -225,50 +237,28 @@ internal data class SetMaxVideoResolutionMessage(val width: Int, val height: Int
 }
 
 /** Starts video stream if it was stopped. */
-internal class StartVideoStreamMessage : ControlMessage(TYPE) {
+internal class StartVideoStreamMessage private constructor() : ControlMessage(TYPE) {
 
   companion object : Deserializer {
     const val TYPE = 6
+    val instance = StartVideoStreamMessage()
 
     override fun deserialize(stream: Base128InputStream): StartVideoStreamMessage {
-      return StartVideoStreamMessage()
+      return instance
     }
-  }
-
-  override fun equals(other: Any?): Boolean {
-    return javaClass == other?.javaClass
-  }
-
-  override fun hashCode(): Int {
-    return javaClass.hashCode()
-  }
-
-  override fun toString(): String {
-    return "StartVideoStreamMessage()"
   }
 }
 
 /** Stops video stream. */
-internal class StopVideoStreamMessage : ControlMessage(TYPE) {
+internal class StopVideoStreamMessage private constructor() : ControlMessage(TYPE) {
 
   companion object : Deserializer {
     const val TYPE = 7
+    val instance = StopVideoStreamMessage()
 
     override fun deserialize(stream: Base128InputStream): StopVideoStreamMessage {
-      return StopVideoStreamMessage()
+      return instance
     }
-  }
-
-  override fun equals(other: Any?): Boolean {
-    return javaClass == other?.javaClass
-  }
-
-  override fun hashCode(): Int {
-    return javaClass.hashCode()
-  }
-
-  override fun toString(): String {
-    return "StopVideoStreamMessage()"
   }
 }
 
@@ -297,26 +287,15 @@ internal data class StartClipboardSyncMessage(val maxSyncedLength: Int, val text
 }
 
 /** Stops clipboard updates from the device. */
-internal class StopClipboardSyncMessage : ControlMessage(TYPE) {
+internal class StopClipboardSyncMessage private constructor(): ControlMessage(TYPE) {
 
   companion object : Deserializer {
     const val TYPE = 9
+    val instance = StopClipboardSyncMessage()
 
     override fun deserialize(stream: Base128InputStream): StopClipboardSyncMessage {
-      return StopClipboardSyncMessage()
+      return instance
     }
-  }
-
-  override fun equals(other: Any?): Boolean {
-    return javaClass == other?.javaClass
-  }
-
-  override fun hashCode(): Int {
-    return javaClass.hashCode()
-  }
-
-  override fun toString(): String {
-    return "StopClipboardSyncMessage()"
   }
 }
 
