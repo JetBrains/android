@@ -57,6 +57,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import org.apache.commons.io.input.CharSequenceInputStream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -346,45 +347,34 @@ final class MergedManifestInfo {
       manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.REMOVE_TOOLS_DECLARATIONS);
     }
 
-    Module module = facet.getModule();
-    Project project = module.getProject();
     FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
 
-    manifestMergerInvoker.withFileStreamProvider(new ManifestMerger2.FileStreamProvider() {
+    manifestMergerInvoker.withManifestDocumentProvider(new ManifestMerger2.ManifestDocumentProvider() {
       @Override
+      public Optional<Document> getManifestDocument(@NotNull File file) {
+        ProgressManager.checkCanceled();
+        VirtualFile vFile = MergedManifestInfo.getVirtualFile(file, mainManifestFile, primaryManifestFile);
+        if (vFile != null && !libManifests.isEmpty()) {
+          Module moduleContainingManifest = getAndroidModuleForFileIfManifest(facet.getModule().getProject(), vFile);
+          if (moduleContainingManifest != null && !facet.getModule().equals(moduleContainingManifest)) {
+            MergedManifestSnapshot manifest = MergedManifestManager.getFreshSnapshotInCallingThread(moduleContainingManifest);
+            return Optional.ofNullable(manifest.getDocument());
+          }
+        }
+        return Optional.empty();
+      }
+    });
+    manifestMergerInvoker.withFileStreamProvider(new ManifestMerger2.FileStreamProvider() {
+
+    @Override
       protected InputStream getInputStream(@NotNull File file) throws IOException {
         ProgressManager.checkCanceled();
-        VirtualFile vFile;
-        if (file == mainManifestFile) {
-          // Some tests use VirtualFile files (e.g. temp:///src/AndroidManifest.xml) for the main manifest
-          vFile = primaryManifestFile;
-        }
-        else {
-          vFile = VfsUtil.findFileByIoFile(file, false);
-        }
+        VirtualFile vFile = getVirtualFile(file, mainManifestFile, primaryManifestFile);
         if (vFile == null) {
           // Gracefully handle case where file doesn't exist; this can happen for example
           // when a Gradle sync is needed after version control etc (see issue 65541477)
           //noinspection ZeroLengthArrayAllocation
           return new ByteArrayInputStream("<manifest/>".getBytes(UTF_8));
-        }
-
-        // We do not want to do this check if we have no library manifests.
-        // findModuleForFile does not work for other build systems (e.g. bazel)
-        if (!libManifests.isEmpty()) {
-          Module moduleContainingManifest = getAndroidModuleForFileIfManifest(vFile);
-          if (moduleContainingManifest != null && !module.equals(moduleContainingManifest)) {
-            MergedManifestSnapshot manifest = MergedManifestManager.getFreshSnapshotInCallingThread(moduleContainingManifest);
-
-            Document document = manifest.getDocument();
-            if (document != null) { // normally the case, but can fail on merge fail
-              // This is not very efficient. Consider enhancing the manifest merger API
-              // such that I can pass back a fully merged DOM document instead of
-              // an XML string since it will need to turn around and parse it anyway.
-              String text = XmlUtils.toXml(document);
-              return new ByteArrayInputStream(text.getBytes(UTF_8));
-            }
-          }
         }
 
         // If it exists, read from the in-memory document for this file.
@@ -399,26 +389,37 @@ final class MergedManifestInfo {
         // on a network file system, for example.
         return vFile.getInputStream();
       }
-
-      @Nullable
-      private Module getAndroidModuleForFileIfManifest(@NotNull VirtualFile vFile) {
-        Module module = ModuleUtilCore.findModuleForFile(vFile, project);
-        if (module == null) {
-          return null;
-        }
-        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-        if (androidFacet == null) {
-          return null;
-        }
-        SourceProviders sourceProviders = SourceProviders.getInstance(androidFacet);
-        if (Iterables.tryFind(sourceProviders.getSources().getManifestFiles(), it -> Objects.equals(it, vFile)).isPresent()) {
-          return androidFacet.getMainModule();
-        }
-        return null;
-      }
     });
 
     return manifestMergerInvoker.merge();
+  }
+
+  private static VirtualFile getVirtualFile(@NotNull File file, @NotNull File mainManifestFile, @NotNull VirtualFile primaryManifestFile) {
+    VirtualFile vFile;
+    if (file == mainManifestFile) {
+      // Some tests use VirtualFile files (e.g. temp:///src/AndroidManifest.xml) for the main manifest
+      vFile = primaryManifestFile;
+    } else {
+      vFile = VfsUtil.findFileByIoFile(file, false);
+    }
+    return vFile;
+  }
+
+  @Nullable
+  private static Module getAndroidModuleForFileIfManifest(@NotNull Project project, @NotNull VirtualFile vFile) {
+    Module module = ModuleUtilCore.findModuleForFile(vFile, project);
+    if (module == null) {
+      return null;
+    }
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+    if (androidFacet == null) {
+      return null;
+    }
+    SourceProviders sourceProviders = SourceProviders.getInstance(androidFacet);
+    if (Iterables.tryFind(sourceProviders.getSources().getManifestFiles(), it -> Objects.equals(it, vFile)).isPresent()) {
+      return androidFacet.getMainModule();
+    }
+    return null;
   }
 
   private static boolean isVersionAtLeast7_4_0(Project project) {
