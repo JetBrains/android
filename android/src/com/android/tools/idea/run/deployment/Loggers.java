@@ -17,17 +17,15 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.annotations.NotNull;
 
 final class Loggers {
   private Loggers() {
   }
 
-  static <T> void errorOrWarn(Class<T> c, String message) {
+  static <T> void errorConditionally(@NotNull Class<@NotNull T> c, @NotNull String message) {
     if (StudioFlags.LOGGERS_ERRORS_ENABLED.get()) {
       Logger.getInstance(c).error(message);
-    }
-    else {
-      Logger.getInstance(c).warn(message);
     }
   }
 }

@@ -133,7 +133,8 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
     @Override
     public List<Client> searchClientsForPackage() {
       if (EventQueue.isDispatchThread()) {
-        Loggers.errorOrWarn(DeviceAndSnapshotComboBoxDeployableProvider.class, "Blocking Future::get call on the EDT http://b/261492787");
+        Loggers.errorConditionally(DeviceAndSnapshotComboBoxDeployableProvider.class,
+                                   "Blocking Future::get call on the EDT http://b/261492787");
       }
 
       return Futures.getUnchecked(searchClientsForPackageAsync());

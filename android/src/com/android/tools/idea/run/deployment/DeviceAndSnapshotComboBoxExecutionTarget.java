@@ -63,8 +63,8 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   @Override
   public boolean isApplicationRunning(@NotNull String appPackage) {
     if (Thread.currentThread().getName().equals("Action Updater (Common)") || EventQueue.isDispatchThread()) {
-      Loggers.errorOrWarn(DeviceAndSnapshotComboBoxExecutionTarget.class,
-                          "Blocking Future::get call on an Action Updater (Common) thread or the EDT http://b/261501171");
+      Loggers.errorConditionally(DeviceAndSnapshotComboBoxExecutionTarget.class,
+                                 "Blocking Future::get call on an Action Updater (Common) thread or the EDT http://b/261501171");
     }
 
     return Futures.getUnchecked(isApplicationRunningAsync(appPackage));
@@ -99,9 +99,9 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   @Override
   public Collection<IDevice> getRunningDevices() {
     if (Thread.currentThread().getName().equals("Action Updater (Common)") || EventQueue.isDispatchThread()) {
-      Loggers.errorOrWarn(DeviceAndSnapshotComboBoxExecutionTarget.class,
-                          "Blocking Future::get calls on an Action Updater (Common) thread or the EDT http://b/259746412, " +
-                          "http://b/259746444, http://b/259746749, http://b/259747002, http://b/259747870, and http://b/259747965");
+      Loggers.errorConditionally(DeviceAndSnapshotComboBoxExecutionTarget.class,
+                                 "Blocking Future::get calls on an Action Updater (Common) thread or the EDT http://b/259746412, " +
+                                 "http://b/259746444, http://b/259746749, http://b/259747002, http://b/259747870, and http://b/259747965");
     }
 
     return deviceStream()
