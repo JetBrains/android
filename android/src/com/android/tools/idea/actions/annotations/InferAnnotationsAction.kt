@@ -222,7 +222,7 @@ class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", I
   private var includeTestsByDefault: Boolean = false
   private var options: AnalysisUIOptions? = null
 
-  override fun getAdditionalActionSettings(project: Project?, dialog: BaseAnalysisActionDialog?): JComponent {
+  override fun getAdditionalActionSettings(project: Project, dialog: BaseAnalysisActionDialog?): JComponent {
     settings.apply(PropertiesComponent.getInstance().getValue(INFER_ANNOTATION_SETTINGS, ""))
     return settings.SettingsPanel().also { settingsDialog = it }
   }

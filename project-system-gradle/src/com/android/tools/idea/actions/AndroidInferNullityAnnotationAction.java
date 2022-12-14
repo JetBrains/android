@@ -354,7 +354,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
 
   /* Android nullable annotations do not support annotations on local variables. */
   @Override
-  protected JComponent getAdditionalActionSettings(Project project, BaseAnalysisActionDialog dialog) {
+  protected JComponent getAdditionalActionSettings(@NotNull Project project, BaseAnalysisActionDialog dialog) {
     JComponent panel = super.getAdditionalActionSettings(project, dialog);
     if (panel != null && GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
       panel.setVisible(false);
