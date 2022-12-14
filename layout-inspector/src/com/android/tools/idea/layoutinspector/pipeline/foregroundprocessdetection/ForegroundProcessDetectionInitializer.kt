@@ -51,6 +51,11 @@ object ForegroundProcessDetectionInitializer {
                       "on device \"${device.manufacturer} ${device.model} API ${device.apiLevel}\""
           )
         }
+        else {
+          logger.info("Process descriptor found for foreground process \"${foregroundProcess.processName}\" " +
+                      "on device \"${device.manufacturer} ${device.model} API ${device.apiLevel}\""
+          )
+        }
 
         // set the foreground process to be the selected process.
         processModel.selectedProcess = foregroundProcessDescriptor
