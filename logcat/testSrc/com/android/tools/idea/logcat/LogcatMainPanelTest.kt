@@ -623,14 +623,9 @@ class LogcatMainPanelTest {
 
     fakeLogcatService.logMessages(message1)
 
-    waitForCondition { logcatMainPanel.logcatServiceJob != null }
-    waitForCondition { logcatMainPanel.messageBacklog.get().messages.isNotEmpty() }
-    logcatMainPanel.messageProcessor.onIdle {
-      assertThat(logcatMainPanel.editor.document.immutableText()).isEqualTo("""
-        1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
-        
-      """.trimIndent())
-    }
+    logcatMainPanel.editor.document.waitForCondition(logcatMainPanel) { immutableText().isNotEmpty() }
+    assertThat(logcatMainPanel.editor.document.immutableText()).isEqualTo(
+      "1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1\n")
   }
 
   @Test
