@@ -21,9 +21,9 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.Iconable
 import com.intellij.ui.RowIcon
+import com.intellij.util.PsiIconUtil
 import icons.StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.idea.KotlinIconProviderBase
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -34,8 +34,6 @@ import org.junit.runners.JUnit4
 class ComposableIconProviderTest {
   @get:Rule
   var projectRule = AndroidProjectRule.inMemory()
-
-  private val provider = ComposableIconProvider()
 
   @Before
   fun setup() {
@@ -57,14 +55,9 @@ val fo<caret>o = 1234
 
     runReadAction {
       val element = projectRule.fixture.elementAtCaret
-
-      // Code should fall back to KotlinIconProviderBase. Rather than hardcoding specific icon traits that might change, just verify it
-      // matches a direct call.
-      val expectedIcon = KotlinIconProviderBase().getIcon(element, flags = 0)
-      val actualIcon = provider.getIcon(element, flags = 0)
-
-      assertThat(actualIcon).isEqualTo(expectedIcon)
-      assertThat(actualIcon).isNotEqualTo(COMPOSABLE_FUNCTION)
+      val icon = PsiIconUtil.getProvidersIcon(element, 0)
+      assertThat(icon).isNotNull()
+      assertThat(icon).isNotEqualTo(COMPOSABLE_FUNCTION)
     }
   }
 
@@ -79,14 +72,9 @@ fun testFun<caret>ction() {}
 
     runReadAction {
       val element = projectRule.fixture.elementAtCaret
-
-      // Code should fall back to KotlinIconProviderBase. Rather than hardcoding specific icon traits that might change, just verify it
-      // matches a direct call.
-      val expectedIcon = KotlinIconProviderBase().getIcon(element, flags = 0)
-      val actualIcon = provider.getIcon(element, flags = 0)
-
-      assertThat(actualIcon).isEqualTo(expectedIcon)
-      assertThat(actualIcon).isNotEqualTo(COMPOSABLE_FUNCTION)
+      val icon = PsiIconUtil.getProvidersIcon(element, 0)
+      assertThat(icon).isNotNull()
+      assertThat(icon).isNotEqualTo(COMPOSABLE_FUNCTION)
     }
   }
 
@@ -105,7 +93,7 @@ fun testFun<caret>ction() {}
     runReadAction {
       val element = projectRule.fixture.elementAtCaret
 
-      val icon = provider.getIcon(element, flags = Iconable.ICON_FLAG_VISIBILITY)
+      val icon = PsiIconUtil.getProvidersIcon(element, Iconable.ICON_FLAG_VISIBILITY)
 
       assertThat(icon).isInstanceOf(RowIcon::class.java)
       val rowIcon = icon as RowIcon
@@ -130,7 +118,7 @@ fun testFun<caret>ction() {}
     runReadAction {
       val element = projectRule.fixture.elementAtCaret
 
-      val icon = provider.getIcon(element, flags = 0)
+      val icon = PsiIconUtil.getProvidersIcon(element, 0)
       assertThat(icon).isEqualTo(COMPOSABLE_FUNCTION)
     }
   }
