@@ -121,10 +121,11 @@ iml_test(
     ],
     module = ":intellij.android.streaming.integration",
     tags = [
+        "no_mac",
         "no_windows",
         "very_flaky",
     ],
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
-    test_class = "com.android.tools.idea.device.ScreenSharingAgentTestSuite",
+    test_class = "com.android.tools.idea.streaming.device.ScreenSharingAgentTestSuite",
 )
