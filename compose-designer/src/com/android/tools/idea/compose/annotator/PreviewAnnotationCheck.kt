@@ -45,7 +45,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Key
-import org.jetbrains.kotlin.idea.highlighter.isAnnotationClass
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
@@ -323,7 +322,7 @@ internal object PreviewAnnotationCheck {
 private fun hasValidTarget(annotation: UAnnotation) =
   annotation.getContainingComposableUMethod() != null ||
     (StudioFlags.COMPOSE_MULTIPREVIEW.get() &&
-      annotation.getContainingUClass()?.isAnnotationClass() == true)
+      annotation.getContainingUClass()?.isAnnotationType == true)
 
 /**
  * Regex to match a string with the [DeviceSpec.OPERATOR] between two other non-empty strings. E.g:

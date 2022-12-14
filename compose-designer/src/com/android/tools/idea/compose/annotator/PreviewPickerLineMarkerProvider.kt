@@ -38,9 +38,9 @@ import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.ui.awt.RelativePoint
+import org.jetbrains.kotlin.idea.base.util.module
 import javax.swing.Icon
 import org.jetbrains.kotlin.idea.util.CommentSaver.Companion.tokenType
-import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation

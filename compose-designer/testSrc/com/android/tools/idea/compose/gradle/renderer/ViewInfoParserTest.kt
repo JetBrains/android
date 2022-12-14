@@ -34,7 +34,7 @@ import com.intellij.psi.PsiManager
 import java.io.File
 import javax.imageio.ImageIO
 import kotlin.test.assertEquals
-import org.jetbrains.kotlin.idea.core.util.getLineNumber
+import org.jetbrains.kotlin.idea.base.psi.getLineNumber
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.junit.Rule
