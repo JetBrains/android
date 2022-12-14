@@ -21,7 +21,7 @@ import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.idea.highlighter.HighlighterExtension
+import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingVisitorExtension
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
 /**
@@ -36,7 +36,7 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
  * Luckily, the Kotlin plugin provides its own extension mechanism, which is implemented here with [HighlighterExtension]. When this code
  * returns Composable function highlighting for a given method call, it will always be used instead of the default Kotlin highlighting.
  */
-class ComposableHighlighterExtension : HighlighterExtension() {
+class ComposableHighlighterExtension : KotlinHighlightingVisitorExtension() {
   companion object {
     const val COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME = "ComposableCallTextAttributes"
     val COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY: TextAttributesKey =

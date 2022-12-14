@@ -44,7 +44,7 @@ import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.completion.LookupElementFactory
 import org.jetbrains.kotlin.idea.completion.handlers.KotlinCallableInsertHandler
-import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
+import org.jetbrains.kotlin.idea.core.completion.DescriptorBasedDeclarationLookupObject
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.util.CallType
 import org.jetbrains.kotlin.idea.util.CallTypeAndReceiver
@@ -61,7 +61,7 @@ private val COMPOSABLE_FUNCTION_ICON = StudioIcons.Compose.Editor.COMPOSABLE_FUN
 
 private fun LookupElement.getFunctionDescriptor(): FunctionDescriptor? {
   return this.`object`
-    .castSafelyTo<DeclarationLookupObject>()
+    .castSafelyTo<DescriptorBasedDeclarationLookupObject>()
     ?.descriptor
     ?.castSafelyTo<FunctionDescriptor>()
 }
