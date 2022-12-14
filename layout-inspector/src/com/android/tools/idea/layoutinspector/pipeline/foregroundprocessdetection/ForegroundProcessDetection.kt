@@ -391,7 +391,9 @@ class ForegroundProcessDetection(
    */
   private suspend fun initiateNewHandshake(device: DeviceDescriptor) {
     val handshakeExecutor = handshakeExecutors[device]
-    handshakeExecutor?.post(HandshakeState.Connected)
+    if (handshakeExecutor?.isHandshakeInProgress == false) {
+      handshakeExecutor.post(HandshakeState.Connected)
+    }
   }
 }
 

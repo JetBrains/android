@@ -51,16 +51,15 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import layout_inspector.LayoutInspector
 import layout_inspector.LayoutInspector.TrackingForegroundProcessSupported.SupportType
-import org.jetbrains.kotlin.idea.gradleTooling.get
 import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.test.fail
 
 class ForegroundProcessDetectionTest {
@@ -86,8 +85,7 @@ class ForegroundProcessDetectionTest {
   @get:Rule
   val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("ForegroundProcessDetectionTest", transportService)
 
-  private var timestamp = 0L
-  private val getNextTimestamp = { timestamp++ }
+  private val timestampGenerator = AtomicLong()
 
   private val device1 = Common.Device.newBuilder()
     .setDeviceId(1)
@@ -125,16 +123,30 @@ class ForegroundProcessDetectionTest {
     .setState(Common.Device.State.ONLINE)
     .build()
 
+  private val device4 = Common.Device.newBuilder()
+    .setDeviceId(4)
+    .setManufacturer("man4")
+    .setModel("mod4")
+    .setSerial("serial4")
+    .setIsEmulator(false)
+    .setApiLevel(4)
+    .setVersion("version4")
+    .setCodename("codename4")
+    .setState(Common.Device.State.ONLINE)
+    .build()
+
   private val deviceToStreamMap = mapOf(
     device1 to createFakeStream(1, device1),
     device2 to createFakeStream(2, device2),
-    device3 to createFakeStream(3, device3)
+    device3 to createFakeStream(3, device3),
+    device4 to createFakeStream(4, device4),
   )
 
-  private val deviceToHandshakeSupportTypeMap = mapOf(
+  private val deviceToHandshakeSupportTypeMap = mutableMapOf(
     device1 to SupportType.SUPPORTED,
     device2 to SupportType.SUPPORTED,
-    device3 to SupportType.NOT_SUPPORTED
+    device3 to SupportType.NOT_SUPPORTED,
+    device4 to SupportType.UNKNOWN,
   )
 
   private lateinit var transportClient: TransportClient
@@ -674,7 +686,7 @@ class ForegroundProcessDetectionTest {
   }
 
   @Test
-  fun testSelectedProcessOnNotSupportedDeviceInitiatesHandshake(): Unit = runBlocking {
+  fun testSelectedProcessOnNotSupportedDeviceReInitiatesHandshake(): Unit = runBlocking {
     val (deviceModel, processModel) = createDeviceModel(device1)
     val foregroundProcessDetection = ForegroundProcessDetection(
       projectRule.project,
@@ -725,7 +737,7 @@ class ForegroundProcessDetectionTest {
   }
 
   @Test
-  fun testSelectedProcessOnSupportedDeviceDoesNotInitiatesHandshake(): Unit = runBlocking {
+  fun testSelectedProcessOnSupportedDeviceDoesNotReInitiatesHandshake(): Unit = runBlocking {
     val (deviceModel, processModel) = createDeviceModel(device1)
     val foregroundProcessDetection = ForegroundProcessDetection(
       projectRule.project,
@@ -759,6 +771,59 @@ class ForegroundProcessDetectionTest {
       val (unexpectedDevice, _) = handshakeSyncChannel.receive()
       fail("Unexpected handshake with device \"${unexpectedDevice.deviceId}\"")
     }
+  }
+
+  @Test
+  fun testSelectedProcessOnUnknownSupportDeviceDoesNotCreateSimultaneousHandshake(): Unit = runBlocking {
+    val (deviceModel, processModel) = createDeviceModel(device4)
+    ForegroundProcessDetection(
+      projectRule.project,
+      deviceModel,
+      processModel,
+      transportClient,
+      mock(),
+      mock(),
+      projectRule.project.coroutineScope,
+      workDispatcher,
+      onDeviceDisconnected = {},
+      pollingIntervalMs = 500L
+    )
+
+    connectDevice(device4)
+    val (handshakeDevice1, supportType1) = handshakeSyncChannel.receive()
+    assertThat(handshakeDevice1).isEqualTo(device4)
+    assertThat(supportType1).isEqualTo(SupportType.UNKNOWN)
+
+    withTimeoutOrNull<Nothing>(500) {
+      val unexpectedDevice = startTrackingSyncChannel.receive()
+      fail("Unexpectedly started tracking device \"${unexpectedDevice.deviceId}\"")
+    }
+
+    val (handshakeDevice2, supportType2) = handshakeSyncChannel.receive()
+    assertThat(handshakeDevice2).isEqualTo(device4)
+    assertThat(supportType2).isEqualTo(SupportType.UNKNOWN)
+
+    // this should not trigger the initiation of a new handshake
+    processModel.selectedProcess = device4.toDeviceDescriptor().createProcess("fake_process", isRunning = true)
+
+    val (handshakeDevice3, supportType3) = handshakeSyncChannel.receive()
+    assertThat(handshakeDevice3).isEqualTo(device4)
+    assertThat(supportType3).isEqualTo(SupportType.UNKNOWN)
+
+    // stop handshake
+    deviceToHandshakeSupportTypeMap[device4] = SupportType.NOT_SUPPORTED
+
+    val (handshakeDevice4, supportType4) = handshakeSyncChannel.receive()
+    assertThat(handshakeDevice4).isEqualTo(device4)
+    assertThat(supportType4).isEqualTo(SupportType.NOT_SUPPORTED)
+
+    withTimeoutOrNull<Nothing>(500) {
+      val (unexpectedDevice, _) = handshakeSyncChannel.receive()
+      fail("Unexpected handshake with device \"${unexpectedDevice.deviceId}\"")
+    }
+
+    // restore to UNKNOWN
+    deviceToHandshakeSupportTypeMap[device4] = SupportType.UNKNOWN
   }
 
   @Test
@@ -888,7 +953,6 @@ class ForegroundProcessDetectionTest {
     return eventBuilder
       .setKind(Common.Event.Kind.LAYOUT_INSPECTOR_FOREGROUND_PROCESS)
       .setGroupId(stream.streamId)
-      .setTimestamp(getNextTimestamp())
       .setStream(
         eventBuilder.streamBuilder.setStreamConnected(
           eventBuilder.streamBuilder.streamConnectedBuilder
@@ -904,7 +968,6 @@ class ForegroundProcessDetectionTest {
 
   private fun buildForegroundProcessSupportedEvent(supportType: SupportType): Common.Event {
     val foregroundProcessEventBuilder = Common.Event.newBuilder()
-      .setTimestamp(getNextTimestamp())
       .layoutInspectorTrackingForegroundProcessSupportedBuilder
       .setSupportType(supportType)
 
@@ -927,7 +990,11 @@ class ForegroundProcessDetectionTest {
 
   private fun sendEvent(stream: Common.Stream, event: Common.Event) {
     val streamId = stream.streamId
-    transportService.addEventToStream(streamId, event)
+    val eventWithTimestamp = event.toBuilder().apply {
+      timestamp = timestampGenerator.getAndIncrement()
+    }.build()
+
+    transportService.addEventToStream(streamId, eventWithTimestamp)
   }
 
   private fun FakeTransportService.setCommandHandler(command: Command.CommandType, block: (Command) -> Unit) {

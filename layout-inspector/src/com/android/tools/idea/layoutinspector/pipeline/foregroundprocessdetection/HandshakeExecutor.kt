@@ -23,13 +23,13 @@ import com.android.tools.profiler.proto.Common.Stream
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAutoConnectInfo
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import layout_inspector.LayoutInspector
-import org.jetbrains.annotations.TestOnly
 
 /**
  * Class responsible for handling all handshake logic:
@@ -67,11 +67,18 @@ class HandshakeExecutor(private val device: DeviceDescriptor,
    */
   private val stateChannel = Channel<HandshakeState>(2)
 
+  private var handshakeCoordinatorJob: Job? = null
+
+  val isHandshakeInProgress get() = when (previousState) {
+    HandshakeState.Connected, is HandshakeState.UnknownSupported -> true
+    HandshakeState.Disconnected, is HandshakeState.NotSupported, is HandshakeState.Supported, null -> false
+  }
+
   /**
    * Starts a coroutine that coordinates the handshake with the device.
    */
   private fun startHandshakeCoordinator() {
-    scope.launch(workDispatcher) {
+    handshakeCoordinatorJob = scope.launch(workDispatcher) {
       var wasPreviousStateUnknown = false
 
       while (isActive) {
@@ -142,6 +149,11 @@ class HandshakeExecutor(private val device: DeviceDescriptor,
 
     when (state) {
       is HandshakeState.Connected -> {
+        // the handshake coordinator is already running, don't start simultaneous handshakes in the same HandshakeExecutor.
+        if (handshakeCoordinatorJob?.isActive == true) {
+          return@withContext
+        }
+
         startHandshakeCoordinator()
 
         // if previous state was set, it means the handshake was executed at least once before,

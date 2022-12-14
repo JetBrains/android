@@ -344,6 +344,8 @@ class HandshakeExecutorTest {
 
       handshakeExecutor.post(HandshakeState.NotSupported(createTrackingForegroundProcessSupportedEvent(SupportType.NOT_SUPPORTED)))
 
+      verifyNoMoreRequests()
+
       handshakeExecutor.post(HandshakeState.Connected)
       val executeRequest4 = syncChannel.receive()
       assertThat(executeRequest4).isEqualTo(expectedRequest)
@@ -371,6 +373,70 @@ class HandshakeExecutorTest {
       DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_NOT_SUPPORTED_TO_SUPPORTED, deviceDescriptor, true
     )
     verifyNoMoreInteractions(mockMetrics)
+  }
+
+  @Test
+  fun testSimultaneousHandshakesAreNotStarted() {
+    val handshakeExecutor = HandshakeExecutor(deviceDescriptor, stream, scope, workDispatcher, mockClient, mockMetrics, pollingIntervalMs)
+    runBlocking {
+      handshakeExecutor.post(HandshakeState.Connected)
+      val receivedRequest0 = syncChannel.receive()
+      handshakeExecutor.post(HandshakeState.UnknownSupported(createTrackingForegroundProcessSupportedEvent(SupportType.UNKNOWN)))
+      val receivedRequest1 = syncChannel.receive()
+      // the handshake is already running, posting connected here should be ignored
+      handshakeExecutor.post(HandshakeState.Connected)
+      // terminate the handshake
+      handshakeExecutor.post(HandshakeState.Supported(createTrackingForegroundProcessSupportedEvent(SupportType.SUPPORTED)))
+      verifyNoMoreRequests()
+
+      val expectedRequest = createHandshakeExecuteRequest(1)
+      assertThat(receivedRequest0).isEqualTo(expectedRequest)
+      assertThat(receivedRequest1).isEqualTo(expectedRequest)
+    }
+
+    verify(mockMetrics).logHandshakeResult(createTrackingForegroundProcessSupportedEvent(SupportType.UNKNOWN), deviceDescriptor, false)
+    verify(mockMetrics).logHandshakeResult(createTrackingForegroundProcessSupportedEvent(SupportType.SUPPORTED), deviceDescriptor, false)
+    verify(mockMetrics).logHandshakeConversion(
+      DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_SUPPORTED, deviceDescriptor, false
+    )
+    verifyNoMoreInteractions(mockMetrics)
+  }
+
+  @Test
+  fun testIsHandshakeInProgress() {
+    val handshakeExecutor = HandshakeExecutor(deviceDescriptor, stream, scope, workDispatcher, mockClient, mockMetrics, pollingIntervalMs)
+    runBlocking {
+      assertThat(handshakeExecutor.isHandshakeInProgress).isFalse()
+      handshakeExecutor.post(HandshakeState.Connected)
+      assertThat(handshakeExecutor.isHandshakeInProgress).isTrue()
+      syncChannel.receive()
+      handshakeExecutor.post(HandshakeState.UnknownSupported(createTrackingForegroundProcessSupportedEvent(SupportType.UNKNOWN)))
+      assertThat(handshakeExecutor.isHandshakeInProgress).isTrue()
+      syncChannel.receive()
+      handshakeExecutor.post(HandshakeState.Supported(createTrackingForegroundProcessSupportedEvent(SupportType.SUPPORTED)))
+      assertThat(handshakeExecutor.isHandshakeInProgress).isFalse()
+
+      verifyNoMoreRequests()
+
+      handshakeExecutor.post(HandshakeState.Connected)
+      assertThat(handshakeExecutor.isHandshakeInProgress).isTrue()
+      syncChannel.receive()
+      handshakeExecutor.post(HandshakeState.UnknownSupported(createTrackingForegroundProcessSupportedEvent(SupportType.UNKNOWN)))
+      assertThat(handshakeExecutor.isHandshakeInProgress).isTrue()
+      syncChannel.receive()
+      handshakeExecutor.post(HandshakeState.NotSupported(createTrackingForegroundProcessSupportedEvent(SupportType.NOT_SUPPORTED)))
+      assertThat(handshakeExecutor.isHandshakeInProgress).isFalse()
+
+      verifyNoMoreRequests()
+
+      handshakeExecutor.post(HandshakeState.Connected)
+      assertThat(handshakeExecutor.isHandshakeInProgress).isTrue()
+      syncChannel.receive()
+      handshakeExecutor.post(HandshakeState.Disconnected)
+      assertThat(handshakeExecutor.isHandshakeInProgress).isFalse()
+
+      verifyNoMoreRequests()
+    }
   }
 
   private fun createTrackingForegroundProcessSupportedEvent(supportType: SupportType): LayoutInspector.TrackingForegroundProcessSupported {
