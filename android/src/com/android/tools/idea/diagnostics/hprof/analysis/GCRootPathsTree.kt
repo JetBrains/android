@@ -34,7 +34,7 @@ class GCRootPathsTree(
   private val treeDisplayOptions: AnalysisConfig.TreeDisplayOptions,
   allObjectsOfClass: ClassDefinition?
 ) {
-  private val topNode = RootNode(context.classStore)
+  val topNode = RootNode(context.classStore)
   private var countOfIgnoredObjects = 0
 
   private val objectSizeStrategy = ObjectSizeCalculationStrategy.getBestStrategyForClass(allObjectsOfClass)
@@ -187,6 +187,8 @@ class GCRootPathsTree(
     var pathsCount = 0
     var pathsSize = 0
     var totalSizeInDwords = 0
+    val totalSizeInBytes
+      get() = totalSizeInDwords.toLong() * 4
     val instances = TIntHashSet(1)
 
     override fun addEdge(objectId: Int,

@@ -202,6 +202,7 @@ public class StudioCrashReporterTest {
   public void testSendHeapReportFieldAsFile() throws IOException {
     AnalyzedHeapReport analyzedHeapReport =
       new AnalyzedHeapReport("heap report text",
+                             "heap summary text",
                              new HeapReportProperties(MemoryReportReason.UserInvoked, "stats"),
                              new DiagnosticReportProperties());
     CrashReport crashReport = analyzedHeapReport.asCrashReport();

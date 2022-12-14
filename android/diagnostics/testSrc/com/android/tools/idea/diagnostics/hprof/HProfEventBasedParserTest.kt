@@ -120,7 +120,7 @@ class HProfEventBasedParserTest {
     val progress = object : AbstractProgressIndicatorBase() {
     }
     progress.isIndeterminate = false
-    val generatedReport = analysis.analyze(progress)
+    val generatedReport = analysis.analyze(progress).report
     val baselinePath = getBaselinePath("sample-report.txt")
     val baselineReport = getBaselineContents(baselinePath)
 

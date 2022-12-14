@@ -23,6 +23,7 @@ import org.apache.http.entity.ContentType
 import org.apache.http.entity.mime.MultipartEntityBuilder
 
 class AnalyzedHeapReport(val text: String,
+                         val summary: String,
                          heapProperties: HeapReportProperties,
                          baseProperties: DiagnosticReportProperties = DiagnosticReportProperties())
   : HeapReport("Heap", heapProperties, baseProperties) {
@@ -30,6 +31,7 @@ class AnalyzedHeapReport(val text: String,
   override fun serializeReportProperties(writer: JsonWriter) {
     super.serializeReportProperties(writer)
     writer.name("reportText").value(text)
+    writer.name("heapSummary").value(summary)
   }
 
   override fun asCrashReport(): CrashReport {
@@ -37,6 +39,7 @@ class AnalyzedHeapReport(val text: String,
       override fun serialize(builder: MultipartEntityBuilder) {
         super.serialize(builder)
         GoogleCrashReporter.addBodyToBuilder(builder, StudioExceptionReport.KEY_EXCEPTION_INFO, EMPTY_OOM_STACKTRACE)
+        GoogleCrashReporter.addBodyToBuilder(builder, "heapSummary", summary)
         builder.addBinaryBody("heapReport", text.toByteArray(), ContentType.TEXT_PLAIN, "heapReport.txt")
       }
     }

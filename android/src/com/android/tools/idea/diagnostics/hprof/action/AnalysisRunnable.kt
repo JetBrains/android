@@ -117,7 +117,7 @@ class AnalysisRunnable(val report: UnanalyzedHeapReport,
       else {
         openOptions = setOf(StandardOpenOption.READ)
       }
-      val reportString = FileChannel.open(report.hprofPath, openOptions).use { channel ->
+      val (reportString, summary) = FileChannel.open(report.hprofPath, openOptions).use { channel ->
         HProfAnalysis(channel, SystemTempFilenameSupplier()).analyze(indicator)
       }
       if (deleteAfterAnalysis) {
@@ -126,6 +126,7 @@ class AnalysisRunnable(val report: UnanalyzedHeapReport,
 
       val analyzedReport = AnalyzedHeapReport(
         reportString,
+        summary,
         report.heapProperties,
         report.properties
       )

@@ -77,8 +77,11 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
     override fun createIntList(name: String, size: Long) = FileBackedIntList.createEmpty(openTempEmptyFileChannel(name), size)
   }
 
-  fun analyze(progress: ProgressIndicator): String {
+  data class AnalysisResult(val report: String, val summary: String)
+
+  fun analyze(progress: ProgressIndicator): AnalysisResult {
     val result = StringBuilder()
+    var summary = ""
     val totalStopwatch = Stopwatch.createStarted()
     val prepareFilesStopwatch = Stopwatch.createStarted()
     val analysisStopwatch = Stopwatch.createUnstarted()
@@ -108,7 +111,7 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
       // (histogram only), if the count exceeds maximum.
       if (!isSupported(histogram.instanceCount)) {
         result.appendln(histogram.prepareReport("All", 50))
-        return result.toString()
+        return AnalysisResult(result.toString(), summary)
       }
 
       val idMappingChannel = openTempEmptyFileChannel("id-mapping")
@@ -155,6 +158,7 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
       )
 
       val analysisReport = AnalyzeGraph(analysisContext, fileBackedListProvider).analyze(PartialProgressIndicator(progress, 0.4, 0.4))
+      summary = analysisReport.summary.toString()
 
       result.appendln(analysisReport.mainReport)
 
@@ -181,7 +185,7 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
       parser.close()
       closeAndDeleteTemporaryFiles()
     }
-    return result.toString()
+    return AnalysisResult(result.toString(), summary)
   }
 
   private fun isSupported(instanceCount: Long): Boolean {

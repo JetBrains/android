@@ -1,0 +1,27 @@
+======== INSTANCES OF EACH NOMINATED CLASS ========
+CLASS: A (1 objects)
+Root 1:
+[    1/100%/   16B]   172B          1   ROOT: Global JNI
+[    1/100%/   16B]   172B          1   (root): java.util.Arrays$ArrayList
+[    1/100%/   16B]   156B          1   a: java.lang.Object[]
+[    1/100%/   16B]    60B          1 * []: A
+
+CLASS: B (1 objects)
+Root 1:
+[    1/100%/   16B]   172B          1   ROOT: Global JNI
+[    1/100%/   16B]   172B          1   (root): java.util.Arrays$ArrayList
+[    1/100%/   16B]   156B          1   a: java.lang.Object[]
+[    1/100%/   16B]    68B          1 * []: B
+
+=== INNER CLASSES THAT RETAIN OBJECTS VIA THIS$0 ==
+============== DISPOSER TREE SUMMARY ==============
+================= DISPOSED OBJECTS ================
+Count of disposed-but-strong-referenced objects: 0
+
+Disposed-but-strong-referenced dominator object count: 0
+Disposed-but-strong-referenced dominator sub-graph size: 0B
+
+============ DOMINATOR TREE FLAME GRAPH ===========
+1
+root
+0 401 0

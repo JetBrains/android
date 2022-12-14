@@ -95,7 +95,9 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
     if (includePerClassSection) {
       val perClassProgress = PartialProgressIndicator(progress, 0.5, 0.5)
       mainReport.appendln(sectionHeader("Instances of each nominated class"))
-      mainReport.append(preparePerClassSection(perClassProgress))
+      val (perClassSection, summaryTree) = preparePerClassSection(perClassProgress)
+      mainReport.append(perClassSection)
+      summaryTree.printTree(analysisContext, summary)
     }
 
     // Inner class section
@@ -118,48 +120,52 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
       mainReport.appendln(sectionHeader("Dominator tree flame graph"))
       mainReport.append(dominatorFlameGraph)
     }
-
   }
 
-  private fun preparePerClassSection(progress: PartialProgressIndicator): String = buildString {
-    val histogram = analysisContext.histogram
-    val perClassOptions = analysisContext.config.perClassOptions
+  private fun preparePerClassSection(progress: PartialProgressIndicator): Pair<String, SummaryTree> {
+    val summaryTree = SummaryTree(analysisContext.config.summaryOptions.minimumSubgraphSize, analysisContext.config.summaryOptions.maximumTreeDepth)
+    val perClassSection = buildString {
+      val histogram = analysisContext.histogram
+      val perClassOptions = analysisContext.config.perClassOptions
 
-    if (perClassOptions.includeClassList) {
-      appendln("Nominated classes:")
-      perClassOptions.classNames.forEach { name ->
-        val (classDefinition, totalInstances, totalBytes) =
-          histogram.entries.find { entry -> entry.classDefinition.name == name } ?: return@forEach
-        val prettyName = classDefinition.prettyName
-        appendln(" --> [${toShortStringAsCount(totalInstances)}/${toShortStringAsSize(totalBytes)}] " + prettyName)
+      if (perClassOptions.includeClassList) {
+        appendln("Nominated classes:")
+        perClassOptions.classNames.forEach { name ->
+          val (classDefinition, totalInstances, totalBytes) =
+            histogram.entries.find { entry -> entry.classDefinition.name == name } ?: return@forEach
+          val prettyName = classDefinition.prettyName
+          appendln(" --> [${toShortStringAsCount(totalInstances)}/${toShortStringAsSize(totalBytes)}] " + prettyName)
+        }
+        appendln()
       }
-      appendln()
-    }
 
-    val nav = analysisContext.navigator
-    var counter = 0
-    val nominatedClassNames = config.perClassOptions.classNames
-    val stopwatch = Stopwatch.createUnstarted()
-    nominatedClassNames.forEach { className ->
-      val classDefinition = nav.classStore[className]
-      val set = nominatedInstances[classDefinition]!!
-      progress.fraction = counter.toDouble() / nominatedInstances.size
-      progress.text2 = "Processing: ${set.count()} ${classDefinition.prettyName}"
-      stopwatch.reset().start()
-      appendln("CLASS: ${classDefinition.prettyName} (${set.count()} objects)")
-      val referenceRegistry = GCRootPathsTree(analysisContext, perClassOptions.treeDisplayOptions, classDefinition)
-      set.forEach { objectId ->
-        referenceRegistry.registerObject(objectId)
+      val nav = analysisContext.navigator
+      var counter = 0
+      val nominatedClassNames = config.perClassOptions.classNames
+      val stopwatch = Stopwatch.createUnstarted()
+      nominatedClassNames.forEach { className ->
+        val classDefinition = nav.classStore[className]
+        val set = nominatedInstances[classDefinition]!!
+        progress.fraction = counter.toDouble() / nominatedInstances.size
+        progress.text2 = "Processing: ${set.count()} ${classDefinition.prettyName}"
+        stopwatch.reset().start()
+        appendln("CLASS: ${classDefinition.prettyName} (${set.count()} objects)")
+        val referenceRegistry = GCRootPathsTree(analysisContext, perClassOptions.treeDisplayOptions, classDefinition)
+        set.forEach { objectId ->
+          referenceRegistry.registerObject(objectId)
+        }
+        set.clear()
+        append(referenceRegistry.printTree())
+        summaryTree.merge(referenceRegistry.topNode)
+        if (config.metaInfoOptions.include) {
+          appendln("Report for ${classDefinition.prettyName} created in $stopwatch")
+        }
+        appendln()
+        counter++
       }
-      set.clear()
-      append(referenceRegistry.printTree())
-      if (config.metaInfoOptions.include) {
-        appendln("Report for ${classDefinition.prettyName} created in $stopwatch")
-      }
-      appendln()
-      counter++
+      progress.fraction = 1.0
     }
-    progress.fraction = 1.0
+    return Pair(perClassSection, summaryTree)
   }
 
   private fun prepareHistogramSection(): String = buildString {
