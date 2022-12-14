@@ -78,7 +78,7 @@ public class AdbConnectionWidgetTest {
     Disposer.dispose(adapter);
   }
 
-  private static class StubStudioAdapter implements AdbConnectionWidget.StudioAdapter {
+  private static final class StubStudioAdapter implements AdbConnectionWidget.StudioAdapter {
     public boolean myIsConnected;
     public boolean myIsUserManaged;
     public final StatusBar myStatusBar = Mockito.mock(StatusBar.class);
@@ -94,11 +94,11 @@ public class AdbConnectionWidgetTest {
         @Override
         @Nullable
         public Void answer(@NotNull InvocationOnMock invocation) {
-          myLastIcon = myWidget.getIcon(myStatusBar);
+          myLastIcon = myWidget.getIcon();
           return null;
         }
       }).when(myStatusBar).updateWidget(AdbConnectionWidget.ID);
-      myLastIcon = myWidget.getIcon(myStatusBar);
+      myLastIcon = myWidget.getIcon();
     }
 
     @Override
