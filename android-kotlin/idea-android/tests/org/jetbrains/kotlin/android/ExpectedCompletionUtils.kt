@@ -26,9 +26,9 @@ import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.ui.JBColor
 import com.intellij.util.ArrayUtil
-import org.jetbrains.kotlin.idea.completion.LookupElementFactory
+import org.jetbrains.kotlin.idea.base.util.module
+import org.jetbrains.kotlin.idea.completion.KOTLIN_CAST_REQUIRED_COLOR
 import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
-import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.js.JsPlatforms
 import org.jetbrains.kotlin.platform.js.isJs
@@ -308,7 +308,7 @@ object ExpectedCompletionUtils {
       }
       val foreground = presentation.itemTextForeground
       if (foreground != JBColor.foreground()) {
-        assert(foreground == LookupElementFactory.CAST_REQUIRED_COLOR)
+        assert(foreground == KOTLIN_CAST_REQUIRED_COLOR)
         if (length > 0) append(" ")
         append("grayed")
       }

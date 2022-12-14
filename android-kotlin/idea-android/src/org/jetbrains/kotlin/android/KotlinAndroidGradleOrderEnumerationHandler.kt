@@ -14,8 +14,8 @@ import com.intellij.openapi.roots.ModuleRootModel
 import com.intellij.openapi.roots.OrderEnumerationHandler
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.VfsUtilCore
-import org.jetbrains.kotlin.idea.caches.project.isMPPModule
-import org.jetbrains.kotlin.idea.core.isAndroidModule
+import org.jetbrains.kotlin.idea.base.util.isAndroidModule
+import org.jetbrains.kotlin.idea.base.facet.isMultiPlatformModule
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.plugins.gradle.model.ExternalSourceDirectorySet
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache
@@ -83,7 +83,7 @@ class KotlinAndroidGradleOrderEnumerationHandler(private val module: Module) : O
 
     class FactoryImpl : OrderEnumerationHandler.Factory() {
         override fun isApplicable(module: Module): Boolean {
-            return ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, module) && !module.isMPPModule
+            return ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, module) && !module.isMultiPlatformModule
         }
 
         override fun createHandler(module: Module) = KotlinAndroidGradleOrderEnumerationHandler(module)

@@ -24,12 +24,12 @@ import org.jetbrains.kotlin.android.canRedoParcelable
 import com.android.tools.idea.kotlin.insideBody
 import org.jetbrains.kotlin.android.isParcelize
 import org.jetbrains.kotlin.android.reimplementParcelable
-import org.jetbrains.kotlin.idea.intentions.SelfTargetingIntention
+import org.jetbrains.kotlin.idea.codeinsight.api.classic.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.psi.KtClass
 
 
 class RedoParcelableAction :
-        SelfTargetingIntention<KtClass>(KtClass::class.java, AndroidBundle.message("redo.parcelable.intention.text")),
+        SelfTargetingIntention<KtClass>(KtClass::class.java, { AndroidBundle.message("redo.parcelable.intention.text") }),
         HighPriorityAction {
     override fun isApplicableTo(element: KtClass, caretOffset: Int): Boolean =
             AndroidFacet.getInstance(element) != null &&

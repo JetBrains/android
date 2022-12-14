@@ -36,23 +36,22 @@ import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.idea.compiler.configuration.IdeKotlinVersion
 import org.jetbrains.kotlin.idea.configuration.BuildSystemType
 import org.jetbrains.kotlin.idea.configuration.ConfigureKotlinStatus
-import org.jetbrains.kotlin.idea.configuration.ModuleSourceRootGroup
+import org.jetbrains.kotlin.idea.base.projectStructure.ModuleSourceRootGroup
 import org.jetbrains.kotlin.idea.configuration.NotificationMessageCollector
-import org.jetbrains.kotlin.idea.configuration.createConfigureKotlinNotificationCollector
-import org.jetbrains.kotlin.idea.configuration.getBuildSystemType
-import org.jetbrains.kotlin.idea.extensions.gradle.getBuildScriptPsiFile
-import org.jetbrains.kotlin.idea.extensions.gradle.getTopLevelBuildScriptPsiFile
+import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.getBuildScriptPsiFile
+import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.getTopLevelBuildScriptPsiFile
 import org.jetbrains.kotlin.idea.framework.ui.ConfigureDialogWithModulesAndVersion
 import org.jetbrains.kotlin.idea.gradle.KotlinIdeaGradleBundle
-import org.jetbrains.kotlin.idea.gradleJava.KotlinGradleFacadeImpl.findManipulator
-import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinWithGradleConfigurator
+import org.jetbrains.kotlin.idea.configuration.buildSystemType
+import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.GradleBuildScriptSupport
+import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.KotlinWithGradleConfigurator
 import org.jetbrains.kotlin.idea.util.application.executeCommand
 import org.jetbrains.kotlin.idea.util.application.runReadAction
+import org.jetbrains.kotlin.idea.projectConfiguration.hasJreSpecificRuntime
 import org.jetbrains.kotlin.idea.util.projectStructure.version
-import org.jetbrains.kotlin.idea.versions.MAVEN_STDLIB_ID_JDK7
-import org.jetbrains.kotlin.idea.versions.hasJreSpecificRuntime
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
+import org.jetbrains.kotlin.utils.PathUtil
 
 class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
 
@@ -112,13 +111,13 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
 
     // Copied from super-class as it is private there.
     private fun isFileConfigured(buildScript: PsiFile): Boolean {
-        val manipulator = findManipulator(buildScript) ?: return false
+        val manipulator = GradleBuildScriptSupport.getManipulator(buildScript)
         return with(manipulator) {
             isConfiguredWithOldSyntax(kotlinPluginName) || isConfigured(getKotlinPluginExpression(buildScript.isKtDsl()))
         }
     }
 
-    public override fun isApplicable(module: Module): Boolean = module.getBuildSystemType() == BuildSystemType.AndroidGradle
+    public override fun isApplicable(module: Module): Boolean = module.buildSystemType == BuildSystemType.AndroidGradle
 
     override val kotlinPluginName: String = KOTLIN_ANDROID
 
@@ -288,7 +287,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
             val sdkVersion = sdk.version
             if (sdkVersion != null && sdkVersion.isAtLeast(JavaSdkVersion.JDK_1_8)) {
                 // Android dex can't convert our kotlin-stdlib-jre8 artifact, so use jre7 instead (KT-16530)
-                return MAVEN_STDLIB_ID_JDK7
+                return PathUtil.KOTLIN_JAVA_RUNTIME_JDK7_NAME
             }
         }
 
@@ -310,7 +309,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
 
     fun doConfigure(project: Project, modules: List<Module>, version: IdeKotlinVersion): NotificationMessageCollector {
         return project.executeCommand(KotlinIdeaGradleBundle.message("command.name.configure.kotlin")) {
-            val collector = createConfigureKotlinNotificationCollector(project)
+            val collector = NotificationMessageCollector.create(project)
             val changedFiles = configureWithVersion(project, modules, version, collector)
 
             for (file in changedFiles) {

@@ -18,7 +18,7 @@ package org.jetbrains.kotlin.android
 import com.intellij.openapi.module.Module
 import com.intellij.psi.search.SearchScope
 import org.jetbrains.android.AndroidResolveScopeEnlarger
-import org.jetbrains.kotlin.idea.caches.resolve.util.KotlinResolveScopeEnlarger
+import org.jetbrains.kotlin.idea.base.projectStructure.KotlinResolveScopeEnlarger
 
 /**
  * Implementation of KotlinResolveScopeEnlarger, used to add additional
@@ -26,8 +26,7 @@ import org.jetbrains.kotlin.idea.caches.resolve.util.KotlinResolveScopeEnlarger
  * For newly create modules, resolving may happen before module files are
  * created, see b/120797515.
  */
-class AndroidKotlinResolveScopeEnlarger : KotlinResolveScopeEnlarger() {
-
+class AndroidKotlinResolveScopeEnlarger : KotlinResolveScopeEnlarger {
   override fun getAdditionalResolveScope(module: Module, isTestScope: Boolean): SearchScope? {
     return AndroidResolveScopeEnlarger.getAdditionalResolveScopeForModule(module, isTestScope)
   }

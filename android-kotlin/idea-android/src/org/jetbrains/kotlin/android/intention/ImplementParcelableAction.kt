@@ -24,12 +24,12 @@ import org.jetbrains.kotlin.android.canAddParcelable
 import org.jetbrains.kotlin.android.implementParcelable
 import com.android.tools.idea.kotlin.insideBody
 import org.jetbrains.kotlin.android.isParcelize
-import org.jetbrains.kotlin.idea.intentions.SelfTargetingIntention
+import org.jetbrains.kotlin.idea.codeinsight.api.classic.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.psi.KtClass
 
 
 class ImplementParcelableAction :
-        SelfTargetingIntention<KtClass>(KtClass::class.java, AndroidBundle.message("implement.parcelable.intention.text")),
+        SelfTargetingIntention<KtClass>(KtClass::class.java, { AndroidBundle.message("implement.parcelable.intention.text") }),
         HighPriorityAction {
     override fun isApplicableTo(element: KtClass, caretOffset: Int): Boolean =
             AndroidFacet.getInstance(element) != null &&

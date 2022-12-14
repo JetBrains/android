@@ -17,12 +17,11 @@
 package org.jetbrains.kotlin.android.parcel
 
 import org.jetbrains.kotlin.android.synthetic.idea.androidExtensionsIsExperimental
-import org.jetbrains.kotlin.idea.caches.project.getModuleInfo
+import org.jetbrains.kotlin.idea.base.projectStructure.moduleInfoOrNull
 import org.jetbrains.kotlin.psi.KtElement
 
 class IDEParcelableCodegenExtension : ParcelableCodegenExtension() {
     override fun isExperimental(element: KtElement): Boolean {
-        val moduleInfo = element.getModuleInfo()
-        return moduleInfo.androidExtensionsIsExperimental
+        return element.moduleInfoOrNull?.androidExtensionsIsExperimental ?: false
     }
 }
