@@ -17,38 +17,26 @@ package com.android.tools.idea.streaming.device
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.adtui.ZOOMABLE_KEY
-import com.android.tools.adtui.common.primaryPanelBackground
-import com.android.tools.adtui.util.ActionToolbarUtil.makeToolbarNavigable
 import com.android.tools.idea.streaming.AbstractDisplayPanel
 import com.android.tools.idea.streaming.DeviceId
 import com.android.tools.idea.streaming.RunningDevicePanel
+import com.android.tools.idea.streaming.STREAMING_SECONDARY_TOOLBAR_ID
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionState
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionStateListener
 import com.android.tools.idea.streaming.device.screenshot.DeviceScreenshotOptions
-import com.android.tools.idea.streaming.emulator.EMULATOR_SECONDARY_TOOLBAR_ID
 import com.android.tools.idea.streaming.installFileDropHandler
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
 import com.google.wireless.android.sdk.stats.DeviceMirroringSession
 import com.intellij.execution.runners.ExecutionUtil
-import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionToolbar
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.IdeBorderFactory
-import com.intellij.ui.JBColor
-import com.intellij.ui.SideBorder
-import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons
-import java.awt.BorderLayout
 import java.awt.EventQueue
 import javax.swing.JComponent
-import javax.swing.SwingConstants
-import javax.swing.border.EmptyBorder
+
+private val ICON = ExecutionUtil.getLiveIndicator(StudioIcons.Avd.DEVICE_PHONE)
 
 /**
  * Provides view of one physical device in the Running Devices tool window.
@@ -59,12 +47,8 @@ internal class DeviceToolWindowPanel(
   private val deviceAbi: String,
   override val title: String,
   deviceProperties: Map<String, String>,
-) : RunningDevicePanel(DeviceId.ofPhysicalDevice(deviceSerialNumber)) {
+) : RunningDevicePanel(DeviceId.ofPhysicalDevice(deviceSerialNumber), DEVICE_MAIN_TOOLBAR_ID, STREAMING_SECONDARY_TOOLBAR_ID) {
 
-  private val toolbarPanel = BorderLayoutPanel()
-  private val mainToolbar: ActionToolbar
-  private val secondaryToolbar: ActionToolbar
-  private val centerPanel = BorderLayoutPanel()
   private var displayPanel: DeviceDisplayPanel? = null
   private var contentDisposable: Disposable? = null
 
@@ -79,11 +63,6 @@ internal class DeviceToolWindowPanel(
     get() = this
 
   private val deviceConfiguration = DeviceConfiguration(deviceProperties)
-  private val apiLevel
-    get() = deviceConfiguration.apiLevel
-
-  private val avdName
-    get() = deviceConfiguration.avdName
 
   override val preferredFocusableComponent: JComponent
     get() = primaryDeviceView ?: this
@@ -93,32 +72,6 @@ internal class DeviceToolWindowPanel(
       field = value
       displayPanel?.zoomToolbarVisible = value
     }
-
-  init {
-    background = primaryPanelBackground
-
-    mainToolbar = createToolbar(DEVICE_MAIN_TOOLBAR_ID, isToolbarHorizontal)
-    secondaryToolbar = createToolbar(EMULATOR_SECONDARY_TOOLBAR_ID, isToolbarHorizontal)
-
-    addToCenter(centerPanel)
-
-    if (isToolbarHorizontal) {
-      mainToolbar.setOrientation(SwingConstants.HORIZONTAL)
-      secondaryToolbar.setOrientation(SwingConstants.HORIZONTAL)
-      toolbarPanel.add(mainToolbar.component, BorderLayout.CENTER)
-      toolbarPanel.add(secondaryToolbar.component, BorderLayout.EAST)
-      centerPanel.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.TOP)
-      addToTop(toolbarPanel)
-    }
-    else {
-      mainToolbar.setOrientation(SwingConstants.VERTICAL)
-      secondaryToolbar.setOrientation(SwingConstants.VERTICAL)
-      toolbarPanel.add(mainToolbar.component, BorderLayout.CENTER)
-      toolbarPanel.add(secondaryToolbar.component, BorderLayout.SOUTH)
-      centerPanel.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.LEFT)
-      addToLeft(toolbarPanel)
-    }
-  }
 
   override fun setDeviceFrameVisible(visible: Boolean) {
     // Showing device frame is not supported for physical devices.
@@ -194,21 +147,8 @@ internal class DeviceToolWindowPanel(
     }
   }
 
-  @Suppress("SameParameterValue")
-  private fun createToolbar(toolbarId: String, horizontal: Boolean): ActionToolbar {
-    val actions = listOf(CustomActionsSchema.getInstance().getCorrectedAction(toolbarId)!!)
-    val toolbar = ActionManager.getInstance().createActionToolbar(toolbarId, DefaultActionGroup(actions), horizontal)
-    toolbar.layoutPolicy = ActionToolbar.AUTO_LAYOUT_POLICY
-    toolbar.targetComponent = this
-    makeToolbarNavigable(toolbar)
-    return toolbar
-  }
-
   class DeviceUiState : UiState {
     var orientation = 0
     var zoomScrollState: AbstractDisplayPanel.ZoomScrollState? = null
   }
 }
-
-private val ICON = ExecutionUtil.getLiveIndicator(StudioIcons.Avd.DEVICE_PHONE)
-private const val isToolbarHorizontal = true

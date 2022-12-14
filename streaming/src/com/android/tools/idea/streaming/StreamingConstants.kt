@@ -28,3 +28,5 @@ internal val RUNNING_DEVICES_NOTIFICATION_GROUP: NotificationGroup
   get() = findRegisteredGroup("Running Devices Messages")!!
 
 internal const val PRIMARY_DISPLAY_ID = 0
+
+internal const val STREAMING_SECONDARY_TOOLBAR_ID = "StreamingToolbarSecondary"

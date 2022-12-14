@@ -20,8 +20,6 @@ import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.DisplayConfigurations
 import com.android.emulator.control.ExtendedControlsStatus
 import com.android.tools.adtui.ZOOMABLE_KEY
-import com.android.tools.adtui.common.primaryPanelBackground
-import com.android.tools.adtui.util.ActionToolbarUtil.makeToolbarNavigable
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.AbstractDisplayPanel
 import com.android.tools.idea.streaming.DeviceId
@@ -29,6 +27,7 @@ import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.NUMBER_OF_DISPLAYS
 import com.android.tools.idea.streaming.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.RunningDevicePanel
+import com.android.tools.idea.streaming.STREAMING_SECONDARY_TOOLBAR_ID
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.streaming.emulator.actions.findManageSnapshotDialog
@@ -40,11 +39,7 @@ import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.utils.HashCodes
 import com.google.wireless.android.sdk.stats.DeviceMirroringSession
 import com.intellij.execution.runners.ExecutionUtil
-import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionToolbar
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
@@ -52,17 +47,11 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.IdeBorderFactory
-import com.intellij.ui.JBColor
-import com.intellij.ui.SideBorder
-import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.components.BorderLayoutPanel
 import com.intellij.util.xmlb.XmlSerializerUtil
 import com.intellij.util.xmlb.annotations.Property
 import icons.StudioIcons
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap
 import org.jetbrains.annotations.TestOnly
-import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.KeyboardFocusManager
@@ -71,8 +60,9 @@ import java.nio.file.Path
 import java.util.function.IntFunction
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.SwingConstants
-import javax.swing.border.EmptyBorder
+
+private val ICON = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
+private val LOG get() = Logger.getInstance(EmulatorToolWindowPanel::class.java)
 
 /**
  * Provides view of one AVD in the Running Devices tool window.
@@ -80,12 +70,9 @@ import javax.swing.border.EmptyBorder
 class EmulatorToolWindowPanel(
   private val project: Project,
   val emulator: EmulatorController
-) : RunningDevicePanel(DeviceId.ofEmulator(emulator.emulatorId)), ConnectionStateListener {
+) : RunningDevicePanel(DeviceId.ofEmulator(emulator.emulatorId), EMULATOR_MAIN_TOOLBAR_ID, STREAMING_SECONDARY_TOOLBAR_ID),
+    ConnectionStateListener {
 
-  private val toolbarPanel = BorderLayoutPanel()
-  private val mainToolbar: ActionToolbar
-  private val secondaryToolbar: ActionToolbar
-  private val centerPanel = BorderLayoutPanel()
   private val displayPanels = Int2ObjectRBTreeMap<EmulatorDisplayPanel>()
   private val displayConfigurator = DisplayConfigurator()
   private var clipboardSynchronizer: EmulatorClipboardSynchronizer? = null
@@ -141,33 +128,6 @@ class EmulatorToolWindowPanel(
 
   @get:TestOnly
   var lastUiState: EmulatorUiState? = null
-
-  init {
-    background = primaryPanelBackground
-
-    mainToolbar = createToolbar(EMULATOR_MAIN_TOOLBAR_ID, isToolbarHorizontal)
-    secondaryToolbar = createToolbar(EMULATOR_SECONDARY_TOOLBAR_ID, isToolbarHorizontal)
-    secondaryToolbar.component.border = EmptyBorder(JBUI.emptyInsets())
-
-    addToCenter(centerPanel)
-
-    if (isToolbarHorizontal) {
-      mainToolbar.setOrientation(SwingConstants.HORIZONTAL)
-      secondaryToolbar.setOrientation(SwingConstants.HORIZONTAL)
-      toolbarPanel.add(mainToolbar.component, BorderLayout.CENTER)
-      toolbarPanel.add(secondaryToolbar.component, BorderLayout.EAST)
-      centerPanel.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.TOP)
-      addToTop(toolbarPanel)
-    }
-    else {
-      mainToolbar.setOrientation(SwingConstants.VERTICAL)
-      secondaryToolbar.setOrientation(SwingConstants.VERTICAL)
-      toolbarPanel.add(mainToolbar.component, BorderLayout.CENTER)
-      toolbarPanel.add(secondaryToolbar.component, BorderLayout.SOUTH)
-      centerPanel.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.LEFT)
-      addToLeft(toolbarPanel)
-    }
-  }
 
   override fun setDeviceFrameVisible(visible: Boolean) {
     primaryEmulatorView?.deviceFrameVisible = visible
@@ -301,16 +261,6 @@ class EmulatorToolWindowPanel(
       }
       else -> super.getData(dataId)
     }
-  }
-
-  @Suppress("SameParameterValue")
-  private fun createToolbar(toolbarId: String, horizontal: Boolean): ActionToolbar {
-    val actions = listOf(CustomActionsSchema.getInstance().getCorrectedAction(toolbarId)!!)
-    val toolbar = ActionManager.getInstance().createActionToolbar(toolbarId, DefaultActionGroup(actions), horizontal)
-    toolbar.layoutPolicy = ActionToolbar.AUTO_LAYOUT_POLICY
-    makeToolbarNavigable(toolbar)
-    toolbar.targetComponent = this
-    return toolbar
   }
 
   private inner class DisplayConfigurator : DisplayConfigurationListener {
@@ -531,7 +481,3 @@ class EmulatorToolWindowPanel(
     }
   }
 }
-
-private val ICON = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
-private const val isToolbarHorizontal = true
-private val LOG get() = Logger.getInstance(EmulatorToolWindowPanel::class.java)
