@@ -27,7 +27,6 @@ import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
-import org.jetbrains.kotlin.idea.util.ifTrue
 
 interface BuildEventsAnalysisResult {
   fun getBuildRequestData() : GradleBuildInvoker.Request.RequestData
@@ -101,7 +100,7 @@ class BuildEventsAnalyzersProxy(
   val tasksConfigurationIssuesAnalyzer = TasksConfigurationIssuesAnalyzer(taskContainer)
   val configurationCachingCompatibilityAnalyzer = ConfigurationCachingCompatibilityAnalyzer()
   val jetifierUsageAnalyzer = JetifierUsageAnalyzer()
-  val downloadsAnalyzer = StudioFlags.BUILD_ANALYZER_DOWNLOADS_ANALYSIS.get().ifTrue { DownloadsAnalyzer() }
+  val downloadsAnalyzer = if (StudioFlags.BUILD_ANALYZER_DOWNLOADS_ANALYSIS.get()) DownloadsAnalyzer() else null
   val taskCategoryWarningsAnalyzer = TaskCategoryWarningsAnalyzer()
 
   fun getBuildFinishedTimestamp(): Long {

@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.GradleFileModelTestCase
 import com.google.common.truth.Truth
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.kotlin.idea.core.util.getLineNumber
+import org.jetbrains.kotlin.idea.base.psi.getLineNumber
 import org.junit.Before
 import org.junit.Test
 

@@ -18,7 +18,6 @@ package com.android.build.attribution.ui.model
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
-import org.jetbrains.kotlin.idea.util.ifTrue
 
 class BuildAnalyzerViewModel(
   val reportUiData: BuildAttributionReportUiData,
@@ -33,7 +32,7 @@ class BuildAnalyzerViewModel(
       DataSet.OVERVIEW,
       DataSet.TASKS,
       DataSet.WARNINGS,
-      (reportUiData.downloadsData != DownloadsAnalyzer.AnalyzerIsDisabled).ifTrue { DataSet.DOWNLOADS }
+      if (reportUiData.downloadsData != DownloadsAnalyzer.AnalyzerIsDisabled) DataSet.DOWNLOADS else null
     )
 
   /**
