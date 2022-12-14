@@ -34,7 +34,6 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.NamedConfigurable
 import com.intellij.util.IconUtil
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.tree.TreePath
 
 const val PRODUCT_FLAVORS_DISPLAY_NAME: String = "Flavors"
@@ -54,7 +53,7 @@ class ProductFlavorsPanel(
     return object : DumbAwareAction(removeTextFor(null), removeDescriptionFor(null), IconUtil.getRemoveIcon()) {
       override fun update(e: AnActionEvent) {
         e.presentation.apply {
-          isEnabled = selectedConfigurable != null && selectedConfigurable?.editableObject?.safeAs<PsFlavorDimension>()?.isInvalid != true
+          isEnabled = selectedConfigurable != null && (selectedConfigurable?.editableObject as? PsFlavorDimension)?.isInvalid != true
           text = removeTextFor(selectedConfigurable)
           description = removeDescriptionFor(selectedConfigurable)
         }

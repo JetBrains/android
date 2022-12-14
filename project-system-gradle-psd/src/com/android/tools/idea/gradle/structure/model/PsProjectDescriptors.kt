@@ -42,7 +42,6 @@ import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
 import com.android.tools.idea.gradle.structure.model.meta.property
 import com.google.common.util.concurrent.ListenableFuture
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import kotlin.reflect.KProperty
 
 object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildModel> {
@@ -65,7 +64,7 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
         val models: List<ResolvedPropertyModel>? =
           projectBuildModel?.run {
             buildscript().dependencies().all()
-              .mapNotNull { it.safeAs<ArtifactDependencyModel>() }
+              .mapNotNull { it as? ArtifactDependencyModel }
               .singleOrNull { it.isAgp() }
               ?.version()
               ?.let { listOf(it) }
@@ -94,7 +93,7 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
           .let { dependencies ->
             dependencies.addArtifact("classpath", "$AGP_GROUP_ID_NAME:0.0")
             dependencies.all()
-              .mapNotNull { it.safeAs<ArtifactDependencyModel>() }
+              .mapNotNull { it as? ArtifactDependencyModel }
               .single { it.isAgp() }
               .version()
           }

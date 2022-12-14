@@ -57,7 +57,6 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 /**
  * Suggests specific implementations of frequently used Compose interfaces in a parameter or a property position.
@@ -86,7 +85,7 @@ class ComposeImplementationsCompletionContributor : CompletionContributor() {
     if (!isNewElement) {
       val addedElementsNames = elementsToSuggest.mapNotNull { it.name }
       result.runRemainingContributors(parameters) { completionResult ->
-        val skipResult = completionResult.lookupElement.psiElement.safeAs<KtProperty>()?.name?.let { addedElementsNames.contains(it) }
+        val skipResult = (completionResult.lookupElement.psiElement as? KtProperty)?.name?.let { addedElementsNames.contains(it) }
         if (skipResult != true) {
           result.passResult(completionResult)
         }
@@ -98,7 +97,6 @@ class ComposeImplementationsCompletionContributor : CompletionContributor() {
     return KotlinFullClassNameIndex.getInstance()
       .get(classFqName, project, project.allScope())
       .firstOrNull()
-      .safeAs<KtClassOrObject>()
   }
 
   private fun getAlignments(project: Project, alignmentFqName: String): Collection<KtDeclaration> {
@@ -161,7 +159,7 @@ class ComposeImplementationsCompletionContributor : CompletionContributor() {
       val argument = contextOfType<KtValueArgument>().takeIf { it !is KtLambdaArgument } ?: return null
 
       val callExpression = argument.parentOfType<KtCallElement>() ?: return null
-      val callee = callExpression.calleeExpression?.mainReference?.resolve().safeAs<KtNamedFunction>() ?: return null
+      val callee = callExpression.calleeExpression?.mainReference?.resolve() as? KtNamedFunction ?: return null
 
       val argumentTypeFqName = if (argument.isNamed()) {
         val argumentName = argument.getArgumentName()!!.asName.asString()

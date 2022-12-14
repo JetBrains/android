@@ -64,7 +64,6 @@ import com.intellij.util.ui.update.Activatable
 import com.intellij.util.ui.update.UiNotifyConnector
 import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NonNls
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.KeyEvent
@@ -287,7 +286,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
       override fun doCancelAction() {
         // Ask for confirmation to close on ESC with not apllied changes.
-        if (IdeEventQueue.getInstance().trueCurrentEvent.safeAs<KeyEvent>()?.keyCode == KeyEvent.VK_ESCAPE) {
+        if ((IdeEventQueue.getInstance().trueCurrentEvent as? KeyEvent)?.keyCode == KeyEvent.VK_ESCAPE) {
           if (isModified) {
             if (Messages.showDialog(
                 myProject,
@@ -347,7 +346,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   private fun addConfigurable(configurable: Configurable) {
     myConfigurables[configurable] = null
     (configurable as? Place.Navigator)?.setHistory(myHistory)
-    val counterDisplayConfigurable = configurable.safeAs<CounterDisplayConfigurable>()
+    val counterDisplayConfigurable = configurable as? CounterDisplayConfigurable
     mySidePanel!!.addPlace(
       createPlaceFor(configurable),
       Presentation(configurable.displayName),

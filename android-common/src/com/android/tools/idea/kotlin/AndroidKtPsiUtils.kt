@@ -52,7 +52,6 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeUtils
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 
 /** Checks if the given offset is within [KtClass.getBody] of this [KtClass]. */
@@ -135,7 +134,7 @@ fun KtExpression.tryEvaluateConstant(): String? {
   return ConstantExpressionEvaluator.getConstant(this, analyze())
     ?.takeUnless { it.isError }
     ?.getValue(TypeUtils.NO_EXPECTED_TYPE)
-    ?.safeAs<String>()
+    as? String
 }
 
 /**

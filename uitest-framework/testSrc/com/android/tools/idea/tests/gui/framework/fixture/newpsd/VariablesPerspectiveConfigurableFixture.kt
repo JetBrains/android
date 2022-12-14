@@ -30,7 +30,6 @@ import org.fest.swing.driver.BasicJTableCellReader
 import org.fest.swing.edt.GuiQuery
 import org.fest.swing.fixture.JListFixture
 import org.fest.swing.fixture.JTableFixture
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.awt.Container
 import java.awt.event.KeyEvent
 import javax.swing.JTable
@@ -84,9 +83,9 @@ class VariablesPerspectiveConfigurableFixture(
           override fun valueAt(table: JTable, row: Int, column: Int): String? =
             if (column == 0) GuiQuery.get { table.model.getValueAt(row, column).toString() }
             else
-              table
+              (table
                 .prepareRenderer(table.getCellRenderer(row, column), row, column)
-                .safeAs<SimpleColoredComponent>()
+                as? SimpleColoredComponent)
                 ?.toString()
                 .orEmpty()
         })

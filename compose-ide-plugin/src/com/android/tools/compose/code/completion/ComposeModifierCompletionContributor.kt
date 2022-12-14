@@ -76,7 +76,6 @@ import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import org.jetbrains.kotlin.psi.psiUtil.getReceiverExpression
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 /**
  * Enhances code completion for Modifier (androidx.compose.ui.Modifier)
@@ -126,7 +125,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     if (isMethodCalledOnImportedModifier) {
       val extensionFunctionsNames = extensionFunctions.map { it.name.asString() }.toSet()
       resultSet.runRemainingContributors(parameters) { completionResult ->
-        val skipResult = completionResult.lookupElement.psiElement.safeAs<KtFunction>()?.name?.let { extensionFunctionsNames.contains(it) }
+        val skipResult = (completionResult.lookupElement.psiElement as? KtFunction)?.name?.let { extensionFunctionsNames.contains(it) }
         if (skipResult != true) {
           resultSet.passResult(completionResult)
         }
@@ -154,7 +153,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     parameters: CompletionParameters
   ): LookupElementFactory {
     val bindingContext = nameExpression.analyze(BodyResolveMode.PARTIAL_WITH_DIAGNOSTICS)
-    val file = parameters.originalFile.safeAs<KtFile>()!!
+    val file = parameters.originalFile as KtFile
     val resolutionFacade = file.getResolutionFacade()
 
     val moduleDescriptor = resolutionFacade.moduleDescriptor
@@ -181,7 +180,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
    * Creates "Modifier.call" expression as it would be if user typed "Modifier.<caret>" themselves.
    */
   private fun createNameExpression(originalElement: PsiElement): KtSimpleNameExpression {
-    val originalFile = originalElement.containingFile.safeAs<KtFile>()!!
+    val originalFile = originalElement.containingFile as KtFile
 
     val file = KtPsiFactory(originalFile.project).createAnalyzableFile("temp.kt", "val x = $COMPOSE_MODIFIER_FQN.call", originalFile)
     return file.getChildOfType<KtProperty>()!!.getChildOfType<KtDotQualifiedExpression>()!!.lastChild as KtSimpleNameExpression
@@ -215,7 +214,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
   private val PsiElement.isModifierProperty: Boolean
     get() {
       // Case val myModifier:Modifier = <caret>
-      val property = parent?.parent?.safeAs<KtProperty>() ?: return false
+      val property = parent?.parent as? KtProperty ?: return false
       return property.type()?.fqName?.asString() == COMPOSE_MODIFIER_FQN
     }
 
@@ -224,7 +223,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       val argument = contextOfType<KtValueArgument>().takeIf { it !is KtLambdaArgument } ?: return false
 
       val callExpression = argument.parentOfType<KtCallElement>() ?: return false
-      val callee = callExpression.calleeExpression?.mainReference?.resolve().safeAs<KtNamedFunction>() ?: return false
+      val callee = callExpression.calleeExpression?.mainReference?.resolve() as? KtNamedFunction ?: return false
 
       val argumentTypeFqName = if (argument.isNamed()) {
         val argumentName = argument.getArgumentName()!!.asName.asString()
@@ -244,11 +243,11 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
    * Returns true for Modifier.align().%this%, myModifier.%this%, Modifier.%this%.
    */
   private fun PsiElement.isMethodCalledOnModifier(): Boolean {
-    val elementOnWhichMethodCalled: KtExpression = parent.safeAs<KtNameReferenceExpression>()?.getReceiverExpression() ?: return false
+    val elementOnWhichMethodCalled: KtExpression = (parent as? KtNameReferenceExpression)?.getReceiverExpression() ?: return false
     // Case Modifier.align().%this%, modifier.%this%
     val fqName = elementOnWhichMethodCalled.resolveToCall(BodyResolveMode.PARTIAL)?.getReturnType()?.fqName ?:
                  // Case Modifier.%this%
-                 elementOnWhichMethodCalled.safeAs<KtNameReferenceExpression>()?.resolve().safeAs<KtClass>()?.fqName
+                 ((elementOnWhichMethodCalled as? KtNameReferenceExpression)?.resolve() as? KtClass)?.fqName
     return fqName?.asString() == COMPOSE_MODIFIER_FQN
   }
 

@@ -31,7 +31,6 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.psiUtil.getNextSiblingIgnoringWhitespace
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 /**
  * Adds a @Preview annotation when a full @Composable is selected or cursor at @Composable annotation.
@@ -60,7 +59,7 @@ class ComposeCreatePreviewAction : IntentionAction {
       else {
         // Case when user selected few extra blank lines before @Composable annotation.
         val elementAtCaretAfterSpace = file.findElementAt(editor.selectionModel.selectionStart)?.getNextSiblingIgnoringWhitespace()
-        return elementAtCaretAfterSpace.safeAs<KtFunction>()?.annotationEntries?.find { it.fqNameMatches(COMPOSABLE_FQ_NAMES) }
+        return (elementAtCaretAfterSpace as? KtFunction)?.annotationEntries?.find { it.fqNameMatches(COMPOSABLE_FQ_NAMES) }
       }
     }
     else {

@@ -24,7 +24,6 @@ import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfiguration
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.util.Properties
 
 data class RunConfigurationGradleContext(
@@ -46,7 +45,7 @@ internal fun RunConfiguration.getGradleContext(): RunConfigurationGradleContext?
   val preferGradleMake: PreferGradleMake = this as PreferGradleMake
 
   return RunConfigurationGradleContext(
-    androidFacet = safeAs<ModuleBasedConfiguration<*, *>>()?.configurationModule?.module?.androidFacet ?: return null,
+    androidFacet = (this as? ModuleBasedConfiguration<*, *>)?.configurationModule?.module?.androidFacet ?: return null,
     isTestConfiguration = if (this is AndroidRunConfigurationBase) isTestConfiguration else false,
     testCompileType = preferGradleMake.testCompileMode,
     isAdvancedProfilingEnabled = (this as? AndroidRunConfigurationBase)?.profilerState?.ADVANCED_PROFILING_ENABLED == true,

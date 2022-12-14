@@ -33,7 +33,6 @@ import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.util.PsiTreeUtil
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 /**
  * Base class for SQL inspections that only do something when running on a PSI file with a known [AndroidSqlContext].
@@ -44,7 +43,7 @@ abstract class AndroidSqlKnownContextInspection : LocalInspectionTool() {
     return if (isContextKnown(session)) super.buildVisitor(holder, isOnTheFly, session) else PsiElementVisitor.EMPTY_VISITOR
   }
 
-  private fun isContextKnown(session: LocalInspectionToolSession) = session.file.safeAs<AndroidSqlFile>()?.sqlContext != null
+  private fun isContextKnown(session: LocalInspectionToolSession) = (session.file as? AndroidSqlFile)?.sqlContext != null
 }
 
 /**

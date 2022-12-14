@@ -67,7 +67,6 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import org.jetbrains.kotlin.utils.addToStdlib.cast
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.awt.Component
 import java.awt.Point
 import java.awt.event.ActionEvent
@@ -242,7 +241,7 @@ class VariablesTable private constructor(
     createAddVariableStrategy().executeToolbarAddVariable(currentPosition)
   }
 
-  fun AbstractContainerNode.findEmptyVariableNode() = children()?.toList()?.last()?.safeAs<EmptyVariableNode>()
+  fun AbstractContainerNode.findEmptyVariableNode() = children()?.toList()?.last() as? EmptyVariableNode
 
   fun createAddVariableStrategy(currentNode: EmptyVariableNode? = null): AddVariableStrategy =
     if (findParentContainer(currentNode) is VersionCatalogNode)
@@ -426,7 +425,7 @@ class VariablesTable private constructor(
 
   private fun maybeScheduleNameRepaint(row: Int, column: Int) {
     if (column == UNRESOLVED_VALUE) {
-      tree.getPathForRow(row)?.lastPathComponent?.safeAs<TreeNode>()?.let { treeNode ->
+      (tree.getPathForRow(row)?.lastPathComponent as? TreeNode)?.let { treeNode ->
         if (treeNode is EmptyValueNode) {
           invokeLater { variablesTreeModel.nodeChanged(treeNode) }
         }

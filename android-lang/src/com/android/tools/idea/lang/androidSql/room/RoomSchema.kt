@@ -40,7 +40,6 @@ import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil
 import com.intellij.util.Processor
 import com.intellij.util.containers.ContainerUtil
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import org.jetbrains.uast.UAnnotated
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClass
@@ -191,10 +190,10 @@ class RoomSqlContext(private val query: AndroidSqlFile) : AndroidSqlContext {
 
   override val bindParameters: Map<String, BindParameter>
     get() {
-      return findHostRoomAnnotation()
+      return (findHostRoomAnnotation()
         ?.takeIf { RoomAnnotations.QUERY.isEquals(it.qualifiedName) }
         ?.getParentOfType<UAnnotated>()
-        ?.safeAs<UMethod>()
+        as? UMethod)
         ?.uastParameters
         ?.mapNotNull { uParameter ->
           when (val name = uParameter.name) {

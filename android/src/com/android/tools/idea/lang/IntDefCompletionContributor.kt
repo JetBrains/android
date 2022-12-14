@@ -54,7 +54,6 @@ import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 private const val intDefAnnotationName = "androidx.annotation.IntDef"
 private val intDefAnnotationFqName = FqName(intDefAnnotationName)
@@ -139,7 +138,7 @@ class IntDefCompletionContributorJava : CompletionContributor() {
         }
         if (calleeElement == null) return null
 
-        val argumentName = this.parent.safeAs<PsiNameValuePair>()?.name
+        val argumentName = (this.parent as? PsiNameValuePair)?.name
         return getIntDefValues(calleeElement.navigationElement, -1, argumentName)
       }
     }
@@ -174,7 +173,7 @@ private fun getIntDefValues(calleeElement: PsiElement?, argumentIndex: Int, argu
       return function?.annotations?.firstNotNullOfOrNull { it.intDefValues }
     }
     is PsiMethod -> {
-      val parameter = calleeElement.parameters.getOrNull(argumentIndex).safeAs<PsiParameter>()?.takeIf { it.type == PsiType.INT }
+      val parameter = (calleeElement.parameters.getOrNull(argumentIndex) as? PsiParameter)?.takeIf { it.type == PsiType.INT }
       return parameter?.annotations?.firstNotNullOfOrNull { it.intDefValues }
     }
     is KtFunction -> {
@@ -204,7 +203,7 @@ private fun valuesFromPsiAnnotation(intDefAnnotation: PsiAnnotation): List<Strin
  */
 private fun valuesFromKtAnnotationEntry(intDefAnnotation: KtAnnotationEntry): List<String> {
   val values = intDefAnnotation.valueArguments.firstOrNull { it.getArgumentName()?.asName?.asString() == valuesAttrName }?.getArgumentExpression()
-  val ktNamedReferences = values.safeAs<KtCollectionLiteralExpression>()?.getInnerExpressions() ?: return emptyList()
+  val ktNamedReferences = (values as? KtCollectionLiteralExpression)?.getInnerExpressions() ?: return emptyList()
   return ktNamedReferences.mapNotNull { it.text }
 }
 
