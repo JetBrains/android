@@ -18,8 +18,10 @@ package com.android.tools.idea.projectsystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.project.RootsChangeRescanningInfo.TOTAL_RESCAN
+import com.intellij.openapi.roots.ex.ProjectRootManagerEx
+import com.intellij.openapi.util.EmptyRunnable
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.roots.invalidateProjectRoots
 import org.junit.Rule
 import org.junit.Test
 
@@ -32,7 +34,7 @@ class SourceProviderManagerTest {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val sourceProviderManagerBeforeNotification = facet.sourceProviders
     runWriteActionAndWait {
-      projectRule.project.invalidateProjectRoots()
+      ProjectRootManagerEx.getInstanceEx(projectRule.project).makeRootsChange(EmptyRunnable.INSTANCE, TOTAL_RESCAN)
     }
     val sourceProviderManagerAfterNotification = facet.sourceProviders
     assertThat(sourceProviderManagerAfterNotification).isNotSameAs(sourceProviderManagerBeforeNotification)
