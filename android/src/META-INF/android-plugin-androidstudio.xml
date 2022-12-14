@@ -139,10 +139,10 @@
       <add-to-group group-id="FileOpenGroup" relative-to-action="OpenFile" anchor="after"/>
     </action>
 
-    <action id="ImportTests"
-            class="com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestGroup"
-            icon="AllIcons.Vcs.History"
-            overrides="true"/>
+    <group id="ImportTests"
+           class="com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestGroup"
+           icon="AllIcons.Vcs.History"
+           overrides="true"/>
     <action id="ImportTestsFromFile"
             class="com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestsFromFileAction"
             icon="AllIcons.ToolbarDecorator.Import"
