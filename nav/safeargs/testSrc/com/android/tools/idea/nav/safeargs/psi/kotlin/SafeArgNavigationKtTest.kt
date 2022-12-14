@@ -26,7 +26,7 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.kotlin.descriptors.impl.PropertyDescriptorImpl
 import org.jetbrains.kotlin.descriptors.impl.SimpleFunctionDescriptorImpl
-import org.jetbrains.kotlin.idea.caches.project.productionSourceInfo
+import org.jetbrains.kotlin.idea.base.projectStructure.productionSourceInfo
 import org.jetbrains.kotlin.idea.caches.project.toDescriptor
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.name.FqName
@@ -81,7 +81,7 @@ class SafeArgNavigationKtTest {
     }
 
     val traceMock: BindingTrace = MockitoKt.mock()
-    val moduleSourceInfo = safeArgsRule.module.productionSourceInfo()
+    val moduleSourceInfo = safeArgsRule.module.productionSourceInfo
     val moduleDescriptor = safeArgsRule.module.toDescriptor()
 
     val fragmentProvider = safeArgProviderExtension.getPackageFragmentProvider(
@@ -239,7 +239,7 @@ class SafeArgNavigationKtTest {
     }
 
     val traceMock: BindingTrace = MockitoKt.mock()
-    val moduleSourceInfo = safeArgsRule.module.productionSourceInfo()
+    val moduleSourceInfo = safeArgsRule.module.productionSourceInfo
     val moduleDescriptor = safeArgsRule.module.toDescriptor()
 
     val fragmentProvider = safeArgProviderExtension.getPackageFragmentProvider(

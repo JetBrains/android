@@ -24,7 +24,7 @@ import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.kotlin.idea.caches.project.productionSourceInfo
+import org.jetbrains.kotlin.idea.base.projectStructure.productionSourceInfo
 import org.jetbrains.kotlin.idea.caches.project.toDescriptor
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.name.FqName
@@ -75,7 +75,7 @@ class ArgsClassKtDescriptorsTest {
     }
 
     val traceMock: BindingTrace = MockitoKt.mock()
-    val moduleSourceInfo = safeArgsRule.module.productionSourceInfo()
+    val moduleSourceInfo = safeArgsRule.module.productionSourceInfo
     val moduleDescriptor = safeArgsRule.module.toDescriptor()
 
     val fragmentProvider = safeArgProviderExtension.getPackageFragmentProvider(
@@ -161,7 +161,7 @@ class ArgsClassKtDescriptorsTest {
     }
 
     val traceMock: BindingTrace = MockitoKt.mock()
-    val moduleSourceInfo = safeArgsRule.module.productionSourceInfo()
+    val moduleSourceInfo = safeArgsRule.module.productionSourceInfo
     val moduleDescriptor = safeArgsRule.module.toDescriptor()
 
     val fragmentProvider = safeArgProviderExtension.getPackageFragmentProvider(
@@ -248,7 +248,7 @@ class ArgsClassKtDescriptorsTest {
     }
 
     val traceMock: BindingTrace = MockitoKt.mock()
-    val moduleSourceInfo = safeArgsRule.module.productionSourceInfo()
+    val moduleSourceInfo = safeArgsRule.module.productionSourceInfo
     val moduleDescriptor = safeArgsRule.module.toDescriptor()
 
     val fragmentProvider = safeArgProviderExtension.getPackageFragmentProvider(
@@ -335,7 +335,7 @@ class ArgsClassKtDescriptorsTest {
     }
 
     val traceMock: BindingTrace = MockitoKt.mock()
-    val moduleSourceInfo = safeArgsRule.module.productionSourceInfo()
+    val moduleSourceInfo = safeArgsRule.module.productionSourceInfo
     val moduleDescriptor = safeArgsRule.module.toDescriptor()
 
     val fragmentProvider = safeArgProviderExtension.getPackageFragmentProvider(
