@@ -31,8 +31,6 @@ class AnimatedPropertyItem(
   override val namespace: String
 ) : MemoryParameterPropertyItem(name, defaultValue, inputValidation) {
 
-  // TODO(b/256584578) Add a property validation.
-
   override var value: String? = defaultValue
     set(value) {
       field = value

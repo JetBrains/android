@@ -135,7 +135,7 @@ object ComposeUnit {
 
   class IntUnit(value: Int) : Unit1D<Int>(value) {
     override fun createProperties(prefix: String) =
-      listOf(AnimatedPropertyItem(prefix, "$component1", { EDITOR_NO_ERROR }, "Int"))
+      listOf(AnimatedPropertyItem(prefix, "$component1", IntValidation, "Int"))
 
     override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
       return try {
