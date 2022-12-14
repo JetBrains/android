@@ -19,16 +19,19 @@ import com.intellij.openapi.util.Iconable
 import com.intellij.psi.PsiElement
 import com.intellij.ui.RowIcon
 import icons.StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION
-import org.jetbrains.kotlin.idea.KotlinIconProviderBase
+import org.jetbrains.kotlin.idea.KotlinIconProvider
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
+import org.jetbrains.kotlin.idea.util.hasMatchingExpected
+import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.psiUtil.hasActualModifier
 import javax.swing.Icon
 
 /**
  * Returns Composable function icon for [KtFunction] elements that are composable, and fall back to the Kotlin plugin's default
- * [KotlinIconProviderBase] otherwise. This may be used in various places across the IDE; one example is in the "Add Import" menu.
+ * [KotlinIconProvider] otherwise. This may be used in various places across the IDE; one example is in the "Add Import" menu.
  */
-class ComposableIconProvider : KotlinIconProviderBase() {
+class ComposableIconProvider : KotlinIconProvider() {
 
   override fun getIcon(psiElement: PsiElement, flags: Int): Icon? {
     if (psiElement is KtFunction && psiElement.descriptor?.hasComposableAnnotation() == true) {
@@ -40,6 +43,10 @@ class ComposableIconProvider : KotlinIconProviderBase() {
     }
 
     return super.getIcon(psiElement, flags)
+  }
+
+  override fun isMatchingExpected(declaration: KtDeclaration): Boolean {
+    return declaration.hasActualModifier() && declaration.hasMatchingExpected()
   }
 
   private fun createRowIcon(baseIcon: Icon, visibilityIcon: Icon): RowIcon = RowIcon(2).apply {
