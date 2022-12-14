@@ -36,7 +36,6 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.util.ui.ImageUtil
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.utils.addToStdlib.cast
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -99,12 +98,12 @@ class LayoutRendererTest {
       val previewProvider = resourceExplorerListViewModel.assetPreviewManager.getPreviewProvider(ResourceType.LAYOUT)
       val width = 150
       val height = 200
-      previewProvider.getIcon(designAsset, width, height, JLabel(), { latch.countDown() })
-        .cast<ImageIcon>().image.toBufferedImage()
+      (previewProvider.getIcon(designAsset, width, height, JLabel(), { latch.countDown() })
+        as ImageIcon).image.toBufferedImage()
 
       assertTrue(latch.await(10, TimeUnit.SECONDS))
-      val image = previewProvider.getIcon(designAsset, width, height, JLabel(), { latch.countDown() })
-        .cast<ImageIcon>().image.toBufferedImage()
+      val image = (previewProvider.getIcon(designAsset, width, height, JLabel(), { latch.countDown() })
+        as ImageIcon).image.toBufferedImage()
 
       // Check that we get the correct background color.
       val intArray = IntArray(4)

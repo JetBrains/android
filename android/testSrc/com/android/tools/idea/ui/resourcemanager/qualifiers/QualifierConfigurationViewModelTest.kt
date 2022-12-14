@@ -47,7 +47,6 @@ import com.android.tools.idea.ui.resourcemanager.IntParam
 import com.android.tools.idea.ui.resourcemanager.TextParam
 import com.android.tools.idea.ui.resourcemanager.qualifiers.QualifierConfigurationViewModel
 import com.google.common.truth.Truth.assertThat
-import org.jetbrains.kotlin.utils.addToStdlib.cast
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -233,7 +232,7 @@ class QualifierConfigurationViewModelTest {
 
     val densityQualifier = viewModel.getAvailableQualifiers().first { it is DensityQualifier }
     val densityConfiguration = viewModel.selectQualifier(densityQualifier)!!
-    densityConfiguration.parameters.first().cast<CollectionParam<Density>>().paramValue = Density.DPI_300
+    (densityConfiguration.parameters.first() as CollectionParam<Density>).paramValue = Density.DPI_300
     viewModel.applyConfiguration()
     assertThat(folderConfiguration.densityQualifier!!.value).isEqualTo(Density.DPI_300)
     assertThat(viewModel.getAvailableQualifiers().map { it.name }).doesNotContain("Density")

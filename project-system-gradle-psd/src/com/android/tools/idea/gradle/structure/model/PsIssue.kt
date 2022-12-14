@@ -25,7 +25,6 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBColor.GRAY
 import com.intellij.ui.JBColor.RED
-import org.jetbrains.kotlin.utils.addToStdlib.cast
 import java.awt.Color
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -57,7 +56,7 @@ interface PsQuickFix : Serializable {
 
   companion object {
     fun deserialize(data: String): PsQuickFix =
-      ObjectInputStream(ByteArrayInputStream(StringUtil.parseHexString(data))).readObject().cast()
+      ObjectInputStream(ByteArrayInputStream(StringUtil.parseHexString(data))).readObject() as PsQuickFix
   }
 }
 

@@ -66,7 +66,6 @@ import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
-import org.jetbrains.kotlin.utils.addToStdlib.cast
 import java.awt.Component
 import java.awt.Point
 import java.awt.event.ActionEvent
@@ -332,7 +331,7 @@ class VariablesTable private constructor(
       when {
         column == UNRESOLVED_VALUE && getNodeRendered() is EmptyValueNode ->
           (getDefaultComponent() as JLabel).apply {
-            text = getNodeRendered().cast<EmptyValueNode>().emptyValue
+            text = (getNodeRendered() as EmptyValueNode).emptyValue
             foreground =
               if (isSelected) SimpleTextAttributes.SELECTED_SIMPLE_CELL_ATTRIBUTES.fgColor
               else UIUtil.getInactiveTextColor()
