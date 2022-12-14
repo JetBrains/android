@@ -40,8 +40,8 @@ import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceTyp
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.TEST_RESOURCE_GENERATED
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import org.jetbrains.annotations.SystemDependent
-import org.jetbrains.kotlin.idea.roots.NodeWithData
-import org.jetbrains.kotlin.idea.roots.findAll
+import org.jetbrains.kotlin.idea.base.externalSystem.NodeWithData
+import org.jetbrains.kotlin.idea.base.externalSystem.findAll
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 
