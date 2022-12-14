@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.idea.caches.resolve.util.KotlinResolveScopeEnlarger;
+import org.jetbrains.kotlin.idea.base.projectStructure.KotlinResolveScopeEnlarger;
 
 /**
  * Provides additional scope for light model classes used by reference resolution and code completion.
@@ -47,7 +47,7 @@ public class MlResolveScopeEnlarger extends ResolveScopeEnlarger {
     return module != null ? getAdditionalResolveScope(module) : null;
   }
 
-  public static class MlKotlinResolveScopeEnlarger extends KotlinResolveScopeEnlarger {
+  public static class MlKotlinResolveScopeEnlarger implements KotlinResolveScopeEnlarger {
     @Nullable
     @Override
     public SearchScope getAdditionalResolveScope(@NotNull Module module, boolean isTestScope) {

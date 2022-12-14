@@ -35,7 +35,7 @@ import com.intellij.util.xml.GenericDomValue
 import com.intellij.xml.XmlExtension
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.resources.ResourceValue
-import org.jetbrains.kotlin.idea.util.module
+import org.jetbrains.kotlin.idea.base.util.module
 
 /**
  * PSI Reference to a resource namespace, created in the namespace part of an XML resource reference (e.g. `@com.example:string/foo`).

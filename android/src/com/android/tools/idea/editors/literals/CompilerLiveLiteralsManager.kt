@@ -32,7 +32,7 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.idea.util.module
+import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.org.objectweb.asm.ClassReader
 
 private val log = Logger.getInstance(CompilerLiveLiteralsManager::class.java)

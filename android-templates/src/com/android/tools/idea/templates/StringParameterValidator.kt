@@ -45,10 +45,9 @@ import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
-import org.jetbrains.kotlin.idea.caches.project.SourceType
-import org.jetbrains.kotlin.idea.caches.project.toInfo
+import org.jetbrains.kotlin.idea.base.facet.platform.platform
+import org.jetbrains.kotlin.idea.base.projectStructure.productionSourceInfo
 import org.jetbrains.kotlin.idea.core.KotlinIndicesHelper
-import org.jetbrains.kotlin.idea.project.TargetPlatformDetector
 import java.io.File
 
 /**
@@ -127,8 +126,8 @@ fun StringParameter.validateStringType(
     KOTLIN_FUNCTION -> {
       project ?: return false
       module ?: return false
-      val moduleInfo = module.toInfo(SourceType.PRODUCTION)!!
-      val platform = TargetPlatformDetector.getPlatform(module)
+      val moduleInfo = module.productionSourceInfo!!
+      val platform = module.platform
       val facade = KotlinCacheService.getInstance(project).getResolutionFacadeByModuleInfo(moduleInfo, platform)!!
       val helper = KotlinIndicesHelper(facade, searchScope, { true })
       helper.getTopLevelCallablesByName(value).isNotEmpty()

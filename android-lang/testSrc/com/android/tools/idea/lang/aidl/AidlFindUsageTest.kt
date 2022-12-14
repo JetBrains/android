@@ -25,7 +25,7 @@ import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiReference
 import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.kotlin.idea.core.util.getLineNumber
+import org.jetbrains.kotlin.idea.base.psi.getLineNumber
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
 class AidlFindUsageTest : AndroidTestCase() {

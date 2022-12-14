@@ -66,7 +66,7 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
 
   private fun getBestKotlinVersion() : String {
     // See IdeaKotlinVersionProviderService.getKotlinVersionFromCompiler().
-    return KotlinPluginLayout.instance.standaloneCompilerVersion.artifactVersion
+    return KotlinPluginLayout.standaloneCompilerVersion.artifactVersion
   }
 
   /**

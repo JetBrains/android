@@ -62,8 +62,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
 import org.jetbrains.kotlin.analyzer.ModuleInfo;
-import org.jetbrains.kotlin.idea.UserDataModuleInfoKt;
-import org.jetbrains.kotlin.idea.caches.resolve.util.KotlinResolveScopeEnlarger;
+import org.jetbrains.kotlin.idea.base.projectStructure.KotlinProjectStructureCustomizationUtils;
+import org.jetbrains.kotlin.idea.base.projectStructure.KotlinResolveScopeEnlarger;
 
 public abstract class AndroidLightClassBase extends LightElement implements PsiClass, SyntheticElement {
   private static final Key<Library> LIBRARY = Key.create(AndroidLightClassBase.class.getName() + ".LIBRARY");
@@ -460,15 +460,15 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
    */
   private static class KotlinRegistrationHelper {
     static void setModuleInfo(@NotNull PsiFile file, boolean isTest) {
-      file.putUserData(UserDataModuleInfoKt.MODULE_ROOT_TYPE_KEY, isTest ? JavaSourceRootType.TEST_SOURCE : JavaSourceRootType.SOURCE);
+      KotlinProjectStructureCustomizationUtils.setCustomSourceRootType(file, isTest ? JavaSourceRootType.TEST_SOURCE : JavaSourceRootType.SOURCE);
     }
 
     static void setModuleInfo(@NotNull PsiFile file, @NotNull Library library) {
-      file.putUserData(UserDataModuleInfoKt.LIBRARY_KEY, library);
+      KotlinProjectStructureCustomizationUtils.setCustomLibrary(file, library);
     }
 
     static void setModelInfo(@NotNull PsiFile file, @NotNull Sdk sdk) {
-      file.putUserData(UserDataModuleInfoKt.SDK_KEY, sdk);
+      KotlinProjectStructureCustomizationUtils.setCustomSdk(file, sdk);
     }
   }
 

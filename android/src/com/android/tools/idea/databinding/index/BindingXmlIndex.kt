@@ -40,7 +40,7 @@ import com.intellij.util.io.DataInputOutputUtil.writeINT
 import com.intellij.util.io.IOUtil
 import com.intellij.util.xml.NanoXmlBuilder
 import com.intellij.util.xml.NanoXmlUtil
-import org.jetbrains.kotlin.idea.search.projectScope
+import org.jetbrains.kotlin.idea.base.util.projectScope
 import java.io.DataInput
 import java.io.DataOutput
 import java.io.Reader
