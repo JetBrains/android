@@ -33,6 +33,7 @@ import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.projectImport.ProjectOpenProcessor
+import com.intellij.ui.IdeUICustomization
 
 
 /**
@@ -107,7 +108,7 @@ private fun confirmOpenNewProject(): Int {
 
   var mode = GeneralSettings.getInstance().confirmOpenNewProject
   if (mode == GeneralSettings.OPEN_PROJECT_ASK) {
-    val message =  IdeBundle.message("prompt.open.project.in.new.frame")
+    val message =  IdeUICustomization.getInstance().projectMessage("prompt.open.project.in.new.frame")
     val exitCode = MessageDialogBuilder.yesNoCancel(IdeBundle.message("title.open.project"), message)
       .yesText(IdeBundle.message("button.existing.frame"))
       .noText(IdeBundle.message("button.new.frame"))
