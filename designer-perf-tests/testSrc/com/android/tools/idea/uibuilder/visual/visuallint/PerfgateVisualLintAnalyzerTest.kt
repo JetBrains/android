@@ -130,7 +130,7 @@ class PerfgateVisualLintAnalyzerTest {
     deviceIds.forEach { deviceId ->
       val configuration = RenderTestUtil.getConfiguration(module, activityLayout, deviceId, "Theme.MaterialComponents.DayNight.DarkActionBar")
       filesToAnalyze.forEach { file ->
-        val nlModel = SyncNlModel.create(projectRule.fixture.projectDisposable, NlComponentRegistrar, null, null, facet, file, configuration)
+        val nlModel = SyncNlModel.create(projectRule.fixture.projectDisposable, NlComponentRegistrar, null, facet, file, configuration)
         val psiFile = AndroidPsiUtils.getPsiFileSafely(projectRule.project, file) as XmlFile
         nlModel.syncWithPsi(AndroidPsiUtils.getRootTagSafely(psiFile)!!, emptyList<NlModel.TagSnapshotTreeNode>())
         RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->

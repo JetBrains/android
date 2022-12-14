@@ -54,10 +54,10 @@ object ColorBlindModeModelsProvider : VisualizationModelsProvider {
       val config = defaultConfig.clone()
       val model = NlModel.builder(facet, virtualFile, config)
                    .withParentDisposable(parent)
-                   .withModelDisplayName(mode.displayName)
                    .withModelTooltip(defaultConfig.toHtmlTooltip())
                    .withComponentRegistrar(NlComponentRegistrar)
                    .build()
+      model.modelDisplayName = mode.displayName
       models.add(model)
 
       registerModelsProviderConfigurationListener(model, defaultConfig, config, EFFECTIVE_FLAGS)

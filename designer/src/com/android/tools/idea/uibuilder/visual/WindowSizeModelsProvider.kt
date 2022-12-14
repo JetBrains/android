@@ -66,10 +66,10 @@ object WindowSizeModelsProvider : VisualizationModelsProvider {
       val betterFile = ConfigurationMatcher.getBetterMatch(config, null, null, null, null) ?: virtualFile
       val model = NlModel.builder(facet, betterFile, config)
         .withParentDisposable(parentDisposable)
-        .withModelDisplayName(device.displayName)
         .withModelTooltip(config.toHtmlTooltip())
         .withComponentRegistrar(NlComponentRegistrar)
         .build()
+      model.modelDisplayName = device.displayName
       models.add(model)
 
       registerModelsProviderConfigurationListener(model, defaultConfig, config, EFFECTIVE_FLAGS)

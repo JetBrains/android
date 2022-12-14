@@ -41,31 +41,29 @@ public class SyncNlModel extends NlModel {
   @NotNull
   public static SyncNlModel create(@Nullable Disposable parent,
                                    @NotNull Consumer<NlComponent> componentRegistrar,
-                                   @Nullable String displayName,
                                    @Nullable String tooltip,
                                    @NotNull AndroidFacet facet,
                                    @NotNull VirtualFile file) {
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(facet);
     Configuration configuration =  manager.getConfiguration(file);
     configuration.setDevice(manager.getDeviceById("Nexus 4"), true);
-    return new SyncNlModel(parent, componentRegistrar, displayName, tooltip, facet, file, configuration);
+    return new SyncNlModel(parent, componentRegistrar, tooltip, facet, file, configuration);
   }
 
   @NotNull
   public static SyncNlModel create(@Nullable Disposable parent,
                                    @NotNull Consumer<NlComponent> componentRegistrar,
-                                   @Nullable String displayName,
                                    @Nullable String tooltip,
                                    @NotNull AndroidFacet facet,
                                    @NotNull VirtualFile file,
                                    @NotNull Configuration configuration) {
-    return new SyncNlModel(parent, componentRegistrar, displayName, tooltip, facet, file, configuration);
+    return new SyncNlModel(parent, componentRegistrar, tooltip, facet, file, configuration);
   }
 
-  private SyncNlModel(@Nullable Disposable parent, @NotNull Consumer<NlComponent> componentRegistrar, @Nullable String displayName,
+  private SyncNlModel(@Nullable Disposable parent, @NotNull Consumer<NlComponent> componentRegistrar,
                       @Nullable String tooltip, @NotNull AndroidFacet facet, @NotNull VirtualFile file,
                       @NotNull Configuration configuration) {
-    super(parent, displayName, tooltip, facet, file, configuration, componentRegistrar, DataContext.EMPTY_CONTEXT);
+    super(parent, tooltip, facet, file, configuration, componentRegistrar, DataContext.EMPTY_CONTEXT);
   }
 
   /**

@@ -111,7 +111,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   @NotNull private final Configuration myConfiguration;
   private final ListenerCollection<ModelListener> myListeners = ListenerCollection.createWithDirectExecutor();
   /** Model name. This can be used when multiple models are displayed at the same time */
-  @Nullable private String myModelDisplayName;
+  @Nullable private String myModelDisplayName = null;
   /** Text to display when displaying a tooltip related to this model */
   @Nullable private String myModelTooltip;
   @Nullable private NlComponent myRootComponent;
@@ -164,7 +164,6 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   @Slow
   @NotNull
   static NlModel create(@Nullable Disposable parent,
-                        @Nullable String modelDisplayName,
                         @Nullable String modelTooltip,
                         @NotNull AndroidFacet facet,
                         @NotNull VirtualFile file,
@@ -173,23 +172,21 @@ public class NlModel implements ModificationTracker, DataContextHolder {
                         @NotNull BiFunction<Project, VirtualFile, XmlFile> xmlFileProvider,
                         @Nullable NlModelUpdaterInterface modelUpdater,
                         @NotNull DataContext dataContext) {
-    return new NlModel(parent, modelDisplayName, modelTooltip, facet, file, configuration, componentRegistrar, xmlFileProvider, modelUpdater, dataContext);
+    return new NlModel(parent, modelTooltip, facet, file, configuration, componentRegistrar, xmlFileProvider, modelUpdater, dataContext);
   }
 
   protected NlModel(@Nullable Disposable parent,
-                    @Nullable String modelDisplayName,
                     @Nullable String modelTooltip,
                     @NotNull AndroidFacet facet,
                     @NotNull VirtualFile file,
                     @NotNull Configuration configuration,
                     @NotNull Consumer<NlComponent> componentRegistrar,
                     @NotNull DataContext dataContext) {
-    this(parent, modelDisplayName, modelTooltip, facet, file, configuration, componentRegistrar, NlModel::getDefaultXmlFile, null, dataContext);
+    this(parent, modelTooltip, facet, file, configuration, componentRegistrar, NlModel::getDefaultXmlFile, null, dataContext);
   }
 
   @VisibleForTesting
   protected NlModel(@Nullable Disposable parent,
-                    @Nullable String modelDisplayName,
                     @Nullable String modelTooltip,
                     @NotNull AndroidFacet facet,
                     @NotNull VirtualFile file,
@@ -200,7 +197,6 @@ public class NlModel implements ModificationTracker, DataContextHolder {
                     @NotNull DataContext dataContext) {
     myFacet = facet;
     myXmlFileProvider = xmlFileProvider;
-    myModelDisplayName = modelDisplayName;
     myModelTooltip = modelTooltip;
     myFile = file;
     myConfiguration = configuration;

@@ -123,9 +123,8 @@ class CustomModelsProvider(val customId: String,
     // Default layout file. (Based on current configuration in Layout Editor)
     models.add(NlModel.builder(facet, currentFile, currentFileConfig)
       .withParentDisposable(parentDisposable)
-      .withModelDisplayName("Default (Current File)")
       .withComponentRegistrar(NlComponentRegistrar)
-      .build())
+      .build().apply { modelDisplayName = "Default (Current File)" })
 
     // Custom Configurations
     for (attributes in customConfigSet.customConfigAttributes) {
@@ -140,11 +139,11 @@ class CustomModelsProvider(val customId: String,
 
       val model = NlModel.builder(facet, betterFile, config)
         .withParentDisposable(parentDisposable)
-        .withModelDisplayName(customConfig.name)
         .withModelTooltip(config.toHtmlTooltip())
         .withComponentRegistrar(NlComponentRegistrar)
         .withDataContext(CustomModelDataContext)
         .build()
+      model.modelDisplayName = customConfig.name
       models.add(model)
       Disposer.register(model, config)
       configurationToConfigurationAttributesMap[config] = attributes

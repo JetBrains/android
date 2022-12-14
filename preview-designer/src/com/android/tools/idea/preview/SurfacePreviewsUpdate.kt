@@ -189,7 +189,6 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
         withContext(AndroidDispatchers.workerThread) {
           val newModel = NlModel.builder(facet, file, configuration)
             .withParentDisposable(parentDisposable)
-            .withModelDisplayName(previewElement.displaySettings.name)
             .withModelUpdater(modelUpdater)
             .withComponentRegistrar(NlComponentRegistrar)
             .withDataContext(previewElementModelAdapter.createDataContext(previewElement))
@@ -198,7 +197,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
                 it.putUserData(ModuleUtilCore.KEY_MODULE, facet.module)
               }
             }
-            .build()
+            .build().apply { modelDisplayName = previewElement.displaySettings.name }
           configureLayoutlibSceneManager(
             previewElement.displaySettings,
             addModelWithoutRender(newModel))

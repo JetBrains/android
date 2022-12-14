@@ -84,10 +84,10 @@ object WearDeviceModelsProvider: VisualizationModelsProvider {
       config.deviceState = device.getState(screenOrientation.shortDisplayValue)
       val model = NlModel.builder(facet, virtualFile, config)
         .withParentDisposable(parentDisposable)
-        .withModelDisplayName(device.displayName)
         .withModelTooltip(config.toHtmlTooltip())
         .withComponentRegistrar(NlComponentRegistrar)
         .build()
+      model.modelDisplayName = device.displayName
       models.add(model)
 
       registerModelsProviderConfigurationListener(model, defaultConfig, config, EFFECTIVE_FLAGS)

@@ -502,11 +502,12 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
 
     ModelProvider defaultModelProvider = (disposable, project, facet, componentRegistrar, file) -> {
       Configuration configuration = FileTypeUtilsKt.getConfiguration(file, ConfigurationManager.getOrCreateInstance(facet));
-      return NlModel.builder(facet, file, configuration)
+      NlModel model = NlModel.builder(facet, file, configuration)
         .withParentDisposable(disposable)
         .withComponentRegistrar(componentRegistrar)
-        .withModelDisplayName("") // For the Layout Editor, set an empty name to enable SceneView toolbars.
         .build();
+      model.setModelDisplayName(""); // For the Layout Editor, set an empty name to enable SceneView toolbars.
+      return model;
     };
 
     /**

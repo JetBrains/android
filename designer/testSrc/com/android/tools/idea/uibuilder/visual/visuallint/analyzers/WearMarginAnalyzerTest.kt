@@ -99,7 +99,7 @@ class WearMarginAnalyzerTest {
     val file = projectRule.fixture.addFileToProject("res/layout/layout.xml", LAYOUT).virtualFile
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file, "wearos_small_round")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, file, configuration)
+    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, file, configuration)
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)
@@ -122,7 +122,7 @@ class WearMarginAnalyzerTest {
     val file = projectRule.fixture.addFileToProject("res/layout/layout.xml", LAYOUT).virtualFile
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file, "wearos_large_round")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, file, configuration)
+    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, file, configuration)
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)
@@ -146,7 +146,7 @@ class WearMarginAnalyzerTest {
     val file = projectRule.fixture.addFileToProject("res/layout/layout.xml", LAYOUT).virtualFile
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file, "wearos_rect")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, file, configuration)
+    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, file, configuration)
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)
@@ -169,7 +169,7 @@ class WearMarginAnalyzerTest {
     val file = projectRule.fixture.addFileToProject("res/layout/layout.xml", LAYOUT).virtualFile
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file, "wearos_square")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, file, configuration)
+    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, file, configuration)
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)

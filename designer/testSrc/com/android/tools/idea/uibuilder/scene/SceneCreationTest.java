@@ -108,7 +108,7 @@ public class SceneCreationTest extends SceneTest {
     // Create a sample model
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("sceneDisposedModel.xml", "<LinearLayout/>");
     SyncNlModel model = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE,
-                                           null, null, myFacet, xmlFile.getVirtualFile());
+                                           null, myFacet, xmlFile.getVirtualFile());
 
     SceneManager manager = surface.addModelWithoutRender(model);
     Scene scene = manager.getScene();

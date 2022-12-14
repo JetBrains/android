@@ -79,7 +79,7 @@ class VisualLintServiceTest {
     val module = projectRule.getModule("app")
     val facet = AndroidFacet.getInstance(module)!!
     val dashboardLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_dashboard.xml")!!
-    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, dashboardLayout)
+    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, dashboardLayout)
     val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
     visualLintService.runVisualLintAnalysis(projectRule.fixture.testRootDisposable,
                                             VisualLintIssueProvider(projectRule.fixture.testRootDisposable), listOf(nlModel),
@@ -93,7 +93,7 @@ class VisualLintServiceTest {
     }
 
     val atfLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/atf_layout.xml")!!
-    val atfModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, atfLayout)
+    val atfModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, atfLayout)
     VisualLintService.getInstance(projectRule.project)
       .runVisualLintAnalysis(projectRule.fixture.testRootDisposable, VisualLintIssueProvider(projectRule.fixture.testRootDisposable),
                              listOf(atfModel), visualLintExecutorService)
@@ -110,7 +110,7 @@ class VisualLintServiceTest {
 
     val wearLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/wear_layout.xml")!!
     val wearConfiguration = RenderTestUtil.getConfiguration(module, wearLayout, "wearos_small_round")
-    val wearModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, wearLayout, wearConfiguration)
+    val wearModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, wearLayout, wearConfiguration)
     VisualLintService.getInstance(projectRule.project)
       .runVisualLintAnalysis(projectRule.fixture.testRootDisposable, VisualLintIssueProvider(projectRule.fixture.testRootDisposable),
                              listOf(wearModel), visualLintExecutorService)

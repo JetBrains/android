@@ -72,10 +72,10 @@ object LocaleModelsProvider: VisualizationModelsProvider {
     run {
       val firstModel = NlModel.builder(facet, defaultFile, defaultLocaleConfig)
         .withParentDisposable(parentDisposable)
-        .withModelDisplayName("Default (no locale)")
         .withModelTooltip(defaultLocaleConfig.toHtmlTooltip())
         .withComponentRegistrar(NlComponentRegistrar)
         .build()
+      firstModel.modelDisplayName = "Default (no locale)"
       models.add(firstModel)
 
       registerModelsProviderConfigurationListener(firstModel, currentFileConfig, defaultLocaleConfig, EFFECTIVE_FLAGS)
@@ -91,11 +91,11 @@ object LocaleModelsProvider: VisualizationModelsProvider {
       val label = Locale.getLocaleLabel(locale, false)
       val model = NlModel.builder(facet, betterFile, config)
         .withParentDisposable(parentDisposable)
-        .withModelDisplayName(label)
         .withModelTooltip(config.toHtmlTooltip())
         .withComponentRegistrar(NlComponentRegistrar)
         .build()
       models.add(model)
+      model.modelDisplayName = label
 
       registerModelsProviderConfigurationListener(model, currentFileConfig, config, EFFECTIVE_FLAGS)
     }

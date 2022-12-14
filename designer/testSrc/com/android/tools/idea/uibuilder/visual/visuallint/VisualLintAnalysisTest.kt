@@ -252,7 +252,7 @@ class VisualLintAnalysisTest {
     val facet = AndroidFacet.getInstance(module)!!
     val configuration = RenderTestUtil.getConfiguration(module, files[0], deviceId, "Theme.MaterialComponents.DayNight.DarkActionBar")
     files.forEach { file ->
-      val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, file, configuration)
+      val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, file, configuration)
       val psiFile = AndroidPsiUtils.getPsiFileSafely(projectRule.project, file) as XmlFile
       nlModel.syncWithPsi(AndroidPsiUtils.getRootTagSafely(psiFile)!!, emptyList<TagSnapshotTreeNode>())
       RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->

@@ -65,10 +65,10 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
       fontConfig.fontScale = scale
       val fontModel = NlModel.builder(facet, virtualFile, fontConfig)
         .withParentDisposable(parentDisposable)
-        .withModelDisplayName(displayName)
         .withModelTooltip(fontConfig.toHtmlTooltip())
         .withComponentRegistrar(NlComponentRegistrar)
         .build()
+      fontModel.modelDisplayName = displayName
       models.add(fontModel)
 
       registerModelsProviderConfigurationListener(fontModel, defaultConfig, fontConfig, EFFECTIVE_FLAGS)

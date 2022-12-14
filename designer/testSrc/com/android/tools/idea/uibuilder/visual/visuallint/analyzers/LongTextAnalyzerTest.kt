@@ -63,7 +63,7 @@ class LongTextAnalyzerTest {
     val file = projectRule.fixture.addFileToProject("res/layout/layout.xml", LAYOUT_WITH_LONG_TEXT).virtualFile
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file, "_device_class_phone")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, file, configuration)
+    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, file, configuration)
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)
@@ -83,7 +83,7 @@ class LongTextAnalyzerTest {
     val file = projectRule.fixture.addFileToProject("res/layout/layout.xml", LAYOUT_WITH_LONG_TEXT).virtualFile
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file, "_device_class_tablet")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, file, configuration)
+    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, file, configuration)
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)

@@ -345,10 +345,9 @@ class CustomViewPreviewRepresentation(
       val config = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
       NlModel.builder(facet, customPreviewXml, config)
         .withParentDisposable(this@CustomViewPreviewRepresentation)
-        .withModelDisplayName(className)
         .withXmlProvider(BiFunction { project, _ -> AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile })
         .withComponentRegistrar(NlComponentRegistrar)
-        .build()
+        .build().apply { modelDisplayName = className }
     } else {
       // We want to deactivate the surface so that configuration changes do not trigger scene repaint.
       surface.deactivate()
