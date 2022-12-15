@@ -1005,9 +1005,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.SideConstraintHandlingTest"],
     tags = COMMON_TAGS + [
-        "qa_smoke",  # b/110178024
-        "qa_unreliable",  # bug: b/78469702
-        "qa_smoke_unreliable",  # bug: b/78469702
+        "qa_smoke",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
