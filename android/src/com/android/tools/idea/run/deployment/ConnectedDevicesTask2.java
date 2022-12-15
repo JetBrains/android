@@ -23,7 +23,9 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.util.Collection;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 // TODO Add the thread annotations
 final class ConnectedDevicesTask2 implements AsyncSupplier<Collection<ConnectedDevice>> {
@@ -35,15 +37,24 @@ final class ConnectedDevicesTask2 implements AsyncSupplier<Collection<ConnectedD
 
   @Override
   public @NotNull ListenableFuture<@NotNull Collection<@NotNull ConnectedDevice>> get() {
+    var future = myAndroidDebugBridge.getConnectedDevices();
+
     // noinspection UnstableApiUsage
-    return Futures.transform(myAndroidDebugBridge.getConnectedDevices(), ConnectedDevicesTask2::toList, EdtExecutorService.getInstance());
+    return Futures.transformAsync(future, ConnectedDevicesTask2::toList, EdtExecutorService.getInstance());
   }
 
-  private static @NotNull Collection<@NotNull ConnectedDevice> toList(@NotNull Collection<@NotNull IDevice> devices) {
-    return devices.stream()
+  private static @NotNull ListenableFuture<@NotNull Collection<@NotNull ConnectedDevice>> toList(@NotNull Collection<@NotNull IDevice> devices) {
+    var futures = devices.stream()
       .filter(IDevice::isOnline)
-      .map(ConnectedDevicesTask2::build)
+      .map(ConnectedDevicesTask2::buildAsync)
       .toList();
+
+    // noinspection UnstableApiUsage
+    return Futures.transform(Futures.successfulAsList(futures), ConnectedDevicesTask2::filterNonNull, EdtExecutorService.getInstance());
+  }
+
+  private static @NotNull ListenableFuture<@NotNull ConnectedDevice> buildAsync(@NotNull IDevice device) {
+    return Futures.immediateFuture(build(device));
   }
 
   private static @NotNull ConnectedDevice build(@NotNull IDevice device) {
@@ -58,5 +69,12 @@ final class ConnectedDevicesTask2 implements AsyncSupplier<Collection<ConnectedD
       // TODO
       .setLaunchCompatibility(LaunchCompatibility.YES)
       .build();
+  }
+
+  private static @NotNull Collection<@NotNull ConnectedDevice> filterNonNull(@NotNull Collection<@Nullable ConnectedDevice> devices) {
+    // noinspection NullableProblems
+    return devices.stream()
+      .filter(Objects::nonNull)
+      .toList();
   }
 }
