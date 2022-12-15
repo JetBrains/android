@@ -242,8 +242,6 @@
     <option name="bundle" path="ActionManager" hit="Generate Signed Bundle / APK…" />
     <option name="generate" path="ActionManager" hit="Generate Signed Bundle / APK…" />
     <option name="signed" path="ActionManager" hit="Generate Signed Bundle / APK…" />
-    <option name="hard" path="ActionManager" hit="Hard Refresh" />
-    <option name="refresh" path="ActionManager" hit="Hard Refresh" />
     <option name="help" path="ActionManager" hit="Help" />
     <option name="connection" path="ActionManager" hit="Help debug device connection" />
     <option name="debug" path="ActionManager" hit="Help debug device connection" />
@@ -668,11 +666,6 @@
     <option name="resource" path="ActionManager" hit="Trace Resource Updates" />
     <option name="trace" path="ActionManager" hit="Trace Resource Updates" />
     <option name="updates" path="ActionManager" hit="Trace Resource Updates" />
-    <option name="composable" path="ActionManager" hit="Trigger @Composable recompose via LiveEDit" />
-    <option name="liveedit" path="ActionManager" hit="Trigger @Composable recompose via LiveEDit" />
-    <option name="recompose" path="ActionManager" hit="Trigger @Composable recompose via LiveEDit" />
-    <option name="trigger" path="ActionManager" hit="Trigger @Composable recompose via LiveEDit" />
-    <option name="via" path="ActionManager" hit="Trigger @Composable recompose via LiveEDit" />
     <option name="connections" path="ActionManager" hit="Troubleshoot Device Connections" />
     <option name="device" path="ActionManager" hit="Troubleshoot Device Connections" />
     <option name="troubleshoot" path="ActionManager" hit="Troubleshoot Device Connections" />

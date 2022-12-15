@@ -187,8 +187,4 @@ class LiveEditService constructor(val project: Project,
   fun triggerLiveEdit() {
     deployMonitor.onManualLETrigger(project)
   }
-
-  fun sendRecomposeRequest() {
-    deployMonitor.sendRecomposeRequest();
-  }
 }

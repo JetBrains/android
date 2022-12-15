@@ -159,8 +159,6 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
 
   private static final EditStatus OUT_OF_DATE = new EditStatus(EditState.OUT_OF_DATE, "Refresh to view the latest Live Edit Changes. App state may be reset.", LiveEditService.getPIGGYBACK_ACTION_ID());
 
-  private static final EditStatus RECOMPOSE_NEEDED = new EditStatus(EditState.RECOMPOSE_NEEDED, "Hard refresh must occur for all changes to be applied. App state will be reset.", "android.deploy.livedit.recompose");
-
   private static final EditStatus RECOMPOSE_ERROR = new EditStatus(EditState.RECOMPOSE_ERROR, "Error during recomposition.", null);
 
   private static final EditStatus DEBUGGER_ATTACHED = new EditStatus(EditState.RECOMPOSE_ERROR, "The app is currently running in debugging or profiling mode. These modes are not compatible with Live Edit.", ToolWindowId.RUN);
@@ -520,27 +518,6 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     return  new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
   }
 
-  public void sendRecomposeRequest() {
-    updateEditStatus(UPDATE_IN_PROGRESS);
-    methodChangesExecutor.schedule(this::doSendRecomposeRequest, 0 , TimeUnit.MILLISECONDS);
-  }
-
-  private void doSendRecomposeRequest() {
-    try {
-      deviceIterator().forEach(device -> sendRecomposeRequests(device));
-    } finally {
-      updateEditStatus(UP_TO_DATE);
-    }
-  }
-
-  private void sendRecomposeRequests(IDevice device) {
-    LiveUpdateDeployer deployer = new LiveUpdateDeployer(LOGGER);
-    Installer installer = newInstaller(device);
-    AdbClient adb = new AdbClient(device, LOGGER);
-    deployer.recompose(installer, adb, applicationId);
-    scheduleErrorPolling(deployer, installer, adb, applicationId);
-  }
-
   private List<LiveUpdateDeployer.UpdateLiveEditError> pushUpdatesToDevice(
       String applicationId, IDevice device, List<LiveEditCompilerOutput> updates) {
     LiveUpdateDeployer deployer = new LiveUpdateDeployer(LOGGER);
@@ -550,18 +527,11 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     // TODO: Batch multiple updates in one LiveEdit operation; listening to all PSI events means multiple class events can be
     //  generated from a single keystroke, leading to multiple LEs and multiple recomposes.
     List<LiveUpdateDeployer.UpdateLiveEditError> results = new ArrayList<>();
-    boolean recomposeNeeded = false;
     for (LiveEditCompilerOutput update : updates) {
       boolean useDebugMode = LiveEditAdvancedConfiguration.getInstance().getUseDebugMode();
       boolean usePartialRecompose = LiveEditAdvancedConfiguration.getInstance().getUsePartialRecompose() &&
                                     (update.getFunctionType() == LiveEditFunctionType.COMPOSABLE ||
                                      update.getHasGroupId());
-
-      // In manual mode we don't recompose automatically if priming happened.
-      // Last minute change, we don't want user to have to perform "hard-refresh" is a class was primed.
-      // TODO: Delete if it turns our we don't need Hard-refresh trigger.
-      //boolean recomposeAfterPriming = !LiveEditService.Companion.isLeTriggerManual();
-      boolean recomposeAfterPriming = true;
 
       LiveUpdateDeployer.UpdateLiveEditsParam param =
         new LiveUpdateDeployer.UpdateLiveEditsParam(
@@ -569,8 +539,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
           usePartialRecompose,
           update.getGroupId(),
           update.getClassData(),
-          update.getSupportClasses(), useDebugMode,
-          recomposeAfterPriming);
+          update.getSupportClasses(), useDebugMode);
 
 
       if (useDebugMode) {
@@ -582,27 +551,17 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
       }
 
       LiveUpdateDeployer.UpdateLiveEditResult result = deployer.updateLiveEdit(installer, adb, applicationId, param);
-      if (LiveEditService.Companion.isLeTriggerManual()) {
-        // In manual mode, we need to let the user know that recompose was not called if classes were Primed.
-        if (result.recomposeType == Deploy.AgentLiveEditResponse.RecomposeType.RESET_SKIPPED) {
-          recomposeNeeded = true;
-        }
-      }
       results.addAll(result.errors);
     }
 
-    if (recomposeNeeded) {
-      updateEditStatus(device, RECOMPOSE_NEEDED);
+    if (filesWithCompilationErrors.isEmpty()) {
+      updateEditStatus(device, UP_TO_DATE);
     } else {
-      if (filesWithCompilationErrors.isEmpty()) {
-        updateEditStatus(device, UP_TO_DATE);
-      } else {
-        Optional<String> errorFilename = filesWithCompilationErrors.stream().sequential().findFirst();
-        String errorMsg = ErrorReporterKt.leErrorMessage(LiveEditUpdateException.Error.COMPILATION_ERROR, errorFilename.get());
-        updateEditStatus(device, new EditStatus(EditState.PAUSED, errorMsg, null));
-      }
-      scheduleErrorPolling(deployer, installer, adb, applicationId);
+      Optional<String> errorFilename = filesWithCompilationErrors.stream().sequential().findFirst();
+      String errorMsg = ErrorReporterKt.leErrorMessage(LiveEditUpdateException.Error.COMPILATION_ERROR, errorFilename.get());
+      updateEditStatus(device, new EditStatus(EditState.PAUSED, errorMsg, null));
     }
+    scheduleErrorPolling(deployer, installer, adb, applicationId);
 
     if (!results.isEmpty()) {
       LiveUpdateDeployer.UpdateLiveEditError firstProblem = results.get(0);
