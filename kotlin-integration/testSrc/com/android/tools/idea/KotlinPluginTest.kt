@@ -45,7 +45,6 @@ class KotlinPluginTest {
     // This version corresponds to the Kotlin compiler used for IDE analysis.
     val ideCompilerVersion = kotlinLayout.ideCompilerVersion
     assertThat(ideCompilerVersion.isSnapshot).isFalse()
-    assertThat(ideCompilerVersion.isDev).isFalse()
     assertThat(ideCompilerVersion.kotlinVersion).isAtLeast(standaloneCompilerVersion.kotlinVersion)
 
     // The Kotlin IDE plugin version is defined by the <version> tag in kotlin-plugin.jar!/META-INF/plugin.xml.
