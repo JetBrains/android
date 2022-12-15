@@ -93,6 +93,7 @@ class ViewLayoutInspectorClient(
   private val messenger: AppInspectorMessenger,
   private val composeInspector: ComposeLayoutInspectorClient?,
   private val fireError: (String) -> Unit = {},
+  private val fireRootsEvent: (List<Long>) -> Unit = {},
   private val fireTreeEvent: (Data) -> Unit = {},
   private val launchMonitor: InspectorClientLaunchMonitor
 ) {
@@ -126,6 +127,7 @@ class ViewLayoutInspectorClient(
       eventScope: CoroutineScope,
       composeLayoutInspectorClient: ComposeLayoutInspectorClient?,
       fireError: (String) -> Unit,
+      fireRootsEvent: (List<Long>) -> Unit,
       fireTreeEvent: (Data) -> Unit,
       launchMonitor: InspectorClientLaunchMonitor
     ): ViewLayoutInspectorClient {
@@ -133,8 +135,8 @@ class ViewLayoutInspectorClient(
       // left running for some reason. This is a better experience than silently falling back to a legacy client.
       val params = LaunchParameters(process, VIEW_LAYOUT_INSPECTOR_ID, JAR, model.project.name, force = true)
       val messenger = apiServices.launchInspector(params)
-      return ViewLayoutInspectorClient(model, stats, process, eventScope, messenger, composeLayoutInspectorClient, fireError, fireTreeEvent,
-                                       launchMonitor)
+      return ViewLayoutInspectorClient(model, stats, process, eventScope, messenger, composeLayoutInspectorClient, fireError,
+                                       fireRootsEvent, fireTreeEvent, launchMonitor)
     }
   }
 
@@ -273,6 +275,7 @@ class ViewLayoutInspectorClient(
     lastComposeParameters.keys.retainAll(currRoots.toSet())
     lastProperties.keys.retainAll(currRoots.toSet())
     recentLayouts.keys.retainAll(currRoots.toSet())
+    fireRootsEvent(rootsEvent.idsList)
   }
 
   private suspend fun handleLayoutEvent(layoutEvent: LayoutEvent) {

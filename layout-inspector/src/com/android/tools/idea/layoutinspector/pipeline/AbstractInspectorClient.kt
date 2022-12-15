@@ -62,6 +62,7 @@ abstract class AbstractInspectorClient(
 
   private val stateCallbacks = ListenerCollection.createWithDirectExecutor<(InspectorClient.State) -> Unit>()
   private val errorCallbacks = ListenerCollection.createWithDirectExecutor<(String) -> Unit>()
+  private val rootsEventCallbacks = ListenerCollection.createWithDirectExecutor<(List<*>) -> Unit>()
   private val treeEventCallbacks = ListenerCollection.createWithDirectExecutor<(Any) -> Unit>()
   private val attachStateListeners = ListenerCollection.createWithDirectExecutor<(DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit>()
 
@@ -78,6 +79,10 @@ abstract class AbstractInspectorClient(
 
   final override fun registerErrorCallback(callback: (String) -> Unit) {
     errorCallbacks.add(callback)
+  }
+
+  final override fun registerRootsEventCallback(callback: (List<*>) -> Unit) {
+    rootsEventCallbacks.add(callback)
   }
 
   final override fun registerTreeEventCallback(callback: (Any) -> Unit) {
@@ -100,6 +105,10 @@ abstract class AbstractInspectorClient(
    */
   protected fun fireError(error: String) {
     errorCallbacks.forEach { callback -> callback(error) }
+  }
+
+  protected fun fireRootsEvent(roots: List<*>) {
+    rootsEventCallbacks.forEach { callback -> callback(roots) }
   }
 
   /**

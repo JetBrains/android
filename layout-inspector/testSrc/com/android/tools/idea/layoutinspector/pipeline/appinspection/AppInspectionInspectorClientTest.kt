@@ -81,6 +81,7 @@ import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.layoutinspector.util.ComponentUtil
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.project.AndroidRunConfigurations
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.run.AndroidRunConfiguration
@@ -166,6 +167,32 @@ class AppInspectionInspectorClientTest {
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
+  }
+
+  @Test
+  fun clientCanConnectTolockedDevice() {
+    inspectionRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
+      sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.START_RECEIVED)
+      sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.STARTED)
+      sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.RESPONSE_SENT)
+      inspectionRule.viewInspector.connection.sendEvent {
+        // A locked device sends an empty LayoutEvent:
+        layoutEvent = LayoutInspectorViewProtocol.LayoutEvent.getDefaultInstance()
+      }
+      LayoutInspectorViewProtocol.Response.newBuilder()
+        .setStartFetchResponse(LayoutInspectorViewProtocol.StartFetchResponse.getDefaultInstance())
+        .build()
+    }
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
+  }
+
+  private fun sendProgress(progress: LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint) {
+    inspectionRule.viewInspector.connection.sendEvent {
+      progressEvent = LayoutInspectorViewProtocol.ProgressEvent.newBuilder().apply {
+        checkpoint = progress
+      }.build()
+    }
   }
 
   @org.junit.Ignore("b/244336884")

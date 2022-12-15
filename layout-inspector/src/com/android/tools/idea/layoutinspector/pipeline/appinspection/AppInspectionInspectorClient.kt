@@ -163,7 +163,7 @@ class AppInspectionInspectorClient(
         apiServices, process, model, treeSettings, capabilities, launchMonitor, ::logComposeAttachError
       )
       val viewIns = ViewLayoutInspectorClient.launch(
-        apiServices, process, model, stats, coroutineScope, composeInspector, ::fireError, ::fireTreeEvent, launchMonitor
+        apiServices, process, model, stats, coroutineScope, composeInspector, ::fireError, ::fireRootsEvent, ::fireTreeEvent, launchMonitor
       )
       propertiesProvider = AppInspectionPropertiesProvider(viewIns.propertiesCache, composeInspector?.parametersCache, model)
       viewInspector = viewIns

@@ -86,6 +86,7 @@ class LayoutInspector private constructor(
   private fun clientChanged(client: InspectorClient) {
     if (client !== DisconnectedClient) {
       client.registerErrorCallback(::logError)
+      client.registerRootsEventCallback(::adjustRoots)
       client.registerTreeEventCallback(::loadComponentTree)
       client.registerStateCallback { state -> if (state == InspectorClient.State.CONNECTED) updateConnection(client) }
       client.registerConnectionTimeoutCallback { state -> layoutInspectorModel.fireAttachStateEvent(state) }
@@ -107,6 +108,15 @@ class LayoutInspector private constructor(
     client.stats.currentModeIsLive = client.isCapturing
     client.stats.hideSystemNodes = treeSettings.hideSystemNodes
     client.stats.showRecompositions = treeSettings.showRecompositions
+  }
+
+  private fun adjustRoots(roots: List<*>) {
+    recentExecutor.execute {
+      if (!roots.containsAll(layoutInspectorModel.windows.keys)) {
+        // remove the roots that are no longer present
+        layoutInspectorModel.update(null, roots, 0)
+      }
+    }
   }
 
   private fun loadComponentTree(event: Any) {
