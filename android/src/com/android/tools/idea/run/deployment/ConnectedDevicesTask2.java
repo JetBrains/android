@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.run.ConnectedAndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.deployment.Device.Type;
@@ -54,13 +55,43 @@ final class ConnectedDevicesTask2 implements AsyncSupplier<Collection<ConnectedD
   }
 
   private static @NotNull ListenableFuture<@NotNull ConnectedDevice> buildAsync(@NotNull IDevice device) {
-    return Futures.immediateFuture(build(device));
+    var future = getNameAsync(device);
+
+    // noinspection UnstableApiUsage
+    return Futures.whenAllComplete(future).call(() -> build(Futures.getDone(future), device), EdtExecutorService.getInstance());
   }
 
-  private static @NotNull ConnectedDevice build(@NotNull IDevice device) {
+  private static @NotNull ListenableFuture<@NotNull String> getNameAsync(@NotNull IDevice device) {
+    var executor = EdtExecutorService.getInstance();
+
+    if (device.isEmulator()) {
+      // noinspection UnstableApiUsage
+      return Futures.transform(device.getAvdData(), d -> getName(d.getName(), device.getSerialNumber()), executor);
+    }
+
+    var modelFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MODEL);
+    var manufacturerFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER);
+
+    // noinspection UnstableApiUsage
+    return Futures.whenAllComplete(modelFuture, manufacturerFuture)
+      .call(() -> DeviceNameProperties.getName(Futures.getDone(modelFuture), Futures.getDone(manufacturerFuture)), executor);
+  }
+
+  private static @NotNull String getName(@Nullable String name, @NotNull String serialNumber) {
+    if (name == null) {
+      return serialNumber;
+    }
+
+    if (name.equals("<build>")) {
+      return serialNumber;
+    }
+
+    return name;
+  }
+
+  private static @NotNull ConnectedDevice build(@NotNull String name, @NotNull IDevice device) {
     return new ConnectedDevice.Builder()
-      // TODO
-      .setName("Pixel_6_API_33")
+      .setName(name)
       // TODO
       .setKey(new VirtualDevicePath("/usr/local/google/home/user/.android/avd/Pixel_6_API_33.avd"))
       .setAndroidDevice(new ConnectedAndroidDevice(device))
