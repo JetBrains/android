@@ -35,6 +35,10 @@ import com.android.utils.FileUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.ProjectSystemId;
+import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -50,6 +54,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.idea.gradle.configuration.KotlinGradleSourceSetData;
 
 public class GradleProjectSystemUtil {
   /**
@@ -142,6 +147,34 @@ public class GradleProjectSystemUtil {
    */
   public static boolean useCompatibilityConfigurationNames(@Nullable AgpVersion agpVersion) {
     return agpVersion != null && agpVersion.getMajor() < 3;
+  }
+
+  /**
+   * Determines the version of the Kotlin plugin in use in the external (Gradle) project with root at projectPath.  The result can
+   * be absent if: there are no Kotlin modules in the project; or there are multiple Kotlin modules using different versions of the
+   * Kotlin compiler; or if sync has never succeeded in this session.
+   */
+  public static @Nullable String getKotlinVersionInUse(@NotNull Project project, @NotNull String gradleProjectPath) {
+    DataNode<ProjectData> projectData = ExternalSystemApiUtil.findProjectNode(project, GradleUtil.GRADLE_SYSTEM_ID, gradleProjectPath);
+    if (projectData == null) return null;
+    final String[] kotlinVersion = {null};
+    final boolean[] foundVersion = {false};
+    projectData.visit((node) -> {
+      if (node.getKey().equals( KotlinGradleSourceSetData.Companion.getKEY())) {
+        KotlinGradleSourceSetData data = (KotlinGradleSourceSetData)node.getData();
+        String kotlinPluginVersion = data.getKotlinPluginVersion();
+        if (kotlinPluginVersion != null) {
+          if (!foundVersion[0]) {
+            kotlinVersion[0] = data.getKotlinPluginVersion();
+            foundVersion[0] = true;
+          }
+          else if (!kotlinPluginVersion.equals(kotlinVersion[0])) {
+            kotlinVersion[0] = null;
+          }
+        }
+      }
+    });
+    return kotlinVersion[0];
   }
 
   /**
