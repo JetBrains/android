@@ -61,8 +61,6 @@ import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -225,13 +223,16 @@ class LayoutInspectorToolWindowFactoryTest {
     }
     val component = toolWindow.contentManager.selectedContent?.component!!
     waitForCondition(5L, TimeUnit.SECONDS) {
-      component.flatten(false).firstIsInstanceOrNull<DeviceViewPanel>() != null
+      component.flatten(false).firstOrNull { it is DeviceViewPanel } != null
     }
     val inspector =
-      DataManager.getDataProvider(component.flatten(false).firstIsInstance<WorkBench<*>>())
+      DataManager.getDataProvider(
+          component.flatten(false).first { it is WorkBench<*> } as WorkBench<*>
+        )
         ?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
     assertThat(inspector.treeSettings).isInstanceOf(InspectorTreeSettings::class.java)
-    val contentPanel = component.flatten(false).firstIsInstance<DeviceViewContentPanel>()
+    val contentPanel =
+      component.flatten(false).first { it is DeviceViewContentPanel } as DeviceViewContentPanel
     assertThat(inspector.renderLogic.renderSettings)
       .isInstanceOf(InspectorRenderSettings::class.java)
   }
@@ -279,11 +280,13 @@ class LayoutInspectorToolWindowFactoryDisposeTest {
       LayoutInspectorToolWindowFactory().createToolWindowContent(project, toolWindow)
       val component = toolWindow.contentManager.selectedContent?.component!!
       waitForCondition(25L, TimeUnit.SECONDS) {
-        component.flatten(false).firstIsInstanceOrNull<DeviceViewPanel>() != null
+        component.flatten(false).firstOrNull { it is DeviceViewPanel } != null
       }
-      val deviceViewPanel = component.flatten(false).firstIsInstance<DeviceViewPanel>()
+      val deviceViewPanel =
+        component.flatten(false).first { it is DeviceViewPanel } as DeviceViewPanel
       val deviceViewContentPanel =
-        deviceViewPanel.flatten(false).firstIsInstance<DeviceViewContentPanel>()
+        deviceViewPanel.flatten(false).first { it is DeviceViewContentPanel }
+          as DeviceViewContentPanel
       val processes = deviceViewPanel.layoutInspector.processModel!!
       RecentProcess.set(project, RecentProcess(adbRule.bridge.devices.first(), MODERN_PROCESS.name))
 

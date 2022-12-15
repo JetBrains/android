@@ -52,7 +52,6 @@ import org.jetbrains.kotlin.idea.references.KtSimpleNameReference.ShorteningMode
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 
 /**
  * Provides references to all accessible resource fields, when a user types "R.resourceType." for kotlin files.
@@ -192,7 +191,7 @@ class NonTransitiveResourceFieldLookupElement(element: PsiField) :
                             ?.getPreviousInQualifiedChain()
                             ?.getPreviousInQualifiedChain() as? PsiElement ?: return
       if (rClassElement.text == R_CLASS) {
-        (rClassElement.references?.firstIsInstance<KtSimpleNameReference>())?.bindToElement(rClass, NO_SHORTENING)
+        (rClassElement.references.first { it is KtSimpleNameReference } as KtSimpleNameReference).bindToElement(rClass, NO_SHORTENING)
       }
     } else {
       val rFieldElement = elementAtCaretOffset.parent as? PsiReferenceExpression ?: return

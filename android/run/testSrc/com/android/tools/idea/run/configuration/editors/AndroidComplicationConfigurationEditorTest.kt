@@ -50,7 +50,6 @@ import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.JBTextField
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -85,7 +84,7 @@ class AndroidComplicationConfigurationEditorTest {
   //region editor-utils
   private val componentComboBox get() = TreeWalker(editor).descendants().filterIsInstance<ComboBox<String>>()[1]
   private val modulesComboBox get() = TreeWalker(editor).descendants().filterIsInstance<ModulesComboBox>().first()
-  private val slotsPanel get() = editor.components.firstIsInstance<SlotsPanel>().slotsUiPanel
+  private val slotsPanel get() = (editor.components.first {it is SlotsPanel} as SlotsPanel).slotsUiPanel
 
   private val <T> ComboBox<T>.items get() = (0 until itemCount).map { getItemAt(it) }
   private fun getPanelForSlot(slotNum: Int) = slots(slotsPanel)[slotNum] as JPanel

@@ -40,7 +40,6 @@ import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import kotlinx.collections.immutable.toImmutableMap
-import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 
 sealed interface AbstractBuildAnalysisResult {
   fun getBuildSessionID(): String
@@ -129,12 +128,12 @@ data class BuildAnalysisResults(
   }
 
   override fun getTotalConfigurationData(): ProjectConfigurationData = projectConfigurationAnalyzerResult.run {
-    val totalConfigurationTime = projectsConfigurationData.sumByLong { it.totalConfigurationTimeMs }
+    val totalConfigurationTime = projectsConfigurationData.sumOf { it.totalConfigurationTimeMs }
     val totalPluginConfiguration = pluginsConfigurationDataMap.map { entry ->
       PluginConfigurationData(entry.key, entry.value)
     }
     val totalConfigurationSteps = projectsConfigurationData.flatMap { it.configurationSteps }.groupBy { it.type }.map { entry ->
-      ProjectConfigurationData.ConfigurationStep(entry.key, entry.value.sumByLong { it.configurationTimeMs })
+      ProjectConfigurationData.ConfigurationStep(entry.key, entry.value.sumOf { it.configurationTimeMs })
     }
     return ProjectConfigurationData("Total Configuration Data", totalConfigurationTime, totalPluginConfiguration, totalConfigurationSteps)
   }

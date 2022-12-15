@@ -36,7 +36,6 @@ import com.android.build.attribution.ui.displayName
 import com.android.buildanalyzer.common.TaskCategory
 import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
-import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 
 /**
  * A Builder class for a data structure holding the data gathered by Gradle build analyzers.
@@ -47,7 +46,7 @@ class BuildAttributionReportBuilder(
   val windowsDefenderCheckData: WindowsDefenderCheckService.WindowsDefenderWarningData = WindowsDefenderCheckService.NO_WARNING
 ) {
 
-  private val criticalPathDurationMs: Long = buildAnalysisResult.getTasksDeterminingBuildDuration().sumByLong { it.executionTime }
+  private val criticalPathDurationMs: Long = buildAnalysisResult.getTasksDeterminingBuildDuration().sumOf { it.executionTime }
   private val issueUiDataContainer: TaskIssueUiDataContainer = TaskIssueUiDataContainer(buildAnalysisResult)
   private val taskCategoryIssueUiDataContainer = TaskCategoryIssueUiDataContainer(buildAnalysisResult)
   private val taskUiDataContainer: TaskUiDataContainer = TaskUiDataContainer(

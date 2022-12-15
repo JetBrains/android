@@ -29,7 +29,6 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinitio
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Truth.assertThat
-import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -117,7 +116,7 @@ class CriticalPathAnalyzerTest {
     // Then the analyzer should find this critical path
     // SAMPLE(0) -> CLEAN(5) -> A(10) -> MID1(4) -> MID2(4) -> C(30) -> D(20) -> F(10) -> LAST(17)
 
-    assertThat(analyzer.result.tasksDeterminingBuildDuration.sumByLong { it.executionTime }).isEqualTo(100)
+    assertThat(analyzer.result.tasksDeterminingBuildDuration.sumOf { it.executionTime }).isEqualTo(100)
 
     assertThat(analyzer.result.tasksDeterminingBuildDuration).isEqualTo(
       listOf(TaskData.createTaskData(sampleTask, pluginContainer),
@@ -173,7 +172,7 @@ class CriticalPathAnalyzerTest {
     // A(10) -> B(5) -> D(25)
     //                   \--> E(15)
 
-    assertThat(analyzer.result.tasksDeterminingBuildDuration.sumByLong { it.executionTime }).isEqualTo(55)
+    assertThat(analyzer.result.tasksDeterminingBuildDuration.sumOf { it.executionTime }).isEqualTo(55)
 
     assertThat(analyzer.result.tasksDeterminingBuildDuration).isEqualTo(
       listOf(TaskData.createTaskData(taskA, pluginContainer), TaskData.createTaskData(taskB, pluginContainer),

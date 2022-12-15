@@ -25,7 +25,6 @@ import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.timing.Wait
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -57,7 +56,10 @@ class GutterIconTest {
 
     // Find and click the drawable gutter Icon
     val gutterIconPoint =
-      runInEdtAndGet { editorGutter.getCenterPoint(editorGutter.getGutterRenderers(editorLine).firstIsInstance<GutterIconRenderer>())!! }
+      runInEdtAndGet {
+        val gutterMark = editorGutter.getGutterRenderers(editorLine).first { it is GutterIconRenderer }
+        editorGutter.getCenterPoint(gutterMark as GutterIconRenderer)!!
+      }
     guiTest.robot().click(editorGutter, gutterIconPoint)
 
     // It should open the CompactResourcePicker popup, select a different drawable in it

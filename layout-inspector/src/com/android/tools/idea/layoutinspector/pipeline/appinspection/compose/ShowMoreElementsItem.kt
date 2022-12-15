@@ -21,7 +21,6 @@ import com.android.tools.property.ptable.PTable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 
 /**
  * [ParameterItem] used to load more elements of a [PropertyType.ITERABLE].
@@ -65,6 +64,6 @@ class ShowMoreElementsItem(val array: ParameterGroupItem) :
 
   private fun findTable(event: AnActionEvent): PTable? {
     val component = event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT) ?: return null
-    return generateSequence(component) { it.parent }.firstIsInstanceOrNull()
+    return generateSequence(component) { it.parent }.firstOrNull { it is PTable } as? PTable
   }
 }

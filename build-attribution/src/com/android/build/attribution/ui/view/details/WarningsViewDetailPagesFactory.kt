@@ -53,7 +53,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
-import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import javax.swing.JComponent
@@ -116,7 +115,7 @@ class WarningsViewDetailPagesFactory(
 
   private fun createPluginDetailsPage(pluginName: String, tasksWithWarnings: Map<TaskUiData, List<TaskIssueUiData>>) = JPanel().apply {
     layout = BorderLayout()
-    val timeContribution = tasksWithWarnings.keys.sumByLong { it.executionTime.timeMs }
+    val timeContribution = tasksWithWarnings.keys.sumOf { it.executionTime.timeMs }
     val tableRows = tasksWithWarnings.map { (task, _) ->
       // TODO add warning count for the task to the table
       "<td>${task.taskPath}</td><td style=\"text-align:right;padding-left:10px\">${task.executionTime.durationStringHtml()}</td>"
@@ -135,7 +134,7 @@ class WarningsViewDetailPagesFactory(
 
   private fun createTaskWarningTypeDetailsPage(warningType: TaskIssueType, warnings: List<TaskIssueUiData>) = JPanel().apply {
     layout = BorderLayout()
-    val timeContribution = warnings.sumByLong { it.task.executionTime.timeMs }
+    val timeContribution = warnings.sumOf { it.task.executionTime.timeMs }
     val tableRows = warnings.map { "<td>${it.task.taskPath}</td><td style=\"text-align:right;padding-left:10px\">${it.task.executionTime.durationStringHtml()}</td>" }
     val content = """
       <b>${warningType.uiName}</b><br/>

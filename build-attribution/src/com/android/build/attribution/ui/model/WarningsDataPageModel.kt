@@ -49,8 +49,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
-import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.swing.tree.DefaultMutableTreeNode
 
@@ -236,17 +234,17 @@ private class WarningsTreeStructure(
     }
 
     if (filter.showAnnotationProcessorWarnings) {
-      reportData.annotationProcessors.nonIncrementalProcessors.asSequence()
+      val descriptors = reportData.annotationProcessors.nonIncrementalProcessors.asSequence()
         .map { AnnotationProcessorDetailsNodeDescriptor(it) }
         .toList()
-        .ifNotEmpty {
-          val annotationProcessorsRootNode = treeNode(AnnotationProcessorsRootNodeDescriptor(reportData.annotationProcessors))
-          warningsToAdd.add(annotationProcessorsRootNode)
-          forEach {
-            annotationProcessorsRootNode.add(treeNode(it))
-          }
-          treeStats.filteredWarningsCount += size
+      if (descriptors.isNotEmpty()) {
+        val annotationProcessorsRootNode = treeNode(AnnotationProcessorsRootNodeDescriptor(reportData.annotationProcessors))
+        warningsToAdd.add(annotationProcessorsRootNode)
+        descriptors.forEach {
+          annotationProcessorsRootNode.add(treeNode(it))
         }
+        treeStats.filteredWarningsCount += descriptors.size
+      }
     }
 
     // Add configuration caching issues
@@ -390,7 +388,7 @@ class TaskWarningTypeNodeDescriptor(
       rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(executionTimeMs)
     )
 
-  override val executionTimeMs = presentedWarnings.sumByLong { it.task.executionTime.timeMs }
+  override val executionTimeMs = presentedWarnings.sumOf { it.task.executionTime.timeMs }
 }
 
 /** Descriptor for the task warning page node. */
@@ -431,7 +429,7 @@ class PluginGroupingWarningNodeDescriptor(
       rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(executionTimeMs)
     )
 
-  override val executionTimeMs = presentedTasksWithWarnings.keys.sumByLong { it.executionTime.timeMs }
+  override val executionTimeMs = presentedTasksWithWarnings.keys.sumOf { it.executionTime.timeMs }
 }
 
 class TaskCategoryWarningNodeDescriptor(
@@ -478,7 +476,7 @@ class AnnotationProcessorsRootNodeDescriptor(
       rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(executionTimeMs)
 
     )
-  override val executionTimeMs = annotationProcessorsReport.nonIncrementalProcessors.sumByLong { it.compilationTimeMs }
+  override val executionTimeMs = annotationProcessorsReport.nonIncrementalProcessors.sumOf { it.compilationTimeMs }
 }
 
 /** Descriptor for the non-incremental annotation processor page node. */

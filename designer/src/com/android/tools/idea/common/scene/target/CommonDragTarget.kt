@@ -51,7 +51,6 @@ import java.awt.Stroke
 import java.awt.event.InputEvent
 import kotlin.math.abs
 import org.intellij.lang.annotations.JdkConstants
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 private const val DEBUG_RENDERER = false
 
@@ -149,7 +148,7 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
         myTop,
         myRight,
         myBottom,
-        if (mIsOver) JBColor.yellow else JBColor.green
+        if (mIsOver) JBColor.yellow else JBColor.green,
       )
       list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, JBColor.red)
       list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, JBColor.red)
@@ -169,8 +168,8 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
                   ph.region.left,
                   ph.region.top,
                   ph.region.right,
-                  ph.region.bottom
-                )
+                  ph.region.bottom,
+                ),
               )
             }
             ph.associatedComponent == snappedPlaceholder.associatedComponent -> {
@@ -180,8 +179,8 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
                   ph.region.left,
                   ph.region.top,
                   ph.region.right,
-                  ph.region.bottom
-                )
+                  ph.region.bottom,
+                ),
               )
             }
             else -> Unit // Do nothing for Placeholders in different host
@@ -387,7 +386,7 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
         // TODO: Makes Notch works when dragging from other layouts to Constraint Layout.
         if (ToggleAutoConnectAction.isAutoconnectOn()) {
           targetSnapper.applyNotches(
-            draggedComponents[0].authoritativeNlComponent.startAttributeTransaction()
+            draggedComponents[0].authoritativeNlComponent.startAttributeTransaction(),
           )
         }
         applyPlaceholder(ph)
@@ -395,7 +394,7 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
         draggedComponents.forEachIndexed { index, sceneComponent ->
           sceneComponent.setPosition(
             firstMouse.x - offsets[index].x,
-            firstMouse.y - offsets[index].y
+            firstMouse.y - offsets[index].y,
           )
         }
         if (myComponent.scene.isLiveRenderingEnabled) {
@@ -440,7 +439,7 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
       parent,
       anchor,
       insertType,
-      myComponent.scene.designSurface.selectionModel
+      myComponent.scene.designSurface.selectionModel,
     ) {
       attributesTransactions.forEach { it.commit() }
       myComponent.scene.markNeedsLayout(Scene.IMMEDIATE_LAYOUT)
@@ -456,21 +455,19 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
 
   /** Apply any pending transactions on mouse released. */
   private fun handleRemainingComponentsOnRelease() {
-    draggedComponents
-      .mapNotNull { draggedComponent ->
+    val components =
+      draggedComponents.mapNotNull { draggedComponent ->
         // We only need to apply changes if there are any pending.
-        if (
-          draggedComponent.authoritativeNlComponent.attributeTransaction?.hasPendingChanges() ==
-            true
-        )
-          draggedComponent.authoritativeNlComponent
-        else null
+        val nlComponent = draggedComponent.authoritativeNlComponent
+        if (nlComponent.attributeTransaction?.hasPendingChanges() == true) nlComponent else null
       }
-      .ifNotEmpty {
-        NlWriteCommandActionUtil.run(this, "Drag component") {
-          this.forEach { it.attributeTransaction?.commit() }
+    if (components.isNotEmpty()) {
+      NlWriteCommandActionUtil.run(components, "Drag component") {
+        for (component in components) {
+          component.attributeTransaction?.commit()
         }
       }
+    }
   }
 
   /** Reset the status when the dragging is canceled. */
@@ -539,7 +536,7 @@ private abstract class BasePlaceholderDrawRegion(
       sceneContext.getSwingXDip(x1.toFloat()),
       sceneContext.getSwingYDip(y1.toFloat()),
       sceneContext.getSwingDimensionDip((x2 - x1).toFloat()),
-      sceneContext.getSwingDimensionDip((y2 - y1).toFloat())
+      sceneContext.getSwingDimensionDip((y2 - y1).toFloat()),
     )
 
     getBackgroundColor(sceneContext.colorSet)?.let {

@@ -40,7 +40,6 @@ import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.KeyPressInfo
 import org.fest.swing.fixture.JButtonFixture
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -169,7 +168,7 @@ class ResourceExplorerTest {
 private fun NlEditorFixture.findResourceExplorer(): ResourceExplorerFixture = ResourceExplorerFixture.find(robot())
 
 private fun SectionFixture.invokeButtonInAttribute(attributeName: String) {
-  val table = components.firstIsInstanceOrNull<PTableFixture>()!!
+  val table = components.first { it is PTableFixture } as PTableFixture
   val tableComp = table.target() as PTableImpl
   val row = table.findRowOf(attributeName)
   val item = table.item(row) as NlPropertyItem

@@ -41,7 +41,7 @@ import com.android.tools.idea.gradle.structure.model.meta.asString
 import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
 import com.android.tools.idea.gradle.structure.model.meta.property
 import com.google.common.util.concurrent.ListenableFuture
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import com.intellij.util.containers.nullize
 import kotlin.reflect.KProperty
 
 object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildModel> {
@@ -70,10 +70,11 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
               ?.let { listOf(it) }
             ?: plugins()
               .filter { it.isAgp() }
-              .ifNotEmpty { map { it.version() } }
+              .map { it.version() }
+              .nullize()
           }
           ?: projectSettingsModel?.run {
-            pluginManagement().plugins().plugins().filter { it.isAgp() }.ifNotEmpty { map { it.version() } }
+            pluginManagement().plugins().plugins().filter { it.isAgp() }.map { it.version() }.nullize()
           }
         when {
           models == null -> null.also { LOG.warn("Android Gradle Plugin Version not found") }

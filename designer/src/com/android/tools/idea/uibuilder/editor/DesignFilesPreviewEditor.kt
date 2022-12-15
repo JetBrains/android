@@ -59,7 +59,6 @@ import javax.swing.JPanel
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
-import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 
 private const val WORKBENCH_NAME = "DESIGN_FILES_PREVIEW_EDITOR"
 
@@ -187,9 +186,9 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) :
           (surface.getSceneManager(model) as? LayoutlibSceneManager)?.let {
             findAnimationDrawable(it)
           }
-        val maxTimeMs =
+        val maxTimeMs: Long =
           animationDrawable?.let { drawable ->
-            (0 until drawable.numberOfFrames).sumByLong { index ->
+            (0 until drawable.numberOfFrames).sumOf { index ->
               drawable.getDuration(index).toLong()
             }
           }

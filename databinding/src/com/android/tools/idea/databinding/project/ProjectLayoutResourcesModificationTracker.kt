@@ -21,7 +21,6 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.util.indexing.FileBasedIndex
-import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 
 /**
  * Modification tracker which changes if any layout resource file across the whole project changes.
@@ -42,8 +41,8 @@ class ProjectLayoutResourcesModificationTracker(private val project: Project): M
   override fun getModificationCount(): Long {
     // Note: LocalResourceRepository and BindingXmlIndex are updated at different times,
     // so we must incorporate both into the modification count (see b/283753328).
-    val resourceModificationCount = enabledFacetsProvider.getAllBindingEnabledFacets()
-      .sumByLong { facet -> StudioResourceRepositoryManager.getModuleResources(facet).modificationCount }
+    val resourceModificationCount: Long = enabledFacetsProvider.getAllBindingEnabledFacets()
+      .sumOf { facet -> StudioResourceRepositoryManager.getModuleResources(facet).modificationCount }
     val bindingIndexModificationCount = FileBasedIndex.getInstance().getIndexModificationStamp(BindingXmlIndex.NAME, project)
     return resourceModificationCount + bindingIndexModificationCount
   }

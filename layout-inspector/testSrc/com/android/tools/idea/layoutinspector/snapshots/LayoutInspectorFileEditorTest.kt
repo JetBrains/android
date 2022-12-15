@@ -41,7 +41,6 @@ import java.awt.image.BufferedImage
 import java.io.ObjectOutputStream
 import java.nio.file.Files
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -100,7 +99,9 @@ class LayoutInspectorFileEditorTest {
     val editorComponent = editor.component
 
     val inspector =
-      DataManager.getDataProvider(editorComponent.flatten(false).firstIsInstance<WorkBench<*>>())
+      DataManager.getDataProvider(
+          editorComponent.flatten(false).first { it is WorkBench<*> } as WorkBench<*>
+        )
         ?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
 
     val settings = inspector.renderLogic.renderSettings
@@ -125,7 +126,9 @@ class LayoutInspectorFileEditorTest {
     val editorComponent = editor.component
 
     val inspector =
-      DataManager.getDataProvider(editorComponent.flatten(false).firstIsInstance<WorkBench<*>>())
+      DataManager.getDataProvider(
+          editorComponent.flatten(false).first { it is WorkBench<*> } as WorkBench<*>
+        )
         ?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
 
     val settings = inspector.renderLogic.renderSettings

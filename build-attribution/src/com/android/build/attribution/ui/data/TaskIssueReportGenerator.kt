@@ -21,7 +21,6 @@ import com.android.ide.common.repository.AgpVersion
 import com.intellij.openapi.util.text.Strings
 import com.intellij.util.LineSeparator
 import com.intellij.util.text.DateFormatUtil
-import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.text.SimpleDateFormat
 import java.util.Comparator
 import java.util.Date
@@ -78,7 +77,7 @@ AGP versions: ${generateAgpVersionsString()}
     return buildString {
       val occurrences = findOtherTaskOccurrencesWithIssues(taskData)
       val timeSum = TimeWithPercentage(
-        occurrences.sumByLong { it.executionTime.timeMs },
+        occurrences.sumOf { it.executionTime.timeMs },
         reportData.buildSummary.criticalPathDuration.timeMs
       )
       appendln(

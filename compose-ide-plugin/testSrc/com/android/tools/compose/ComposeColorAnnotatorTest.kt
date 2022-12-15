@@ -35,7 +35,6 @@ import org.jetbrains.android.AndroidAnnotatorUtil
 import org.jetbrains.android.compose.stubComposableAnnotation
 import com.intellij.openapi.application.runReadAction
 import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -469,7 +468,7 @@ class ComposeColorReferenceAnnotatorTest {
     )
 
     val icons = myFixture.findAllGutters()
-    val colorGutterIconRenderer = icons.firstIsInstance<AndroidAnnotatorUtil.ColorRenderer>()
+    val colorGutterIconRenderer = icons.first {it is AndroidAnnotatorUtil.ColorRenderer}
     assertThat((colorGutterIconRenderer.icon as MultipleColorIcon).colors).containsExactlyElementsIn(arrayOf(Color(63, 81, 181)))
   }
 }

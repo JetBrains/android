@@ -38,7 +38,6 @@ import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.asJava.toLightElements
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 
 /**
  * `referencesSearch` that checks the word index for the right words (in case a table/column name is not the same as class name).
@@ -155,7 +154,7 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
           ?.find { PsiManager.getInstance(element.project).areElementsEquivalent(it.definingElement, element) }
       }
       is KtProperty -> {
-        val lightField = element.toLightElements().firstIsInstanceOrNull<PsiField>()
+        val lightField = element.toLightElements().firstOrNull {it is PsiField }
         schema
           .findTable(element.containingClass()?.toLightClass() ?: return null)
           ?.columns

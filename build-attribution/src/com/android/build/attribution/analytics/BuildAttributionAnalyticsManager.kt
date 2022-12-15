@@ -61,7 +61,6 @@ import com.google.wireless.android.sdk.stats.ProjectConfigurationAnalyzerData
 import com.google.wireless.android.sdk.stats.TaskCategoryIssuesData
 import com.google.wireless.android.sdk.stats.TasksConfigurationIssuesAnalyzerData
 import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.io.Closeable
 import java.util.concurrent.TimeUnit
 
@@ -98,8 +97,8 @@ class BuildAttributionAnalyticsManager(
     analyzersDataBuilder.annotationProcessorsAnalyzerData =
       transformAnnotationProcessorsAnalyzerData(analysisResult.getNonIncrementalAnnotationProcessorsData())
     analyzersDataBuilder.criticalPathAnalyzerData = transformCriticalPathAnalyzerData(
-      analysisResult.getCriticalPathTasks().sumByLong { it.executionTime },
-      analysisResult.getTasksDeterminingBuildDuration().sumByLong(TaskData::executionTime),
+      analysisResult.getCriticalPathTasks().sumOf { it.executionTime },
+      analysisResult.getTasksDeterminingBuildDuration().sumOf(TaskData::executionTime),
       analysisResult.getCriticalPathTasks().size,
       analysisResult.getTasksDeterminingBuildDuration().size,
       analysisResult.getPluginsDeterminingBuildDuration()
