@@ -60,7 +60,7 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
                   "components for the maven-publish plugin.  You will have to adapt the publishing \n" +
                   "blocks to use the new API (and mark the project as migrated by adding \n" +
                   "<tt>android.disableAutomaticComponentCreation=true</tt> to the project's gradle.properties \n" +
-                  "file.",
+                  "file).",
     readMoreUrl = ReadMoreUrlRedirect("pre-80-maven-publish")
   )
 
