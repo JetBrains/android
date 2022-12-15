@@ -28,6 +28,7 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.fest.swing.core.KeyPressInfo;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
@@ -84,9 +85,10 @@ public class BasicLayoutEditTest {
       .findEditorOf("text")
       .getTextField()
       .selectAll()
-      .enterText("@string/app_name");
+      .enterText("@string/app_name")
+      .pressAndReleaseKey(KeyPressInfo.keyCode(KeyEvent.VK_ENTER));
 
-    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
+    guiTest.ideFrame().click();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     List<NlComponentFixture> components = editorFixture.getAllComponents();
