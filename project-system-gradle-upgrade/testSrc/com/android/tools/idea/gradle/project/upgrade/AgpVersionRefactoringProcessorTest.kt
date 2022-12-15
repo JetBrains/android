@@ -331,6 +331,43 @@ class AgpVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     usages.forEach { assertNotNull(it.tooltipText) }
   }
 
+  @Test
+  fun testUncompressedNativeLibsDisabledBlocked() {
+    writeToBuildFile(TestFileName("AgpVersion/UncompressedNativeLibsDisabled"))
+    writeToGradlePropertiesFile("android.bundle.enableUncompressedNativeLibs=false\n")
+    val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("7.1.0"), AgpVersion.parse("8.1.0"))
+    assertTrue(processor.isBlocked)
+    assertSize(1, processor.blockProcessorReasons())
+    assertEquals(
+      "Uncompressed native libs in bundle is a deprecated property.",
+      processor.blockProcessorReasons()[0].shortDescription
+    )
+  }
+
+  @Test
+  fun testUncompressedNativeLibsDisabledTrueDoesNotBlock() {
+    writeToBuildFile(TestFileName("AgpVersion/UncompressedNativeLibsDisabled"))
+    writeToGradlePropertiesFile("android.bundle.enableUncompressedNativeLibs=true\n")
+    val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("7.1.0"), AgpVersion.parse("8.1.0"))
+    assertFalse(processor.isBlocked)
+  }
+
+  @Test
+  fun testUncompressedNativeLibsDisabledFalseDoesNotBlockVersionNotReached() {
+    writeToBuildFile(TestFileName("AgpVersion/UncompressedNativeLibsDisabled"))
+    writeToGradlePropertiesFile("android.bundle.enableUncompressedNativeLibs=false\n")
+    val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("7.1.0"), AgpVersion.parse("8.0.0"))
+    assertFalse(processor.isBlocked)
+  }
+
+  @Test
+  fun testUncompressedNativeLibsDisabledFalseDoesNotBlockVersionAlreadyReached() {
+    writeToBuildFile(TestFileName("AgpVersion/UncompressedNativeLibsDisabled"))
+    writeToGradlePropertiesFile("android.bundle.enableUncompressedNativeLibs=false\n")
+    val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("8.1.0"), AgpVersion.parse("8.1.0"))
+    assertFalse(processor.isBlocked)
+  }
+
   private fun writeToGradlePropertiesFile(text: String) {
     runWriteAction { VfsUtil.saveText(gradlePropertiesFile, text) }
   }

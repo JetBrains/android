@@ -64,14 +64,39 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
     readMoreUrl = ReadMoreUrlRedirect("pre-80-maven-publish")
   )
 
+  object UncompressedNativeLibsDisabled: BlockReason(
+    shortDescription = "Uncompressed native libs in bundle is a deprecated property.",
+    description =
+    """
+      Starting with version 8.1, Android Gradle Plugin will no longer support the
+      android.bundle.enableUncompressedNativeLibs flag. To disable uncompressed native
+      libs, add the following to your build.gradle file:
+      android {
+          packagingOptions {
+              jniLibs {
+                  useLegacyPackaging = true
+              }
+          }
+      }
+    """.trimIndent(),
+    readMoreUrl = ReadMoreUrlRedirect("uncompressed-native-libs-false")
+  )
+
   private var _isPre80MavenPublish: Boolean? = null
-  val isPre80MavenPublish: Boolean
+  private val isPre80MavenPublish: Boolean
     get() {
       if (_isPre80MavenPublish == null) {
         _isPre80MavenPublish = runReadAction { computeIsPre80MavenPublish() }
       }
       return _isPre80MavenPublish!!
     }
+
+  private val isUncompressedNativeLibsDisabled: Boolean =
+    projectBuildModel.projectBuildModel?.propertiesModel?.declaredProperties
+        ?.firstOrNull { it.name == "android.bundle.enableUncompressedNativeLibs" }
+        ?.run { getValue(STRING_TYPE) }
+        ?.run { lowercase(Locale.US) == "false" }
+      ?: false
 
   private fun computeIsPre80MavenPublish(): Boolean {
     val mavenPublishUsed = projectBuildModel.allIncludedBuildModels.flatMap { it.plugins() }.any { it.name().toString() == "maven-publish" }
@@ -92,6 +117,9 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
     listOfNotNull(
       AgpVersionNotFound.takeIf { isAlwaysNoOpForProject && current != new },
       Pre80MavenPublish.takeIf { isPre80MavenPublish && current < AgpVersion.parse("8.0.0-alpha01") && new >= AgpVersion.parse("8.0.0-alpha01") },
+      UncompressedNativeLibsDisabled.takeIf {
+        current < AgpVersion.parse("8.1.0-alpha01") && new >= AgpVersion.parse("8.1.0-alpha01") && isUncompressedNativeLibsDisabled
+      }
     )
 
   override fun findComponentUsages(): Array<UsageInfo> {
