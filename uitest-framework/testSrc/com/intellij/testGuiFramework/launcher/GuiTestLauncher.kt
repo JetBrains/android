@@ -160,6 +160,7 @@ object GuiTestLauncher {
       "-Didea.system.path=${GuiTests.getSystemDirPath()}",
       "-Dplugin.path=${GuiTestOptions.getPluginPath()}",
       "-Didea.force.use.core.classloader=true",
+      "-Djava.system.class.loader=com.intellij.util.lang.PathClassLoader",
       "-Didea.trust.all.projects=true",
       "-Ddisable.android.first.run=true",
       "-Ddisable.config.import=true",
