@@ -37,6 +37,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextField
 import javax.swing.event.DocumentEvent
+import kotlin.LazyThreadSafetyMode.NONE
 
 private const val MAX_BUFFER_SIZE_MB = 100
 private const val MAX_BUFFER_SIZE_KB = 1024 * MAX_BUFFER_SIZE_MB
@@ -59,6 +60,12 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
     addActionListener { defaultFilterTextField.isEnabled = !isSelected }
   }
 
+  // VisibleForTesting
+  internal val ignoreTagsTextField by lazy(NONE) { IgnoreTagsTextField(logcatSettings.ignoredTags) }
+
+  @VisibleForTesting
+  internal val ignoreTagsNote = JLabel(LogcatBundle.message("logcat.settings.ignore.tags.note")).apply { foreground = JBColor.red }
+
   @VisibleForTesting
   internal val cyclicBufferSizeWarningLabel = JLabel()
 
@@ -70,37 +77,43 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
   internal val enableNamedFiltersCheckbox =
     JCheckBox(LogcatBundle.message("logcat.settings.enable.named.filters"), logcatSettings.namedFiltersEnabled)
 
-  private val component = JPanel(GridBagLayout()).apply {
-    cyclicBufferSizeWarningLabel.foreground = JBColor.red
-    cycleBufferSizeTextField.document.addDocumentListener(object : DocumentAdapter() {
-      override fun textChanged(e: DocumentEvent) {
-        updateWarningLabel()
-      }
-    })
-    val gridBag = GridBag().anchor(NORTHWEST)
-    add(JLabel(LogcatBundle.message("logcat.settings.buffer.size")), gridBag.nextLine().next().anchor(WEST))
-    add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
-    add(cycleBufferSizeTextField, gridBag.next().anchor(WEST))
-    add(JLabel(LogcatBundle.message("logcat.settings.buffer.kb")), gridBag.next().weightx(1.0).anchor(WEST))
-    add(cyclicBufferSizeWarningLabel, gridBag.nextLine().next().coverLine().anchor(NORTHWEST))
-
-    add(JLabel(LogcatBundle.message("logcat.settings.default.filter")), gridBag.nextLine().next().anchor(WEST))
-    add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
-    add(defaultFilterTextField, gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine())
-    add(mostRecentlyUsedFilterIsDefaultCheckbox, gridBag.nextLine().setColumn(2).coverLine().anchor(WEST))
-
-    add(filterHistoryAutocompleteCheckbox, gridBag.nextLine().next().coverLine().anchor(NORTHWEST))
-
-    if (StudioFlags.LOGCAT_NAMED_FILTERS_ENABLE.get()) {
-      add(enableNamedFiltersCheckbox, gridBag.nextLine().next().coverLine().anchor(NORTHWEST))
-    }
-    // Add an empty panel that consumes all vertical space bellow.
-    add(JPanel(), gridBag.nextLine().next().weighty(1.0))
-  }
+  private val component = JPanel(GridBagLayout())
 
   override fun createComponent() = component.apply {
-    // Changing EditorTextField.text requires EDT, so we don't touch it during construction.
-    defaultFilterTextField.text = logcatSettings.defaultFilter
+    component.apply {
+      cyclicBufferSizeWarningLabel.foreground = JBColor.red
+      cycleBufferSizeTextField.document.addDocumentListener(object : DocumentAdapter() {
+        override fun textChanged(e: DocumentEvent) {
+          updateWarningLabel()
+        }
+      })
+      val gridBag = GridBag().anchor(NORTHWEST)
+      add(JLabel(LogcatBundle.message("logcat.settings.buffer.size")), gridBag.nextLine().next().anchor(WEST))
+      add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
+      add(cycleBufferSizeTextField, gridBag.next().anchor(WEST))
+      add(JLabel(LogcatBundle.message("logcat.settings.buffer.kb")), gridBag.next().weightx(1.0).anchor(WEST))
+      add(cyclicBufferSizeWarningLabel, gridBag.nextLine().next().coverLine().anchor(NORTHWEST).pady(10))
+
+      add(JLabel(LogcatBundle.message("logcat.settings.default.filter")), gridBag.nextLine().next().anchor(WEST))
+      add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
+      add(defaultFilterTextField, gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine())
+      add(mostRecentlyUsedFilterIsDefaultCheckbox, gridBag.nextLine().setColumn(2).coverLine().anchor(WEST).pady(10))
+      defaultFilterTextField.text = logcatSettings.defaultFilter
+
+      add(JLabel(LogcatBundle.message("logcat.settings.ignore.tags.label")), gridBag.nextLine().next().anchor(WEST))
+      add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
+      add(ignoreTagsTextField.component, gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine())
+      add(ignoreTagsNote, gridBag.nextLine().setColumn(2).coverLine().anchor(WEST).pady(10))
+      ignoreTagsNote.isVisible = LogcatToolWindowFactory.logcatPresenters.flatMap { it.getTags() }.isEmpty()
+
+      add(filterHistoryAutocompleteCheckbox, gridBag.nextLine().next().coverLine().anchor(NORTHWEST).pady(10))
+
+      if (StudioFlags.LOGCAT_NAMED_FILTERS_ENABLE.get()) {
+        add(enableNamedFiltersCheckbox, gridBag.nextLine().next().coverLine().anchor(NORTHWEST))
+      }
+      // Add an empty panel that consumes all vertical space bellow.
+      add(JPanel(), gridBag.nextLine().next().weighty(1.0))
+    }
   }
 
   private fun updateWarningLabel() {
@@ -122,6 +135,7 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
            || mostRecentlyUsedFilterIsDefaultCheckbox.isSelected != logcatSettings.mostRecentlyUsedFilterIsDefault
            || filterHistoryAutocompleteCheckbox.isSelected != logcatSettings.filterHistoryAutocomplete
            || enableNamedFiltersCheckbox.isSelected != logcatSettings.namedFiltersEnabled
+           || ignoreTagsTextField.getIgnoredTags() != logcatSettings.ignoredTags
   }
 
   override fun apply() {
@@ -130,6 +144,7 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
     logcatSettings.mostRecentlyUsedFilterIsDefault = mostRecentlyUsedFilterIsDefaultCheckbox.isSelected
     logcatSettings.filterHistoryAutocomplete = filterHistoryAutocompleteCheckbox.isSelected
     logcatSettings.namedFiltersEnabled = enableNamedFiltersCheckbox.isSelected
+    logcatSettings.ignoredTags = ignoreTagsTextField.getIgnoredTags()
 
     LogcatToolWindowFactory.logcatPresenters.forEach {
       it.applyLogcatSettings(logcatSettings)

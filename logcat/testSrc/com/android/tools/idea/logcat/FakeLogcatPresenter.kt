@@ -45,6 +45,7 @@ internal class FakeLogcatPresenter : LogcatPresenter {
 
   val messageBatches = mutableListOf<List<LogcatMessage>>()
   val lineBatches = mutableListOf<List<String>>()
+  val tagSet = mutableSetOf<String>()
 
   override var formattingOptions: FormattingOptions = FormattingOptions()
 
@@ -85,9 +86,7 @@ internal class FakeLogcatPresenter : LogcatPresenter {
     TODO("Not yet implemented")
   }
 
-  override fun getTags(): Set<String> {
-    TODO("Not yet implemented")
-  }
+  override fun getTags(): Set<String> = tagSet
 
   override fun getPackageNames(): Set<String> {
     TODO("Not yet implemented")

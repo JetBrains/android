@@ -23,6 +23,7 @@ import com.android.tools.idea.logcat.message.LogLevel
 import com.android.tools.idea.logcat.message.LogLevel.ASSERT
 import com.android.tools.idea.logcat.message.LogLevel.ERROR
 import com.android.tools.idea.logcat.message.LogcatMessage
+import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.util.text.Strings
 import com.intellij.psi.impl.source.tree.PsiErrorElementImpl
@@ -38,13 +39,17 @@ import java.util.regex.PatternSyntaxException
  * The top level filter that prepares and executes a [LogcatFilter]
  */
 internal class LogcatMasterFilter(private val logcatFilter: LogcatFilter?) {
+  private val settings = AndroidLogcatSettings.getInstance()
 
   fun filter(messages: List<LogcatMessage>, zoneId: ZoneId = ZoneId.systemDefault()): List<LogcatMessage> {
+    val ignoredTags = settings.ignoredTags
     if (logcatFilter == null) {
-      return messages
+      return messages.filter { !ignoredTags.contains(it.header.tag) }
     }
     logcatFilter.prepare()
-    return messages.filter { it.header === SYSTEM_HEADER || logcatFilter.matches(LogcatMessageWrapper(it, zoneId)) }
+    return messages.filter {
+      it.header === SYSTEM_HEADER || (logcatFilter.matches(LogcatMessageWrapper(it, zoneId)) && !ignoredTags.contains(it.header.tag))
+    }
   }
 }
 

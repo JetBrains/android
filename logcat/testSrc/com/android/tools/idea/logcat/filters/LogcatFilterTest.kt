@@ -32,9 +32,17 @@ import com.android.tools.idea.logcat.message.LogLevel.INFO
 import com.android.tools.idea.logcat.message.LogLevel.VERBOSE
 import com.android.tools.idea.logcat.message.LogLevel.WARN
 import com.android.tools.idea.logcat.message.LogcatMessage
+import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.TextRange.EMPTY_RANGE
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.UsefulTestCase.assertThrows
+import com.intellij.testFramework.replaceService
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import java.time.Clock
 import java.time.Duration
@@ -50,6 +58,17 @@ private val MESSAGE2 = logcatMessage(WARN, pid = 2, tid = 2, "app2", "Tag2", TIM
  * Tests for [LogcatFilter] implementations.
  */
 class LogcatFilterTest {
+  private val disposableRule = DisposableRule()
+
+  @get:Rule
+  val rule = RuleChain(ApplicationRule(), disposableRule)
+
+  private val logcatSettings = AndroidLogcatSettings()
+
+  @Before
+  fun setUp() {
+    ApplicationManager.getApplication().replaceService(AndroidLogcatSettings::class.java, logcatSettings, disposableRule.disposable)
+  }
 
   @Test
   fun logcatMasterFilter() {
@@ -77,6 +96,27 @@ class LogcatFilterTest {
     val messages = listOf(MESSAGE1, MESSAGE2)
 
     assertThat(LogcatMasterFilter(null).filter(messages)).isEqualTo(messages)
+  }
+
+  @Test
+  fun logcatMasterFilter_ignoreTags() {
+    val messages = listOf(MESSAGE1, MESSAGE2)
+    logcatSettings.ignoredTags = setOf(MESSAGE1.header.tag)
+    val filter = object : LogcatFilter(EMPTY_RANGE) {
+      override val displayText: String = ""
+
+      override fun matches(message: LogcatMessageWrapper) = true
+    }
+
+    assertThat(LogcatMasterFilter(filter).filter(messages)).isEqualTo(listOf(MESSAGE2))
+  }
+
+  @Test
+  fun logcatMasterFilter_ignoreTags_nullFilter() {
+    val messages = listOf(MESSAGE1, MESSAGE2)
+    logcatSettings.ignoredTags = setOf(MESSAGE1.header.tag)
+
+    assertThat(LogcatMasterFilter(null).filter(messages)).isEqualTo(listOf(MESSAGE2))
   }
 
   @Test

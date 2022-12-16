@@ -1134,12 +1134,23 @@
     <option name="from" hit="Add filters from history to autocomplete" />
     <option name="history" hit="Add filters from history to autocomplete" />
     <option name="to" hit="Add filters from history to autocomplete" />
+    <option name="active" hit="Completions are available if there are active Logcat panels open" />
+    <option name="are" hit="Completions are available if there are active Logcat panels open" />
+    <option name="available" hit="Completions are available if there are active Logcat panels open" />
+    <option name="completions" hit="Completions are available if there are active Logcat panels open" />
+    <option name="if" hit="Completions are available if there are active Logcat panels open" />
+    <option name="logcat" hit="Completions are available if there are active Logcat panels open" />
+    <option name="open" hit="Completions are available if there are active Logcat panels open" />
+    <option name="panels" hit="Completions are available if there are active Logcat panels open" />
+    <option name="there" hit="Completions are available if there are active Logcat panels open" />
     <option name="default" hit="Default filter for new Logcat windows:" />
     <option name="filter" hit="Default filter for new Logcat windows:" />
     <option name="for" hit="Default filter for new Logcat windows:" />
     <option name="logcat" hit="Default filter for new Logcat windows:" />
     <option name="new" hit="Default filter for new Logcat windows:" />
     <option name="windows" hit="Default filter for new Logcat windows:" />
+    <option name="ignore" hit="Ignore tags:" />
+    <option name="tags" hit="Ignore tags:" />
     <option name="logcat" hit="Logcat" />
     <option name="buffer" hit="Logcat cycle buffer size:" />
     <option name="cycle" hit="Logcat cycle buffer size:" />

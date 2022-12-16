@@ -102,6 +102,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys.EDITOR
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.RangeMarker
@@ -495,6 +496,9 @@ internal class LogcatMainPanel @TestOnly constructor(
     val bufferSize = logcatSettings.bufferSize
     documentAppender.setMaxDocumentSize(bufferSize)
     messageBacklog.get().setMaxSize(bufferSize)
+    runInEdt {
+      reloadMessages()
+    }
   }
 
   @UiThread
