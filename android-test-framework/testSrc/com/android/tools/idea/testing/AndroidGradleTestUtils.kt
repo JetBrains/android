@@ -302,6 +302,8 @@ interface AndroidProjectStubBuilder {
   val moduleBasePath: File
   val buildPath: File
   val projectType: IdeAndroidProjectType
+  val namespace: String?
+  val testNamespace: String?
   val minSdk: Int
   val targetSdk: Int
   val mlModelBindingEnabled: Boolean
@@ -353,6 +355,8 @@ data class AndroidProjectBuilder(
     toSystemIndependentName(rootProjectBasePath.path)
   }, //  buildId should not be assumed to be a path.
   val projectType: AndroidProjectStubBuilder.() -> IdeAndroidProjectType = { IdeAndroidProjectType.PROJECT_TYPE_APP },
+  val namespace: AndroidProjectStubBuilder.() -> String? = { null },
+  val testNamespace: AndroidProjectStubBuilder.() -> String? = { namespace?.let { "$it.test" } },
   val minSdk: AndroidProjectStubBuilder.() -> Int = { 16 },
   val targetSdk: AndroidProjectStubBuilder.() -> Int = { 22 },
   val mlModelBindingEnabled: AndroidProjectStubBuilder.() -> Boolean = { false },
@@ -506,6 +510,8 @@ data class AndroidProjectBuilder(
         override val moduleBasePath: File = moduleBasePath
         override val buildPath: File get() = moduleBasePath.resolve("build")
         override val projectType: IdeAndroidProjectType get() = projectType()
+        override val namespace: String? get() = namespace()
+        override val testNamespace: String? get() = testNamespace()
         override val minSdk: Int get() = minSdk()
         override val targetSdk: Int get() = targetSdk()
         override val mlModelBindingEnabled: Boolean get() = mlModelBindingEnabled()
@@ -1105,8 +1111,8 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
     viewBindingOptions = viewBindingOptions,
     dependenciesInfo = dependenciesInfo,
     groupId = null,
-    namespace = null,
-    testNamespace = null,
+    namespace = namespace,
+    testNamespace = testNamespace,
     agpFlags = agpProjectFlags,
     variantsBuildInformation = variants.map {
       IdeVariantBuildInformationImpl(variantName = it.name, buildInformation = it.mainArtifact.buildInformation)
