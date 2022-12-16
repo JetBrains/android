@@ -23,34 +23,22 @@ import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunne
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionTargetManager
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.configurations.RunnerSettings
-import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.AsyncProgramRunner
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.showRunContent
-import com.intellij.execution.ui.ExecutionConsole
 import com.intellij.execution.ui.RunContentDescriptor
-import com.intellij.execution.ui.RunContentDescriptorReusePolicy
 import com.intellij.execution.ui.RunContentManager
-import com.intellij.execution.ui.RunnerLayoutUi
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Computable
-import com.intellij.openapi.util.Disposer
-import com.intellij.ui.content.Content
 import com.intellij.util.ThreeState
 import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.resolvedPromise
-import javax.swing.Icon
-import javax.swing.JComponent
-import javax.swing.JLabel
 
 /**
  * Base [com.intellij.execution.runners.ProgramRunner] for all Android Studio (not ASWB) program runners.
@@ -138,143 +126,6 @@ internal constructor(
   }
 
   protected abstract fun canRunWithMultipleDevices(executorId: String): Boolean
-
-  @VisibleForTesting
-  internal class HiddenRunContentDescriptor constructor(private val myDelegate: RunContentDescriptor) :
-    RunContentDescriptor(null, null, JLabel(), "hidden", null, null, null) {
-    init {
-      Disposer.register(this, myDelegate)
-    }
-
-    override fun getActivationCallback(): Runnable? {
-      return myDelegate.activationCallback
-    }
-
-    override fun getRestartActions(): Array<AnAction> {
-      return myDelegate.restartActions
-    }
-
-    override fun getExecutionConsole(): ExecutionConsole {
-      return myDelegate.executionConsole
-    }
-
-    override fun dispose() {}
-    override fun getIcon(): Icon? {
-      return myDelegate.icon
-    }
-
-    override fun getProcessHandler(): ProcessHandler? {
-      return myDelegate.processHandler
-    }
-
-    override fun setProcessHandler(processHandler: ProcessHandler) {
-      myDelegate.processHandler = processHandler
-    }
-
-    override fun isContentReuseProhibited(): Boolean {
-      return myDelegate.isContentReuseProhibited
-    }
-
-    override fun getComponent(): JComponent {
-      return myDelegate.component
-    }
-
-    override fun getDisplayName(): String {
-      return myDelegate.displayName
-    }
-
-    override fun getHelpId(): String {
-      return myDelegate.helpId
-    }
-
-    override fun getAttachedContent(): Content? {
-      return myDelegate.attachedContent
-    }
-
-    override fun setAttachedContent(content: Content) {
-      myDelegate.setAttachedContent(content)
-    }
-
-    override fun getContentToolWindowId(): String? {
-      return myDelegate.contentToolWindowId
-    }
-
-    override fun setContentToolWindowId(contentToolWindowId: String?) {
-      myDelegate.contentToolWindowId = contentToolWindowId
-    }
-
-    override fun isActivateToolWindowWhenAdded(): Boolean {
-      return myDelegate.isActivateToolWindowWhenAdded
-    }
-
-    override fun setActivateToolWindowWhenAdded(activateToolWindowWhenAdded: Boolean) {
-      myDelegate.isActivateToolWindowWhenAdded = activateToolWindowWhenAdded
-    }
-
-    override fun isSelectContentWhenAdded(): Boolean {
-      return myDelegate.isSelectContentWhenAdded
-    }
-
-    override fun setSelectContentWhenAdded(selectContentWhenAdded: Boolean) {
-      myDelegate.isSelectContentWhenAdded = selectContentWhenAdded
-    }
-
-    override fun isReuseToolWindowActivation(): Boolean {
-      return myDelegate.isReuseToolWindowActivation
-    }
-
-    override fun setReuseToolWindowActivation(reuseToolWindowActivation: Boolean) {
-      myDelegate.isReuseToolWindowActivation = reuseToolWindowActivation
-    }
-
-    override fun getExecutionId(): Long {
-      return myDelegate.executionId
-    }
-
-    override fun setExecutionId(executionId: Long) {
-      myDelegate.executionId = executionId
-    }
-
-    override fun toString(): String {
-      return myDelegate.toString()
-    }
-
-    override fun getPreferredFocusComputable(): Computable<JComponent> {
-      return myDelegate.preferredFocusComputable
-    }
-
-    override fun setFocusComputable(focusComputable: Computable<JComponent>) {
-      myDelegate.setFocusComputable(focusComputable)
-    }
-
-    override fun isAutoFocusContent(): Boolean {
-      return myDelegate.isAutoFocusContent
-    }
-
-    override fun setAutoFocusContent(autoFocusContent: Boolean) {
-      myDelegate.isAutoFocusContent = autoFocusContent
-    }
-
-    override fun getRunnerLayoutUi(): RunnerLayoutUi? {
-      return myDelegate.runnerLayoutUi
-    }
-
-    override fun setRunnerLayoutUi(runnerLayoutUi: RunnerLayoutUi?) {
-      myDelegate.runnerLayoutUi = runnerLayoutUi
-    }
-
-    override fun isHiddenContent(): Boolean {
-      return true
-    }
-
-    override fun getReusePolicy(): RunContentDescriptorReusePolicy {
-      return myDelegate.reusePolicy
-    }
-
-    override fun setReusePolicy(reusePolicy: RunContentDescriptorReusePolicy) {
-      myDelegate.reusePolicy = reusePolicy
-    }
-  }
 
   companion object {
     private fun getAvailableAndroidTarget(project: Project, profile: RunConfiguration): AndroidExecutionTarget? {

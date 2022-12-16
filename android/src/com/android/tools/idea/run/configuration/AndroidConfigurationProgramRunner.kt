@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.configuration
 
+import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
@@ -22,6 +23,7 @@ import com.android.tools.idea.run.configuration.user.settings.AndroidConfigurati
 import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.stats.RunStats
 import com.intellij.execution.ExecutionException
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.configurations.RunnerSettings
@@ -97,7 +99,12 @@ class AndroidConfigurationProgramRunner : AsyncProgramRunner<RunnerSettings>() {
           }
 
         runner(indicator)
-          .onSuccess { promise.setResult(it) }
+          .onSuccess {
+            val processHandler = it.processHandler
+                                 ?: throw RuntimeException("AndroidConfigurationExecutor returned RunContentDescriptor without process handler")
+            AndroidSessionInfo.create(processHandler, runProfile as RunConfiguration, environment.executor.id, environment.executionTarget)
+            promise.setResult(it)
+          }
           .onError(::handleError)
       }
 

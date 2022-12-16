@@ -44,7 +44,7 @@ public class StudioProgramRunnerTest {
   public ProjectRule projectRule = new ProjectRule();
 
   /**
-   * {@link StudioProgramRunner.HiddenRunContentDescriptor} is a almost-pure wrapper class for
+   * {@link HiddenRunContentDescriptor} is a almost-pure wrapper class for
    * {@link RunContentDescriptor}, with the exception of the {@link RunContentDescriptor#isHiddenContent()} method overridden to return
    * {@code false}. All other methods in the wrapper class should be overrides to the base class (with the addition of
    * {@link com.intellij.openapi.Disposable} handling.
@@ -62,7 +62,7 @@ public class StudioProgramRunnerTest {
       })
       .count();
     long hiddenRunContentDescriptorMethodCount =
-      Arrays.stream(StudioProgramRunner.HiddenRunContentDescriptor.class.getDeclaredMethods())
+      Arrays.stream(HiddenRunContentDescriptor.class.getDeclaredMethods())
         .filter(method -> {
           int modifier = method.getModifiers();
           return Modifier.isPublic(modifier) || Modifier.isProtected(modifier);

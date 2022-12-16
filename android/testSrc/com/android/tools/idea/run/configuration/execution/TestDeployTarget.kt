@@ -27,7 +27,9 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.Project
 
 /** Deploy target  that provides the one device assigned during init.  */
-class TestDeployTarget(private val device: IDevice) : DeployTarget {
+class TestDeployTarget(val devices: List<IDevice>) : DeployTarget {
+  constructor(device: IDevice) : this(listOf(device))
+
   override fun hasCustomRunProfileState(executor: Executor): Boolean {
     return false
   }
@@ -39,6 +41,6 @@ class TestDeployTarget(private val device: IDevice) : DeployTarget {
   }
 
   override fun getDevices(project: Project): DeviceFutures {
-    return DeviceFutures.forDevices(ImmutableList.of(device))
+    return DeviceFutures.forDevices(devices)
   }
 }
