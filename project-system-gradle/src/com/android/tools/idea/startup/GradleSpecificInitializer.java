@@ -162,7 +162,9 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
     if (sdk != null) {
       String sdkHomePath = sdk.getHomePath();
       assert sdkHomePath != null;
-      ideSdks.createAndroidSdkPerAndroidTarget(FilePaths.stringToFile(sdkHomePath));
+      ApplicationManager.getApplication().invokeLaterOnWriteThread(() -> {
+        ideSdks.createAndroidSdkPerAndroidTarget(FilePaths.stringToFile(sdkHomePath));
+      });
       return;
     }
 
