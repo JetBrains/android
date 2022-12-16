@@ -47,6 +47,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.util.text.nullize
 import kotlinx.coroutines.cancel
@@ -274,8 +275,10 @@ class ComposeLayoutInspectorClient(
           LayoutInspectorBundle.message(COMPOSE_INSPECTION_NOT_AVAILABLE_KEY)
         AttachErrorCode.APP_INSPECTION_FAILED_MAVEN_DOWNLOAD ->
           LayoutInspectorBundle.message(MAVEN_DOWNLOAD_PROBLEM, error.args["artifact"]!!)
-        AttachErrorCode.TRANSPORT_PUSH_FAILED_FILE_NOT_FOUND ->
+        AttachErrorCode.TRANSPORT_PUSH_FAILED_FILE_NOT_FOUND -> {
+          Logger.getInstance(ComposeLayoutInspectorClient::class.java).warn("not found: ${error.args["path"]}")
           LayoutInspectorBundle.message(COMPOSE_JAR_FOUND_FOUND_KEY, error.args["path"]!!, inspectorFolderFlag(isRunningFromSourcesInTests))
+        }
         else -> {
           logErrorToMetrics(error.code)
           return null
