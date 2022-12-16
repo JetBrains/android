@@ -292,8 +292,8 @@ private class LiteralReferenceImpl(originalElement: PsiElement,
     get() = ReadAction.compute<Boolean, Throwable> { elementPointer.range != null }
 
   override val constantValue: Any?
-    get() = element?.let {
-      ReadAction.compute<Any?, Throwable> {
+    get() = ReadAction.compute<Any?, Throwable> {
+      element?.let {
         try {
           constantEvaluator.evaluate(it)
         }
