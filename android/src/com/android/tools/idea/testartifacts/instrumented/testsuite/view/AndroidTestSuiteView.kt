@@ -54,7 +54,6 @@ import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.largeFilesEditor.GuiUtils
-import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
@@ -260,11 +259,12 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
 
     val myFocusableActionToolbar: ActionToolbar = object: ActionToolbarImpl(ActionPlaces.ANDROID_TEST_SUITE_TABLE,
                                                                             testFilterActionGroup, true) {
+
       override fun createToolbarButton(action: AnAction,
                                        look: ActionButtonLook?,
                                        place: String,
                                        presentation: Presentation,
-                                       minimumSize: Dimension): ActionButton {
+                                       minimumSize: Supplier<out Dimension>): ActionButton {
         return super.createToolbarButton(action, look, place, presentation, minimumSize).apply {
           // Toolbar buttons are not accessible by tab key in IntelliJ's default implementation
           // when the screen reader is disabled. We override the behavior here and make it
