@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 final class ConnectedDevicesTask2 implements AsyncSupplier<Collection<ConnectedDevice>> {
   private final @NotNull AndroidDebugBridge myAndroidDebugBridge;
 
-  private ConnectedDevicesTask2(@NotNull AndroidDebugBridge androidDebugBridge) {
+  ConnectedDevicesTask2(@NotNull AndroidDebugBridge androidDebugBridge) {
     myAndroidDebugBridge = androidDebugBridge;
   }
 
