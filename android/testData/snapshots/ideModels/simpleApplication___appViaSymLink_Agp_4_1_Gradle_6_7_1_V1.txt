@@ -215,7 +215,6 @@ MODULE                        : project.app
     - basicVariant:               : release
         applicationId                 : google.simpleapplication
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/optional/org.apache.http.legacy.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo

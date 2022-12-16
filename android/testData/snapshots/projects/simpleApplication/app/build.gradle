@@ -3,8 +3,6 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 23
 
-    useLibrary 'org.apache.http.legacy'
-
     defaultConfig {
         applicationId "google.simpleapplication"
         minSdkVersion 19
