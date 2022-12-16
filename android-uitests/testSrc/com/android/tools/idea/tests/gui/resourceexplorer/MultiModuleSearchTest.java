@@ -67,9 +67,11 @@ public class MultiModuleSearchTest {
     // Testcase failing on buildbot but passes locally. Adding an extra step "make project" to make sure the
     // project is not only imported and synced, but also complied and build.
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
+    GuiTests.takeScreenshot(guiTest.robot(), "VerifyProjectLoaded");
 
     guiTest.ideFrame().invokeMenuPath("Tools", "Resource Manager");
     ResourceExplorerFixture resourceExplorerFixture = ResourceExplorerFixture.find(guiTest.robot());
+    GuiTests.takeScreenshot(guiTest.robot(), "VerifyResourceManagerLoaded");
     assertThat(resourceExplorerFixture.comboBox().selectedItem()).containsMatch("app.main");
     int selectedTabIndex = resourceExplorerFixture.tabbedPane().target().getSelectedIndex();
     assertThat(resourceExplorerFixture.tabbedPane().target().getTitleAt(selectedTabIndex)).matches("Drawable");
@@ -77,12 +79,14 @@ public class MultiModuleSearchTest {
 
     // Verify 1 : Verify Text link with asserts found in the other module.
     resourceExplorerFixture.getSearchField().enterText("event");
+    GuiTests.takeScreenshot(guiTest.robot(), "VerifyLinkForResourceInOtherModule");
     resourceExplorerFixture.click();
     // Add extra step to refresh files system to remove the flakiness on RBE instances in go/ab
     GuiTests.refreshFiles();
     Wait.seconds(30).expecting("Wait for search link to show up").until(() ->
       resourceExplorerFixture.findLinklabelByTextContains(RESOURCE_MATCH_IN_LIBRARY).isEnabled()
       );
+    GuiTests.takeScreenshot(guiTest.robot(), "VerifyResourceInOtherModuleDisplayed");
     resourceExplorerFixture.findLinklabelByTextContains(RESOURCE_MATCH_IN_LIBRARY)
       .clickLink();
 
