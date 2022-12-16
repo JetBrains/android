@@ -267,7 +267,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
                                        look: ActionButtonLook?,
                                        place: String,
                                        presentation: Presentation,
-                                       minimumSize: Dimension): ActionButton {
+                                       minimumSize: Supplier<out Dimension>): ActionButton {
         return super.createToolbarButton(action, look, place, presentation, minimumSize).apply {
           // Toolbar buttons are not accessible by tab key in IntelliJ's default implementation
           // when the screen reader is disabled. We override the behavior here and make it
