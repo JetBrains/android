@@ -31,9 +31,9 @@ import com.android.tools.idea.compose.preview.actions.UnpinAllPreviewElementsAct
 import com.android.tools.idea.compose.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
+import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
-import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.FpsCalculator
@@ -51,7 +51,6 @@ import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.documentChangeFlow
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
 import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
 import com.android.tools.idea.editors.fast.fastCompile
 import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager
@@ -62,6 +61,7 @@ import com.android.tools.idea.preview.FilteredPreviewElementProvider
 import com.android.tools.idea.preview.MemoizedPreviewElementProvider
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElementProvider
+import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.projectsystem.BuildListener
@@ -85,12 +85,13 @@ import com.intellij.ide.PowerSaveMode
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.progress.ProgressIndicator
@@ -114,7 +115,6 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.debounce
@@ -190,8 +190,8 @@ fun LayoutlibSceneManager.changeRequiresReinflate(showDecorations: Boolean, isIn
 fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
                                    showDecorations: Boolean,
                                    isInteractive: Boolean,
-                                   requestPrivateClassLoader: Boolean): LayoutlibSceneManager =
-  sceneManager.apply {
+                                   requestPrivateClassLoader: Boolean): LayoutlibSceneManager {
+  return sceneManager.apply {
     val reinflate = changeRequiresReinflate(showDecorations, isInteractive, requestPrivateClassLoader)
     setTransparentRendering(!showDecorations)
     setShrinkRendering(!showDecorations)
@@ -203,14 +203,15 @@ fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
       )
     )
     setQuality(if (PreviewPowerSaveManager.isInPowerSaveMode) 0.5f else 0.7f)
-    setShowDecorations(showDecorations)
-    // The Compose Preview has its own way to track out of date files so we ask the Layoutlib Scene Manager to not
-    // report it via the regular log.
-    doNotReportOutOfDateUserClasses()
-    if (reinflate) {
-      forceReinflate()
-    }
-  }
+                                       setShowDecorations(showDecorations)
+                                       // The Compose Preview has its own way to track out of date files so we ask the Layoutlib Scene Manager to not
+                                       // report it via the regular log.
+                                       doNotReportOutOfDateUserClasses()
+                                       if (reinflate) {
+                                         forceReinflate()
+                                       }
+                                     }
+                                   }
 
 /**
  * Key for the persistent group state for the Compose Preview.
@@ -249,6 +250,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
      * when the [activationScope] is cancelled (see [onActivate], [initializeFlows] and [onDeactivate])
      */
     private val refreshFlow: MutableSharedFlow<RefreshRequest> = MutableSharedFlow(replay = 1)
+
+    private val LOG = logger<ComposePreviewRepresentation>()
   }
 
   /**
@@ -256,7 +259,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * many "users" it has.
    */
   private val previewDeviceId = "Preview#${UUID.randomUUID()}"
-  private val LOG = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val project = psiFile.project
   private val module = runReadAction { psiFile.module }
   private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
@@ -275,7 +277,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   init {
     val project = psiFile.project
-    project.messageBus.connect(this).subscribe(PowerSaveMode.TOPIC, PowerSaveMode.Listener {
+    project.messageBus.connect((this as Disposable)).subscribe(PowerSaveMode.TOPIC, PowerSaveMode.Listener {
       fpsLimit = if (PreviewPowerSaveManager.isInPowerSaveMode) {
         StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get() / 3
       }
