@@ -20,6 +20,7 @@ import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.util.runWhenSmartAndSynced
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.DumbService.DUMB_MODE
@@ -41,7 +42,7 @@ internal class SourceCodePreview(psiFile: PsiFile, textEditor: Editor, providers
   private val afterSyncUpdateScheduled = AtomicBoolean(false)
 
   init {
-    project.messageBus.connect(this).subscribe(DUMB_MODE, object : DumbService.DumbModeListener {
+    project.messageBus.connect(this as Disposable).subscribe(DUMB_MODE, object : DumbService.DumbModeListener {
       /**
        * In case we are at the project startup we do not want to get [updateRepresentationsAsync] executed simply on the [exitDumbMode] for
        * the project is not started yet and AndroidModel is not initialized. Instead, we want to schedule [runWhenSmartAndSynced] during

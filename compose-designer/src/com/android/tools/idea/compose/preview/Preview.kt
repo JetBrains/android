@@ -82,6 +82,7 @@ import com.intellij.ide.PowerSaveMode
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
@@ -340,7 +341,7 @@ class ComposePreviewRepresentation(
     val project = psiFile.project
     /* b/277124475 */
     project.messageBus
-      .connect(this)
+      .connect(this as Disposable)
       .subscribe(
         PowerSaveMode.TOPIC,
         PowerSaveMode.Listener {
@@ -352,7 +353,7 @@ class ComposePreviewRepresentation(
       )
     val essentialsModeMessengingService = service<EssentialModeMessenger>()
     project.messageBus
-      .connect(this)
+      .connect(this as Disposable)
       .subscribe(
         essentialsModeMessengingService.TOPIC,
         EssentialModeMessenger.Listener {
