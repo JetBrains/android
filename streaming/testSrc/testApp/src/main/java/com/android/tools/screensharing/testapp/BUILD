@@ -3,6 +3,12 @@ package(default_visibility = ["//tools/adt/idea/streaming/testSrc/testApp/src/ma
 android_library(
     name = "main_activity",
     srcs = ["MainActivity.java"],
+    javacopts = [
+        "-source",
+        "8",
+        "-target",
+        "8",
+    ],
     manifest = "AndroidManifest.xml",
     resource_files = glob(["res/**"]),
     tags = ["no_windows"],
