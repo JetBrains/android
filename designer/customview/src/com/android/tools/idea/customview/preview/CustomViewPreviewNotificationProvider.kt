@@ -29,13 +29,14 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.EditorNotificationPanel
-import com.intellij.ui.EditorNotifications
+import com.intellij.ui.EditorNotificationProvider
 import com.intellij.ui.JBColor
 import com.intellij.ui.LightColors
+import java.util.function.Function
+import javax.swing.JComponent
 
 private const val PREVIEW_OUT_OF_DATE = "The preview is out of date"
 private const val BUILD_AND_REFRESH = "Build & Refresh"
@@ -43,10 +44,12 @@ private const val BUILD_AND_REFRESH = "Build & Refresh"
 private fun requestBuild(project: Project, module: Module) =
   GradleBuildInvoker.getInstance(project).compileJava(setOf(module).toTypedArray(), TestCompileType.NONE)
 
-internal class CustomViewPreviewNotificationProvider : EditorNotifications.Provider<EditorNotificationPanel>() {
-  private val COMPONENT_KEY = Key.create<EditorNotificationPanel>("android.tools.compose.preview.notification")
+internal class CustomViewPreviewNotificationProvider : EditorNotificationProvider {
+  override fun collectNotificationData(project: Project, file: VirtualFile): Function<in FileEditor, out JComponent?> {
+    return Function { createNotificationPanel(file, it, project) }
+  }
 
-  override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? {
+  private fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? {
     val previewManager = fileEditor.getCustomViewPreviewManager() ?: return null
     val module = ModuleUtil.findModuleForFile(file, project) ?: return null
     return when (previewManager.notificationsState) {
@@ -69,8 +72,6 @@ internal class CustomViewPreviewNotificationProvider : EditorNotifications.Provi
       else -> null
     }
   }
-
-  override fun getKey() = COMPONENT_KEY
 }
 
 

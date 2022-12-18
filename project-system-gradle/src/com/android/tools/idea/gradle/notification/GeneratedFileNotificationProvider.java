@@ -27,38 +27,33 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.GeneratedSourceFileChangeTracker;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
-import com.intellij.ui.EditorNotifications;
+import com.intellij.ui.EditorNotificationProvider;
 import java.io.File;
+import java.util.function.Function;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GeneratedFileNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
-  private static final Key<EditorNotificationPanel> KEY = Key.create("android.generated.file.ro");
-
+public class GeneratedFileNotificationProvider implements EditorNotificationProvider {
   @NotNull private final Project myProject;
 
   public GeneratedFileNotificationProvider(@NotNull Project project) {
     myProject = project;
   }
 
-  @NotNull
   @Override
-  public Key<EditorNotificationPanel> getKey() {
-    return KEY;
-  }
-
-  @Nullable
-  @Override
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
-    GradleAndroidModel androidModel =
-      GradleProjectSystemUtil.findAndroidModelInModule(myProject, file, false /* include excluded files */);
-    if (androidModel == null) {
-      return null;
-    }
-    return createNotificationPanel(file, fileEditor, androidModel);
+  public @Nullable Function<? super @NotNull FileEditor, ? extends @Nullable JComponent> collectNotificationData(@NotNull Project project,
+                                                                                                                 @NotNull VirtualFile file) {
+    return fileEditor -> {
+      GradleAndroidModel androidModel =
+        GradleProjectSystemUtil.findAndroidModelInModule(myProject, file, false /* include excluded files */);
+      if (androidModel == null) {
+        return null;
+      }
+      return createNotificationPanel(file, fileEditor, androidModel);
+    };
   }
 
   @Nullable

@@ -17,10 +17,12 @@ package com.android.tools.idea.common.editor
 
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorNotificationPanel
+import com.intellij.ui.EditorNotificationProvider
 import com.intellij.ui.EditorNotifications
+import java.util.function.Function
+import javax.swing.JComponent
 
 /**
  * Interface to implement by [SplitEditor] previews that wish to handle their own notifications.
@@ -40,9 +42,11 @@ interface SplitEditorPreviewNotificationHandler {
  * This also allows for split editor preview notifications to use exactly the same interface as [EditorNotifications] so they can
  * easily be refactored.
  */
-class SplitEditorPreviewNotificationForwarder : EditorNotifications.Provider<EditorNotificationPanel>() {
-
-  override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? {
+class SplitEditorPreviewNotificationForwarder : EditorNotificationProvider {
+  override fun collectNotificationData(project: Project, file: VirtualFile): Function<in FileEditor, out JComponent?> {
+    return Function { createNotificationPanel(it) }
+  }
+  private fun createNotificationPanel(fileEditor: FileEditor): EditorNotificationPanel? {
     // If the given FileEditor is DesignerEditor, forward the update to the MultiRepresentationPreview so it can
     // pass the notification handling to the corresponding representations.
     ((fileEditor as? SplitEditor<*>)?.preview as? SplitEditorPreviewNotificationHandler)?.updateNotifications()
@@ -50,8 +54,4 @@ class SplitEditorPreviewNotificationForwarder : EditorNotifications.Provider<Edi
     // We never create EditorNotificationPanel so return null. The DesignFilesPreviewEditor will handle the notifications.
     return null
   }
-
-  override fun getKey(): Key<EditorNotificationPanel> = componentKey
-
-  private val componentKey = Key.create<EditorNotificationPanel>("android.tools.common.editor.split.notification.forwarder")
 }

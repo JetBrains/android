@@ -28,29 +28,34 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectPostStartupActivity
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeAdapter
 import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.ui.EditorNotificationPanel
+import com.intellij.ui.EditorNotificationProvider
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import java.util.concurrent.TimeUnit
+import java.util.function.Function
+import javax.swing.JComponent
 
 /**
  * [EditorNotifications.Provider] that displays the notification when a Kotlin file adds the preview import. The notification will close
  * the current editor and open one with the preview.
  */
 internal class ComposeNewPreviewNotificationProvider @NonInjectable constructor(
-  private val filePreviewElementProvider: () -> FilePreviewElementFinder) : EditorNotifications.Provider<EditorNotificationPanel>() {
-  private val COMPONENT_KEY = Key.create<EditorNotificationPanel>("android.tools.compose.preview.new.notification")
+  private val filePreviewElementProvider: () -> FilePreviewElementFinder) : EditorNotificationProvider {
 
-  constructor(): this(::defaultFilePreviewElementFinder)
+  constructor() : this(::defaultFilePreviewElementFinder)
 
-  override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? =
+  override fun collectNotificationData(project: Project, file: VirtualFile): Function<in FileEditor, out JComponent?> {
+    return Function { createNotificationPanel(file, it, project) }
+  }
+
+  private fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? =
     when {
       StudioFlags.NELE_SOURCE_CODE_EDITOR.get() -> null
       // Not a Kotlin file or already a Compose Preview Editor
@@ -68,8 +73,6 @@ internal class ComposeNewPreviewNotificationProvider @NonInjectable constructor(
       }
       else -> null
     }
-
-  override fun getKey(): Key<EditorNotificationPanel> = COMPONENT_KEY
 }
 
 /**

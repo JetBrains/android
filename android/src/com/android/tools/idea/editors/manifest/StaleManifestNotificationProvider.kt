@@ -20,12 +20,14 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorNotificationPanel
-import com.intellij.ui.EditorNotifications
+import com.intellij.ui.EditorNotificationProvider
+import javax.swing.JComponent
 
-class StaleManifestNotificationProvider : EditorNotifications.Provider<EditorNotificationPanel>() {
-  override fun getKey() = KEY
-
-  override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? {
+class StaleManifestNotificationProvider : EditorNotificationProvider {
+  override fun collectNotificationData(project: Project, file: VirtualFile): java.util.function.Function<in FileEditor, out JComponent?> {
+    return java.util.function.Function { createNotificationPanel(it) }
+  }
+  private fun createNotificationPanel(fileEditor: FileEditor): EditorNotificationPanel? {
     if (fileEditor !is ManifestEditor || !fileEditor.isShowingStaleManifest) {
       return null
     }

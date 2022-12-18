@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.apk.debugging.editor;
 
+import static com.intellij.codeInsight.navigation.NavigationUtil.openFileWithPsiElement;
+import static com.intellij.openapi.util.io.FileUtil.isAncestor;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.apk.debugging.DexSourceFiles;
 import com.android.tools.idea.smali.psi.SmaliFile;
@@ -22,33 +27,25 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.ui.EditorNotificationPanel;
-import com.intellij.ui.EditorNotifications;
+import com.intellij.ui.EditorNotificationProvider;
+import java.io.File;
+import java.util.function.Function;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-
-import static com.intellij.codeInsight.navigation.NavigationUtil.openFileWithPsiElement;
-import static com.intellij.openapi.util.io.FileUtil.isAncestor;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-
-public class SmaliFileNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
-  private static final Key<EditorNotificationPanel> KEY = Key.create("apk.smali.file");
-
+public class SmaliFileNotificationProvider implements EditorNotificationProvider {
   @Override
-  @NotNull
-  public Key<EditorNotificationPanel> getKey() {
-    return KEY;
+  public @Nullable Function<? super @NotNull FileEditor, ? extends @Nullable JComponent> collectNotificationData(@NotNull Project project,
+                                                                                                                 @NotNull VirtualFile file) {
+    return fileEditor -> createNotificationPanel(file, fileEditor, project);
   }
 
-  @Override
   @Nullable
   public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor, @NotNull Project project) {
     Module module = ProjectFileIndex.getInstance(project).getModuleForFile(file);

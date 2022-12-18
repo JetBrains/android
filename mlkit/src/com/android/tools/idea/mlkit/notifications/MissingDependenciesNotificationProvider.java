@@ -29,62 +29,57 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
+import com.intellij.ui.EditorNotificationProvider;
 import com.intellij.ui.EditorNotifications;
+import java.util.List;
+import java.util.function.Function;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Notifies users that some required dependencies are missing for ML Model Binding feature.
  */
-public class MissingDependenciesNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
-  private static final Key<EditorNotificationPanel> KEY = Key.create("ml.missing.deps.notification.panel");
+public class MissingDependenciesNotificationProvider implements EditorNotificationProvider {
   private static final Key<String> HIDDEN_KEY = Key.create("ml.missing.deps.notification.panel.hidden");
 
-  @NotNull
   @Override
-  public Key<EditorNotificationPanel> getKey() {
-    return KEY;
-  }
+  public @Nullable Function<? super @NotNull FileEditor, ? extends @Nullable JComponent> collectNotificationData(@NotNull Project project,
+                                                                                                                 @NotNull VirtualFile file) {
+    return fileEditor -> {
+      if (fileEditor.getUserData(HIDDEN_KEY) != null
+          || !(fileEditor instanceof TfliteModelFileEditor)) {
+        return null;
+      }
 
-  @Nullable
-  @Override
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
-                                                         @NotNull FileEditor fileEditor,
-                                                         @NotNull Project project) {
-    if (fileEditor.getUserData(HIDDEN_KEY) != null
-        || !(fileEditor instanceof TfliteModelFileEditor)) {
-      return null;
-    }
+      Module module = ModuleUtilCore.findModuleForFile(file, project);
+      if (module == null || !MlUtils.isMlModelBindingBuildFeatureEnabled(module)) {
+        return null;
+      }
 
-    Module module = ModuleUtilCore.findModuleForFile(file, project);
-    if (module == null || !MlUtils.isMlModelBindingBuildFeatureEnabled(module)) {
-      return null;
-    }
-
-    if (MlUtils.isModelFileInMlModelsFolder(module, file)
-        && !MlUtils.getMissingRequiredDependencies(module).isEmpty()) {
-      EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Warning);
-      panel.setText("ML Model Binding dependencies not found.");
-      panel.createActionLabel("Add Now", () -> {
-        List<GradleCoordinate> depsToAdd = MlUtils.getMissingRequiredDependencies(module);
-        // TODO(b/149224613): switch to use DependencyManagementUtil#addDependencies.
-        AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
-        if (DependencyManagementUtil.userWantsToAdd(module.getProject(), depsToAdd, "")) {
-          for (GradleCoordinate dep : depsToAdd) {
-            moduleSystem.registerDependency(dep);
+      if (MlUtils.isModelFileInMlModelsFolder(module, file)
+          && !MlUtils.getMissingRequiredDependencies(module).isEmpty()) {
+        EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Warning);
+        panel.setText("ML Model Binding dependencies not found.");
+        panel.createActionLabel("Add Now", () -> {
+          List<GradleCoordinate> depsToAdd = MlUtils.getMissingRequiredDependencies(module);
+          // TODO(b/149224613): switch to use DependencyManagementUtil#addDependencies.
+          AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
+          if (DependencyManagementUtil.userWantsToAdd(module.getProject(), depsToAdd, "")) {
+            for (GradleCoordinate dep : depsToAdd) {
+              moduleSystem.registerDependency(dep);
+            }
+            ProjectSystemUtil.getSyncManager(module.getProject()).syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
           }
-          ProjectSystemUtil.getSyncManager(module.getProject()).syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
-        }
-      });
-      panel.createActionLabel("Hide notification", () -> {
-        fileEditor.putUserData(HIDDEN_KEY, "true");
-        EditorNotifications.getInstance(project).updateNotifications(file);
-      });
-      return panel;
-    }
+        });
+        panel.createActionLabel("Hide notification", () -> {
+          fileEditor.putUserData(HIDDEN_KEY, "true");
+          EditorNotifications.getInstance(project).updateNotifications(file);
+        });
+        return panel;
+      }
 
-    return null;
+      return null;
+    };
   }
 }

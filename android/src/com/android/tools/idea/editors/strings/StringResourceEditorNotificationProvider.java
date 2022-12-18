@@ -15,47 +15,42 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.intellij.openapi.editor.colors.EditorColors;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.EditorNotificationPanel;
-import com.intellij.ui.EditorNotifications;
-import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
-
 import static com.android.tools.idea.editors.strings.StringResourceEditorProvider.canViewTranslations;
 import static com.android.tools.idea.editors.strings.StringResourceEditorProvider.openEditor;
 
-public class StringResourceEditorNotificationProvider extends EditorNotifications.Provider<StringResourceEditorNotificationProvider.InfoPanel> {
-  private static final Key<InfoPanel> KEY = Key.create("android.editors.strings");
+import com.intellij.openapi.editor.colors.EditorColors;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.EditorNotificationPanel;
+import com.intellij.ui.EditorNotificationProvider;
+import com.intellij.util.ui.UIUtil;
+import java.awt.Color;
+import java.util.function.Function;
+import javax.swing.JComponent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+public class StringResourceEditorNotificationProvider implements EditorNotificationProvider {
   private boolean myHide;
 
-  @NotNull
   @Override
-  public Key<InfoPanel> getKey() {
-    return KEY;
-  }
+  public @Nullable Function<? super @NotNull FileEditor, ? extends @Nullable JComponent> collectNotificationData(@NotNull Project project,
+                                                                                                                 @NotNull VirtualFile file) {
+    return fileEditor -> {
+      if (myHide || !canViewTranslations(project, file)) {
+        return null;
+      }
 
-  @Nullable
-  @Override
-  public InfoPanel createNotificationPanel(@NotNull final VirtualFile file, @NotNull FileEditor fileEditor, @NotNull Project project) {
-    if (myHide || !canViewTranslations(project, file)) {
-      return null;
-    }
-
-    final InfoPanel panel = new InfoPanel(fileEditor);
-    panel.setText("Edit translations for all locales in the translations editor.");
-    panel.createActionLabel("Open editor", () -> openEditor(project, file));
-    panel.createActionLabel("Hide notification", () -> {
-      panel.setVisible(false);
-      myHide = true;
-    });
-    return panel;
+      final InfoPanel panel = new InfoPanel(fileEditor);
+      panel.setText("Edit translations for all locales in the translations editor.");
+      panel.createActionLabel("Open editor", () -> openEditor(project, file));
+      panel.createActionLabel("Hide notification", () -> {
+        panel.setVisible(false);
+        myHide = true;
+      });
+      return panel;
+    };
   }
 
   public static class InfoPanel extends EditorNotificationPanel {

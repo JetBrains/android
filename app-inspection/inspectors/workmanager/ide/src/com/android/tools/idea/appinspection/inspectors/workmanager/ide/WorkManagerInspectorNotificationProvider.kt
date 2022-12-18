@@ -24,16 +24,17 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.module.ModuleUtilCore.findModuleForFile
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiManager
 import com.intellij.ui.EditorNotificationPanel
-import com.intellij.ui.EditorNotifications
+import com.intellij.ui.EditorNotificationProvider
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.psi.KtFile
+import java.util.function.Function
+import javax.swing.JComponent
 
 private const val DISMISSED_PROPERTY_KEY = "WORKMANAGER_INSPECTOR_NOTIFICATION_DISMISSED"
 
@@ -61,7 +62,6 @@ class WorkManagerInspectorNotificationPanel(private val project: Project, appIns
   }
 }
 
-private val PROVIDER_KEY = Key.create<WorkManagerInspectorNotificationPanel>("workmanager.inspector.notification.provider")
 private const val APP_INSPECTION_ID = "App Inspection"
 
 private val ANDROIDX_WORK_IMPORT_PREFIX = "${ANDROIDX_WORK_RUNTIME.mavenGroupId}."
@@ -70,12 +70,12 @@ private val ANDROIDX_WORK_IMPORT_PREFIX = "${ANDROIDX_WORK_RUNTIME.mavenGroupId}
  * A class that creates a context-appropriate banner which informs users about the existence of the background task
  * inspector if the current file they opened in the editor matches a bunch of criteria.
  */
-class WorkManagerInspectorNotificationProvider : EditorNotifications.Provider<WorkManagerInspectorNotificationPanel>() {
-  override fun getKey() = PROVIDER_KEY
+class WorkManagerInspectorNotificationProvider : EditorNotificationProvider {
+  override fun collectNotificationData(project: Project, file: VirtualFile): Function<in FileEditor, out JComponent?> {
+    return Function { createNotificationPanel(file, project) }
+  }
 
-  override fun createNotificationPanel(file: VirtualFile,
-                                       fileEditor: FileEditor,
-                                       project: Project): WorkManagerInspectorNotificationPanel? {
+  private fun createNotificationPanel(file: VirtualFile, project: Project): WorkManagerInspectorNotificationPanel? {
     if (!IdeInfo.getInstance().isAndroidStudio) return null
     if (PropertiesComponent.getInstance(project).getBoolean(DISMISSED_PROPERTY_KEY)) return null
 

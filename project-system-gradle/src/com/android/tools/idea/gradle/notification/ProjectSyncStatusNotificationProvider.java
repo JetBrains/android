@@ -24,7 +24,6 @@ import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ThreeState.YES;
 
-import com.android.annotations.concurrency.AnyThread;
 import com.android.repository.Revision;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
@@ -48,18 +47,19 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.ui.EditorNotificationPanel;
-import com.intellij.ui.EditorNotifications;
+import com.intellij.ui.EditorNotificationProvider;
 import com.intellij.util.ThreeState;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,9 +67,7 @@ import org.jetbrains.annotations.Nullable;
  * Notifies users that a Gradle project "sync" is required (because of changes to build files, or because the last attempt failed) or
  * in progress; if no sync is required or active, displays hints and/or diagnostics about editing the Project Structure.
  */
-public class ProjectSyncStatusNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> implements DumbAware {
-  @NotNull private static final Key<EditorNotificationPanel> KEY = Key.create("android.gradle.sync.status");
-
+public class ProjectSyncStatusNotificationProvider implements EditorNotificationProvider, DumbAware {
   @NotNull private final GradleProjectInfo myProjectInfo;
   @NotNull private final GradleSyncState mySyncState;
   @NotNull private final GradleVersionCatalogDetector myVersionCatalogDetector;
@@ -89,17 +87,12 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
   }
 
   @Override
-  @NotNull
-  public final Key<EditorNotificationPanel> getKey() {
-    return KEY;
-  }
-
-  @AnyThread
-  @Override
-  @Nullable
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor editor, @NotNull Project project) {
-    NotificationPanel.Type newPanelType = notificationPanelType(project);
-    return newPanelType.create(project, file, myProjectInfo);
+  public @Nullable Function<? super @NotNull FileEditor, ? extends @Nullable JComponent> collectNotificationData(@NotNull Project project,
+                                                                                                                 @NotNull VirtualFile file) {
+    return fileEditor -> {
+      NotificationPanel.Type newPanelType = notificationPanelType(project);
+      return newPanelType.create(project, file, myProjectInfo);
+    };
   }
 
   @NotNull

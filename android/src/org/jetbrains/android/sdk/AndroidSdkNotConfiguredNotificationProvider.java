@@ -11,51 +11,47 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ClasspathEditor;
 import com.intellij.openapi.roots.ui.configuration.ModulesConfigurator;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
+import com.intellij.ui.EditorNotificationProvider;
 import com.intellij.ui.EditorNotifications;
+import java.util.function.Function;
+import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidSdkNotConfiguredNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
-  private static final Key<EditorNotificationPanel> KEY = Key.create("android.sdk.not.configured.notification");
-
+public class AndroidSdkNotConfiguredNotificationProvider implements EditorNotificationProvider {
   private final Project myProject;
 
   public AndroidSdkNotConfiguredNotificationProvider(Project project) {
     myProject = project;
   }
 
-  @NotNull
   @Override
-  public Key<EditorNotificationPanel> getKey() {
-    return KEY;
-  }
-
-  @Nullable
-  @Override
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
-    if (!FileTypeRegistry.getInstance().isFileOfType(file, XmlFileType.INSTANCE)) {
-      return null;
-    }
-    final Module module = ModuleUtilCore.findModuleForFile(file, myProject);
-    final AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
-
-    if (facet == null) {
-      return null;
-    }
-    if (!AndroidModel.isRequired(facet)
-        && (IdeResourcesUtil.isResourceFile(file, facet) || file.equals(AndroidRootUtil.getPrimaryManifestFile(facet)))) {
-      final AndroidPlatform platform = AndroidPlatform.getInstance(module);
-
-      if (platform == null) {
-        return new MySdkNotConfiguredNotificationPanel(fileEditor, module);
+  public @Nullable Function<? super @NotNull FileEditor, ? extends @Nullable JComponent> collectNotificationData(@NotNull Project project,
+                                                                                                                 @NotNull VirtualFile file) {
+    return fileEditor -> {
+      if (!FileTypeRegistry.getInstance().isFileOfType(file, XmlFileType.INSTANCE)) {
+        return null;
       }
-    }
-    return null;
+      final Module module = ModuleUtilCore.findModuleForFile(file, myProject);
+      final AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
+
+      if (facet == null) {
+        return null;
+      }
+      if (!AndroidModel.isRequired(facet)
+          && (IdeResourcesUtil.isResourceFile(file, facet) || file.equals(AndroidRootUtil.getPrimaryManifestFile(facet)))) {
+        final AndroidPlatform platform = AndroidPlatform.getInstance(module);
+
+        if (platform == null) {
+          return new MySdkNotConfiguredNotificationPanel(fileEditor, module);
+        }
+      }
+      return null;
+    };
   }
 
   private class MySdkNotConfiguredNotificationPanel extends EditorNotificationPanel {

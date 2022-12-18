@@ -33,20 +33,25 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorNotificationPanel
+import com.intellij.ui.EditorNotificationProvider
 import com.intellij.ui.EditorNotifications
+import java.util.function.Function
+import javax.swing.JComponent
 
 /**
  * Notifies users that build feature flag mlModelBinding is off.
  */
-class BuildFeatureOffNotificationProvider : EditorNotifications.Provider<EditorNotificationPanel>() {
+class BuildFeatureOffNotificationProvider : EditorNotificationProvider {
 
   private val addBuildFeatureRecipe: Recipe = {
     setBuildFeature("mlModelBinding", true)
   }
 
-  override fun getKey(): Key<EditorNotificationPanel> = KEY
+  override fun collectNotificationData(project: Project, file: VirtualFile): Function<in FileEditor, out JComponent?> {
+    return Function { createNotificationPanel(file, it, project) }
+  }
 
-  override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? {
+  private fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? {
     if (fileEditor !is TfliteModelFileEditor || fileEditor.getUserData(HIDDEN_KEY) != null) {
       return null
     }
@@ -87,7 +92,6 @@ class BuildFeatureOffNotificationProvider : EditorNotifications.Provider<EditorN
   }
 
   companion object {
-    private val KEY: Key<EditorNotificationPanel> = Key.create("ml.build.feature.off.notification.panel")
     private val HIDDEN_KEY = Key.create<String>("ml.build.feature.off.notification.panel.hidden")
     private const val BANNER_MESSAGE = "ML Model Binding build feature not enabled."
     private const val DIALOG_TITLE = "Enable Build Feature"
