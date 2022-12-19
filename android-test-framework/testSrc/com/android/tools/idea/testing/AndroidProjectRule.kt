@@ -49,6 +49,7 @@ import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.intellij.testFramework.registerExtension
+import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTempDirTestFixture
 import org.jetbrains.android.AndroidTestBase
@@ -60,6 +61,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
 import org.junit.runner.Description
+import org.mockito.Mockito
 import java.io.File
 import java.time.Clock
 import java.util.concurrent.TimeoutException
@@ -113,7 +115,6 @@ class AndroidProjectRule private constructor(
 
   val testRootDisposable: Disposable get() = fixture.testRootDisposable
 
-  private lateinit var mocks: IdeComponents
   private val facets = ArrayList<Facet<*>>()
 
   /**
@@ -214,7 +215,7 @@ class AndroidProjectRule private constructor(
       val wrappedRules: TestRule = RuleChain.outerRule(EdtAndroidProjectRule(projectRule)).around(EdtRule())!!
       return object : IntegrationTestEnvironmentRule, TestRule by wrappedRules {
         override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-        override fun <T> replaceService(serviceType: Class<T>, newServiceInstance: T) =
+        override fun <T : Any> replaceService(serviceType: Class<T>, newServiceInstance: T) =
           projectRule.replaceService(serviceType, newServiceInstance)
         override val testRootDisposable: Disposable get() = projectRule.testRootDisposable
       }
@@ -231,20 +232,30 @@ class AndroidProjectRule private constructor(
     return this
   }
 
-  fun <T> replaceProjectService(serviceType: Class<T>, newServiceInstance: T) =
-      mocks.replaceProjectService(serviceType, newServiceInstance)
+  fun <T : Any> replaceProjectService(serviceType: Class<T>, newServiceInstance: T) {
+    project.replaceService(serviceType, newServiceInstance, testRootDisposable)
+  }
 
-  fun <T> replaceService(serviceType: Class<T>, newServiceInstance: T) =
-      mocks.replaceApplicationService(serviceType, newServiceInstance)
+  fun <T : Any> replaceService(serviceType: Class<T>, newServiceInstance: T) {
+    ApplicationManager.getApplication().replaceService(serviceType, newServiceInstance, testRootDisposable)
+  }
 
-  fun <T> mockService(serviceType: Class<T>): T = mocks.mockApplicationService(serviceType)
+  fun <T : Any> mockService(serviceType: Class<T>): T {
+    val mock = Mockito.mock(serviceType)
+    ApplicationManager.getApplication().replaceService(serviceType, mock, testRootDisposable)
+    return mock
+  }
 
-  fun <T> mockProjectService(serviceType: Class<T>): T = mocks.mockProjectService(serviceType)
+  fun <T : Any> mockProjectService(serviceType: Class<T>): T {
+    val mock = Mockito.mock(serviceType)
+    project.replaceService<T>(serviceType, mock, testRootDisposable)
+    return mock
+  }
 
   fun <T : Any> registerExtension(epName: ExtensionPointName<T>, extension: T) =
     project.registerExtension(epName, extension, fixture.projectDisposable)
 
-  inline fun <reified T: CodeInsightTestFixture> getTypedFixture(): T? {
+  inline fun <reified T : CodeInsightTestFixture> getTypedFixture(): T? {
     return fixture as? T
   }
 
@@ -276,7 +287,6 @@ class AndroidProjectRule private constructor(
     if (initAndroid) {
       addFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME)
     }
-    mocks = IdeComponents(fixture)
 
     // Apply Android Studio code style settings (tests running as the Android plugin in IDEA should behave the same)
     val settings = CodeStyle.getSettings(project).clone()
@@ -436,7 +446,7 @@ private fun createJavaCodeInsightTestFixtureAndModels(
 
 interface IntegrationTestEnvironmentRule : IntegrationTestEnvironment, TestRule {
   val testRootDisposable: Disposable
-  fun <T> replaceService(serviceType: Class<T>, newServiceInstance: T)
+  fun <T : Any> replaceService(serviceType: Class<T>, newServiceInstance: T)
 }
 
 class EdtAndroidProjectRule(val projectRule: AndroidProjectRule) :
