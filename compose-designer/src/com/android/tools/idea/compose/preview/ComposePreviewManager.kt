@@ -131,6 +131,9 @@ interface ComposePreviewManager : Disposable {
    */
   val previewedFile: PsiFile?
 
+  /** Flag to indicate the inspection tooltips is enabled. */
+  var isInspectionTooltipEnabled: Boolean
+
   /**
    * Starts the interactive preview focusing in the given [ComposePreviewElementInstance] [instance]
    * .

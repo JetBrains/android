@@ -50,7 +50,10 @@ fun List<ComposeViewInfo>.findHitWithDepth(
   depth: Int = 0
 ): Collection<Pair<Int, ComposeViewInfo>> = flatMap { it.findHitWithDepth(x, y, depth) }
 
-fun ComposeViewInfo.findDeepestHits(x: Int, y: Int): Collection<ComposeViewInfo> =
+fun ComposeViewInfo.findDeepestHits(
+  @AndroidCoordinate x: Int,
+  @AndroidCoordinate y: Int
+): Collection<ComposeViewInfo> =
   findHitWithDepth(x, y)
     .groupBy { it.first }
     .maxByOrNull { it.key }

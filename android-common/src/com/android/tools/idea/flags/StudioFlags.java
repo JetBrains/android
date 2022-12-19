@@ -1205,6 +1205,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> COMPOSE_VIEW_INSPECTOR = Flag.create(
+    COMPOSE, "view.inspector",
+    "Show the switch of view inspection tool in Compose",
+    "If enabled, the user can toggle the mouse inspection tool in the dropdown menu of Compose Preview. The tools is disabled by default",
+    true
+  );
+
   public static final Flag<Boolean> COMPOSE_CONSTRAINT_VISUALIZATION = Flag.create(
     COMPOSE, "constraint.visualization",
     "Enable ConstraintLayout visualization in Compose previews",

@@ -58,5 +58,7 @@ class TestComposePreviewManager(
     interactivePreviewElementInstance = null
   }
 
+  override var isInspectionTooltipEnabled: Boolean = false
+
   override fun dispose() {}
 }
