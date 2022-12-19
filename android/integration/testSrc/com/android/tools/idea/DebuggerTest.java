@@ -64,11 +64,8 @@ public class DebuggerTest {
       System.out.println("Debugging the application");
       studio.executeAction("android.deploy.DebugWithoutBuild");
 
+      // XDebuggerTree's presence represents that the debugger hit a breakpoint.
       System.out.println("Checking for the debugger UI");
-
-      // Check for XDebuggerFramesList and XDebuggerTree; their presence represents that the
-      // debugger hit a breakpoint.
-      studio.waitForComponentByClass("XDebuggerFramesList");
       studio.waitForComponentByClass("XDebuggerTree");
     }
   }
