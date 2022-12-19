@@ -329,6 +329,8 @@ android-studio/jbr/lib/fonts/FiraCode-Retina.ttf
 android-studio/jbr/lib/fonts/Inconsolata.ttf
 android-studio/jbr/lib/fonts/Inter-Italic.otf
 android-studio/jbr/lib/fonts/Inter-Regular.otf
+android-studio/jbr/lib/fonts/Inter-SemiBold.otf
+android-studio/jbr/lib/fonts/Inter-SemiBoldItalic.otf
 android-studio/jbr/lib/fonts/JetBrainsMono-Bold.ttf
 android-studio/jbr/lib/fonts/JetBrainsMono-BoldItalic.ttf
 android-studio/jbr/lib/fonts/JetBrainsMono-ExtraBold.ttf

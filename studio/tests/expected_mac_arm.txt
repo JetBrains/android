@@ -328,6 +328,8 @@ Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/FiraCode-Retina.
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/Inconsolata.ttf
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/Inter-Italic.otf
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/Inter-Regular.otf
+Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/Inter-SemiBold.otf
+Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/Inter-SemiBoldItalic.otf
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/JetBrainsMono-Bold.ttf
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/JetBrainsMono-BoldItalic.ttf
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/JetBrainsMono-ExtraBold.ttf
