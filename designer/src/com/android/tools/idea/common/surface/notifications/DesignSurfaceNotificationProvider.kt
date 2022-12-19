@@ -27,7 +27,7 @@ import java.util.function.Function
 import javax.swing.JComponent
 
 /**
- * A [EditorNotifications.Provider] for the [DesignSurface].
+ * A [EditorNotificationProvider] for the [DesignSurface].
  */
 class DesignSurfaceNotificationProvider : EditorNotificationProvider {
   override fun collectNotificationData(project: Project, file: VirtualFile): Function<in FileEditor, out JComponent?> {

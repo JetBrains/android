@@ -29,7 +29,7 @@
                     area="IDEA_PROJECT"
                     interface="com.android.tools.idea.uibuilder.handlers.ViewHandlerProvider" />
     <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.editorNotificationProvider"
-                    interface="com.intellij.ui.EditorNotifications$Provider" />
+                    interface="com.intellij.ui.EditorNotificationProvider" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">

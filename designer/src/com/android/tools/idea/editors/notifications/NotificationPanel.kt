@@ -21,18 +21,17 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorNotificationPanel
-import com.intellij.ui.EditorNotifications
+import com.intellij.ui.EditorNotificationProvider
 import javax.swing.Box
 import javax.swing.JPanel
 
 /**
  * A panel that displays notifications or hides itself if there are none. It is intended to be used together with a [FileEditor] and
- * utilizes the mechanism of [EditorNotifications.Provider]s extending [epName] extension point to get [EditorNotificationPanel]s to
+ * utilizes the mechanism of [EditorNotificationProvider]s extending [epName] extension point to get [EditorNotificationPanel]s to
  * display.
  */
 class NotificationPanel(
-  private val NOTIFICATIONS_EP_NAME: ExtensionPointName<EditorNotifications.Provider<EditorNotificationPanel>>
-) : JPanel(VerticalLayout(0)) {
+  private val NOTIFICATIONS_EP_NAME: ExtensionPointName<EditorNotificationProvider>) : JPanel(VerticalLayout(0)) {
 
   private val notificationsPanel: Box = Box.createVerticalBox().apply {
     name = "NotificationsPanel"
@@ -48,7 +47,8 @@ class NotificationPanel(
     notificationsPanel.removeAll()
     NOTIFICATIONS_EP_NAME.extensionList
       .asSequence()
-      .mapNotNull { it.createNotificationPanel(virtualFile, parentEditor, project) }
+      .mapNotNull { it.collectNotificationData(project, virtualFile) }
+      .map { it.apply(parentEditor) }
       .forEach {
         notificationsPanel.add(it)
       }

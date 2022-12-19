@@ -63,7 +63,6 @@ import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.xml.XmlFile
-import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.future.await
@@ -182,8 +181,7 @@ class CustomViewPreviewRepresentation(
     get() = stateTracker.notificationsState
 
   private val notificationsPanel = NotificationPanel(
-    ExtensionPointName.create<EditorNotifications.Provider<EditorNotificationPanel>>(
-      "com.android.tools.idea.customview.preview.customViewEditorNotificationProvider"))
+    ExtensionPointName.create("com.android.tools.idea.customview.preview.customViewEditorNotificationProvider"))
 
   private val surface = NlDesignSurface.builder(project, this)
     .setSceneManagerProvider { surface, model ->

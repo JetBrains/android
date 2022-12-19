@@ -22,7 +22,7 @@
     A notification provider that wants this behaviour should extend this point and not the regular editorNotificationProvider.
     -->
     <extensionPoint qualifiedName="com.android.tools.idea.compose.preview.composeEditorNotificationProvider"
-                    interface="com.intellij.ui.EditorNotifications$Provider" />
+                    interface="com.intellij.ui.EditorNotificationProvider" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">

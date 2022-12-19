@@ -43,7 +43,7 @@ import java.util.function.Function
 import javax.swing.JComponent
 
 /**
- * [EditorNotifications.Provider] that displays the notification when a Kotlin file adds the preview import. The notification will close
+ * [EditorNotificationProvider] that displays the notification when a Kotlin file adds the preview import. The notification will close
  * the current editor and open one with the preview.
  */
 internal class ComposeNewPreviewNotificationProvider @NonInjectable constructor(

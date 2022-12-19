@@ -35,7 +35,7 @@ interface SplitEditorPreviewNotificationHandler {
 }
 
 /**
- * [EditorNotifications.Provider] that simply listens for notification update calls and forwards it to the [SplitEditorPreviewNotificationHandler].
+ * [EditorNotificationProvider] that simply listens for notification update calls and forwards it to the [SplitEditorPreviewNotificationHandler].
  * This allows the [SplitEditor] preview panels to **optionally** its own notification system that displays notifications that only cover
  * the preview side and not the whole editor.
  *
