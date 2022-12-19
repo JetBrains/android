@@ -24,10 +24,14 @@ Package 'android\.os' is not found
 // We do not bundle the Grazie plugin.
 Access to unresolved class com\.intellij\.grazie\..*
 Package 'com\.intellij\.grazie\.text' is not found
+Package 'com\.intellij\.grazie' is not found
 
 // We do not bundle the IDE Features Trainer plugin.
 Package 'training' is not found
 Package 'org\.assertj\.swing' is not found
+
+// The Kotlinc backend has some refs to trove4j; they are unused in the IDE.
+Access to unresolved class gnu\.trove\.TObjectByteHashMap
 
 // commit 8d8be187
 Abstract method org.jetbrains.uast.generate.UastCodeGenerationPlugin.*
