@@ -31,22 +31,22 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
-public class HeapProfdSessionArtifact extends MemorySessionArtifact<Memory.MemoryNativeSampleData> {
+public class HeapProfdSessionArtifact extends MemorySessionArtifact<Memory.MemoryTraceInfo> {
   public HeapProfdSessionArtifact(@NotNull StudioProfilers profilers,
                                   @NotNull Common.Session session,
                                   @NotNull Common.SessionMetaData sessionMetaData,
-                                  @NotNull Memory.MemoryNativeSampleData info) {
+                                  @NotNull Memory.MemoryTraceInfo info) {
     super(profilers, session, sessionMetaData, info, "Native Sampled");
   }
 
   @Override
   protected long getStartTime() {
-    return getArtifactProto().getStartTime();
+    return getArtifactProto().getFromTimestamp();
   }
 
   @Override
   protected long getEndTime() {
-    return getArtifactProto().getEndTime();
+    return getArtifactProto().getToTimestamp();
   }
 
   @Override
@@ -70,7 +70,7 @@ public class HeapProfdSessionArtifact extends MemorySessionArtifact<Memory.Memor
                                    session.getEndTimestamp() == Long.MAX_VALUE
                                    ? Long.MAX_VALUE
                                    : TimeUnit.NANOSECONDS.toMicros(session.getEndTimestamp()));
-    List<Memory.MemoryNativeSampleData> infos =
+    List<Memory.MemoryTraceInfo> infos =
       MemoryProfiler.getNativeHeapSamplesForSession(profilers.getClient(), session, queryRangeUs);
     return ContainerUtil.map(infos, info -> new HeapProfdSessionArtifact(profilers, session, sessionMetaData, info));
   }

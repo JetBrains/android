@@ -388,9 +388,9 @@ class SessionsManagerTest {
     val session1 = manager.selectedSession
 
     val nativeHeapTimestamp = 30L
-    val nativeHeapInfo = Memory.MemoryNativeSampleData.newBuilder().setStartTime(nativeHeapTimestamp).setEndTime(
+    val nativeHeapInfo = Memory.MemoryTraceInfo.newBuilder().setFromTimestamp(nativeHeapTimestamp).setToTimestamp(
       nativeHeapTimestamp + 1).build()
-    val nativeHeapData = ProfilersTestData.generateMemoryNativeSampleData(nativeHeapTimestamp, nativeHeapTimestamp + 1, nativeHeapInfo)
+    val nativeHeapData = ProfilersTestData.generateMemoryTraceInfo(nativeHeapTimestamp, nativeHeapTimestamp + 1, nativeHeapInfo)
     myTransportService.addEventToStream(device.deviceId, nativeHeapData.setPid(session1.pid).build())
     manager.update()
 

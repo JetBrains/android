@@ -59,9 +59,9 @@ class NativeAllocationSampleCaptureObjectTest {
   fun testAccessors() {
     val startTimeNs: Long = 3
     val endTimeNs: Long = 8
-    val info = Memory.MemoryNativeSampleData.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build()
+    val info = Memory.MemoryTraceInfo.newBuilder().setFromTimestamp(startTimeNs).setToTimestamp(endTimeNs).build()
     val capture = NativeAllocationSampleCaptureObject(ProfilerClient(grpcChannel.channel), ProfilersTestData.SESSION_DATA, info, stage!!)
-    // Verify values associated with the MemoryNativeSampleData object.
+    // Verify values associated with the MemoryTraceInfo object.
     assertThat(startTimeNs).isEqualTo(capture.startTimeNs)
     assertThat(endTimeNs).isEqualTo(capture.endTimeNs)
     assertThat(capture.isDoneLoading).isFalse()
@@ -73,7 +73,7 @@ class NativeAllocationSampleCaptureObjectTest {
   fun testDefaultShows() {
     val startTimeNs: Long = 3
     val endTimeNs: Long = 8
-    val info = Memory.MemoryNativeSampleData.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build()
+    val info = Memory.MemoryTraceInfo.newBuilder().setFromTimestamp(startTimeNs).setToTimestamp(endTimeNs).build()
     val capture = NativeAllocationSampleCaptureObject(ProfilerClient(grpcChannel.channel), ProfilersTestData.SESSION_DATA, info, stage!!)
     transportService.addFile(java.lang.Long.toString(startTimeNs), ByteString.copyFrom("TODO".toByteArray()))
     assertThat(capture.load(null, null)).isTrue()
@@ -86,7 +86,7 @@ class NativeAllocationSampleCaptureObjectTest {
   fun noContentFailsToLoad() {
     val startTimeNs: Long = 3
     val endTimeNs: Long = 8
-    val info = Memory.MemoryNativeSampleData.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build()
+    val info = Memory.MemoryTraceInfo.newBuilder().setFromTimestamp(startTimeNs).setToTimestamp(endTimeNs).build()
     val capture = NativeAllocationSampleCaptureObject(ProfilerClient(grpcChannel.channel), ProfilersTestData.SESSION_DATA, info, stage!!)
     assertThat(capture.load(null, null)).isFalse()
     assertThat(capture.isError).isTrue()

@@ -184,10 +184,10 @@ public final class ProfilersTestData {
   }
 
   @NotNull
-  public static Common.Event.Builder generateMemoryNativeSampleData(long groupId, long timestampUs, Memory.MemoryNativeSampleData info) {
+  public static Common.Event.Builder generateMemoryTraceInfo(long groupId, long timestampUs, Memory.MemoryTraceInfo info) {
     long timestampNs = TimeUnit.MICROSECONDS.toNanos(timestampUs);
-    return Common.Event.newBuilder().setTimestamp(timestampNs).setGroupId(groupId).setKind(Common.Event.Kind.MEMORY_NATIVE_SAMPLE_CAPTURE)
-      .setIsEnded(true).setMemoryNativeSample(info);
+    return Common.Event.newBuilder().setTimestamp(timestampNs).setGroupId(groupId).setKind(Common.Event.Kind.MEM_TRACE)
+      .setIsEnded(true).setMemoryTraceInfo(info);
   }
 
 

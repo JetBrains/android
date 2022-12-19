@@ -55,7 +55,7 @@ object CaptureDataSeries {
   @JvmStatic
   fun ofNativeAllocationSamples(client: ProfilerClient, session: Common.Session, tracker: FeatureTracker, stage: BaseMemoryProfilerStage) =
     of({ getNativeHeapSamplesForSession(client, session, it) },
-       { it.startTime }, { it.endTime },
+       { it.fromTimestamp }, { it.toTimestamp },
        { NativeAllocationSampleCaptureObject(client, session, it, stage) },
        { durUs, _, entry -> CaptureDurationData(durUs, false, false, entry, NativeAllocationSampleCaptureObject::class.java)})
 

@@ -150,13 +150,13 @@ public final class MemoryProfilerTest {
   @Test
   public void testGetNativeHeapSamplesForSession() {
     long nativeHeapTimestamp = 30L;
-    Memory.MemoryNativeSampleData nativeHeapInfo =
-      Memory.MemoryNativeSampleData.newBuilder().setStartTime(nativeHeapTimestamp).setEndTime(nativeHeapTimestamp + 1).build();
+    Memory.MemoryTraceInfo nativeHeapInfo =
+      Memory.MemoryTraceInfo.newBuilder().setFromTimestamp(nativeHeapTimestamp).setToTimestamp(nativeHeapTimestamp + 1).build();
     Common.Event nativeHeapData =
-      ProfilersTestData.generateMemoryNativeSampleData(nativeHeapTimestamp, nativeHeapTimestamp + 1, nativeHeapInfo)
+      ProfilersTestData.generateMemoryTraceInfo(nativeHeapTimestamp, nativeHeapTimestamp + 1, nativeHeapInfo)
         .setPid(ProfilersTestData.SESSION_DATA.getPid()).build();
     myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(), nativeHeapData);
-    List<Memory.MemoryNativeSampleData> samples = MemoryProfiler
+    List<Memory.MemoryTraceInfo> samples = MemoryProfiler
       .getNativeHeapSamplesForSession(myStudioProfiler.getClient(), ProfilersTestData.SESSION_DATA,
                                       new Range(Long.MIN_VALUE, Long.MAX_VALUE));
     Truth.assertThat(samples).containsExactly(nativeHeapInfo);
@@ -185,7 +185,7 @@ public final class MemoryProfilerTest {
   @Test
   public void testSaveHeapProfdSampleToFile() {
     long startTimeNs = 3;
-    Memory.MemoryNativeSampleData data = Memory.MemoryNativeSampleData.newBuilder().setStartTime(startTimeNs).build();
+    Memory.MemoryTraceInfo data = Memory.MemoryTraceInfo.newBuilder().setFromTimestamp(startTimeNs).build();
     byte[] buffer = data.toByteArray();
     myTransportService.addFile(Long.toString(startTimeNs), ByteString.copyFrom(buffer));
     ByteArrayOutputStream baos = new ByteArrayOutputStream();

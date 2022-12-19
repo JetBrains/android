@@ -46,12 +46,12 @@ class MemoryNativeSampling(timer: FakeTimer) : CommandHandler(timer) {
       events.add(Common.Event.newBuilder().apply {
         pid = command.pid
         commandId = command.commandId
-        kind = Common.Event.Kind.MEMORY_NATIVE_SAMPLE_CAPTURE
+        kind = Common.Event.Kind.MEM_TRACE
         timestamp = timer.currentTimeNs
         groupId = startCommandTimestamp
-        memoryNativeSample = Memory.MemoryNativeSampleData.newBuilder().apply {
-          startTime = timer.currentTimeNs
-          endTime = Long.MAX_VALUE
+        memoryTraceInfo = Memory.MemoryTraceInfo.newBuilder().apply {
+          fromTimestamp = timer.currentTimeNs
+          toTimestamp = Long.MAX_VALUE
         }.build()
       }.build())
 
@@ -72,12 +72,12 @@ class MemoryNativeSampling(timer: FakeTimer) : CommandHandler(timer) {
       events.add(Common.Event.newBuilder().apply {
         pid = command.pid
         commandId = command.commandId
-        kind = Common.Event.Kind.MEMORY_NATIVE_SAMPLE_CAPTURE
+        kind = Common.Event.Kind.MEM_TRACE
         timestamp = timer.currentTimeNs
         groupId = startCommandTimestamp
-        memoryNativeSample = Memory.MemoryNativeSampleData.newBuilder().apply {
-          startTime = startCommandTimestamp
-          endTime = timer.currentTimeNs
+        memoryTraceInfo = Memory.MemoryTraceInfo.newBuilder().apply {
+          fromTimestamp = startCommandTimestamp
+          toTimestamp = timer.currentTimeNs
         }.build()
       }.build())
     }

@@ -63,18 +63,18 @@ public final class NativeAllocationSampleCaptureObject implements CaptureObject 
 
   boolean myIsLoadingError = false;
   boolean myIsDoneLoading = false;
-  private final Memory.MemoryNativeSampleData myInfo;
+  private final Memory.MemoryTraceInfo myInfo;
 
   public NativeAllocationSampleCaptureObject(@NotNull ProfilerClient client,
                                              @NotNull Common.Session session,
-                                             @NotNull Memory.MemoryNativeSampleData info,
+                                             @NotNull Memory.MemoryTraceInfo info,
                                              @NotNull BaseMemoryProfilerStage stage) {
     myClassDb = new ClassDb();
     myClient = client;
     mySession = session;
     myInfo = info;
-    myStartTimeNs = info.getStartTime();
-    myEndTimeNs = info.getEndTime();
+    myStartTimeNs = info.getFromTimestamp();
+    myEndTimeNs = info.getToTimestamp();
     myStage = stage;
 
     myDefaultHeapSet = new NativeMemoryHeapSet(this);
