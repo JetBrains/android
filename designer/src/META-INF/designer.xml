@@ -123,11 +123,11 @@
 
     <!-- Layout Editor specific actions -->
     <group id="Android.Designer.LayoutEditorActions" text="Layout Editor">
-      <action id="Android.Designer.SwitchLayoutQualifier"
-              class="com.android.tools.idea.uibuilder.editor.LayoutQualifierDropdownMenu"
-              text="Switch Layout Qualifier"
-              description="Switch or create the new qualifier for current layout">
-      </action>
+      <group id="Android.Designer.SwitchLayoutQualifier"
+             class="com.android.tools.idea.uibuilder.editor.LayoutQualifierDropdownMenu"
+             text="Switch Layout Qualifier"
+             description="Switch or create the new qualifier for current layout">
+      </group>
       <action id="Android.Designer.SwitchDesignMode"
               icon="StudioIcons.LayoutEditor.Toolbar.VIEW_MODE"
               class="com.android.tools.idea.uibuilder.actions.SwitchToNextScreenViewProviderAction"
@@ -168,9 +168,9 @@
 
     <group id="Android.Designer.IssuePanel.ToolbarActions">
       <group id="Android.Designer.IssuePanel.ViewOptions" text="View Options" icon="AllIcons.Actions.Show" popup="true">
-        <action id="Android.Designer.IssuePanel.SeverityFilter"
-                class="com.android.tools.idea.common.error.IssuePanelViewOptionActionGroup"
-                text="Severity Filters of Issue Panel"/>
+        <group id="Android.Designer.IssuePanel.SeverityFilter"
+               class="com.android.tools.idea.common.error.IssuePanelViewOptionActionGroup"
+               text="Severity Filters of Issue Panel"/>
       </group>
       <action id="Android.Designer.IssuePanel.ToggleIssueDetailAction"
               text="Show Issue Detail"
