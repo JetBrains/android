@@ -350,21 +350,7 @@ private fun createJavaCodeInsightTestFixture(
   projectName: String,
 ): Pair<TestFixtureBuilder<IdeaProjectTestFixture>, JavaCodeInsightTestFixture> {
   val name = projectName
-  val tempDirFixture = object : AndroidTempDirTestFixture(name) {
-    private val tempRoot: String =
-      FileUtil.createTempDirectory("${UsefulTestCase.TEMP_DIR_MARKER}${Clock.systemUTC().millis()}", null, false).path
-
-    override fun getRootTempDirectory(): String = tempRoot
-    override fun tearDown() {
-      super.tearDown()  // Deletes the project directory.
-      try {
-        // Delete the temp directory where the project directory was created.
-        runWriteAction { VfsUtil.createDirectories(tempRoot).delete(this) }
-      } catch (e: Throwable) {
-        addSuppressedException(e);
-      }
-    }
-  }
+  val tempDirFixture = AndroidProjectRuleTempDirectoryFixture(name)
   val projectBuilder = IdeaTestFixtureFactory
     .getFixtureFactory()
     .createFixtureBuilder(name, tempDirFixture.projectDir.parentFile.toPath(), true)
@@ -374,6 +360,26 @@ private fun createJavaCodeInsightTestFixture(
     .createCodeInsightFixture(projectBuilder.fixture, tempDirFixture)
 
   return projectBuilder to javaCodeInsightTestFixture
+}
+
+/**
+ * A [com.intellij.testFramework.fixtures.impl.TempDirTestFixtureImpl] that creates a unique temp directory for each test and deletes it
+ * at [tearDown].
+ */
+internal class AndroidProjectRuleTempDirectoryFixture(name: String) : AndroidTempDirTestFixture(name) {
+  private val tempRoot: String =
+    FileUtil.createTempDirectory("${UsefulTestCase.TEMP_DIR_MARKER}${Clock.systemUTC().millis()}", null, false).path
+
+  override fun getRootTempDirectory(): String = tempRoot
+  override fun tearDown() {
+    super.tearDown()  // Deletes the project directory.
+    try {
+      // Delete the temp directory where the project directory was created.
+      runWriteAction { VfsUtil.createDirectories(tempRoot).delete(this) }
+    } catch (e: Throwable) {
+      addSuppressedException(e);
+    }
+  }
 }
 
 /**
