@@ -50,7 +50,6 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
-import com.intellij.testFramework.MapDataContext;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
