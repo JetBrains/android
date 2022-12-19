@@ -20,7 +20,6 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.testing.AndroidProjectRule.Companion.withAndroidModels
 import com.android.tools.idea.testing.flags.override
 import com.android.utils.FileUtils
 import com.intellij.application.options.CodeStyle
@@ -43,9 +42,11 @@ import com.intellij.psi.codeStyle.CodeStyleSettingsManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
+import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.runInEdtAndWait
@@ -83,27 +84,15 @@ class AndroidProjectRule private constructor(
   private var initAndroid: Boolean = true,
 
   /**
-   * True if this rule should use a [LightTempDirTestFixtureImpl] and create
-   * file in memory.
-   */
-  private var lightFixture: Boolean = true,
-
-  /**
    * True if this rule should include an Android SDK.
    */
   private var withAndroidSdk: Boolean = false,
 
   /**
-   * Not null if the project should be initialized from an instance of [AndroidModel].
-   *
-   * See also: [withAndroidModels].
+   * A method to create [CodeInsightTestFixture] instance.
    */
-  private val projectModuleBuilders: List<ModuleModelBuilder>? = null,
-
-  /**
-   * When not null and the project is initialized from an instance of [AndroidModel] is called to prepare source code.
-   */
-  private val prepareProjectSourcesWith: ((File) -> Unit)? = null,
+  private var fixtureFactory: (projectName: String) -> CodeInsightTestFixture =
+    fun(projectName: String): CodeInsightTestFixture = createLightFixture(projectName),
 
   /**
    * Name of the fixture used to create the project directory when not
@@ -147,8 +136,9 @@ class AndroidProjectRule private constructor(
     @JvmStatic
     @JvmOverloads
     fun onDisk(fixtureName: String? = null) = AndroidProjectRule(
-        lightFixture = false,
-        fixtureName = fixtureName)
+      fixtureFactory = ::createJavaCodeInsightTestFixtureAndAddModules,
+      fixtureName = fixtureName ?: "p"
+    )
 
     /**
      * Returns an [AndroidProjectRule] that uses a fixture on disk
@@ -156,8 +146,10 @@ class AndroidProjectRule private constructor(
      */
     @JvmStatic
     fun withSdk() = AndroidProjectRule(
-      lightFixture = false,
-      withAndroidSdk = true)
+      fixtureFactory = ::createJavaCodeInsightTestFixtureAndAddModules,
+      fixtureName = "p",
+      withAndroidSdk = true
+    )
 
     /**
      * Returns an [AndroidProjectRule] that initializes the project from an instances of [AndroidProject] obtained from
@@ -186,10 +178,15 @@ class AndroidProjectRule private constructor(
       vararg projectModuleBuilders: ModuleModelBuilder
     ): AndroidProjectRule = AndroidProjectRule(
       initAndroid = false,
-      lightFixture = false,
-      withAndroidSdk = false,
-      prepareProjectSourcesWith = prepareProjectSources,
-      projectModuleBuilders = projectModuleBuilders.toList()
+      fixtureFactory = fun(projectName: String): CodeInsightTestFixture {
+        return createJavaCodeInsightTestFixtureAndModels(
+          projectName,
+          projectModuleBuilders = projectModuleBuilders.toList(),
+          prepareProjectSourcesWith = prepareProjectSources
+        )
+      },
+      fixtureName = "p",
+      withAndroidSdk = false
     )
 
     /**
@@ -201,9 +198,14 @@ class AndroidProjectRule private constructor(
       vararg projectModuleBuilders: ModuleModelBuilder
     ): AndroidProjectRule = AndroidProjectRule(
       initAndroid = false,
-      lightFixture = false,
-      withAndroidSdk = false,
-      projectModuleBuilders = projectModuleBuilders.toList()
+      fixtureFactory = fun(projectName: String): CodeInsightTestFixture {
+        return createJavaCodeInsightTestFixtureAndModels(
+          projectName,
+          projectModuleBuilders = projectModuleBuilders.toList()
+        )
+      },
+      fixtureName = "p",
+      withAndroidSdk = false
     )
 
     @JvmStatic
@@ -258,12 +260,7 @@ class AndroidProjectRule private constructor(
 
   private fun doBeforeActions(description: Description) {
     mockitoCleaner.setup()
-    fixture = if (lightFixture) {
-      createLightFixture(description.displayName)
-    }
-    else {
-      createJavaCodeInsightTestFixture(description)
-    }
+    fixture = fixtureFactory(fixtureName ?: description.displayName)
 
     userHome = System.getProperty("user.home")
     val testSpecificName = UsefulTestCase.TEMP_DIR_MARKER + description.testClass.simpleName.substringAfterLast('$')
@@ -279,21 +276,6 @@ class AndroidProjectRule private constructor(
     if (initAndroid) {
       addFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME)
     }
-    if (projectModuleBuilders != null) {
-      if (IdeSdks.getInstance().androidSdkPath != TestUtils.getSdk()) {
-        println("Tests: Replacing Android SDK from ${IdeSdks.getInstance().androidSdkPath} to ${TestUtils.getSdk()}")
-        AndroidGradleTests.setUpSdks(fixture, TestUtils.getSdk().toFile())
-      }
-      invokeAndWaitIfNeeded {
-        // Similarly to AndroidGradleTestCase, sync (fake sync here) requires SDKs to be set up and cleaned after the test to behave
-        // properly.
-        val basePath = File(fixture.tempDirPath)
-        prepareProjectSourcesWith?.let { it(basePath) }
-        if (projectModuleBuilders.isNotEmpty()) {
-          setupTestProjectFromAndroidModel(project, basePath, *projectModuleBuilders.toTypedArray())
-        }
-      }
-    }
     mocks = IdeComponents(fixture)
 
     // Apply Android Studio code style settings (tests running as the Android plugin in IDEA should behave the same)
@@ -302,60 +284,7 @@ class AndroidProjectRule private constructor(
     CodeStyleSettingsManager.getInstance(project).setTemporarySettings(settings)
   }
 
-  private fun createLightFixture(projectName: String): CodeInsightTestFixture {
-    // This is a very abstract way to initialize a new Project and a single Module.
-    val factory = IdeaTestFixtureFactory.getFixtureFactory()
-    val projectBuilder = factory.createLightFixtureBuilder(LightJavaCodeInsightFixtureAdtTestCase.getAdtProjectDescriptor(), projectName)
-    return factory.createCodeInsightFixture(projectBuilder.fixture, LightTempDirTestFixtureImpl(true))
-  }
-
-  /**
-   * Create a project using [JavaCodeInsightTestFixture] with an Android module.
-   * The project is created on disk under the /tmp folder
-   */
-  private fun createJavaCodeInsightTestFixture(description: Description): JavaCodeInsightTestFixture {
-    IdeaTestFixtureFactory.getFixtureFactory().registerFixtureBuilder(
-        AndroidTestCase.AndroidModuleFixtureBuilder::class.java,
-        AndroidTestCase.AndroidModuleFixtureBuilderImpl::class.java)
-
-    // Below "p" is just a short directory name for a project directory. We have some tests that need more than one project in a test,
-    // and they rely on ability to do "../another". This temporary directory test fixture will delete all of them at tear down.
-    val name = fixtureName ?: "p"
-    val tempDirFixture = object: AndroidTempDirTestFixture(name) {
-      private val tempRoot: String =
-        FileUtil.createTempDirectory("${UsefulTestCase.TEMP_DIR_MARKER}${Clock.systemUTC().millis()}", null, false).path
-      override fun getRootTempDirectory(): String = tempRoot
-      override fun tearDown() {
-        super.tearDown()  // Deletes the project directory.
-        try {
-          // Delete the temp directory where the project directory was created.
-          runWriteAction { VfsUtil.createDirectories(tempRoot).delete(this) }
-        }
-        catch (e: Throwable) {
-          addSuppressedException(e);
-        }
-      }
-    }
-    val projectBuilder = IdeaTestFixtureFactory
-        .getFixtureFactory()
-        .createFixtureBuilder(name, tempDirFixture.projectDir.parentFile.toPath(), true)
-
-    val javaCodeInsightTestFixture = JavaTestFixtureFactory
-      .getFixtureFactory()
-      .createCodeInsightFixture(projectBuilder.fixture, tempDirFixture)
-
-    if (projectModuleBuilders == null) {
-      val moduleFixtureBuilder = projectBuilder.addModule(AndroidTestCase.AndroidModuleFixtureBuilder::class.java)
-      initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, javaCodeInsightTestFixture.tempDirPath)
-    }
-    else {
-      // Do nothing. There is no need to setup a module manually. It will be created by sync from the AndroidProject model.
-    }
-
-    return javaCodeInsightTestFixture
-  }
-
-  fun <T : Facet<C>, C : FacetConfiguration> addFacet(type: FacetType<T, C>, facetName: String): T {
+  private fun <T : Facet<C>, C : FacetConfiguration> addFacet(type: FacetType<T, C>, facetName: String): T {
     val facetManager = FacetManager.getInstance(module)
     val facet = facetManager.createFacet<T, C>(type, facetName, null)
     runInEdtAndWait {
@@ -406,6 +335,96 @@ class AndroidProjectRule private constructor(
   @Throws(InterruptedException::class, TimeoutException::class)
   fun waitForResourceRepositoryUpdates() {
     waitForResourceRepositoryUpdates(module)
+  }
+}
+
+private fun createLightFixture(projectName: String): CodeInsightTestFixture {
+  // This is a very abstract way to initialize a new Project and a single Module.
+  val factory = IdeaTestFixtureFactory.getFixtureFactory()
+  val projectBuilder =
+    factory.createLightFixtureBuilder(LightJavaCodeInsightFixtureAdtTestCase.getAdtProjectDescriptor(), projectName)
+  return factory.createCodeInsightFixture(projectBuilder.fixture, LightTempDirTestFixtureImpl(true))
+}
+
+private fun createJavaCodeInsightTestFixture(
+  projectName: String,
+): Pair<TestFixtureBuilder<IdeaProjectTestFixture>, JavaCodeInsightTestFixture> {
+  val name = projectName
+  val tempDirFixture = object : AndroidTempDirTestFixture(name) {
+    private val tempRoot: String =
+      FileUtil.createTempDirectory("${UsefulTestCase.TEMP_DIR_MARKER}${Clock.systemUTC().millis()}", null, false).path
+
+    override fun getRootTempDirectory(): String = tempRoot
+    override fun tearDown() {
+      super.tearDown()  // Deletes the project directory.
+      try {
+        // Delete the temp directory where the project directory was created.
+        runWriteAction { VfsUtil.createDirectories(tempRoot).delete(this) }
+      } catch (e: Throwable) {
+        addSuppressedException(e);
+      }
+    }
+  }
+  val projectBuilder = IdeaTestFixtureFactory
+    .getFixtureFactory()
+    .createFixtureBuilder(name, tempDirFixture.projectDir.parentFile.toPath(), true)
+
+  val javaCodeInsightTestFixture = JavaTestFixtureFactory
+    .getFixtureFactory()
+    .createCodeInsightFixture(projectBuilder.fixture, tempDirFixture)
+
+  return projectBuilder to javaCodeInsightTestFixture
+}
+
+/**
+ * Create a project using [JavaCodeInsightTestFixture] with an Android module.
+ * The project is created on disk under the /tmp folder
+ */
+private fun createJavaCodeInsightTestFixtureAndAddModules(
+  projectName: String
+): JavaCodeInsightTestFixture {
+  IdeaTestFixtureFactory.getFixtureFactory().registerFixtureBuilder(
+    AndroidTestCase.AndroidModuleFixtureBuilder::class.java,
+    AndroidTestCase.AndroidModuleFixtureBuilderImpl::class.java
+  )
+
+  val (projectBuilder, javaCodeInsightTestFixture) = createJavaCodeInsightTestFixture(projectName)
+
+  val moduleFixtureBuilder = projectBuilder.addModule(AndroidTestCase.AndroidModuleFixtureBuilder::class.java)
+  initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, javaCodeInsightTestFixture.tempDirPath)
+  return javaCodeInsightTestFixture
+}
+
+/**
+ * Create a project using [JavaCodeInsightTestFixture] with an Android module.
+ * The project is created on disk under the /tmp folder
+ */
+private fun createJavaCodeInsightTestFixtureAndModels(
+  projectName: String,
+  projectModuleBuilders: List<ModuleModelBuilder>,
+  prepareProjectSourcesWith: ((File) -> Unit)? = null
+): JavaCodeInsightTestFixture {
+  val (projectBuilder, javaCodeInsightTestFixture) = createJavaCodeInsightTestFixture(projectName)
+
+  return object : JavaCodeInsightTestFixture by javaCodeInsightTestFixture {
+    override fun getTestRootDisposable(): Disposable = javaCodeInsightTestFixture.testRootDisposable  // KT-18324
+
+    override fun setUp() {
+      javaCodeInsightTestFixture.setUp()
+      if (IdeSdks.getInstance().androidSdkPath != TestUtils.getSdk()) {
+        println("Tests: Replacing Android SDK from ${IdeSdks.getInstance().androidSdkPath} to ${TestUtils.getSdk()}")
+        AndroidGradleTests.setUpSdks(javaCodeInsightTestFixture, TestUtils.getSdk().toFile())
+      }
+      invokeAndWaitIfNeeded {
+        // Similarly to AndroidGradleTestCase, sync (fake sync here) requires SDKs to be set up and cleaned after the test to behave
+        // properly.
+        val basePath = File(javaCodeInsightTestFixture.tempDirPath)
+        prepareProjectSourcesWith?.let { it(basePath) }
+        if (projectModuleBuilders.isNotEmpty()) {
+          setupTestProjectFromAndroidModel(project, basePath, *projectModuleBuilders.toTypedArray())
+        }
+      }
+    }
   }
 }
 

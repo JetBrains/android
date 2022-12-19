@@ -37,7 +37,7 @@ interface TestProjectDefinition {
    * Prepares a test project defined by this instance for the given [agpVersion] in the given [integrationTestEnvironment] and returns
    * a handle to open/use the project in the test.
    */
-  fun preparedTestProject(
+  fun prepareTestProject(
     integrationTestEnvironment: IntegrationTestEnvironment,
     name: String,
     agpVersion: AgpVersionSoftwareEnvironmentDescriptor,
@@ -54,7 +54,7 @@ interface TestProjectDefinition {
       agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.selected,
       ndkVersion: String? = SdkConstants.NDK_DEFAULT_VERSION
     ): PreparedTestProject {
-      return testProject.preparedTestProject(this, name, agpVersion, ndkVersion)
+      return testProject.prepareTestProject(this, name, agpVersion, ndkVersion)
     }
   }
 }

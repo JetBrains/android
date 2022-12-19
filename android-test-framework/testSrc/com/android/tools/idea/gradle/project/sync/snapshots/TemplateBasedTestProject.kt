@@ -137,7 +137,7 @@ interface TemplateBasedTestProject : TestProjectDefinition {
    */
   fun getAdditionalRepos(): Collection<File>
 
-  override fun preparedTestProject(
+  override fun prepareTestProject(
     integrationTestEnvironment: IntegrationTestEnvironment,
     name: String,
     agpVersion: AgpVersionSoftwareEnvironmentDescriptor,
