@@ -19,15 +19,21 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.actions.ZoomActualAction
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
+import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.actions.SetColorBlindModeAction
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.actions.SurfaceLayoutManagerOption
 import com.android.tools.idea.uibuilder.actions.SwitchSurfaceLayoutManagerAction
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import org.assertj.core.util.VisibleForTesting
 
 class ComposeViewControlAction(
@@ -57,6 +63,23 @@ class ComposeViewControlAction(
     add(WrappedZoomAction(ZoomOutAction.getInstance(), context))
     add(WrappedZoomAction(ZoomActualAction.getInstance(), context, "Zoom to 100%"))
     // TODO(263038548): Implement Zoom-to-selection when preview is selectable.
+    if (StudioFlags.COMPOSE_COLORBLIND_MODE.get()) {
+      (context.getData(DESIGN_SURFACE) as? NlDesignSurface)?.let { surface ->
+        addSeparator()
+        addAction(
+          DefaultActionGroup.createPopupGroup {
+            message("action.scene.mode.colorblind.dropdown.title")
+          }
+            .apply {
+              addAction(SetColorBlindModeAction(ColorBlindMode.PROTANOPES, surface))
+              addAction(SetColorBlindModeAction(ColorBlindMode.PROTANOMALY, surface))
+              addAction(SetColorBlindModeAction(ColorBlindMode.DEUTERANOPES, surface))
+              addAction(SetColorBlindModeAction(ColorBlindMode.DEUTERANOMALY, surface))
+              addAction(SetColorBlindModeAction(ColorBlindMode.TRITANOPES, surface))
+            }
+        )
+      }
+    }
     return true
   }
 

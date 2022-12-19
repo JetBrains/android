@@ -15,19 +15,25 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.actions.prettyPrintActions
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.layout.EmptySurfaceLayoutManager
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.actions.SurfaceLayoutManagerOption
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 import com.intellij.openapi.actionSystem.DataContext
+import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -35,6 +41,17 @@ class ComposeViewControlActionTest {
 
   @JvmField @Rule val rule = AndroidProjectRule.inMemory().onEdt()
 
+  @Before
+  fun setup() {
+    StudioFlags.COMPOSE_COLORBLIND_MODE.override(true)
+  }
+
+  @After
+  fun tearDown() {
+    StudioFlags.COMPOSE_COLORBLIND_MODE.clearOverride()
+  }
+
+  @Suppress("SpellCheckingInspection")
   @Test
   fun testZoomActions() {
     val options =
@@ -44,7 +61,13 @@ class ComposeViewControlActionTest {
         createOption("Layout C", EmptySurfaceLayoutManager())
       )
 
-    val context = DataContext { if (ZOOMABLE_KEY.`is`(it)) TestZoomable() else null }
+    val context = DataContext {
+      when {
+        ZOOMABLE_KEY.`is`(it) -> TestZoomable()
+        DESIGN_SURFACE.`is`(it) -> mock<NlDesignSurface>()
+        else -> null
+      }
+    }
 
     val viewControlAction = ComposeViewControlAction(EmptyLayoutManagerSwitcher, options)
     viewControlAction.updateActions(context)
@@ -59,6 +82,13 @@ class ComposeViewControlActionTest {
     Zoom In
     Zoom Out
     Zoom to 100%
+    ------------------------------------------------------
+    Color Blind Modes
+        Protanopes
+        Protanomaly
+        Deuteranopes
+        Deuteranomaly
+        Tritanopes
 """
 
     val actionContent = prettyPrintActions(viewControlAction)
