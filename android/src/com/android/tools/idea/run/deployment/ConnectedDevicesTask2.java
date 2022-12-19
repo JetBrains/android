@@ -55,10 +55,12 @@ final class ConnectedDevicesTask2 implements AsyncSupplier<Collection<ConnectedD
   }
 
   private static @NotNull ListenableFuture<@NotNull ConnectedDevice> buildAsync(@NotNull IDevice device) {
-    var future = getNameAsync(device);
+    var nameFuture = getNameAsync(device);
+    var keyFuture = getKeyAsync(device);
 
     // noinspection UnstableApiUsage
-    return Futures.whenAllComplete(future).call(() -> build(Futures.getDone(future), device), EdtExecutorService.getInstance());
+    return Futures.whenAllComplete(nameFuture, keyFuture)
+      .call(() -> build(Futures.getDone(nameFuture), Futures.getDone(keyFuture), device), EdtExecutorService.getInstance());
   }
 
   private static @NotNull ListenableFuture<@NotNull String> getNameAsync(@NotNull IDevice device) {
@@ -89,11 +91,37 @@ final class ConnectedDevicesTask2 implements AsyncSupplier<Collection<ConnectedD
     return name;
   }
 
-  private static @NotNull ConnectedDevice build(@NotNull String name, @NotNull IDevice device) {
+  private static @NotNull ListenableFuture<@NotNull Key> getKeyAsync(@NotNull IDevice device) {
+    var serialNumber = device.getSerialNumber();
+
+    if (!device.isEmulator()) {
+      return Futures.immediateFuture(new SerialNumber(serialNumber));
+    }
+
+    // noinspection UnstableApiUsage
+    return Futures.transform(device.getAvdData(), d -> getKey(d.getPath(), d.getName(), serialNumber), EdtExecutorService.getInstance());
+  }
+
+  private static @NotNull Key getKey(@Nullable String path, @Nullable String name, @NotNull String serialNumber) {
+    if (path != null) {
+      return new VirtualDevicePath(path);
+    }
+
+    if (name == null) {
+      return new SerialNumber(serialNumber);
+    }
+
+    if (name.equals("<build>")) {
+      return new SerialNumber(serialNumber);
+    }
+
+    return new VirtualDeviceName(name);
+  }
+
+  private static @NotNull ConnectedDevice build(@NotNull String name, @NotNull Key key, @NotNull IDevice device) {
     return new ConnectedDevice.Builder()
       .setName(name)
-      // TODO
-      .setKey(new VirtualDevicePath("/usr/local/google/home/user/.android/avd/Pixel_6_API_33.avd"))
+      .setKey(key)
       .setAndroidDevice(new ConnectedAndroidDevice(device))
       // TODO
       .setType(Type.PHONE)

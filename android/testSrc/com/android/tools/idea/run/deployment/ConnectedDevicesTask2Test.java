@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import com.android.ddmlib.AvdData;
 import com.android.ddmlib.IDevice;
 import com.google.common.util.concurrent.Futures;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -91,11 +92,84 @@ public final class ConnectedDevicesTask2Test {
     // Arrange
     Mockito.when(myDevice.getSystemProperty(IDevice.PROP_DEVICE_MODEL)).thenReturn(Futures.immediateFuture("Pixel 4a"));
     Mockito.when(myDevice.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER)).thenReturn(Futures.immediateFuture("Google"));
+    Mockito.when(myDevice.getSerialNumber()).thenReturn("02131FQC200017");
 
     // Act
     var future = myTask.get();
 
     // Assert
     assertEquals("Google Pixel 4a", ((List<ConnectedDevice>)future.get(60, TimeUnit.SECONDS)).get(0).getName());
+  }
+
+  @Test
+  public void getKeyAsyncDeviceIsntEmulator() throws Exception {
+    // Arrange
+    Mockito.when(myDevice.getSystemProperty(IDevice.PROP_DEVICE_MODEL)).thenReturn(Futures.immediateFuture("Pixel 4a"));
+    Mockito.when(myDevice.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER)).thenReturn(Futures.immediateFuture("Google"));
+    Mockito.when(myDevice.getSerialNumber()).thenReturn("02131FQC200017");
+
+    // Act
+    var future = myTask.get();
+
+    // Assert
+    assertEquals(new SerialNumber("02131FQC200017"), ((List<ConnectedDevice>)future.get(60, TimeUnit.SECONDS)).get(0).getKey());
+  }
+
+  @Test
+  public void getKeyPathIsntNull() throws Exception {
+    // Arrange
+    var path = Path.of(System.getProperty("user.home"), ".android", "avd", "Pixel_6_API_33.avd").toString();
+
+    Mockito.when(myDevice.isEmulator()).thenReturn(true);
+    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData(null, path)));
+    Mockito.when(myDevice.getSerialNumber()).thenReturn("emulator-5554");
+
+    // Act
+    var future = myTask.get();
+
+    // Assert
+    assertEquals(new VirtualDevicePath(path), ((List<ConnectedDevice>)future.get(60, TimeUnit.SECONDS)).get(0).getKey());
+  }
+
+  @Test
+  public void getKeyNameIsNull() throws Exception {
+    // Arrange
+    Mockito.when(myDevice.isEmulator()).thenReturn(true);
+    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData(null, null)));
+    Mockito.when(myDevice.getSerialNumber()).thenReturn("emulator-5554");
+
+    // Act
+    var future = myTask.get();
+
+    // Assert
+    assertEquals(new SerialNumber("emulator-5554"), ((List<ConnectedDevice>)future.get(60, TimeUnit.SECONDS)).get(0).getKey());
+  }
+
+  @Test
+  public void getKeyNameEqualsBuild() throws Exception {
+    // Arrange
+    Mockito.when(myDevice.isEmulator()).thenReturn(true);
+    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData("<build>", null)));
+    Mockito.when(myDevice.getSerialNumber()).thenReturn("emulator-5554");
+
+    // Act
+    var future = myTask.get();
+
+    // Assert
+    assertEquals(new SerialNumber("emulator-5554"), ((List<ConnectedDevice>)future.get(60, TimeUnit.SECONDS)).get(0).getKey());
+  }
+
+  @Test
+  public void getKey() throws Exception {
+    // Arrange
+    Mockito.when(myDevice.isEmulator()).thenReturn(true);
+    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData("Pixel_6_API_33", null)));
+    Mockito.when(myDevice.getSerialNumber()).thenReturn("emulator-5554");
+
+    // Act
+    var future = myTask.get();
+
+    // Assert
+    assertEquals(new VirtualDeviceName("Pixel_6_API_33"), ((List<ConnectedDevice>)future.get(60, TimeUnit.SECONDS)).get(0).getKey());
   }
 }
