@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.compose.gradle
 
+import com.android.flags.junit.FlagRule
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.compose.preview.TEST_DATA_PATH
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.rendering.NoSecurityManagerRenderService
@@ -89,6 +91,7 @@ class ComposeGradleProjectRule(
     RuleChain.outerRule(projectRule)
       .around(ComposeGradleProjectRuleImpl(projectPath, kotlinVersion, projectRule))
       .around(EdtRule())
+      .around(FlagRule(StudioFlags.GRADLE_SAVE_LOG_TO_FILE, true))
 
   fun androidFacet(gradlePath: String) = projectRule.androidFacet(gradlePath)
 
