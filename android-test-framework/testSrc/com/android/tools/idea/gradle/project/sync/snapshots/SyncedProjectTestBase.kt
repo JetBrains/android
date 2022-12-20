@@ -22,13 +22,14 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.ModelVersion
+import com.android.tools.idea.testing.aggregateAndThrowIfAny
+import com.android.tools.idea.testing.runCatchingAndRecord
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth
 import com.intellij.openapi.project.Project
 import org.junit.Assume
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runners.model.MultipleFailureException
 import java.io.File
 import java.lang.reflect.InvocationTargetException
 import kotlin.reflect.KClass
@@ -125,39 +126,26 @@ abstract class SyncedProjectTestBase<TestProject: TemplateBasedTestProject>(
         agpVersion = agpVersion
       )
 
-      fun setup(): List<Throwable> {
-        return tests.mapNotNull {
-          kotlin.runCatching { it.setup() }.exceptionOrNull()
+      aggregateAndThrowIfAny {
+        tests.forEach {
+          runCatchingAndRecord { it.setup() }
         }
-      }
 
-      fun run(): List<Throwable> {
-        return preparedProject.open(
+        preparedProject.open(
           updateOptions = {
             it.copy(
               disableKtsRelatedIndexing = true
             )
           }
         ) { project ->
-          tests.mapNotNull {
+          tests.forEach {
             println("${it::class.java.simpleName}(${testProject.projectName})\n    $preparedProject.root")
-            kotlin.runCatching { it.runTest(preparedProject.root, project, expectRule) }.exceptionOrNull()
+            runCatchingAndRecord { it.runTest(preparedProject.root, project, expectRule) }
           }
         }
-      }
-
-      fun verify(): List<Throwable> {
-        return tests.mapNotNull {
-          kotlin.runCatching { it.verifyAfterClosing(preparedProject.root) }.exceptionOrNull()
+        tests.forEach {
+          runCatchingAndRecord { it.verifyAfterClosing(preparedProject.root) }
         }
-      }
-
-      val exceptions = setup() + run() + verify()
-
-      when {
-        exceptions.isEmpty() -> Unit
-        exceptions.size == 1 -> throw exceptions.single()
-        else -> throw MultipleFailureException(exceptions)
       }
     } finally {
       StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride()
