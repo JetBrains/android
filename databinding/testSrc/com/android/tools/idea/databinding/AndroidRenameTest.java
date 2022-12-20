@@ -101,6 +101,6 @@ public class AndroidRenameTest {
    * to type.
    */
   private JavaCodeInsightTestFixture getFixture() {
-    return ((JavaCodeInsightTestFixture)myProject.fixture);
+    return ((JavaCodeInsightTestFixture)myProject.getFixture());
   }
 }

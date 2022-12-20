@@ -106,7 +106,8 @@ class AndroidProjectRule private constructor(
 ) : NamedExternalResource() {
 
   private var userHome: String? = null
-  lateinit var fixture: CodeInsightTestFixture
+  private lateinit var _fixture: CodeInsightTestFixture
+  val fixture: CodeInsightTestFixture get() = _fixture
   val mockitoCleaner = MockitoThreadLocalsCleaner()
 
   val module: Module get() = fixture.module
@@ -271,7 +272,7 @@ class AndroidProjectRule private constructor(
 
   private fun doBeforeActions(description: Description) {
     mockitoCleaner.setup()
-    fixture = fixtureFactory(fixtureName ?: description.displayName)
+    _fixture = fixtureFactory(fixtureName ?: description.displayName)
 
     userHome = System.getProperty("user.home")
     val testSpecificName = UsefulTestCase.TEMP_DIR_MARKER + description.testClass.simpleName.substringAfterLast('$')

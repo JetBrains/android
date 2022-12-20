@@ -43,7 +43,7 @@ import org.junit.runners.Parameterized;
 @RunWith(Parameterized.class)
 public final class ConvertLayoutToDataBindingActionTest {
   private final AndroidProjectRule myProjectRule = AndroidProjectRule.withSdk().initAndroid(true);
-  private final AndroidDomRule myDomRule = new AndroidDomRule("res/layout", () -> myProjectRule.fixture);
+  private final AndroidDomRule myDomRule = new AndroidDomRule("res/layout", myProjectRule::getFixture);
 
   @Rule
   public final TestRule myRuleChain = RuleChain.outerRule(myProjectRule).around(myDomRule);
@@ -65,7 +65,7 @@ public final class ConvertLayoutToDataBindingActionTest {
 
   @Before
   public void setUp() {
-    myProjectRule.fixture.setTestDataPath(TestDataPaths.TEST_DATA_ROOT + "/actions");
+    myProjectRule.getFixture().setTestDataPath(TestDataPaths.TEST_DATA_ROOT + "/actions");
 
     AndroidFacet androidFacet = FacetManager.getInstance(myProjectRule.getModule()).getFacetByType(AndroidFacet.ID);
     LayoutBindingModuleCache.getInstance(androidFacet).setDataBindingMode(myDataBindingMode);
@@ -77,8 +77,8 @@ public final class ConvertLayoutToDataBindingActionTest {
     final ConvertLayoutToDataBindingAction action = new ConvertLayoutToDataBindingAction();
     myDomRule.testWriteAction("classic_layout.xml", "classic_layout_after.xml", () -> {
       Project project = myProjectRule.getProject();
-      Editor editor = myProjectRule.fixture.getEditor();
-      PsiFile file = myProjectRule.fixture.getFile();
+      Editor editor = myProjectRule.getFixture().getEditor();
+      PsiFile file = myProjectRule.getFixture().getFile();
 
       assertThat(action.isAvailable(project, editor, file)).isTrue();
       action.invoke(project, editor, file);

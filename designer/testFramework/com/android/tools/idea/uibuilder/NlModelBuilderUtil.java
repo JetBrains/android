@@ -54,7 +54,7 @@ public class NlModelBuilderUtil {
                                    @NotNull String resourceFolder,
                                    @NotNull String name,
                                    @NotNull ComponentDescriptor root) {
-    return model(AndroidFacet.getInstance(rule.getModule()), rule.fixture, resourceFolder, name, root);
+    return model(AndroidFacet.getInstance(rule.getModule()), rule.getFixture(), resourceFolder, name, root);
   }
 
   @NotNull

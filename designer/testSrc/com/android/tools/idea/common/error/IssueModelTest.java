@@ -31,7 +31,6 @@ import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -57,7 +56,7 @@ public class IssueModelTest {
 
   @Test
   public void setRenderErrorModel() {
-    VirtualFile file = myProjectRule.fixture.addFileToProject("res/layout/layout.xml", "").getVirtualFile();
+    VirtualFile file = myProjectRule.getFixture().addFileToProject("res/layout/layout.xml", "").getVirtualFile();
 
     RenderErrorModel.Issue issue = MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR);
     RenderErrorModel renderErrorModel = createRenderErrorModel(issue);
