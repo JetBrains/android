@@ -125,7 +125,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     buildAttributionUiManager.showBuildAnalysisReportById(buildSessionId)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-    val selectedEditor = FileEditorManagerEx.getInstance(project).selectedEditor!!
+    val selectedEditor = FileEditorManager.getInstance(project).selectedEditor!!
     val vf = selectedEditor.file
     Truth.assertThat(vf.name).isEqualTo("Build report: ${DateFormatUtil.formatDateTime(buildFinishedTimestamp)}")
   }

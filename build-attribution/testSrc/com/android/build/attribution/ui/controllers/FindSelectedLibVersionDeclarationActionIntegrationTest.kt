@@ -26,6 +26,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
@@ -88,8 +89,8 @@ dependencies {
     val action = FindSelectedLibVersionDeclarationAction({ selectedDependency }, projectRule.project, analytics)
     ActionManager.getInstance().tryToExecute(action, null, null, null, true)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
-    Truth.assertThat(FileEditorManagerEx.getInstance(projectRule.project).openFiles.asList()).containsExactly(gradleBuildFile)
-    val caretLine = FileEditorManagerEx.getInstance(projectRule.project).selectedTextEditor?.caretModel?.logicalPosition?.line
+    Truth.assertThat(FileEditorManager.getInstance(projectRule.project).openFiles.asList()).containsExactly(gradleBuildFile)
+    val caretLine = FileEditorManager.getInstance(projectRule.project).selectedTextEditor?.caretModel?.logicalPosition?.line
     Truth.assertThat(caretLine).isEqualTo(1)
 
     // Verify metrics sent
@@ -132,7 +133,7 @@ include(":lib")
     val action = FindSelectedLibVersionDeclarationAction({ selectedDependency }, projectRule.project, analytics)
     ActionManager.getInstance().tryToExecute(action, null, null, null, true)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
-    Truth.assertThat(FileEditorManagerEx.getInstance(projectRule.project).openFiles.asList()).isEmpty()
+    Truth.assertThat(FileEditorManager.getInstance(projectRule.project).openFiles.asList()).isEmpty()
 
     val selectedContent = UsageViewContentManager.getInstance(projectRule.project).selectedContent
     Truth.assertThat(selectedContent.tabName).isEqualTo("Dependency Version Declaration")
@@ -182,8 +183,8 @@ include(":lib")
     val action = FindSelectedLibVersionDeclarationAction({ selectedDependency }, projectRule.project, analytics)
     ActionManager.getInstance().tryToExecute(action, null, null, null, true)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
-    Truth.assertThat(FileEditorManagerEx.getInstance(projectRule.project).openFiles.asList()).containsExactly(gradleAppBuildFile)
-    val caretLine = FileEditorManagerEx.getInstance(projectRule.project).selectedTextEditor?.caretModel?.logicalPosition?.line
+    Truth.assertThat(FileEditorManager.getInstance(projectRule.project).openFiles.asList()).containsExactly(gradleAppBuildFile)
+    val caretLine = FileEditorManager.getInstance(projectRule.project).selectedTextEditor?.caretModel?.logicalPosition?.line
     Truth.assertThat(caretLine).isEqualTo(1)
 
     // Verify metrics sent

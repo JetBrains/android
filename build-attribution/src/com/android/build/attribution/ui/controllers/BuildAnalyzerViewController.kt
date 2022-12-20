@@ -56,8 +56,8 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.colors.CodeInsightColors
 import com.intellij.openapi.editor.colors.EditorColorsManager
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
-import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
@@ -254,7 +254,7 @@ class BuildAnalyzerViewController(
           invokeLater {
             val openFileDescriptor = OpenFileDescriptor(project, property.propertiesFile.virtualFile,
                                                         property.psiElement.textRange.endOffset)
-            FileEditorManagerEx.getInstance(project).openTextEditor(openFileDescriptor, true)?.let { editor ->
+            FileEditorManager.getInstance(project).openTextEditor(openFileDescriptor, true)?.let { editor ->
               blinkPropertyTextInEditor(editor, property)
               val pointInEditor = JBPopupFactory.getInstance().guessBestPopupLocation(editor)
               val message = "'android.enableJetifier' property is now set to false.<br/>" +
