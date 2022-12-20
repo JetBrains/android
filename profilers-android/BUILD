@@ -60,6 +60,7 @@ kotlin_test(
     name = "intellij.android.profilersAndroid.performance",
     timeout = "long",
     srcs = [
+        "testSrc/com/android/tools/idea/profilers/PerformanceTestSuite.kt",
         "testSrc/com/android/tools/idea/profilers/performance/CpuProfilerAtraceCaptureTest.kt",
         "testSrc/com/android/tools/idea/profilers/performance/CpuProfilerEmptyCaptureTest.kt",
         "testSrc/com/android/tools/idea/profilers/performance/CpuProfilerMemoryLoadTestBase.kt",
@@ -76,7 +77,7 @@ kotlin_test(
     tags = [
         "no_test_mac",  # b/168793471
     ],
-    test_class = "com.android.testutils.JarTestSuite",
+    test_class = "com.android.tools.idea.profilers.PerformanceTestSuite",
     deps = [
         ":intellij.android.profilersAndroid_testlib",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
@@ -96,6 +97,7 @@ kotlin_test(
     name = "intellij.android.profilersAndroid.performance.captureDetails",
     timeout = "long",
     srcs = [
+        "testSrc/com/android/tools/idea/profilers/PerformanceTestSuite.kt",
         "testSrc/com/android/tools/idea/profilers/performance/CaptureDetailsTest.kt",
     ],
     data = [
@@ -106,7 +108,7 @@ kotlin_test(
     tags = [
         "no_test_mac",  # b/168793471
     ],
-    test_class = "com.android.testutils.JarTestSuite",
+    test_class = "com.android.tools.idea.profilers.PerformanceTestSuite",
     deps = [
         ":intellij.android.profilersAndroid_testlib",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
