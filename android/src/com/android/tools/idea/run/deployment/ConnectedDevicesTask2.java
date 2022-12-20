@@ -17,49 +17,74 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceNameProperties;
+import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.ConnectedAndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
+import com.android.tools.idea.run.LaunchCompatibilityChecker;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 // TODO Add the thread annotations
 final class ConnectedDevicesTask2 implements AsyncSupplier<Collection<ConnectedDevice>> {
   private final @NotNull AndroidDebugBridge myAndroidDebugBridge;
+  private final @Nullable LaunchCompatibilityChecker myLaunchCompatibilityChecker;
 
-  ConnectedDevicesTask2(@NotNull AndroidDebugBridge androidDebugBridge) {
+  @NotNull
+  private final Function<IDevice, AndroidDevice> myNewConnectedAndroidDevice;
+
+  ConnectedDevicesTask2(@NotNull AndroidDebugBridge androidDebugBridge, @Nullable LaunchCompatibilityChecker launchCompatibilityChecker) {
+    this(androidDebugBridge, launchCompatibilityChecker, ConnectedAndroidDevice::new);
+  }
+
+  @VisibleForTesting
+  ConnectedDevicesTask2(@NotNull AndroidDebugBridge androidDebugBridge,
+                        @Nullable LaunchCompatibilityChecker launchCompatibilityChecker,
+                        @NotNull Function<IDevice, AndroidDevice> newConnectedAndroidDevice) {
     myAndroidDebugBridge = androidDebugBridge;
+    myLaunchCompatibilityChecker = launchCompatibilityChecker;
+    myNewConnectedAndroidDevice = newConnectedAndroidDevice;
   }
 
+  @NotNull
   @Override
-  public @NotNull ListenableFuture<Collection<ConnectedDevice>> get() {
-    var future = myAndroidDebugBridge.getConnectedDevices();
-
+  public ListenableFuture<Collection<ConnectedDevice>> get() {
     // noinspection UnstableApiUsage
-    return Futures.transformAsync(future, ConnectedDevicesTask2::toList, EdtExecutorService.getInstance());
+    return Futures.transformAsync(myAndroidDebugBridge.getConnectedDevices(), this::toList, EdtExecutorService.getInstance());
   }
 
-  private static @NotNull ListenableFuture<Collection<ConnectedDevice>> toList(@NotNull Collection<IDevice> devices) {
+  @NotNull
+  private ListenableFuture<Collection<ConnectedDevice>> toList(@NotNull Collection<IDevice> devices) {
     var futures = devices.stream()
       .filter(IDevice::isOnline)
-      .map(ConnectedDevicesTask2::buildAsync)
+      .map(this::buildAsync)
       .toList();
 
     // noinspection UnstableApiUsage
     return Futures.transform(Futures.successfulAsList(futures), ConnectedDevicesTask2::filterNonNull, EdtExecutorService.getInstance());
   }
 
-  private static @NotNull ListenableFuture<ConnectedDevice> buildAsync(@NotNull IDevice device) {
+  @NotNull
+  private ListenableFuture<ConnectedDevice> buildAsync(@NotNull IDevice device) {
+    var androidDevice = myNewConnectedAndroidDevice.apply(device);
+
     var nameFuture = getNameAsync(device);
     var keyFuture = getKeyAsync(device);
+    var compatibilityFuture = getLaunchCompatibilityAsync(androidDevice);
 
     // noinspection UnstableApiUsage
-    return Futures.whenAllComplete(nameFuture, keyFuture)
-      .call(() -> build(Futures.getDone(nameFuture), Futures.getDone(keyFuture), device), EdtExecutorService.getInstance());
+    return Futures.whenAllComplete(nameFuture, keyFuture, compatibilityFuture)
+      .call(() -> build(androidDevice, nameFuture, keyFuture, compatibilityFuture), EdtExecutorService.getInstance());
   }
 
   private static @NotNull ListenableFuture<String> getNameAsync(@NotNull IDevice device) {
@@ -117,21 +142,31 @@ final class ConnectedDevicesTask2 implements AsyncSupplier<Collection<ConnectedD
     return new VirtualDeviceName(name);
   }
 
-  private static @NotNull ConnectedDevice build(@NotNull String name, @NotNull Key key, @NotNull IDevice device) {
-    var androidDevice = new ConnectedAndroidDevice(device);
+  @NotNull
+  private ListenableFuture<Optional<LaunchCompatibility>> getLaunchCompatibilityAsync(@NotNull AndroidDevice device) {
+    if (myLaunchCompatibilityChecker == null) {
+      return Futures.immediateFuture(Optional.empty());
+    }
 
-    return new ConnectedDevice.Builder()
-      .setName(name)
-      .setKey(key)
-      .setAndroidDevice(androidDevice)
-      .setType(Tasks.getTypeFromAndroidDevice(androidDevice))
-      // TODO
-      .setLaunchCompatibility(LaunchCompatibility.YES)
-      .build();
+    return Futures.submit(() -> Optional.of(myLaunchCompatibilityChecker.validate(device)), AppExecutorUtil.getAppExecutorService());
+  }
+
+  @NotNull
+  private static ConnectedDevice build(@NotNull AndroidDevice device,
+                                       @NotNull Future<String> nameFuture,
+                                       @NotNull Future<Key> keyFuture,
+                                       @NotNull Future<Optional<LaunchCompatibility>> compatibilityFuture) throws ExecutionException {
+    var builder = new ConnectedDevice.Builder()
+      .setName(Futures.getDone(nameFuture))
+      .setKey(Futures.getDone(keyFuture))
+      .setAndroidDevice(device)
+      .setType(Tasks.getTypeFromAndroidDevice(device));
+
+    Futures.getDone(compatibilityFuture).ifPresent(builder::setLaunchCompatibility);
+    return builder.build();
   }
 
   private static @NotNull Collection<ConnectedDevice> filterNonNull(@NotNull Collection<ConnectedDevice> devices) {
-    // noinspection NullableProblems
     return devices.stream()
       .filter(Objects::nonNull)
       .toList();
