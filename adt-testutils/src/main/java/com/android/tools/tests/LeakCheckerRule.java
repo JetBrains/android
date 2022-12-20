@@ -15,16 +15,45 @@
  */
 package com.android.tools.tests;
 
+import com.android.testutils.MockitoThreadLocalsCleaner;
+import com.intellij.ide.AppLifecycleListener;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import org.junit.rules.ExternalResource;
 
 public class LeakCheckerRule extends ExternalResource {
   @Override
   protected void after() {
     try {
+      clearMockitoThreadLocals();
       Class<?> leakTestClass = Class.forName("_LastInSuiteTest");
       leakTestClass.getMethod("testProjectLeak").invoke(leakTestClass.newInstance());
     } catch (Exception e) {
       throw new AssertionError(e);
+    }
+  }
+
+  private static void clearMockitoThreadLocals() {
+    // Note: just before LeakHunter runs, IntelliJ will close all open projects — including projects
+    // from "light" test fixtures which tend to remain open for potential reuse. Unfortunately, project
+    // disposal can lead to new Mockito interactions. For example, if a mock was registered as a child
+    // disposable of a test project, then disposing the project will invoke 'dispose' on the mock,
+    // and this will repopulate Mockito's thread-local state (ThreadSafeMockingProgress). So, in order
+    // to clear Mockito state _after_ all Mockito interactions have finished, we do it inside the
+    // 'appWillBeClosed' callback.
+    Application app = ApplicationManager.getApplication();
+    if (app != null) {
+      app.getMessageBus().connect().subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
+        @Override
+        public void appWillBeClosed(boolean isRestart) {
+          try {
+            new MockitoThreadLocalsCleaner().cleanupAndTearDown();
+          }
+          catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+        }
+      });
     }
   }
 }
