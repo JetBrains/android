@@ -12,6 +12,7 @@
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.designer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.layout-ui" scope="TEST" />
@@ -21,6 +22,7 @@
     <orderEntry type="module" module-name="intellij.android.glance-designer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.preview-designer" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.glance-designer" />
 </module>

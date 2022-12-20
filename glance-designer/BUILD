@@ -30,6 +30,7 @@ iml_module(
     iml_files = ["intellij.android.glance-designer.tests.iml"],
     resources = ["testSrc/META-INF"],
     tags = ["no_test_windows"],
+    test_class = "com.android.tools.idea.glance.preview.GlanceDesignerTestSuite",
     test_friends = ["//tools/adt/idea/glance-designer:intellij.android.glance-designer"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
@@ -39,6 +40,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
@@ -48,5 +50,6 @@ iml_module(
         "//tools/adt/idea/glance-designer:intellij.android.glance-designer[module, test]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
         "//tools/adt/idea/preview-designer:intellij.android.preview-designer[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
     ],
 )
