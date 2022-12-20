@@ -41,6 +41,7 @@ import com.android.tools.profilers.SupportLevel;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject;
+import com.android.tools.profilers.perfetto.config.PerfettoTraceConfigBuilders;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
@@ -53,6 +54,7 @@ import java.util.function.BiConsumer;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import perfetto.protos.PerfettoConfig;
 
 public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   private static final String HEAP_DUMP_TOOLTIP = "View objects in your app that are using memory at a specific point in time";
@@ -199,6 +201,16 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
     ide.getFeatureTracker().trackRecordAllocations();
     Common.Process process = getStudioProfilers().getProcess();
     String traceFilePath = String.format(Locale.getDefault(), "%s/%s.trace", DAEMON_DEVICE_DIR_PATH, process.getName());
+
+    Trace.TraceConfiguration configuration = Trace.TraceConfiguration.newBuilder()
+      .setAbiCpuArch(
+        TransportFileManager.getShortAbiName(getStudioProfilers().getDevice().getCpuAbi()))
+      .setTempPath(traceFilePath)
+      .setAppName(process.getName())
+      .setPerfettoOptions(PerfettoTraceConfigBuilders.INSTANCE.getMemoryTraceConfig(process.getName(),
+                                                                                    ide.getNativeMemorySamplingRateForCurrentConfig()))
+      .build();
+
     Commands.Command dumpCommand = Commands.Command.newBuilder()
       .setStreamId(getSessionData().getStreamId())
       .setPid(getSessionData().getPid())
@@ -206,24 +218,30 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
       .setStartNativeSample(Memory.StartNativeSample.newBuilder()
                               // Note: This will use the config for the one that is loaded (in the drop down) vs the one used to launch
                               // the app.
-                              .setSamplingIntervalBytes(ide.getNativeMemorySamplingRateForCurrentConfig())
-                              .setSharedMemoryBufferBytes(64 * 1024 * 1024)
-                              .setAbiCpuArch(TransportFileManager.getShortAbiName(getStudioProfilers().getDevice().getCpuAbi()))
-                              .setTempPath(traceFilePath)
-                              .setAppName(process.getName()))
+                              .setConfiguration(configuration))
       .build();
+
     return getStudioProfilers().getClient().getTransportClient().execute(
       Transport.ExecuteRequest.newBuilder().setCommand(dumpCommand).build());
   }
 
   private Transport.ExecuteResponse stopNativeAllocationTracking(long startTime) {
+    Trace.TraceConfiguration configuration = Trace.TraceConfiguration.newBuilder()
+      .setAppName(getStudioProfilers().getProcess().getName())
+      .setAbiCpuArch(
+        TransportFileManager.getShortAbiName(getStudioProfilers().getDevice().getCpuAbi()))
+      .setInitiationType(Trace.TraceInitiationType.INITIATED_BY_UI)
+      .setPerfettoOptions(PerfettoConfig.TraceConfig.getDefaultInstance())
+      .build();
+
     Commands.Command dumpCommand = Commands.Command.newBuilder()
       .setStreamId(getSessionData().getStreamId())
       .setPid(getSessionData().getPid())
       .setType(Commands.Command.CommandType.STOP_NATIVE_HEAP_SAMPLE)
       .setStopNativeSample(Memory.StopNativeSample.newBuilder()
-                             .setStartTime(startTime))
+                             .setConfiguration(configuration))
       .build();
+
     return getStudioProfilers().getClient().getTransportClient().execute(
       Transport.ExecuteRequest.newBuilder().setCommand(dumpCommand).build());
   }

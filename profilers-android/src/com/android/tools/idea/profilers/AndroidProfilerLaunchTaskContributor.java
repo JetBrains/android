@@ -58,6 +58,7 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.AdditionalOptions;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
+import com.android.tools.profilers.perfetto.config.PerfettoTraceConfigBuilders;
 import com.intellij.execution.Executor;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -215,15 +216,19 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     StudioFeatureTracker featureTracker = new StudioFeatureTracker(project);
     featureTracker.trackRecordAllocations();
     String traceFilePath = String.format(Locale.US, "%s/%s.trace", DAEMON_DEVICE_DIR_PATH, appPackageName);
+
+    Trace.TraceConfiguration configuration = Trace.TraceConfiguration.newBuilder()
+      .setAbiCpuArch(abi)
+      .setAppName(appPackageName).setInitiationType(Trace.TraceInitiationType.INITIATED_BY_UI)
+      .setPerfettoOptions(
+        PerfettoTraceConfigBuilders.INSTANCE.getMemoryTraceConfig(appPackageName, profilerState.NATIVE_MEMORY_SAMPLE_RATE_BYTES))
+      .build();
+
     Commands.Command sampleCommand = Commands.Command.newBuilder()
       .setStreamId(profilerDevice.getDeviceId())
       .setType(Commands.Command.CommandType.START_NATIVE_HEAP_SAMPLE)
       .setStartNativeSample(Memory.StartNativeSample.newBuilder()
-                              .setSamplingIntervalBytes(profilerState.NATIVE_MEMORY_SAMPLE_RATE_BYTES)
-                              .setSharedMemoryBufferBytes(64 * 1024 * 1024)
-                              .setAbiCpuArch(abi)
-                              .setTempPath(traceFilePath)
-                              .setAppName(appPackageName))
+                              .setConfiguration(configuration))
       .build();
     Transport.ExecuteResponse response =
       client.getTransportClient().execute(Transport.ExecuteRequest.newBuilder().setCommand(sampleCommand).build());

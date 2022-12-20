@@ -43,6 +43,7 @@ iml_module(
         "//tools/adt/idea/android-transport:intellij.android.transport[module]",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
+        "//tools/adt/idea/.idea/libraries:perfetto-proto",
         "//tools/adt/idea/profilers-android:traceprocessor-proto",
         "//tools/adt/idea/.idea/libraries:transport-proto",
         "//tools/adt/idea/inspectors-common/api-ide:intellij.android.inspectors-common.api-ide[module]",
@@ -52,7 +53,6 @@ iml_module(
         "//tools/adt/idea/codenavigation[module]",
         "//prebuilts/tools/common/m2:trace-perfetto-library",
         "//tools/adt/idea/app-inspection/ide:app-inspection.ide[module]",
-        "//tools/adt/idea/.idea/libraries:perfetto-proto[test]",
     ],
 )
 
