@@ -265,7 +265,10 @@ iml_test(
     ],
     module = ":intellij.android.core.integration",
     tags_linux = ["block-network"],
-    tags_windows = ["block-network"],
+    tags_windows = [
+        "block-network",
+        "manual",  # b/262914373 - ~12% failures due to incredibly long syncs
+    ],
     test_class = "com.android.tools.idea.CreateProjectTest",
 )
 
