@@ -53,7 +53,8 @@ import kotlin.math.round
 import kotlin.math.roundToInt
 
 /**
- * Common base class for [EmulatorView] and [com.android.tools.idea.device.DeviceView].
+ * Common base class for [com.android.tools.idea.streaming.emulator.EmulatorView] and
+ * [com.android.tools.idea.streaming.device.DeviceView].
  */
 abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Disposable {
 
@@ -216,9 +217,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
   protected fun hideDisconnectedStateMessage() {
     hideLongRunningOperationIndicatorInstantly()
     disconnectedStatePanel.isVisible = false
-    reconnectButton.apply {
-      action = null
-    }
+    reconnectButton.action = null
     revalidate()
   }
 
