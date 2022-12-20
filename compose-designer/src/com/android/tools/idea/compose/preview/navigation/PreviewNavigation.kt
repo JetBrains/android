@@ -48,7 +48,9 @@ private fun SourceLocation.toNavigatable(module: Module): Navigatable? {
     if (this is SourceLocationWithVirtualFile) this
     else this.asSourceLocationWithVirtualFile(module) ?: return null
   val psiFile =
-    PsiManager.getInstance(project).findFile(sourceLocationWithVirtualFile.virtualFile)
+    runReadAction {
+      PsiManager.getInstance(project).findFile(sourceLocationWithVirtualFile.virtualFile)
+    }
       ?: return null
   return PsiNavigationSupport.getInstance()
     .createNavigatable(

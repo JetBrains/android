@@ -20,6 +20,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiUtil
@@ -115,7 +116,11 @@ internal fun SourceLocation.asSourceLocationWithVirtualFile(
 
   // Lookup in the filename index for matches of the filename. Multiple matches are possible.
   val filesWithName =
-    FilenameIndex.getFilesByName(module.project, fileName, scope)
+    runReadAction {
+        FilenameIndex.getVirtualFilesByName(fileName, scope).mapNotNull {
+          PsiManager.getInstance(module.project).findFile(it)
+        }
+      }
       .filterIsInstance<PsiClassOwner>()
       .toList()
 
