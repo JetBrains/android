@@ -34,6 +34,7 @@ import com.android.tools.idea.logcat.ProjectApplicationIdsProvider.ProjectApplic
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.CopyMessageTextAction
 import com.android.tools.idea.logcat.actions.CreateScratchFileAction
+import com.android.tools.idea.logcat.actions.IgnoreTagAction
 import com.android.tools.idea.logcat.actions.LogcatFoldLinesLikeThisAction
 import com.android.tools.idea.logcat.actions.LogcatFormatAction
 import com.android.tools.idea.logcat.actions.LogcatScrollToTheEndToolbarAction
@@ -392,6 +393,7 @@ internal class LogcatMainPanel @TestOnly constructor(
       add(SearchWebAction().withText(ActionsBundle.message("action.\$SearchWeb.text")))
       add(LogcatFoldLinesLikeThisAction(editor))
       add(ToggleFilterAction(this@LogcatMainPanel, logcatFilterParser))
+      add(IgnoreTagAction())
       add(CreateScratchFileAction())
       add(Separator.create())
       actions.forEach { add(it) }
