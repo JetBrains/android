@@ -21,7 +21,7 @@ import com.android.tools.idea.IdeInfo;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.openapi.extensions.ExtensionPoint;
-import com.intellij.openapi.extensions.ExtensionsArea;
+import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTrackerSettings;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import org.jetbrains.kotlin.idea.core.script.ScriptDefinitionsManager;
+import org.jetbrains.kotlin.idea.core.script.settings.KotlinScriptingSettings;
 
 public final class AndroidStudioPreferences {
   private static final List<String> PROJECT_PREFERENCES_TO_REMOVE = Lists.newArrayList(
@@ -52,6 +54,17 @@ public final class AndroidStudioPreferences {
     CompilerWorkspaceConfiguration.getInstance(project).MAKE_PROJECT_ON_SAVE = false;
 
     ExtensionPoint<ConfigurableEP<Configurable>> projectConfigurable = PROJECT_CONFIGURABLE.getPoint(project);
+
+    // Set ExternalSystemProjectTrackerSettings.autoReloadType to none, re-syncing project only if cached data is corrupted, invalid or missing
+    ExternalSystemProjectTrackerSettings.getInstance(project).setAutoReloadType(ExternalSystemProjectTrackerSettings.AutoReloadType.NONE);
+
+    // Disable KotlinScriptingSettings.autoReloadConfigurations flag, avoiding unexpected re-sync project with kotlin scripts
+    ScriptDefinitionsManager.Companion.getInstance(project).getAllDefinitions().forEach(scriptDefinition -> {
+      KotlinScriptingSettings settings = KotlinScriptingSettings.Companion.getInstance(project);
+      if (settings.isScriptDefinitionEnabled(scriptDefinition) && settings.autoReloadConfigurations(scriptDefinition)) {
+        settings.setAutoReloadConfigurations(scriptDefinition, false);
+      }
+    });
 
     List<ConfigurableEP<Configurable>> nonStudioExtensions = new ArrayList<>();
     for (ConfigurableEP<Configurable> extension : projectConfigurable.getExtensionList()) {

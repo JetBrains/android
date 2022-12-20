@@ -47,7 +47,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
-import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTrackerSettings
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -108,10 +107,7 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
     // See AndroidStudioPreferences for a full list.
     AndroidStudioPreferences.cleanUpPreferences(project)
 
-    if (IdeInfo.getInstance().isAndroidStudio) {
-      ExternalSystemProjectTrackerSettings.getInstance(project).autoReloadType = ExternalSystemProjectTrackerSettings.AutoReloadType.NONE
-      showNeededNotifications(project)
-    }
+    showNeededNotifications(project)
   }
 }
 
