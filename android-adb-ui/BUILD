@@ -26,6 +26,7 @@ iml_module(
 iml_module(
     name = "intellij.android.adb.ui.tests",
     iml_files = ["intellij.android.adb.ui.tests.iml"],
+    test_class = "com.android.tools.idea.ui.AdbUiTestSuite",
     test_friends = ["//tools/adt/idea/android-adb-ui:intellij.android.adb.ui"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
@@ -36,6 +37,7 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
         "//tools/adt/idea/android-adb-ui:intellij.android.adb.ui[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
