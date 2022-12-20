@@ -96,12 +96,20 @@ class LegacyClientTest {
 
   @Test
   fun testReloadAllWindowsWithNone() {
+    // This test may end up in a deadlock if a synchronized launcher is used.
+    inspectorRule.launchSynchronously = false
+    // The launch will attempt to launch an app inspection client and the a legacy client both on connect and the later disconnect.
+    // i.e. a total of 4 launches.
+    // The legacy connection will never succeed (because there are no windows). Do not call awaitLaunch before the end of the test.
+    inspectorRule.startLaunch(4)
     val executor = Executors.newSingleThreadExecutor()
     executor.execute {
       inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
     }
     waitForCondition(5, TimeUnit.SECONDS) { inspectorRule.inspectorClient is LegacyClient }
-    assertThat((inspectorRule.inspectorClient as LegacyClient).reloadAllWindows()).isFalse()
+    val client = inspectorRule.inspectorClient as LegacyClient
+    waitForCondition(5, TimeUnit.SECONDS) { client.launchMonitor.timeoutHandlerScheduled }
+    assertThat(client.reloadAllWindows()).isFalse()
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
     val banner = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
     val notification1 = banner.notifications.single()
@@ -111,6 +119,7 @@ class LegacyClientTest {
     notification1.actions.last().actionPerformed(MockitoKt.mock())
     waitForCondition(5, TimeUnit.SECONDS) { inspectorRule.inspectorClient === DisconnectedClient }
     executor.shutdownNow()
+    inspectorRule.awaitLaunch()
   }
 
   @Test

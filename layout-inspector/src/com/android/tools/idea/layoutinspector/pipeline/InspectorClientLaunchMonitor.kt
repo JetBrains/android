@@ -63,6 +63,10 @@ class InspectorClientLaunchMonitor(
     updateProgress(AttachErrorState.NOT_STARTED)
   }
 
+  val timeoutHandlerScheduled: Boolean
+    @TestOnly
+    get() = currentFuture != null
+
   fun updateProgress(progress: AttachErrorState) {
     attachErrorStateListeners.forEach { it.invoke(progress) }
 
