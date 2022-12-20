@@ -19,7 +19,6 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.run.ConnectedAndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
-import com.android.tools.idea.run.deployment.Device.Type;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -119,12 +118,13 @@ final class ConnectedDevicesTask2 implements AsyncSupplier<Collection<ConnectedD
   }
 
   private static @NotNull ConnectedDevice build(@NotNull String name, @NotNull Key key, @NotNull IDevice device) {
+    var androidDevice = new ConnectedAndroidDevice(device);
+
     return new ConnectedDevice.Builder()
       .setName(name)
       .setKey(key)
-      .setAndroidDevice(new ConnectedAndroidDevice(device))
-      // TODO
-      .setType(Type.PHONE)
+      .setAndroidDevice(androidDevice)
+      .setType(Tasks.getTypeFromAndroidDevice(androidDevice))
       // TODO
       .setLaunchCompatibility(LaunchCompatibility.YES)
       .build();
