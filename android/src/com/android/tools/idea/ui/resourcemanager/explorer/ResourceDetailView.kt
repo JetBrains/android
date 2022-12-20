@@ -89,7 +89,6 @@ class ResourceDetailView(
 
   private val backAction = object : AnAction(AllIcons.Actions.Back) {
     init {
-      templatePresentation.isEnabledAndVisible = true
       ResourceManagerTracking.logDetailViewOpened(viewModel.facet, designAssetSet.assets.firstOrNull()?.type)
     }
 
