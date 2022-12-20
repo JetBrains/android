@@ -86,6 +86,10 @@ data class IdeModelSnapshotComparisonTestDefinition(
         skipV1toV2Comparison = true
       ),
       IdeModelSnapshotComparisonTestDefinition(
+        TestProject.SIMPLE_APPLICATION_WITH_ANDROID_CAR,
+        skipV1toV2Comparison = true
+      ),
+      IdeModelSnapshotComparisonTestDefinition(
         TestProject.TRANSITIVE_DEPENDENCIES_NO_TARGET_SDK_IN_LIBS,
         isCompatibleWith = { it >= AGP_35 }
       ),
@@ -93,7 +97,10 @@ data class IdeModelSnapshotComparisonTestDefinition(
       IdeModelSnapshotComparisonTestDefinition(TestProject.BASIC_CMAKE_APP),
       IdeModelSnapshotComparisonTestDefinition(TestProject.PSD_SAMPLE_GROOVY),
       IdeModelSnapshotComparisonTestDefinition(TestProject.COMPOSITE_BUILD),
-      IdeModelSnapshotComparisonTestDefinition(TestProject.NON_STANDARD_SOURCE_SETS),
+      IdeModelSnapshotComparisonTestDefinition(
+        TestProject.NON_STANDARD_SOURCE_SETS,
+        skipV1toV2Comparison = true  // TODO(b/234749386): Remove when V1 supports optional libraries.
+      ),
       IdeModelSnapshotComparisonTestDefinition(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(
         TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_MANUAL_TEST_FIXTURES_WORKAROUND,

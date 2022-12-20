@@ -103,6 +103,7 @@ interface ModelCache {
       ownerProjectPath: String,
       variant: IdeVariantCoreImpl,
       variantDependencies: VariantDependencies,
+      bootClasspath: Collection<String>,
       androidProjectPathResolver: AndroidProjectPathResolver,
       buildNameMap: Map<String, BuildId>
     ): ModelResult<IdeVariantWithPostProcessor>

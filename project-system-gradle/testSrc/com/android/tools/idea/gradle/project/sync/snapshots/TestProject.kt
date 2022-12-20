@@ -139,6 +139,18 @@ enum class TestProject(
     },
     expectedSyncIssues = setOf(SyncIssue.TYPE_UNNAMED_FLAVOR_DIMENSION)
   ),
+  SIMPLE_APPLICATION_WITH_ANDROID_CAR(
+    TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+    testName = "withAndroidCar",
+    isCompatibleWith = { it.modelVersion == ModelVersion.V2 },
+    patch = { root ->
+      root.resolve("app/build.gradle").replaceContent {
+        it + """
+          android.useLibrary 'android.car'
+         """
+      }
+    }
+  ),
   SIMPLE_APPLICATION_SYNC_FAILED(
     TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
     testName = "syncFailed",

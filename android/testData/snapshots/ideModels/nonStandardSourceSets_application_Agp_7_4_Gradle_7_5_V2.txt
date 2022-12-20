@@ -899,6 +899,10 @@ MODULE                        : application.app
                                 resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/R.txt
+                        - javaLibraries               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar (IdeJavaLibraryDependencyImpl)
+                            target                        : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar (IdeJavaLibraryImpl)
+                                artifact                      : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar
+                                artifactAddress               : __local_jars__:<ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar:unspecified
                         - javaLibraries               : android.arch.core:common:1.1.1 (IdeJavaLibraryDependencyImpl)
                             target                        : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl)
                                 artifact                      : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
@@ -978,6 +982,8 @@ MODULE                        : application.app
                             target                        : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar (IdeJavaLibraryDependencyImpl)
+                            target                        : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : android.arch.core:common:1.1.1 (IdeJavaLibraryDependencyImpl)
                             target                        : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryDependencyImpl)
@@ -1148,6 +1154,8 @@ MODULE                        : application.app
                             target                        : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar (IdeJavaLibraryDependencyImpl)
+                            target                        : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : android.arch.core:common:1.1.1 (IdeJavaLibraryDependencyImpl)
                             target                        : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryDependencyImpl)
@@ -1207,6 +1215,8 @@ MODULE                        : application.app
                             target                        : com.android.support.test:monitor:1.0.2@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : com.android.support.test:runner:1.0.2@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : com.android.support.test:runner:1.0.2@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar (IdeJavaLibraryDependencyImpl)
+                            target                        : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryDependencyImpl)
                             target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : com.google.code.findbugs:jsr305:2.0.1 (IdeJavaLibraryDependencyImpl)
@@ -1336,6 +1346,8 @@ MODULE                        : application.app
                             target                        : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar (IdeJavaLibraryDependencyImpl)
+                            target                        : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : android.arch.core:common:1.1.1 (IdeJavaLibraryDependencyImpl)
                             target                        : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryDependencyImpl)
@@ -1409,6 +1421,8 @@ MODULE                        : application.app
                             target                        : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar (IdeJavaLibraryDependencyImpl)
+                            target                        : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : android.arch.core:common:1.1.1 (IdeJavaLibraryDependencyImpl)
                             target                        : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryDependencyImpl)

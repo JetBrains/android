@@ -212,6 +212,7 @@ private fun v2VariantFetcher(modelCache: ModelCache.V2, v2Variants: List<IdeVari
       module.gradleProject.projectIdentifier.projectPath,
       variant,
       variantDependencies,
+      module.androidProject.bootClasspath,
       androidProjectPathResolver,
       module.buildNameMap
     )
