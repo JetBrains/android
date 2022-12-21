@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import static icons.StudioIcons.Common.ERROR_DECORATOR;
-
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
@@ -32,7 +30,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.Future;
-import java.util.function.Function;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,14 +39,11 @@ final class PhysicalDevice extends Device {
   private static final Icon ourWearIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR);
   private static final Icon ourTvIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV);
 
-  @NotNull
-  static PhysicalDevice newDevice(@NotNull ConnectedDevice device,
-                                  @NotNull Function<ConnectedDevice, String> getName,
-                                  @NotNull KeyToConnectionTimeMap map) {
+  static @NotNull PhysicalDevice newDevice(@NotNull Device device, @NotNull KeyToConnectionTimeMap map) {
     Key key = device.getKey();
 
     return new Builder()
-      .setName(getName.apply(device))
+      .setName(device.getName())
       .setLaunchCompatibility(device.getLaunchCompatibility())
       .setKey(key)
       .setConnectionTime(map.get(key))
@@ -112,31 +106,17 @@ final class PhysicalDevice extends Device {
   @NotNull
   @Override
   Icon getIcon() {
-    Icon deviceIcon;
-    switch (getType()) {
-      case TV:
-        deviceIcon = ourTvIcon;
-        break;
-      case WEAR:
-        deviceIcon = ourWearIcon;
-        break;
-      case PHONE:
-        deviceIcon = ourPhoneIcon;
-        break;
-      default:
-        throw new IllegalStateException("Unexpected device type: " + getType());
-    }
+    Icon icon = switch (getType()) {
+      case TV -> ourTvIcon;
+      case WEAR -> ourWearIcon;
+      case PHONE -> ourPhoneIcon;
+    };
 
-    switch (getLaunchCompatibility().getState()) {
-      case ERROR:
-        return new LayeredIcon(deviceIcon, ERROR_DECORATOR);
-      case WARNING:
-        return new LayeredIcon(deviceIcon, AllIcons.General.WarningDecorator);
-      case OK:
-        return deviceIcon;
-      default:
-        throw new IllegalStateException("Unexpected device state: " + getLaunchCompatibility().getState());
-    }
+    return switch (getLaunchCompatibility().getState()) {
+      case ERROR -> new LayeredIcon(icon, StudioIcons.Common.ERROR_DECORATOR);
+      case WARNING -> new LayeredIcon(icon, AllIcons.General.WarningDecorator);
+      case OK -> icon;
+    };
   }
 
   /**
