@@ -1067,6 +1067,37 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testEmptyCatalogCreateLibraryMapVersion() {
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile("")
+      writeToVersionCatalogFile("")
+
+      val pbm = projectBuildModel
+      val vcModel = pbm.versionCatalogsModel
+
+      val versions = vcModel.versions("libs")!!
+      versions.findProperty("fooVersion").setValue("1.2.3")
+
+      val libraries = vcModel.libraries("libs")!!
+      val foo = libraries.findProperty("foo")
+      foo.getMapValue("name")!!.setValue("foo")
+      foo.getMapValue("group")!!.setValue("com.example")
+      foo.getMapValue("version")!!.setValue(ReferenceTo(versions.findProperty("fooVersion")))
+      applyChanges(pbm)
+      verifyVersionCatalogFileContents(myVersionCatalogFile, """
+        [versions]
+        fooVersion="1.2.3"
+        [libraries]
+        foo={name="foo",group="com.example",version.ref="fooVersion"}
+      """.trimIndent())
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
+  @Test
   fun testTwoTomlFilesVisibility() {
     StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
     StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.override(true)
