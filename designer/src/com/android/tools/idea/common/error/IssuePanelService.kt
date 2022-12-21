@@ -125,9 +125,9 @@ class IssuePanelService(private val project: Project) {
 
     // The shared issue panel for all design tools.
     if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
-      val issueProvider = DesignToolsIssueProvider(project, NotSuppressedFilter + SelectedEditorFilter(project))
+      val issueProvider = DesignToolsIssueProvider(problemsViewWindow.disposable, project, NotSuppressedFilter + SelectedEditorFilter(project))
       val treeModel = DesignerCommonIssuePanelModelProvider.getInstance(project).model
-      val issuePanel = DesignerCommonIssuePanel(project, project, treeModel, issueProvider, ::getEmptyMessage)
+      val issuePanel = DesignerCommonIssuePanel(problemsViewWindow.disposable, project, treeModel, issueProvider, ::getEmptyMessage)
       treeModel.addTreeModelListener(object : TreeModelAdapter() {
         override fun process(event: TreeModelEvent, type: EventType) {
           updateSharedIssuePanelTabName()
@@ -159,7 +159,7 @@ class IssuePanelService(private val project: Project) {
     }
     contentManager.addContentManagerListener(contentManagerListener)
 
-    project.messageBus.connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
+    project.messageBus.connect(problemsViewWindow.disposable).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
       override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
         val editor = source.getSelectedEditor(file)
         updateIssuePanelVisibility(file, editor, true)

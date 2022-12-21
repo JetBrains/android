@@ -66,14 +66,14 @@ operator fun DesignerCommonIssueProvider.Filter.plus(filter: DesignerCommonIssue
 /**
  * [issueFilter] is the filter that always applies for when calling [getFilteredIssues].
  */
-class DesignToolsIssueProvider(project: Project, private val issueFilter: DesignerCommonIssueProvider.Filter)
+class DesignToolsIssueProvider(parentDisposable: Disposable, project: Project, private val issueFilter: DesignerCommonIssueProvider.Filter)
   : DesignerCommonIssueProvider<Any> {
   private val mapLock = Any()
   @GuardedBy("mapLock")
   private val sourceToIssueMap = mutableMapOf<Any, List<Issue>>()
 
   private val listeners = mutableListOf<Runnable>()
-  private val messageBusConnection = project.messageBus.connect()
+  private val messageBusConnection = project.messageBus.connect(parentDisposable)
 
   private var _viewOptionFilter: DesignerCommonIssueProvider.Filter = EmptyFilter
   override var viewOptionFilter: DesignerCommonIssueProvider.Filter
@@ -84,7 +84,7 @@ class DesignToolsIssueProvider(project: Project, private val issueFilter: Design
     }
 
   init {
-    Disposer.register(project, this)
+    Disposer.register(parentDisposable, this)
     messageBusConnection.subscribe(IssueProviderListener.TOPIC, IssueProviderListener { source, issues ->
       synchronized(mapLock) {
         if (issues.isEmpty()) {

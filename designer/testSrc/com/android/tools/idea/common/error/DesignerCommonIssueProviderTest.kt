@@ -42,7 +42,7 @@ class DesignerCommonIssueProviderTest {
   @Test
   fun testReceiveMessageFromTopic() {
     val project = projectRule.project
-    val provider = DesignToolsIssueProvider(project, EmptyFilter)
+    val provider = DesignToolsIssueProvider(projectRule.testRootDisposable, project, EmptyFilter)
 
     val listener = mock(Runnable::class.java)
     provider.registerUpdateListener(listener)
@@ -58,7 +58,7 @@ class DesignerCommonIssueProviderTest {
   @Test
   fun testUpdateIssuesFromSameSource() {
     val project = projectRule.project
-    val provider = DesignToolsIssueProvider(project, EmptyFilter)
+    val provider = DesignToolsIssueProvider(projectRule.testRootDisposable, project, EmptyFilter)
 
     assertEmpty(provider.getFilteredIssues())
 
@@ -88,7 +88,7 @@ class DesignerCommonIssueProviderTest {
   @Test
   fun testUpdateIssuesFromMultipleSource() {
     val project = projectRule.project
-    val provider = DesignToolsIssueProvider(project, EmptyFilter)
+    val provider = DesignToolsIssueProvider(projectRule.testRootDisposable, project, EmptyFilter)
 
     assertEmpty(provider.getFilteredIssues())
 
