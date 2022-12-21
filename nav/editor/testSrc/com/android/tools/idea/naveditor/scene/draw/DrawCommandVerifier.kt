@@ -320,7 +320,6 @@ fun verifyDrawEmptyDesigner(inOrder: InOrder, g: Graphics2D, point: Point2D.Floa
     if (JreHiDpiUtil.isJreHiDPIEnabled()) {
       verify(g).deviceConfiguration
     }
-    verify(g).drawImage(any(), anyInt(), anyInt(), any())
     verify(g).drawString(eq(" to add a destination"), anyInt(), eq(point.y.toInt()))
     verify(g).dispose()
   }
