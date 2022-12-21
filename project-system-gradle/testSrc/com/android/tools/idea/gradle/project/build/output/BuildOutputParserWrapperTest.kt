@@ -69,7 +69,7 @@ class BuildOutputParserWrapperTest {
     whenever(myProject.basePath).thenReturn("test")
 
     val moduleManager = Mockito.mock(ModuleManager::class.java)
-    whenever(myProject.getComponent(ModuleManager::class.java)).thenReturn(moduleManager)
+    whenever(myProject.getService(ModuleManager::class.java)).thenReturn(moduleManager)
     whenever(moduleManager.modules).thenReturn(emptyArray<Module>())
   }
 
