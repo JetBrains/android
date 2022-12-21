@@ -47,7 +47,7 @@ import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.openapi.progress.indicatorRunBlockingCancellable
 import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -72,7 +72,7 @@ class LaunchTaskRunner(
 
   private val LOG = Logger.getInstance(this::class.java)
 
-  override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
+  override fun run(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
 
     settings.getProcessHandlersForDevices(project, devices).forEach { it.destroyProcess() }
@@ -152,7 +152,7 @@ class LaunchTaskRunner(
     }
   }
 
-  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
+  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
     val packageName = applicationIdProvider.packageName
 
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
@@ -193,7 +193,7 @@ class LaunchTaskRunner(
     session.runContentDescriptor
   }
 
-  override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
+  override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
 
     /**

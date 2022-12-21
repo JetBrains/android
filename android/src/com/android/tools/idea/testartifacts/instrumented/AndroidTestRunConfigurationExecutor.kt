@@ -59,7 +59,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.openapi.progress.indicatorRunBlockingCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -102,7 +102,7 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
       applicationIdProvider.testPackageName!!)
   }
 
-  override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
+  override fun run(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
 
     env.runnerAndConfigurationSettings?.getProcessHandlersForDevices(project, devices)?.forEach { it.destroyProcess() }
@@ -255,7 +255,7 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
     }
   }
 
-  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
+  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
 
     env.runnerAndConfigurationSettings?.getProcessHandlersForDevices(project, devices)?.forEach { it.destroyProcess() }

@@ -47,7 +47,7 @@ import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.openapi.progress.indicatorRunBlockingCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -74,7 +74,7 @@ class BlazeAndroidConfigurationExecutor(
   override val configuration = env.runProfile as RunConfiguration
   private val LOG = Logger.getInstance(this::class.java)
 
-  override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
+  override fun run(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
 
     env.runnerAndConfigurationSettings?.getProcessHandlersForDevices(project, devices)?.forEach { it.destroyProcess() }
@@ -152,7 +152,7 @@ class BlazeAndroidConfigurationExecutor(
     }
   }
 
-  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
+  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
     val applicationId = applicationIdProvider.packageName
 
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))

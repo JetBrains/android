@@ -36,7 +36,7 @@ import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.openapi.progress.indicatorRunBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.xdebugger.XDebugSession
 import com.intellij.xdebugger.XDebuggerManager
@@ -63,7 +63,8 @@ object DebugSessionStarter {
     indicator: ProgressIndicator,
     consoleView: ConsoleView? = null,
     timeout: Long = 15
-  ): XDebugSessionImpl = runBlockingCancellable(indicator) {
+
+  ): XDebugSessionImpl = indicatorRunBlockingCancellable(indicator) {
     val client = waitForClientReadyForDebug(device, listOf(appId), timeout, indicator)
 
     val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(environment.project, client,
@@ -126,7 +127,7 @@ object DebugSessionStarter {
     indicator: ProgressIndicator,
     consoleView: ConsoleView? = null,
     timeout: Long = 300
-  ): XDebugSessionImpl = runBlockingCancellable(indicator) {
+  ): XDebugSessionImpl = indicatorRunBlockingCancellable(indicator) {
     val client = waitForClientReadyForDebug(device, listOf(appId), timeout, indicator)
     val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(environment.project, client,
                                                                                   androidDebuggerState,
@@ -182,7 +183,7 @@ object DebugSessionStarter {
     androidDebugger: AndroidDebugger<S>,
     androidDebuggerState: S,
     indicator: ProgressIndicator = EmptyProgressIndicator()
-  ): XDebugSession = runBlockingCancellable(indicator) {
+  ): XDebugSession = indicatorRunBlockingCancellable(indicator) {
     val sessionName = "${androidDebugger.displayName} (${client.clientData.pid})"
     try {
       val starter = androidDebugger.getDebugProcessStarterForExistingProcess(project, client, androidDebuggerState)
