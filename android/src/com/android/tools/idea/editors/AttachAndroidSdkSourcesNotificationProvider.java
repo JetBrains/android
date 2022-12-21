@@ -56,51 +56,52 @@ public class AttachAndroidSdkSourcesNotificationProvider implements EditorNotifi
   @Override
   public @Nullable Function<? super @NotNull FileEditor, ? extends @Nullable JComponent> collectNotificationData(@NotNull Project project,
                                                                                                                  @NotNull VirtualFile file) {
-    return fileEditor -> {
-      if (!FileTypeRegistry.getInstance().isFileOfType(file, JavaClassFileType.INSTANCE)) {
-        return null;
-      }
-
-      // Locate the java source of the class file, if not found, then it might come from a SDK.
-      if (JavaEditorFileSwapper.findSourceFile(myProject, file) == null) {
-        JdkOrderEntry jdkOrderEntry = findAndroidSdkEntryForFile(file);
-
-        if (jdkOrderEntry == null) {
-          return null;
-        }
-        Sdk sdk = jdkOrderEntry.getJdk();
-        if (sdk == null) {
-          return null;
-        }
-
-        String sdkHome = sdk.getHomePath();
-        if (sdkHome == null) {
-          return null;
-        }
-        if (sdk.getRootProvider().getFiles(OrderRootType.SOURCES).length > 0) {
-          return null;
-        }
-
-        AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
-        if (platform == null) {
-          return null;
-        }
-        EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Warning);
-
-        panel.setText("Sources for '" + jdkOrderEntry.getJdkName() + "' not found.");
-        panel.createActionLabel("Download", () -> {
-          List<String> requested = new ArrayList<>();
-          requested.add(DetailsTypes.getSourcesPath(platform.getApiVersion()));
-
-          ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myProject, requested);
-          if (dialog != null && dialog.showAndGet()) {
-            updateSdkSourceRoot(sdk);
-          }
-        });
-        panel.createActionLabel("Refresh (if already downloaded)", () -> updateSdkSourceRoot(sdk));
-        return panel;
-      }
+    if (!FileTypeRegistry.getInstance().isFileOfType(file, JavaClassFileType.INSTANCE)) {
       return null;
+    }
+
+    // Locate the java source of the class file, if not found, then it might come from a SDK.
+    if (JavaEditorFileSwapper.findSourceFile(myProject, file) != null) {
+      return null;
+    }
+    JdkOrderEntry jdkOrderEntry = findAndroidSdkEntryForFile(file);
+
+    if (jdkOrderEntry == null) {
+      return null;
+    }
+    Sdk sdk = jdkOrderEntry.getJdk();
+    if (sdk == null) {
+      return null;
+    }
+
+    String sdkHome = sdk.getHomePath();
+    if (sdkHome == null) {
+      return null;
+    }
+    if (sdk.getRootProvider().getFiles(OrderRootType.SOURCES).length > 0) {
+      return null;
+    }
+
+    AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
+    if (platform == null) {
+      return null;
+    }
+
+    return fileEditor -> {
+      EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Warning);
+
+      panel.setText("Sources for '" + jdkOrderEntry.getJdkName() + "' not found.");
+      panel.createActionLabel("Download", () -> {
+        List<String> requested = new ArrayList<>();
+        requested.add(DetailsTypes.getSourcesPath(platform.getApiVersion()));
+
+        ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myProject, requested);
+        if (dialog != null && dialog.showAndGet()) {
+          updateSdkSourceRoot(sdk);
+        }
+      });
+      panel.createActionLabel("Refresh (if already downloaded)", () -> updateSdkSourceRoot(sdk));
+      return panel;
     };
   }
 
