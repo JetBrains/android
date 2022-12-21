@@ -383,6 +383,40 @@ iml_test(
     test_class = "com.android.tools.idea.RunApkTest",
 )
 
+iml_test(
+    name = "BuildAndRunInstrumentedTest",
+    timeout = "long",
+    data = select({
+        "@platforms//os:linux": [
+            "//tools/adt/idea/studio:android-studio.linux.zip",
+        ],
+        "@platforms//os:macos": [
+            "//tools/adt/idea/studio:android-studio.mac.zip",
+        ],
+        "@platforms//os:windows": [
+            "//tools/adt/idea/studio:android-studio.win.zip",
+        ],
+        "//conditions:default": [],
+    }) + [
+        ":run_instrumented_test_project_deps",
+        ":instrumenttestapp",
+        "//prebuilts/studio/sdk:build-tools/30.0.3",
+        "//prebuilts/studio/sdk:emulator",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//tools/base/build-system:gradle-distrib-7.5",
+        "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
+    ],
+    module = ":intellij.android.core.integration",
+    tags = ["manual"],  # Flakiness due to b/265194288, b/265195162, and b/265310018
+    tags_linux = ["block-network"],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.idea.BuildAndRunInstrumentedTest",
+)
+
 maven_repository(
     name = "buildproject_deps",
     # keep sorted: for buildifier
@@ -420,6 +454,44 @@ maven_repository(
     ],
 )
 
+maven_repository(
+    name = "run_instrumented_test_project_deps",
+    # keep sorted: for buildifier
+    artifacts = [
+        "@maven//:androidx.appcompat.appcompat_1.4.1",
+        "@maven//:androidx.core.core-ktx_1.8.0",
+        "@maven//:androidx.test.espresso.espresso-core_3.4.0",
+        "@maven//:androidx.test.ext.junit_1.1.3",
+        "@maven//:com.android.tools.build.aapt2_7.2.0-7984345",
+        "@maven//:com.android.tools.build.gradle_7.2.0",
+        "@maven//:com.android.tools.emulator.proto_30.2.0",
+        "@maven//:com.android.tools.utp.android-device-provider-ddmlib_30.2.0",
+        "@maven//:com.android.tools.utp.android-device-provider-gradle_30.2.0",
+        "@maven//:com.android.tools.utp.android-test-plugin-host-additional-test-output_30.2.0",
+        "@maven//:com.android.tools.utp.android-test-plugin-host-coverage_30.2.0",
+        "@maven//:com.android.tools.utp.android-test-plugin-host-device-info-proto_30.2.0",
+        "@maven//:com.android.tools.utp.android-test-plugin-host-device-info_30.2.0",
+        "@maven//:com.android.tools.utp.android-test-plugin-host-logcat_30.2.0",
+        "@maven//:com.android.tools.utp.android-test-plugin-host-retention_30.2.0",
+        "@maven//:com.android.tools.utp.android-test-plugin-result-listener-gradle-proto_30.2.0",
+        "@maven//:com.android.tools.utp.android-test-plugin-result-listener-gradle_30.2.0",
+        "@maven//:com.google.android.material.material_1.5.0",
+        "@maven//:com.google.testing.platform.android-device-provider-local_0.0.8-alpha07",
+        "@maven//:com.google.testing.platform.android-driver-instrumentation_0.0.8-alpha07",
+        "@maven//:com.google.testing.platform.android-test-plugin_0.0.8-alpha07",
+        "@maven//:com.google.testing.platform.core-proto_0.0.8-alpha08",
+        "@maven//:com.google.testing.platform.core_0.0.8-alpha07",
+        "@maven//:com.google.testing.platform.launcher_0.0.8-alpha07",
+        "@maven//:javax.annotation.javax.annotation-api_1.3.2",
+        "@maven//:junit.junit_4.13.2",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core-jvm_1.5.2",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.5.2",
+    ],
+)
+
 filegroup(
     name = "minapp",
     srcs = glob(["testData/minapp/**"]),
@@ -434,4 +506,9 @@ filegroup(
 filegroup(
     name = "helloworldapk",
     srcs = glob(["testData/helloworldapk/**"]),
+)
+
+filegroup(
+    name = "instrumenttestapp",
+    srcs = glob(["testData/InstrumentedTestApp/**"]),
 )
