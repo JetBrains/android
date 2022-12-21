@@ -21,11 +21,10 @@ import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerLanguageSettings
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.analyzeSingleDepthInlinedFunctions
+import com.android.tools.idea.run.deployment.liveedit.isKotlinPluginBundled
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
-import com.intellij.ide.plugins.PluginManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -50,7 +49,6 @@ import java.nio.file.Path
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutionException
 
-private const val kotlinPluginId = "org.jetbrains.kotlin"
 private val defaultRetryTimes = Integer.getInteger("fast.preview.224875189.retries", 3)
 
 private fun Throwable?.isCompilationError(): Boolean =
@@ -138,10 +136,6 @@ fun <T> retryInNonBlockingReadAction(retryTimes: Int = defaultRetryTimes,
     throw it
   } ?: throw ProcessCanceledException()
 }
-
-private fun isKotlinPluginBundled() =
-  PluginManager.getInstance().findEnabledPlugin(PluginId.getId(kotlinPluginId))?.isBundled ?: false
-
 
 /**
  * Implementation of the [CompilerDaemonClient] that uses the embedded compiler in Android Studio. This allows

@@ -19,12 +19,15 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedBuildSrcChange
+import com.intellij.ide.plugins.PluginManager
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.idea.util.module
 
+private const val kotlinPluginId = "org.jetbrains.kotlin"
 
 internal fun PrebuildChecks(project: Project, changes: List<EditEvent>) {
   // Technically, we don't NEED IWI until we support persisting changes.
@@ -38,6 +41,9 @@ internal fun PrebuildChecks(project: Project, changes: List<EditEvent>) {
   // Check that Jetpack Compose plugin is enabled otherwise inline linking will fail with
   // unclear BackendException
   checkJetpackCompose(project)
+
+  // Make sure user hasn't updated to the EAP Kotlin plugin.
+  checkKotlinPluginBundled()
 }
 
 internal fun checkIwiAvailable() {
@@ -65,6 +71,16 @@ internal fun checkJetpackCompose(project: Project) {
     throw compilationError("Cannot find Jetpack Compose plugin in Android Studio. Is it enabled?", null, null)
   }
 }
+
+internal fun checkKotlinPluginBundled() {
+  if (!isKotlinPluginBundled()) {
+    throw compilationError(
+      "Live Edit does not support running with this Kotlin Plugin version and will only work with the bundled Kotlin Plugin.", null, null)
+  }
+}
+
+fun isKotlinPluginBundled() =
+  PluginManager.getInstance().findEnabledPlugin(PluginId.getId(kotlinPluginId))?.isBundled ?: false
 
 internal fun ReadActionPrebuildChecks(file: PsiFile) {
   ApplicationManager.getApplication().assertReadAccessAllowed()
