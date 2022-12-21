@@ -30,9 +30,9 @@ import org.jetbrains.annotations.TestOnly
  * extension of JBLabel as it will display other elements such as an edit link and potentially
  * support progress indication.
  */
-class StatefulButtonMessage
+data class StatefulButtonMessage
 @JvmOverloads
-constructor(title: String, state: AssistActionState, body: String? = null) :
+constructor(val title: String, val state: AssistActionState, val body: String? = null) :
   JPanel(GridBagLayout()) {
 
   private var myMessageDisplay: JBLabel? = null
