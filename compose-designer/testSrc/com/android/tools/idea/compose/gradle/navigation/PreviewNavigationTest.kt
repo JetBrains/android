@@ -79,7 +79,9 @@ class PreviewNavigationTest {
               .joinToString("\n") { "${it.fileName}:${it.lineNumber}" }
           )
 
-          // Click the Button by clicking (0, bounds.bottom)
+          // Click the Button by clicking (0, bounds.bottom / 4)
+          // We aim for somewhere inside the button (hence the /4) and not the border since
+	  // different environments (Bazel vs Local) might have slightly different targets.
           // The hits will be, in that other: Button > Column > MaterialTheme
           assertEquals(
             """
@@ -87,7 +89,7 @@ class PreviewNavigationTest {
             MainActivity.kt:49
             MainActivity.kt:48
           """.trimIndent(),
-            findComponentHits(module, rootView, 0, bounds.bottom)
+            findComponentHits(module, rootView, 0, bounds.bottom - bounds.bottom / 4)
               .filter { it.fileName == "MainActivity.kt" }
               .joinToString("\n") { "${it.fileName}:${it.lineNumber}" }
           )
