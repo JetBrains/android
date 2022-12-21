@@ -108,7 +108,7 @@ final class AsyncDevicesGetter implements Disposable {
       .build();
 
     Optional<Collection<VirtualDevice>> virtualDevices = myVirtualDevicesWorker.perform(virtualDevicesTask);
-    var connectedDevices = myConnectedDevicesWorker.perform(new ConnectedDevicesTask2(myBridge, myChecker));
+    var connectedDevices = myConnectedDevicesWorker.perform(new ConnectedDevicesTask(myBridge, myChecker));
 
     if (virtualDevices.isEmpty() || connectedDevices.isEmpty()) {
       return Optional.empty();

@@ -37,21 +37,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 // TODO Add the thread annotations
-final class ConnectedDevicesTask2 implements AsyncSupplier<Collection<ConnectedDevice>> {
+final class ConnectedDevicesTask implements AsyncSupplier<Collection<ConnectedDevice>> {
   private final @NotNull AndroidDebugBridge myAndroidDebugBridge;
   private final @Nullable LaunchCompatibilityChecker myLaunchCompatibilityChecker;
 
   @NotNull
   private final Function<IDevice, AndroidDevice> myNewConnectedAndroidDevice;
 
-  ConnectedDevicesTask2(@NotNull AndroidDebugBridge androidDebugBridge, @Nullable LaunchCompatibilityChecker launchCompatibilityChecker) {
+  ConnectedDevicesTask(@NotNull AndroidDebugBridge androidDebugBridge, @Nullable LaunchCompatibilityChecker launchCompatibilityChecker) {
     this(androidDebugBridge, launchCompatibilityChecker, ConnectedAndroidDevice::new);
   }
 
   @VisibleForTesting
-  ConnectedDevicesTask2(@NotNull AndroidDebugBridge androidDebugBridge,
-                        @Nullable LaunchCompatibilityChecker launchCompatibilityChecker,
-                        @NotNull Function<IDevice, AndroidDevice> newConnectedAndroidDevice) {
+  ConnectedDevicesTask(@NotNull AndroidDebugBridge androidDebugBridge,
+                       @Nullable LaunchCompatibilityChecker launchCompatibilityChecker,
+                       @NotNull Function<IDevice, AndroidDevice> newConnectedAndroidDevice) {
     myAndroidDebugBridge = androidDebugBridge;
     myLaunchCompatibilityChecker = launchCompatibilityChecker;
     myNewConnectedAndroidDevice = newConnectedAndroidDevice;
@@ -72,7 +72,7 @@ final class ConnectedDevicesTask2 implements AsyncSupplier<Collection<ConnectedD
       .toList();
 
     // noinspection UnstableApiUsage
-    return Futures.transform(Futures.successfulAsList(futures), ConnectedDevicesTask2::filterNonNull, EdtExecutorService.getInstance());
+    return Futures.transform(Futures.successfulAsList(futures), ConnectedDevicesTask::filterNonNull, EdtExecutorService.getInstance());
   }
 
   @NotNull
