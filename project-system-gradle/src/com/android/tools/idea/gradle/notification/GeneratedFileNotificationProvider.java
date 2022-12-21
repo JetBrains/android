@@ -46,12 +46,15 @@ public class GeneratedFileNotificationProvider implements EditorNotificationProv
   @Override
   public @Nullable Function<? super @NotNull FileEditor, ? extends @Nullable JComponent> collectNotificationData(@NotNull Project project,
                                                                                                                  @NotNull VirtualFile file) {
+
+    GradleAndroidModel androidModel =
+      GradleProjectSystemUtil.findAndroidModelInModule(myProject, file, false /* include excluded files */);
+
+    if (androidModel == null) {
+      return null;
+    }
+
     return fileEditor -> {
-      GradleAndroidModel androidModel =
-        GradleProjectSystemUtil.findAndroidModelInModule(myProject, file, false /* include excluded files */);
-      if (androidModel == null) {
-        return null;
-      }
       return createNotificationPanel(file, fileEditor, androidModel);
     };
   }
