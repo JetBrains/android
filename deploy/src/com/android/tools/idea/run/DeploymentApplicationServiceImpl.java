@@ -20,9 +20,9 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.deployable.ApplicationIdResolver;
 import com.android.tools.idea.run.deployable.DeviceVersion;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;
 import java.util.List;
-import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 
 public class DeploymentApplicationServiceImpl implements Disposable, DeploymentApplicationService {
@@ -46,7 +46,7 @@ public class DeploymentApplicationServiceImpl implements Disposable, DeploymentA
   }
 
   @NotNull
-  public Future<AndroidVersion> getVersion(@NotNull IDevice iDevice) {
+  public ListenableFuture<AndroidVersion> getVersion(@NotNull IDevice iDevice) {
     return myDeviceVersion.get(iDevice);
   }
 }
