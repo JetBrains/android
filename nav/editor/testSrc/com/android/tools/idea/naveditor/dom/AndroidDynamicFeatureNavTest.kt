@@ -44,7 +44,7 @@ class AndroidDynamicFeatureNavTest {
   val ruleChain = RuleChain.outerRule(projectRule).around(NavEditorRule(projectRule))
 
   val myFixture: JavaCodeInsightTestFixture
-    get() = projectRule.getTypedFixture()!!
+    get() = projectRule.fixture
 
   @Before
   fun setUp() {
