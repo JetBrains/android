@@ -67,6 +67,7 @@ class TreeTableModelImplTest {
     treeSelectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION,
     installTreeSearch = false,
     autoScroll = false,
+    expandAllOnRootChange = false,
     treeHeaderRenderer = null
   )
   private val selectionModel = table.treeTableSelectionModel

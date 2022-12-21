@@ -82,10 +82,14 @@ class TreeTableModelImpl(
   private val modelListeners: MutableList<TreeModelListener> = ContainerUtil.createConcurrentList()
 
 // region ComponentTreeModel implementation
-  override var treeRoot: Any? by Delegates.observable(null) { _, _, newRoot -> hierarchyChanged(newRoot) }
+  override var treeRoot: Any? by Delegates.observable(null) { _, oldRoot, newRoot -> hierarchyChanged(newRoot, newRoot != oldRoot) }
 
   override fun hierarchyChanged(changedNode: Any?) {
-    invokeLater.invoke(Runnable { fireTreeChange(changedNode) })
+    hierarchyChanged(changedNode, false)
+  }
+
+  fun hierarchyChanged(changedNode: Any?, rootChanged: Boolean) {
+    invokeLater.invoke(Runnable { fireTreeChange(changedNode, rootChanged) })
   }
 
   override fun columnDataChanged() = fireColumnDataChanged()
@@ -224,9 +228,9 @@ class TreeTableModelImpl(
    */
   fun computeDepth(node: Any): Int = generateSequence(node) { parent(it) }.count()
 
-  private fun fireTreeChange(changedNode: Any?) {
+  private fun fireTreeChange(changedNode: Any?, rootChanged: Boolean) {
     val path = changedNode?.let { TreePath(changedNode) }
-    val event = TreeModelEvent(this, path)
+    val event = TreeTableModelEvent(this, path, rootChanged)
     modelListeners.forEach { (it as? TreeTableModelImplListener)?.treeChanged(event) }
   }
 

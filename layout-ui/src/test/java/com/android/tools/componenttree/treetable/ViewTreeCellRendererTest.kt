@@ -71,6 +71,7 @@ class ViewTreeCellRendererTest {
       treeSelectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION,
       installTreeSearch = false,
       autoScroll = false,
+      expandAllOnRootChange = false,
       treeHeaderRenderer = null
     )
     tree = table!!.tree

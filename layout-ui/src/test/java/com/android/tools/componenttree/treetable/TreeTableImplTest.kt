@@ -50,6 +50,7 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.TextTransferable
 import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.tree.TreeUtil
 import icons.StudioIcons
 import org.junit.After
 import org.junit.Before
@@ -572,7 +573,7 @@ class TreeTableImplTest {
   }
 
   @Test
-  fun testSelectionIsMaintainedOnUpdates() {
+  fun testSelectionAndExpansionIsMaintainedOnUpdates() {
     val result = createTree()
     val table = result.focusComponent as TreeTableImpl
     val selectionModel = result.selectionModel
@@ -587,6 +588,7 @@ class TreeTableImplTest {
     ui.mouse.click(cell.centerX.toInt(), cell.centerY.toInt())
     assertThat(table.treeTableSelectionModel.currentSelection).isEqualTo(listOf(style1))
     assertThat(selections).isEqualTo(1)
+    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent }).containsExactly(item1, item2)
 
     // Simulate a model change.
     item1.add(item4)
@@ -596,6 +598,33 @@ class TreeTableImplTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     assertThat(table.treeTableSelectionModel.currentSelection).isEqualTo(listOf(style1))
     assertThat(selections).isEqualTo(1)
+    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent }).containsExactly(item1, item2)
+  }
+
+  @Test
+  fun testFullExpansionOnRootUpdates() {
+    val result = createTree {
+      withExpandAllOnRootChange()
+    }
+    val table = result.focusComponent as TreeTableImpl
+    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent }).containsExactly(item1, item2, style1)
+    val model = result.model
+    table.tree.collapseRow(1)
+    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent }).containsExactly(item1)
+
+    // Simulate a model change with no root change:
+    model.treeRoot = item1
+
+    // Make sure the expansions are still intact:
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent }).containsExactly(item1)
+
+    // Simulate a model change with a root change:
+    model.treeRoot = item2
+
+    // The tree should be fully expanded:
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent }).containsExactly(item2, style1)
   }
 
   @RunsInEdt
@@ -638,11 +667,11 @@ class TreeTableImplTest {
   private fun getScrollPane(table: TreeTableImpl): JScrollPane =
     table.parent.parent as JScrollPane
 
-  private fun createTreeTable(): TreeTableImpl =
-    createTree().focusComponent as TreeTableImpl
+  private fun createTreeTable(customChange: ComponentTreeBuilder.() -> ComponentTreeBuilder = { this }): TreeTableImpl =
+    createTree(customChange).focusComponent as TreeTableImpl
 
-  private fun createTree(): ComponentTreeBuildResult {
-    val result = createTreeWithScrollPane()
+  private fun createTree(customChange: ComponentTreeBuilder.() -> ComponentTreeBuilder = { this }): ComponentTreeBuildResult {
+    val result = createTreeWithScrollPane(customChange)
     val table = result.focusComponent as TreeTableImpl
     result.model.treeRoot = item1
 
@@ -651,7 +680,7 @@ class TreeTableImplTest {
     return result
   }
 
-  private fun createTreeWithScrollPane(): ComponentTreeBuildResult {
+  private fun createTreeWithScrollPane(customChange: ComponentTreeBuilder.() -> ComponentTreeBuilder): ComponentTreeBuildResult {
     return ComponentTreeBuilder()
       .withNodeType(ItemNodeType())
       .withNodeType(StyleNodeType())
@@ -665,6 +694,7 @@ class TreeTableImplTest {
       .withInvokeLaterOption { it.run() }
       .withMultipleSelection()
       .withDnD(::merge, deleteOriginOfInternalMove = false)
+      .customChange()
       .build()
   }
 

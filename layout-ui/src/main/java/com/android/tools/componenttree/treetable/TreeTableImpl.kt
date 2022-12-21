@@ -81,6 +81,7 @@ class TreeTableImpl(
   treeSelectionMode: Int,
   autoScroll: Boolean,
   installTreeSearch: Boolean,
+  private val expandAllOnRootChange: Boolean,
   treeHeaderRenderer: TableCellRenderer?
 ) : TreeTable(model), TableVisibility {
   private val extraColumns: List<ColumnInfo>
@@ -315,7 +316,11 @@ class TreeTableImpl(
       selectionModel.keepSelectionDuring {
         val expanded = TreeUtil.collectExpandedPaths(tree)
         tableModel.fireTreeStructureChange(event)
-        TreeUtil.restoreExpandedPaths(tree, expanded)
+        if (expandAllOnRootChange && event.rootChanged) {
+          TreeUtil.expandAll(tree)
+        } else {
+          TreeUtil.restoreExpandedPaths(tree, expanded)
+        }
       }
       (transferHandler as? TreeTableTransferHandler)?.resetDraggedItem()
       dropTargetHandler?.reset()

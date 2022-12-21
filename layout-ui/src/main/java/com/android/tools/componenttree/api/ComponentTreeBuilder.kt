@@ -80,6 +80,7 @@ class ComponentTreeBuilder {
   private var painter: (() -> Control.Painter?)? = null
   private var installKeyboardActions: (JComponent) -> Unit = {}
   private var toggleClickCount = 2
+  private var expandAllOnRootChange = false
 
   /**
    * Register a [NodeType].
@@ -191,6 +192,10 @@ class ComponentTreeBuilder {
    */
   fun withKeyboardActions(installer: (JComponent) -> Unit) = apply { this.installKeyboardActions = installer }
 
+  fun withExpandAllOnRootChange() = apply {
+    expandAllOnRootChange = true
+  }
+
   /**
    * Build the tree component and return it with the tree model.
    */
@@ -218,7 +223,7 @@ class ComponentTreeBuilder {
   private fun buildTreeTable(): ComponentTreeBuildResult {
     val model = TreeTableModelImpl(columns, nodeTypeMap, invokeLater)
     val table = TreeTableImpl(model, contextPopup, doubleClick, painter, installKeyboardActions, selectionMode, autoScroll,
-                              installTreeSearch, headerRenderer)
+                              installTreeSearch, expandAllOnRootChange, headerRenderer)
     table.name = componentName // For UI tests
     if (dndSupport) {
       table.enableDnD(dndMerger, dndDeleteOriginOfInternalMove)
