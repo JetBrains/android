@@ -343,13 +343,13 @@ PROJECT                       : application
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
         CONENT_ENTRY                  : file://<EXTERNAL_MANIFEST>
         CONENT_ENTRY                  : file://<EXTERNAL_SOURCE_SET>
             JavaSource                    : file://<EXTERNAL_SOURCE_SET>/main/java
             JavaResource                  : file://<EXTERNAL_SOURCE_SET>/main/res
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
         WATCHED_RESOURCE_FOLDER       : file://<EXTERNAL_SOURCE_SET>/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<EXTERNAL_SOURCE_SET>/main/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<EXTERNAL_SOURCE_SET>/main/kotlin [-]

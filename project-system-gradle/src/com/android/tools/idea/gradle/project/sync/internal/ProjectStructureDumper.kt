@@ -146,7 +146,7 @@ fun ProjectDumper.dump(module: Module) {
     prop("ExternalSource.DisplayName") { moduleRootManager.externalSource?.displayName?.takeUnless { it == "Gradle" } }
     prop("ExternalSource.Id") { moduleRootManager.externalSource?.id?.takeUnless { it == "GRADLE" } }
     val moduleRootModel = moduleRootManager as ModuleRootModel
-    moduleRootModel.contentEntries.forEach { dump(it) }
+    moduleRootModel.contentEntries.sortedBy { it.url.toPrintablePath() }.forEach { dump(it) }
     val sourceFolderManager = SourceFolderManager.getInstance(module.project) as SourceFolderManagerImpl
     val sourceFolders = sourceFolderManager.state?.sourceFolders?.filter { it.moduleName == module.name }.orEmpty()
     sourceFolders.sortedBy { it.url.toPrintablePath() }.forEach {
