@@ -20,6 +20,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getDependencyDisplay
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
@@ -136,6 +137,7 @@ import org.w3c.dom.NodeList;
 // TODO add option to tools:node=”removeAll" Remove all elements of the same node type
 // TODO add option to tools:node=”strict” can be added to anything that merges perfectly
 
+@UiThread
 public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   private static final String SUGGESTION_MARKER = "Suggestion: ";

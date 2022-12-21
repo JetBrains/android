@@ -30,6 +30,7 @@ import com.android.tools.idea.testing.assertAreEqualToSnapshots
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.util.androidFacet
 import com.android.utils.FileUtils.toSystemIndependentPath
+import com.intellij.testFramework.runInEdtAndWait
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -93,11 +94,15 @@ class ManifestPanelContentTest : SnapshotComparisonTest {
 
       val mergedManifest = MergedManifestManager.getMergedManifestSupplier(appModule).get().get(2, TimeUnit.SECONDS)
 
-      val panel = ManifestPanel(appModuleFacet, projectRule.testRootDisposable)
-      panel.showManifest(mergedManifest, appModuleFacet.sourceProviders.mainManifestFile!!, false)
-      val detailsPaneContent = panel.detailsPane.text
-      val model: TreeModel? = panel.tree.model
-      val manifestPaneContent: String? = model?.transformToString()
+      var detailsPaneContent: String? = null
+      var manifestPaneContent: String? = null
+      runInEdtAndWait {
+        val panel = ManifestPanel(appModuleFacet, projectRule.testRootDisposable)
+        panel.showManifest(mergedManifest, appModuleFacet.sourceProviders.mainManifestFile!!, false)
+        detailsPaneContent = panel.detailsPane.text
+        val model: TreeModel? = panel.tree.model
+        manifestPaneContent = model?.transformToString()
+      }
 
       ProjectDumper().nest(preparedProject.root, "PROJECT_DIR") {
         assertAreEqualToSnapshots(
