@@ -37,9 +37,9 @@ class ItemNodeType : ViewNodeType<Item>() {
 
   override fun childrenOf(node: Item) = node.children
 
-  override fun isEnabled(node: Item) = true
+  override fun isEnabled(node: Item) = node.enabled
 
-  override fun isDeEmphasized(node: Item) = false
+  override fun isDeEmphasized(node: Item) = node.deEmphasized
 
   override fun canInsert(node: Item, data: Transferable) =
     node.canInsert ?: node.children.isNotEmpty()

@@ -25,6 +25,7 @@ import com.android.tools.componenttree.treetable.TreeTableModelImpl
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.SimpleColoredRenderer
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.SimpleTextAttributes.STYLE_SMALLER
 import com.intellij.ui.SimpleTextAttributes.STYLE_STRIKEOUT
 import com.intellij.ui.treeStructure.treetable.TreeTableTree
 import com.intellij.util.text.nullize
@@ -32,7 +33,6 @@ import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import java.awt.Component
-import java.awt.Font
 import java.awt.FontMetrics
 import java.awt.Graphics
 import javax.swing.Icon
@@ -104,9 +104,10 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     var deEmphasized = false
 
     private val baseFontMetrics = getFontMetrics(StartupUiUtil.getLabelFont())
-    private val boldFontMetrics = getFontMetrics(deriveFont(StartupUiUtil.getLabelFont(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES))
+    private val smallFontMetrics = getFontMetrics(StartupUiUtil.getLabelFont().deriveFont(UIUtil.getFontSize(UIUtil.FontSize.SMALL)))
     private val strikeout = SimpleTextAttributes.REGULAR_ATTRIBUTES.derive(STYLE_STRIKEOUT, null, null, null)
-    private val boldStrikeout = SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES.derive(STYLE_STRIKEOUT, null, null, null)
+    private val small = SimpleTextAttributes(STYLE_SMALLER, null)
+    private val smallStrikeout = SimpleTextAttributes(STYLE_SMALLER or STYLE_STRIKEOUT, null)
 
     // Do not make the SimpleColoredRenderer paint the background
     override fun shouldPaintBackground() = false
@@ -144,30 +145,24 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     /**
      * Generate the text from className, component ID, the text value.
      *
-     * If the ID is available show that first in bold followed by the text value if that is available in gray.
+     * If the ID is available show that first followed by the text value if that is available in gray.
      * If either of these 2 strings are missing then also show the className.
      */
     private fun generate(maxWidth: Int) {
       clear()
       icon = treeIcon
       toolTipText = generateTooltip()
-      var attributes = if (!enabledValue) boldStrikeout else SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES
-      if (!append(id, attributes, boldFontMetrics, maxWidth)) {
+      var attributes = if (!enabledValue) strikeout else SimpleTextAttributes.REGULAR_ATTRIBUTES
+      val primary = id ?: tagName
+      if (!append(primary, attributes, baseFontMetrics, maxWidth)) {
         return
       }
-      if (id == null || textValue.isNullOrEmpty()) {
-        val tagText = if (id != null) " - $tagName" else tagName
-        attributes = if (!enabledValue) strikeout else SimpleTextAttributes.REGULAR_ATTRIBUTES
-        if (!append(tagText, attributes, baseFontMetrics, maxWidth)) {
-          return
-        }
-      }
       attributes = when {
-        !enabledValue -> strikeout
-        selectedValue -> SimpleTextAttributes.REGULAR_ATTRIBUTES
-        else -> SimpleTextAttributes.GRAYED_ATTRIBUTES
+        !enabledValue -> smallStrikeout
+        selectedValue -> small
+        else -> SimpleTextAttributes.GRAYED_SMALL_ATTRIBUTES
       }
-      textValue?.nullize()?.let { append(" - \"$it\"", attributes, baseFontMetrics, maxWidth) }
+      textValue?.nullize()?.let { append(" $it", attributes, smallFontMetrics, maxWidth) }
     }
 
     /**
@@ -188,7 +183,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
       foreground = UIUtil.getTreeForeground(selectedValue, focusedValue)
       background = UIUtil.getTreeBackground(selectedValue, focusedValue)
       icon = treeIcon?.let { if (focusedValue) ColoredIconGenerator.generateWhiteIcon(it) else it }
-      if (deEmphasized || !enabledValue) {
+      if (!selectedValue && (deEmphasized || !enabledValue)) {
         foreground = foreground.deEmphasize()
         icon = ColoredIconGenerator.generateDeEmphasizedIcon(icon)
       }
@@ -217,25 +212,17 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
       return unchanged
     }
 
-    // Only show tooltip if we have all 3 elements: id, text, tagName
+    // Only show tooltip if we have both elements: id, tagName (since we only show one of these in the renderer)
     private fun generateTooltip(): String? =
-      if (id.isNullOrEmpty() || textValue.isNullOrEmpty() || tagName.isEmpty())
+      if (id.isNullOrEmpty() || tagName.isEmpty())
         null
       else
         """
         <html>
           $tagName<br/>
-          $id: "$textValue"
+          ${if (textValue.isNullOrEmpty()) id else "$id: $textValue"}
         </html>
         """.trimIndent()
-
-    private fun deriveFont(font: Font, attributes: SimpleTextAttributes): Font {
-      if (font.style == attributes.fontStyle && !attributes.isSmaller) {
-        return font
-      }
-      val size = if (attributes.isSmaller) UIUtil.getFontSize(UIUtil.FontSize.SMALL) else font.size2D
-      return font.deriveFont(attributes.fontStyle, size)
-    }
   }
 
   companion object {
@@ -255,7 +242,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
         }
         str += type.tagNameOf(node).substringAfterLast('.')
       }
-      textValue?.let { str += " - \"$it\"" }
+      textValue?.let { str += " $it" }
       return str
     }
 

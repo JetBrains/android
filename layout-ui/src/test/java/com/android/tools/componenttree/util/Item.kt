@@ -34,6 +34,8 @@ class Item(
   var hover3: Icon? = null
   var canInsert: Boolean? = null
   var acceptInsert = true
+  var enabled = true
+  var deEmphasized = false
   val insertions = mutableListOf<Insertion>()
 
   init {

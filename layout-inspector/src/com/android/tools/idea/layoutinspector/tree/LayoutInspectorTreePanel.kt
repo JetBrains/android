@@ -55,6 +55,7 @@ import com.intellij.ui.TableActions
 import com.intellij.ui.TreeActions
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.treeStructure.Tree
+import com.intellij.util.text.nullize
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
@@ -514,7 +515,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
     override fun idOf(node: TreeViewNode) = node.view.viewId?.name
 
-    override fun textValueOf(node: TreeViewNode) = node.view.textValue
+    override fun textValueOf(node: TreeViewNode) = node.view.textValue.nullize()?.let { "\"$it\"" }
 
     override fun iconOf(node: TreeViewNode): Icon =
       IconProvider.getIconForView(node.view.qualifiedName, node.view is ComposeViewNode)
