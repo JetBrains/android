@@ -25,7 +25,6 @@ import com.android.sdklib.internal.avd.AvdManager
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.idea.ui.AndroidAdbUiBundle
@@ -106,7 +105,7 @@ class ScreenRecorderAction : DumbAwareAction(
     coroutineScope.launch(exceptionHandler) {
       val showTouchEnabled = isShowTouchEnabled(adbSession, serialNumber)
       val size = getDeviceScreenSize(adbSession, serialNumber)
-      val timeLimitSec = if (useEmulatorRecording || params.apiLevel >= 34) MAX_RECORDING_DURATION_MINUTES * 60 else 0
+      val timeLimitSec = if (emulatorRecordingFile != null || params.apiLevel >= 34) MAX_RECORDING_DURATION_MINUTES * 60 else 0
       val options: ScreenRecorderOptions = ScreenRecorderPersistentOptions.getInstance().toScreenRecorderOptions(size, timeLimitSec)
       if (options.showTouches != showTouchEnabled) {
         setShowTouch(adbSession, serialNumber, options.showTouches)
