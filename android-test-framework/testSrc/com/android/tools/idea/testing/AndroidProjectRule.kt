@@ -18,6 +18,7 @@ package com.android.tools.idea.testing
 import com.android.testutils.MockitoThreadLocalsCleaner
 import com.android.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.flags.override
@@ -81,10 +82,11 @@ import java.util.concurrent.TimeoutException
  */
 interface AndroidProjectRule : TestRule {
 
-  interface Typed<T: CodeInsightTestFixture>: AndroidProjectRule {
+  interface Typed<T : CodeInsightTestFixture, H> : AndroidProjectRule {
     override val fixture: T
-    override fun initAndroid(shouldInit: Boolean): Typed<T>
-    override fun named(projectName: String?): Typed<T>
+    override fun initAndroid(shouldInit: Boolean): Typed<T, H>
+    override fun named(projectName: String?): Typed<T, H>
+    val testHelpers: H
   }
 
   val fixture: CodeInsightTestFixture
@@ -119,7 +121,7 @@ interface AndroidProjectRule : TestRule {
      * @see IdeaTestFixtureFactory.createLightFixtureBuilder
      */
     @JvmStatic
-    fun inMemory(): Typed<CodeInsightTestFixture> {
+    fun inMemory(): Typed<CodeInsightTestFixture, Nothing> {
       val testEnvironmentRule = TestEnvironmentRuleImpl(withAndroidSdk = false)
       val fixtureRule = FixtureRuleImpl(::createLightFixture, withAndroidSdk = false)
       val projectEnvironmentRule = ProjectEnvironmentRuleImpl { fixtureRule.project }
@@ -136,7 +138,7 @@ interface AndroidProjectRule : TestRule {
      */
     @JvmStatic
     @JvmOverloads
-    fun onDisk(fixtureName: String? = null): Typed<JavaCodeInsightTestFixture> {
+    fun onDisk(fixtureName: String? = null): Typed<JavaCodeInsightTestFixture, Nothing> {
       val testEnvironmentRule = TestEnvironmentRuleImpl(withAndroidSdk = false)
       val fixtureRule =
         FixtureRuleImpl(::createJavaCodeInsightTestFixtureAndAddModules, withAndroidSdk = false, fixtureName = fixtureName ?: "p")
@@ -153,7 +155,7 @@ interface AndroidProjectRule : TestRule {
      * using a [JavaTestFixtureFactory] with an Android SDK.
      */
     @JvmStatic
-    fun withSdk(): Typed<JavaCodeInsightTestFixture> {
+    fun withSdk(): Typed<JavaCodeInsightTestFixture, Nothing> {
       val testEnvironmentRule = TestEnvironmentRuleImpl(withAndroidSdk = true)
       val fixtureRule = FixtureRuleImpl(::createJavaCodeInsightTestFixtureAndAddModules, withAndroidSdk = true, fixtureName = "p")
       val projectEnvironmentRule = ProjectEnvironmentRuleImpl { fixtureRule.project }
@@ -172,7 +174,7 @@ interface AndroidProjectRule : TestRule {
     @JvmStatic
     fun withAndroidModel(
       androidProjectBuilder: AndroidProjectBuilder = createAndroidProjectBuilderForDefaultTestProjectStructure()
-    ): Typed<JavaCodeInsightTestFixture> {
+    ): Typed<JavaCodeInsightTestFixture, Nothing> {
       return withAndroidModels(
         AndroidModuleModelBuilder(
           gradlePath = ":",
@@ -190,7 +192,7 @@ interface AndroidProjectRule : TestRule {
     fun withAndroidModels(
       prepareProjectSources: ((dir: File) -> Unit)? = null,
       vararg projectModuleBuilders: ModuleModelBuilder
-    ): Typed<JavaCodeInsightTestFixture> {
+    ): Typed<JavaCodeInsightTestFixture, Nothing> {
       fun createFixture(projectName: String): JavaCodeInsightTestFixture {
         return createJavaCodeInsightTestFixtureAndModels(
           projectName,
@@ -198,6 +200,7 @@ interface AndroidProjectRule : TestRule {
           prepareProjectSourcesWith = prepareProjectSources
         )
       }
+
       val testEnvironmentRule = TestEnvironmentRuleImpl(withAndroidSdk = false)
       val fixtureRule =
         FixtureRuleImpl(::createFixture, withAndroidSdk = false, initAndroid = false, fixtureName = "p")
@@ -215,7 +218,7 @@ interface AndroidProjectRule : TestRule {
     @JvmStatic
     fun withAndroidModels(
       vararg projectModuleBuilders: ModuleModelBuilder
-    ): Typed<JavaCodeInsightTestFixture> = withAndroidModels(prepareProjectSources = null, *projectModuleBuilders)
+    ): Typed<JavaCodeInsightTestFixture, Nothing> = withAndroidModels(prepareProjectSources = null, *projectModuleBuilders)
 
     @JvmStatic
     fun withIntegrationTestEnvironment(): IntegrationTestEnvironmentRule {
@@ -227,6 +230,24 @@ interface AndroidProjectRule : TestRule {
           projectRule.replaceService(serviceType, newServiceInstance)
         override val testRootDisposable: Disposable get() = projectRule.testRootDisposable
       }
+    }
+
+    @JvmStatic
+    fun testProject(testProjectDefinition: TestProjectDefinition): Typed<JavaCodeInsightTestFixture, TestProjectTestHelpers> {
+      val testEnvironmentRule = TestEnvironmentRuleImpl(withAndroidSdk = true)
+      val fixtureRule = TestProjectFixtureRuleImpl(testProjectDefinition)
+      val projectEnvironmentRule = ProjectEnvironmentRuleImpl { fixtureRule.fixture.project }
+      return chain(
+        testEnvironmentRule,
+        fixtureRule,
+        projectEnvironmentRule,
+        tools = object : TestProjectTestHelpers {
+          override val projectRoot: File get() = fixtureRule.projectRoot
+          override fun selectModule(module: Module) {
+            fixtureRule.selectModule(module)
+          }
+        }
+      )
     }
   }
 
@@ -263,6 +284,11 @@ interface AndroidProjectRule : TestRule {
   fun waitForResourceRepositoryUpdates() {
     waitForResourceRepositoryUpdates(module)
   }
+
+  interface TestProjectTestHelpers {
+    val projectRoot: File
+    fun selectModule(module: Module)
+  }
 }
 
 /**
@@ -271,14 +297,14 @@ interface AndroidProjectRule : TestRule {
  * [TestEnvironmentRule] is supposed to set up the Android Studio test environment which does not require IntelliJ's test application
  * being initialized.
  */
-private interface TestEnvironmentRule : TestRule
+internal interface TestEnvironmentRule : TestRule
 
 /**
  * The inner rule in the default implementation of the [AndroidProjectRule] chain of rules.
  *
  * [FixtureRule] is supposed to set up the project and code insight fixtures used by the test. .
  */
-private interface FixtureRule<T: CodeInsightTestFixture> : TestRule {
+internal interface FixtureRule<T: CodeInsightTestFixture> : TestRule {
   var initAndroid: Boolean
   var fixtureName: String?
 
@@ -291,7 +317,7 @@ private interface FixtureRule<T: CodeInsightTestFixture> : TestRule {
  *
  * [ProjectEnvironmentRule] is supposed to apply project specific test environment settings.
  */
-private interface ProjectEnvironmentRule : TestRule
+internal interface ProjectEnvironmentRule : TestRule
 
 /**
  * Combines implementations of the standard [AndroidProjectRule] chain components into a functioning rule.
@@ -299,28 +325,32 @@ private interface ProjectEnvironmentRule : TestRule
  * Note: This utility provides a common structure to [AndroidProjectRule] variations, however custom implementations that do not follow
  *       this pattern are possible.
  */
-private fun <T: CodeInsightTestFixture> chain(
+private fun <T : CodeInsightTestFixture, H> chain(
   testEnvironmentRule: TestEnvironmentRule,
   fixtureRule: FixtureRule<T>,
-  projectEnvironmentRule: ProjectEnvironmentRule
-): AndroidProjectRule.Typed<T> {
+  projectEnvironmentRule: ProjectEnvironmentRule,
+  tools: H? = null
+): AndroidProjectRule.Typed<T, H> {
   val chain = RuleChain.outerRule(testEnvironmentRule).around(fixtureRule).around(projectEnvironmentRule)
-  return object : AndroidProjectRule.Typed<T>, TestRule by chain {
+  return object : AndroidProjectRule.Typed<T, H>, TestRule by chain {
     override val testRootDisposable: Disposable
       get() = fixtureRule.testRootDisposable
 
     override val fixture: T
       get() = fixtureRule.fixture
 
-    override fun initAndroid(shouldInit: Boolean): AndroidProjectRule.Typed<T> {
+    override fun initAndroid(shouldInit: Boolean): AndroidProjectRule.Typed<T, H> {
       fixtureRule.initAndroid = shouldInit
       return this
     }
 
-    override fun named(projectName: String?): AndroidProjectRule.Typed<T> {
+    override fun named(projectName: String?): AndroidProjectRule.Typed<T, H> {
       fixtureRule.fixtureName = projectName
       return this
     }
+
+    override val testHelpers: H
+      get() = tools ?: error("Tools not available")
   }
 }
 
@@ -358,12 +388,7 @@ class TestEnvironmentRuleImpl(
   override fun after(description: Description) {
     runInEdtAndWait {
       if (withAndroidSdk) {
-        val sdks = AndroidSdks.getInstance().allAndroidSdks
-        for (sdk in sdks) {
-          WriteAction.runAndWait<RuntimeException> {
-            ProjectJdkTable.getInstance().removeJdk(sdk!!)
-          }
-        }
+        removeAllAndroidSdks()
       }
     }
     userHome?.let { System.setProperty("user.home", it) } ?: System.clearProperty("user.home")
@@ -560,10 +585,7 @@ private fun createJavaCodeInsightTestFixtureAndModels(
 
     override fun setUp() {
       javaCodeInsightTestFixture.setUp()
-      if (IdeSdks.getInstance().androidSdkPath != TestUtils.getSdk()) {
-        println("Tests: Replacing Android SDK from ${IdeSdks.getInstance().androidSdkPath} to ${TestUtils.getSdk()}")
-        AndroidGradleTests.setUpSdks(javaCodeInsightTestFixture, TestUtils.getSdk().toFile())
-      }
+      prepareSdksForTests(javaCodeInsightTestFixture)
       invokeAndWaitIfNeeded {
         // Similarly to AndroidGradleTestCase, sync (fake sync here) requires SDKs to be set up and cleaned after the test to behave
         // properly.
@@ -591,3 +613,19 @@ class EdtAndroidProjectRule(val projectRule: AndroidProjectRule) :
 }
 
 fun AndroidProjectRule.onEdt(): EdtAndroidProjectRule = EdtAndroidProjectRule(this)
+
+internal fun removeAllAndroidSdks() {
+  val sdks = AndroidSdks.getInstance().allAndroidSdks
+  for (sdk in sdks) {
+    WriteAction.runAndWait<RuntimeException> {
+      ProjectJdkTable.getInstance().removeJdk(sdk!!)
+    }
+  }
+}
+
+private fun prepareSdksForTests(javaCodeInsightTestFixture: JavaCodeInsightTestFixture) {
+  if (IdeSdks.getInstance().androidSdkPath != TestUtils.getSdk()) {
+    println("Tests: Replacing Android SDK from ${IdeSdks.getInstance().androidSdkPath} to ${TestUtils.getSdk()}")
+    AndroidGradleTests.setUpSdks(javaCodeInsightTestFixture, TestUtils.getSdk().toFile())
+  }
+}
