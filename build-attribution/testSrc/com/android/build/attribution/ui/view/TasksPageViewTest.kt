@@ -86,8 +86,8 @@ class TasksPageViewTest {
 
   @Test
   @RunsInEdt
-  fun testModelUpdated() {
-    StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.override(false)
+  fun testModelUpdatedWithoutTaskCategoryInfo() {
+    val model = TasksDataPageModelImpl(MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryInfo = false))
     view = TasksPageView(model, mockHandlers).apply {
       component.size = Dimension(600, 200)
     }
@@ -96,6 +96,27 @@ class TasksPageViewTest {
 
     // Assert view updated values from model
     assertThat(view.groupingCheckBox.isSelected).isTrue()
+    assertThat(view.treeHeaderLabel.text).isEqualTo(model.treeHeaderText)
+
+    val selectedNode = view.tree.selectionPath?.lastPathComponent as TasksTreeNode
+    assertThat(selectedNode).isEqualTo(model.selectedNode)
+    assertThat(findVisibleDetailsPageNames(view.detailsPanel)).isEqualTo("details-${selectedNode.descriptor.pageId}")
+    Mockito.verifyNoMoreInteractions(mockHandlers)
+  }
+
+  @Test
+  @RunsInEdt
+  fun testModelUpdatedWithTaskCategoryInfo() {
+    val model = TasksDataPageModelImpl(MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryInfo = true))
+    view = TasksPageView(model, mockHandlers).apply {
+      component.size = Dimension(600, 200)
+    }
+
+    // Act - update model by opening Plugin page
+    model.selectPageById(TasksPageId(TasksDataPageModel.Grouping.BY_PLUGIN, TaskDetailsPageType.PLUGIN_DETAILS, "resources.plugin"))
+
+    // Assert view updated values from model
+    assertThat(view.tasksGroupingComboBox.selectedItem).isEqualTo(TasksDataPageModel.Grouping.BY_PLUGIN)
     assertThat(view.treeHeaderLabel.text).isEqualTo(model.treeHeaderText)
 
     val selectedNode = view.tree.selectionPath?.lastPathComponent as TasksTreeNode
@@ -163,23 +184,6 @@ class TasksPageViewTest {
     // Act / assert links handling
     links[0].doClick()
     Mockito.verify(mockHandlers).changeViewToWarningsLinkClicked()
-  }
-
-  @Test
-  @RunsInEdt
-  fun testModelUpdatedWithTaskCategoryFlag() {
-    StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.override(true)
-    // Act - update model by opening Plugin page
-    model.selectPageById(TasksPageId(TasksDataPageModel.Grouping.BY_PLUGIN, TaskDetailsPageType.PLUGIN_DETAILS, "resources.plugin"))
-
-    // Assert view updated values from model
-    assertThat(view.tasksGroupingComboBox.selectedItem).isEqualTo(TasksDataPageModel.Grouping.BY_PLUGIN)
-    assertThat(view.treeHeaderLabel.text).isEqualTo(model.treeHeaderText)
-
-    val selectedNode = view.tree.selectionPath?.lastPathComponent as TasksTreeNode
-    assertThat(selectedNode).isEqualTo(model.selectedNode)
-    assertThat(findVisibleDetailsPageNames(view.detailsPanel)).isEqualTo("details-${selectedNode.descriptor.pageId}")
-    Mockito.verifyNoMoreInteractions(mockHandlers)
   }
 
   private fun findVisibleDetailsPageNames(parent: Component): String {

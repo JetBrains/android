@@ -196,7 +196,7 @@ class WarningsPageView(
       border = JBUI.Borders.emptyTop(20)
       layout = VerticalLayout(0, SwingConstants.LEFT)
       add(HyperlinkLabel("Tasks impacting build duration").apply {
-        addHyperlinkListener { actionHandlers.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.BY_TASK_CATEGORY) }
+        addHyperlinkListener { actionHandlers.changeViewToTasksLinkClicked(null) }
       })
       add(HyperlinkLabel("Plugins with tasks impacting build duration").apply {
         addHyperlinkListener { actionHandlers.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.BY_PLUGIN) }

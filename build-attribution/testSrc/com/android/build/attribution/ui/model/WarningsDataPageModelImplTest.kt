@@ -51,7 +51,6 @@ class WarningsDataPageModelImplTest {
 
   @Test
   fun testInitialSelection() {
-    print(mockData.criticalPathTaskCategories.entries.joinToString { it.name })
     assertThat(model.print()).isEqualTo("""
       |ROOT
       |  CONFIGURATION_CACHING

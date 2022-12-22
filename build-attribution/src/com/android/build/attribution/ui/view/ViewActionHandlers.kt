@@ -44,8 +44,9 @@ interface ViewActionHandlers {
   /**
    * Called when navigation link clicked targeting to show tasks.
    * Used in Overview and view empty states.
+   * If [targetGrouping] is null, current default is used.
    */
-  fun changeViewToTasksLinkClicked(targetGrouping: TasksDataPageModel.Grouping)
+  fun changeViewToTasksLinkClicked(targetGrouping: TasksDataPageModel.Grouping?)
 
   /**
    * Called when navigation link clicked targeting to show warnings.

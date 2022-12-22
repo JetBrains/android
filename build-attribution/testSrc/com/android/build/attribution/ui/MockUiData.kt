@@ -67,22 +67,22 @@ class MockUiData(
   val configurationDurationMs: Long = defaultConfigurationDurationMs,
   val gcTimeMs: Long = 0,
   val tasksList: List<TestTaskUiData> = emptyList(),
-  val createTaskCategoryWarning: Boolean = false
+  val createTaskCategoryWarning: Boolean = false,
+  val createTaskCategoryInfo: Boolean = true
 ) : BuildAttributionReportUiData {
   override val buildRequestData: GradleBuildInvoker.Request.RequestData
     get() = throw UnsupportedOperationException("Should be overridden for tests requiring to access the request.")
   override var buildSummary = mockBuildOverviewData()
   override var criticalPathTasks = mockCriticalPathTasksUiData()
   override var criticalPathPlugins = mockCriticalPathPluginsUiData()
-  override val criticalPathTaskCategories = mockCriticalPathTaskCategoriesUiData()
   override var issues = criticalPathTasks.tasks.flatMap { it.issues }.groupBy { it.type }.map { (k, v) -> createIssuesGroup(k, v) }
   override var configurationTime = Mockito.mock(ConfigurationUiData::class.java)
   override var annotationProcessors = mockAnnotationProcessorsData()
   override var confCachingData: ConfigurationCachingCompatibilityProjectResult = NoIncompatiblePlugins(emptyList())
   override var jetifierData: JetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(JetifierUsedCheckRequired)
   override var downloadsData: DownloadsAnalyzer.Result = DownloadsAnalyzer.ActiveResult(repositoryResults = emptyList())
-  override val showTaskCategoryInfo: Boolean
-    get() = StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.get()
+  override val showTaskCategoryInfo = createTaskCategoryInfo
+  override val criticalPathTaskCategories = mockCriticalPathTaskCategoriesUiData().takeIf { showTaskCategoryInfo }
 
   fun mockBuildOverviewData(
     javaVersionUsed: Int? = null,

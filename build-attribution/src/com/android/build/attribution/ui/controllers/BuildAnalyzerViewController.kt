@@ -88,11 +88,11 @@ class BuildAnalyzerViewController(
     analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.DATA_VIEW_COMBO_SELECTED, duration)
   }
 
-  override fun changeViewToTasksLinkClicked(targetGrouping: Grouping) {
+  override fun changeViewToTasksLinkClicked(targetGrouping: Grouping?) {
     val currentAnalyticsPage = analytics.getStateFromModel(model)
     val duration = runAndMeasureDuration {
       model.selectedData = BuildAnalyzerViewModel.DataSet.TASKS
-      model.tasksPageModel.selectGrouping(targetGrouping)
+      model.tasksPageModel.selectGrouping(targetGrouping ?: model.tasksPageModel.defaultGrouping)
     }
     val newAnalyticsPage = analytics.getStateFromModel(model)
     analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK, duration)

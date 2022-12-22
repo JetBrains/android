@@ -190,6 +190,34 @@ class BuildAnalyzerViewControllerTest {
 
   @Test
   @RunsInEdt
+  fun testOpenTasksLinkClickedWithTaskCategoriesData() {
+    val model = BuildAnalyzerViewModel(MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryInfo = true), warningSuppressions = warningSuppressions)
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
+
+    // Act
+    controller.changeViewToTasksLinkClicked(null)
+
+    // Assert
+    assertThat(model.selectedData).isEqualTo(BuildAnalyzerViewModel.DataSet.TASKS)
+    assertThat(model.tasksPageModel.selectedGrouping).isEqualTo(TasksDataPageModel.Grouping.BY_TASK_CATEGORY)
+  }
+
+  @Test
+  @RunsInEdt
+  fun testOpenTasksLinkClickedWithNoTaskCategoriesData() {
+    val model = BuildAnalyzerViewModel(MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryInfo = false), warningSuppressions = warningSuppressions)
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
+
+    // Act
+    controller.changeViewToTasksLinkClicked(null)
+
+    // Assert
+    assertThat(model.selectedData).isEqualTo(BuildAnalyzerViewModel.DataSet.TASKS)
+    assertThat(model.tasksPageModel.selectedGrouping).isEqualTo(TasksDataPageModel.Grouping.UNGROUPED)
+  }
+
+  @Test
+  @RunsInEdt
   fun testOpenTasksGroupedByPluginLinkClicked() {
     val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
 
