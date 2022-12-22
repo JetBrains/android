@@ -1,4 +1,4 @@
-load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
+load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 # managed by go/iml_to_build
 iml_module(
@@ -52,53 +52,4 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
     ],
-)
-
-# managed by go/iml_to_build
-iml_module(
-    name = "intellij.android.device-explorer.integration.tests",
-    enable_tests = False,
-    iml_files = ["intellij.android.device-explorer.integration.tests.iml"],
-    test_srcs = ["integration"],
-    visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/device-explorer:intellij.android.device-explorer[module, test]",
-        "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-    ],
-)
-
-iml_test(
-    name = "DeviceExplorerIntegrationTest",
-    timeout = "long",
-    data = select({
-        "@platforms//os:linux": [
-            "//tools/adt/idea/studio:android-studio.linux.zip",
-        ],
-        "@platforms//os:macos": [
-            "//tools/adt/idea/studio:android-studio.mac.zip",
-        ],
-        "@platforms//os:windows": [
-            "//tools/adt/idea/studio:android-studio.win.zip",
-        ],
-        "//conditions:default": [],
-    }) + [
-        "//tools/adt/idea/android/integration:buildproject_deps",
-        "//tools/adt/idea/android/integration:minapp",
-        "//prebuilts/studio/sdk:build-tools/latest",
-        "//prebuilts/studio/sdk:emulator",
-        "//prebuilts/studio/sdk:platform-tools",
-        "//tools/base/build-system:gradle-distrib-7.5",
-        "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
-    ],
-    module = ":intellij.android.device-explorer.integration.tests",
-    tags_linux = ["block-network"],
-    tags_mac = [],
-    tags_windows = [
-        "block-network",
-        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
-    ],
-    test_class = "testSrc.com.android.tools.idea.device.explorer.DeviceExplorerIntegrationTest",
 )

@@ -1246,7 +1246,6 @@ class DeviceFileExplorerControllerImpl(
           })
 
         val addedNodes = updateChildrenNodes(treeModel, node, entries.sortedWith(comparator))
-        LOGGER.debug("Number of nodes added: ${addedNodes.size}")
         loadingNodesAlarms.cancelRequest(showLoadingNode)
 
         // Restore selection
