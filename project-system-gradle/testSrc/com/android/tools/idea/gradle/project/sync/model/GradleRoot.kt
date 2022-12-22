@@ -15,8 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync.model
 
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
+
+/**
+ * Project gradle root representation model
+ * @param name The gradle root name
+ * @param gradleJvm The jdk.table.xml entry name or macro defined on [ExternalSystemJdkUtil] used to configure the gradle java for sync
+ * @param modulesPath A list containing the gradle root modules absolute path
+ */
 data class GradleRoot(
   val name: String = "",
   val gradleJvm: String? = null,
-  val modules: List<String>? = null
+  val modulesPath: List<String> = listOf()
 )

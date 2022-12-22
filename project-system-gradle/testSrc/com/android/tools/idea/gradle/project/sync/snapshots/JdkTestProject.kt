@@ -47,7 +47,7 @@ sealed class JdkTestProject(
       ideaGradleJdk?.let {
         ProjectJdkUtils.setProjectIdeaGradleJdk(
           projectRoot,
-          listOf(GradleRoot(gradleJvm = it, modules = listOf("app")))
+          listOf(GradleRoot(gradleJvm = it, modulesPath = listOf("app")))
         )
       }
       ideaProjectJdk?.let {

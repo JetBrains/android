@@ -54,7 +54,7 @@ object ProjectIdeaConfigFilesUtils {
         <option name="distributionType" value="DEFAULT_WRAPPED" />
         <option name="externalProjectPath" value="${getProjectPath(gradleRoot.name)}" />
         ${gradleRoot.gradleJvm?.let { buildGradleJvmXml(it) } ?: run { "" }}
-        ${gradleRoot.modules?.let { buildProjectModulesXml(it) } ?: run { "" }}
+        ${buildProjectModulesXml(gradleRoot.modulesPath)}
       </GradleProjectSettings>
     """
 
