@@ -228,7 +228,7 @@ public class GradleSpecificInitializer implements ApplicationInitializedListener
 
     AndroidPlatform platform = AndroidPlatforms.getInstance(sdk);
     if (platform != null) {
-      if (ApplicationManager.getApplication().isWriteThread()) {
+      if (ApplicationManager.getApplication().isWriteIntentLockAcquired()) {
         setSources(sdk, platform);
       }
       else {
