@@ -17,7 +17,7 @@ package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 
 import com.android.tools.idea.device.explorer.monitor.ProcessTreeNode
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
-import icons.StudioIcons
+import com.intellij.icons.AllIcons
 import javax.swing.Icon
 
 class ForceStopMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext) : TreeMenuItem(listener) {
@@ -27,7 +27,7 @@ class ForceStopMenuItem(listener: DeviceMonitorActionsListener, private val cont
 
   override val icon: Icon
     get() {
-      return StudioIcons.Shell.Toolbar.STOP
+      return AllIcons.Debugger.KillProcess
     }
 
   override val shortcutId: String

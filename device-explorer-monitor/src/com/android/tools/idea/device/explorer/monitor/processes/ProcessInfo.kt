@@ -48,8 +48,6 @@ data class ProcessInfo(
   val debuggerStatus: ClientData.DebuggerStatus = ClientData.DebuggerStatus.DEFAULT,
 
   val supportsNativeDebugging: Boolean = false,
-
-  val killAction: (() -> Unit)? = null
 )
 
 /**

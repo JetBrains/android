@@ -27,7 +27,7 @@ class KillMenuItem(listener: DeviceMonitorActionsListener, private val context: 
 
   override val icon: Icon
     get() {
-      return StudioIcons.DeviceProcessMonitor.KILL_PROCESS
+      return StudioIcons.Shell.Toolbar.STOP
     }
 
   override val shortcutId: String

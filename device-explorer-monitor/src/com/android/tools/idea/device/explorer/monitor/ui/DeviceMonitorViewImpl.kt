@@ -79,16 +79,16 @@ class DeviceMonitorViewImpl(model: DeviceMonitorModel): DeviceMonitorView, Devic
 
   private fun createTreePopupMenu() {
     ComponentPopupMenu(panel.tree).apply {
-      addItem(KillMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
       addItem(ForceStopMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
+      addItem(KillMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
       install()
     }
   }
 
   private fun createToolbar() {
     createToolbarSubSection(DefaultActionGroup().apply {
-      add(KillMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
       add(ForceStopMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
+      add(KillMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
       add(RefreshMenuItem(this@DeviceMonitorViewImpl).action) }
     )
   }
