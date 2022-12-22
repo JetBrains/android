@@ -20,6 +20,7 @@ import com.intellij.codeInspection.GlobalInspectionTool
 import com.intellij.codeInspection.options.OptPane
 import com.intellij.codeInspection.options.OptPane.checkbox
 import com.intellij.codeInspection.options.OptPane.pane
+import com.intellij.codeInspection.options.OptionController
 
 abstract class VisualLintInspection(val type: VisualLintErrorType, val varName: String): GlobalInspectionTool() {
   override fun worksInBatchModeOnly() = false
@@ -28,10 +29,9 @@ abstract class VisualLintInspection(val type: VisualLintErrorType, val varName: 
 
   override fun getOptionsPane(): OptPane = pane(checkbox(varName, "Run in background"))
 
-  override fun setOption(bindId: String, value: Any?) {
-    super.setOption(bindId, value)
-    if (bindId == varName) {
-      VisualLintUsageTracker.getInstance().trackBackgroundRuleStatusChanged(type, value as Boolean)
+  override fun getOptionController(): OptionController {
+    return super.getOptionController().onValueSet(varName) {
+      VisualLintUsageTracker.getInstance().trackBackgroundRuleStatusChanged(type, it as Boolean)
     }
   }
 }
