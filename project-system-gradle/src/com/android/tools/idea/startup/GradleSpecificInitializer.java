@@ -28,7 +28,6 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.actions.AndroidActionGroupRemover;
 import com.android.tools.idea.actions.AndroidOpenFileAction;
 import com.android.tools.idea.actions.CreateLibraryFromFilesAction;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.gradle.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.io.FilePaths;
@@ -341,7 +340,7 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
 
     AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
     if (platform != null) {
-      if (ApplicationManager.getApplication().isWriteThread()) {
+      if (ApplicationManager.getApplication().isWriteIntentLockAcquired()) {
         setSources(sdk, platform);
       }
       else {

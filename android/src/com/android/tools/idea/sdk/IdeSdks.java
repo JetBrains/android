@@ -1239,7 +1239,7 @@ public class IdeSdks {
       };
       Application application = ApplicationManager.getApplication();
       boolean onReadAction = application.isReadAccessAllowed();
-      boolean hasWriteIntendLock = application.isWriteThread();
+      boolean hasWriteIntendLock = application.isWriteIntentLockAcquired();
       if (onReadAction && !hasWriteIntendLock) {
         // Cannot initialize if write access is not allowed since this would cause a deadlock while waiting for EDT.
         application.invokeLater(createJdkTask);
