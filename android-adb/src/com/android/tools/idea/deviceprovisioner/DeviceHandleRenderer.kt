@@ -33,7 +33,7 @@ object DeviceHandleRenderer {
     component: ColoredTextContainer,
     device: DeviceHandle,
   ) {
-    renderDevice(component, device, device.state.properties.title(), false)
+    renderDevice(component, device, device.state.properties.title, false)
   }
 
   /**
@@ -46,8 +46,8 @@ object DeviceHandleRenderer {
     device: DeviceHandle,
     allDevices: Iterable<DeviceHandle>
   ) {
-    val name = device.state.properties.title()
-    val isDuplicated = allDevices.any { it != device && it.state.properties.title() == name }
+    val name = device.state.properties.title
+    val isDuplicated = allDevices.any { it != device && it.state.properties.title == name }
 
     renderDevice(component, device, name, isDuplicated)
   }
