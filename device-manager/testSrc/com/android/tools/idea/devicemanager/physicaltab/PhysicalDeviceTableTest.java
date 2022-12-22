@@ -17,8 +17,9 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import static org.junit.Assert.assertEquals;
 
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.intellij.openapi.project.Project;
-import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -34,7 +35,9 @@ public final class PhysicalDeviceTableTest {
     PhysicalDevicePanel panel = Mockito.mock(PhysicalDevicePanel.class);
     Mockito.when(panel.getProject()).thenReturn(Mockito.mock(Project.class));
 
-    myTable = new PhysicalDeviceTable(panel, new PhysicalDeviceTableModel(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3)));
+    myTable = new PhysicalDeviceTable(panel,
+                                      new PhysicalDeviceTableModel(List.of(TestPhysicalDevices.GOOGLE_PIXEL_3)),
+                                      Mockito.mock(WearPairingManager.class));
   }
 
   @Test

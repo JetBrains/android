@@ -31,6 +31,7 @@ import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import com.android.tools.idea.devicemanager.TestTables;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.RemoveValue;
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.Disposable;
@@ -106,7 +107,9 @@ public final class PhysicalDevicePanelTest {
     myPanel = new PhysicalDevicePanel(myProject,
                                       myParent,
                                       project -> myService,
-                                      panel -> new PhysicalDeviceTable(panel, new PhysicalDeviceTableModel()),
+                                      panel -> new PhysicalDeviceTable(panel,
+                                                                       new PhysicalDeviceTableModel(),
+                                                                       Mockito.mock(WearPairingManager.class)),
                                       () -> myComponent,
                                       model -> myListener,
                                       mySupplier,
@@ -136,7 +139,9 @@ public final class PhysicalDevicePanelTest {
     myPanel = new PhysicalDevicePanel(myProject,
                                       myParent,
                                       project -> myService,
-                                      panel -> new PhysicalDeviceTable(panel, new PhysicalDeviceTableModel()),
+                                      panel -> new PhysicalDeviceTable(panel,
+                                                                       new PhysicalDeviceTableModel(),
+                                                                       Mockito.mock(WearPairingManager.class)),
                                       () -> myComponent,
                                       model -> myListener,
                                       mySupplier,

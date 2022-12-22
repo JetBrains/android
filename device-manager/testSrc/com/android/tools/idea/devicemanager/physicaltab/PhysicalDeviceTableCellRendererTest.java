@@ -20,16 +20,20 @@ import static org.junit.Assert.assertEquals;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.devicemanager.DeviceTableCellRenderer;
 import com.android.tools.idea.devicemanager.SerialNumber;
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.intellij.ui.table.JBTable;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class PhysicalDeviceTableCellRendererTest {
-  private final @NotNull DeviceTableCellRenderer<PhysicalDevice> myRenderer = new PhysicalDeviceTableCellRenderer();
+  private final DeviceTableCellRenderer<PhysicalDevice> myRenderer =
+    new PhysicalDeviceTableCellRenderer(Mockito.mock(WearPairingManager.class));
+
   private final @NotNull JTable myTable = new JBTable();
 
   @Test

@@ -59,9 +59,7 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     this(valueClass, WearPairingManager.getInstance());
   }
 
-
-  @VisibleForTesting
-  DeviceTableCellRenderer(@NotNull Class<D> valueClass, @NotNull WearPairingManager manager) {
+  protected DeviceTableCellRenderer(@NotNull Class<D> valueClass, @NotNull WearPairingManager manager) {
     myValueClass = valueClass;
     myManager = manager;
 
@@ -178,7 +176,8 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     return new JBColor(new Color(red, green, blue), color.darker());
   }
 
-  @NotNull Optional<Icon> getPairedLabelIcon(@NotNull Device device) {
+  @NotNull
+  Optional<Icon> getPairedLabelIcon(@NotNull Device device) {
     List<PhoneWearPair> pairList = myManager.getPairsForDevice(device.getKey().toString());
 
     if (pairList.isEmpty()) {

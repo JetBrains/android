@@ -19,6 +19,7 @@ import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.MenuItems;
 import com.android.tools.idea.devicemanager.PopUpMenuButtonTableCellEditor;
 import com.android.tools.idea.wearpairing.AndroidWearPairingBundle;
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import java.awt.Component;
 import java.util.ArrayList;
@@ -30,8 +31,8 @@ import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
 
 final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonTableCellEditor {
-  PhysicalDevicePopUpMenuButtonTableCellEditor(@NotNull PhysicalDevicePanel panel) {
-    super(panel);
+  PhysicalDevicePopUpMenuButtonTableCellEditor(@NotNull PhysicalDevicePanel panel, @NotNull WearPairingManager manager) {
+    super(panel, manager);
   }
 
   @Override

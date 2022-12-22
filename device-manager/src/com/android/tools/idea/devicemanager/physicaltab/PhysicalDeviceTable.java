@@ -29,6 +29,7 @@ import com.android.tools.idea.devicemanager.MergedTableColumn;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.RemoveValue;
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.icons.AllIcons;
@@ -55,11 +56,11 @@ import org.jetbrains.annotations.NotNull;
 
 public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
   PhysicalDeviceTable(@NotNull PhysicalDevicePanel panel) {
-    this(panel, new PhysicalDeviceTableModel());
+    this(panel, new PhysicalDeviceTableModel(), WearPairingManager.getInstance());
   }
 
   @VisibleForTesting
-  PhysicalDeviceTable(@NotNull PhysicalDevicePanel panel, @NotNull PhysicalDeviceTableModel model) {
+  PhysicalDeviceTable(@NotNull PhysicalDevicePanel panel, @NotNull PhysicalDeviceTableModel model, @NotNull WearPairingManager manager) {
     super(model, PhysicalDevice.class);
 
     Project project = panel.getProject();
@@ -71,10 +72,10 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
                                                                                  EventKind.PHYSICAL_DEVICE_FILE_EXPLORER_ACTION));
 
     setDefaultEditor(RemoveValue.class, new RemoveButtonTableCellEditor(panel));
-    setDefaultEditor(PopUpMenuValue.class, new PhysicalDevicePopUpMenuButtonTableCellEditor(panel));
+    setDefaultEditor(PopUpMenuValue.class, new PhysicalDevicePopUpMenuButtonTableCellEditor(panel, manager));
 
     setDefaultRenderer(DeviceType.class, new DeviceIconButtonTableCellRenderer<>(this));
-    setDefaultRenderer(Device.class, new PhysicalDeviceTableCellRenderer());
+    setDefaultRenderer(Device.class, new PhysicalDeviceTableCellRenderer(manager));
     setDefaultRenderer(AndroidVersion.class, new ApiTableCellRenderer());
     setDefaultRenderer(Collection.class, new TypeTableCellRenderer());
 
@@ -106,7 +107,8 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
     return sorter;
   }
 
-  @NotNull Optional<PhysicalDevice> getSelectedDevice() {
+  @NotNull
+  Optional<PhysicalDevice> getSelectedDevice() {
     int viewRowIndex = getSelectedRow();
 
     if (viewRowIndex == -1) {
