@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.streaming.device
 
-import com.android.adblib.DevicePropertyNames
+import com.android.adblib.DevicePropertyNames.RO_BOOT_QEMU_AVD_NAME
+import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
+import com.android.adblib.DevicePropertyNames.RO_BUILD_VERSION_CODENAME
+import com.android.adblib.DevicePropertyNames.RO_BUILD_VERSION_SDK
+import com.android.adblib.DevicePropertyNames.RO_KERNEL_QEMU_AVD_NAME
+import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MANUFACTURER
+import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MODEL
 import com.android.sdklib.SdkVersionInfo
 import com.intellij.openapi.util.text.StringUtil
 
@@ -24,16 +30,17 @@ import com.intellij.openapi.util.text.StringUtil
  */
 class DeviceConfiguration(deviceProperties: Map<String, String>) {
 
-  val apiLevel: Int = deviceProperties[DevicePropertyNames.RO_BUILD_VERSION_SDK]?.toInt() ?: SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
+  val apiLevel: Int = deviceProperties[RO_BUILD_VERSION_SDK]?.toInt() ?: SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 
-  val avdName: String? =
-      deviceProperties[DevicePropertyNames.RO_BOOT_QEMU_AVD_NAME] ?: deviceProperties[DevicePropertyNames.RO_KERNEL_QEMU_AVD_NAME]
+  val featureLevel: Int = if (deviceProperties[RO_BUILD_VERSION_CODENAME] == null) apiLevel else apiLevel + 1
 
-  val deviceModel: String? = deviceProperties[DevicePropertyNames.RO_PRODUCT_MODEL]
+  val avdName: String? = deviceProperties[RO_BOOT_QEMU_AVD_NAME] ?: deviceProperties[RO_KERNEL_QEMU_AVD_NAME]
 
-  val isWatch: Boolean = deviceProperties[DevicePropertyNames.RO_BUILD_CHARACTERISTICS]?.contains("watch") ?: false
+  val deviceModel: String? = deviceProperties[RO_PRODUCT_MODEL]
 
-  val isAutomotive: Boolean = deviceProperties[DevicePropertyNames.RO_BUILD_CHARACTERISTICS]?.contains("automotive") ?: false
+  val isWatch: Boolean = deviceProperties[RO_BUILD_CHARACTERISTICS]?.contains("watch") ?: false
+
+  val isAutomotive: Boolean = deviceProperties[RO_BUILD_CHARACTERISTICS]?.contains("automotive") ?: false
 
   val deviceName: String?
 
@@ -42,7 +49,7 @@ class DeviceConfiguration(deviceProperties: Map<String, String>) {
     if (name == null) {
       name = deviceModel
       if (name != null && !name.startsWith("Pixel")) {
-        val manufacturer = deviceProperties[DevicePropertyNames.RO_PRODUCT_MANUFACTURER]
+        val manufacturer = deviceProperties[RO_PRODUCT_MANUFACTURER]
         if (!manufacturer.isNullOrBlank() && manufacturer != "unknown") {
           name = "${StringUtil.capitalize(manufacturer)} $name"
         }
