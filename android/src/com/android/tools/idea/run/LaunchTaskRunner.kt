@@ -48,6 +48,7 @@ import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils
@@ -57,8 +58,8 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
-import org.jetbrains.concurrency.resolvedPromise
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -198,20 +199,25 @@ class LaunchTaskRunner(
             session.runContentDescriptor
           }
       }
-      var descriptor: RunContentDescriptor? = null
-      if (isSwap) {
-        // If we're hotswapping, we want to use the currently-running ContentDescriptor,
-        // instead of making a new one (which "show"RunContent actually does).
-        val manager = RunContentManager.getInstance(project)
-        // Note we may still end up with a null descriptor since the user could close the tool tab after starting a hotswap.
-        descriptor = manager.findContentDescriptor(myEnv.executor, myProcessHandler)
+      val descriptorPromise = AsyncPromise<RunContentDescriptor>()
+
+      runInEdt {
+        var descriptor: RunContentDescriptor? = null
+        if (isSwap) {
+          // If we're hotswapping, we want to use the currently-running ContentDescriptor,
+          // instead of making a new one (which "show"RunContent actually does).
+          val manager = RunContentManager.getInstance(project)
+          // Note we may still end up with a null descriptor since the user could close the tool tab after starting a hotswap.
+          descriptor = manager.findContentDescriptor(myEnv.executor, myProcessHandler)
+        }
+        if (descriptor?.attachedContent == null) {
+          createRunContentDescriptor(myProcessHandler, myConsole, myEnv).processed(descriptorPromise)
+        }
+        else {
+          descriptorPromise.setResult(descriptor)
+        }
       }
-      return if (descriptor == null || descriptor.attachedContent == null) {
-        createRunContentDescriptor(myProcessHandler, myConsole, myEnv)
-      }
-      else {
-        resolvedPromise(descriptor)
-      }
+      return descriptorPromise
     }
     finally {
       myStats.endLaunchTasks()
