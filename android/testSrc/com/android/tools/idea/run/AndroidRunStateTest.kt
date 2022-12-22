@@ -32,11 +32,12 @@ import com.intellij.execution.impl.RunnerAndConfigurationSettingsImpl
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.ui.ConsoleView
-import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.util.ui.EdtInvocationManager
 import org.jetbrains.android.facet.AndroidFacet
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -61,10 +62,6 @@ class AndroidRunStateTest {
   val edtRule = EdtRule()
   @get:Rule
   val projectRule = ProjectRule()
-  @get:Rule
-  val disposableRule = DisposableRule()
-
-  lateinit var env: ExecutionEnvironment
 
   @Mock
   lateinit var mockApplicationIdProvider: ApplicationIdProvider
@@ -93,6 +90,11 @@ class AndroidRunStateTest {
     whenever(mockApplicationIdProvider.packageName).thenReturn(TARGET_APP_ID)
     whenever(mockConsoleProvider.createAndAttach(any(), any(), any())).thenReturn(mockConsoleView)
     deployTarget = LaunchTaskRunnerTest.createDeployTarget(1)
+  }
+
+  @After
+  fun tearDown() {
+    EdtInvocationManager.dispatchAllInvocationEvents()
   }
 
   @Test
@@ -125,12 +127,12 @@ class AndroidRunStateTest {
 
   private fun runAndroidApplication(): ExecutionResult {
     val configSettings = RunManager.getInstance(projectRule.project).createConfiguration("run App", AndroidRunConfigurationType().factory)
-    env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), AndroidConfigurationProgramRunner(), configSettings,
+    val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), AndroidConfigurationProgramRunner(), configSettings,
                                projectRule.project)
 
     val runState = AndroidRunState(env, "launch config name", projectRule.module, mockApplicationIdProvider,
                                    mockConsoleProvider, deployTarget, mockAndroidLaunchTasksProvider)
-    return requireNotNull(runState.execute(mockRunExecutor, mockProgramRunner))
+    return requireNotNull(runState.execute(mockRunExecutor, mockProgramRunner)?.apply { processHandler!!.startNotify() })
   }
 
   private fun runAndroidTestApplication(execution: TestExecutionOption = TestExecutionOption.HOST): ExecutionResult {
@@ -141,11 +143,11 @@ class AndroidRunStateTest {
     val configSettings = RunManager.getInstance(projectRule.project).createConfiguration("run test",
                                                                                          AndroidTestRunConfigurationType().factory!!)
     (configSettings as RunnerAndConfigurationSettingsImpl).setConfiguration(mockTestRunConfiguration)
-    env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), AndroidConfigurationProgramRunner(), configSettings,
+    val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), AndroidConfigurationProgramRunner(), configSettings,
                                projectRule.project)
 
     val runState = AndroidRunState(env, "launch config name", projectRule.module, mockApplicationIdProvider,
                                    mockConsoleProvider, deployTarget, mockAndroidLaunchTasksProvider)
-    return requireNotNull(runState.execute(mockRunExecutor, mockProgramRunner))
+    return requireNotNull(runState.execute(mockRunExecutor, mockProgramRunner)?.apply { processHandler!!.startNotify() })
   }
 }

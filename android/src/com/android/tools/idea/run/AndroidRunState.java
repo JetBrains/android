@@ -41,6 +41,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import kotlin.Unit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -87,6 +88,8 @@ public class AndroidRunState implements RunProfileState {
           return Unit.INSTANCE;
         },
         shouldAutoTerminate(myEnv.getRunnerAndConfigurationSettings()));
+      ProcessHandler finalProcessHandler1 = processHandler;
+      Disposer.register(myEnv.getProject(), () -> finalProcessHandler1.detachProcess());
     }
     Project project = myModule.getProject();
     if (console == null) {
