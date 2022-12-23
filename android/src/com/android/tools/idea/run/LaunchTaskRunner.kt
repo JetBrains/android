@@ -206,8 +206,8 @@ class LaunchTaskRunner(
       runInEdt {
         var descriptor: RunContentDescriptor? = null
         if (isSwap) {
-          // If we're hotswapping, we want to use the currently-running ContentDescriptor,
-          // instead of making a new one (which "show"RunContent actually does).
+          // If we're hot swapping, we want to use the currently-running ContentDescriptor,
+          // instead of making a new one (which showRunContent actually does).
           val manager = RunContentManager.getInstance(project)
           // Note we may still end up with a null descriptor since the user could close the tool tab after starting a hotswap.
           descriptor = manager.findContentDescriptor(myEnv.executor, myProcessHandler)
@@ -264,7 +264,7 @@ class LaunchTaskRunner(
         if (result != LaunchResult.Result.SUCCESS) {
           myError = launchResult.message
           launchContext.consolePrinter.stderr(launchResult.consoleMessage)
-          if (!launchResult.message.isEmpty()) {
+          if (launchResult.message.isNotEmpty()) {
             if (result == LaunchResult.Result.ERROR) {
               notifyError(project, configuration.name, launchResult.message)
             }
@@ -329,7 +329,7 @@ class LaunchTaskRunner(
 
   private fun printLaunchTaskStartedMessage(consolePrinter: ConsolePrinter) {
     val launchString = StringBuilder("\n")
-    val dateFormat: DateFormat = SimpleDateFormat("MM/dd HH:mm:ss")
+    val dateFormat: DateFormat = SimpleDateFormat ("MM/dd HH:mm:ss")
     launchString.append(dateFormat.format(Date())).append(": ")
     launchString.append(launchVerb).append(" ")
     launchString.append("'").append(configuration.name).append("'")
@@ -390,7 +390,7 @@ class LaunchTaskRunner(
      * Checks if the launch is still alive and good to continue. Upon cancellation request, it updates a given `launchStatus` to
      * be terminated state. The associated process will be forcefully destroyed if `destroyProcess` is true.
      *
-     * @param indicator      an progress indicator to check the user cancellation request
+     * @param indicator      a progress indicator to check the user cancellation request
      * @param launchStatus   a launch status to be checked and updated upon the cancellation request
      * @param destroyProcess true to destroy the associated process upon cancellation, false to detach the process instead
      * @return true if the launch is still good to go, false otherwise.
