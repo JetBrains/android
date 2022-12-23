@@ -34,6 +34,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.io.File
 
+@org.junit.Ignore("b/263899148")
 class JdkRecreationIntegrationTest {
   @get:Rule
   val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
