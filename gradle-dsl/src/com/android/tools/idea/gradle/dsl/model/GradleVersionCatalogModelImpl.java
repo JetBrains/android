@@ -22,11 +22,12 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 
-public class GradleVersionCatalogModelImpl implements GradleVersionCatalogModel {
+public class GradleVersionCatalogModelImpl extends GradleFileModelImpl implements GradleVersionCatalogModel {
   private String catalogName;
   private GradleVersionCatalogFile catalogFile;
-  public GradleVersionCatalogModelImpl(String name, GradleVersionCatalogFile file){
-    catalogName = name;
+  public GradleVersionCatalogModelImpl(GradleVersionCatalogFile file){
+    super(file);
+    catalogName = file.getCatalogName();
     catalogFile = file;
   }
 

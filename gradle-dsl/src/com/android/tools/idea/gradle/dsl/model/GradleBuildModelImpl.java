@@ -71,6 +71,7 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradlePropertiesFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
@@ -142,6 +143,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
         return false;
       }
     };
+    //noinspection SSBasedInspection
     return plugins().stream().filter(appliedPredicate).collect(Collectors.toList());
   }
 
@@ -364,14 +366,16 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
       currentFiles.addAll(currentFile.getApplyDslElement());
     }
 
-    // Get all the properties files.
-    for (GradleDslFile file : new ArrayList<>(files)) {
+    // Get all the properties and version catalog files.
+    for (final GradleDslFile file : new ArrayList<>(files)) {
       if (file instanceof GradleBuildFile) {
-        GradleBuildFile buildFile = (GradleBuildFile)file;
-        GradleDslFile sibling = buildFile.getPropertiesFile();
+        final GradleBuildFile buildFile = (GradleBuildFile)file;
+        final GradleDslFile sibling = buildFile.getPropertiesFile();
         if (sibling != null) {
           files.add(sibling);
         }
+
+        files.addAll(buildFile.getVersionCatalogFiles());
       }
     }
 
@@ -408,6 +412,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @Override
   @TestOnly
   public void removeRepositoriesBlocks() {
+    //noinspection ConstantConditions
     myGradleDslFile.removeProperty(REPOSITORIES.name);
   }
 
@@ -421,6 +426,9 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     }
     else if (file instanceof GradlePropertiesFile) {
       return new GradlePropertiesModelImpl((GradlePropertiesFile)file);
+    }
+    else if (file instanceof GradleVersionCatalogFile) {
+      return new GradleVersionCatalogModelImpl((GradleVersionCatalogFile)file);
     }
     else {
       LOG.warn(new IllegalStateException("Unknown GradleDslFile type found!" + file));

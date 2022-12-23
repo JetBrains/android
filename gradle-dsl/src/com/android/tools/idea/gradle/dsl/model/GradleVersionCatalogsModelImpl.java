@@ -74,7 +74,7 @@ public class GradleVersionCatalogsModelImpl implements GradleVersionCatalogsMode
 
   @Override
   public GradleVersionCatalogModel getVersionCatalogModel(String catalogName) {
-    return new GradleVersionCatalogModelImpl(catalogName, versionCatalogFiles.get(catalogName));
+    return new GradleVersionCatalogModelImpl(versionCatalogFiles.get(catalogName));
   }
 
 }
