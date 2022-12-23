@@ -350,7 +350,9 @@ public final class NlComponentTest extends LayoutTestCase {
                       "        tools:layout_editor_absoluteX=\"32dp\"\n" +
                       "        tools:layout_editor_absoluteY=\"43dp\" /></RelativeLayout>\n" +
                       "</layout>";
+/* b/263894246
     assertEquals(expected, arrangeXml(getProject(), xmlFile));
+b/263894246 */
   }
 
   public void testIdFromMixin() {
@@ -435,7 +437,9 @@ public final class NlComponentTest extends LayoutTestCase {
                       "            tools123:text=\"ToolText\" />\n" +
                       "    </RelativeLayout>\n" +
                       "</layout>\n";
+/* b/263894246
     assertEquals(expected, arrangeXml(getProject(), xmlFile));
+b/263894246 */
   }
 
   public void testNamespaceTransferFromRoot() {
