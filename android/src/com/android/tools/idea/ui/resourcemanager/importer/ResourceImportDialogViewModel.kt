@@ -39,10 +39,11 @@ const val MAX_IMPORT_FILES = 400
 /**
  * ViewModel for [ResourceImportDialogViewModel]
  */
-class ResourceImportDialogViewModel(val facet: AndroidFacet,
-                                    assets: Sequence<DesignAsset>,
-                                    designAssetImporter: DesignAssetImporter = DesignAssetImporter(),
-                                    private val importersProvider: ImportersProvider = ImportersProvider()
+class ResourceImportDialogViewModel(
+  val facet: AndroidFacet,
+  assets: Sequence<DesignAsset>,
+  designAssetImporter: DesignAssetImporter = DesignAssetImporter(),
+  private val importersProvider: ImportersProvider = ImportersProvider()
 ) {
 
   /**
@@ -151,9 +152,11 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
    * This is used to avoid iterating through the whole [assetSetsToImport] set to try find
    * a [ResourceAssetSet] with the same name.
    */
-  private fun addAssetSet(existingAssets: Map<String, ResourceAssetSet>,
-                          assetSet: ResourceAssetSet,
-                          assetAddedCallback: (ResourceAssetSet, List<DesignAsset>) -> Unit) {
+  private fun addAssetSet(
+    existingAssets: Map<String, ResourceAssetSet>,
+    assetSet: ResourceAssetSet,
+    assetAddedCallback: (ResourceAssetSet, List<DesignAsset>) -> Unit
+  ) {
     val existingAssetSet = existingAssets[assetSet.name]
     if (existingAssetSet != null) {
       val existingPaths = existingAssetSet.designAssets.map { designAsset -> designAsset.file.path }.toSet()

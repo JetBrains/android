@@ -181,8 +181,10 @@ class ResourceImportDialog(
    * If a [DesignAssetSetView] already exists for [designAssetSet], merge the [newDesignAssets]
    * within this view, otherwise create a new [DesignAssetSetView].
    */
-  private fun addAssets(designAssetSet: ResourceAssetSet,
-                        newDesignAssets: List<DesignAsset>) {
+  private fun addAssets(
+    designAssetSet: ResourceAssetSet,
+    newDesignAssets: List<DesignAsset>
+  ) {
     val existingView = assetSetToView[designAssetSet]
     if (existingView != null) {
       newDesignAssets.forEach(existingView::addAssetView)
@@ -245,9 +247,11 @@ class ResourceImportDialog(
         .revalidate()
     }
 
-    val itemNumberLabel = JBLabel(dialogViewModel.getItemNumberString(assetSet),
-                                  UIUtil.ComponentStyle.SMALL,
-                                  UIUtil.FontColor.BRIGHTER)
+    val itemNumberLabel = JBLabel(
+      dialogViewModel.getItemNumberString(assetSet),
+      UIUtil.ComponentStyle.SMALL,
+      UIUtil.FontColor.BRIGHTER
+    )
 
     val fileViewContainer = JPanel(VerticalFlowLayout(true, false)).apply {
       assetSet.designAssets.forEach { asset ->
