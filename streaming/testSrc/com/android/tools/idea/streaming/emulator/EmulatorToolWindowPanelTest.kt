@@ -655,7 +655,9 @@ class EmulatorToolWindowPanelTest {
       SystemInfo.isWindows -> maxPercentDifferentWindows
       else -> maxPercentDifferentLinux
     }
+/* b/263906130
     ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), scaledImage, maxPercentDifferent)
+b/263906130 */
   }
 
   private fun getGoldenFile(name: String): Path {
