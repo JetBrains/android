@@ -2,14 +2,6 @@
 <issues format="5" by="lint 8.0.0-dev">
 
     <issue
-        id="SimpleDateFormat"
-        message="To get local formatting use `getDateInstance()`, `getDateTimeInstance()`, or `getTimeInstance()`, or use `new SimpleDateFormat(String template, Locale locale)` with for example `Locale.US` for ASCII dates.">
-        <location
-            file="src/com/android/tools/idea/run/LaunchTaskRunner.kt"
-            line="321"/>
-    </issue>
-
-    <issue
         id="AvoidByLazy"
         message="Avoid `by lazy` for simple lazy initialization">
       <location

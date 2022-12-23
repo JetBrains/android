@@ -62,9 +62,9 @@ import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
-import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 import java.util.concurrent.CancellationException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -329,7 +329,7 @@ class LaunchTaskRunner(
 
   private fun printLaunchTaskStartedMessage(consolePrinter: ConsolePrinter) {
     val launchString = StringBuilder("\n")
-    val dateFormat: DateFormat = SimpleDateFormat ("MM/dd HH:mm:ss")
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT)
     launchString.append(dateFormat.format(Date())).append(": ")
     launchString.append(launchVerb).append(" ")
     launchString.append("'").append(configuration.name).append("'")
