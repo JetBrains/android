@@ -215,7 +215,6 @@
       <module fileurl="file://$PROJECT_DIR$/android-lang-databinding/intellij.android.lang-databinding.tests.iml" filepath="$PROJECT_DIR$/android-lang-databinding/intellij.android.lang-databinding.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-lang/intellij.android.lang.tests.iml" filepath="$PROJECT_DIR$/android-lang/intellij.android.lang.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/layout-inspector/intellij.android.layout-inspector.iml" filepath="$PROJECT_DIR$/layout-inspector/intellij.android.layout-inspector.iml" />
-      <module fileurl="file://$PROJECT_DIR$/layout-inspector/intellij.android.layout-inspector.integration.iml" filepath="$PROJECT_DIR$/layout-inspector/intellij.android.layout-inspector.integration.iml" />
       <module fileurl="file://$PROJECT_DIR$/layout-inspector/intellij.android.layout-inspector.tests.iml" filepath="$PROJECT_DIR$/layout-inspector/intellij.android.layout-inspector.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/layout-ui/intellij.android.layout-ui.iml" filepath="$PROJECT_DIR$/layout-ui/intellij.android.layout-ui.iml" />
       <module fileurl="file://$PROJECT_DIR$/layoutlib/intellij.android.layoutlib.iml" filepath="$PROJECT_DIR$/layoutlib/intellij.android.layoutlib.iml" />

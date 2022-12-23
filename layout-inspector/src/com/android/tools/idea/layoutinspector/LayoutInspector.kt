@@ -51,7 +51,6 @@ class LayoutInspector private constructor(
   val isSnapshot: Boolean,
   private val executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor
 ) {
-  private val logger = Logger.getInstance(LayoutInspector::class.java)
 
   val currentClient: InspectorClient
     get() = currentClientAccessor()
@@ -138,16 +137,11 @@ class LayoutInspector private constructor(
           if (currentClient.state <= InspectorClient.State.CONNECTED) {
             layoutInspectorModel.update(data.window, allIds, data.generation) {
               currentClient.updateProgress(AttachErrorState.MODEL_UPDATED)
-              if (logger.isDebugEnabled) {
-                // This logger.debug statement is for integration tests
-                logger.debug("g:${data.generation} Model Updated for process: ${currentClient.process.name}")
-              }
             }
           }
           // Check one more time to see if we've disconnected.
           if (currentClient.state > InspectorClient.State.CONNECTED) {
             layoutInspectorModel.clear()
-            Logger.getInstance(LayoutInspector::class.java)
           }
         }
       }
