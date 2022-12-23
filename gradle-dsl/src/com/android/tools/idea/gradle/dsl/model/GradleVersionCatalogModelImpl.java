@@ -71,7 +71,7 @@ public class GradleVersionCatalogModelImpl extends GradleFileModelImpl implement
   }
 
   @Override
-  public boolean isDefaultToml() {
+  public boolean isDefault() {
     return "libs".equals(catalogName);
   }
 

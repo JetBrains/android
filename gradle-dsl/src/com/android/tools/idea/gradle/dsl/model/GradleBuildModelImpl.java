@@ -396,7 +396,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @NotNull
   public Map<String, List<BuildModelNotification>> getNotifications() {
     return getAllInvolvedFiles().stream().filter(e -> !e.getPublicNotifications().isEmpty())
-      .collect(Collectors.toMap(e -> e.getFile().getPath(), e -> e.getPublicNotifications()));
+      .collect(Collectors.toMap(e -> e.getFile().getPath(), GradleDslFile::getPublicNotifications));
   }
 
   @Override

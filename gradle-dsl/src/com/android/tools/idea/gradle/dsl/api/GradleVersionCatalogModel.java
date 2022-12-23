@@ -17,6 +17,12 @@ package com.android.tools.idea.gradle.dsl.api;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 
+/**
+ * Version Catalog Model covers one version catalog.
+ * Each ExtModel returned from this model represents the entries in the corresponding table
+ *
+ * Effective model of GradleVersionCatalogModel is a list of maps. VersionCatalogModel -> ExtModel -> name-value properties.
+ */
 public interface GradleVersionCatalogModel {
 
   ExtModel libraries();
@@ -31,5 +37,5 @@ public interface GradleVersionCatalogModel {
 
   String fileName();
 
-  boolean isDefaultToml();
+  boolean isDefault();
 }

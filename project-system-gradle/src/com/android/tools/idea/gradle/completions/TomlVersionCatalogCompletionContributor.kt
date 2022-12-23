@@ -32,13 +32,11 @@ import com.intellij.util.ThreeState
 import com.intellij.util.containers.ContainerUtil
 import org.toml.lang.TomlLanguage
 import org.toml.lang.psi.TomlArray
-import org.toml.lang.psi.TomlArrayTable
 import org.toml.lang.psi.TomlElement
 import org.toml.lang.psi.TomlFile
 import org.toml.lang.psi.TomlInlineTable
 import org.toml.lang.psi.TomlKey
 import org.toml.lang.psi.TomlKeySegment
-import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlLiteral
 import org.toml.lang.psi.TomlTable
 import org.toml.lang.psi.TomlTableHeader
@@ -167,7 +165,7 @@ class TomlVersionCatalogCompletionContributor  : CompletionContributor() {
           parent = parent.parent
         }
         val existingElements =
-          (parent as TomlArray)?.elements.fold(setOf<String>()) { acc, e -> extractText(e)?.let{ acc + it} ?: acc} ?: setOf()
+          (parent as? TomlArray)?.elements?.fold(setOf<String>()) { acc, e -> extractText(e)?.let{ acc + it} ?: acc} ?: setOf()
         result.addAllElements(ContainerUtil.map(libraries - existingElements) { s: String ->
           PrioritizedLookupElement.withPriority(LookupElementBuilder.create(s), 1.0)
         })
@@ -214,10 +212,10 @@ class TomlVersionCatalogCompletionContributor  : CompletionContributor() {
   }
   private fun findTableHeaders(tomlFile: TomlFile): Set<String> {
     val result = mutableSetOf<String>()
-    tomlFile.children.filterIsInstance<TomlTable>().forEach {
-      it.accept(object : TomlVisitor() {
+    tomlFile.children.filterIsInstance<TomlTable>().forEach { table ->
+      table.accept(object : TomlVisitor() {
         override fun visitTable(element: TomlTable) {
-          element.header.key?.segments?.map { it.name }?.forEach{ it?.let { name -> result.add(name) } }
+          element.header.key?.segments?.mapNotNull { segment -> segment.name }?.forEach{ name -> result.add(name) }
           }
         })
     }
@@ -257,7 +255,7 @@ class EnableAutoPopupInTomlVersionCatalogCompletion : CompletionConfidence() {
   }
 }
 
-class SearchForKeysVisitor(val start: TomlInlineTable, val checkDepth: Int) {
+class SearchForKeysVisitor(val start: TomlInlineTable, private val checkDepth: Int) {
   val set = mutableSetOf<String>()
   fun search(): Set<String> {
     set.clear()

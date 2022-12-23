@@ -181,6 +181,7 @@ public interface GradlePropertyModel extends DeletablePsiElementHolder, GradleDs
    * the model representing an empty value is returned by this method, and can then be used to create new value.
    * Unless this resulting model has its value set, nothing will be created.
    * This should only be used for properties for which {@link #getValueType()} returns {@link ValueType#MAP}.
+   * Returns null when key exists and belongs to something else but map (value or listValue for example).
    */
   @Nullable
   GradlePropertyModel getMapValue(@NotNull String key);

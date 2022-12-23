@@ -90,7 +90,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     long modificationCount = myGradleDslFile.getModificationCount();
     IncludeDslElement includePaths = myGradleDslFile.getPropertyElement(INCLUDE);
 
-    // if we the committedCount in our cache is equal to the current modification count, we must be unmodified since a previous
+    // if the committedCount in our cache is equal to the current modification count, we must be unmodified since a previous
     // already-committed count.  Since counts increase monotonically, and modificationCount >= lastCommittedCount, if modificationCount is
     // equal to our cached committedCount the GradleDslFile must be unchanged since the last cache save, so our cached result is valid.
     synchronized(myModulePathsCache) {
@@ -112,7 +112,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     }
 
     // update the cache.  (It does not matter if the GradleDslFile was initially modified, or has been modified since; any difference
-    // in either counter from thie initial committedCount will simply render this cache entry invalid.)
+    // in either counter from the initial committedCount will simply render this cache entry invalid.)
     synchronized(myModulePathsCache) {
       myModulePathsCache.paths = result;
       myModulePathsCache.committedCount = committedCount;

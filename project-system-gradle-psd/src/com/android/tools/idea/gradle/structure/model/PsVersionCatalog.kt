@@ -28,7 +28,7 @@ class PsVersionCatalog(override val name: String, override val parent: PsProject
 
   val variables: PsVariablesScope
     get() {
-      val prefix = if(parsedModel?.isDefaultToml == true) "Default version catalog:" else "Version catalog:"
+      val prefix = if(parsedModel?.isDefault == true) "Default version catalog:" else "Version catalog:"
       val description = prefix + " $name (${parsedModel?.fileName()})"
       return myVariables ?: PsVariables(this, description, "Version catalog: $name", null).also { myVariables = it }
     }
