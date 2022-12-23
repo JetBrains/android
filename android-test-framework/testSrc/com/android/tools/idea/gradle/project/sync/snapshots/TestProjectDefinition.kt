@@ -60,18 +60,40 @@ interface TestProjectDefinition {
 }
 
 interface PreparedTestProject {
-  fun <T> open(updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions = { it }, body: (Project) -> T): T
+  interface Context {
+    val project: Project
+  }
+
+  fun <T> open(
+    updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions = { it },
+    body: Context.(Project) -> T
+  ): T
+
+  fun open(
+    updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions = { it },
+    body: ThrowableConsumer<Project, Exception>
+  ) {
+    return open(updateOptions, body = fun Context.(project: Project): Unit = body.consume(project))
+  }
+
+  fun <T> open(
+    updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions = { it },
+    body: ThrowableConvertor<Project, T, Exception>
+  ): T {
+    return open(updateOptions, body = fun Context.(project: Project): T = body.convert(project))
+  }
+
   val root: File
 
   companion object {
     @JvmStatic
     fun openPreparedTestProject(preparedProject: PreparedTestProject, body: ThrowableConsumer<Project, Exception>) {
-      preparedProject.open { body.consume(it) }
+      preparedProject.open(body = body)
     }
 
     @JvmStatic
     fun <T> openPreparedTestProject(preparedProject: PreparedTestProject, body: ThrowableConvertor<Project, T, Exception>) {
-      preparedProject.open { body.convert(it) }
+      preparedProject.open(body = body)
     }
   }
 }

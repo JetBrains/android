@@ -158,7 +158,10 @@ interface TemplateBasedTestProject : TestProjectDefinition {
 
     return object : PreparedTestProject {
       override val root: File = root
-      override fun <T> open(updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions, body: (Project) -> T): T {
+      override fun <T> open(
+        updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions,
+        body: PreparedTestProject.Context.(Project) -> T
+      ): T {
         val jdkOverride = maybeCreateJdkOverride(resolvedAgpVersion.jdkVersion)
         try {
           val tearDown = setup()
@@ -178,7 +181,10 @@ interface TemplateBasedTestProject : TestProjectDefinition {
                 }
                 verifyOpened?.invoke(project) // Second time.
               }
-              body(project)
+              val context = object: PreparedTestProject.Context {
+                override val project: Project = project
+              }
+              body(context, project)
             }
           } finally {
             tearDown()
