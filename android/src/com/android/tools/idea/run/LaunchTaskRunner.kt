@@ -42,6 +42,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.executors.DefaultDebugExecutor
+import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
@@ -55,6 +56,7 @@ import com.intellij.openapi.progress.util.ProgressIndicatorUtils
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.util.AndroidBundle
@@ -211,7 +213,9 @@ class LaunchTaskRunner(
           descriptor = manager.findContentDescriptor(myEnv.executor, myProcessHandler)
         }
         if (descriptor?.attachedContent == null) {
-          createRunContentDescriptor(myProcessHandler, myConsole, myEnv).processed(descriptorPromise)
+          val console = TextConsoleBuilderFactory.getInstance().createBuilder(project).console
+          Disposer.register(project, console)
+          createRunContentDescriptor(myProcessHandler, console, myEnv).processed(descriptorPromise)
         }
         else {
           descriptorPromise.setResult(descriptor)
