@@ -1,23 +1,23 @@
 CompositeBuildMap             : IdeCompositeBuildMapImpl
-    - builds                      : <ROOT>/application (IdeBuildImpl)
+    - builds                      : <ROOT> (IdeBuildImpl)
         buildName                     : :
     gradleSupportsDirectTaskInvocation      : true
-MODULE                        : application
-    externalProject               : application (DefaultExternalProject)
-        name                          : application
-        qName                         : application
+MODULE                        : project
+    externalProject               : project (DefaultExternalProject)
+        name                          : project
+        qName                         : project
         version                       : unspecified
         childProjects
             app                           : :app (DefaultExternalProject)
                 name                          : app
                 qName                         : :app
-                group                         : application
+                group                         : project
                 version                       : unspecified
                 sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                projectDir                    : <ROOT>/application/app
-                buildDir                      : <ROOT>/application/app/build [-]
-                buildFile                     : <ROOT>/application/app/build.gradle
+                projectDir                    : <ROOT>/app
+                buildDir                      : <ROOT>/app/build [-]
+                buildFile                     : <ROOT>/app/build.gradle
                 tasks
                     testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                         qName                         : :app:testDebugUnitTest
@@ -49,7 +49,7 @@ MODULE                        : application
                     archives                      : <empty>
                     compileOnly                   : <empty>
                     coreLibraryDesugaring         : <empty>
-                    - debugAabPublication         : <ROOT>/application/app/build/outputs/bundle/debug/app-debug.aab [-]
+                    - debugAabPublication         : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
                     debugAndroidTestCompileClasspath        : <empty>
                     debugAndroidTestRuntimeClasspath        : <empty>
@@ -57,7 +57,7 @@ MODULE                        : application
                     debugAnnotationProcessorClasspath       : <empty>
                     debugApi                      : <empty>
                     debugApiElements              : <empty>
-                    - debugApkPublication         : <ROOT>/application/app/build/outputs/apk-zips/debug/apks.zip [-]
+                    - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugImplementation           : <empty>
@@ -73,14 +73,13 @@ MODULE                        : application
                     default                       : <empty>
                     implementation                : <empty>
                     lintChecks                    : <empty>
-                    lintClassPath                 : <empty>
                     lintPublish                   : <empty>
-                    - releaseAabPublication       : <ROOT>/application/app/build/outputs/bundle/release/app-release.aab [-]
+                    - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
                     releaseAnnotationProcessor    : <empty>
                     releaseAnnotationProcessorClasspath     : <empty>
                     releaseApi                    : <empty>
                     releaseApiElements            : <empty>
-                    - releaseApkPublication       : <ROOT>/application/app/build/outputs/apk-zips/release/apks.zip [-]
+                    - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseImplementation         : <empty>
@@ -101,6 +100,24 @@ MODULE                        : application
                     testDebugImplementation       : <empty>
                     testDebugRuntimeOnly          : <empty>
                     testDebugWearApp              : <empty>
+                    testFixturesAnnotationProcessor         : <empty>
+                    testFixturesApi               : <empty>
+                    testFixturesCompileOnly       : <empty>
+                    testFixturesDebugAnnotationProcessor    : <empty>
+                    testFixturesDebugApi          : <empty>
+                    testFixturesDebugCompileOnly  : <empty>
+                    testFixturesDebugImplementation         : <empty>
+                    testFixturesDebugRuntimeOnly  : <empty>
+                    testFixturesDebugWearApp      : <empty>
+                    testFixturesImplementation    : <empty>
+                    testFixturesReleaseAnnotationProcessor  : <empty>
+                    testFixturesReleaseApi        : <empty>
+                    testFixturesReleaseCompileOnly          : <empty>
+                    testFixturesReleaseImplementation       : <empty>
+                    testFixturesReleaseRuntimeOnly          : <empty>
+                    testFixturesReleaseWearApp    : <empty>
+                    testFixturesRuntimeOnly       : <empty>
+                    testFixturesWearApp           : <empty>
                     testImplementation            : <empty>
                     testReleaseAnnotationProcessor          : <empty>
                     testReleaseCompileOnly        : <empty>
@@ -110,18 +127,18 @@ MODULE                        : application
                     testRuntimeOnly               : <empty>
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
-        projectDir                    : <ROOT>/application
-        buildDir                      : <ROOT>/application/build [-]
-        buildFile                     : <ROOT>/application/build.gradle
+        projectDir                    : <ROOT>
+        buildDir                      : <ROOT>/build [-]
+        buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
-MODULE                        : application.app
+MODULE                        : project.app
     GradleModuleModel
-        agpVersion                    : 7.0.0
+        agpVersion                    : 7.2.0
         gradlePath                    : :app
-        gradleVersion                 : 7.0.2
-        buildFile                     : <ROOT>/application/app/build.gradle
-        buildFilePath                 : <ROOT>/application/app/build.gradle
-        rootFolderPath                : <ROOT>/application
+        gradleVersion                 : 7.3.3
+        buildFile                     : <ROOT>/app/build.gradle
+        buildFilePath                 : <ROOT>/app/build.gradle
+        rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
     CurrentVariantReportedVersions
@@ -134,17 +151,17 @@ MODULE                        : application.app
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
-    RootBuildId                   : <ROOT>/application
-    BuildId                       : <ROOT>/application
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
     BuildName                     : :
     ProjectPath                   : :app
-    ModelVersion                  : 7.0.0
+    ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/application/app/build [-]
-    buildToolsVersion             : 30.0.2
+    BuildFolder                   : <ROOT>/app/build [-]
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : true
-    GroupId                       : application
+    GroupId                       : project
     Namespace                     : google.simpleapplication
     TestNamespace                 : google.simpleapplication.test
     AaptOptions
@@ -186,7 +203,7 @@ MODULE                        : application.app
     - basicVariant:               : release
         applicationId                 : google.simpleapplication
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/optional/org.apache.http.legacy.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/optional/android.car.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -208,48 +225,48 @@ MODULE                        : application.app
                 UseSupportLibrary             : false
         SourceProvider
             Name                          : main
-            Manifest                      : <ROOT>/externalManifest/AndroidManifest.xml
-            JavaDirectories               : <ROOT>/externalRoot/main/java
-            KotlinDirectories             : <ROOT>/externalRoot/main/java
-            KotlinDirectories             : <ROOT>/externalRoot/main/kotlin [-]
-            ResourcesDirectories          : <ROOT>/externalRoot/main/resources [-]
-            AidlDirectories               : <ROOT>/externalRoot/main/aidl [-]
-            RenderscriptDirectories       : <ROOT>/externalRoot/main/rs [-]
-            ResDirectories                : <ROOT>/externalRoot/main/res
-            AssetsDirectories             : <ROOT>/externalRoot/main/assets [-]
-            JniLibsDirectories            : <ROOT>/externalRoot/main/jniLibs [-]
-            ShadersDirectories            : <ROOT>/externalRoot/main/shaders [-]
+            Manifest                      : <ROOT>/app/src/main/AndroidManifest.xml
+            JavaDirectories               : <ROOT>/app/src/main/java
+            KotlinDirectories             : <ROOT>/app/src/main/java
+            KotlinDirectories             : <ROOT>/app/src/main/kotlin [-]
+            ResourcesDirectories          : <ROOT>/app/src/main/resources [-]
+            AidlDirectories               : <ROOT>/app/src/main/aidl [-]
+            RenderscriptDirectories       : <ROOT>/app/src/main/rs [-]
+            ResDirectories                : <ROOT>/app/src/main/res
+            AssetsDirectories             : <ROOT>/app/src/main/assets [-]
+            JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
+            ShadersDirectories            : <ROOT>/app/src/main/shaders [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
                 SourceProvider
                     Name                          : androidTest
-                    Manifest                      : <ROOT>/application/app/src/androidTest/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/application/app/src/androidTest/java
-                    KotlinDirectories             : <ROOT>/application/app/src/androidTest/java
-                    KotlinDirectories             : <ROOT>/application/app/src/androidTest/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/application/app/src/androidTest/resources [-]
-                    AidlDirectories               : <ROOT>/application/app/src/androidTest/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/application/app/src/androidTest/rs [-]
-                    ResDirectories                : <ROOT>/application/app/src/androidTest/res [-]
-                    AssetsDirectories             : <ROOT>/application/app/src/androidTest/assets [-]
-                    JniLibsDirectories            : <ROOT>/application/app/src/androidTest/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/application/app/src/androidTest/shaders [-]
+                    Manifest                      : <ROOT>/app/src/androidTest/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/androidTest/java
+                    KotlinDirectories             : <ROOT>/app/src/androidTest/java
+                    KotlinDirectories             : <ROOT>/app/src/androidTest/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/app/src/androidTest/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/androidTest/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/androidTest/rs [-]
+                    ResDirectories                : <ROOT>/app/src/androidTest/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/androidTest/shaders [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
                     Name                          : test
-                    Manifest                      : <ROOT>/application/app/src/test/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/application/app/src/test/java
-                    KotlinDirectories             : <ROOT>/application/app/src/test/java
-                    KotlinDirectories             : <ROOT>/application/app/src/test/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/application/app/src/test/resources [-]
-                    AidlDirectories               : <ROOT>/application/app/src/test/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/application/app/src/test/rs [-]
-                    ResDirectories                : <ROOT>/application/app/src/test/res [-]
-                    AssetsDirectories             : <ROOT>/application/app/src/test/assets [-]
-                    JniLibsDirectories            : <ROOT>/application/app/src/test/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/application/app/src/test/shaders [-]
+                    Manifest                      : <ROOT>/app/src/test/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/test/java
+                    KotlinDirectories             : <ROOT>/app/src/test/java
+                    KotlinDirectories             : <ROOT>/app/src/test/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/app/src/test/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/test/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/test/rs [-]
+                    ResDirectories                : <ROOT>/app/src/test/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/test/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -261,51 +278,53 @@ MODULE                        : application.app
             IsZipAlignEnabled             : true
         SourceProvider
             Name                          : debug
-            Manifest                      : <ROOT>/application/app/src/debug/AndroidManifest.xml [-]
-            JavaDirectories               : <ROOT>/application/app/src/debug/java [-]
-            KotlinDirectories             : <ROOT>/application/app/src/debug/java [-]
-            KotlinDirectories             : <ROOT>/application/app/src/debug/kotlin [-]
-            ResourcesDirectories          : <ROOT>/application/app/src/debug/resources [-]
-            AidlDirectories               : <ROOT>/application/app/src/debug/aidl [-]
-            RenderscriptDirectories       : <ROOT>/application/app/src/debug/rs [-]
-            ResDirectories                : <ROOT>/application/app/src/debug/res [-]
-            AssetsDirectories             : <ROOT>/application/app/src/debug/assets [-]
-            JniLibsDirectories            : <ROOT>/application/app/src/debug/jniLibs [-]
-            ShadersDirectories            : <ROOT>/application/app/src/debug/shaders [-]
+            Manifest                      : <ROOT>/app/src/debug/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>/app/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/app/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/app/src/debug/kotlin [-]
+            ResourcesDirectories          : <ROOT>/app/src/debug/resources [-]
+            AidlDirectories               : <ROOT>/app/src/debug/aidl [-]
+            RenderscriptDirectories       : <ROOT>/app/src/debug/rs [-]
+            ResDirectories                : <ROOT>/app/src/debug/res [-]
+            AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
+            JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
+            ShadersDirectories            : <ROOT>/app/src/debug/shaders [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
                 SourceProvider
                     Name                          : androidTestDebug
-                    Manifest                      : <ROOT>/application/app/src/androidTestDebug/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/application/app/src/androidTestDebug/java [-]
-                    KotlinDirectories             : <ROOT>/application/app/src/androidTestDebug/java [-]
-                    KotlinDirectories             : <ROOT>/application/app/src/androidTestDebug/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/application/app/src/androidTestDebug/resources [-]
-                    AidlDirectories               : <ROOT>/application/app/src/androidTestDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/application/app/src/androidTestDebug/rs [-]
-                    ResDirectories                : <ROOT>/application/app/src/androidTestDebug/res [-]
-                    AssetsDirectories             : <ROOT>/application/app/src/androidTestDebug/assets [-]
-                    JniLibsDirectories            : <ROOT>/application/app/src/androidTestDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/application/app/src/androidTestDebug/shaders [-]
+                    Manifest                      : <ROOT>/app/src/androidTestDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestDebug/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/app/src/androidTestDebug/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/androidTestDebug/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/androidTestDebug/rs [-]
+                    ResDirectories                : <ROOT>/app/src/androidTestDebug/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/androidTestDebug/shaders [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
                     Name                          : testDebug
-                    Manifest                      : <ROOT>/application/app/src/testDebug/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/application/app/src/testDebug/java [-]
-                    KotlinDirectories             : <ROOT>/application/app/src/testDebug/java [-]
-                    KotlinDirectories             : <ROOT>/application/app/src/testDebug/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/application/app/src/testDebug/resources [-]
-                    AidlDirectories               : <ROOT>/application/app/src/testDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/application/app/src/testDebug/rs [-]
-                    ResDirectories                : <ROOT>/application/app/src/testDebug/res [-]
-                    AssetsDirectories             : <ROOT>/application/app/src/testDebug/assets [-]
-                    JniLibsDirectories            : <ROOT>/application/app/src/testDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/application/app/src/testDebug/shaders [-]
+                    Manifest                      : <ROOT>/app/src/testDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testDebug/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/app/src/testDebug/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/testDebug/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/testDebug/rs [-]
+                    ResDirectories                : <ROOT>/app/src/testDebug/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
         BuildType
             Name                          : release
+            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-7.2.0 [-]
+            ProguardFiles                 : <ROOT>/app/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -314,49 +333,33 @@ MODULE                        : application.app
             IsZipAlignEnabled             : true
         SourceProvider
             Name                          : release
-            Manifest                      : <ROOT>/application/app/src/release/AndroidManifest.xml [-]
-            JavaDirectories               : <ROOT>/application/app/src/release/java [-]
-            KotlinDirectories             : <ROOT>/application/app/src/release/java [-]
-            KotlinDirectories             : <ROOT>/application/app/src/release/kotlin [-]
-            ResourcesDirectories          : <ROOT>/application/app/src/release/resources [-]
-            AidlDirectories               : <ROOT>/application/app/src/release/aidl [-]
-            RenderscriptDirectories       : <ROOT>/application/app/src/release/rs [-]
-            ResDirectories                : <ROOT>/application/app/src/release/res [-]
-            AssetsDirectories             : <ROOT>/application/app/src/release/assets [-]
-            JniLibsDirectories            : <ROOT>/application/app/src/release/jniLibs [-]
-            ShadersDirectories            : <ROOT>/application/app/src/release/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _android_test_
-                SourceProvider
-                    Name                          : androidTestRelease
-                    Manifest                      : <ROOT>/application/app/src/androidTestRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/application/app/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/application/app/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/application/app/src/androidTestRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/application/app/src/androidTestRelease/resources [-]
-                    AidlDirectories               : <ROOT>/application/app/src/androidTestRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/application/app/src/androidTestRelease/rs [-]
-                    ResDirectories                : <ROOT>/application/app/src/androidTestRelease/res [-]
-                    AssetsDirectories             : <ROOT>/application/app/src/androidTestRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/application/app/src/androidTestRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/application/app/src/androidTestRelease/shaders [-]
+            Manifest                      : <ROOT>/app/src/release/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>/app/src/release/java [-]
+            KotlinDirectories             : <ROOT>/app/src/release/java [-]
+            KotlinDirectories             : <ROOT>/app/src/release/kotlin [-]
+            ResourcesDirectories          : <ROOT>/app/src/release/resources [-]
+            AidlDirectories               : <ROOT>/app/src/release/aidl [-]
+            RenderscriptDirectories       : <ROOT>/app/src/release/rs [-]
+            ResDirectories                : <ROOT>/app/src/release/res [-]
+            AssetsDirectories             : <ROOT>/app/src/release/assets [-]
+            JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
+            ShadersDirectories            : <ROOT>/app/src/release/shaders [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
                     Name                          : testRelease
-                    Manifest                      : <ROOT>/application/app/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/application/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/application/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/application/app/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/application/app/src/testRelease/resources [-]
-                    AidlDirectories               : <ROOT>/application/app/src/testRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/application/app/src/testRelease/rs [-]
-                    ResDirectories                : <ROOT>/application/app/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/application/app/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/application/app/src/testRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/application/app/src/testRelease/shaders [-]
+                    Manifest                      : <ROOT>/app/src/testRelease/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/testRelease/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/testRelease/rs [-]
+                    ResDirectories                : <ROOT>/app/src/testRelease/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -368,20 +371,20 @@ MODULE                        : application.app
             VariantName                   : debug
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleDebug
-                AssembleTaskOutputListingFile : <ROOT>/application/app/build/outputs/apk/debug/output-metadata.json [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/debug/redirect.txt [-]
                 BundleTaskName                : bundleDebug
-                BundleTaskOutputListingFile   : <ROOT>/application/app/build/intermediates/bundle_ide_model/debug/output-metadata.json [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/debug/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForDebug
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/application/app/build/intermediates/apk_from_bundle_ide_model/debug/output-metadata.json [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
         VariantBuildInformation
             VariantName                   : release
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleRelease
-                AssembleTaskOutputListingFile : <ROOT>/application/app/build/outputs/apk/release/output-metadata.json [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/release/redirect.txt [-]
                 BundleTaskName                : bundleRelease
-                BundleTaskOutputListingFile   : <ROOT>/application/app/build/intermediates/bundle_ide_model/release/output-metadata.json [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/release/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForRelease
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/application/app/build/intermediates/apk_from_bundle_ide_model/release/output-metadata.json [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/release/redirect.txt [-]
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -403,12 +406,12 @@ MODULE                        : application.app
                 AssembleTaskName              : assembleDebug
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/application/app/build/generated/aidl_source_output_dir/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/application/app/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/application/app/build/generated/renderscript_source_output_dir/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/application/app/build/generated/source/buildConfig/debug [-]
-                ClassesFolder                 : <ROOT>/application/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
-                ClassesFolder                 : <ROOT>/application/app/build/intermediates/javac/debug/classes [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
                         - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
@@ -924,10 +927,10 @@ MODULE                        : application.app
                                 resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/R.txt
-                        - javaLibraries               : <ANDROID_SDK>/platforms/android-32/optional/org.apache.http.legacy.jar (IdeJavaLibraryDependencyImpl)
-                            target                        : <ANDROID_SDK>/platforms/android-32/optional/org.apache.http.legacy.jar (IdeJavaLibraryImpl)
-                                artifact                      : <ANDROID_SDK>/platforms/android-32/optional/org.apache.http.legacy.jar
-                                artifactAddress               : __local_jars__:<ANDROID_SDK>/platforms/android-32/optional/org.apache.http.legacy.jar:unspecified
+                        - javaLibraries               : <ANDROID_SDK>/platforms/android-32/optional/android.car.jar (IdeJavaLibraryDependencyImpl)
+                            target                        : <ANDROID_SDK>/platforms/android-32/optional/android.car.jar (IdeJavaLibraryImpl)
+                                artifact                      : <ANDROID_SDK>/platforms/android-32/optional/android.car.jar
+                                artifactAddress               : __local_jars__:<ANDROID_SDK>/platforms/android-32/optional/android.car.jar:unspecified
                         - javaLibraries               : android.arch.core:common:1.1.1 (IdeJavaLibraryDependencyImpl)
                             target                        : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl)
                                 artifact                      : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
@@ -1007,8 +1010,8 @@ MODULE                        : application.app
                             target                        : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - javaLibraries               : <ANDROID_SDK>/platforms/android-32/optional/org.apache.http.legacy.jar (IdeJavaLibraryDependencyImpl)
-                            target                        : <ANDROID_SDK>/platforms/android-32/optional/org.apache.http.legacy.jar (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : <ANDROID_SDK>/platforms/android-32/optional/android.car.jar (IdeJavaLibraryDependencyImpl)
+                            target                        : <ANDROID_SDK>/platforms/android-32/optional/android.car.jar (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : android.arch.core:common:1.1.1 (IdeJavaLibraryDependencyImpl)
                             target                        : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryDependencyImpl)
@@ -1027,25 +1030,25 @@ MODULE                        : application.app
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
-                    AssembleTaskOutputListingFile : <ROOT>/application/app/build/outputs/apk/debug/output-metadata.json [-]
+                    AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/debug/redirect.txt [-]
                     BundleTaskName                : bundleDebug
-                    BundleTaskOutputListingFile   : <ROOT>/application/app/build/intermediates/bundle_ide_model/debug/output-metadata.json [-]
+                    BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/debug/redirect.txt [-]
                     ApkFromBundleTaskName         : extractApksForDebug
-                    ApkFromBundleTaskOutputListingFile      : <ROOT>/application/app/build/intermediates/apk_from_bundle_ide_model/debug/output-metadata.json [-]
-                GeneratedResourceFolders      : <ROOT>/application/app/build/generated/res/rs/debug [-]
-                GeneratedResourceFolders      : <ROOT>/application/app/build/generated/res/resValues/debug [-]
+                    ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
+                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/debug [-]
+                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/application/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/application/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/application/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/application/app/build/generated/source/buildConfig/androidTest/debug [-]
-                ClassesFolder                 : <ROOT>/application/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/application/app/build/intermediates/javac/debugAndroidTest/classes [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
                         - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
@@ -1178,8 +1181,8 @@ MODULE                        : application.app
                             target                        : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - javaLibraries               : <ANDROID_SDK>/platforms/android-32/optional/org.apache.http.legacy.jar (IdeJavaLibraryDependencyImpl)
-                            target                        : <ANDROID_SDK>/platforms/android-32/optional/org.apache.http.legacy.jar (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : <ANDROID_SDK>/platforms/android-32/optional/android.car.jar (IdeJavaLibraryDependencyImpl)
+                            target                        : <ANDROID_SDK>/platforms/android-32/optional/android.car.jar (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : android.arch.core:common:1.1.1 (IdeJavaLibraryDependencyImpl)
                             target                        : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryDependencyImpl)
@@ -1224,9 +1227,9 @@ MODULE                        : application.app
                             target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl)
                                 artifact                      : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
                                 artifactAddress               : org.hamcrest:hamcrest-library:1.3@jar
-                        - moduleDependencies          : <ROOT>/application::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>/application::app@debug (IdeModuleLibraryImpl)
-                                buildId                       : <ROOT>/application
+                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl)
+                                buildId                       : <ROOT>
                                 projectPath                   : :app
                                 sourceSet                     : MAIN
                                 variant                       : debug
@@ -1239,8 +1242,8 @@ MODULE                        : application.app
                             target                        : com.android.support.test:monitor:1.0.2@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : com.android.support.test:runner:1.0.2@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : com.android.support.test:runner:1.0.2@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - javaLibraries               : <ANDROID_SDK>/platforms/android-32/optional/org.apache.http.legacy.jar (IdeJavaLibraryDependencyImpl)
-                            target                        : <ANDROID_SDK>/platforms/android-32/optional/org.apache.http.legacy.jar (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : <ANDROID_SDK>/platforms/android-32/optional/android.car.jar (IdeJavaLibraryDependencyImpl)
+                            target                        : <ANDROID_SDK>/platforms/android-32/optional/android.car.jar (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryDependencyImpl)
                             target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : com.google.code.findbugs:jsr305:2.0.1 (IdeJavaLibraryDependencyImpl)
@@ -1259,8 +1262,8 @@ MODULE                        : application.app
                             target                        : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryDependencyImpl)
                             target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>/application::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>/application::app@debug (IdeModuleLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                 ProvidedDependencies
                     - provided                    : android.arch.core:common:1.1.1
                     - provided                    : android.arch.core:runtime:1.1.1@aar
@@ -1300,9 +1303,9 @@ MODULE                        : application.app
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
-                    AssembleTaskOutputListingFile : <ROOT>/application/app/build/outputs/apk/androidTest/debug/output-metadata.json [-]
-                GeneratedResourceFolders      : <ROOT>/application/app/build/generated/res/rs/androidTest/debug [-]
-                GeneratedResourceFolders      : <ROOT>/application/app/build/generated/res/resValues/androidTest/debug [-]
+                    AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
+                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/androidTest/debug [-]
+                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
@@ -1312,9 +1315,9 @@ MODULE                        : application.app
                 AssembleTaskName              : assembleDebugUnitTest
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
-                GeneratedSourceFolders        : <ROOT>/application/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/application/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
-                ClassesFolder                 : <ROOT>/application/app/build/intermediates/javac/debugUnitTest/classes [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
                         - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
@@ -1371,8 +1374,8 @@ MODULE                        : application.app
                             target                        : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - javaLibraries               : <ANDROID_SDK>/platforms/android-32/optional/org.apache.http.legacy.jar (IdeJavaLibraryDependencyImpl)
-                            target                        : <ANDROID_SDK>/platforms/android-32/optional/org.apache.http.legacy.jar (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : <ANDROID_SDK>/platforms/android-32/optional/android.car.jar (IdeJavaLibraryDependencyImpl)
+                            target                        : <ANDROID_SDK>/platforms/android-32/optional/android.car.jar (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : android.arch.core:common:1.1.1 (IdeJavaLibraryDependencyImpl)
                             target                        : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryDependencyImpl)
@@ -1389,8 +1392,8 @@ MODULE                        : application.app
                             target                        : junit:junit:4.12 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryDependencyImpl)
                             target                        : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>/application::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>/application::app@debug (IdeModuleLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                     runtimeClasspath              : IdeDependenciesImpl
                         - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
@@ -1446,8 +1449,8 @@ MODULE                        : application.app
                             target                        : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - javaLibraries               : <ANDROID_SDK>/platforms/android-32/optional/org.apache.http.legacy.jar (IdeJavaLibraryDependencyImpl)
-                            target                        : <ANDROID_SDK>/platforms/android-32/optional/org.apache.http.legacy.jar (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : <ANDROID_SDK>/platforms/android-32/optional/android.car.jar (IdeJavaLibraryDependencyImpl)
+                            target                        : <ANDROID_SDK>/platforms/android-32/optional/android.car.jar (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : android.arch.core:common:1.1.1 (IdeJavaLibraryDependencyImpl)
                             target                        : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryDependencyImpl)
@@ -1464,10 +1467,10 @@ MODULE                        : application.app
                             target                        : junit:junit:4.12 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryDependencyImpl)
                             target                        : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>/application::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>/application::app@debug (IdeModuleLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
-MODULE                        : application.app.androidTest
-MODULE                        : application.app.main
-MODULE                        : application.app.unitTest
+MODULE                        : project.app.androidTest
+MODULE                        : project.app.main
+MODULE                        : project.app.unitTest

@@ -142,7 +142,6 @@ enum class TestProject(
   SIMPLE_APPLICATION_WITH_ANDROID_CAR(
     TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
     testName = "withAndroidCar",
-    isCompatibleWith = { it.modelVersion == ModelVersion.V2 },
     patch = { root ->
       root.resolve("app/build.gradle").replaceContent {
         it + """

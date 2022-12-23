@@ -605,17 +605,6 @@ internal fun modelCacheV2Impl(
       }
     }
 
-    fun getOptionalBootClasspathLibraries(bootClasspath: Collection<String>): Collection<File> {
-      val androidJar = bootClasspath.asSequence().map { File(it) }.firstOrNull { it.name == "android.jar" } ?: return emptyList()
-      val optionalDir = androidJar.parentFile.resolve("optional")
-      return bootClasspath.asSequence()
-        .map { File(it) }
-        .filter {
-          it.parentFile.path == optionalDir.path // Assumes 'optional` won't be created as `Optional` etc.
-        }
-        .toList()
-    }
-
     fun populateJavaLibraries(
       javaLibraries: Collection<Library>,
       visited: MutableSet<String>
@@ -632,6 +621,7 @@ internal fun modelCacheV2Impl(
     }
 
     fun populateOptionalSdkLibrariesLibraries(
+      bootClasspath: Collection<String>,
       visited: MutableSet<String>
     ) {
       getOptionalBootClasspathLibraries(bootClasspath).forEach { jarFile ->
@@ -739,7 +729,7 @@ internal fun modelCacheV2Impl(
       val typedLibraries = getTypedLibraries(dependencyList)
       populateAndroidLibraries(typedLibraries.androidLibraries, visited)
       populateJavaLibraries(typedLibraries.javaLibraries, visited)
-      populateOptionalSdkLibrariesLibraries(visited)
+      populateOptionalSdkLibrariesLibraries(bootClasspath, visited)
       populateProjectDependencies(typedLibraries.projectLibraries, visited)
       populateUnknownDependencies(typedLibraries.unknownLibraries, visited)
       return createIdeDependencies(visited)

@@ -462,6 +462,12 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     }
   }
 
+  fun libraryFrom(jarFile: File): IdeDependencyCoreAndIsProvided {
+    val artifactAddress = "${ModelCache.LOCAL_JARS}:" + jarFile.path + ":unspecified"
+    val unnamedLibrary = IdeJavaLibraryImpl(artifactAddress, "", jarFile)
+    return makeDependency(internedModels.getOrCreate(unnamedLibrary), false)
+  }
+
   fun libraryFrom(projectPath: String, buildId: String, variantName: String?): IdeDependencyCoreAndIsProvided {
     val core = IdePreResolvedModuleLibraryImpl(
       buildId = buildId,
@@ -476,7 +482,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
   fun createFromDependencies(
     dependencies: Dependencies,
     variantName: String?,
-    androidModuleId: ModuleId?
+    androidModuleId: ModuleId?,
+    bootClasspath: Collection<String>
   ): IdeModelWithPostProcessor<IdeDependenciesCoreImpl> {
     // Map from unique artifact address to level2 library instance. The library instances are
     // supposed to be shared by all artifacts. When creating IdeLevel2Dependencies, check if current library is available in this map,
@@ -531,6 +538,19 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
           visited.add(address)
           dependenciesById.computeIfAbsent(address) { libraryFrom(javaLibrary) }
           if (javaLibrary.dependencies.isNotEmpty()) error("JavaLibrary.dependencies is expected to be empty")
+        }
+      }
+    }
+
+    fun populateOptionalSdkLibrariesLibraries(
+      bootClasspath: Collection<String>,
+      visited: MutableSet<String>
+    ) {
+      getOptionalBootClasspathLibraries(bootClasspath).forEach { jarFile ->
+        val address = jarFile.path
+        if (!visited.contains(address)) {
+          visited.add(jarFile.path) // Any unique keyidentifying the library  is suitable.
+          dependenciesById.computeIfAbsent(address) { libraryFrom(jarFile) }
         }
       }
     }
@@ -653,6 +673,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       val visited = mutableSetOf<String>()
       populateAndroidLibraries(dependencies.libraries, visited)
       populateJavaLibraries(dependencies.javaLibraries, visited)
+      populateOptionalSdkLibrariesLibraries(bootClasspath, visited)
       populateModuleDependencies(dependencies, visited, variantName, androidModuleId)
       return createInstance(visited, runtimeOnlyClasses)
     }
@@ -666,9 +687,10 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
   fun dependenciesFrom(
     artifact: BaseArtifact,
     variantName: String?,
-    androidModuleId: ModuleId?
+    androidModuleId: ModuleId?,
+    bootClasspath: Collection<String>
   ): IdeModelWithPostProcessor<IdeDependenciesCoreImpl> {
-    return createFromDependencies(artifact.dependencies, variantName, androidModuleId)
+    return createFromDependencies(artifact.dependencies, variantName, androidModuleId, bootClasspath)
   }
 
   fun filterDataFrom(data: FilterData): IdeFilterDataImpl {
@@ -723,6 +745,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
 
   fun androidArtifactFrom(
     artifact: AndroidArtifact,
+    bootClasspath: Collection<String>,
     agpVersion: AgpVersion?,
     variantName: String?,
     variantNameForDependencies: String?,
@@ -734,7 +757,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     fun sourceProviderFrom(provider: SourceProvider) = sourceProviderFrom(provider, mlModelBindingEnabled)
     val isAppMainArtifact = artifact.name == AndroidProject.ARTIFACT_MAIN && projectType == IdeAndroidProjectType.PROJECT_TYPE_APP
 
-    val dependencies = dependenciesFrom(artifact, variantNameForDependencies, androidModuleId)
+    val dependencies = dependenciesFrom(artifact, variantNameForDependencies, androidModuleId, bootClasspath)
     val ideArtifactName = convertArtifactName(artifact.name)
     // Legacy feature plugins are both library-like, and application/dynamic-feature-like
     // (with separate 'Feature'-suffixed variants for the application/dynamic-feature-like functionality)
@@ -798,13 +821,14 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
 
   fun javaArtifactFrom(
     artifact: JavaArtifact,
+    bootClasspath: Collection<String>,
     variantName: String?,
     androidModuleId: ModuleId,
     mlModelBindingEnabled: Boolean
   ): IdeModelWithPostProcessor<IdeJavaArtifactCoreImpl> {
     fun sourceProviderFrom(provider: SourceProvider) = sourceProviderFrom(provider, mlModelBindingEnabled)
 
-    val dependencies = dependenciesFrom(artifact, variantName, androidModuleId)
+    val dependencies = dependenciesFrom(artifact, variantName, androidModuleId, bootClasspath)
     val javaArtifactCoreImpl = IdeJavaArtifactCoreImpl(
       name = convertArtifactName(artifact.name),
       compileTaskName = artifact.compileTaskName,
@@ -864,6 +888,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     val mainArtifact = copyModel(variant.mainArtifact) {
       androidArtifactFrom(
         artifact = it,
+        bootClasspath = androidProject.bootClasspath,
         agpVersion = modelVersion,
         variantName = variant.name,
         // For main artifacts, we shouldn't use the variant's name in module dependencies, but Test projects are an exception because
@@ -877,12 +902,19 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     }
 
     val unitTestArtifact = copy(variant::getExtraJavaArtifacts) {
-      javaArtifactFrom(it, variant.name, androidModuleId, androidProject.agpFlags.mlModelBindingEnabled)
+      javaArtifactFrom(
+        artifact = it,
+        bootClasspath = androidProject.bootClasspath,
+        variantName = variant.name,
+        androidModuleId = androidModuleId,
+        mlModelBindingEnabled = androidProject.agpFlags.mlModelBindingEnabled
+      )
     }.firstOrNull { it.model.isTestArtifact }
 
     val androidTestArtifact = copy(variant::getExtraAndroidArtifacts) {
       androidArtifactFrom(
         artifact = it,
+        bootClasspath = androidProject.bootClasspath,
         agpVersion = modelVersion,
         variantName = variant.name,
         variantNameForDependencies = variant.name,
