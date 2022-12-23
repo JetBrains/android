@@ -183,6 +183,7 @@ class LightSyncReferenceTest : SnapshotComparisonTest {
   override fun getName(): String = testName.methodName
   override val snapshotDirectoryWorkspaceRelativePath: String = PROJECT_STRUCTURE_SNAPSHOT_DIR
 
+  @org.junit.Ignore("b/263902773")
   @Test
   fun testLightSyncActual() {
     val dump = projectRule.project.saveAndDump()
