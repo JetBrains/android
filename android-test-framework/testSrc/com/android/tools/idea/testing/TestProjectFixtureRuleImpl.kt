@@ -50,7 +50,7 @@ internal class TestProjectFixtureRuleImpl(
     override fun setUp() = Unit
 
     // Invoked by JavaCodeInsightTestFixtureImpl.tearDown()
-    override fun tearDown() = Disposer.dispose(testRootDisposable)
+    override fun tearDown() = Unit
 
     override fun getProject(): Project = project_ ?: noTestYet()
 
@@ -102,6 +102,7 @@ internal class TestProjectFixtureRuleImpl(
             runCatchingAndRecord { base.evaluate() }
             runCatchingAndRecord { fixture.tearDown() }
           }
+          runCatchingAndRecord { Disposer.dispose(projectTestFixture.testRootDisposable) }
           runInEdtAndWait { runCatchingAndRecord { removeAllAndroidSdks() } }
           runInEdtAndWait { runCatchingAndRecord { projectBuilder.fixture.tearDown() } }
         }
