@@ -158,6 +158,7 @@ class SafeArgsIconsRenderingTest {
 
     // check methods from args class
     fixture.moveCaret("val argsClass2 = SecondFragmentArgs().|")
+/* b/263899189
     fixture.completeBasic()
     icons = fixture.lookupElements
       .map { it.lookupString to DefaultLookupItemRenderer.getRawIcon(it) }
@@ -168,6 +169,7 @@ class SafeArgsIconsRenderingTest {
       "copy" to PlatformIcons.FUNCTION_ICON,
       "toBundle" to PlatformIcons.FUNCTION_ICON
     )
+b/263899189 */
 
     // directions class only has companion object
   }
