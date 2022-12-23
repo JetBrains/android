@@ -100,11 +100,16 @@ import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.util.emulateStartupActivityForTest
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
 import com.android.tools.idea.io.FilePaths
+import com.android.tools.idea.model.ClassJarProvider
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider
+import com.android.tools.idea.projectsystem.LightResourceClassService
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.SourceProvidersFactory
 import com.android.tools.idea.projectsystem.TestProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -112,6 +117,9 @@ import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.android.tools.idea.projectsystem.gradle.buildNamePrefixedGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.getBuildAndRelativeGradleProjectPath
+import com.android.tools.idea.run.ApkProvider
+import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.android.utils.FileUtils
@@ -126,6 +134,7 @@ import com.intellij.build.SyncViewManager
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.internal.DummySyncViewManager
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.externalSystem.JavaProjectData
 import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.ide.impl.ProjectUtil
@@ -171,6 +180,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.pom.java.LanguageLevel
+import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiManager
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
 import com.intellij.testFramework.PlatformTestUtil
@@ -205,6 +215,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.jetbrains.plugins.gradle.util.setBuildSrcModule
 import java.io.File
 import java.io.IOException
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
@@ -1224,11 +1235,48 @@ fun setupTestProjectFromAndroidModel(
   }
 
   val gradleProjectSystem = GradleProjectSystem(project)
-  ProjectSystemService.getInstance(project).replaceProjectSystemForTests(object : AndroidProjectSystem by gradleProjectSystem {
+  ProjectSystemService.getInstance(project).replaceProjectSystemForTests(object : AndroidProjectSystem {
     // Many tests that invoke `compileProject` work with timestamps. To avoid flaky tests we inject a millisecond delay each time
     // build is requested.
     private val buildManager = TestProjectSystemBuildManager(ensureClockAdvancesWhileBuilding = true)
     override fun getBuildManager(): ProjectSystemBuildManager = buildManager
+
+    override fun getPsiElementFinders(): Collection<PsiElementFinder> = gradleProjectSystem.getPsiElementFinders()
+
+    override fun getLightResourceClassService(): LightResourceClassService = gradleProjectSystem.getLightResourceClassService()
+
+    override fun getSourceProvidersFactory(): SourceProvidersFactory = gradleProjectSystem.getSourceProvidersFactory()
+
+    override fun getClassJarProvider(): ClassJarProvider = gradleProjectSystem.getClassJarProvider()
+
+    override fun getAndroidFacetsWithPackageName(project: Project, packageName: String): Collection<AndroidFacet> =
+      gradleProjectSystem.getAndroidFacetsWithPackageName(project, packageName)
+
+    override fun getDefaultApkFile(): VirtualFile? = gradleProjectSystem.getDefaultApkFile()
+
+    override fun getPathToAapt(): Path = gradleProjectSystem.getPathToAapt()
+
+    override fun allowsFileCreation(): Boolean = gradleProjectSystem.allowsFileCreation()
+
+    override fun getModuleSystem(module: Module): AndroidModuleSystem = gradleProjectSystem.getModuleSystem(module)
+
+    override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider? =
+      gradleProjectSystem.getApplicationIdProvider(runConfiguration)
+
+    override fun getApkProvider(runConfiguration: RunConfiguration): ApkProvider? = gradleProjectSystem.getApkProvider(runConfiguration)
+
+    override fun getSyncManager(): ProjectSystemSyncManager = gradleProjectSystem.getSyncManager()
+
+    override fun validateRunConfiguration(runConfiguration: RunConfiguration): List<ValidationError> {
+      return gradleProjectSystem.validateRunConfiguration(runConfiguration)
+    }
+
+    override fun getBuildConfigurationSourceProvider(): BuildConfigurationSourceProvider? =
+      gradleProjectSystem.getBuildConfigurationSourceProvider()
+
+    override fun getKnownApplicationIds(project: Project): Set<String> = gradleProjectSystem.getKnownApplicationIds(project)
+
+    override fun supportsProfilingMode(): Boolean = gradleProjectSystem.supportsProfilingMode()
   })
   setupTestProjectFromAndroidModelCore(project, rootProjectBasePath, moduleBuilders, setupAllVariants, cacheExistingVariants = false)
 }
