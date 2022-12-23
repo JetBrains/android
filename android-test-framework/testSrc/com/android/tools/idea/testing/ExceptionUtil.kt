@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.testing
 
-import io.ktor.util.collections.ConcurrentList
+import com.intellij.util.containers.ConcurrentList
+import com.intellij.util.containers.ContainerUtil
 import org.junit.runners.model.MultipleFailureException
 
 interface AggregateAndThrowIfAnyContext {
@@ -32,7 +33,7 @@ an aggregate exception in the end. Exceptions thrown directly from the [body] ar
 any previously suppressed exceptions.
  */
 inline fun <T> aggregateAndThrowIfAny(body: AggregateAndThrowIfAnyContext.() -> T) {
-  val exceptions = ConcurrentList<Throwable>()
+  val exceptions: ConcurrentList<Throwable> = ContainerUtil.createConcurrentList()
   val context = object : AggregateAndThrowIfAnyContext {
     override fun recordResult(result: Result<*>) {
       result.exceptionOrNull()?.let(exceptions::add)
