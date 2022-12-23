@@ -24,23 +24,18 @@ import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.JavaModuleModelBuilder
+import com.android.tools.idea.testing.ModuleModelBuilder
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.SnapshotContext
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.LIGHT_SYNC_REFERENCE
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.getAndMaybeUpdateSnapshot
-import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.saveAndDump
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
-import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.annotations.SystemIndependent
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import org.junit.rules.TestName
 import java.io.File
 
@@ -134,16 +129,9 @@ data class ProjectStructureSnapshotTestDef(
   }
 }
 
-@RunsInEdt
-class LightSyncReferenceTest : SnapshotComparisonTest, GradleIntegrationTest {
-  @get:Rule
-  var testName = TestName()
-
-  val projectRule = AndroidProjectRule.withAndroidModels(
-    prepareProjectSources = fun(root: File) {
-      prepareGradleProject(resolveTestDataPath(LIGHT_SYNC_REFERENCE), root, {})
-      root.resolve(".gradle").mkdir()
-    },
+private object LightGradleSyncReferenceTestProject: LightGradleSyncTestProject {
+  override val templateProject: TemplateBasedTestProject = TestProject.LIGHT_SYNC_REFERENCE
+  override val modelBuilders: List<ModuleModelBuilder> = listOf(
     JavaModuleModelBuilder.rootModuleBuilder.copy(
       groupId = "",
       version = "unspecified",
@@ -153,14 +141,17 @@ class LightSyncReferenceTest : SnapshotComparisonTest, GradleIntegrationTest {
       groupId = "reference",
       version = "unspecified",
       selectedBuildVariant = "debug",
-      projectBuilder = AndroidProjectBuilder(androidModuleDependencyList = {
-        listOf(
-          AndroidModuleDependency(
-            ":androidlibrary",
-            "debug"
+      projectBuilder = AndroidProjectBuilder(
+        androidModuleDependencyList = {
+          listOf(
+            AndroidModuleDependency(
+              ":androidlibrary",
+              "debug"
+            )
           )
-        )
-      }).build(),
+        },
+        namespace = { "com.example.skeleton" }
+      ).build(),
     ),
     AndroidModuleModelBuilder(
       gradlePath = ":androidlibrary",
@@ -169,7 +160,8 @@ class LightSyncReferenceTest : SnapshotComparisonTest, GradleIntegrationTest {
       selectedBuildVariant = "debug",
       projectBuilder = AndroidProjectBuilder(
         projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY },
-        androidModuleDependencyList = { listOf(AndroidModuleDependency(":javalib", null)) }
+        androidModuleDependencyList = { listOf(AndroidModuleDependency(":javalib", null)) },
+        namespace = { "com.example.androidlibrary" }
       ).build()
     ),
     JavaModuleModelBuilder(
@@ -177,16 +169,19 @@ class LightSyncReferenceTest : SnapshotComparisonTest, GradleIntegrationTest {
       groupId = "reference",
       version = "unspecified",
     )
-  ).named("reference")
+  )
+}
+
+@RunsInEdt
+class LightSyncReferenceTest : SnapshotComparisonTest {
+  @get:Rule
+  var testName = TestName()
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  val projectRule = AndroidProjectRule.testProject(LightGradleSyncReferenceTestProject).named("reference")
 
   override fun getName(): String = testName.methodName
   override val snapshotDirectoryWorkspaceRelativePath: String = PROJECT_STRUCTURE_SNAPSHOT_DIR
-  override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData/snapshots"
-  override fun getAdditionalRepos(): Collection<File> = emptyList()
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
 
   @Test
   fun testLightSyncActual() {

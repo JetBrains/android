@@ -241,6 +241,7 @@ interface AndroidProjectRule : TestRule {
         testEnvironmentRule,
         fixtureRule,
         projectEnvironmentRule,
+        edtRule = EdtRule(),
         tools = object : TestProjectTestHelpers {
           override val projectRoot: File get() = fixtureRule.projectRoot
           override fun selectModule(module: Module) {
@@ -329,9 +330,14 @@ private fun <T : CodeInsightTestFixture, H> chain(
   testEnvironmentRule: TestEnvironmentRule,
   fixtureRule: FixtureRule<T>,
   projectEnvironmentRule: ProjectEnvironmentRule,
+  edtRule: EdtRule? = null,
   tools: H? = null
 ): AndroidProjectRule.Typed<T, H> {
-  val chain = RuleChain.outerRule(testEnvironmentRule).around(fixtureRule).around(projectEnvironmentRule)
+  val chain = RuleChain
+    .outerRule(testEnvironmentRule)
+    .maybeAround(edtRule)
+    .around(fixtureRule)
+    .around(projectEnvironmentRule)
   return object : AndroidProjectRule.Typed<T, H>, TestRule by chain {
     override val testRootDisposable: Disposable
       get() = fixtureRule.testRootDisposable
@@ -628,4 +634,8 @@ private fun prepareSdksForTests(javaCodeInsightTestFixture: JavaCodeInsightTestF
     println("Tests: Replacing Android SDK from ${IdeSdks.getInstance().androidSdkPath} to ${TestUtils.getSdk()}")
     AndroidGradleTests.setUpSdks(javaCodeInsightTestFixture, TestUtils.getSdk().toFile())
   }
+}
+
+private fun RuleChain.maybeAround(rule: TestRule?): RuleChain {
+  return if (rule != null) around(rule) else this
 }

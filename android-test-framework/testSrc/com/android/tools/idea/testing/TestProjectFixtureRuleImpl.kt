@@ -70,11 +70,7 @@ internal class TestProjectFixtureRuleImpl(
       error("Not supported")
     }
 
-  override var fixtureName: String?
-    get() = null
-    set(_) {
-      error("Not supported")
-    }
+  override var fixtureName: String? = null
 
   override val testRootDisposable: Disposable
     get() = fixture.testRootDisposable
@@ -94,7 +90,7 @@ internal class TestProjectFixtureRuleImpl(
             integrationTestEnvironment = object : IntegrationTestEnvironment {
               override fun getBaseTestPath(): String = tempDirFixture.tempDirPath
             },
-            "p",
+            fixtureName ?: "p",
             AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
             null
           )
