@@ -19,13 +19,12 @@ import com.android.SdkConstants
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProjects
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.EdtAndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.gradleModule
-import com.android.tools.idea.testing.onEdt
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Expect
 import com.intellij.openapi.command.WriteCommandAction
@@ -47,7 +46,7 @@ class FixNdkVersionProcessorTest {
   @RunsInEdt
   class NonGradle {
     @get:Rule
-    val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
+    val projectRule = AndroidProjectRule.testProject(LightGradleSyncTestProjects.SIMPLE_APPLICATION)
 
     @get:Rule
     var expect: Expect = Expect.createAndEnableStackTrace()

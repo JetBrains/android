@@ -32,9 +32,7 @@ import com.android.tools.idea.testing.AgpIntegrationTestDefinition
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.IntegrationTestEnvironment
-import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.createRunConfigurationFromClass
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
 import com.android.tools.idea.testing.gradleModule
@@ -221,7 +219,7 @@ fun IntegrationTestEnvironment.runProviderTest(testDefinition: AggregateTestDefi
   }
 }
 
-abstract class ProviderIntegrationTestCase : GradleIntegrationTest {
+abstract class ProviderIntegrationTestCase{
 
   @RunWith(Parameterized::class)
   class CurrentAgp : ProviderIntegrationTestCase() {
@@ -249,22 +247,14 @@ abstract class ProviderIntegrationTestCase : GradleIntegrationTest {
 
   @Test
   fun testProvider() {
-    runProviderTest(testDefinition!!, expect, valueNormalizers)
+    projectRule.runProviderTest(testDefinition!!, expect, valueNormalizers)
   }
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels()
+  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @get:Rule
   var expect = Expect.createAndEnableStackTrace()
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
-  override fun getAdditionalRepos(): Collection<File> = listOf()
-
-  override fun getAgpVersionSoftwareEnvironmentDescriptor(): AgpVersionSoftwareEnvironmentDescriptor {
-    return testDefinition?.agpVersion ?: AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
-  }
 
   private val m2Dirs by lazy {
     (EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths() +
@@ -276,13 +266,13 @@ abstract class ProviderIntegrationTestCase : GradleIntegrationTest {
 
     override fun File.toTestString(): String {
       val m2Root = m2Dirs.find { path.startsWith(it.path) }
-      return if (m2Root != null) "<M2>/${relativeTo(m2Root).path}" else relativeTo(File(getBaseTestPath())).path
+      return if (m2Root != null) "<M2>/${relativeTo(m2Root).path}" else relativeTo(File(projectRule.getBaseTestPath())).path
     }
 
     override fun <T> Result<T>.toTestString(toTestString: T.() -> String) =
       (if (this.isSuccess) getOrThrow().toTestString() else null)
       ?: exceptionOrNull()?.let {
-        val message = it.message?.replace(getBaseTestPath(), "<ROOT>")
+        val message = it.message?.replace(projectRule.getBaseTestPath(), "<ROOT>")
         "${it::class.java.simpleName}*> $message"
       }.orEmpty()
 

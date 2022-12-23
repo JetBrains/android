@@ -1,3 +1,7 @@
+import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProject
+import java.io.File
+
 /*
  * Copyright (C) 2019 The Android Open Source Project
  *
@@ -18,3 +22,16 @@ const val TEST_DATA_PATH = "tools/adt/idea/androidx-integration-tests/testData"
 const val SIMPLE_COMPOSE_PROJECT_PATH = "projects/SimpleComposeApplication"
 
 const val ANDROIDX_SNAPSHOT_REPO_PATH = "prebuilts/tools/common/androidx-integration/m2repository"
+
+enum class ComposeTestProject(
+  override val template: String,
+): TemplateBasedTestProject {
+  SIMPLE_COMPOSE_PROJECT(SIMPLE_COMPOSE_PROJECT_PATH)
+  ;
+
+  override fun getTestDataDirectoryWorkspaceRelativePath(): String = TEST_DATA_PATH
+
+  override fun getAdditionalRepos(): Collection<File> =
+    listOf(resolveWorkspacePath(ANDROIDX_SNAPSHOT_REPO_PATH).toFile())
+
+}

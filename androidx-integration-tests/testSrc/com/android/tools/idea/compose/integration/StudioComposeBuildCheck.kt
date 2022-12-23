@@ -15,35 +15,22 @@
  */
 package com.android.tools.idea.compose.integration
 
-import ANDROIDX_SNAPSHOT_REPO_PATH
-import SIMPLE_COMPOSE_PROJECT_PATH
-import TEST_DATA_PATH
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import ComposeTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.onEdt
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
-class StudioComposeBuildCheck : GradleIntegrationTest {
+class StudioComposeBuildCheck {
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   /**
    * Checks the rendering of the default `@Preview` in the Compose template.
    */
   @Test
   fun testComposeProject() {
-    prepareGradleProject(SIMPLE_COMPOSE_PROJECT_PATH, "SimpleComposeProject")
-    openPreparedProject("SimpleComposeProject") {}
+    val preparedProject = projectRule.prepareTestProject(ComposeTestProject.SIMPLE_COMPOSE_PROJECT, "SimpleComposeProject")
+    preparedProject.open { }
   }
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = TEST_DATA_PATH
-  override fun getAdditionalRepos(): Collection<File> = listOf(
-    resolveWorkspacePath(ANDROIDX_SNAPSHOT_REPO_PATH).toFile()
-  )
 }

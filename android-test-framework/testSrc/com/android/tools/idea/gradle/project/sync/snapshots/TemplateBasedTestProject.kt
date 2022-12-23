@@ -67,14 +67,14 @@ interface TemplateBasedTestProject : TestProjectDefinition {
    *
    * A non-empty value is useful when defining a test project based on a composite build Gradle project.
    */
-  val pathToOpen: String
+  val pathToOpen: String get() = ""
 
   /**
    * For compatibility with existing tests.
    */
   val testName: String? get() = null
 
-  override val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean
+  override val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean get() = { true }
 
   /**
    * If `true` the test framework will attempt, when needed, to migrate manifest package attributes to Gradle build configuration for
@@ -94,19 +94,19 @@ interface TemplateBasedTestProject : TestProjectDefinition {
   /**
    * An additional patch to be applied on top of an already prepared project.
    */
-  val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit
+  val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit get() = {}
 
 
   /**
    * If the project is expected to sync with sync issues, the IDs of expected sync issues.
    */
-  val expectedSyncIssues: Set<Int>
+  val expectedSyncIssues: Set<Int> get() = emptySet()
 
   /**
    * A function to check that the project was opened correctly. If not provided, the project is expected to open  with Gradle sync
    * succeeding without sync issues except [expectedSyncIssues].
    */
-  val verifyOpened: ((Project) -> Unit)?
+  val verifyOpened: ((Project) -> Unit)? get() = null
 
   class VariantSelection(val gradlePath: String, val variant: String)
 

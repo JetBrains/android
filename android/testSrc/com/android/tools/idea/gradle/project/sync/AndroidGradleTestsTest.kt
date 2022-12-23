@@ -17,49 +17,43 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.OpenPreparedProjectOptions
-import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.injectBuildOutputDumpingBuildViewManager
-import com.android.tools.idea.testing.onEdt
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.resolve
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.annotations.SystemIndependent
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 import java.util.concurrent.TimeUnit
 
-class AndroidGradleTestsTest : GradleIntegrationTest {
+class AndroidGradleTestsTest {
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testEmptyNotInEdt() {
-    prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
-    openPreparedProject("project") { }
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    preparedProject.open {}
   }
 
   @Test
   @RunsInEdt
   fun testEmptyInEdt() {
-    prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
-    openPreparedProject("project") { }
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    preparedProject.open {}
   }
 
   @Test
   @RunsInEdt
   fun testUnresolvedDependenciesAreCaught() {
-    val path = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
-    val buildFile = path.resolve("app").resolve("build.gradle")
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    val buildFile = preparedProject.root.resolve("app").resolve("build.gradle")
     buildFile.writeText(
       buildFile.readText() + """
       dependencies {
@@ -67,7 +61,7 @@ class AndroidGradleTestsTest : GradleIntegrationTest {
       }
       """)
     try {
-      openPreparedProject("project") { }
+      preparedProject.open {}
       fail("Sync should have failed")
     }
     catch(e: java.lang.IllegalStateException) {
@@ -80,8 +74,8 @@ class AndroidGradleTestsTest : GradleIntegrationTest {
   @RunsInEdt
   fun testMultipleRegexMatches() {
     val expectedVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.resolve().agpVersion
-    val resultPath = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
-    val result = resultPath.resolve("build.gradle").readText()
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    val result = preparedProject.root.resolve("build.gradle").readText()
 
     assertThat(result.contains("""
       // id 'com.android.library' version '$expectedVersion' apply false
@@ -98,10 +92,9 @@ class AndroidGradleTestsTest : GradleIntegrationTest {
   fun testOutputHandling() {
     var syncMessageFound = false
     var buildMessageFound = false
-    prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
-    openPreparedProject(
-      "project",
-      options = OpenPreparedProjectOptions(outputHandler = { if (it.contains("This is a simple application!")) syncMessageFound = true })
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    preparedProject.open(
+      updateOptions = { it.copy(outputHandler = { if (it.contains("This is a simple application!")) syncMessageFound = true }) }
     ) { project ->
       injectBuildOutputDumpingBuildViewManager(project, project) { if (it.message.contains("BUILD SUCCESSFUL")) buildMessageFound = true }
       GradleBuildInvoker.getInstance(project)
@@ -111,9 +104,4 @@ class AndroidGradleTestsTest : GradleIntegrationTest {
     assertThat(syncMessageFound).named("'This is a simple application!' found").isTrue()
     assertThat(buildMessageFound).named("'BUILD SUCCESSFUL' found").isTrue()
   }
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData"
-
-  override fun getAdditionalRepos(): Collection<File> = listOf()
 }

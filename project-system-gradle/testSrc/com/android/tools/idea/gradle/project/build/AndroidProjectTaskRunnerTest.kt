@@ -13,40 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.task
+package com.android.tools.idea.gradle.project.build
 
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.hookExecuteTasks
-import com.android.tools.idea.testing.onEdt
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
 import com.google.common.truth.Expect
 import com.intellij.task.ProjectTaskManager
-import org.jetbrains.annotations.SystemIndependent
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
-class AndroidProjectTaskRunnerTest : GradleIntegrationTest {
+class AndroidProjectTaskRunnerTest {
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-
-  override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData"
-  override fun getAdditionalRepos(): Collection<File> = emptyList()
+  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun `build app module`() {
-    val path = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    preparedProject.open { project ->
       val capturedRequests = project.hookExecuteTasks()
       val appModule = project.gradleModule(":app") ?: error(":app module not found")
 
@@ -54,7 +44,7 @@ class AndroidProjectTaskRunnerTest : GradleIntegrationTest {
 
       expect.that(capturedRequests).hasSize(1)
       expect.that(capturedRequests.getOrNull(0)?.project).isSameAs(project)
-      expect.that(capturedRequests.getOrNull(0)?.rootProjectPath).isEqualTo(path)
+      expect.that(capturedRequests.getOrNull(0)?.rootProjectPath).isEqualTo(preparedProject.root)
       expect.that(capturedRequests.getOrNull(0)?.gradleTasks).contains(":app:compileDebugSources")
     }
   }

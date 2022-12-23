@@ -17,14 +17,12 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.idea.issues.createNewGradleJvmProjectJdk
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult.SUCCESS
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.TestProjectPaths
-import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.WriteAction
@@ -36,21 +34,13 @@ import org.junit.Rule
 import org.junit.Test
 import java.io.File
 
-@Suppress("DEPRECATION")
-class JdkRecreationIntegrationTest: GradleIntegrationTest {
+class JdkRecreationIntegrationTest {
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @get:Rule
   val expect = Expect.createAndEnableStackTrace()!!
 
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
-
-  override fun getAdditionalRepos(): Collection<File> = listOf()
-
-  @Suppress("UnstableApiUsage")
   @Test
   fun `Corrupted Jdk is recreated after sync`() {
     // Set flag
@@ -59,9 +49,9 @@ class JdkRecreationIntegrationTest: GradleIntegrationTest {
     try {
 
       // Create a project with modified JDK
-      val project1File = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project_1")
+      val project1File = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION, "project_1").root
       var projectJdk: ProjectJdkImpl? = null
-      openPreparedProject("project_1") { project ->
+      projectRule.openPreparedProject("project_1") { project ->
         assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SUCCESS)
         val basePath = project.basePath
         assertThat(basePath).isNotNull()
@@ -85,11 +75,11 @@ class JdkRecreationIntegrationTest: GradleIntegrationTest {
       assertThat(projectJdk!!.getRoots(OrderRootType.CLASSES)).hasLength(originalSize - 1)
 
       // Copy project1
-      val copiedProjectPath = File(FileUtil.toSystemDependentName(getBaseTestPath() + "/project_2"))
+      val copiedProjectPath = File(FileUtil.toSystemDependentName(projectRule.getBaseTestPath() + "/project_2"))
       FileUtil.copyDir(project1File, copiedProjectPath)
 
       // Open copied project and confirm that the corrupted JDK is fixed
-      openPreparedProject("project_2") { project ->
+      projectRule.openPreparedProject("project_2") { project ->
         assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SUCCESS)
 
         val project2Jdk = createNewGradleJvmProjectJdk(project, projectRule.testRootDisposable)

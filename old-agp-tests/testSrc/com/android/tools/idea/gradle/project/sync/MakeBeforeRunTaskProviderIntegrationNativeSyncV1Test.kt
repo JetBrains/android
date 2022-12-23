@@ -18,41 +18,36 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.sdklib.devices.Abi
 import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.mockDeviceFor
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.withSimulatedSyncError
 import com.google.common.truth.Truth
 import com.intellij.execution.RunManager
 import org.junit.Assert.fail
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 @OldAgpTest(agpVersions = ["4.1.0"], gradleVersions = ["6.7.1"])
-@Ignore("b/247097801")
-class MakeBeforeRunTaskProviderIntegrationNativeSyncV1Test : GradleIntegrationTest {
+class MakeBeforeRunTaskProviderIntegrationNativeSyncV1Test {
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels()
+  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testModelsAreNotFetchedForSyncedAbi() {
-    prepareGradleProject(
-      testProjectPath = TestProjectPaths.DEPENDENT_NATIVE_MODULES,
+    val preparedProject = projectRule.prepareTestProject(
+      testProject = AndroidCoreTestProject.DEPENDENT_NATIVE_MODULES,
       name = "project",
       agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_41,
     )
-    openPreparedProject("project") { project ->
+    preparedProject.open { project ->
       val selectedVariant = NdkFacet.getInstance(project.gradleModule(":app") ?: error(":app module not found"))?.selectedVariantAbi
       Truth.assertThat(selectedVariant?.abi).isEqualTo(Abi.X86.toString())
 
@@ -79,12 +74,12 @@ class MakeBeforeRunTaskProviderIntegrationNativeSyncV1Test : GradleIntegrationTe
 
   @Test
   fun testModelsAreFetchedForNotSyncedAbi() {
-    prepareGradleProject(
-      testProjectPath = TestProjectPaths.DEPENDENT_NATIVE_MODULES,
+    val preparedProject = projectRule.prepareTestProject(
+      testProject = AndroidCoreTestProject.DEPENDENT_NATIVE_MODULES,
       name = "project",
       agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_41,
     )
-    openPreparedProject("project") { project ->
+    preparedProject.open { project ->
       val ndkFacet = NdkFacet.getInstance(project.gradleModule(":app") ?: error(":app module not found"))
       val selectedVariant = ndkFacet?.selectedVariantAbi
       Truth.assertThat(selectedVariant?.abi).isEqualTo(Abi.X86.toString())
@@ -116,10 +111,6 @@ class MakeBeforeRunTaskProviderIntegrationNativeSyncV1Test : GradleIntegrationTe
         .containsExactly(Abi.X86.toString(), Abi.ARMEABI_V7A.toString())
     }
   }
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
-  override fun getAdditionalRepos(): Collection<File> = listOf()
 }
 
 private const val errorMessage: String = "Unexpected attempt to resolve a project."
