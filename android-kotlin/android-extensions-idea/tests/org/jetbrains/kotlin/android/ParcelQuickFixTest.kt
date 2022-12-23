@@ -52,6 +52,7 @@ abstract class ParcelQuickFixTest : AbstractAndroidQuickFixMultiFileTest() {
     fun testSimple() = doTest("$TEST_DIR/cantBeInnerClass/simple")
   }
 
+/* b/263890526
   class ClassShouldBeAnnotated : ParcelQuickFixTest() {
     fun testSimple() = doTest("$TEST_DIR/classShouldBeAnnotated/simple")
   }
@@ -84,4 +85,5 @@ abstract class ParcelQuickFixTest : AbstractAndroidQuickFixMultiFileTest() {
   class RemoveDuplicatingTypeParcelerAnnotation : ParcelQuickFixTest() {
     fun testSimple() = doTest("$TEST_DIR/removeDuplicatingTypeParcelerAnnotation/simple")
   }
+b/263890526 */
 }
