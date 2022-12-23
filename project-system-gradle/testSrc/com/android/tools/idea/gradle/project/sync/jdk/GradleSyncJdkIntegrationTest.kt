@@ -34,6 +34,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 
+@org.junit.Ignore("b/263902541")
 @RunsInEdt
 @Suppress("UnstableApiUsage")
 class GradleSyncJdkIntegrationTest {
