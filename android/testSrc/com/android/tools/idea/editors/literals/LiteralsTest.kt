@@ -614,6 +614,7 @@ class LiteralsTest {
     }
     """.trimIndent())
 
+/* b/263890401
     runBlocking {
       withUiContext {
         (DumbService.getInstance(projectRule.project) as DumbServiceImpl).isDumb = true
@@ -625,5 +626,6 @@ class LiteralsTest {
       } catch (_: ProcessCanceledException) {
       }
     }
+b/263890401 */
   }
 }
