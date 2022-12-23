@@ -1737,8 +1737,10 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
   fun testJavaCreateResourceFromUsage() {
     val virtualFile = copyFileToProject(getTestName(false) + ".java", "src/p1/p2/" + getTestName(true) + ".java")
+/* b/263898646
     doCreateFileResourceFromUsage(virtualFile)
     myFixture.checkResultByFile("res/layout/unknown.xml", myTestFolder + '/'.toString() + getTestName(true) + "_layout_after.xml", true)
+b/263898646 */
   }
 
   fun testCreateResourceFromUsage1() {
