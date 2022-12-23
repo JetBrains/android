@@ -498,8 +498,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       buildId: String,
       variantName: String?
     ) {
-      if (!visited.contains(artifactAddress)) {
-        visited.add(artifactAddress)
+      if (visited.add(artifactAddress)) {
         dependenciesById.computeIfAbsent(artifactAddress) { libraryFrom(projectPath, buildId, variantName) }
       }
     }
@@ -534,8 +533,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     ) {
       for (javaLibrary in javaLibraries) {
         val address = computeAddress(javaLibrary)
-        if (!visited.contains(address)) {
-          visited.add(address)
+        if (visited.add(address)) {
           dependenciesById.computeIfAbsent(address) { libraryFrom(javaLibrary) }
           if (javaLibrary.dependencies.isNotEmpty()) error("JavaLibrary.dependencies is expected to be empty")
         }
@@ -548,8 +546,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     ) {
       getOptionalBootClasspathLibraries(bootClasspath).forEach { jarFile ->
         val address = jarFile.path
-        if (!visited.contains(address)) {
-          visited.add(jarFile.path) // Any unique keyidentifying the library  is suitable.
+        if (visited.add(jarFile.path)) {   // Any unique key identifying the library  is suitable.
           dependenciesById.computeIfAbsent(address) { libraryFrom(jarFile) }
         }
       }
@@ -561,8 +558,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     ) {
       for (androidLibrary in androidLibraries) {
         val address = computeAddress(androidLibrary)
-        if (!visited.contains(address)) {
-          visited.add(address)
+        if (visited.add(address)) {
           dependenciesById.computeIfAbsent(address) { libraryFrom(androidLibrary) }
           if (androidLibrary.libraryDependencies.isNotEmpty()) error("AndroidLibrary.libraryDependencies is expected to be empty")
           if (androidLibrary.javaDependencies.isNotEmpty()) error("AndroidLibrary.javaDependencies is expected to be empty")
