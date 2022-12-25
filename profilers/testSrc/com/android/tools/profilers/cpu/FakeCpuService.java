@@ -62,14 +62,14 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
   private List<CpuProfiler.GetThreadsResponse.Thread> myThreads = new ArrayList<>();
 
   // LinkedHashMap to preserve insertion order when starting and stopping captures.
-  private Map<Long, Cpu.CpuTraceInfo> myTraceInfoMap = new LinkedHashMap<>();
+  private Map<Long, Trace.TraceInfo> myTraceInfoMap = new LinkedHashMap<>();
 
   /**
    * Session used in start/stop capturing gRPC requests in this fake service.
    */
   private Common.Session myStartStopCapturingSession;
 
-  private Cpu.CpuTraceInfo myStartedTraceInfo = Cpu.CpuTraceInfo.getDefaultInstance();
+  private Trace.TraceInfo myStartedTraceInfo = Trace.TraceInfo.getDefaultInstance();
 
   @Override
   public void startProfilingApp(CpuProfiler.CpuProfilingAppStartRequest request,
@@ -83,7 +83,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     else {
       myProfilerType = TraceType.from(request.getConfiguration());
 
-      myStartedTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+      myStartedTraceInfo = Trace.TraceInfo.newBuilder()
         .setTraceId(myTraceId)
         .setFromTimestamp(myTraceId)
         .setToTimestamp(-1)
@@ -114,7 +114,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
                    .setToTimestamp(myStartedTraceInfo.getFromTimestamp() + myTraceDurationNs)
                    .setStopStatus(status.build())
                    .build());
-    myStartedTraceInfo = Cpu.CpuTraceInfo.getDefaultInstance();
+    myStartedTraceInfo = Trace.TraceInfo.getDefaultInstance();
 
     response.setStatus(status.build());
     responseObserver.onNext(response.build());
@@ -181,7 +181,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
   public void getTraceInfo(CpuProfiler.GetTraceInfoRequest request, StreamObserver<CpuProfiler.GetTraceInfoResponse> responseObserver) {
     CpuProfiler.GetTraceInfoResponse.Builder response = CpuProfiler.GetTraceInfoResponse.newBuilder();
     response.addAllTraceInfo(myTraceInfoMap.values());
-    if (!Cpu.CpuTraceInfo.getDefaultInstance().equals(myStartedTraceInfo)) {
+    if (!Trace.TraceInfo.getDefaultInstance().equals(myStartedTraceInfo)) {
       response.addTraceInfo(myStartedTraceInfo);
     }
     responseObserver.onNext(response.build());
@@ -229,7 +229,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     myThreads.add(newThread(tid, name, threads));
   }
 
-  public void addTraceInfo(Cpu.CpuTraceInfo info) {
+  public void addTraceInfo(Trace.TraceInfo info) {
     myTraceInfoMap.put(info.getTraceId(), info);
   }
 

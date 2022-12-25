@@ -33,7 +33,6 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.Stream;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
 import com.android.tools.profiler.proto.Transport.EventGroup;
@@ -724,9 +723,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    * Checks whether startup CPU Profiling started for the selected session by making RPC call to perfd.
    */
   private boolean startupCpuProfilingStarted() {
-    List<Cpu.CpuTraceInfo> traceInfoList = CpuProfiler.getTraceInfoFromSession(myClient, mySelectedSession);
+    List<Trace.TraceInfo> traceInfoList = CpuProfiler.getTraceInfoFromSession(myClient, mySelectedSession);
     if (!traceInfoList.isEmpty()) {
-      Cpu.CpuTraceInfo lastTraceInfo = traceInfoList.get(traceInfoList.size() - 1);
+      Trace.TraceInfo lastTraceInfo = traceInfoList.get(traceInfoList.size() - 1);
       return lastTraceInfo.getConfiguration().getInitiationType() == Trace.TraceInitiationType.INITIATED_BY_STARTUP;
     }
 

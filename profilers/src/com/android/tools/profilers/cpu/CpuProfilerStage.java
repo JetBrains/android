@@ -133,7 +133,7 @@ public class CpuProfilerStage extends StreamingStage {
   private long myCaptureStopTimeNs;
 
   private final InProgressTraceHandler myInProgressTraceHandler;
-  @NotNull private Cpu.CpuTraceInfo myInProgressTraceInfo = Cpu.CpuTraceInfo.getDefaultInstance();
+  @NotNull private Trace.TraceInfo myInProgressTraceInfo = Trace.TraceInfo.getDefaultInstance();
 
   @NotNull
   private final UpdatableManager myUpdatableManager;
@@ -198,7 +198,7 @@ public class CpuProfilerStage extends StreamingStage {
     myUpdatableManager = new UpdatableManager(getStudioProfilers().getUpdater());
     myCaptureParser = captureParser;
 
-    List<Cpu.CpuTraceInfo> existingCompletedTraceInfoList =
+    List<Trace.TraceInfo> existingCompletedTraceInfoList =
       CpuProfiler.getTraceInfoFromSession(getStudioProfilers().getClient(), mySession).stream()
         .filter(info -> info.getToTimestamp() != -1).collect(Collectors.toList());
     existingCompletedTraceInfoList.forEach(info -> myCompletedTraceIdToInfoMap.put(info.getTraceId(), new CpuTraceInfo(info)));
@@ -393,7 +393,7 @@ public class CpuProfilerStage extends StreamingStage {
   @VisibleForTesting
   void stopCapturing() {
     // We need to send the trace configuration that was used to initiate the capture. Return early if no in-progress trace exists.
-    if (Cpu.CpuTraceInfo.getDefaultInstance().equals(myInProgressTraceInfo)) {
+    if (Trace.TraceInfo.getDefaultInstance().equals(myInProgressTraceInfo)) {
       return;
     }
 
@@ -593,13 +593,13 @@ public class CpuProfilerStage extends StreamingStage {
         myAspect.changed(CpuProfilerAspect.CAPTURE_ELAPSED_TIME);
         return;
       }
-      Cpu.CpuTraceInfo finishedTraceToSelect = null;
+      Trace.TraceInfo finishedTraceToSelect = null;
       // Request for the entire data range as we don't expect too many (100s) traces withing a single session.
       Range dataRange = getTimeline().getDataRange();
-      List<Cpu.CpuTraceInfo> traceInfoList =
+      List<Trace.TraceInfo> traceInfoList =
         CpuProfiler.getTraceInfoFromRange(getStudioProfilers().getClient(), mySession, dataRange);
       for (int i = 0; i < traceInfoList.size(); i++) {
-        Cpu.CpuTraceInfo trace = traceInfoList.get(i);
+        Trace.TraceInfo trace = traceInfoList.get(i);
         if (trace.getToTimestamp() == -1) {
           // an ongoing trace should be the most recent trace
           assert i == traceInfoList.size() - 1;
@@ -639,7 +639,7 @@ public class CpuProfilerStage extends StreamingStage {
       }
 
       if (finishedTraceToSelect != null) {
-        myInProgressTraceInfo = Cpu.CpuTraceInfo.getDefaultInstance();
+        myInProgressTraceInfo = Trace.TraceInfo.getDefaultInstance();
         if (finishedTraceToSelect.getStopStatus().getStatus() == Trace.TraceStopStatus.Status.SUCCESS) {
           setAndSelectCapture(finishedTraceToSelect.getTraceId());
           // The following registration of the selected artifact is done to make sure that api-initiated
@@ -669,7 +669,7 @@ public class CpuProfilerStage extends StreamingStage {
      * 2. The timeline is streaming
      * 3. The profile configuration is synchronized with the trace info.
      */
-    private void handleInProgressTrace(@NotNull Cpu.CpuTraceInfo traceInfo) {
+    private void handleInProgressTrace(@NotNull Trace.TraceInfo traceInfo) {
       if (traceInfo.equals(myInProgressTraceInfo)) {
         myAspect.changed(CpuProfilerAspect.CAPTURE_ELAPSED_TIME);
         return;
@@ -708,9 +708,9 @@ public class CpuProfilerStage extends StreamingStage {
   class CpuTraceDataSeries implements DataSeries<CpuTraceInfo> {
     @Override
     public List<SeriesData<CpuTraceInfo>> getDataForRange(Range range) {
-      List<Cpu.CpuTraceInfo> traceInfos = CpuProfiler.getTraceInfoFromRange(getStudioProfilers().getClient(), mySession, range);
+      List<Trace.TraceInfo> traceInfos = CpuProfiler.getTraceInfoFromRange(getStudioProfilers().getClient(), mySession, range);
       List<SeriesData<CpuTraceInfo>> seriesData = new ArrayList<>();
-      for (Cpu.CpuTraceInfo protoTraceInfo : traceInfos) {
+      for (Trace.TraceInfo protoTraceInfo : traceInfos) {
         CpuTraceInfo info = new CpuTraceInfo(protoTraceInfo);
         seriesData.add(new SeriesData<>((long)info.getRange().getMin(), info));
       }

@@ -42,6 +42,7 @@ import com.android.tools.profiler.proto.CpuProfiler.StartupProfilingRequest;
 import com.android.tools.profiler.proto.CpuProfiler.StartupProfilingResponse;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.idea.io.grpc.stub.StreamObserver;
+import com.android.tools.profiler.proto.Trace;
 import java.sql.Connection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -118,7 +119,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   public void getTraceInfo(GetTraceInfoRequest request, StreamObserver<GetTraceInfoResponse> responseObserver) {
     if (!myLastTraceInfoResponse.matches(request.getSession(), request.getFromTimestamp(), request.getToTimestamp())) {
       GetTraceInfoResponse.Builder response = GetTraceInfoResponse.newBuilder();
-      List<Cpu.CpuTraceInfo> responses = myCpuTable.getTraceInfo(request);
+      List<Trace.TraceInfo> responses = myCpuTable.getTraceInfo(request);
       response.addAllTraceInfo(responses);
       myLastTraceInfoResponse = new ResponseData<>(request.getSession(),
                                                    request.getFromTimestamp(),

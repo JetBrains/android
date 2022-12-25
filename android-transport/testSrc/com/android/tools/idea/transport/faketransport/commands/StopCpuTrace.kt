@@ -18,19 +18,18 @@ package com.android.tools.idea.transport.faketransport.commands
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Trace
 import java.util.concurrent.TimeUnit
 
 class StopCpuTrace(timer: FakeTimer) : CommandHandler(timer) {
   var stopStatus: Trace.TraceStopStatus = Trace.TraceStopStatus.getDefaultInstance()
   var traceDurationNs: Long = TimeUnit.SECONDS.toNanos(1)
-  var lastTraceInfo: Cpu.CpuTraceInfo = Cpu.CpuTraceInfo.getDefaultInstance()
+  var lastTraceInfo: Trace.TraceInfo = Trace.TraceInfo.getDefaultInstance()
 
   override fun handleCommand(command: Command, events: MutableList<Common.Event>) {
     val traceId = timer.currentTimeNs
     val endTimestamp = traceId + traceDurationNs
-    lastTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+    lastTraceInfo = Trace.TraceInfo.newBuilder()
       .setTraceId(traceId)
       .setFromTimestamp(traceId)
       .setToTimestamp(endTimestamp)
@@ -57,8 +56,8 @@ class StopCpuTrace(timer: FakeTimer) : CommandHandler(timer) {
         kind = Common.Event.Kind.CPU_TRACE
         timestamp = endTimestamp
         isEnded = true
-        cpuTrace = Cpu.CpuTraceData.newBuilder().apply {
-          traceEnded = Cpu.CpuTraceData.TraceEnded.newBuilder().apply {
+        traceData = Trace.TraceData.newBuilder().apply {
+          traceEnded = Trace.TraceData.TraceEnded.newBuilder().apply {
             traceInfo = lastTraceInfo
           }.build()
         }.build()

@@ -17,7 +17,6 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.ConfigurableDurationData;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import java.util.concurrent.TimeUnit;
@@ -27,17 +26,17 @@ import org.jetbrains.annotations.NotNull;
  * This class contains meta information about a trace file, such as traceId, capture start and capture end.
  */
 public class CpuTraceInfo implements ConfigurableDurationData {
-  @NotNull private final Cpu.CpuTraceInfo myInfo;
+  @NotNull private final Trace.TraceInfo myInfo;
   @NotNull private final Range myRange;
 
-  public CpuTraceInfo(Cpu.CpuTraceInfo traceInfo) {
+  public CpuTraceInfo(Trace.TraceInfo traceInfo) {
     myInfo = traceInfo;
     myRange = new Range(TimeUnit.NANOSECONDS.toMicros(traceInfo.getFromTimestamp()),
                         TimeUnit.NANOSECONDS.toMicros(traceInfo.getToTimestamp()));
   }
 
   @NotNull
-  public Cpu.CpuTraceInfo getTraceInfo() {
+  public Trace.TraceInfo getTraceInfo() {
     return myInfo;
   }
 

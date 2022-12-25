@@ -21,7 +21,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.StudioProfilers;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +60,7 @@ public class CpuCaptureMinimapModel {
         List<SeriesData<CpuTraceInfo>> seriesData = new ArrayList<>();
         if (myCaptureRange.intersectsWith(range)) {
           CpuTraceInfo traceInfo = new CpuTraceInfo(
-            Cpu.CpuTraceInfo.newBuilder()
+            Trace.TraceInfo.newBuilder()
               .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myCaptureRange.getMin()))
               .setToTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myCaptureRange.getMax()))
               .build());

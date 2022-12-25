@@ -21,7 +21,6 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.TransportServiceTestImpl
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
@@ -66,7 +65,7 @@ class CpuCaptureSessionArtifactTest {
 
   @Test
   fun testArtSampledCpuCaptureSessionName() {
-    val artSampledTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+    val artSampledTraceInfo = Trace.TraceInfo.newBuilder()
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
                           .setArtOptions(Trace.ArtOptions.newBuilder().setTraceMode(Trace.TraceMode.SAMPLED)))
       .build()
@@ -78,7 +77,7 @@ class CpuCaptureSessionArtifactTest {
 
   @Test
   fun testArtInstrumentedCpuCaptureSessionName() {
-    val artInstrumentedTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+    val artInstrumentedTraceInfo = Trace.TraceInfo.newBuilder()
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
                           .setArtOptions(Trace.ArtOptions.newBuilder().setTraceMode(Trace.TraceMode.INSTRUMENTED)))
       .build()
@@ -90,7 +89,7 @@ class CpuCaptureSessionArtifactTest {
 
   @Test
   fun testImportedArtTraceCpuCaptureSessionName() {
-    val artImportedTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+    val artImportedTraceInfo = Trace.TraceInfo.newBuilder()
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
                           .setArtOptions(Trace.ArtOptions.getDefaultInstance()))
       .build()
@@ -102,7 +101,7 @@ class CpuCaptureSessionArtifactTest {
 
   @Test
   fun testSimpleperfCpuCaptureSessionName() {
-    val simpleperfTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+    val simpleperfTraceInfo = Trace.TraceInfo.newBuilder()
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
                           .setSimpleperfOptions(Trace.SimpleperfOptions.getDefaultInstance()))
       .build()
@@ -114,7 +113,7 @@ class CpuCaptureSessionArtifactTest {
 
   @Test
   fun testAtraceCpuCaptureSessionName() {
-    val atraceInfo = Cpu.CpuTraceInfo.newBuilder()
+    val atraceInfo = Trace.TraceInfo.newBuilder()
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
                           .setAtraceOptions(Trace.AtraceOptions.getDefaultInstance()))
       .build()
@@ -124,19 +123,19 @@ class CpuCaptureSessionArtifactTest {
     assertThat(sessionItem.getChildArtifacts()[0].name).isEqualTo(ProfilingTechnology.SYSTEM_TRACE.getName())
   }
 
-  private fun addTraceInfo(cpuTraceInfo: Cpu.CpuTraceInfo) {
+  private fun addTraceInfo(cpuTraceInfo: Trace.TraceInfo) {
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
                                       Common.Event.newBuilder()
                                         .setPid(FakeTransportService.FAKE_PROCESS.pid)
                                         .setKind(Common.Event.Kind.CPU_TRACE)
-                                        .setCpuTrace(Cpu.CpuTraceData.newBuilder().setTraceStarted(
-                                          Cpu.CpuTraceData.TraceStarted.newBuilder().setTraceInfo(cpuTraceInfo))).build())
+                                        .setTraceData(Trace.TraceData.newBuilder().setTraceStarted(
+                                          Trace.TraceData.TraceStarted.newBuilder().setTraceInfo(cpuTraceInfo))).build())
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
                                       Common.Event.newBuilder()
                                         .setPid(FakeTransportService.FAKE_PROCESS.pid)
                                         .setKind(Common.Event.Kind.CPU_TRACE)
                                         .setIsEnded(true)
-                                        .setCpuTrace(Cpu.CpuTraceData.newBuilder().setTraceEnded(
-                                          Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo))).build())
+                                        .setTraceData(Trace.TraceData.newBuilder().setTraceEnded(
+                                          Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo))).build())
   }
 }

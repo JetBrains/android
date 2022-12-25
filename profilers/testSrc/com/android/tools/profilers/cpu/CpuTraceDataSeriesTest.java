@@ -23,7 +23,7 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
@@ -62,7 +62,7 @@ public class CpuTraceDataSeriesTest {
   @Test
   public void validTraceSuccessStatus() {
     Range maxRange = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
-    Cpu.CpuTraceInfo info = Cpu.CpuTraceInfo.newBuilder()
+    Trace.TraceInfo info = Trace.TraceInfo.newBuilder()
       .setTraceId(1)
       .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos(1))
       .setToTimestamp(TimeUnit.MICROSECONDS.toNanos(3))
@@ -72,13 +72,13 @@ public class CpuTraceDataSeriesTest {
       .setPid(FakeTransportService.FAKE_PROCESS.getPid())
       .setKind(Common.Event.Kind.CPU_TRACE);
     myTransportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
-                                        traceEventBuilder.setTimestamp(info.getFromTimestamp()).setCpuTrace(
-                                          Cpu.CpuTraceData.newBuilder().setTraceStarted(
-                                            Cpu.CpuTraceData.TraceStarted.newBuilder().setTraceInfo(info))).build());
+                                        traceEventBuilder.setTimestamp(info.getFromTimestamp()).setTraceData(
+                                          Trace.TraceData.newBuilder().setTraceStarted(
+                                            Trace.TraceData.TraceStarted.newBuilder().setTraceInfo(info))).build());
     myTransportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
-                                        traceEventBuilder.setTimestamp(info.getToTimestamp()).setCpuTrace(
-                                          Cpu.CpuTraceData.newBuilder().setTraceEnded(
-                                            Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(info))).build());
+                                        traceEventBuilder.setTimestamp(info.getToTimestamp()).setTraceData(
+                                          Trace.TraceData.newBuilder().setTraceEnded(
+                                            Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(info))).build());
 
     List<SeriesData<CpuTraceInfo>> seriesData = mySeries.getDataForRange(maxRange);
     assertThat(seriesData).hasSize(1);

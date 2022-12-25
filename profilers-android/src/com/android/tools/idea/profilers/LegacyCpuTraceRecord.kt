@@ -17,9 +17,7 @@ package com.android.tools.idea.profilers
 
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
-import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profiler.proto.Transport
-import com.android.tools.profiler.proto.TransportServiceGrpc
+import com.android.tools.profiler.proto.Trace
 import java.util.concurrent.CountDownLatch
 
 /**
@@ -27,7 +25,7 @@ import java.util.concurrent.CountDownLatch
  */
 internal class LegacyCpuTraceRecord {
   // Set after trace start is successful.
-  var traceInfo: Cpu.CpuTraceInfo.Builder? = null
+  var traceInfo: Trace.TraceInfo.Builder? = null
   var startFailureMessage = ""
 
   /**

@@ -52,7 +52,7 @@ class CpuGenerator(connection: Connection) : DataGenerator(connection) {
     for (i in 0..NUMBER_OF_THREADS) {
       threadIds.add(i)
     }
-    val trace = Cpu.CpuTraceInfo.newBuilder()
+    val trace = Trace.TraceInfo.newBuilder()
       .setFromTimestamp((lastTraceInfoTimestamp + timestamp) / 2)
       .setToTimestamp(timestamp)
       .setTraceId(random.nextLong())

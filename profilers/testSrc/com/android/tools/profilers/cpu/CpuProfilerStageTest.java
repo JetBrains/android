@@ -476,7 +476,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     // Capture a CPU Trace, generating a CpuSessionArtifact
     CpuProfilerTestUtils.captureSuccessfully(myStage, myTransportService, CpuProfilerTestUtils.readValidTrace());
     // Make sure implicit selection of recently recorded capture's respective artifact proto is saved
-    assertThat(myStage.getStudioProfilers().getSessionsManager().getSelectedArtifactProto()).isInstanceOf(Cpu.CpuTraceInfo.class);
+    assertThat(myStage.getStudioProfilers().getSessionsManager().getSelectedArtifactProto()).isInstanceOf(Trace.TraceInfo.class);
   }
 
   @Test
@@ -845,7 +845,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
                                   long startTimestampNs,
                                   long endTimestampNs,
                                   Trace.TraceConfiguration configuration) {
-    Cpu.CpuTraceInfo info = Cpu.CpuTraceInfo.newBuilder()
+    Trace.TraceInfo info = Trace.TraceInfo.newBuilder()
       .setTraceId(traceId)
       .setFromTimestamp(startTimestampNs)
       .setToTimestamp(endTimestampNs)
@@ -857,8 +857,8 @@ public final class CpuProfilerStageTest extends AspectObserver {
       .setKind(Common.Event.Kind.CPU_TRACE);
     myTransportService.addEventToStream(streamId, traceEventBuilder
       .setTimestamp(startTimestampNs)
-      .setCpuTrace(Cpu.CpuTraceData.newBuilder()
-                     .setTraceStarted(Cpu.CpuTraceData.TraceStarted.newBuilder()
+      .setTraceData(Trace.TraceData.newBuilder()
+                     .setTraceStarted(Trace.TraceData.TraceStarted.newBuilder()
                                         .setTraceInfo(info)
                                         .build())
                      .build())
@@ -866,8 +866,8 @@ public final class CpuProfilerStageTest extends AspectObserver {
     if (endTimestampNs != -1) {
       myTransportService.addEventToStream(streamId, traceEventBuilder
         .setTimestamp(endTimestampNs)
-        .setCpuTrace(Cpu.CpuTraceData.newBuilder()
-                       .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(info).build())
+        .setTraceData(Trace.TraceData.newBuilder()
+                       .setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(info).build())
                        .build())
         .build());
     }

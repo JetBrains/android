@@ -32,7 +32,6 @@ import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.EventStreamServer;
 import com.android.tools.profiler.perfetto.proto.TraceProcessor;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.NullMonitorStage;
@@ -397,7 +396,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
   }
 
   private void insertImportedTraceEvent(@NotNull CpuCapture capture) {
-    Cpu.CpuTraceInfo.Builder importedTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+    Trace.TraceInfo.Builder importedTraceInfo = Trace.TraceInfo.newBuilder()
       // Use session ID as trace ID for imported traces.
       .setTraceId(getStudioProfilers().getSession().getSessionId())
       .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMin()))
@@ -417,8 +416,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
           .setTimestamp(importedTraceInfo.getToTimestamp())
           .setIsEnded(true)
           .setKind(Common.Event.Kind.CPU_TRACE)
-          .setCpuTrace(
-            Cpu.CpuTraceData.newBuilder().setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(importedTraceInfo)))
+          .setTraceData(
+            Trace.TraceData.newBuilder().setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(importedTraceInfo)))
           .build());
     }
   }

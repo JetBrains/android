@@ -137,7 +137,7 @@ class SessionsViewTest {
     val heapDumpTimestamp = 10L
     val cpuTraceTimestamp = 20L
     val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(heapDumpTimestamp).setEndTime(heapDumpTimestamp + 1).build()
-    val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+    val cpuTraceInfo = Trace.TraceInfo.newBuilder()
       .setConfiguration(Trace.TraceConfiguration.newBuilder())
       .setFromTimestamp(cpuTraceTimestamp)
       .setToTimestamp(cpuTraceTimestamp + 1)
@@ -151,8 +151,8 @@ class SessionsViewTest {
       .setKind(Common.Event.Kind.CPU_TRACE)
       .setTimestamp(cpuTraceTimestamp)
       .setIsEnded(true)
-      .setCpuTrace(Cpu.CpuTraceData.newBuilder()
-                     .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
+      .setTraceData(Trace.TraceData.newBuilder()
+                     .setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
     myTransportService.addEventToStream(device.deviceId, cpuTraceEvent.setPid(session1.pid).build())
     myTransportService.addEventToStream(device.deviceId, cpuTraceEvent.setPid(session2.pid).build())
     mySessionsManager.update()
@@ -401,7 +401,7 @@ class SessionsViewTest {
     val process1 = debuggableProcess { pid = 10 }
     val process2 = debuggableProcess { pid = 20 }
     val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(10).setEndTime(11).build()
-    val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+    val cpuTraceInfo = Trace.TraceInfo.newBuilder()
       .setConfiguration(Trace.TraceConfiguration.newBuilder())
       .setFromTimestamp(20)
       .setToTimestamp(21)
@@ -416,8 +416,8 @@ class SessionsViewTest {
       .setKind(Common.Event.Kind.CPU_TRACE)
       .setTimestamp(cpuTraceInfo.fromTimestamp)
       .setIsEnded(true)
-      .setCpuTrace(Cpu.CpuTraceData.newBuilder()
-                     .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
+      .setTraceData(Trace.TraceData.newBuilder()
+                     .setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
     myTransportService.addEventToStream(device.deviceId, cpuTraceEvent.setPid(process1.pid).build())
     myTransportService.addEventToStream(device.deviceId, cpuTraceEvent.setPid(process2.pid).build())
 
@@ -541,7 +541,7 @@ class SessionsViewTest {
     val process = debuggableProcess { pid = 10 }
     val traceInfoId = 13L
 
-    val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+    val cpuTraceInfo = Trace.TraceInfo.newBuilder()
       .setTraceId(traceInfoId)
       .setFromTimestamp(TimeUnit.MINUTES.toNanos(1))
       .setToTimestamp(TimeUnit.MINUTES.toNanos(2))
@@ -555,8 +555,8 @@ class SessionsViewTest {
       .setKind(Common.Event.Kind.CPU_TRACE)
       .setTimestamp(cpuTraceInfo.fromTimestamp)
       .setIsEnded(true)
-      .setCpuTrace(Cpu.CpuTraceData.newBuilder()
-                     .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
+      .setTraceData(Trace.TraceData.newBuilder()
+                     .setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
       .build())
     myTransportService.addFile(traceInfoId.toString(), ByteString.copyFrom(Files.readAllBytes(resolveWorkspacePath(VALID_TRACE_PATH))))
 
@@ -614,7 +614,7 @@ class SessionsViewTest {
     val sessionStartNs = 1L
 
     // Sets an ongoing trace info in the service
-    val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+    val cpuTraceInfo = Trace.TraceInfo.newBuilder()
       .setTraceId(1)
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
                           .setAtraceOptions(Trace.AtraceOptions.getDefaultInstance()))
@@ -627,8 +627,8 @@ class SessionsViewTest {
       .setKind(Common.Event.Kind.CPU_TRACE)
       .setTimestamp(cpuTraceInfo.fromTimestamp)
       .setIsEnded(true)
-      .setCpuTrace(Cpu.CpuTraceData.newBuilder()
-                     .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
+      .setTraceData(Trace.TraceData.newBuilder()
+                     .setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
       .build())
     myTimer.currentTimeNs = sessionStartNs
     mySessionsManager.beginSession(device.deviceId, device, process)

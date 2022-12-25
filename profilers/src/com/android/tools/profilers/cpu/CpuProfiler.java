@@ -21,7 +21,7 @@ import com.android.tools.idea.transport.poller.TransportEventListener;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.Cpu.CpuTraceInfo;
+import com.android.tools.profiler.proto.Trace.TraceInfo;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;
@@ -147,9 +147,9 @@ public class CpuProfiler implements StudioProfiler {
 
   @Override
   public void stopProfiling(@NotNull Common.Session session) {
-    List<CpuTraceInfo> traces = getTraceInfoFromSession(profilers.getClient(), session);
+    List<TraceInfo> traces = getTraceInfoFromSession(profilers.getClient(), session);
 
-    CpuTraceInfo mostRecentTrace = traces.isEmpty() ? null : traces.get(traces.size() - 1);
+    TraceInfo mostRecentTrace = traces.isEmpty() ? null : traces.get(traces.size() - 1);
     if (mostRecentTrace != null && mostRecentTrace.getToTimestamp() == -1) {
       stopTracing(profilers,
                   session,
@@ -161,7 +161,7 @@ public class CpuProfiler implements StudioProfiler {
   /**
    * Copies the content of the trace file corresponding to a {@link CpuTraceInfo} to a given {@link FileOutputStream}.
    */
-  static void saveCaptureToFile(@NotNull StudioProfilers profilers, @NotNull CpuTraceInfo info, @NotNull OutputStream outputStream) {
+  static void saveCaptureToFile(@NotNull StudioProfilers profilers, @NotNull TraceInfo info, @NotNull OutputStream outputStream) {
 
     try {
       Transport.BytesRequest traceRequest = Transport.BytesRequest.newBuilder()
@@ -226,7 +226,7 @@ public class CpuProfiler implements StudioProfiler {
    *                in overflows.
    */
   @NotNull
-  public static List<CpuTraceInfo> getTraceInfoFromRange(@NotNull ProfilerClient client,
+  public static List<TraceInfo> getTraceInfoFromRange(@NotNull ProfilerClient client,
                                                          @NotNull Common.Session session,
                                                          @NotNull Range rangeUs) {
     // Converts the range to nanoseconds before calling the service.
@@ -245,13 +245,13 @@ public class CpuProfiler implements StudioProfiler {
       .map(group -> {
         // We only care about the CpuTraceInfo stored in the very last event in the group.
         Common.Event event = group.getEvents(group.getEventsCount() - 1);
-        CpuTraceInfo info = event.getCpuTrace().hasTraceStarted() ?
-                            event.getCpuTrace().getTraceStarted().getTraceInfo() : event.getCpuTrace().getTraceEnded().getTraceInfo();
-        if (info.equals(CpuTraceInfo.getDefaultInstance())) {
+        TraceInfo info = event.getTraceData().hasTraceStarted() ?
+                            event.getTraceData().getTraceStarted().getTraceInfo() : event.getTraceData().getTraceEnded().getTraceInfo();
+        if (info.equals(TraceInfo.getDefaultInstance())) {
           // A default instance means that we have a generically ended group due to device disconnect.
           // In those case, we look for the start event and use its CpuTraceInfo instead.
           assert group.getEventsCount() > 1;
-          info = group.getEvents(0).getCpuTrace().getTraceStarted().getTraceInfo();
+          info = group.getEvents(0).getTraceData().getTraceStarted().getTraceInfo();
           if (info.getToTimestamp() == -1) {
             info = info.toBuilder()
               .setToTimestamp(session.getEndTimestamp())
@@ -261,7 +261,7 @@ public class CpuProfiler implements StudioProfiler {
         }
         return info;
       })
-      .sorted(Comparator.comparingLong(CpuTraceInfo::getFromTimestamp))
+      .sorted(Comparator.comparingLong(TraceInfo::getFromTimestamp))
       .collect(Collectors.toList());
   }
 
@@ -270,7 +270,7 @@ public class CpuProfiler implements StudioProfiler {
    * This function only uses the unified pipeline.
    */
   @NotNull
-  public static CpuTraceInfo getTraceInfoFromId(@NotNull StudioProfilers profilers, long traceId) {
+  public static TraceInfo getTraceInfoFromId(@NotNull StudioProfilers profilers, long traceId) {
     Transport.GetEventGroupsResponse response = profilers.getClient().getTransportClient().getEventGroups(
       Transport.GetEventGroupsRequest.newBuilder()
         .setStreamId(profilers.getSession().getStreamId())
@@ -278,9 +278,9 @@ public class CpuProfiler implements StudioProfiler {
         .setGroupId(traceId)
         .build());
     if (response.getGroupsCount() == 0) {
-      return CpuTraceInfo.getDefaultInstance();
+      return TraceInfo.getDefaultInstance();
     }
-    Cpu.CpuTraceData data = response.getGroups(0).getEvents(response.getGroups(0).getEventsCount() - 1).getCpuTrace();
+    Trace.TraceData data = response.getGroups(0).getEvents(response.getGroups(0).getEventsCount() - 1).getTraceData();
     if (data.hasTraceStarted()) {
       return data.getTraceStarted().getTraceInfo();
     }
@@ -291,7 +291,7 @@ public class CpuProfiler implements StudioProfiler {
    * Returns the list of all {@link CpuTraceInfo} for a given session.
    */
   @NotNull
-  public static List<CpuTraceInfo> getTraceInfoFromSession(@NotNull ProfilerClient client,
+  public static List<TraceInfo> getTraceInfoFromSession(@NotNull ProfilerClient client,
                                                            @NotNull Common.Session session) {
     return getTraceInfoFromRange(client, session, new Range(Long.MIN_VALUE, Long.MAX_VALUE));
   }

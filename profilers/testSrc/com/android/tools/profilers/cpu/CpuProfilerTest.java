@@ -28,7 +28,6 @@ import com.android.tools.idea.transport.faketransport.TransportServiceTestImpl;
 import com.android.tools.idea.transport.faketransport.commands.StopCpuTrace;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.FakeIdeProfilerServices;
@@ -88,17 +87,17 @@ public final class CpuProfilerTest {
 
     myCpuProfiler.stopProfiling(FAKE_SESSION);
     StopCpuTrace stopCpuTrace = (StopCpuTrace)myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_CPU_TRACE);
-    assertThat(stopCpuTrace.getLastTraceInfo()).isEqualTo(Cpu.CpuTraceInfo.getDefaultInstance());
+    assertThat(stopCpuTrace.getLastTraceInfo()).isEqualTo(Trace.TraceInfo.getDefaultInstance());
 
     myTransportService.addEventToStream(
       FAKE_SESSION.getStreamId(),
       Common.Event.newBuilder()
         .setTimestamp(1).setGroupId(1).setPid(FAKE_SESSION.getPid()).setKind(Common.Event.Kind.CPU_TRACE)
-        .setCpuTrace(Cpu.CpuTraceData.newBuilder().setTraceStarted(
-          Cpu.CpuTraceData.TraceStarted.newBuilder().setTraceInfo(Cpu.CpuTraceInfo.newBuilder().setTraceId(1).setToTimestamp(-1))))
+        .setTraceData(Trace.TraceData.newBuilder().setTraceStarted(
+          Trace.TraceData.TraceStarted.newBuilder().setTraceInfo(Trace.TraceInfo.newBuilder().setTraceId(1).setToTimestamp(-1))))
         .build());
     myCpuProfiler.stopProfiling(FAKE_SESSION);
-    assertThat(stopCpuTrace.getLastTraceInfo()).isNotEqualTo(Cpu.CpuTraceInfo.getDefaultInstance());
+    assertThat(stopCpuTrace.getLastTraceInfo()).isNotEqualTo(Trace.TraceInfo.getDefaultInstance());
   }
 
   @Test
@@ -155,7 +154,7 @@ public final class CpuProfilerTest {
     Common.Session session = myProfilers.getSession();
 
     // Insert a completed CpuTraceInfo.
-    Cpu.CpuTraceInfo info1 = Cpu.CpuTraceInfo.newBuilder()
+    Trace.TraceInfo info1 = Trace.TraceInfo.newBuilder()
       .setTraceId(1).setFromTimestamp(1).setToTimestamp(2)
       .setStartStatus(Trace.TraceStartStatus.newBuilder().setStatus(Trace.TraceStartStatus.Status.SUCCESS))
       .setStopStatus(Trace.TraceStopStatus.newBuilder().setStatus(Trace.TraceStopStatus.Status.SUCCESS))
@@ -164,20 +163,20 @@ public final class CpuProfilerTest {
       session.getStreamId(),
       Common.Event.newBuilder().setGroupId(1).setPid(session.getPid())
         .setIsEnded(true).setKind(Common.Event.Kind.CPU_TRACE).setTimestamp(1)
-        .setCpuTrace(Cpu.CpuTraceData.newBuilder().setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(info1))).build());
+        .setTraceData(Trace.TraceData.newBuilder().setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(info1))).build());
 
-    List<Cpu.CpuTraceInfo> infos = CpuProfiler.getTraceInfoFromSession(myProfilers.getClient(), session);
+    List<Trace.TraceInfo> infos = CpuProfiler.getTraceInfoFromSession(myProfilers.getClient(), session);
     assertThat(infos).containsExactly(info1);
 
     // Insert a not yet completed info followed up by a generic end event.
-    Cpu.CpuTraceInfo info2 = Cpu.CpuTraceInfo.newBuilder()
+    Trace.TraceInfo info2 = Trace.TraceInfo.newBuilder()
       .setTraceId(5).setFromTimestamp(5).setToTimestamp(-1)
       .setStartStatus(Trace.TraceStartStatus.newBuilder().setStatus(Trace.TraceStartStatus.Status.SUCCESS))
       .build();
     myTransportService.addEventToStream(
       session.getStreamId(),
       Common.Event.newBuilder().setGroupId(5).setPid(session.getPid()).setKind(Common.Event.Kind.CPU_TRACE).setTimestamp(5)
-        .setCpuTrace(Cpu.CpuTraceData.newBuilder().setTraceStarted(Cpu.CpuTraceData.TraceStarted.newBuilder().setTraceInfo(info2)))
+        .setTraceData(Trace.TraceData.newBuilder().setTraceStarted(Trace.TraceData.TraceStarted.newBuilder().setTraceInfo(info2)))
         .build());
     myTransportService.addEventToStream(
       session.getStreamId(),

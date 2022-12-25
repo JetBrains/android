@@ -21,7 +21,6 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Memory
 import com.android.tools.profiler.proto.Memory.AllocationsInfo
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
@@ -435,7 +434,7 @@ class SessionsManagerTest {
     val legacyAllocationsInfoTimestamp = 30L
     val liveAllocationsInfoTimestamp = 40L
     val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(heapDumpTimestamp).setEndTime(heapDumpTimestamp + 1).build()
-    val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(cpuTraceTimestamp + 1).build()
+    val cpuTraceInfo = Trace.TraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(cpuTraceTimestamp + 1).build()
     val legacyAllocationsInfo = AllocationsInfo.newBuilder()
       .setStartTime(legacyAllocationsInfoTimestamp).setEndTime(legacyAllocationsInfoTimestamp + 1).setLegacy(true).build()
     val liveAllocationsInfo = AllocationsInfo.newBuilder().setStartTime(liveAllocationsInfoTimestamp)
@@ -463,8 +462,8 @@ class SessionsManagerTest {
       .setKind(Common.Event.Kind.CPU_TRACE)
       .setTimestamp(session1Timestamp)
       .setIsEnded(true)
-      .setCpuTrace(Cpu.CpuTraceData.newBuilder()
-                     .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
+      .setTraceData(Trace.TraceData.newBuilder()
+                     .setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
     myTransportService.addEventToStream(device.deviceId, cpuTrace.setPid(session1.pid).build())
     myTransportService.addEventToStream(device.deviceId, cpuTrace.setPid(session2.pid).build())
 
@@ -544,7 +543,7 @@ class SessionsManagerTest {
     val session2Timestamp = 2L
 
     val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build()
-    val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+    val cpuTraceInfo = Trace.TraceInfo.newBuilder()
       .setConfiguration(Trace.TraceConfiguration.newBuilder()).build()
 
     myTransportService.addEventToStream(1, ProfilersTestData.generateSessionStartEvent(1, 1, session1Timestamp,
@@ -563,8 +562,8 @@ class SessionsManagerTest {
       .setKind(Common.Event.Kind.CPU_TRACE)
       .setTimestamp(session2Timestamp)
       .setIsEnded(true)
-      .setCpuTrace(Cpu.CpuTraceData.newBuilder()
-                     .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
+      .setTraceData(Trace.TraceData.newBuilder()
+                     .setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
       .build()
     myTransportService.addEventToStream(2, cpuTrace)
 
@@ -604,7 +603,7 @@ class SessionsManagerTest {
     assertThat(myObserver.sessionsChangedCount).isEqualTo(2)
 
     val cpuTraceTimestamp = 20L
-    val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(cpuTraceTimestamp + 1).build()
+    val cpuTraceInfo = Trace.TraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(cpuTraceTimestamp + 1).build()
 
     myTransportService.addEventToStream(device.deviceId, Common.Event.newBuilder()
       .setGroupId(cpuTraceTimestamp)
@@ -612,8 +611,8 @@ class SessionsManagerTest {
       .setKind(Common.Event.Kind.CPU_TRACE)
       .setTimestamp(myTimer.currentTimeNs)
       .setIsEnded(true)
-      .setCpuTrace(Cpu.CpuTraceData.newBuilder()
-                     .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
+      .setTraceData(Trace.TraceData.newBuilder()
+                     .setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
       .build())
 
     myManager.update()

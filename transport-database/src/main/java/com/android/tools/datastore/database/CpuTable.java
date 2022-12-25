@@ -17,7 +17,7 @@ package com.android.tools.datastore.database;
 
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.Cpu.CpuTraceInfo;
+import com.android.tools.profiler.proto.Trace.TraceInfo;
 import com.android.tools.profiler.proto.Cpu.CpuUsageData;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;
@@ -236,8 +236,8 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
     return cpuData;
   }
 
-  public List<CpuTraceInfo> getTraceInfo(GetTraceInfoRequest request) {
-    List<CpuTraceInfo> traceInfo = new ArrayList<>();
+  public List<TraceInfo> getTraceInfo(GetTraceInfoRequest request) {
+    List<TraceInfo> traceInfo = new ArrayList<>();
     try {
       ResultSet results =
         executeQuery(CpuStatements.QUERY_TRACE_INFO, request.getSession().getSessionId(),
@@ -246,7 +246,7 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
         // QUERY_TRACE_INFO will return only one column.
         byte[] data = results.getBytes(1);
         if (data != null) {
-          traceInfo.add(CpuTraceInfo.parseFrom(data));
+          traceInfo.add(TraceInfo.parseFrom(data));
         }
       }
     }
@@ -257,7 +257,7 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
     return traceInfo;
   }
 
-  public void insertTraceInfo(Common.Session session, CpuTraceInfo trace) {
+  public void insertTraceInfo(Common.Session session, TraceInfo trace) {
     execute(CpuStatements.INSERT_TRACE_INFO, session.getSessionId(), trace.getFromTimestamp(), trace.getToTimestamp(), trace.toByteArray());
   }
 

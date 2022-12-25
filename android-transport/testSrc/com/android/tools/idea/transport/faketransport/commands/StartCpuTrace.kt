@@ -18,7 +18,6 @@ package com.android.tools.idea.transport.faketransport.commands
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Trace
 
 class StartCpuTrace(timer: FakeTimer) : CommandHandler(timer) {
@@ -27,7 +26,7 @@ class StartCpuTrace(timer: FakeTimer) : CommandHandler(timer) {
   override fun handleCommand(command: Command, events: MutableList<Common.Event>) {
     val traceId = timer.currentTimeNs
     // Inserts an in-progress trace info object, which the stage will see on the next time update.
-    val info = Cpu.CpuTraceInfo.newBuilder()
+    val info = Trace.TraceInfo.newBuilder()
       .setTraceId(traceId)
       .setFromTimestamp(traceId)
       .setToTimestamp(-1)
@@ -52,8 +51,8 @@ class StartCpuTrace(timer: FakeTimer) : CommandHandler(timer) {
         pid = command.pid
         kind = Common.Event.Kind.CPU_TRACE
         timestamp = timer.currentTimeNs
-        cpuTrace = Cpu.CpuTraceData.newBuilder().apply {
-          traceStarted = Cpu.CpuTraceData.TraceStarted.newBuilder().apply {
+        traceData = Trace.TraceData.newBuilder().apply {
+          traceStarted = Trace.TraceData.TraceStarted.newBuilder().apply {
             traceInfo = info
           }.build()
         }.build()

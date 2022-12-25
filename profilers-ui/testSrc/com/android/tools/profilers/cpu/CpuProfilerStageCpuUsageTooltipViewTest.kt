@@ -20,7 +20,6 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
@@ -95,7 +94,7 @@ class CpuProfilerStageCpuUsageTooltipViewTest {
     val configuration = Trace.TraceConfiguration.newBuilder()
     TraceConfigOptionsUtils.addDefaultTraceOptions(configuration, traceType)
 
-    val traceInfo: Cpu.CpuTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+    val traceInfo: Trace.TraceInfo = Trace.TraceInfo.newBuilder()
       .setTraceId(traceId)
       .setFromTimestamp(TimeUnit.SECONDS.toNanos(startTimeSec))
       .setToTimestamp(TimeUnit.SECONDS.toNanos(endTimeSec))
@@ -105,13 +104,13 @@ class CpuProfilerStageCpuUsageTooltipViewTest {
       .setPid(FakeTransportService.FAKE_PROCESS.pid)
       .setKind(Common.Event.Kind.CPU_TRACE)
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
-                                      traceEventBuilder.setTimestamp(TimeUnit.SECONDS.toNanos(startTimeSec)).setCpuTrace(
-                                        Cpu.CpuTraceData.newBuilder().setTraceStarted(
-                                          Cpu.CpuTraceData.TraceStarted.newBuilder().setTraceInfo(traceInfo))).build())
+                                      traceEventBuilder.setTimestamp(TimeUnit.SECONDS.toNanos(startTimeSec)).setTraceData(
+                                        Trace.TraceData.newBuilder().setTraceStarted(
+                                          Trace.TraceData.TraceStarted.newBuilder().setTraceInfo(traceInfo))).build())
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
-                                      traceEventBuilder.setTimestamp(TimeUnit.SECONDS.toNanos(endTimeSec)).setCpuTrace(
-                                        Cpu.CpuTraceData.newBuilder().setTraceEnded(
-                                          Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(traceInfo))).build())
+                                      traceEventBuilder.setTimestamp(TimeUnit.SECONDS.toNanos(endTimeSec)).setTraceData(
+                                        Trace.TraceData.newBuilder().setTraceEnded(
+                                          Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(traceInfo))).build())
   }
 
   private class FakeCpuUsageTooltipView(

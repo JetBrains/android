@@ -17,7 +17,6 @@ package com.android.tools.idea.transport.faketransport;
 
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataResponse;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
@@ -241,10 +240,10 @@ public class FakeGrpcServer extends FakeGrpcChannel {
 
   public static class CpuService extends CpuServiceGrpc.CpuServiceImplBase {
     private Trace.TraceConfiguration myTraceConfiguration = Trace.TraceConfiguration.getDefaultInstance();
-    private List<Cpu.CpuTraceInfo> myTraceInfos = new ArrayList<>();
+    private List<Trace.TraceInfo> myTraceInfos = new ArrayList<>();
     private FakeGrpcServer myServer;
 
-    public void addTraceInfo(@NotNull Cpu.CpuTraceInfo info) {
+    public void addTraceInfo(@NotNull Trace.TraceInfo info) {
       myTraceInfos.add(info);
     }
 

@@ -18,10 +18,8 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -32,18 +30,18 @@ import org.jetbrains.annotations.NotNull;
 /**
  * An artifact representation of a CPU capture.
  */
-public class CpuCaptureSessionArtifact implements SessionArtifact<Cpu.CpuTraceInfo> {
+public class CpuCaptureSessionArtifact implements SessionArtifact<Trace.TraceInfo> {
 
   @NotNull private final StudioProfilers myProfilers;
   @NotNull private final Common.Session mySession;
   @NotNull private final Common.SessionMetaData mySessionMetaData;
-  @NotNull private final Cpu.CpuTraceInfo myInfo;
+  @NotNull private final Trace.TraceInfo myInfo;
   private final boolean myIsOngoingCapture;
 
   public CpuCaptureSessionArtifact(@NotNull StudioProfilers profilers,
                                    @NotNull Common.Session session,
                                    @NotNull Common.SessionMetaData sessionMetaData,
-                                   @NotNull Cpu.CpuTraceInfo info) {
+                                   @NotNull Trace.TraceInfo info) {
     myProfilers = profilers;
     mySession = session;
     mySessionMetaData = sessionMetaData;
@@ -53,7 +51,7 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Cpu.CpuTraceIn
 
   @NotNull
   @Override
-  public Cpu.CpuTraceInfo getArtifactProto() {
+  public Trace.TraceInfo getArtifactProto() {
     return myInfo;
   }
 
@@ -175,9 +173,9 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Cpu.CpuTraceIn
     }
 
     // TODO b/133324501 handle the case where a CpuTraceInfo is still ongoing after a session has ended.
-    List<Cpu.CpuTraceInfo> traceInfoList = CpuProfiler.getTraceInfoFromRange(profilers.getClient(), session, requestRange);
+    List<Trace.TraceInfo> traceInfoList = CpuProfiler.getTraceInfoFromRange(profilers.getClient(), session, requestRange);
     List<SessionArtifact<?>> artifacts = new ArrayList<>();
-    for (Cpu.CpuTraceInfo info : traceInfoList) {
+    for (Trace.TraceInfo info : traceInfoList) {
       artifacts.add(new CpuCaptureSessionArtifact(profilers, session, sessionMetaData, info));
     }
 

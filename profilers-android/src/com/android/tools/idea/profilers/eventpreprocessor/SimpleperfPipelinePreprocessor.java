@@ -46,9 +46,9 @@ public class SimpleperfPipelinePreprocessor implements TransportEventPreprocesso
    */
   @Override
   public boolean shouldPreprocess(Common.Event event) {
-    return event.hasCpuTrace() &&
-           event.getCpuTrace().hasTraceStarted() &&
-           TraceType.from(event.getCpuTrace().getTraceStarted().getTraceInfo().getConfiguration()) ==
+    return event.hasTraceData() &&
+           event.getTraceData().hasTraceStarted() &&
+           TraceType.from(event.getTraceData().getTraceStarted().getTraceInfo().getConfiguration()) ==
            TraceType.SIMPLEPERF;
   }
 
@@ -58,9 +58,9 @@ public class SimpleperfPipelinePreprocessor implements TransportEventPreprocesso
   @Override
   @NotNull
   public Iterable<Common.Event> preprocessEvent(Common.Event event) {
-    Trace.TraceConfiguration config = event.getCpuTrace().getTraceStarted().getTraceInfo().getConfiguration();
+    Trace.TraceConfiguration config = event.getTraceData().getTraceStarted().getTraceInfo().getConfiguration();
     if (config.hasSimpleperfOptions()) {
-      myTraceIdsToSymbols.putIfAbsent(String.valueOf(event.getCpuTrace().getTraceStarted().getTraceInfo().getTraceId()),
+      myTraceIdsToSymbols.putIfAbsent(String.valueOf(event.getTraceData().getTraceStarted().getTraceInfo().getTraceId()),
                                       config.getSimpleperfOptions().getSymbolDirsList());
     }
     return Collections.emptyList();

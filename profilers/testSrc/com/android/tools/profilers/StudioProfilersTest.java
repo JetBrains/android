@@ -32,7 +32,6 @@ import com.android.tools.idea.transport.faketransport.commands.BeginSession;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.customevent.CustomEventProfilerStage;
@@ -648,7 +647,7 @@ public final class StudioProfilersTest {
 
     myTransportService.addDevice(device);
     myTransportService.addProcess(device, process);
-    Cpu.CpuTraceInfo traceInfo = Cpu.CpuTraceInfo.newBuilder()
+    Trace.TraceInfo traceInfo = Trace.TraceInfo.newBuilder()
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
                           .setInitiationType(Trace.TraceInitiationType.INITIATED_BY_STARTUP))
       .build();
@@ -657,8 +656,8 @@ public final class StudioProfilersTest {
         .setGroupId(myTimer.getCurrentTimeNs())
         .setPid(process.getPid())
         .setKind(Common.Event.Kind.CPU_TRACE)
-        .setCpuTrace(Cpu.CpuTraceData.newBuilder()
-                       .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(traceInfo).build()))
+        .setTraceData(Trace.TraceData.newBuilder()
+                       .setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(traceInfo).build()))
         .build());
     }
     else {
