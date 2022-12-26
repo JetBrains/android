@@ -21,6 +21,8 @@ import com.android.ddmlib.IDevice
 import com.android.emulator.control.SnapshotPackage
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.sdklib.internal.avd.AvdInfo
+import com.android.tools.idea.avdmanager.AvdLaunchListener
+import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder
 import com.android.tools.idea.execution.common.debug.AndroidDebugger
@@ -324,11 +326,8 @@ private fun bootEmulator(project: Project, avdInfo: AvdInfo, isManagedDevice: Bo
   } else {
     AvdManagerConnection.getDefaultAvdManagerConnection()
   }
-  return avdManagerConnection.startAvd(
-    project,
-    avdInfo
-  ) { emulator, avd ->
-     EmulatorCommandBuilder(emulator, avd).addAllStudioEmuParams(filterEmulatorBootParameters(parameters))
+  return avdManagerConnection.startAvd(project, avdInfo, RequestType.INDIRECT) { emulator, avd ->
+    EmulatorCommandBuilder(emulator, avd).addAllStudioEmuParams(filterEmulatorBootParameters(parameters))
   }
 }
 

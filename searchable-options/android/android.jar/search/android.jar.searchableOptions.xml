@@ -1065,6 +1065,26 @@
     <option name="launch" hit="Launch in a tool window" />
     <option name="tool" hit="Launch in a tool window" />
     <option name="window" hit="Launch in a tool window" />
+    <option name="a" hit="Open the Running Devices tool window when launching a test" />
+    <option name="devices" hit="Open the Running Devices tool window when launching a test" />
+    <option name="launching" hit="Open the Running Devices tool window when launching a test" />
+    <option name="open" hit="Open the Running Devices tool window when launching a test" />
+    <option name="running" hit="Open the Running Devices tool window when launching a test" />
+    <option name="test" hit="Open the Running Devices tool window when launching a test" />
+    <option name="the" hit="Open the Running Devices tool window when launching a test" />
+    <option name="tool" hit="Open the Running Devices tool window when launching a test" />
+    <option name="when" hit="Open the Running Devices tool window when launching a test" />
+    <option name="window" hit="Open the Running Devices tool window when launching a test" />
+    <option name="an" hit="Open the Running Devices tool window when launching an app" />
+    <option name="app" hit="Open the Running Devices tool window when launching an app" />
+    <option name="devices" hit="Open the Running Devices tool window when launching an app" />
+    <option name="launching" hit="Open the Running Devices tool window when launching an app" />
+    <option name="open" hit="Open the Running Devices tool window when launching an app" />
+    <option name="running" hit="Open the Running Devices tool window when launching an app" />
+    <option name="the" hit="Open the Running Devices tool window when launching an app" />
+    <option name="tool" hit="Open the Running Devices tool window when launching an app" />
+    <option name="when" hit="Open the Running Devices tool window when launching an app" />
+    <option name="window" hit="Open the Running Devices tool window when launching an app" />
     <option name="camera" hit="Show camera control prompts" />
     <option name="control" hit="Show camera control prompts" />
     <option name="prompts" hit="Show camera control prompts" />
@@ -1111,6 +1131,38 @@
     <option name="of" hit="Maximum length of synchronized clipboard text:" />
     <option name="synchronized" hit="Maximum length of synchronized clipboard text:" />
     <option name="text" hit="Maximum length of synchronized clipboard text:" />
+    <option name="a" hit="Open the Running Devices tool window when a physical device is connected" />
+    <option name="connected" hit="Open the Running Devices tool window when a physical device is connected" />
+    <option name="device" hit="Open the Running Devices tool window when a physical device is connected" />
+    <option name="devices" hit="Open the Running Devices tool window when a physical device is connected" />
+    <option name="is" hit="Open the Running Devices tool window when a physical device is connected" />
+    <option name="open" hit="Open the Running Devices tool window when a physical device is connected" />
+    <option name="physical" hit="Open the Running Devices tool window when a physical device is connected" />
+    <option name="running" hit="Open the Running Devices tool window when a physical device is connected" />
+    <option name="the" hit="Open the Running Devices tool window when a physical device is connected" />
+    <option name="tool" hit="Open the Running Devices tool window when a physical device is connected" />
+    <option name="when" hit="Open the Running Devices tool window when a physical device is connected" />
+    <option name="window" hit="Open the Running Devices tool window when a physical device is connected" />
+    <option name="a" hit="Open the Running Devices tool window when launching a test" />
+    <option name="devices" hit="Open the Running Devices tool window when launching a test" />
+    <option name="launching" hit="Open the Running Devices tool window when launching a test" />
+    <option name="open" hit="Open the Running Devices tool window when launching a test" />
+    <option name="running" hit="Open the Running Devices tool window when launching a test" />
+    <option name="test" hit="Open the Running Devices tool window when launching a test" />
+    <option name="the" hit="Open the Running Devices tool window when launching a test" />
+    <option name="tool" hit="Open the Running Devices tool window when launching a test" />
+    <option name="when" hit="Open the Running Devices tool window when launching a test" />
+    <option name="window" hit="Open the Running Devices tool window when launching a test" />
+    <option name="an" hit="Open the Running Devices tool window when launching an app" />
+    <option name="app" hit="Open the Running Devices tool window when launching an app" />
+    <option name="devices" hit="Open the Running Devices tool window when launching an app" />
+    <option name="launching" hit="Open the Running Devices tool window when launching an app" />
+    <option name="open" hit="Open the Running Devices tool window when launching an app" />
+    <option name="running" hit="Open the Running Devices tool window when launching an app" />
+    <option name="the" hit="Open the Running Devices tool window when launching an app" />
+    <option name="tool" hit="Open the Running Devices tool window when launching an app" />
+    <option name="when" hit="Open the Running Devices tool window when launching an app" />
+    <option name="window" hit="Open the Running Devices tool window when launching an app" />
     <option name="device" hit="Turn off device display while mirroring" />
     <option name="display" hit="Turn off device display while mirroring" />
     <option name="mirroring" hit="Turn off device display while mirroring" />

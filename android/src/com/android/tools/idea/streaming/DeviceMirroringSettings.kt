@@ -38,6 +38,30 @@ class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings
       }
     }
 
+  var activateOnConnection: Boolean = false
+    set(value) {
+      if (field != value) {
+        field = value
+        notifyListeners()
+      }
+    }
+
+  var activateOnAppLaunch: Boolean = true
+    set(value) {
+      if (field != value) {
+        field = value
+        notifyListeners()
+      }
+    }
+
+  var activateOnTestLaunch: Boolean = false
+    set(value) {
+      if (field != value) {
+        field = value
+        notifyListeners()
+      }
+    }
+
   var synchronizeClipboard: Boolean = true
     set(value) {
       if (field != value) {

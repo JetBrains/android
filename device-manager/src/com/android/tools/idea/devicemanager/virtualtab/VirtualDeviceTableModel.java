@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.EmulatorConsole;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.Device;
@@ -380,7 +381,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
 
     // noinspection UnstableApiUsage
     FluentFuture.from(getDefaultAvdManagerConnection())
-      .transformAsync(connection -> connection.startAvd(myProject, device.getAvdInfo()), executor)
+      .transformAsync(connection -> connection.startAvd(myProject, device.getAvdInfo(), RequestType.DIRECT), executor)
       .addCallback(myNewSetAllOnline.apply(this), executor);
   }
 

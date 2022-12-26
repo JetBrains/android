@@ -27,8 +27,10 @@ import com.intellij.openapi.options.SearchableConfigurable
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.EnumComboBoxModel
 import com.intellij.ui.SimpleListCellRenderer
+import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.bindItem
+import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.layout.selected
 import org.jetbrains.annotations.Nls
@@ -40,6 +42,8 @@ import javax.swing.JCheckBox
 class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
 
   private lateinit var launchInToolWindowCheckBox: JCheckBox
+  private lateinit var activateOnAppLaunchCheckBox: JBCheckBox
+  private lateinit var activateOnTestLaunchCheckBox: JBCheckBox
   private lateinit var synchronizeClipboardCheckBox: JCheckBox
   private lateinit var showCameraControlPromptsCheckBox: JCheckBox
   private lateinit var cameraVelocityControlComboBox: ComboBox<CameraVelocityControls>
@@ -59,6 +63,18 @@ class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
                    "Otherwise Android Emulator will launch as a standalone application.")
           .component
     }
+    row {
+      activateOnAppLaunchCheckBox =
+        checkBox("Open the Running Devices tool window when launching an app")
+          .bindSelected(state::activateOnAppLaunch)
+          .component
+    }.topGap(TopGap.SMALL).enabledIf(launchInToolWindowCheckBox.selected)
+    row {
+      activateOnTestLaunchCheckBox =
+        checkBox("Open the Running Devices tool window when launching a test")
+          .bindSelected(state::activateOnTestLaunch)
+          .component
+    }.enabledIf(launchInToolWindowCheckBox.selected)
     row {
       synchronizeClipboardCheckBox =
         checkBox("Enable clipboard sharing")
@@ -99,6 +115,8 @@ class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
 
   override fun isModified(): Boolean {
     return launchInToolWindowCheckBox.isSelected != state.launchInToolWindow ||
+           activateOnAppLaunchCheckBox.isSelected != state.activateOnAppLaunch ||
+           activateOnTestLaunchCheckBox.isSelected != state.activateOnTestLaunch ||
            synchronizeClipboardCheckBox.isSelected != state.synchronizeClipboard ||
            showCameraControlPromptsCheckBox.isSelected != state.showCameraControlPrompts ||
            cameraVelocityControlComboBoxModel.selectedItem != state.cameraVelocityControls ||
@@ -108,6 +126,8 @@ class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
   @Throws(ConfigurationException::class)
   override fun apply() {
     state.launchInToolWindow = launchInToolWindowCheckBox.isSelected
+    state.activateOnAppLaunch = activateOnAppLaunchCheckBox.isSelected
+    state.activateOnTestLaunch = activateOnTestLaunchCheckBox.isSelected
     state.synchronizeClipboard = synchronizeClipboardCheckBox.isSelected
     state.showCameraControlPrompts = showCameraControlPromptsCheckBox.isSelected
     state.cameraVelocityControls = cameraVelocityControlComboBoxModel.selectedItem
@@ -116,6 +136,8 @@ class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
 
   override fun reset() {
     launchInToolWindowCheckBox.isSelected = state.launchInToolWindow
+    activateOnAppLaunchCheckBox.isSelected = state.activateOnAppLaunch
+    activateOnTestLaunchCheckBox.isSelected = state.activateOnTestLaunch
     synchronizeClipboardCheckBox.isSelected = state.synchronizeClipboard
     showCameraControlPromptsCheckBox.isSelected = state.showCameraControlPrompts
     cameraVelocityControlComboBoxModel.setSelectedItem(state.cameraVelocityControls)

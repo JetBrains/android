@@ -38,6 +38,7 @@ import com.android.sdklib.repository.targets.SystemImageManager;
 import com.android.testutils.MockLog;
 import com.android.testutils.NoErrorsOrWarningsLogger;
 import com.android.testutils.file.InMemoryFileSystems;
+import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType;
 import com.android.utils.NullLogger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -272,7 +273,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     try {
       assert skinnyAvd != null;
-      mAvdManagerConnection.startAvd(null, skinnyAvd).get(4, TimeUnit.SECONDS);
+      mAvdManagerConnection.startAvd(null, skinnyAvd, RequestType.DIRECT).get(4, TimeUnit.SECONDS);
       fail();
     }
     catch (ExecutionException expected) {
@@ -333,7 +334,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     try {
       assert skinlessAvd != null;
-      mAvdManagerConnection.startAvd(null, skinlessAvd).get(4, TimeUnit.SECONDS);
+      mAvdManagerConnection.startAvd(null, skinlessAvd, RequestType.DIRECT).get(4, TimeUnit.SECONDS);
       fail();
     }
     catch (ExecutionException expected) {

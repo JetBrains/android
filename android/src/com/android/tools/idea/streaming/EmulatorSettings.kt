@@ -37,6 +37,22 @@ class EmulatorSettings : PersistentStateComponent<EmulatorSettings> {
       }
     }
 
+  var activateOnAppLaunch: Boolean = true
+    set(value) {
+      if (field != value) {
+        field = value
+        notifyListeners()
+      }
+    }
+
+  var activateOnTestLaunch: Boolean = false
+    set(value) {
+      if (field != value) {
+        field = value
+        notifyListeners()
+      }
+    }
+
   var synchronizeClipboard = true
     set(value) {
       if (field != value) {

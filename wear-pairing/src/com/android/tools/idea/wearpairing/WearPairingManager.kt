@@ -16,7 +16,6 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.annotations.concurrency.Slow
-import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.EmulatorConsole
@@ -26,7 +25,10 @@ import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.AndroidStartupActivity
 import com.android.tools.idea.adb.AdbService
+import com.android.tools.idea.avdmanager.AvdLaunchListener
+import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.avdmanager.AvdManagerConnection.getDefaultAvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.ddms.DevicePropertyUtil.getManufacturer
 import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
@@ -92,7 +94,7 @@ class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   private var runningJob: Job? = null
   private var model = WearDevicePairingModel()
   private var wizardAction: WizardAction? = null
-  private var virtualDevicesProvider: () -> List<AvdInfo> = { AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false) }
+  private var virtualDevicesProvider: () -> List<AvdInfo> = { getDefaultAvdManagerConnection().getAvds(false) }
   private var connectedDevicesProvider: () -> List<IDevice> = { findAdb()?.devices?.toList() ?: emptyList() }
 
   data class PhoneWearPair(
@@ -416,7 +418,7 @@ class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
     connectedDevicesProvider().find { it.getDeviceID() == deviceId }?.apply {
       return Futures.immediateFuture(this)
     }
-    return AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, avdInfo)
+    return getDefaultAvdManagerConnection().startAvd(project, avdInfo, RequestType.DIRECT)
   }
 
   private fun findAdb() : AndroidDebugBridge? {

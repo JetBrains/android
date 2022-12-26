@@ -37,6 +37,9 @@ class DeviceMirroringSettingsUi : SearchableConfigurable, Configurable.NoScroll 
 
   private lateinit var deviceMirroringEnabledCheckBox: JBCheckBox
   private lateinit var synchronizeClipboardCheckBox: JBCheckBox
+  private lateinit var activateOnConnectionCheckBox: JBCheckBox
+  private lateinit var activateOnAppLaunchCheckBox: JBCheckBox
+  private lateinit var activateOnTestLaunchCheckBox: JBCheckBox
   private lateinit var maxSyncedClipboardLengthTextField: JBTextField
   private lateinit var turnOffDisplayWhileMirroringCheckBox: JBCheckBox
 
@@ -53,6 +56,24 @@ class DeviceMirroringSettingsUi : SearchableConfigurable, Configurable.NoScroll 
           .bindSelected(state::deviceMirroringEnabled)
           .component
     }
+    row {
+      activateOnConnectionCheckBox =
+        checkBox("Open the Running Devices tool window when a physical device is connected")
+          .bindSelected(state::activateOnConnection)
+          .component
+    }.topGap(TopGap.SMALL).enabledIf(deviceMirroringEnabledCheckBox.selected)
+    row {
+      activateOnAppLaunchCheckBox =
+        checkBox("Open the Running Devices tool window when launching an app")
+          .bindSelected(state::activateOnAppLaunch)
+          .component
+    }.enabledIf(deviceMirroringEnabledCheckBox.selected)
+    row {
+      activateOnTestLaunchCheckBox =
+        checkBox("Open the Running Devices tool window when launching a test")
+          .bindSelected(state::activateOnTestLaunch)
+          .component
+    }.enabledIf(deviceMirroringEnabledCheckBox.selected)
     row {
       synchronizeClipboardCheckBox =
         checkBox("Enable clipboard sharing")
@@ -77,6 +98,9 @@ class DeviceMirroringSettingsUi : SearchableConfigurable, Configurable.NoScroll 
 
   override fun isModified(): Boolean {
     return deviceMirroringEnabledCheckBox.isSelected != state.deviceMirroringEnabled ||
+           activateOnConnectionCheckBox.isSelected != state.activateOnConnection ||
+           activateOnAppLaunchCheckBox.isSelected != state.activateOnAppLaunch ||
+           activateOnTestLaunchCheckBox.isSelected != state.activateOnTestLaunch ||
            synchronizeClipboardCheckBox.isSelected != state.synchronizeClipboard ||
            maxSyncedClipboardLengthTextField.text.trim() != state.maxSyncedClipboardLength.toString() ||
            turnOffDisplayWhileMirroringCheckBox.isSelected != state.turnOffDisplayWhileMirroring
@@ -86,6 +110,9 @@ class DeviceMirroringSettingsUi : SearchableConfigurable, Configurable.NoScroll 
   override fun apply() {
     maxSyncedClipboardLengthTextField.validate()
     state.deviceMirroringEnabled = deviceMirroringEnabledCheckBox.isSelected
+    state.activateOnConnection = activateOnConnectionCheckBox.isSelected
+    state.activateOnAppLaunch = activateOnAppLaunchCheckBox.isSelected
+    state.activateOnTestLaunch = activateOnTestLaunchCheckBox.isSelected
     state.synchronizeClipboard = synchronizeClipboardCheckBox.isSelected
     state.maxSyncedClipboardLength = maxSyncedClipboardLengthTextField.text.trim().toInt()
     state.turnOffDisplayWhileMirroring = turnOffDisplayWhileMirroringCheckBox.isSelected
@@ -93,6 +120,9 @@ class DeviceMirroringSettingsUi : SearchableConfigurable, Configurable.NoScroll 
 
   override fun reset() {
     deviceMirroringEnabledCheckBox.isSelected = state.deviceMirroringEnabled
+    activateOnConnectionCheckBox.isSelected = state.activateOnConnection
+    activateOnAppLaunchCheckBox.isSelected = state.activateOnAppLaunch
+    activateOnTestLaunchCheckBox.isSelected = state.activateOnTestLaunch
     synchronizeClipboardCheckBox.isSelected = state.synchronizeClipboard
     maxSyncedClipboardLengthTextField.text = state.maxSyncedClipboardLength.toString()
     turnOffDisplayWhileMirroringCheckBox.isSelected = state.turnOffDisplayWhileMirroring

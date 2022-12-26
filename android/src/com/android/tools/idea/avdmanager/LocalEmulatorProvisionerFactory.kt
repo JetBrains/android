@@ -18,12 +18,12 @@ package com.android.tools.idea.avdmanager
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProvisionerPlugin
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerFactory
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.withContext
 
 /** Builds a LocalEmulatorProvisionerPlugin with its dependencies provided by Studio. */
@@ -46,7 +46,9 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
           }
 
         override suspend fun startAvd(avdInfo: AvdInfo) {
-          withContext(workerThread) { avdManagerConnection.startAvd(project, avdInfo) }
+          withContext(workerThread) {
+            avdManagerConnection.startAvd(project, avdInfo, RequestType.DIRECT)
+          }
         }
 
         override suspend fun stopAvd(avdInfo: AvdInfo) {

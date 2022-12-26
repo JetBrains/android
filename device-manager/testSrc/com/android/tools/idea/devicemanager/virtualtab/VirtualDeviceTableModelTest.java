@@ -23,6 +23,7 @@ import com.android.ddmlib.EmulatorConsole;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.CountDownLatchAssert;
 import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
@@ -150,7 +151,7 @@ public final class VirtualDeviceTableModelTest {
   @Test
   public void setValueAtStartAvdSucceeded() {
     // Arrange
-    Mockito.when(myConnection.startAvd(null, myAvd)).thenReturn(Futures.immediateFuture(Mockito.mock(IDevice.class)));
+    Mockito.when(myConnection.startAvd(null, myAvd, RequestType.DIRECT)).thenReturn(Futures.immediateFuture(Mockito.mock(IDevice.class)));
 
     TableModel model = new VirtualDeviceTableModel(null,
                                                    myDevices,
@@ -188,7 +189,7 @@ public final class VirtualDeviceTableModelTest {
     // Arrange
     CountDownLatch latch = new CountDownLatch(1);
     Throwable throwable = new RuntimeException();
-    Mockito.when(myConnection.startAvd(null, myAvd)).thenReturn(Futures.immediateFailedFuture(throwable));
+    Mockito.when(myConnection.startAvd(null, myAvd, RequestType.DIRECT)).thenReturn(Futures.immediateFailedFuture(throwable));
 
     @SuppressWarnings("unchecked")
     BiConsumer<Throwable, Project> showErrorDialog = Mockito.mock(BiConsumer.class);

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import static com.android.tools.idea.avdmanager.AvdManagerConnection.getDefaultAvdManagerConnection;
+
+import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType;
 import com.android.tools.idea.avdmanager.AvdOptionsModel;
 import com.android.tools.idea.avdmanager.AvdWizardUtils;
 import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
@@ -85,7 +87,7 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
       DeviceManagerUsageTracker.log(deviceManagerEvent);
       Project project = myPanel.getProject();
 
-      Futures.addCallback(AvdManagerConnection.getDefaultAvdManagerConnection().startAvdWithColdBoot(project, getDevice().getAvdInfo()),
+      Futures.addCallback(getDefaultAvdManagerConnection().startAvdWithColdBoot(project, getDevice().getAvdInfo(), RequestType.DIRECT),
                           new ShowErrorDialogFutureCallback(project),
                           EdtExecutorService.getInstance());
     });
