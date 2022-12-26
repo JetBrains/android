@@ -28,8 +28,24 @@ public interface DeviceHeadsUpListener {
   /**
    * Called when a device requires user attention.
    *
-   * @param deviceSerialNumber the serial number of the device that is requiring user attention
+   * @param deviceSerialNumber the serial number of the device
    * @param project the project associated with the event
    */
-  void deviceNeedsAttention(@NotNull String deviceSerialNumber, @NotNull Project project);
+  void userInvolvementRequired(@NotNull String deviceSerialNumber, @NotNull Project project);
+
+  /**
+   * Called when an app is being launched on a device.
+   *
+   * @param deviceSerialNumber the serial number of the device
+   * @param project the project associated with the event
+   */
+  void launchingApp(@NotNull String deviceSerialNumber, @NotNull Project project);
+
+  /**
+   * Called when a test is being launched on a device.
+   *
+   * @param deviceSerialNumber the serial number of the device
+   * @param project the project associated with the event
+   */
+  void launchingTest(@NotNull String deviceSerialNumber, @NotNull Project project);
 }

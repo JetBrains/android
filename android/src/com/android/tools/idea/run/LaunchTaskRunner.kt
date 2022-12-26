@@ -59,6 +59,8 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.ContainerUtil
+import org.jetbrains.android.util.AndroidBuildCommonUtils.isInstrumentationTestConfiguration
+import org.jetbrains.android.util.AndroidBuildCommonUtils.isTestConfiguration
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
@@ -290,7 +292,12 @@ class LaunchTaskRunner(
         }
 
         // Notify listeners of the deployment.
-        project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).deviceNeedsAttention(device.serialNumber, project)
+        if (isLaunchingTest()) {
+          project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(device.serialNumber, project)
+        }
+        else {
+          project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device.serialNumber, project)
+        }
       }
 
       // Update the indicator progress.
@@ -319,6 +326,11 @@ class LaunchTaskRunner(
       )
     }
     return true
+  }
+
+  private fun isLaunchingTest(): Boolean {
+    val configTypeId = myEnv.runnerAndConfigurationSettings?.type?.id ?: return false
+    return isTestConfiguration(configTypeId) || isInstrumentationTestConfiguration(configTypeId)
   }
 
   private fun detachDevice(device: IDevice?) {

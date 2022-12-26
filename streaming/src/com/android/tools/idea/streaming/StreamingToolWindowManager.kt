@@ -55,6 +55,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.wm.ToolWindow
@@ -212,14 +213,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
                                      }
                                    })
 
-    messageBusConnection.subscribe(DeviceHeadsUpListener.TOPIC,
-                                   DeviceHeadsUpListener { deviceSerialNumber, project ->
-                                     if (project == toolWindow.project) {
-                                       UIUtil.invokeLaterIfNeeded {
-                                         onDeviceHeadsUp(deviceSerialNumber)
-                                       }
-                                     }
-                                   })
+    messageBusConnection.subscribe(DeviceHeadsUpListener.TOPIC, MyDeviceHeadsUpListener())
 
     messageBusConnection.subscribe(DeviceMirroringSettingsListener.TOPIC, this)
 
@@ -570,6 +564,25 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   override fun dispose() {
     destroyContent()
+  }
+
+  private inner class MyDeviceHeadsUpListener : DeviceHeadsUpListener {
+
+    override fun userInvolvementRequired(deviceSerialNumber: String, project: Project) {
+      if (project == toolWindow.project) {
+        UIUtil.invokeLaterIfNeeded {
+          onDeviceHeadsUp(deviceSerialNumber)
+        }
+      }
+    }
+
+    override fun launchingApp(deviceSerialNumber: String, project: Project) {
+      userInvolvementRequired(deviceSerialNumber, project)
+    }
+
+    override fun launchingTest(deviceSerialNumber: String, project: Project) {
+      userInvolvementRequired(deviceSerialNumber, project)
+    }
   }
 
   private inner class ToggleDeviceFrameAction : ToggleAction("Show Device Frame"), DumbAware {

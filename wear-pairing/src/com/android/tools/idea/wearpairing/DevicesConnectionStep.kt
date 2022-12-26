@@ -820,7 +820,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
 
   private fun showEmbeddedEmulator(device: IDevice) {
     // Show embedded emulator tab if needed
-    project?.messageBus?.syncPublisher(DeviceHeadsUpListener.TOPIC)?.deviceNeedsAttention(device.serialNumber, project)
+    project?.messageBus?.syncPublisher(DeviceHeadsUpListener.TOPIC)?.userInvolvementRequired(device.serialNumber, project)
   }
 }
 
