@@ -16,6 +16,13 @@
 
 package org.jetbrains.android.intentions;
 
+import static com.android.SdkConstants.CLASS_CONTEXT;
+import static com.android.SdkConstants.CLASS_FRAGMENT;
+import static com.android.SdkConstants.CLASS_RESOURCES;
+import static com.android.tools.lint.detector.api.ResourceEvaluator.STRING_RES_ANNOTATION;
+import static com.intellij.codeInsight.AnnotationUtil.CHECK_EXTERNAL;
+import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
+
 import com.android.AndroidXConstants;
 import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
@@ -26,10 +33,21 @@ import com.intellij.CommonBundle;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
 import com.intellij.codeInsight.intention.HighPriorityAction;
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
-import com.intellij.codeInsight.template.*;
-import com.intellij.codeInsight.template.impl.*;
+import com.intellij.codeInsight.template.Expression;
+import com.intellij.codeInsight.template.ExpressionContext;
+import com.intellij.codeInsight.template.Result;
+import com.intellij.codeInsight.template.Template;
+import com.intellij.codeInsight.template.TemplateEditingAdapter;
+import com.intellij.codeInsight.template.TemplateManager;
+import com.intellij.codeInsight.template.TextResult;
+import com.intellij.codeInsight.template.impl.ConstantNode;
+import com.intellij.codeInsight.template.impl.JavaTemplateUtil;
+import com.intellij.codeInsight.template.impl.MacroCallNode;
+import com.intellij.codeInsight.template.impl.TemplateImpl;
+import com.intellij.codeInsight.template.impl.TemplateState;
 import com.intellij.codeInsight.template.macro.VariableOfTypeMacro;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
@@ -41,7 +59,21 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiExpression;
+import com.intellij.psi.PsiExpressionList;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiJavaFile;
+import com.intellij.psi.PsiLiteralExpression;
+import com.intellij.psi.PsiLocalVariable;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiMethodCallExpression;
+import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiParameterList;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -54,27 +86,20 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidBundle;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.lint.detector.api.ResourceEvaluator.STRING_RES_ANNOTATION;
-import static com.intellij.codeInsight.AnnotationUtil.CHECK_EXTERNAL;
-import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
 
 public class AndroidAddStringResourceAction extends AbstractIntentionAction implements HighPriorityAction {
 
@@ -464,6 +489,32 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     }
 
     return null;
+  }
+
+  @Override
+  public @NotNull IntentionPreviewInfo generatePreview(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
+    PsiElement element = file.findElementAt(editor.getCaretModel().getOffset());
+    if (element == null) {
+      return super.generatePreview(project, editor, file);
+    }
+
+    // Create a simple preview (since we don't want to pop up a dialog to ask for the resource name in previews)
+    PsiElement parent = element.getParent();
+    if (parent instanceof XmlAttributeValue) {
+      String defaultName = getType().getName() + "_name";
+      PsiElement parentParent = parent.getParent();
+      if (parentParent instanceof XmlAttribute && getType() == ResourceType.STRING) {
+        final String value = ((XmlAttribute)parentParent).getValue();
+        if (value != null) {
+          defaultName = IdeResourcesUtil.buildResourceNameFromStringValue(value);
+        }
+      }
+      int start = element.getTextOffset();
+      int end = start + element.getTextLength();
+      editor.getDocument().replaceString(start, end, "@" + getType().getName() + "/" + defaultName);
+      return IntentionPreviewInfo.DIFF;
+    }
+    return super.generatePreview(project, editor, file);
   }
 
   private static class MyVarOfTypeExpression extends VariableOfTypeMacro {

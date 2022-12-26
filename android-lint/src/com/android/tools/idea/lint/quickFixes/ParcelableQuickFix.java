@@ -266,9 +266,12 @@ public class ParcelableQuickFix extends DefaultLintQuickFix {
     }
 
     private void save() {
-      Document document = FileDocumentManager.getInstance().getDocument(myParcelable.getContainingFile().getVirtualFile());
-      if (document != null) {
-        PsiDocumentManager.getInstance(myProject).commitDocument(document);
+      PsiFile file = myParcelable.getContainingFile();
+      if (file.isPhysical()) {
+        Document document = FileDocumentManager.getInstance().getDocument(file.getVirtualFile());
+        if (document != null) {
+          PsiDocumentManager.getInstance(myProject).commitDocument(document);
+        }
       }
     }
 

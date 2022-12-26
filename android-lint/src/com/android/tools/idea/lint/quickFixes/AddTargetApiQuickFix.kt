@@ -25,6 +25,7 @@ import com.android.tools.idea.lint.common.DefaultLintQuickFix
 import com.android.tools.idea.lint.common.LintIdeClient
 import com.android.tools.idea.lint.common.isAnnotationTarget
 import com.android.tools.idea.lint.common.isNewLineNeededForAnnotation
+import com.android.tools.idea.lint.common.preparedToWrite
 import com.android.tools.idea.res.ensureNamespaceImported
 import com.android.tools.idea.util.mapAndroidxName
 import com.android.tools.lint.checks.ApiLookup
@@ -34,14 +35,12 @@ import com.android.tools.lint.detector.api.ExtensionSdk.Companion.ANDROID_SDK_ID
 import com.android.tools.lint.detector.api.VersionChecks.Companion.REQUIRES_API_ANNOTATION
 import com.android.tools.lint.detector.api.VersionChecks.Companion.REQUIRES_EXTENSION_ANNOTATION
 import com.intellij.codeInsight.AnnotationUtil
-import com.intellij.codeInsight.FileModificationService
 import com.intellij.codeInsight.intention.AddAnnotationFix
 import com.intellij.codeInsight.intention.AddAnnotationPsiFix
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiAnnotationOwner
 import com.intellij.psi.PsiAnonymousClass
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -53,7 +52,6 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.kdoc.insert
 import org.jetbrains.kotlin.idea.util.addAnnotation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClassOrObject
@@ -197,7 +195,7 @@ class AddTargetApiQuickFix(private val requirements: List<SdkApiConstraint>,
 
   private fun handleKotlin(startElement: PsiElement) {
     val annotationContainer = getAnnotationContainer(startElement) ?: return
-    if (!FileModificationService.getInstance().preparePsiElementForWrite(annotationContainer)) {
+    if (!preparedToWrite(annotationContainer)) {
       return
     }
     // Reverse order: preserve order, and addAnnotationsKotlin will prepend

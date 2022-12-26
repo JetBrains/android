@@ -19,10 +19,10 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.android.tools.idea.lint.common.DefaultLintQuickFix
 import com.android.tools.idea.lint.common.LintIdeClient
+import com.android.tools.idea.lint.common.preparedToWrite
 import com.android.tools.lint.detector.api.ApiConstraint
 import com.android.tools.lint.detector.api.ExtensionSdk
 import com.android.tools.lint.detector.api.ExtensionSdk.Companion.ANDROID_SDK_ID
-import com.intellij.codeInsight.FileModificationService
 import com.intellij.codeInsight.generation.surroundWith.JavaWithIfSurrounder
 import com.intellij.codeInspection.JavaSuppressionUtil
 import com.intellij.lang.java.JavaLanguage
@@ -37,7 +37,6 @@ import com.intellij.psi.PsiExpression
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiStatement
 import com.intellij.psi.codeStyle.JavaCodeStyleManager
-import com.intellij.psi.util.PsiEditorUtil
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.android.facet.AndroidFacet
@@ -94,24 +93,24 @@ class AddTargetVersionCheckQuickFix(
   }
 
   override fun apply(startElement: PsiElement, endElement: PsiElement, context: AndroidQuickfixContexts.Context) {
-    if (!FileModificationService.getInstance().preparePsiElementForWrite(startElement)) {
+    if (!preparedToWrite(startElement)) {
       return
     }
     when (startElement.language) {
-      JavaLanguage.INSTANCE -> handleJava(startElement)
-      KotlinLanguage.INSTANCE -> handleKotlin(startElement)
+      JavaLanguage.INSTANCE -> handleJava(startElement, context)
+      KotlinLanguage.INSTANCE -> handleKotlin(startElement, context)
     }
   }
 
-  private fun handleKotlin(element: PsiElement) {
+  private fun handleKotlin(element: PsiElement, context: AndroidQuickfixContexts.Context) {
     val targetExpression = getKotlinTargetExpression(element) ?: return
     val project = targetExpression.project
-    val editor = targetExpression.findExistingEditor() ?: return
+    targetExpression.findExistingEditor()
+    val editor = context.getEditor(targetExpression.containingFile) ?: return
     val file = targetExpression.containingFile
     val documentManager = PsiDocumentManager.getInstance(project)
-    val document = documentManager.getDocument(file) ?: return
-
-    if (!FileModificationService.getInstance().prepareFileForWrite(file)) {
+    val document = editor.document
+    if (!preparedToWrite(file)) {
       return
     }
 
@@ -141,14 +140,12 @@ class AddTargetVersionCheckQuickFix(
     else "android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R && "
   }
 
-  private fun handleJava(element: PsiElement) {
+  private fun handleJava(element: PsiElement, context: AndroidQuickfixContexts.Context) {
     val expression = PsiTreeUtil.getParentOfType(element, PsiExpression::class.java, false) ?: return
-    val editor = PsiEditorUtil.findEditor(expression) ?: return
+    val editor = context.getEditor(expression.containingFile) ?: return
     val anchorStatement = PsiTreeUtil.getParentOfType(expression, PsiStatement::class.java) ?: return
-    val file = expression.containingFile
     val project = expression.project
-    val documentManager = PsiDocumentManager.getInstance(project)
-    val document = documentManager.getDocument(file) ?: return
+    val document = editor.document
 
     val owner = PsiTreeUtil.getParentOfType(element, PsiModifierListOwner::class.java, false)
     var elements = arrayOf<PsiElement>(anchorStatement)
@@ -164,6 +161,7 @@ class AddTargetVersionCheckQuickFix(
       else
           "${getExtensionCheckPrefix()}android.os.ext.SdkExtensions.getExtensionVersion($sdkId) >= $api"
       document.replaceString(textRange.startOffset, textRange.endOffset, newText)
+      val documentManager = PsiDocumentManager.getInstance(project)
       documentManager.commitDocument(document)
 
       editor.caretModel.moveToOffset(textRange.endOffset + newText.length)

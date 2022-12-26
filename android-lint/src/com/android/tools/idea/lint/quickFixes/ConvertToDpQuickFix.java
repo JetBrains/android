@@ -19,21 +19,29 @@ import com.android.resources.Density;
 import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.DefaultLintQuickFix;
+import com.intellij.codeInsight.intention.FileModifier;
+import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTagValue;
+import com.intellij.util.ObjectUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ConvertToDpQuickFix extends DefaultLintQuickFix {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.lint.quickFixes.ConvertToDpQuickFix");
@@ -92,7 +100,7 @@ public class ConvertToDpQuickFix extends DefaultLintQuickFix {
     final int dpi;
 
     Application application = ApplicationManager.getApplication();
-    if (application.isUnitTestMode()) {
+    if (application.isUnitTestMode() || context instanceof AndroidQuickfixContexts.EditorPreviewContext) {
       dpi = Density.DEFAULT_DENSITY;
     }
     else {
@@ -108,7 +116,7 @@ public class ConvertToDpQuickFix extends DefaultLintQuickFix {
     //noinspection AssignmentToStaticFieldFromInstanceMethod
     ourPrevDpi = dpi;
 
-    application.runWriteAction(() -> {
+    Runnable runnable = () -> {
       for (XmlAttribute attribute : tag.getAttributes()) {
         final String value = attribute.getValue();
 
@@ -129,7 +137,13 @@ public class ConvertToDpQuickFix extends DefaultLintQuickFix {
           tagValueElement.setText(newValue);
         }
       }
-    });
+    };
+
+    if (context instanceof AndroidQuickfixContexts.EditorPreviewContext) {
+      runnable.run();
+    } else {
+      application.runWriteAction(runnable);
+    }
   }
 
   private static String convertToDp(String value, int dpi) {
@@ -161,5 +175,15 @@ public class ConvertToDpQuickFix extends DefaultLintQuickFix {
                               @NotNull AndroidQuickfixContexts.ContextType contextType) {
     return contextType != AndroidQuickfixContexts.BatchContext.TYPE &&
            PsiTreeUtil.getParentOfType(startElement, XmlTag.class) != null;
+  }
+
+  @Override
+  public @Nullable IntentionPreviewInfo generatePreview(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
+    PsiElement element = file.findElementAt(editor.getCaretModel().getOffset());
+    if (element != null) {
+      apply(element, element, new AndroidQuickfixContexts.EditorPreviewContext(editor, file));
+      return IntentionPreviewInfo.DIFF;
+    }
+    return null;
   }
 }

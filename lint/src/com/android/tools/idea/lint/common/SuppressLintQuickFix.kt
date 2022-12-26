@@ -21,7 +21,6 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase.LINT_INSPECT
 import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 import com.intellij.codeInsight.AnnotationUtil
-import com.intellij.codeInsight.FileModificationService
 import com.intellij.codeInsight.intention.AddAnnotationFix
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.SuppressQuickFix
@@ -41,7 +40,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiImportStatementBase
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiPackageStatement
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
@@ -99,7 +97,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   @Throws(IncorrectOperationException::class)
   private fun handleXml(element: PsiElement) {
     val tag = PsiTreeUtil.getParentOfType(element, XmlTag::class.java, false) ?: return
-    if (!FileModificationService.getInstance().preparePsiElementForWrite(tag)) {
+    if (!preparedToWrite(tag)) {
       return
     }
     val file = if (tag is XmlFile) tag else tag.containingFile as? XmlFile ?: return
@@ -110,7 +108,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   @Throws(IncorrectOperationException::class)
   private fun handleJava(element: PsiElement) {
     val container = findJavaSuppressElement(element) ?: return
-    if (!FileModificationService.getInstance().preparePsiElementForWrite(container)) {
+    if (!preparedToWrite(container)) {
       return
     }
     val project = element.project
@@ -127,7 +125,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   @Throws(IncorrectOperationException::class)
   private fun handleGroovy(element: PsiElement) {
     val file = if (element is PsiFile) element else element.containingFile ?: return
-    if (!FileModificationService.getInstance().preparePsiElementForWrite(file)) {
+    if (!preparedToWrite(file)) {
       return
     }
     val project = file.project
@@ -188,7 +186,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   private fun handleKotlin(element: PsiElement) {
     val target = findKotlinSuppressElement(element) ?: return
 
-    if (!FileModificationService.getInstance().preparePsiElementForWrite(target)) {
+    if (!preparedToWrite(target)) {
       return
     }
 
@@ -222,9 +220,8 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
 
       val module = ModuleUtilCore.findModuleForPsiElement(context)
       val scope = module?.getModuleWithDependenciesAndLibrariesScope(false)
-                  ?: GlobalSearchScope.allScope(project)
       return when {
-        JavaPsiFacade.getInstance(project).findClass(FQCN_SUPPRESS_LINT, scope) != null -> FQCN_SUPPRESS_LINT
+        scope != null && JavaPsiFacade.getInstance(project).findClass(FQCN_SUPPRESS_LINT, scope) != null -> FQCN_SUPPRESS_LINT
         context.language == KotlinLanguage.INSTANCE -> "kotlin.Suppress"
         else -> "java.lang.SuppressWarnings"
       }

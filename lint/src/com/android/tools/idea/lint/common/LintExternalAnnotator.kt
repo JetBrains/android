@@ -35,9 +35,11 @@ import com.google.common.collect.Sets
 import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.codeInsight.daemon.HighlightDisplayKey
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
+import com.intellij.codeInsight.intention.FileModifier.SafeFieldForPreview
 import com.intellij.codeInsight.intention.HighPriorityAction
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.PriorityAction
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.InspectionProfile
 import com.intellij.codeInspection.LocalQuickFix
@@ -59,9 +61,12 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Iconable
 import com.intellij.openapi.util.Iconable.IconFlags
+import com.intellij.openapi.util.TextRange
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.SmartPointerManager
+import com.intellij.psi.SmartPsiFileRange
 import com.intellij.util.IncorrectOperationException
 import com.intellij.xml.util.XmlStringUtil
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -267,7 +272,9 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       val fixes = inspection.getAllFixes(startElement, endElement, message, quickfixData, fixProviders, issue)
       for (fix in fixes) {
         if (fix.isApplicable(startElement, endElement, AndroidQuickfixContexts.EditorContext.TYPE)) {
-          builder = builder.withFix(MyFixingIntention(fix, startElement, endElement))
+          val smartRange = fix.range
+                           ?: SmartPointerManager.getInstance(project).createSmartPsiFileRangePointer(file, range)
+          builder = builder.withFix(MyFixingIntention(fix, smartRange))
         }
       }
       for (intention in inspection.getIntentions(startElement, endElement)) {
@@ -331,16 +338,19 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
   }
 
   class MyFixingIntention(
-    private val myQuickFix: LintIdeQuickFix,
-    private val myStartElement: PsiElement,
-    private val myEndElement: PsiElement
+    @SafeFieldForPreview private val myQuickFix: LintIdeQuickFix,
+    /** If non-null, the fix is targeted for a different file than the current one in the editor. */
+    @SafeFieldForPreview private val myRange: SmartPsiFileRange
   ) : IntentionAction, HighPriorityAction {
+    constructor(quickFix: LintIdeQuickFix, project: Project, file: PsiFile, range: TextRange)
+      : this(quickFix, SmartPointerManager.getInstance(project).createSmartPsiFileRangePointer(file, range))
+
     override fun getText(): String {
       return myQuickFix.name
     }
 
     override fun getFamilyName(): String {
-      return LintBundle.message("android.lint.quickfixes.family")
+      return myQuickFix.familyName ?: LintBundle.message("android.lint.quickfixes.family")
     }
 
     override fun isAvailable(project: Project, editor: Editor, file: PsiFile): Boolean {
@@ -348,8 +358,28 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
     }
 
     @Throws(IncorrectOperationException::class)
-    override fun invoke(project: Project, editor: Editor, file: PsiFile) {
-      myQuickFix.apply(myStartElement, myEndElement, AndroidQuickfixContexts.EditorContext.getInstance(editor))
+    override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
+      file ?: return
+      editor ?: return
+
+      val context: AndroidQuickfixContexts.Context
+      val targetFile: PsiFile
+
+      if (file.isPhysical) {
+        targetFile = myRange.containingFile ?: return
+        context = AndroidQuickfixContexts.EditorContext.getInstance(editor, file)
+      } else {
+        if (file.name != myRange.containingFile?.name) {
+          return
+        }
+        targetFile = file
+        context = AndroidQuickfixContexts.EditorPreviewContext(editor, targetFile)
+      }
+
+      val textRange = myRange.range ?: return
+      val start = targetFile.findElementAt(textRange.startOffset) ?: return
+      val end = targetFile.findElementAt(textRange.endOffset - 1) ?: return
+      myQuickFix.apply(start, end, context)
     }
 
     override fun startInWriteAction(): Boolean {
@@ -362,6 +392,11 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
 
     override fun getPriority(): PriorityAction.Priority {
       return myQuickFix.priority
+    }
+
+    override fun generatePreview(project: Project, editor: Editor, file: PsiFile): IntentionPreviewInfo {
+      return myQuickFix.generatePreview(project, editor, file)
+             ?: super.generatePreview(project, editor, file)
     }
   }
 

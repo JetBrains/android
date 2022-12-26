@@ -33,7 +33,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureTestCase() {
 
     val ktProperty = myFixture.findElementByText("someProperty", PsiElement::class.java)
     val addAnnotationFix = AnnotateQuickFix("Add @Suppress(SomeInspection)", "Test", "@kotlin.Suppress(\"SomeInspection\")", true)
-    val context = AndroidQuickfixContexts.EditorContext.getInstance(myFixture.editor)
+    val context = AndroidQuickfixContexts.EditorContext.getInstance(myFixture.editor, myFixture.file)
 
     assertTrue(addAnnotationFix.isApplicable(ktProperty, ktProperty, context.type))
     WriteCommandAction.runWriteCommandAction(project) {
@@ -62,7 +62,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureTestCase() {
 
     val ktProperty = myFixture.findElementByText("someProperty", PsiElement::class.java)
     val addAnnotationFix = AnnotateQuickFix("Add @get:JvmSynthetic", "Test", "@get:JvmSynthetic", true)
-    val context = AndroidQuickfixContexts.EditorContext.getInstance(myFixture.editor)
+    val context = AndroidQuickfixContexts.EditorContext.getInstance(myFixture.editor, myFixture.file)
 
     assertTrue(addAnnotationFix.isApplicable(ktProperty, ktProperty, context.type))
     WriteCommandAction.runWriteCommandAction(project) {
@@ -94,7 +94,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureTestCase() {
       AnnotateQuickFix("Add @Suppress(SomeInspection1)", "Test", "@kotlin.Suppress(\"SomeInspection1\")", false),
       AnnotateQuickFix("Add @Suppress(SomeInspection2)", "Test", "@kotlin.Suppress(\"SomeInspection2\")", false),
     )
-    val context = AndroidQuickfixContexts.EditorContext.getInstance(myFixture.editor)
+    val context = AndroidQuickfixContexts.EditorContext.getInstance(myFixture.editor, myFixture.file)
 
     for (fix in addAnnotationFixes) {
       assertTrue(fix.isApplicable(ktProperty, ktProperty, context.type))
@@ -129,7 +129,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureTestCase() {
       AnnotateQuickFix("Add @Suppress(SomeInspection1)", "Test", "@kotlin.Suppress(\"SomeInspection1\")", true),
       AnnotateQuickFix("Add @Suppress(SomeInspection2)", "Test", "@kotlin.Suppress(\"SomeInspection2\")", true),
     )
-    val context = AndroidQuickfixContexts.EditorContext.getInstance(myFixture.editor)
+    val context = AndroidQuickfixContexts.EditorContext.getInstance(myFixture.editor, myFixture.file)
 
     for (fix in addAnnotationFixes) {
       assertTrue(fix.isApplicable(ktProperty, ktProperty, context.type))

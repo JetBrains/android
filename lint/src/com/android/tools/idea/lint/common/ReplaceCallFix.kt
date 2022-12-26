@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.lint.common
 
-import com.intellij.codeInsight.FileModificationService
 import com.intellij.lang.java.JavaLanguage
-import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethodCallExpression
@@ -48,20 +46,20 @@ class ReplaceCallFix(private val mySuggest: String) : DefaultLintQuickFix(null) 
       return
     }
 
-    if (!FileModificationService.getInstance().preparePsiElementForWrite(startElement)) {
+    if (!preparedToWrite(startElement)) {
       return
     }
 
     when (startElement.language) {
-      JavaLanguage.INSTANCE -> handleJava(startElement)
-      KotlinLanguage.INSTANCE -> handleKotlin(startElement)
+      JavaLanguage.INSTANCE -> handleJava(startElement, context)
+      KotlinLanguage.INSTANCE -> handleKotlin(startElement, context)
     }
   }
 
-  private fun handleJava(element: PsiElement) {
+  private fun handleJava(element: PsiElement, context: AndroidQuickfixContexts.Context) {
     val methodCall = PsiTreeUtil.getParentOfType(element, PsiMethodCallExpression::class.java, false) ?: return
     val file = methodCall.containingFile ?: return
-    val document = FileDocumentManager.getInstance().getDocument(file.virtualFile) ?: return
+    val document = context.getDocument(file) ?: return
     val methodExpression = methodCall.methodExpression
     val referenceNameElement = methodExpression.referenceNameElement ?: return
     val range = referenceNameElement.textRange ?: return
@@ -85,7 +83,7 @@ class ReplaceCallFix(private val mySuggest: String) : DefaultLintQuickFix(null) 
     document.replaceString(range.startOffset, range.endOffset, name)
   }
 
-  private fun handleKotlin(element: PsiElement) {
+  private fun handleKotlin(element: PsiElement, context: AndroidQuickfixContexts.Context) {
     val methodCall = PsiTreeUtil.getParentOfType(element, KtCallExpression::class.java, false) ?: return
     val methodExpression = methodCall.getCalleeExpression()
     if (methodExpression is KtNameReferenceExpression) {
@@ -93,7 +91,7 @@ class ReplaceCallFix(private val mySuggest: String) : DefaultLintQuickFix(null) 
       if (identifier != null) {
         val range = identifier.textRange
         val file = methodCall.containingFile ?: return
-        val document = FileDocumentManager.getInstance().getDocument(file.virtualFile) ?: return
+        val document = context.getDocument(file) ?: return
 
         // Also need to insert a message parameter
         // Currently hardcoded for the check*Permission to enforce*Permission code path. It's
@@ -102,10 +100,9 @@ class ReplaceCallFix(private val mySuggest: String) : DefaultLintQuickFix(null) 
         val name = methodName
         if (name.startsWith("enforce") &&
             name.endsWith("Permission")) {
-          val referencedName: String? = methodExpression.getReferencedName()
-          if (referencedName != null
-              && referencedName.startsWith("check")) {
-            methodCall.getValueArgumentList()?.textRange?.let { range: TextRange ->
+          val referencedName = methodExpression.getReferencedName()
+          if (referencedName.startsWith("check")) {
+            methodCall.valueArgumentList?.textRange?.let { range: TextRange ->
               val offset = range.endOffset - 1
               document.insertString(offset, ", \"TODO: message if thrown\"")
             }

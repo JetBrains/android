@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.lint.inspections;
 
+import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.idea.lint.AndroidLintBundle;
+import com.android.tools.idea.lint.common.LintIdeUtilsKt;
 import com.android.tools.lint.checks.AnnotationDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.TextFormat;
-import com.intellij.codeInsight.FileModificationService;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiCodeBlock;
@@ -60,7 +60,7 @@ public class AndroidLintSwitchIntDefInspection extends AndroidLintInspectionBase
         public void apply(@NotNull PsiElement startElement,
                           @NotNull PsiElement endElement,
                           @NotNull AndroidQuickfixContexts.Context context) {
-          if (!FileModificationService.getInstance().preparePsiElementForWrite(startElement)) {
+          if (!LintIdeUtilsKt.preparedToWrite(startElement)) {
             return;
           }
           if (startElement.getParent() instanceof PsiSwitchStatement) {

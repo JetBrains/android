@@ -57,7 +57,6 @@ import com.intellij.psi.codeStyle.JavaCodeStyleSettings;
 import com.intellij.psi.impl.source.codeStyle.ImportHelper;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.structuralsearch.plugin.util.SmartPsiPointer;
 import com.intellij.util.DocumentUtil;
 import java.io.File;
 import java.util.List;
@@ -212,6 +211,12 @@ public class ReplaceStringQuickFix extends DefaultLintQuickFix {
     myRange = range;
   }
 
+  @Nullable
+  @Override
+  public SmartPsiFileRange getRange() {
+    return myRange;
+  }
+
   @NotNull
   @Override
   public String getName() {
@@ -253,7 +258,8 @@ public class ReplaceStringQuickFix extends DefaultLintQuickFix {
     }
     Project project = startElement.getProject();
     PsiDocumentManager documentManager = PsiDocumentManager.getInstance(project);
-    Document document = documentManager.getDocument(file);
+
+    Document document = context.getDocument(file);
     if (document != null) {
       documentManager.doPostponedOperationsAndUnblockDocument(document);
       editBefore(document);
@@ -359,7 +365,7 @@ public class ReplaceStringQuickFix extends DefaultLintQuickFix {
           }
         }
 
-        if (mySelectPattern != null && context instanceof AndroidQuickfixContexts.EditorContext) {
+        if (mySelectPattern != null && context instanceof AndroidQuickfixContexts.EditorContext && file.isPhysical()) {
           Pattern pattern = Pattern.compile(mySelectPattern);
           Matcher matcher = pattern.matcher(document.getText());
           if (matcher.find(startOffset)) {
@@ -373,8 +379,10 @@ public class ReplaceStringQuickFix extends DefaultLintQuickFix {
               selectStart = matcher.start();
               selectEnd = matcher.end();
             }
-            Editor editor = ((AndroidQuickfixContexts.EditorContext)context).getEditor();
-            editor.getSelectionModel().setSelection(selectStart, selectEnd);
+            Editor editor = context.getEditor(file);
+            if (editor != null) {
+              editor.getSelectionModel().setSelection(selectStart, selectEnd);
+            }
           }
         }
       }

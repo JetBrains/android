@@ -20,6 +20,7 @@ import com.android.SdkConstants
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.StubGoogleMavenRepository
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.AnalyticsSettings.setInstanceForTest
@@ -33,10 +34,11 @@ import com.android.tools.idea.lint.common.AndroidLintGradleDynamicVersionInspect
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.lint.common.LintEditorResult
 import com.android.tools.idea.lint.common.LintExternalAnnotator.MyFixingIntention
-import com.android.tools.idea.lint.common.LintIdeIssueRegistry
+import com.android.tools.idea.lint.common.LintIdeQuickFix
 import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.idea.lint.common.LintIgnoredResult
 import com.android.tools.idea.lint.common.LintProblemData
+import com.android.tools.idea.lint.common.ReplaceStringQuickFix
 import com.android.tools.idea.lint.common.SuppressLintIntentionAction
 import com.android.tools.idea.lint.inspections.AndroidLintAdapterViewChildrenInspection
 import com.android.tools.idea.lint.inspections.AndroidLintAlwaysShowActionInspection
@@ -135,6 +137,8 @@ import com.android.tools.idea.lint.inspections.AndroidLintWrongCallInspection
 import com.android.tools.idea.lint.inspections.AndroidLintWrongCaseInspection
 import com.android.tools.idea.lint.inspections.AndroidLintWrongViewCastInspection
 import com.android.tools.idea.lint.intentions.AndroidAddStringResourceQuickFix
+import com.android.tools.idea.lint.quickFixes.AddTargetVersionCheckQuickFix
+import com.android.tools.idea.lint.quickFixes.ConvertToDpQuickFix
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
@@ -145,11 +149,12 @@ import com.android.tools.idea.testing.getIntentionAction
 import com.android.tools.lint.checks.HardcodedValuesDetector
 import com.android.tools.lint.checks.IconDetector
 import com.android.tools.lint.checks.TextViewDetector
-import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintClient
 import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.client.api.LintRequest
+import com.android.tools.lint.detector.api.ApiConstraint
 import com.android.tools.lint.detector.api.Desugaring
+import com.android.tools.lint.detector.api.ExtensionSdk
 import com.android.tools.lint.detector.api.Severity
 import com.android.utils.CharSequences
 import com.google.common.collect.ImmutableMap
@@ -164,6 +169,7 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.daemon.impl.ShowIntentionsPass
 import com.intellij.codeInsight.daemon.impl.ShowIntentionsPass.IntentionsInfo
 import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.codeInspection.CommonProblemDescriptor
 import com.intellij.codeInspection.GlobalInspectionTool
 import com.intellij.codeInspection.QuickFix
@@ -172,11 +178,15 @@ import com.intellij.codeInspection.ui.util.SynchronizedBidiMultiMap
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Document
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.EditorSettings
+import com.intellij.openapi.editor.impl.ImaginaryEditor
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
@@ -185,6 +195,8 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
+import org.jetbrains.android.intentions.AndroidExtractColorAction
+import org.jetbrains.android.intentions.AndroidExtractDimensionAction
 import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.NonNls
@@ -1592,9 +1604,7 @@ class AndroidLintTest : AndroidTestCase() {
     doGlobalInspectionTest(AndroidLintRegisteredInspection())
   }
 
-  /**
-   * Quick fix for typos in network-security-config file. (especially elements)
-   */
+  /** Quick fix for typos in network-security-config file. (especially elements) */
   fun testNetworkSecurityConfigTypos1() {
     createManifest()
     doTestWithFix(
@@ -1602,9 +1612,7 @@ class AndroidLintTest : AndroidTestCase() {
       "Use domain-config", "res/xml/network-config.xml", "xml")
   }
 
-  /**
-   * Check typos in network-security-config attribute.
-   */
+  /** Check typos in network-security-config attribute. */
   fun testNetworkSecurityConfigTypos2() {
     createManifest()
     doTestWithFix(
@@ -1762,6 +1770,178 @@ class AndroidLintTest : AndroidTestCase() {
     myFixture.checkResultByFile("res/xml/$sceneFile", "$BASE_PATH/$sceneFile", false)
   }
 
+  fun testIntentionPreviewAddTargetVersion() {
+    // Test that the intention preview for AddTargetVersionCheckQuickFix works as expected; in particular,
+    // it makes edits to the preview non-physical file, and does not modify the physical file.
+    val file = myFixture.configureByText("X.java", /*language=JAVA */ """
+      package com.example;
+      import java.io.FileReader;
+      import java.io.IOException;
+      import java.util.Properties;
+      public class X {
+        public static void foo() throws IOException {
+          FileReader reader = new FileReader("../local.properties");
+          Properties props = new Properties();
+          props.load(reader);
+          reader.close();
+        }
+      }
+      """.trimIndent()
+    )
+
+    checkPreviewFix(
+      file,
+      "^props.load", {
+        val fix = AddTargetVersionCheckQuickFix(9, ExtensionSdk.ANDROID_SDK_ID, ApiConstraint.ALL)
+        assertThat(fix.name).isEqualTo("Surround with if (VERSION.SDK_INT >= VERSION_CODES.GINGERBREAD) { ... }")
+        fix
+      },
+      """
+      @@ -9 +9
+      -     props.load(reader);
+      +     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.GINGERBREAD) {
+      + props.load(reader);
+      +     }
+      """
+    )
+  }
+
+  fun testIntentionPreviewExtractString() {
+    // Test that the intention preview for AndroidAddStringResourceQuickFix works as expected
+    val file = myFixture.configureByText("layout.xml", /*language=XML */ """
+      <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
+          <Button android:text="Hello World"/>
+      </LinearLayout>
+      """.trimIndent()
+    )
+    checkPreviewAction(file, "Hello ^World", { AndroidAddStringResourceQuickFix(it) }, """
+      @@ -2 +2
+      -     <Button android:text="Hello World"/>
+      +     <Button android:text="@string/hello_world"/>
+      """
+    )
+  }
+
+  fun testIntentionPreviewExtractDimension() {
+    // Test that the intention preview for AndroidExtractDimensionAction works as expected
+    val file = myFixture.configureByText("layout.xml", /*language=XML */ """
+      <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
+          <Button android:textSize="50px"  />
+      </LinearLayout>
+      """.trimIndent()
+    )
+    checkPreviewAction(file, "50^px", { AndroidExtractDimensionAction() }, """
+      @@ -2 +2
+      -     <Button android:textSize="50px"  />
+      +     <Button android:textSize="@dimen/dimen_name"  />
+      """
+    )
+  }
+
+  fun testIntentionPreviewConvertToDp() {
+    // Test that the intention preview for ConvertToDpQuickFix works as expected
+    val file = myFixture.configureByText("layout.xml", /*language=XML */ """
+      <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
+          <Button android:textSize="50px"  />
+      </LinearLayout>
+      """.trimIndent()
+    )
+    checkPreviewFix(file, "50^px", { ConvertToDpQuickFix() }, """
+      @@ -2 +2
+      -     <Button android:textSize="50px"  />
+      +     <Button android:textSize="50dp"  />
+      """
+    )
+  }
+
+  fun testIntentionPreviewExtractColor() {
+    // Test that the intention preview for AndroidExtractColorAction works as expected
+    val file = myFixture.configureByText("states.xml", /*language=XML */ """
+                <selector xmlns:android="http://schemas.android.com/apk/res/android">
+                    <item android:state_pressed="true"
+                          android:color="#ffff0000"/> <!-- pressed -->
+                    <item android:color="#ff000000"/>
+                </selector>
+      """.trimIndent()
+    )
+    checkPreviewAction(file, "#ff^ff", { AndroidExtractColorAction() }, """
+      @@ -3 +3
+      -           android:color="#ffff0000"/> <!-- pressed -->
+      +           android:color="@color/color_name"/> <!-- pressed -->
+      """
+    )
+  }
+
+  fun testReplaceStringPreview() {
+    // Test that the intention preview for ReplaceStringQuickfix works as expected
+    val file = myFixture.configureByText("states.xml", /*language=KT */ """
+      fun test() {
+        val foo = "bar"
+      }
+      """.trimIndent()
+    )
+    checkPreviewFix(file, "val f^oo =", {
+      ReplaceStringQuickFix(null, null, "(foo)", "foo: Foo")
+    }, """
+      @@ -2 +2
+      -   val foo = "bar"
+      +   val foo: Foo = "bar"
+      """
+    )
+  }
+
+  private fun findElement(file: PsiFile, caret: String): PsiElement {
+    val offset = getCaretOffset(file.text, caret)
+    myFixture.editor.caretModel.moveToOffset(offset)
+    return file.findElementAt(offset)
+           ?: error("No element at offset $offset")
+  }
+
+  private fun getCaretOffset(fileContent: String, caretLocation: String): Int {
+    assertTrue(caretLocation, caretLocation.contains("^"))
+    val caretDelta = caretLocation.indexOf('^')
+    assertTrue(caretLocation, caretDelta != -1)
+
+    // String around caret/range without the range and caret marker characters
+    val caretContext: String = caretLocation.substring(0, caretDelta) + caretLocation.substring(caretDelta + 1)
+    val caretContextIndex = fileContent.indexOf(caretContext)
+    assertTrue("Caret content $caretContext not found in file", caretContextIndex != -1)
+    return caretContextIndex + caretDelta
+  }
+
+  private fun checkPreviewFix(file: PsiFile, caret: String, createFix: (element: PsiElement)->LintIdeQuickFix, expected: String) {
+    val element = findElement(file, caret)
+    val fix = createFix(element)
+    val action = MyFixingIntention(fix, project, file, element.textRange)
+    checkPreview(expected, action, file)
+  }
+
+  private fun checkPreviewAction(file: PsiFile, caret: String, createAction: (element: PsiElement)->IntentionAction, expected: String) {
+    val element = findElement(file, caret)
+    val action = createAction(element)
+    checkPreview(expected, action, file)
+  }
+
+  private fun checkPreview(expected: String, intentionAction: IntentionAction, file: PsiFile) {
+    // Test preview
+    val psiFileCopy = file.copy() as PsiFile
+    val originalEditor: Editor = myFixture.editor
+    // Inspired by (internal) com.intellij.codeInsight.intention.impl.preview.IntentionPreviewEditor
+    val editorCopy: ImaginaryEditor = object : ImaginaryEditor(project, psiFileCopy.viewProvider.document) {
+      override fun getSettings(): EditorSettings {
+        return originalEditor.settings
+      }
+    }
+    editorCopy.caretModel.moveToOffset(originalEditor.caretModel.offset)
+    assertFalse(psiFileCopy.isPhysical)
+    val preview = intentionAction.generatePreview(project, editorCopy, psiFileCopy)
+    val documentManager = PsiDocumentManager.getInstance(project)
+    documentManager.commitDocument(editorCopy.document)
+    assertEquals(IntentionPreviewInfo.DIFF, preview)
+    assertEquals(expected.trimIndent().trim(),
+                 TestUtils.getDiff(file.text, psiFileCopy.text).trim())
+  }
+
   private fun doGlobalInspectionTest(inspection: GlobalInspectionTool): SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> {
     myFixture.enableInspections(inspection)
     return doGlobalInspectionTest(inspection, globalTestDir, AnalysisScope(myModule))
@@ -1879,9 +2059,7 @@ class AndroidLintTest : AndroidTestCase() {
     return highlightInfo
   }
 
-  /**
-   * Removes any error and warning markers from a file, and returns the original text
-   */
+  /** Removes any error and warning markers from a file, and returns the original text. */
   private fun stripMarkers(file: VirtualFile): String? {
     val project = project
     val psiFile = PsiManager.getInstance(project).findFile(file) ?: return null
@@ -1901,9 +2079,7 @@ class AndroidLintTest : AndroidTestCase() {
     return prev
   }
 
-  /**
-   * Sets the contents of the given file to the given string.
-   */
+  /** Sets the contents of the given file to the given string. */
   private fun restoreMarkers(file: VirtualFile, contents: String?) {
     val project = project
     val psiFile = PsiManager.getInstance(project).findFile(file) ?: return
@@ -2089,9 +2265,7 @@ class AndroidLintTest : AndroidTestCase() {
     @NonNls
     private const val BASE_PATH_GLOBAL = BASE_PATH + "global/"
 
-    /**
-     * Searches the given document for a prefix and suffix and deletes it if found. Caller must hold write lock.
-     */
+    /** Searches the given document for a prefix and suffix and deletes it if found. Caller must hold write lock. */
     private fun removeTag(document: Document, prefix: String, suffix: String): Boolean {
       val sequence = document.charsSequence
       val start = CharSequences.indexOf(sequence, prefix)
