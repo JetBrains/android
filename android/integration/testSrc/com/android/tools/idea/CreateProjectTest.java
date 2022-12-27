@@ -18,6 +18,7 @@ package com.android.tools.idea;
 import com.android.testutils.TestUtils;
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidSystem;
+import com.android.tools.asdriver.tests.FileServer;
 import com.android.tools.asdriver.tests.MavenRepo;
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher;
 import com.android.tools.asdriver.tests.MemoryUsageReportProcessor;
@@ -50,20 +51,32 @@ public class CreateProjectTest {
     String localDistributionUrl = TestUtils.resolveWorkspacePathUnchecked(distributionPath).toUri().toString();
     system.getInstallation().addVmOption("-Dgradle.ide.local.distribution.url=" + localDistributionUrl);
 
-    try (AndroidStudio studio = system.runStudioWithoutProject()) {
-      // "New Project" is selected by default, so we have to use the version of the icon that appears to be selected
-      studio.invokeByIcon("welcome/createNewProjectTab.svg");
+    // The New Project Wizard attempts to contact dl.google.com to ensure that the latest SDKs and
+    // SDK components (e.g. build tools) are installed. If they AREN'T, then a download is
+    // automatically invoked, and a modal progress dialog is displayed to the user. Our test is
+    // unaware of how to proceed through this modal dialog, so we override SDK_TEST_BASE_URL to
+    // point to a local server that will produce 404s on all requests.
+    try (FileServer fileServer = new FileServer()) {
+      fileServer.start();
+      String fileServerOrigin = fileServer.getOrigin();
+      String endsInSlash = fileServerOrigin.endsWith("/") ? fileServerOrigin : fileServerOrigin + "/";
+      system.setEnv("SDK_TEST_BASE_URL", endsInSlash);
 
-      // This only causes the item to be selected, so we still have to click "Next" below.
-      studio.invokeComponent("Empty Activity");
-      studio.invokeComponent("Next");
-      studio.invokeComponent("Finish");
+      try (AndroidStudio studio = system.runStudioWithoutProject()) {
+        // "New Project" is selected by default, so we have to use the version of the icon that
+        // appears to be selected.
+        studio.invokeByIcon("welcome/createNewProjectTab.svg");
 
-      studio.waitForSync();
-      studio.waitForIndex();
-      studio.executeAction("MakeGradleProject");
-      studio.waitForBuild();
-      MemoryUsageReportProcessor.Companion.collectMemoryUsageStatistics(studio, system.getInstallation(), watcher, "afterBuild");
+        // This only causes the item to be selected, so we still have to click "Next" below.
+        studio.invokeComponent("Empty Activity");
+        studio.invokeComponent("Next");
+        studio.invokeComponent("Finish");
+        studio.waitForSync();
+        studio.waitForIndex();
+        studio.executeAction("MakeGradleProject");
+        studio.waitForBuild();
+        MemoryUsageReportProcessor.Companion.collectMemoryUsageStatistics(studio, system.getInstallation(), watcher, "afterBuild");
+      }
     }
   }
 }
