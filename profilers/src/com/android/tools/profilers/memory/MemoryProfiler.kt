@@ -43,7 +43,9 @@ import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveA
 import com.android.tools.profilers.sessions.SessionsManager
 import com.intellij.openapi.diagnostic.Logger
 import com.android.tools.idea.io.grpc.StatusRuntimeException
-import com.android.tools.profiler.proto.Memory.MemoryTraceInfo
+import com.android.tools.profiler.proto.Trace
+import com.android.tools.profiler.proto.Trace.TraceData.TraceEnded
+import com.android.tools.profiler.proto.Trace.TraceInfo
 import java.io.File
 import java.io.IOException
 import java.io.OutputStream
@@ -133,9 +135,9 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
   private fun importHeapprofd(file: File) {
     import(file) { start, end ->
       makeEndedEvent(start, Common.Event.Kind.MEM_TRACE) {
-        setMemoryTraceInfo(MemoryTraceInfo.newBuilder()
-                                .setFromTimestamp(start)
-                                .setToTimestamp(end))
+        setTraceData(Trace.TraceData.newBuilder().setTraceEnded(TraceEnded.newBuilder().setTraceInfo(TraceInfo.newBuilder()
+                                                                                                       .setFromTimestamp(start)
+                                                                                                       .setToTimestamp(end))))
       }
     }
   }
@@ -245,7 +247,7 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
     @JvmStatic
     fun saveHeapProfdSampleToFile(client: ProfilerClient,
                                   session: Common.Session,
-                                  info: MemoryTraceInfo,
+                                  info: TraceInfo,
                                   outputStream: OutputStream) =
       saveToFile(client, session, info.fromTimestamp, outputStream, {}, "Failed to export native allocation records")
 
@@ -273,7 +275,11 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
 
     @JvmStatic
     fun getNativeHeapSamplesForSession(client: ProfilerClient, session: Common.Session, rangeUs: Range) =
-      getForSession(client, session, rangeUs, Common.Event.Kind.MEM_TRACE) { it.last().memoryTraceInfo }
+      getForSession(client, session, rangeUs,
+                    Common.Event.Kind.MEM_TRACE) {
+        if (it.last().traceData.hasTraceStarted()) it.last().traceData.traceStarted.traceInfo
+        else it.last().traceData.traceEnded.traceInfo
+      }
 
     @JvmStatic
     fun getNativeHeapStatusForSession(client: ProfilerClient, session: Common.Session, rangeUs: Range) =

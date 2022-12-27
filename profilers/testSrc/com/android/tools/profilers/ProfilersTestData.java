@@ -34,6 +34,7 @@ import com.android.tools.profiler.proto.Memory.BatchAllocationEvents;
 import com.android.tools.profiler.proto.Memory.BatchJNIGlobalRefEvent;
 import com.android.tools.profiler.proto.Memory.JNIGlobalReferenceEvent;
 import com.android.tools.profiler.proto.Network;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.cpu.config.ImportedConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import java.util.ArrayList;
@@ -184,10 +185,10 @@ public final class ProfilersTestData {
   }
 
   @NotNull
-  public static Common.Event.Builder generateMemoryTraceInfo(long groupId, long timestampUs, Memory.MemoryTraceInfo info) {
+  public static Common.Event.Builder generateMemoryTraceData(long groupId, long timestampUs, Trace.TraceData traceData) {
     long timestampNs = TimeUnit.MICROSECONDS.toNanos(timestampUs);
     return Common.Event.newBuilder().setTimestamp(timestampNs).setGroupId(groupId).setKind(Common.Event.Kind.MEM_TRACE)
-      .setIsEnded(true).setMemoryTraceInfo(info);
+      .setIsEnded(true).setTraceData(traceData);
   }
 
 

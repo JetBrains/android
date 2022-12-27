@@ -20,7 +20,7 @@ import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Memory.MemoryTraceInfo
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
@@ -66,9 +66,10 @@ class HeapProfdSessionArtifactTest {
 
   fun generateSessionArtifacts() : List<SessionArtifact<*>> {
     val nativeHeapTimestamp = 30L
-    val nativeHeapInfo = MemoryTraceInfo.newBuilder().setFromTimestamp(
-      nativeHeapTimestamp).setToTimestamp(nativeHeapTimestamp + 1).build()
-    val nativeHeapData = ProfilersTestData.generateMemoryTraceInfo(
+    val nativeHeapInfo = Trace.TraceData.newBuilder().setTraceStarted(Trace.TraceData.TraceStarted.newBuilder().setTraceInfo(
+      Trace.TraceInfo.newBuilder().setFromTimestamp(nativeHeapTimestamp).setToTimestamp(
+        nativeHeapTimestamp + 1))).build()
+    val nativeHeapData = ProfilersTestData.generateMemoryTraceData(
       nativeHeapTimestamp, nativeHeapTimestamp + 1, nativeHeapInfo)
       .setPid(ProfilersTestData.SESSION_DATA.pid).build()
     transportService.addEventToStream(ProfilersTestData.SESSION_DATA.streamId, nativeHeapData)

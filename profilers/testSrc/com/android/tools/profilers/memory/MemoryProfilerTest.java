@@ -32,6 +32,7 @@ import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerAspect;
@@ -150,16 +151,17 @@ public final class MemoryProfilerTest {
   @Test
   public void testGetNativeHeapSamplesForSession() {
     long nativeHeapTimestamp = 30L;
-    Memory.MemoryTraceInfo nativeHeapInfo =
-      Memory.MemoryTraceInfo.newBuilder().setFromTimestamp(nativeHeapTimestamp).setToTimestamp(nativeHeapTimestamp + 1).build();
+    Trace.TraceData nativeHeapInfo = Trace.TraceData.newBuilder().setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(
+      Trace.TraceInfo.newBuilder().setFromTimestamp(nativeHeapTimestamp).setToTimestamp(
+        nativeHeapTimestamp + 1))).build();
     Common.Event nativeHeapData =
-      ProfilersTestData.generateMemoryTraceInfo(nativeHeapTimestamp, nativeHeapTimestamp + 1, nativeHeapInfo)
+      ProfilersTestData.generateMemoryTraceData(nativeHeapTimestamp, nativeHeapTimestamp + 1, nativeHeapInfo)
         .setPid(ProfilersTestData.SESSION_DATA.getPid()).build();
     myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(), nativeHeapData);
-    List<Memory.MemoryTraceInfo> samples = MemoryProfiler
+    List<Trace.TraceInfo> samples = MemoryProfiler
       .getNativeHeapSamplesForSession(myStudioProfiler.getClient(), ProfilersTestData.SESSION_DATA,
                                       new Range(Long.MIN_VALUE, Long.MAX_VALUE));
-    Truth.assertThat(samples).containsExactly(nativeHeapInfo);
+    Truth.assertThat(samples).containsExactly(nativeHeapInfo.getTraceEnded().getTraceInfo());
   }
 
   @Ignore("Unified pipeline import cannot yet be tested because of dependencies on TransportService.getInstance().")
@@ -185,7 +187,7 @@ public final class MemoryProfilerTest {
   @Test
   public void testSaveHeapProfdSampleToFile() {
     long startTimeNs = 3;
-    Memory.MemoryTraceInfo data = Memory.MemoryTraceInfo.newBuilder().setFromTimestamp(startTimeNs).build();
+    Trace.TraceInfo data = Trace.TraceInfo.newBuilder().setFromTimestamp(startTimeNs).build();
     byte[] buffer = data.toByteArray();
     myTransportService.addFile(Long.toString(startTimeNs), ByteString.copyFrom(buffer));
     ByteArrayOutputStream baos = new ByteArrayOutputStream();

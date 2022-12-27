@@ -21,7 +21,6 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Memory
 import com.android.tools.profiler.proto.Memory.AllocationsInfo
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
 import com.android.tools.profiler.proto.Trace
@@ -387,9 +386,10 @@ class SessionsManagerTest {
     val session1 = manager.selectedSession
 
     val nativeHeapTimestamp = 30L
-    val nativeHeapInfo = Memory.MemoryTraceInfo.newBuilder().setFromTimestamp(nativeHeapTimestamp).setToTimestamp(
-      nativeHeapTimestamp + 1).build()
-    val nativeHeapData = ProfilersTestData.generateMemoryTraceInfo(nativeHeapTimestamp, nativeHeapTimestamp + 1, nativeHeapInfo)
+    val nativeHeapInfo = Trace.TraceData.newBuilder().setTraceStarted(Trace.TraceData.TraceStarted.newBuilder().setTraceInfo(
+      Trace.TraceInfo.newBuilder().setFromTimestamp(nativeHeapTimestamp).setToTimestamp(
+        nativeHeapTimestamp + 1))).build()
+    val nativeHeapData = ProfilersTestData.generateMemoryTraceData(nativeHeapTimestamp, nativeHeapTimestamp + 1, nativeHeapInfo)
     myTransportService.addEventToStream(device.deviceId, nativeHeapData.setPid(session1.pid).build())
     manager.update()
 

@@ -17,7 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.intellij.openapi.util.io.FileUtil;
@@ -31,11 +31,11 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
-public class HeapProfdSessionArtifact extends MemorySessionArtifact<Memory.MemoryTraceInfo> {
+public class HeapProfdSessionArtifact extends MemorySessionArtifact<Trace.TraceInfo> {
   public HeapProfdSessionArtifact(@NotNull StudioProfilers profilers,
                                   @NotNull Common.Session session,
                                   @NotNull Common.SessionMetaData sessionMetaData,
-                                  @NotNull Memory.MemoryTraceInfo info) {
+                                  @NotNull Trace.TraceInfo info) {
     super(profilers, session, sessionMetaData, info, "Native Sampled");
   }
 
@@ -70,7 +70,7 @@ public class HeapProfdSessionArtifact extends MemorySessionArtifact<Memory.Memor
                                    session.getEndTimestamp() == Long.MAX_VALUE
                                    ? Long.MAX_VALUE
                                    : TimeUnit.NANOSECONDS.toMicros(session.getEndTimestamp()));
-    List<Memory.MemoryTraceInfo> infos =
+    List<Trace.TraceInfo> infos =
       MemoryProfiler.getNativeHeapSamplesForSession(profilers.getClient(), session, queryRangeUs);
     return ContainerUtil.map(infos, info -> new HeapProfdSessionArtifact(profilers, session, sessionMetaData, info));
   }
