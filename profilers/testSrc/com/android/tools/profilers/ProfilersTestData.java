@@ -187,7 +187,7 @@ public final class ProfilersTestData {
   @NotNull
   public static Common.Event.Builder generateMemoryTraceData(long groupId, long timestampUs, Trace.TraceData traceData) {
     long timestampNs = TimeUnit.MICROSECONDS.toNanos(timestampUs);
-    return Common.Event.newBuilder().setTimestamp(timestampNs).setGroupId(groupId).setKind(Common.Event.Kind.MEM_TRACE)
+    return Common.Event.newBuilder().setTimestamp(timestampNs).setGroupId(groupId).setKind(Common.Event.Kind.MEMORY_TRACE)
       .setIsEnded(true).setTraceData(traceData);
   }
 

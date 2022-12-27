@@ -134,7 +134,7 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
 
   private fun importHeapprofd(file: File) {
     import(file) { start, end ->
-      makeEndedEvent(start, Common.Event.Kind.MEM_TRACE) {
+      makeEndedEvent(start, Common.Event.Kind.MEMORY_TRACE) {
         setTraceData(Trace.TraceData.newBuilder().setTraceEnded(TraceEnded.newBuilder().setTraceInfo(TraceInfo.newBuilder()
                                                                                                        .setFromTimestamp(start)
                                                                                                        .setToTimestamp(end))))
@@ -276,7 +276,7 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
     @JvmStatic
     fun getNativeHeapSamplesForSession(client: ProfilerClient, session: Common.Session, rangeUs: Range) =
       getForSession(client, session, rangeUs,
-                    Common.Event.Kind.MEM_TRACE) {
+                    Common.Event.Kind.MEMORY_TRACE) {
         if (it.last().traceData.hasTraceStarted()) it.last().traceData.traceStarted.traceInfo
         else it.last().traceData.traceEnded.traceInfo
       }

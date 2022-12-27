@@ -45,7 +45,7 @@ class MemoryNativeSampling(timer: FakeTimer) : CommandHandler(timer) {
       events.add(Common.Event.newBuilder().apply {
         pid = command.pid
         commandId = command.commandId
-        kind = Common.Event.Kind.MEM_TRACE
+        kind = Common.Event.Kind.MEMORY_TRACE
         timestamp = timer.currentTimeNs
         groupId = startCommandTimestamp
         traceData = Trace.TraceData.newBuilder().apply {
@@ -74,7 +74,7 @@ class MemoryNativeSampling(timer: FakeTimer) : CommandHandler(timer) {
       events.add(Common.Event.newBuilder().apply {
         pid = command.pid
         commandId = command.commandId
-        kind = Common.Event.Kind.MEM_TRACE
+        kind = Common.Event.Kind.MEMORY_TRACE
         timestamp = timer.currentTimeNs
         groupId = startCommandTimestamp
         traceData = Trace.TraceData.newBuilder().apply {
