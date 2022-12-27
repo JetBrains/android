@@ -1792,7 +1792,7 @@ class AndroidLintTest : AndroidTestCase() {
     checkPreviewFix(
       file,
       "^props.load", {
-        val fix = AddTargetVersionCheckQuickFix(9, ExtensionSdk.ANDROID_SDK_ID, ApiConstraint.ALL)
+        val fix = AddTargetVersionCheckQuickFix(project,9, ExtensionSdk.ANDROID_SDK_ID, ApiConstraint.ALL)
         assertThat(fix.name).isEqualTo("Surround with if (VERSION.SDK_INT >= VERSION_CODES.GINGERBREAD) { ... }")
         fix
       },

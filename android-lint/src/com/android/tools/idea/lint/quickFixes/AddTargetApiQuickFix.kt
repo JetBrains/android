@@ -208,7 +208,7 @@ class AddTargetApiQuickFix(private val requirements: List<SdkApiConstraint>,
     val fqn = if (requiresApi && sdkId != ANDROID_SDK_ID) {
       REQUIRES_EXTENSION_ANNOTATION
     } else if (requiresApi) {
-      val module = ModuleUtilCore.findModuleForPsiElement(annotationContainer)
+        val module = ModuleUtilCore.findModuleForPsiElement(annotationContainer)
         module.mapAndroidxName(REQUIRES_API_ANNOTATION)
       } else {
         FQCN_TARGET_API

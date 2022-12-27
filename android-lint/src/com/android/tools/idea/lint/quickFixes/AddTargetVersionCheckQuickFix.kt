@@ -62,6 +62,7 @@ import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
 /** Fix which surrounds an API warning with a version check  */
 class AddTargetVersionCheckQuickFix(
+  project: Project,
   private val api: Int,
   private val sdkId: Int,
   private val minSdk: ApiConstraint
@@ -69,7 +70,7 @@ class AddTargetVersionCheckQuickFix(
   if (sdkId == ANDROID_SDK_ID)
     "Surround with if (VERSION.SDK_INT >= ${getVersionField(api, false).let { if (it[0].isDigit()) it else "VERSION_CODES.$it" }}) { ... }"
   else
-    "Surround with if (SdkExtensions.getExtensionVersion(${ExtensionSdk.getSdkExtensionField(sdkId, false)})) >= $api) { ... }"
+    "Surround with if (SdkExtensions.getExtensionVersion(${getSdkExtensionField(project, sdkId, false)})) >= $api) { ... }"
 ) {
 
   override fun isApplicable(startElement: PsiElement,
@@ -159,7 +160,7 @@ class AddTargetVersionCheckQuickFix(
         if (sdkId == ANDROID_SDK_ID)
           "android.os.Build.VERSION.SDK_INT >= " + getVersionField(api, true)
       else
-          "${getExtensionCheckPrefix()}android.os.ext.SdkExtensions.getExtensionVersion($sdkId) >= $api"
+          "${getExtensionCheckPrefix()}android.os.ext.SdkExtensions.getExtensionVersion(${getSdkExtensionField(project, sdkId, true)}) >= $api"
       document.replaceString(textRange.startOffset, textRange.endOffset, newText)
       val documentManager = PsiDocumentManager.getInstance(project)
       documentManager.commitDocument(document)
@@ -217,12 +218,10 @@ class AddTargetVersionCheckQuickFix(
 
   companion object {
     fun getVersionField(api: Int, fullyQualified: Boolean): String = ExtensionSdk.getAndroidVersionField(api, fullyQualified)
-    fun getSdkExtensionField(project: Project?, sdkId: Int, fullyQualified: Boolean): String {
-      if (project != null) {
-        val apiLookup = LintIdeClient.getApiLookup(project)
-        if (apiLookup != null) {
-          return apiLookup.getSdkExtensionField(sdkId, fullyQualified)
-        }
+    fun getSdkExtensionField(project: Project, sdkId: Int, fullyQualified: Boolean): String {
+      val apiLookup = LintIdeClient.getApiLookup(project)
+      if (apiLookup != null) {
+        return apiLookup.getSdkExtensionField(sdkId, fullyQualified)
       }
       return ExtensionSdk.getSdkExtensionField(sdkId, fullyQualified)
     }

@@ -78,17 +78,17 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
       // Is the API fix limited to applying to (for example) just classes?
       boolean requireClass = LintFix.getBoolean(fixData, ApiDetector.KEY_REQUIRE_CLASS, false);
       List<ApiConstraint.SdkApiConstraint> constraints = requirement.getConstraints();
+      Project project = startElement.getProject();
       if (!requireClass && !isXml) {
         ApiConstraint minSdk = LintFix.getApiConstraint(fixData, ApiDetector.KEY_MIN_API, ApiConstraint.UNKNOWN);
         for (ApiConstraint constraint : constraints) {
           int version = constraint.min();
           int sdk = constraint.getSdk();
-          list.add(new AddTargetVersionCheckQuickFix(version, sdk, minSdk));
+          list.add(new AddTargetVersionCheckQuickFix(project, version, sdk, minSdk));
         }
       }
 
       ApplicationManager.getApplication().assertReadAccessAllowed();
-      Project project = startElement.getProject();
       ApiConstraint.SdkApiConstraint first = constraints.get(0);
       if (constraints.size() > 1) {
         // Just pick the first one: the order is significant and the first item is supposed

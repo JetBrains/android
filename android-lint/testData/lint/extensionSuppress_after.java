@@ -9,7 +9,7 @@ public @interface RequiresExtension {
 
 class SdkExtensionsTest {
     public void test() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R && android.os.ext.SdkExtensions.getExtensionVersion(30) >= 4<caret>) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R && android.os.ext.SdkExtensions.getExtensionVersion(android.os.Build.VERSION_CODES.R) >= 4<caret>) {
             requiresExtRv4();
         }
     }
