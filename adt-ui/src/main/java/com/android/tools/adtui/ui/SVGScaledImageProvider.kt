@@ -33,7 +33,7 @@ class SVGScaledImageProvider(private val url: URL, private val image: Image?) : 
   @Throws(java.io.IOException::class)
   @WorkerThread
   override fun createScaledImage(ctx: ScaleContext, width: Double, height: Double): Image {
-    // Preserve aspect ratio
+    // Preserve an aspect ratio
     val size = width.coerceAtMost(height) // min(width, height)
 
     // Load SVG file, with HiDPI support from [ctx]
@@ -53,7 +53,7 @@ class SVGScaledImageProvider(private val url: URL, private val image: Image?) : 
     fun create(cachedIcon: IconLoader.CachedImageIcon): SVGScaledImageProvider {
       val url = cachedIcon.url
       if (url != null) {
-        return SVGScaledImageProvider(url, cachedIcon.realIcon.image)
+        return SVGScaledImageProvider(url, cachedIcon.getRealIcon().image)
       }
       throw IllegalArgumentException("CachedImageIcon should have a valid URL")
     }
