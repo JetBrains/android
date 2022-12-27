@@ -65,7 +65,7 @@ public class CreateSettingsActivityTest {
       .wizard()
       .clickNext()
       .clickFinishAndWaitForSyncToFinish()
-      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Settings Activity")
+      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Settings Views Activity")
       .clickFinishAndWaitForSyncToFinish();
 
     // Verification.

@@ -43,12 +43,12 @@ public class InferNullityTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
-  protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Activity";
+  protected static final String EMPTY_VIEWS_ACTIVITY_TEMPLATE = "Empty Views Activity";
   private static String ANALYZE = "Analyze";
 
   @Before
   public void setUp() throws Exception {
-    WizardUtils.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE); // Default projects are created with androidx dependencies
+    WizardUtils.createNewProject(guiTest, EMPTY_VIEWS_ACTIVITY_TEMPLATE); // Default projects are created with androidx dependencies
     guiTest.robot().waitForIdle();
   }
 
@@ -61,7 +61,7 @@ public class InferNullityTest {
    * <p>
    *   <pre>
    *   Test Steps:
-   *   1. Create Empty Activity project and add the sample methods to MainActivity class
+   *   1. Create Empty Views Activity project and add the sample methods to MainActivity class
    *   2. Click on Analyze > Infer Nullity.
    *   3. Select Annotations scope as "Whole Project" and click OK.
    *   4. Click OK when prompted to add the support-annotations dependency to the project.
