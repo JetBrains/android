@@ -45,7 +45,7 @@ private fun requestBuild(project: Project, module: Module) =
   GradleBuildInvoker.getInstance(project).compileJava(setOf(module).toTypedArray(), TestCompileType.NONE)
 
 internal class CustomViewPreviewNotificationProvider : EditorNotificationProvider {
-  override fun collectNotificationData(project: Project, file: VirtualFile): Function<in FileEditor, out JComponent?> {
+  override fun collectNotificationData(project: Project, file: VirtualFile): Function<in FileEditor, out JComponent?>? {
     return Function { createNotificationPanel(file, it, project) }
   }
 
