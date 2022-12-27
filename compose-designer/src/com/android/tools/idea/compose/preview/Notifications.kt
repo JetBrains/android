@@ -51,7 +51,7 @@ internal class ComposeNewPreviewNotificationProvider @NonInjectable constructor(
 
   constructor() : this(::defaultFilePreviewElementFinder)
 
-  override fun collectNotificationData(project: Project, file: VirtualFile): Function<in FileEditor, out JComponent?> {
+  override fun collectNotificationData(project: Project, file: VirtualFile): Function<in FileEditor, out JComponent?>? {
     return Function { createNotificationPanel(file, it, project) }
   }
 
