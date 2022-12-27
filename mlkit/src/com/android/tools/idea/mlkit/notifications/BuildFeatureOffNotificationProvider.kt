@@ -47,7 +47,7 @@ class BuildFeatureOffNotificationProvider : EditorNotificationProvider {
     setBuildFeature("mlModelBinding", true)
   }
 
-  override fun collectNotificationData(project: Project, file: VirtualFile): Function<in FileEditor, out JComponent?> {
+  override fun collectNotificationData(project: Project, file: VirtualFile): Function<in FileEditor, out JComponent?>? {
     return Function { createNotificationPanel(file, it, project) }
   }
 
