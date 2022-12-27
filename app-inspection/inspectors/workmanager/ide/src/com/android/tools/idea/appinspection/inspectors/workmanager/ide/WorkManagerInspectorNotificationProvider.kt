@@ -71,11 +71,7 @@ private val ANDROIDX_WORK_IMPORT_PREFIX = "${ANDROIDX_WORK_RUNTIME.mavenGroupId}
  * inspector if the current file they opened in the editor matches a bunch of criteria.
  */
 class WorkManagerInspectorNotificationProvider : EditorNotificationProvider {
-  override fun collectNotificationData(project: Project, file: VirtualFile): Function<in FileEditor, out JComponent?> {
-    return Function { createNotificationPanel(file, project) }
-  }
-
-  private fun createNotificationPanel(file: VirtualFile, project: Project): WorkManagerInspectorNotificationPanel? {
+  override fun collectNotificationData(project: Project, file: VirtualFile): Function<in FileEditor, out JComponent?>? {
     if (!IdeInfo.getInstance().isAndroidStudio) return null
     if (PropertiesComponent.getInstance(project).getBoolean(DISMISSED_PROPERTY_KEY)) return null
 
@@ -87,7 +83,9 @@ class WorkManagerInspectorNotificationProvider : EditorNotificationProvider {
 
     val appInspectionToolWindow = ToolWindowManager.getInstance(project).getToolWindow(APP_INSPECTION_ID) ?: return null
 
-    return WorkManagerInspectorNotificationPanel(project, appInspectionToolWindow)
+    return Function {
+      WorkManagerInspectorNotificationPanel(project, appInspectionToolWindow)
+    }
   }
 
   private fun VirtualFile.containsWorkImport(project: Project): Boolean {
