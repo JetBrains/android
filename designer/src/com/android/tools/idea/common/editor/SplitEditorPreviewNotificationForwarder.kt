@@ -43,7 +43,7 @@ interface SplitEditorPreviewNotificationHandler {
  * easily be refactored.
  */
 class SplitEditorPreviewNotificationForwarder : EditorNotificationProvider {
-  override fun collectNotificationData(project: Project, file: VirtualFile): Function<in FileEditor, out JComponent?> {
+  override fun collectNotificationData(project: Project, file: VirtualFile): Function<in FileEditor, out JComponent?>? {
     return Function { createNotificationPanel(it) }
   }
   private fun createNotificationPanel(fileEditor: FileEditor): EditorNotificationPanel? {
