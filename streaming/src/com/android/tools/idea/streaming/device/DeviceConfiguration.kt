@@ -17,7 +17,6 @@ package com.android.tools.idea.streaming.device
 
 import com.android.adblib.DevicePropertyNames.RO_BOOT_QEMU_AVD_NAME
 import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
-import com.android.adblib.DevicePropertyNames.RO_BUILD_VERSION_CODENAME
 import com.android.adblib.DevicePropertyNames.RO_BUILD_VERSION_SDK
 import com.android.adblib.DevicePropertyNames.RO_KERNEL_QEMU_AVD_NAME
 import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MANUFACTURER
@@ -32,7 +31,7 @@ class DeviceConfiguration(deviceProperties: Map<String, String>) {
 
   val apiLevel: Int = deviceProperties[RO_BUILD_VERSION_SDK]?.toInt() ?: SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 
-  val featureLevel: Int = if (deviceProperties[RO_BUILD_VERSION_CODENAME] == null) apiLevel else apiLevel + 1
+  val featureLevel: Int = if (deviceProperties["ro.build.version.codename"] == null) apiLevel else apiLevel + 1
 
   val avdName: String? = deviceProperties[RO_BOOT_QEMU_AVD_NAME] ?: deviceProperties[RO_KERNEL_QEMU_AVD_NAME]
 
