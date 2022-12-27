@@ -83,4 +83,31 @@ public final class WizardUtils {
       .selectAndroidPane()
       .clickPath("app"); // Focus "app" in "Android Pane" to allow adding Activities through the menus (instead of right click)
   }
+
+  //To create a native C++ project, which has additional steps.
+  @NotNull
+  public static void createNativeCPlusPlusProject(@NotNull GuiTestRule guiTest,
+                                      @NotNull String appName,
+                                      @NotNull String appPackageName,
+                                      int minSdkApi,
+                                      @NotNull Language language) {
+    guiTest
+      .welcomeFrame()
+      .createNewProject()
+      .getChooseAndroidProjectStep()
+      .chooseActivity("Native C++")
+      .wizard()
+      .clickNext()
+      .getConfigureNewAndroidProjectStep()
+      .enterName(appName)
+      .enterPackageName(appPackageName)
+      .selectMinimumSdkApi(minSdkApi)
+      .setSourceLanguage(language)
+      .wizard()
+      .clickNext()
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(150))
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath("app"); // Focus "app" in "Android Pane" to allow adding Activities through the menus (instead of right click)
+  }
 }
