@@ -53,7 +53,7 @@ class SVGScaledImageProvider(private val url: URL, private val image: Image?) : 
     fun create(cachedIcon: IconLoader.CachedImageIcon): SVGScaledImageProvider {
       val url = cachedIcon.url
       if (url != null) {
-        return SVGScaledImageProvider(url, cachedIcon.realIcon.image)
+        return SVGScaledImageProvider(url, cachedIcon.getRealIcon().image)
       }
       throw IllegalArgumentException("CachedImageIcon should have a valid URL")
     }
