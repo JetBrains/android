@@ -30,7 +30,7 @@ import javax.swing.JComponent
  * A [EditorNotificationProvider] for the [DesignSurface].
  */
 class DesignSurfaceNotificationProvider : EditorNotificationProvider {
-  override fun collectNotificationData(project: Project, file: VirtualFile): Function<in FileEditor, out JComponent?> {
+  override fun collectNotificationData(project: Project, file: VirtualFile): Function<in FileEditor, out JComponent?>? {
     return Function { createNotificationPanel(file, it, project) }
   }
 
