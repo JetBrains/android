@@ -19,6 +19,7 @@ package com.android.tools.idea.testing
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.navigator.AndroidProjectViewPane
 import com.android.tools.idea.sdk.IdeSdks
+import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.projectView.impl.GroupByTypeComparator
@@ -67,8 +68,17 @@ fun <T : Any> Project.dumpAndroidProjectView(
       this is RowIcon && allIcons.size == 1 -> getIcon(0)?.toText()
       this is IconLoader.CachedImageIcon -> originalPath ?: Regex("path=([^,]+)").find(toString())?.groups?.get(1)?.value ?: ""
       this is ImageIconUIResource -> description ?: "ImageIconUIResource(?)"
-      this is LayeredIcon && allLayers.size == 1 ->  getIcon(0)?.toText()
-      this is LayeredIcon -> "[${allLayers.joinToString(separator = ", ") { it.toText().orEmpty() }}] / ${getToolTip(true)}"
+      this is LayeredIcon -> {
+        // b/256898739 ignore symlink overlay for ProjectView snapshot
+        // When running from bazel some of NDK files are symlinked, while running from IDE direct path is used
+        val significantLayers = allLayers.filter { icon -> icon != AllIcons.Nodes.Symlink }
+        if (significantLayers.size == 1) {
+          getIcon(0)?.toText()
+        }
+        else {
+          "[${significantLayers.joinToString(separator = ", ") { it.toText().orEmpty() }}] / ${getToolTip(true)}"
+        }
+      }
       else -> "$this (${javaClass.simpleName})"
     }
 
