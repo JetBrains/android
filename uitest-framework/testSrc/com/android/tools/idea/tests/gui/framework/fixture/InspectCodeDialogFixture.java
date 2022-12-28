@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.ui.DialogWrapper;
+import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,5 +56,11 @@ public class InspectCodeDialogFixture extends IdeaDialogFixture<DialogWrapper> {
     // Wait for processing project usages to finish as running in background.
     GuiTests.waitForBackgroundTasks(robot(), Wait.seconds(180));
     return InspectionsFixture.find(myIdeFrameFixture);
+  }
+
+  public void clickAnalyze() {
+    GuiTests.findAndClickButton(this, "Analyze");
+    waitUntilNotShowing();
+    GuiTests.waitForBackgroundTasks(robot(), Wait.seconds(180));
   }
 }

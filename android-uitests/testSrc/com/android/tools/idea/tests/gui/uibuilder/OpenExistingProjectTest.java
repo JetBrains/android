@@ -17,11 +17,15 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.sdklib.SdkVersionInfo;
+import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
+import com.android.tools.idea.tests.util.WizardUtils;
+import com.android.tools.idea.wizard.template.Language;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.List;
@@ -33,6 +37,11 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class OpenExistingProjectTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
+
+  protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Views Activity";
+  protected static final String APP_NAME = "Test App";
+  protected static final String PACKAGE_NAME = "android.com.testapp";
+  protected static final int MIN_SDK_API = SdkVersionInfo.HIGHEST_SUPPORTED_API;
 
   /**
    * Verifies that existing projects can be opened and build without errors.
@@ -57,21 +66,32 @@ public class OpenExistingProjectTest {
    */
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
-  public void createNewMobileProject() {
-    IdeFrameFixture ideFrame = new NewProjectDescriptor("Test App").create(guiTest);
+  public void testOpenExistingProject() {
+    //Create a new project
+    WizardUtils.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Language.Java);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+
+    //Clearing any notifications present on the frame
+    ideFrame.clearNotificationsPresentOnIdeFrame();
+
+    //Closing  and opening the new project.
     ideFrame = ideFrame.closeProject()
       .openTheMostRecentProject(guiTest);
-    guiTest.waitForBackgroundTasks();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    //ideFrame.getEditor().open("app/src/main/java/com/android/test/app/MainActivity.java");
+    //Checking for code errors.
     ideFrame.openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code...")
-      .clickButton("Analyze");
+      .clickAnalyze();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
     List<String> errors = ideFrame.getEditor().getHighlights(HighlightSeverity.ERROR);
     assertThat(errors).hasSize(0);
 
-    ideFrame.invokeAndWaitForBuildAction("Build", "Rebuild Project");
+    //Rebuilding the project.
+    BuildStatus rebuildStatus = ideFrame.invokeRebuildProject();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    ideFrame.closeProject();
+    assertThat(rebuildStatus.isBuildSuccessful()).isTrue();
   }
 }

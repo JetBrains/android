@@ -170,14 +170,24 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public BuildStatus invokeProjectMake(@Nullable Wait wait) {
+    return actAndWaitForBuildToFinish(wait, it -> it.waitAndInvokeMenuPath("Build", "Make Project"));
+  }
+
+  @NotNull
   public BuildStatus invokeCleanAndMakeProject() {
     waitAndInvokeMenuPath("Build", "Clean Project");
     return invokeProjectMake(null);
   }
 
   @NotNull
-  public BuildStatus invokeProjectMake(@Nullable Wait wait) {
-    return actAndWaitForBuildToFinish(wait, it -> it.waitAndInvokeMenuPath("Build", "Make Project"));
+  public BuildStatus invokeRebuildProject() {
+    return invokeRebuildProject(null);
+  }
+
+  @NotNull
+  public BuildStatus invokeRebuildProject(@Nullable Wait wait) {
+    return actAndWaitForBuildToFinish(wait, it -> it.waitAndInvokeMenuPath("Build", "Rebuild Project"));
   }
 
   @NotNull
