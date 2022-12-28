@@ -223,11 +223,12 @@ class TreeTableDropTargetHandlerTest {
   }
 
   @Test
-  fun testCannotDragItemIntoItself() {
+  fun testDragItemToEnd() {
     val table = createTreeTable()
     val depth4 = table.computeLeftOffset(4)
     val rowHeight = table.rowHeight
-    val handler = TreeTableDropTargetHandler(table, false, mutableListOf(item2)) // We are dragging item2 to the end
+    val draggedItems = mutableListOf<Any>(item2)
+    val handler = TreeTableDropTargetHandler(table, false, draggedItems) // We are dragging item2 to the end
     val event = createDnDEvent(Point(depth4 + 3, 7 * rowHeight - 3))
 
     // Even though the drag location specify item3,
@@ -236,6 +237,29 @@ class TreeTableDropTargetHandlerTest {
     checkPaint(table, handler, 0, 7)
     verify(table).repaint()
     verify(event).isDropPossible = true
+  }
+
+  @Test
+  fun testCannotDragItemIntoItself() {
+    val table = createTreeTable()
+    val rowHeight = table.rowHeight
+    val draggedItems = mutableListOf<Any>(item2)
+    val handler = TreeTableDropTargetHandler(table, false, draggedItems) // We are dragging item2 into itself.
+    val event = createDnDEvent(Point(5, 2 * rowHeight - 3))
+
+    // Attempt to drag item2 into itself before the first existing child item3.
+    // The dragged item2 should not be accepted anywhere.
+    handler.update(event)
+    checkNoPaint(handler)
+    verify(table, never()).repaint()
+    verify(event).isDropPossible = false
+
+    // Check that an attempted drop clears the draggedItems such that the TransferHandler doesn't delete the item during exportDone.
+    handler.tryDrop(event)
+    checkNoPaint(handler)
+    verify(table, never()).repaint()
+    verify(event, times(2)).isDropPossible = false
+    assertThat(draggedItems).isEmpty()
   }
 
   @Test
@@ -315,26 +339,56 @@ class TreeTableDropTargetHandlerTest {
   }
 
   @Test
-  fun testDropMoveItemToItself() {
+  fun testMoveItemJustBeforeItselfToAdjacentLayout() {
     val table = createTreeTable()
     val depth4 = table.computeLeftOffset(4)
     val rowHeight = table.rowHeight
-    val draggedItems = mutableListOf<Any>(item6)
-    val handler = TreeTableDropTargetHandler(table, false, draggedItems) // We are dragging item6 to just before itself
-    val event = createDnDEvent(Point(depth4 + 3, 5 * rowHeight + 2))
+    val draggedItems = mutableListOf<Any>(item5)
+    val handler = TreeTableDropTargetHandler(table, false, draggedItems) // We are dragging item5 to just before itself
+    val event = createDnDEvent(Point(depth4 + 3, 4 * rowHeight + 2))
     handler.update(event)
-    checkPaint(table, handler, 4, 5)
+    checkPaint(table, handler, 3, 4)
     verify(table).repaint()
     verify(event).isDropPossible = true
 
     handler.tryDrop(event)
-    checkNoPaint(handler)
-    verify(table, times(2)).repaint()
-
-    // Verify the moved item (item6) was moved into item4 before item7
-    assertThat(item5.insertions).hasSize(1)
-    checkInsertion(item5.insertions[0], item7, DnDAction.MOVE, listOf(item6))
+    // Verify the moved item (item5) was moved into item4
+    assertThat(item4.insertions).hasSize(1)
+    checkInsertion(item4.insertions[0], null, DnDAction.MOVE, listOf(item5))
     assertThat(draggedItems).isEmpty()
+  }
+
+  @Test
+  fun testCannotMoveItemJustBeforeItselfToParentLayout() {
+    val table = createTreeTable()
+    val depth4 = table.computeLeftOffset(3)
+    val rowHeight = table.rowHeight
+    val draggedItems = mutableListOf<Any>(item5)
+    val handler = TreeTableDropTargetHandler(table, false, draggedItems) // We are dragging item5 to just before itself
+    val event = createDnDEvent(Point(depth4 + 3, 4 * rowHeight + 2))
+    handler.update(event)
+    checkNoPaint(handler)
+    verify(table, never()).repaint()
+    verify(event).isDropPossible = false
+  }
+
+  @Test
+  fun testCopyItemJustBeforeItselfToParentLayout() {
+    val table = createTreeTable()
+    val depth4 = table.computeLeftOffset(3)
+    val rowHeight = table.rowHeight
+    val draggedItems = mutableListOf<Any>(item5)
+    val handler = TreeTableDropTargetHandler(table, false, draggedItems) // We are dragging item5 to just before itself
+    val event = createDnDEvent(Point(depth4 + 3, 4 * rowHeight + 2), action = DnDAction.COPY)
+    handler.update(event)
+    checkPaint(table, handler, 1, 4)
+    verify(table).repaint()
+    verify(event).isDropPossible = true
+
+    handler.tryDrop(event)
+    // Verify that (item5) was copied into item2
+    assertThat(item2.insertions).hasSize(1)
+    checkInsertion(item2.insertions[0], item5, DnDAction.COPY, listOf(item5))
   }
 
   private fun checkNoPaint(handler: TreeTableDropTargetHandler) {

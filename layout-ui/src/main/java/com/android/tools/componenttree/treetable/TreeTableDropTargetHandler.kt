@@ -49,24 +49,15 @@ class TreeTableDropTargetHandler(
   private var lastDropWasPossible = false
 
   override fun tryDrop(event: DnDEvent): Boolean {
-    val receiver = table.getValueAt(receiverRow, 0)
+    var dropped = false
     val isMove = event.action == DnDAction.MOVE
-    var beforeIndex = insertionRow
-    var before: Any?
-    // Find the first insertion point, that is not pointing to one of the items being dragged.
-    while (true) {
-      val item = table.getValueAt(beforeIndex, 0)
-      val insertAfterLastItemInReceiver = beforeIndex - receiverRow > table.tableModel.children(receiver).size
-      before = if (!insertAfterLastItemInReceiver) item else null
-      if (!isMove || before == null || draggedItems.none { it === before }) {
-        break
+    if (!update(event)) { // false means: drop is possible in this table ...
+      val receiver = table.getValueAt(receiverRow, 0)
+      var before = table.getValueAt(insertionRow, 0)
+      if (before != null && table.tableModel.parent(before) !== receiver) {
+        before = null
       }
-      // The before item is in the items being moved. Choose the next item in the tree as the item to insert the dragged items before:
-      beforeIndex++
-    }
-    if (!table.tableModel.insert(receiver, event.transferable, before, isMove, draggedItems)) {
-      clearInsertionPoint()
-      return false
+      dropped = table.tableModel.insert(receiver, event.transferable, before, isMove, draggedItems)
     }
     if (isMove && !deleteOriginOfInternalMove) {
       // If this is a MOVE we normally want to delete the object being dragged from the origin.
@@ -76,7 +67,7 @@ class TreeTableDropTargetHandler(
       draggedItems.clear()
     }
     clearInsertionPoint()
-    return true
+    return dropped
   }
 
   fun updateUI() {
@@ -155,7 +146,7 @@ class TreeTableDropTargetHandler(
     return when {
       insertionRow == newInsertionRow && insertionDepth == newInsertionDepth ->
         dropPossible(event, lastDropWasPossible)
-      !findReceiver(event.transferable, newInsertionRow, newInsertionDepth) ->
+      !findReceiver(event.action == DnDAction.MOVE, event.transferable, newInsertionRow, newInsertionDepth) ->
         dropPossible(event, false)
       else -> {
         insertionRow = newInsertionRow
@@ -192,7 +183,7 @@ class TreeTableDropTargetHandler(
   //       |-- potential Insertion point 1 <---
   //   |-- potential Insertion point 2     <---
   //
-  private fun findReceiver(data: Transferable, insertionRow: Int, insertionDepth: Int): Boolean {
+  private fun findReceiver(isMove: Boolean, data: Transferable, insertionRow: Int, insertionDepth: Int): Boolean {
     receiverRow = -1
     receiverBounds = null
     var item = table.model.getValueAt(insertionRow - 1, 0) ?: return false
@@ -207,6 +198,19 @@ class TreeTableDropTargetHandler(
     }
     if (receiver == null) {
       return false
+    }
+    val before = table.model.getValueAt(insertionRow, 0)
+    if (before != null) {
+      val parentOfBefore = table.tableModel.parent(before)
+      if (generateSequence(receiver) { table.tableModel.parent(it) }.none { it === parentOfBefore }) {
+        // Check that this insertion point is a valid insertion point for this receiver.
+        return false
+      }
+      if (isMove && parentOfBefore === receiver && draggedItems.any { before === it }) {
+        // Do not allow moving items to before itself (this is usually a noop anyway).
+        // This is a precaution for the API for moving the item. It may not allow moving an item before itself.
+        return false
+      }
     }
     val path = TreePath(generateSequence(item) { table.tableModel.parent(it) }.toList().asReversed().toTypedArray())
     receiverRow = table.tree.getRowForPath(path)
