@@ -305,7 +305,10 @@ fun NlComponent.isOrHasSuperclass(className: AndroidxName): Boolean {
 /**
  * Return true if this NlComponent's class is derived from the specified [className].
  *
- * In tests the classes from ConstraintLayout may not be available on the classpath.
+ * In tests the classes from ConstraintLayout may not be available on the classpath and the
+ * viewObject check in [isOrHasSuperclass] will not work.
+ * 
+ * Instead check the [NlComponent.getTagName] or if this is a constraint helper.
  */
 private fun NlComponent.isOrHasSuperclassInTest(className: String): Boolean = when (className) {
   CLASS_CONSTRAINT_LAYOUT_HELPER.newName(),

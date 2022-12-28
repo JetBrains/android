@@ -82,9 +82,10 @@ class TreeTableDropTargetHandlerTest {
   private val item1 = Item(SdkConstants.FQCN_LINEAR_LAYOUT)
   private val item2 = Item(SdkConstants.FQCN_GRID_LAYOUT)
   private val item3 = Item(SdkConstants.FQCN_BUTTON)
-  private val item4 = Item(SdkConstants.FQCN_RELATIVE_LAYOUT)
-  private val item5 = Item(SdkConstants.FQCN_CHECK_BOX)
-  private val item6 = Item(SdkConstants.FQCN_TEXT_VIEW)
+  private val item4 = Item(SdkConstants.FQCN_TABLE_LAYOUT)
+  private val item5 = Item(SdkConstants.FQCN_RELATIVE_LAYOUT)
+  private val item6 = Item(SdkConstants.FQCN_CHECK_BOX)
+  private val item7 = Item(SdkConstants.FQCN_TEXT_VIEW)
 
   private val badgeItem = object : IconColumn("Badge") {
     override fun getIcon(item: Any): Icon? = when (item) {
@@ -102,14 +103,16 @@ class TreeTableDropTargetHandlerTest {
   // row 1:   item2  (layout)
   // row 2:     item3
   // row 3:     item4  (layout)
-  // row 4:       item5
+  // row 4:     item5  (layout)
   // row 5:       item6
+  // row 6:       item7
 
   @Before
   fun before() {
     item1.add(item2)
-    item2.add(item3, item4)
-    item4.add(item5, item6)
+    item2.add(item3, item4, item5)
+    item5.add(item6, item7)
+    item4.canInsert = true
   }
 
   @Test
@@ -162,13 +165,13 @@ class TreeTableDropTargetHandlerTest {
   }
 
   @Test
-  fun testDragOverBottomOfItem5() {
+  fun testDragOverBottomOfItem6() {
     val table = createTreeTable()
     val rowHeight = table.rowHeight
     val handler = TreeTableDropTargetHandler(table, false, mutableListOf())
-    val event = createDnDEvent(Point(10, 5 * rowHeight - 3))
+    val event = createDnDEvent(Point(10, 6 * rowHeight - 3))
     handler.update(event)
-    checkPaint(table, handler, 3, 5)
+    checkPaint(table, handler, 4, 6)
     verify(table).repaint()
     verify(event).isDropPossible = true
   }
@@ -181,23 +184,23 @@ class TreeTableDropTargetHandlerTest {
     val depth4 = table.computeLeftOffset(4)
     val rowHeight = table.rowHeight
     val handler = TreeTableDropTargetHandler(table, false, mutableListOf())
-    val event1 = createDnDEvent(Point(depth4 + 3, 6 * rowHeight - 3))
+    val event1 = createDnDEvent(Point(depth4 + 3, 7 * rowHeight - 3))
     handler.update(event1)
-    checkPaint(table, handler, 3, 6)
+    checkPaint(table, handler, 4, 7)
     verify(table).repaint()
     verify(event1).isDropPossible = true
 
     // Moving the mouse to the left will cause a receiver higher in the hierarchy to be selected as the receiver
-    val event2 = createDnDEvent(Point(depth3 + 3, 6 * rowHeight - 3))
+    val event2 = createDnDEvent(Point(depth3 + 3, 7 * rowHeight - 3))
     handler.update(event2)
-    checkPaint(table, handler, 1, 6)
+    checkPaint(table, handler, 1, 7)
     verify(table, times(2)).repaint()
     verify(event2).isDropPossible = true
 
     // Moving the mouse more to the left will cause a receiver even higher in the hierarchy to be selected as the receiver
-    val event3 = createDnDEvent(Point(depth2 + 3, 6 * rowHeight - 3))
+    val event3 = createDnDEvent(Point(depth2 + 3, 7 * rowHeight - 3))
     handler.update(event3)
-    checkPaint(table, handler, 0, 6)
+    checkPaint(table, handler, 0, 7)
     verify(table, times(3)).repaint()
     verify(event3).isDropPossible = true
   }
@@ -207,6 +210,7 @@ class TreeTableDropTargetHandlerTest {
     item1.canInsert = false
     item2.canInsert = false
     item4.canInsert = false
+    item5.canInsert = false
     val table = createTreeTable()
     val depth4 = table.computeLeftOffset(4)
     val rowHeight = table.rowHeight
@@ -224,12 +228,12 @@ class TreeTableDropTargetHandlerTest {
     val depth4 = table.computeLeftOffset(4)
     val rowHeight = table.rowHeight
     val handler = TreeTableDropTargetHandler(table, false, mutableListOf(item2)) // We are dragging item2 to the end
-    val event = createDnDEvent(Point(depth4 + 3, 6 * rowHeight - 3))
+    val event = createDnDEvent(Point(depth4 + 3, 7 * rowHeight - 3))
 
     // Even though the drag location specify item3,
     // the dragged item2 should not be accepted in item3 or item2, but can be accepted in item1.
     handler.update(event)
-    checkPaint(table, handler, 0, 6)
+    checkPaint(table, handler, 0, 7)
     verify(table).repaint()
     verify(event).isDropPossible = true
   }
@@ -274,11 +278,11 @@ class TreeTableDropTargetHandlerTest {
     val table = createTreeTable()
     val depth4 = table.computeLeftOffset(4)
     val rowHeight = table.rowHeight
-    val draggedItems = mutableListOf<Any>(item3, item6)
+    val draggedItems = mutableListOf<Any>(item4, item7)
     val handler = TreeTableDropTargetHandler(table, deleteOriginOfInternalMove, draggedItems)
-    val event = createDnDEvent(Point(depth4 + 3, 6 * rowHeight - 3), action)
+    val event = createDnDEvent(Point(depth4 + 3, 7 * rowHeight - 3), action)
     handler.update(event)
-    checkPaint(table, handler, 3, 6)
+    checkPaint(table, handler, 4, 7)
     verify(event).isDropPossible = true
 
     // Move item3 & item6 to the end of item4
@@ -286,8 +290,8 @@ class TreeTableDropTargetHandlerTest {
 
     checkNoPaint(handler)
     verify(table, times(2)).repaint()
-    assertThat(item4.insertions).hasSize(1)
-    checkInsertion(item4.insertions[0], null, action, listOf(item3, item6))
+    assertThat(item5.insertions).hasSize(1)
+    checkInsertion(item5.insertions[0], null, action, listOf(item4, item7))
 
     return draggedItems
   }
@@ -299,9 +303,9 @@ class TreeTableDropTargetHandlerTest {
     val depth4 = table.computeLeftOffset(4)
     val rowHeight = table.rowHeight
     val handler = TreeTableDropTargetHandler(table, false, mutableListOf())
-    val event = createDnDEvent(Point(depth4 + 3, 6 * rowHeight - 3))
+    val event = createDnDEvent(Point(depth4 + 3, 7 * rowHeight - 3))
     handler.update(event)
-    checkPaint(table, handler, 3, 6)
+    checkPaint(table, handler, 4, 7)
     verify(table).repaint()
     verify(event).isDropPossible = true
 
@@ -315,11 +319,11 @@ class TreeTableDropTargetHandlerTest {
     val table = createTreeTable()
     val depth4 = table.computeLeftOffset(4)
     val rowHeight = table.rowHeight
-    val draggedItems = mutableListOf<Any>(item5)
-    val handler = TreeTableDropTargetHandler(table, false, draggedItems) // We are dragging item5 to just before itself
-    val event = createDnDEvent(Point(depth4 + 3, 4 * rowHeight + 2))
+    val draggedItems = mutableListOf<Any>(item6)
+    val handler = TreeTableDropTargetHandler(table, false, draggedItems) // We are dragging item6 to just before itself
+    val event = createDnDEvent(Point(depth4 + 3, 5 * rowHeight + 2))
     handler.update(event)
-    checkPaint(table, handler, 3, 4)
+    checkPaint(table, handler, 4, 5)
     verify(table).repaint()
     verify(event).isDropPossible = true
 
@@ -327,9 +331,9 @@ class TreeTableDropTargetHandlerTest {
     checkNoPaint(handler)
     verify(table, times(2)).repaint()
 
-    // Verify the moved item (item5) was moved into item4 before item6
-    assertThat(item4.insertions).hasSize(1)
-    checkInsertion(item4.insertions[0], item6, DnDAction.MOVE, listOf(item5))
+    // Verify the moved item (item6) was moved into item4 before item7
+    assertThat(item5.insertions).hasSize(1)
+    checkInsertion(item5.insertions[0], item7, DnDAction.MOVE, listOf(item6))
     assertThat(draggedItems).isEmpty()
   }
 
