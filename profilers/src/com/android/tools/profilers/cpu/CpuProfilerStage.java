@@ -349,8 +349,8 @@ public class CpuProfilerStage extends StreamingStage {
     Commands.Command startCommand = Commands.Command.newBuilder()
       .setStreamId(mySession.getStreamId())
       .setPid(mySession.getPid())
-      .setType(Commands.Command.CommandType.START_CPU_TRACE)
-      .setStartCpuTrace(Cpu.StartCpuTrace.newBuilder().setConfiguration(configuration).build())
+      .setType(Commands.Command.CommandType.START_TRACE)
+      .setStartTrace(Trace.StartTrace.newBuilder().setConfiguration(configuration).build())
       .build();
 
     getStudioProfilers().getClient().executeAsync(startCommand, poolExecutor)
@@ -682,7 +682,7 @@ public class CpuProfilerStage extends StreamingStage {
       myCaptureStartTimeNs = myInProgressTraceInfo.getFromTimestamp();
       Common.Event statusEvent = CpuProfiler.getTraceStatusEventFromId(getStudioProfilers(), myInProgressTraceInfo.getTraceId());
       if (statusEvent.getKind() == Common.Event.Kind.TRACE_STATUS && statusEvent.getTraceStatus().hasTraceStopStatus()) {
-        // A STOP_CPU_TRACE command has been issued.
+        // A STOP_TRACE command has been issued.
         state = CaptureState.STOPPING;
         myCaptureStopTimeNs = statusEvent.getTimestamp();
       }

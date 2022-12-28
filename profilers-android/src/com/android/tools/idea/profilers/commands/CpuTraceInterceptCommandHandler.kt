@@ -84,8 +84,8 @@ class CpuTraceInterceptCommandHandler(val device: IDevice,
   override fun shouldHandle(command: Commands.Command): Boolean {
     // We only check perfetto traces.
     return when (command.type) {
-      Commands.Command.CommandType.START_CPU_TRACE -> {
-        TraceType.from(command.startCpuTrace.configuration) == TraceType.PERFETTO
+      Commands.Command.CommandType.START_TRACE -> {
+        TraceType.from(command.startTrace.configuration) == TraceType.PERFETTO
       }
       // The overhead of enabling the SDK tracing is minimal, we do not need to issue
       // a broadcast to disable it.
@@ -94,7 +94,7 @@ class CpuTraceInterceptCommandHandler(val device: IDevice,
   }
 
   override fun execute(command: Commands.Command): Transport.ExecuteResponse {
-    assert(command.type == Commands.Command.CommandType.START_CPU_TRACE)
+    assert(command.type == Commands.Command.CommandType.START_TRACE)
     enableTrackingCompose(command)
     return transportStub.execute(Transport.ExecuteRequest.newBuilder()
                                    .setCommand(command)
@@ -106,7 +106,7 @@ class CpuTraceInterceptCommandHandler(val device: IDevice,
 
     try {
       val handshake = PerfettoHandshake(
-        targetPackage = command.startCpuTrace.configuration.appName,
+        targetPackage = command.startTrace.configuration.appName,
         // Kotlin doesn't have a native json parser. As such a handler needs to be created to
         // map the broadcast output to a key/value pair for the library.
         parseJsonMap = { jsonString: String ->

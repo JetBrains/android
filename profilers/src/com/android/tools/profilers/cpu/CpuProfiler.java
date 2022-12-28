@@ -20,9 +20,8 @@ import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.poller.TransportEventListener;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.Trace.TraceInfo;
 import com.android.tools.profiler.proto.Trace;
+import com.android.tools.profiler.proto.Trace.TraceInfo;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMonitor;
@@ -321,8 +320,8 @@ public class CpuProfiler implements StudioProfiler {
     Commands.Command stopCommand = Commands.Command.newBuilder()
       .setStreamId(session.getStreamId())
       .setPid(session.getPid())
-      .setType(Commands.Command.CommandType.STOP_CPU_TRACE)
-      .setStopCpuTrace(Cpu.StopCpuTrace.newBuilder()
+      .setType(Commands.Command.CommandType.STOP_TRACE)
+      .setStopTrace(Trace.StopTrace.newBuilder()
                          .setConfiguration(configuration)
                          .setNeedTraceResponse(responseHandler != null))
       .build();

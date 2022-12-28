@@ -33,7 +33,7 @@ class StopCpuTrace(timer: FakeTimer) : CommandHandler(timer) {
       .setTraceId(traceId)
       .setFromTimestamp(traceId)
       .setToTimestamp(endTimestamp)
-      .setConfiguration(command.stopCpuTrace.configuration)
+      .setConfiguration(command.stopTrace.configuration)
       .setStopStatus(stopStatus)
       .build()
 

@@ -144,8 +144,8 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     setCommandHandler(Command.CommandType.BEGIN_SESSION, new BeginSession(myTimer));
     setCommandHandler(Command.CommandType.END_SESSION, new EndSession(myTimer));
     setCommandHandler(Command.CommandType.DISCOVER_PROFILEABLE, new DiscoverProfileable(myTimer));
-    setCommandHandler(Command.CommandType.START_CPU_TRACE, new StartCpuTrace(myTimer));
-    setCommandHandler(Command.CommandType.STOP_CPU_TRACE, new StopCpuTrace(myTimer));
+    setCommandHandler(Command.CommandType.START_TRACE, new StartCpuTrace(myTimer));
+    setCommandHandler(Command.CommandType.STOP_TRACE, new StopCpuTrace(myTimer));
     MemoryAllocTracking allocTrackingHandler = new MemoryAllocTracking(myTimer);
     setCommandHandler(Command.CommandType.START_ALLOC_TRACKING, allocTrackingHandler);
     setCommandHandler(Command.CommandType.STOP_ALLOC_TRACKING, allocTrackingHandler);

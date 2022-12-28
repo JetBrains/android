@@ -102,14 +102,14 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
                                          TransportServiceGrpc.newBlockingStub(proxy.getTransportChannel()),
                                          proxy.getEventQueue(),
                                          proxy.getBytesCache());
-      proxy.registerProxyCommandHandler(Commands.Command.CommandType.START_CPU_TRACE, cpuTraceHandler);
-      proxy.registerProxyCommandHandler(Commands.Command.CommandType.STOP_CPU_TRACE, cpuTraceHandler);
+      proxy.registerProxyCommandHandler(Commands.Command.CommandType.START_TRACE, cpuTraceHandler);
+      proxy.registerProxyCommandHandler(Commands.Command.CommandType.STOP_TRACE, cpuTraceHandler);
     } else if (StudioFlags.PERFETTO_SDK_TRACING.get() &&
                device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.R) {
       CpuTraceInterceptCommandHandler cpuTraceHandler =
         new CpuTraceInterceptCommandHandler(device,
                                          TransportServiceGrpc.newBlockingStub(proxy.getTransportChannel()));
-      proxy.registerProxyCommandHandler(Commands.Command.CommandType.START_CPU_TRACE, cpuTraceHandler);
+      proxy.registerProxyCommandHandler(Commands.Command.CommandType.START_TRACE, cpuTraceHandler);
     }
 
     // Instantiate and register energy usage preprocessor, which preprocesses unified events and periodically insert energy usage events
@@ -168,7 +168,7 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
       // Delay JVMTI instrumentation when a user is doing a startup cpu capture.
       // This is for consistency with native memory recording.
       configBuilder.setAttachMethod(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND);
-      configBuilder.setAttachCommand(Commands.Command.CommandType.STOP_CPU_TRACE);
+      configBuilder.setAttachCommand(Commands.Command.CommandType.STOP_TRACE);
     }
     else {
       configBuilder.setAttachMethod(Agent.AgentConfig.AttachAgentMethod.INSTANT);

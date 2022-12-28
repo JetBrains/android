@@ -190,16 +190,16 @@ class LegacyCpuTraceCommandHandlerTest {
 
     fun buildStartCommand(testPid: Int, testCommandId: Int): Commands.Command = Commands.Command.newBuilder().apply {
       pid = testPid
-      type = Commands.Command.CommandType.START_CPU_TRACE
+      type = Commands.Command.CommandType.START_TRACE
       commandId = testCommandId
-      startCpuTrace = Cpu.StartCpuTrace.newBuilder().setConfiguration(TRACE_CONFIG).build()
+      startTrace = Trace.StartTrace.newBuilder().setConfiguration(TRACE_CONFIG).build()
     }.build()
 
     fun buildStopCommand(testPid: Int, testCommandId: Int): Commands.Command = Commands.Command.newBuilder().apply {
       pid = testPid
-      type = Commands.Command.CommandType.STOP_CPU_TRACE
+      type = Commands.Command.CommandType.STOP_TRACE
       commandId = testCommandId
-      stopCpuTrace = Cpu.StopCpuTrace.newBuilder().setConfiguration(TRACE_CONFIG).build()
+      stopTrace = Trace.StopTrace.newBuilder().setConfiguration(TRACE_CONFIG).build()
     }.build()
   }
 }

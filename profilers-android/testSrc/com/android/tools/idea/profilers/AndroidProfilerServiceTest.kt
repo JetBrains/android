@@ -133,7 +133,7 @@ class AndroidProfilerServiceTest : HeavyPlatformTestCase() {
     whenever(runConfig.profilerState).thenReturn(state);
     AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, runConfig)
     assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND);
-    assertThat(configBuilder.attachCommand).isEqualTo(Commands.Command.CommandType.STOP_CPU_TRACE);
+    assertThat(configBuilder.attachCommand).isEqualTo(Commands.Command.CommandType.STOP_TRACE);
   }
 
   fun testCustomizeProxyService() {

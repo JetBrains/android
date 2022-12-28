@@ -86,7 +86,7 @@ public final class CpuProfilerTest {
     myCpuProfiler = new CpuProfiler(myProfilers);
 
     myCpuProfiler.stopProfiling(FAKE_SESSION);
-    StopCpuTrace stopCpuTrace = (StopCpuTrace)myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_CPU_TRACE);
+    StopCpuTrace stopCpuTrace = (StopCpuTrace)myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_TRACE);
     assertThat(stopCpuTrace.getLastTraceInfo()).isEqualTo(Trace.TraceInfo.getDefaultInstance());
 
     myTransportService.addEventToStream(

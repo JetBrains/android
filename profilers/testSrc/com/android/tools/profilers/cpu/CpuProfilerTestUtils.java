@@ -169,7 +169,7 @@ public class CpuProfilerTestUtils {
   static void startCapturing(CpuProfilerStage stage, FakeTransportService transportService, boolean success)
     throws InterruptedException {
     assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
-    ((StartCpuTrace)transportService.getRegisteredCommand(Commands.Command.CommandType.START_CPU_TRACE))
+    ((StartCpuTrace)transportService.getRegisteredCommand(Commands.Command.CommandType.START_TRACE))
       .setStartStatus(Trace.TraceStartStatus.newBuilder()
                         .setStatus(success ? Trace.TraceStartStatus.Status.SUCCESS : Trace.TraceStartStatus.Status.FAILURE)
                         .build());
@@ -209,7 +209,7 @@ public class CpuProfilerTestUtils {
     throws InterruptedException {
     // Trace id is needed for the stop response.
     long traceId = stage.getStudioProfilers().getUpdater().getTimer().getCurrentTimeNs();
-    StopCpuTrace stopTraceCommand = (StopCpuTrace)transportService.getRegisteredCommand(Commands.Command.CommandType.STOP_CPU_TRACE);
+    StopCpuTrace stopTraceCommand = (StopCpuTrace)transportService.getRegisteredCommand(Commands.Command.CommandType.STOP_TRACE);
     stopTraceCommand.setStopStatus(
       Trace.TraceStopStatus.newBuilder()
         .setStatus(success ? Trace.TraceStopStatus.Status.SUCCESS : Trace.TraceStopStatus.Status.STOP_COMMAND_FAILED)

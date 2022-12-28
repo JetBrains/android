@@ -30,7 +30,7 @@ class StartCpuTrace(timer: FakeTimer) : CommandHandler(timer) {
       .setTraceId(traceId)
       .setFromTimestamp(traceId)
       .setToTimestamp(-1)
-      .setConfiguration(command.startCpuTrace.configuration)
+      .setConfiguration(command.startTrace.configuration)
       .setStartStatus(startStatus)
       .build()
 

@@ -143,9 +143,9 @@ class CpuTraceInterceptCommandHandlerTest {
   }
 
   fun buildCommand(cmdId: Int, traceType: TraceType) = Commands.Command.newBuilder().apply {
-    type = Commands.Command.CommandType.START_CPU_TRACE
+    type = Commands.Command.CommandType.START_TRACE
     commandId = cmdId
-    startCpuTrace = Cpu.StartCpuTrace.newBuilder().apply {
+    startTrace = Trace.StartTrace.newBuilder().apply {
       val configuration = Trace.TraceConfiguration.newBuilder().apply {
         abiCpuArch = "FakeAbi"
       }

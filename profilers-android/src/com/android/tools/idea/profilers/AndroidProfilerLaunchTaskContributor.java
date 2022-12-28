@@ -288,8 +288,8 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       if (StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
         Commands.Command startCommand = Commands.Command.newBuilder()
           .setStreamId(profilerDevice.getDeviceId())
-          .setType(Commands.Command.CommandType.START_CPU_TRACE)
-          .setStartCpuTrace(Cpu.StartCpuTrace.newBuilder().setConfiguration(configuration).build())
+          .setType(Commands.Command.CommandType.START_TRACE)
+          .setStartTrace(Trace.StartTrace.newBuilder().setConfiguration(configuration).build())
           .build();
         // TODO handle async error statuses.
         // TODO(b/150503095)

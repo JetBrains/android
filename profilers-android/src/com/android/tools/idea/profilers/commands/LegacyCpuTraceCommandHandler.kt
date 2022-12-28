@@ -61,11 +61,11 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
     // We only handle ART traces in the proxy layer. ATraces are handled via the device daemon and all other trace options are unsupported
     // in pre-O devices.
     return when (command.type) {
-      Commands.Command.CommandType.START_CPU_TRACE -> {
-        TraceType.from(command.startCpuTrace.configuration) == TraceType.ART
+      Commands.Command.CommandType.START_TRACE -> {
+        TraceType.from(command.startTrace.configuration) == TraceType.ART
       }
-      Commands.Command.CommandType.STOP_CPU_TRACE -> {
-        TraceType.from(command.stopCpuTrace.configuration) == TraceType.ART
+      Commands.Command.CommandType.STOP_TRACE -> {
+        TraceType.from(command.stopTrace.configuration) == TraceType.ART
       }
       else -> false
     }
@@ -73,15 +73,15 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
 
   override fun execute(command: Commands.Command): Transport.ExecuteResponse {
     when (command.type) {
-      Commands.Command.CommandType.START_CPU_TRACE -> startTrace(command)
-      Commands.Command.CommandType.STOP_CPU_TRACE -> stopTrace(command)
+      Commands.Command.CommandType.START_TRACE -> startTrace(command)
+      Commands.Command.CommandType.STOP_TRACE -> stopTrace(command)
     }
 
     return Transport.ExecuteResponse.getDefaultInstance()
   }
 
   private fun startTrace(command: Commands.Command) {
-    val traceConfiguration = command.startCpuTrace.configuration
+    val traceConfiguration = command.startTrace.configuration
     assert(traceConfiguration.hasArtOptions())
     val artOptions = traceConfiguration.artOptions
 
@@ -169,7 +169,7 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
   }
 
   private fun stopTrace(command: Commands.Command) {
-    val traceConfiguration = command.stopCpuTrace.configuration
+    val traceConfiguration = command.stopTrace.configuration
     assert(traceConfiguration.hasArtOptions())
     val artOptions = traceConfiguration.artOptions
 
