@@ -19,7 +19,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.startup.ProjectPostStartupActivity
 import com.intellij.openapi.util.Disposer
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -62,8 +62,8 @@ class MavenClassRegistryManager : Disposable {
   }
 }
 
-class AutoRefresherForMavenClassRegistry : StartupActivity.Background {
-  override fun runActivity(project: Project) {
+class AutoRefresherForMavenClassRegistry : ProjectPostStartupActivity {
+  override suspend fun execute(project: Project) {
     // Start refresher in GMavenIndexRepository at project start-up.
     MavenClassRegistryManager.getInstance()
   }
