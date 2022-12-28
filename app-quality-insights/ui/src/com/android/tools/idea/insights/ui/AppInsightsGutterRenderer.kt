@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.services.firebase.insights.ui
+package com.android.tools.idea.insights.ui
 
-import com.google.services.firebase.insights.CrashlyticsInsight
+import com.android.tools.idea.insights.AppInsight
+import com.android.tools.idea.insights.Issue
+import com.android.tools.idea.insights.ui.actions.AppInsightsGutterIconAction
 import com.intellij.openapi.editor.markup.GutterIconRenderer
-import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import javax.swing.Icon
 
-data class AppInsightsGutterRenderer(val project: Project, val insights: List<CrashlyticsInsight>) :
-  GutterIconRenderer() {
+data class AppInsightsGutterRenderer<IssueT : Issue>(
+  val insights: List<AppInsight<IssueT>>,
+  val itemChosenCallback: (AppInsight<IssueT>) -> Unit
+) : GutterIconRenderer() {
 
   override fun getIcon(): Icon = StudioIcons.AppQualityInsights.ISSUE
 
@@ -44,5 +47,5 @@ data class AppInsightsGutterRenderer(val project: Project, val insights: List<Cr
 
   override fun isNavigateAction() = true
 
-  override fun getClickAction() = AppInsightsGutterIconAction(project, insights)
+  override fun getClickAction() = AppInsightsGutterIconAction(insights, itemChosenCallback)
 }

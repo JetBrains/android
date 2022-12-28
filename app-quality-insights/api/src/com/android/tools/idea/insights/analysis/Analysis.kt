@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.services.firebase.insights.analysis
+package com.android.tools.idea.insights.analysis
 
 import com.android.tools.idea.insights.Frame
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.psi.PsiElement
 
 /** A pair of a [crash frame][Frame] and its ["cause"][Cause]. */
@@ -37,15 +36,7 @@ sealed class Cause {
 enum class Confidence {
   LOW,
   MEDIUM,
-  HIGH;
-
-  fun toProto(): AppQualityInsightsUsageEvent.Confidence {
-    return when (this) {
-      LOW -> AppQualityInsightsUsageEvent.Confidence.LOW
-      MEDIUM -> AppQualityInsightsUsageEvent.Confidence.MEDIUM
-      HIGH -> AppQualityInsightsUsageEvent.Confidence.HIGH
-    }
-  }
+  HIGH
 }
 
 /**

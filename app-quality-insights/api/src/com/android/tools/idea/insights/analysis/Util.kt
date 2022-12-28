@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.services.firebase.insights.analysis
+package com.android.tools.idea.insights.analysis
 
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.TextRange

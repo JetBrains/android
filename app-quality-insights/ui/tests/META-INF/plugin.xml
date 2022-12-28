@@ -17,4 +17,5 @@
   <name>App Insights UI</name>
   <id>com.android.tools.idea.insights.ui.tests</id>
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/project-system-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

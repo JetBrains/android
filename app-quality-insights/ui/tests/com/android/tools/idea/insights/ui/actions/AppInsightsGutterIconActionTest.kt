@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.services.firebase.insights.ui
+package com.android.tools.idea.insights.ui.actions
 
 import com.android.tools.adtui.actions.createTestActionEvent
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.FakeComponentPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.insights.TEST_ISSUE1
+import com.android.tools.idea.insights.TEST_ISSUE2
+import com.android.tools.idea.insights.TestAppInsight
+import com.android.tools.idea.insights.analysis.Cause
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.google.services.firebase.insights.AppInsightsModuleControllerRule
-import com.google.services.firebase.insights.CrashlyticsInsight
-import com.google.services.firebase.insights.ISSUE1
-import com.google.services.firebase.insights.ISSUE2
-import com.google.services.firebase.insights.analysis.Cause
 import com.intellij.ui.components.JBList
 import com.intellij.ui.speedSearch.ListWithFilter
 import java.awt.event.MouseEvent
@@ -38,23 +37,23 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-private val FRAME1 = ISSUE1.sampleEvent.stacktraceGroup.exceptions.first().stacktrace.frames.first()
-private val FRAME2 = ISSUE2.sampleEvent.stacktraceGroup.exceptions.first().stacktrace.frames.first()
+private val FRAME1 =
+  TEST_ISSUE1.sampleEvent.stacktraceGroup.exceptions.first().stacktrace.frames.first()
+private val FRAME2 =
+  TEST_ISSUE2.sampleEvent.stacktraceGroup.exceptions.first().stacktrace.frames.first()
 
 @RunWith(value = Parameterized::class)
-class AppInsightsGutterIconActionTest(private val insights: List<CrashlyticsInsight>) {
+class AppInsightsGutterIconActionTest(private val insights: List<TestAppInsight>) {
   private val projectRule = AndroidProjectRule.inMemory()
-  private val controllerRule = AppInsightsModuleControllerRule(projectRule)
   private val popupRule = JBPopupRule()
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(controllerRule).around(popupRule)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(popupRule)!!
 
   @Test
   fun `gutter popup shows correct information`() =
     runBlocking(AndroidDispatchers.uiThread) {
       val displayPanel = JPanel()
-      val gutterIconAction = AppInsightsGutterIconAction(projectRule.project, insights)
+      val gutterIconAction = AppInsightsGutterIconAction(insights) {}
       val mouseEvent = MouseEvent(displayPanel, MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, 1, true, 0)
       val actionEvent = createTestActionEvent(gutterIconAction, mouseEvent)
       gutterIconAction.actionPerformed(actionEvent)
@@ -89,10 +88,10 @@ class AppInsightsGutterIconActionTest(private val insights: List<CrashlyticsInsi
     @Parameterized.Parameters(name = "{index}: shows correct info for {0}")
     fun data() =
       listOf(
-        listOf(CrashlyticsInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1)) {}),
+        listOf(TestAppInsight(1, TEST_ISSUE1, FRAME1, Cause.Frame(FRAME1)) {}),
         listOf(
-          CrashlyticsInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1)) {},
-          CrashlyticsInsight(1, ISSUE2, FRAME2, Cause.Frame(FRAME2)) {}
+          TestAppInsight(1, TEST_ISSUE1, FRAME1, Cause.Frame(FRAME1)) {},
+          TestAppInsight(1, TEST_ISSUE2, FRAME2, Cause.Frame(FRAME2)) {}
         ),
       )
   }

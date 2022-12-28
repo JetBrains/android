@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.services.firebase.insights.ui
+package com.android.tools.idea.insights.ui.actions
 
 import com.android.tools.adtui.common.ColoredIconGenerator.generateColoredIcon
+import com.android.tools.idea.insights.AppInsight
+import com.android.tools.idea.insights.Issue
 import com.android.tools.idea.insights.ui.getDisplayTitle
 import com.android.tools.idea.insights.ui.ifZero
-import com.google.services.firebase.insights.CrashlyticsInsight
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.PopupChooserBuilder
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.SimpleColoredComponent
@@ -43,9 +43,9 @@ import javax.swing.ListCellRenderer
 import javax.swing.ListSelectionModel
 import org.jetbrains.annotations.VisibleForTesting
 
-class AppInsightsGutterIconAction(
-  private val project: Project,
-  private val insights: List<CrashlyticsInsight>
+class AppInsightsGutterIconAction<IssueT : Issue>(
+  private val insights: List<AppInsight<IssueT>>,
+  private val itemChosenCallback: (AppInsight<IssueT>) -> Unit
 ) : AnAction() {
   private val logger: Logger
     get() = Logger.getInstance(javaClass)
@@ -62,7 +62,7 @@ class AppInsightsGutterIconAction(
           setRenderer(AppInsightsGutterListCellRenderer())
           setItemChosenCallback { chosenInsight ->
             logger.debug("Gutter icon click for issue $chosenInsight")
-            AppInsightsToolWindowFactory.show(project) { chosenInsight.markAsSelected() }
+            itemChosenCallback(chosenInsight)
           }
 
           // Create the bottom panel.
@@ -116,10 +116,11 @@ class AppInsightsGutterIconAction(
   }
 }
 
-private class AppInsightsGutterListCellRenderer : ListCellRenderer<CrashlyticsInsight> {
+private class AppInsightsGutterListCellRenderer<IssueT : Issue> :
+  ListCellRenderer<AppInsight<IssueT>> {
   override fun getListCellRendererComponent(
-    list: JList<out CrashlyticsInsight>,
-    value: CrashlyticsInsight,
+    list: JList<out AppInsight<IssueT>>,
+    value: AppInsight<IssueT>,
     index: Int,
     isSelected: Boolean,
     cellHasFocus: Boolean

@@ -15,12 +15,7 @@
  */
 package com.android.tools.idea.insights.analysis
 
-import com.google.services.firebase.logs.FirebaseTracker
-import com.google.services.firebase.logs.convertResolution
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.service
-import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import org.jetbrains.annotations.TestOnly
 
@@ -29,7 +24,6 @@ import org.jetbrains.annotations.TestOnly
 class StackTraceAnalyzer
 @JvmOverloads
 constructor(
-  private val project: Project,
   @TestOnly
   private val matcher: CrashMatcher =
     DelegatingConfidenceMatcher(
@@ -38,24 +32,8 @@ constructor(
         MethodMatcher(),
       ),
       minConfidence = Confidence.HIGH
-    ),
-  private val tracker: FirebaseTracker = project.service()
+    )
 ) {
 
-  fun match(file: PsiFile, crash: CrashFrame): Match? {
-    val match = matcher.match(file, crash) ?: return null
-    tracker.logMatchers(
-      AppQualityInsightsUsageEvent.AppQualityInsightsMatcherDetails.newBuilder()
-        .apply {
-          confidence = match.confidence.toProto()
-          resolution = convertResolution(match.element)
-          source =
-            AppQualityInsightsUsageEvent.AppQualityInsightsMatcherDetails.MatcherSource
-              .UNKNOWN_SOURCE
-          crashType = AppQualityInsightsUsageEvent.CrashType.FATAL
-        }
-        .build()
-    )
-    return if (match.confidence == Confidence.HIGH) match else null
-  }
+  fun match(file: PsiFile, crash: CrashFrame) = matcher.match(file, crash)
 }

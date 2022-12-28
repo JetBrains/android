@@ -1,10 +1,30 @@
-package com.google.services.firebase.insights.analysis
+/*
+ * Copyright (C) 2023 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.insights.ui.analysis
 
 import com.android.testutils.TestUtils
 import com.android.tools.idea.insights.Frame
+import com.android.tools.idea.insights.analysis.Cause
+import com.android.tools.idea.insights.analysis.Confidence
+import com.android.tools.idea.insights.analysis.CrashFrame
+import com.android.tools.idea.insights.analysis.StackTraceAnalyzer
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.components.service
 import com.intellij.psi.PsiMethodCallExpression
 import com.intellij.psi.PsiThrowStatement
 import com.intellij.testFramework.EdtRule
@@ -26,7 +46,7 @@ class StackTraceAnalyzerTest {
   @Test
   fun `analyzer on javaKotlinApp project finds expected matches`() {
     androidProjectRule.fixture.testDataPath =
-      TestUtils.resolveWorkspacePath("tools/vendor/google/firebase/testData").toString()
+      TestUtils.resolveWorkspacePath("tools/adt/idea/app-quality-insights/ui/testData").toString()
     val mainActivityFile =
       androidProjectRule
         .fixture
@@ -38,7 +58,7 @@ class StackTraceAnalyzerTest {
         .copyFileToProject("src/com/google/firebase/assistant/test/RuntimeInit.java")
         .toPsiFile(androidProjectRule.project)!!
 
-    val analyzer = androidProjectRule.project.getService(StackTraceAnalyzer::class.java)
+    val analyzer = service<StackTraceAnalyzer>()
     runReadAction {
       val npeFrame =
         Frame(
@@ -96,14 +116,14 @@ class StackTraceAnalyzerTest {
   @Test
   fun `analyzer is language agnostic, can find inner classes`() {
     androidProjectRule.fixture.testDataPath =
-      TestUtils.resolveWorkspacePath("tools/vendor/google/firebase/testData").toString()
+      TestUtils.resolveWorkspacePath("tools/adt/idea/app-quality-insights/ui/testData").toString()
     val psiFile =
       androidProjectRule.fixture.configureByFiles(
         "src/com/google/firebase/assistant/test/MainActivity.kt",
         "src/com/google/firebase/assistant/test/RuntimeInit.java"
       )[0]
 
-    val analyzer = androidProjectRule.project.getService(StackTraceAnalyzer::class.java)
+    val analyzer = service<StackTraceAnalyzer>()
     runReadAction {
       val npeFrame =
         Frame(

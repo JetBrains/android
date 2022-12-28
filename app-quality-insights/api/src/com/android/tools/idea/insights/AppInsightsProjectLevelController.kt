@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.insights
 
+import com.android.tools.idea.insights.analysis.StackTraceAnalyzer
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
+import com.intellij.psi.PsiFile
 import kotlinx.coroutines.flow.Flow
 
 /** Provides lifecycle and App Insights state data. */
@@ -53,4 +55,9 @@ interface AppInsightsProjectLevelController<IssueT : Issue, out StateT : AppInsi
   fun toggleFailureType(value: FailureType)
 
   fun enterOfflineMode()
+  fun retrieveLineMatches(file: PsiFile): List<AppInsight<IssueT>>
+  fun insightsInFile(
+    file: PsiFile,
+    analyzer: StackTraceAnalyzer,
+  )
 }
