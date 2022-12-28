@@ -30,7 +30,7 @@ import java.awt.Dimension
 /**
  * Displays a warning about privacy implications of device mirroring.
  */
-internal class MirroringConfirmationDialog(val deviceName: String) {
+internal class MirroringConfirmationDialog(val title: String) {
 
   private val text = "<p><b>Warning:</b> Mirroring might result in information disclosure for devices connected with" +
                      " the<code>&nbsp;adb&nbsp;tcpip </code>command because the&nbsp;mirroring information and commands are passed" +
@@ -59,7 +59,7 @@ internal class MirroringConfirmationDialog(val deviceName: String) {
   fun createWrapper(project: Project? = null, parent: Component? = null): DialogWrapper {
     val dialogPanel = createPanel()
     return dialog(
-      title = "About to Start Mirroring of $deviceName",
+      title = title,
       resizable = true,
       panel = dialogPanel,
       project = project,

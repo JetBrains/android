@@ -707,7 +707,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         }
         else if (!mirroringConfirmationDialogShowing) { // Ignore a recursive call inside the dialog's event loop.
           mirroringConfirmationDialogShowing = true
-          val dialogWrapper = MirroringConfirmationDialog(deviceClient.deviceName).createWrapper(project).apply { show() }
+          val title = "About to Start Mirroring of ${deviceClient.deviceName}"
+          val dialogWrapper = MirroringConfirmationDialog(title).createWrapper(project).apply { show() }
           mirroringConfirmationDialogShowing = false
           when (dialogWrapper.exitCode) {
             MirroringConfirmationDialog.ACCEPT_EXIT_CODE -> startMirroring(deviceSerialNumber, deviceClient)

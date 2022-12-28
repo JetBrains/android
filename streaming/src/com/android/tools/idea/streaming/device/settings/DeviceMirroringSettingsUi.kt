@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.device.settings
 
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.streaming.DeviceMirroringSettings
+import com.android.tools.idea.streaming.device.dialogs.MirroringConfirmationDialog
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SearchableConfigurable
@@ -54,7 +55,13 @@ class DeviceMirroringSettingsUi : SearchableConfigurable, Configurable.NoScroll 
           .comment("Causes displays of connected Android devices to be mirrored in the&nbsp;Running&nbsp;Devices tool window. " +
                    "<a href='https://d.android.com/r/studio-ui/device-mirroring/help'>Learn&nbsp;more</a>")
           .bindSelected(state::deviceMirroringEnabled)
-          .component
+          .component.apply {
+            addActionListener {
+              if (isSelected) {
+                onMirroringEnabled()
+              }
+            }
+          }
     }
     row {
       activateOnConnectionCheckBox =
@@ -130,4 +137,17 @@ class DeviceMirroringSettingsUi : SearchableConfigurable, Configurable.NoScroll 
 
   @Nls
   override fun getDisplayName() = if (IdeInfo.getInstance().isAndroidStudio) "Device Mirroring" else "Android Device Mirroring"
+
+  private fun onMirroringEnabled() {
+    if (!state.confirmationDialogShown && !state.deviceMirroringEnabled) {
+      val title = "Privacy Notice"
+      val dialogWrapper = MirroringConfirmationDialog(title).createWrapper(parent = deviceMirroringEnabledCheckBox).apply { show() }
+      if (dialogWrapper.exitCode == MirroringConfirmationDialog.ACCEPT_EXIT_CODE) {
+        state.confirmationDialogShown = true
+      }
+      else {
+        deviceMirroringEnabledCheckBox.isSelected = false // Revert mirroring enablement.
+      }
+    }
+  }
 }

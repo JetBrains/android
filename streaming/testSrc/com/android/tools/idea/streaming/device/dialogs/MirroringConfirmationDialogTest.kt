@@ -48,9 +48,10 @@ class MirroringConfirmationDialogTest {
 
   @Test
   fun testAccept() {
-    val dialogPanel = MirroringConfirmationDialog("Pixel 6")
+    val dialogPanel = MirroringConfirmationDialog("Privacy Notice")
     val dialogWrapper = dialogPanel.createWrapper()
     createModalDialogAndInteractWithIt(dialogWrapper::show) { dlg ->
+      assertThat(dlg.title).isEqualTo("Privacy Notice")
       val rootPane = dlg.rootPane
       val ui = FakeUi(rootPane)
       val message = ui.getComponent<JEditorPane>()
@@ -66,9 +67,10 @@ class MirroringConfirmationDialogTest {
 
   @Test
   fun testReject() {
-    val dialogPanel = MirroringConfirmationDialog("Pixel 5")
+    val dialogPanel = MirroringConfirmationDialog("About to Start Mirroring")
     val dialogWrapper = dialogPanel.createWrapper()
     createModalDialogAndInteractWithIt(dialogWrapper::show) { dlg ->
+      assertThat(dlg.title).isEqualTo("About to Start Mirroring")
       val rootPane = dlg.rootPane
       val ui = FakeUi(rootPane)
       val rejectButton = ui.getComponent<JButton> { !it.isDefaultButton }
