@@ -59,7 +59,7 @@ public class FindUsagesTest {
    * This is run to qualify releases. Please involve the test team in substantial
    * changes.
    * <p>
-   * TT ID: 8e4fb543-6518-479b-aa31-6801c3c2bd62
+   * TT ID: 934d0c94-9b3b-4351-82d7-2373c11610c0
    * <pre>
    *Test Steps:
    *   1) Open Project from Drive.
@@ -124,6 +124,7 @@ public class FindUsagesTest {
 
 
     // Search for field usages in Java/Kotlin classes
+    // Verify 4: one "Value read" and  one "Value write" usages in java class
     editor.select(String.format("private String (make)"));
     invokeFindUsages();
     TimeUnit.SECONDS.sleep(5); // Wait for search to complete
