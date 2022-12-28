@@ -16,11 +16,18 @@
 package com.android.tools.idea.adb;
 
 import com.android.testutils.JarTestSuiteRunner;
+import com.android.tools.adtui.swing.IconLoaderRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses(AndroidAdbTestSuite.class)  // a suite mustn't contain itself
 public class AndroidAdbTestSuite extends IdeaTestSuiteBase {
+
+  static {
+    //WiFiPairingControllerImplTest require real icons
+    IconLoaderRule.enableIconLoading();
+  }
+
 }
 

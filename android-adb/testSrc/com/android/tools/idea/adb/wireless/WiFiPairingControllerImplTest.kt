@@ -21,6 +21,7 @@ import com.android.flags.junit.FlagRule
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
@@ -51,13 +52,16 @@ import javax.swing.text.html.HTMLDocument
 class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   /** Ensures feature flag is reset after test */
   @get:Rule
-  val FlagRule = FlagRule(StudioFlags.ADB_WIRELESS_PAIRING_ENABLED)
+  val flagRule = FlagRule(StudioFlags.ADB_WIRELESS_PAIRING_ENABLED)
 
   @get:Rule
   val portableUiFontRule = PortableUiFontRule()
 
   @get:Rule
   val threadingCheckRule = ThreadingCheckRule()
+
+  @get:Rule
+  val iconLoaderRule = IconLoaderRule()
 
   private val timeProvider: MockNanoTimeProvider by lazy { MockNanoTimeProvider() }
 
