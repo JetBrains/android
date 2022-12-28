@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,25 @@
  */
 package com.android.tools.idea.insights
 
-import java.util.concurrent.TimeoutException
-import kotlinx.coroutines.delay
+import icons.StudioIcons
+import javax.swing.Icon
 
-suspend fun waitForCondition(timeoutMs: Long = 500, condition: () -> Boolean) {
-  val waitIntervalMs = 50L
-  var index = 0
+enum class FailureType {
+  UNSPECIFIED,
+  FATAL,
+  NON_FATAL,
+  ANR,
+  USER_PERCEIVED_ONLY,
+  FOREGROUND,
+  BACKGROUND;
 
-  while (index * waitIntervalMs < timeoutMs) {
-    if (condition()) return
-    index++
-    delay(waitIntervalMs)
-  }
-  throw TimeoutException()
+  fun getIcon(): Icon? =
+    when (this) {
+      FATAL -> StudioIcons.AppQualityInsights.FATAL
+      NON_FATAL -> StudioIcons.AppQualityInsights.NON_FATAL
+      ANR -> StudioIcons.AppQualityInsights.ANR
+      USER_PERCEIVED_ONLY, FOREGROUND, BACKGROUND -> null // TODO: add icons
+      // This scenario shouldn't ever be reached.
+      UNSPECIFIED -> null
+    }
 }

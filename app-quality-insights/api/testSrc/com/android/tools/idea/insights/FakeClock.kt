@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.services.firebase.insights
+package com.android.tools.idea.insights
 
 import java.time.Clock
 import java.time.Instant

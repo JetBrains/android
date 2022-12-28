@@ -14,5 +14,6 @@
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="intellij.android.artwork" />
   </component>
 </module>

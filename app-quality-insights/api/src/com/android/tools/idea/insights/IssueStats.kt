@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.services.firebase.insights.datamodel
+package com.android.tools.idea.insights
 
 /** Stats of an [Issue]. */
 data class IssueStats<T : Number>(val topValue: String?, val groups: List<StatsGroup<T>>)
@@ -39,3 +39,5 @@ data class StatsGroup<T : Number>(
 
 /** Represents a leaf named data point. */
 data class DataPoint<T : Number>(val name: String, val percentage: T)
+
+data class DetailedIssueStats(val deviceStats: IssueStats<Double>, val osStats: IssueStats<Double>)

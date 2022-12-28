@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.google.services.firebase.insights.ui
+package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.common.primaryContentBackground
-import com.google.services.firebase.insights.AppInsightsState
-import com.google.services.firebase.insights.LoadingState
-import com.google.services.firebase.insights.datamodel.DetailedIssueStats
+import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.DetailedIssueStats
+import com.android.tools.idea.insights.Issue
+import com.android.tools.idea.insights.LoadingState
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
 import com.intellij.ui.TitledSeparator
@@ -45,8 +46,10 @@ private const val NOTHING_SELECTED_LABEL = "Select an issue."
 private const val MAIN_CARD = "main"
 private const val EMPTY_CARD = "empty"
 
-class DetailsPanel(scope: CoroutineScope, insightsState: Flow<AppInsightsState>) :
-  JPanel(CardLayout()) {
+class DetailsPanel<IssueT : Issue, StateT : AppInsightsState<IssueT>>(
+  scope: CoroutineScope,
+  insightsState: Flow<StateT>
+) : JPanel(CardLayout()) {
   private val deviceDistributionPanel =
     DistributionPanel().apply {
       border = BorderFactory.createCompoundBorder(JBUI.Borders.emptyLeft(9), border)

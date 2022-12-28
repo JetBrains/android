@@ -1,10 +1,25 @@
-package com.google.services.firebase.insights
+/*
+ * Copyright (C) 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.insights
 
-import com.google.services.firebase.insights.LoadingState.Failure
-import com.google.services.firebase.insights.LoadingState.Loading
-import com.google.services.firebase.insights.LoadingState.Ready
-import com.google.services.firebase.insights.LoadingState.Unauthorized
-import com.google.services.firebase.insights.LoadingState.UnknownFailure
+import com.android.tools.idea.insights.LoadingState.Failure
+import com.android.tools.idea.insights.LoadingState.Loading
+import com.android.tools.idea.insights.LoadingState.Ready
+import com.android.tools.idea.insights.LoadingState.Unauthorized
+import com.android.tools.idea.insights.LoadingState.UnknownFailure
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map

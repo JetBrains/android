@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.services.firebase.insights.ui
+package com.android.tools.idea.insights.ui
 
-import com.google.services.firebase.insights.datamodel.Issue
+import com.android.tools.idea.insights.Issue
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
@@ -26,40 +26,41 @@ import javax.swing.JTable
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellRenderer
 
-class AppInsightsIssuesTableModel : ListTableModel<Issue>() {
+class AppInsightsIssuesTableModel<IssueT : Issue>(renderer: AppInsightsTableCellRenderer) :
+  ListTableModel<IssueT>() {
   init {
     columnInfos =
       arrayOf(
-        object : ColumnInfo<Issue, Issue>("Issues") {
-          override fun valueOf(item: Issue) = item
+        object : ColumnInfo<IssueT, IssueT>("Issues") {
+          override fun valueOf(item: IssueT) = item
 
-          override fun getComparator(): Comparator<Issue> {
+          override fun getComparator(): Comparator<IssueT> {
             return Comparator.comparing { it.issueDetails.title }
           }
 
-          override fun getRenderer(item: Issue) = AppInsightsIssuesTableCellRenderer
+          override fun getRenderer(item: IssueT) = renderer
         },
-        object : ColumnInfo<Issue, Int>("Events") {
-          override fun valueOf(item: Issue) = item.issueDetails.eventsCount.toInt()
+        object : ColumnInfo<IssueT, Int>("Events") {
+          override fun valueOf(item: IssueT) = item.issueDetails.eventsCount.toInt()
 
-          override fun getComparator(): Comparator<Issue> {
+          override fun getComparator(): Comparator<IssueT> {
             return Comparator.comparingInt { it.issueDetails.eventsCount.toInt() }
           }
 
           override fun getWidth(table: JTable?) = 60
 
-          override fun getRenderer(item: Issue?): TableCellRenderer = NumberColumnRenderer
+          override fun getRenderer(item: IssueT?): TableCellRenderer = NumberColumnRenderer
         },
-        object : ColumnInfo<Issue, Int>("Users") {
-          override fun valueOf(item: Issue) = item.issueDetails.impactedDevicesCount.toInt()
+        object : ColumnInfo<IssueT, Int>("Users") {
+          override fun valueOf(item: IssueT) = item.issueDetails.impactedDevicesCount.toInt()
 
-          override fun getComparator(): Comparator<Issue> {
+          override fun getComparator(): Comparator<IssueT> {
             return Comparator.comparingInt { it.issueDetails.impactedDevicesCount.toInt() }
           }
 
           override fun getWidth(table: JTable?) = 60
 
-          override fun getRenderer(item: Issue?): TableCellRenderer = NumberColumnRenderer
+          override fun getRenderer(item: IssueT?): TableCellRenderer = NumberColumnRenderer
         }
       )
   }

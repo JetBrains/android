@@ -13,19 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights
+package com.android.tools.idea.insights.analytics
 
-import java.util.concurrent.TimeoutException
-import kotlinx.coroutines.delay
-
-suspend fun waitForCondition(timeoutMs: Long = 500, condition: () -> Boolean) {
-  val waitIntervalMs = 50L
-  var index = 0
-
-  while (index * waitIntervalMs < timeoutMs) {
-    if (condition()) return
-    index++
-    delay(waitIntervalMs)
-  }
-  throw TimeoutException()
+/** Used for distinguishing sources of issue selection in metrics tracking. */
+enum class IssueSelectionSource {
+  LIST,
+  INSPECTION
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.services.firebase.insights.ui
+package com.android.tools.idea.insights.ui.actions
 
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.AnActionEvent

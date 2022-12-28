@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.services.firebase.insights.ui
+package com.android.tools.idea.insights.ui.actions
 
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.insights.selectionOf
 import com.google.common.truth.Truth.assertThat
-import com.google.services.firebase.insights.selectionOf
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.testFramework.ProjectRule

@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.services.firebase.insights.ui
+package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.TabularLayout
-import com.google.services.firebase.insights.datamodel.IssueStats
+import com.android.tools.idea.insights.IssueStats
 import com.intellij.ide.HelpTooltip
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons

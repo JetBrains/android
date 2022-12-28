@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.services.firebase.insights.ui
+package com.android.tools.idea.insights.ui.actions
 
 import com.android.tools.adtui.actions.DropDownAction
-import com.google.services.firebase.insights.Selection
+import com.android.tools.idea.insights.Selection
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -31,7 +31,7 @@ private class SimpleAction(title: String, icon: Icon?, private val action: () ->
 }
 
 /** A dropdown whose state depends entirely on the provided [flow]. */
-class AppInsightsDropDownAction<T>(
+open class AppInsightsDropDownAction<T>(
   text: String?,
   description: String?,
   icon: Icon?,

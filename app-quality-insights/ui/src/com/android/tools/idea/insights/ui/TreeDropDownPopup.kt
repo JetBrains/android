@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.services.firebase.insights.ui
+package com.android.tools.idea.insights.ui
 
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.insights.GroupAware
+import com.android.tools.idea.insights.MultiSelection
+import com.android.tools.idea.insights.WithCount
 import com.google.common.annotations.VisibleForTesting
-import com.google.services.firebase.insights.MultiSelection
-import com.google.services.firebase.insights.datamodel.GroupAware
-import com.google.services.firebase.insights.datamodel.WithCount
 import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -53,20 +54,25 @@ import javax.swing.event.TreeModelEvent
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
-import org.jetbrains.kotlin.idea.util.application.invokeLater
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 class TreeDropDownPopup<T, U : GroupAware<U>>(
   internal var selection: MultiSelection<WithCount<T>>,
+  private val scope: CoroutineScope,
   private val groupNameSupplier: (T) -> String,
   private val nameSupplier: (T) -> String,
   private val secondaryGroupSupplier: (T) -> Set<U>,
   private val secondaryTitleSupplier: () -> JComponent? = { null }
 ) : JPanel(BorderLayout()) {
   private val eventDispatcher = EventDispatcher.create(CheckboxTreeListener::class.java)
+
   @VisibleForTesting
-  internal val helper = CheckboxTreeHelper(CheckboxTreeHelper.DEFAULT_POLICY, eventDispatcher)
-  @VisibleForTesting internal val root = CheckedTreeNode("All")
-  @VisibleForTesting internal val searchTextField = SearchTextField(false)
+  val helper = CheckboxTreeHelper(CheckboxTreeHelper.DEFAULT_POLICY, eventDispatcher)
+
+  @VisibleForTesting val root = CheckedTreeNode("All")
+
+  @VisibleForTesting val searchTextField = SearchTextField(false)
   private val secondaryGrouping =
     JPanel().apply {
       layout = BoxLayout(this, BoxLayout.LINE_AXIS)
@@ -89,7 +95,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
   private val namesToSecondaryGroups = availableSecondaryGroups.associateBy { it.groupName }
 
   @VisibleForTesting
-  internal val treeTable: TreeTableView =
+  val treeTable: TreeTableView =
     createTree(
       arrayOf(
         object : TreeColumnInfo(null) {
@@ -339,7 +345,10 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
         .setRequestFocus(true)
         .createPopup()
     val updatePopupSize = {
-      invokeLater { popup.size = Dimension(preferredSize.width, preferredSize.height + 3) }
+      scope.launch(AndroidDispatchers.uiThread) {
+        popup.size = Dimension(preferredSize.width, preferredSize.height + 3)
+      }
+      Unit
     }
     updatePopupSize()
     treeTable.tree.addTreeExpansionListener(

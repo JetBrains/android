@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.services.firebase.insights.ui
+package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.common.primaryContentBackground
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
-import com.google.services.firebase.insights.AppInsightsModuleController
-import com.google.services.firebase.insights.LoadingState
-import com.google.services.firebase.insights.datamodel.CancellableTimeoutException
-import com.google.services.firebase.insights.datamodel.Issue
-import com.google.services.firebase.insights.datamodel.NoDevicesSelectedException
-import com.google.services.firebase.insights.datamodel.NoOperatingSystemsSelectedException
-import com.google.services.firebase.insights.datamodel.NoTypesSelectedException
-import com.google.services.firebase.insights.datamodel.NoVersionsSelectedException
-import com.google.services.firebase.insights.datamodel.RevertibleException
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsCrashOpenDetails.CrashOpenSource.LIST
+import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.Issue
+import com.android.tools.idea.insights.LoadingState
+import com.android.tools.idea.insights.NoDevicesSelectedException
+import com.android.tools.idea.insights.NoOperatingSystemsSelectedException
+import com.android.tools.idea.insights.NoTypesSelectedException
+import com.android.tools.idea.insights.NoVersionsSelectedException
+import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.ui.ScrollPaneFactory
@@ -47,22 +48,25 @@ import javax.swing.ListSelectionModel
 import javax.swing.UIManager
 import javax.swing.event.ListSelectionListener
 import javax.swing.table.JTableHeader
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
-class AppInsightsIssuesTableView(
-  model: AppInsightsIssuesTableModel,
-  moduleController: AppInsightsModuleController,
+class AppInsightsIssuesTableView<IssueT : Issue, StateT : AppInsightsState<IssueT>>(
+  model: AppInsightsIssuesTableModel<IssueT>,
+  controller: AppInsightsProjectLevelController<IssueT, StateT>,
+  private val renderer: AppInsightsTableCellRenderer,
+  private val handleException: (LoadingState.Failure) -> Boolean = { false }
 ) : Disposable {
   val component: JComponent
   private val speedSearch: TableSpeedSearch
   private val tableHeader: JTableHeader
   private val changeListener: ListSelectionListener
   private val loadingPanel: JBLoadingPanel
-  private val table: IssuesTableView
+  val table: IssuesTableView
+
+  private val scope = AndroidCoroutineScope(this, AndroidDispatchers.uiThread)
 
   init {
     val containerPanel = JPanel(TabularLayout("*", "Fit,*"))
@@ -71,10 +75,7 @@ class AppInsightsIssuesTableView(
     speedSearch =
       TableSpeedSearch(
         table,
-        Convertor {
-          if (it is Issue) AppInsightsIssuesTableCellRenderer.convertToSearchText(it)
-          else it.toString()
-        }
+        Convertor { if (it is Issue) convertToSearchText(it) else it.toString() }
       )
     tableHeader = table.tableHeader
     tableHeader.reorderingAllowed = false
@@ -85,7 +86,7 @@ class AppInsightsIssuesTableView(
     )
     changeListener = ListSelectionListener {
       if (!it.valueIsAdjusting) {
-        moduleController.selectIssue(table.selection.firstOrNull(), LIST)
+        controller.selectIssue(table.selection.firstOrNull(), IssueSelectionSource.LIST)
       }
     }
     table.selectionModel.addListSelectionListener(changeListener)
@@ -95,8 +96,8 @@ class AppInsightsIssuesTableView(
     loadingPanel.minimumSize = Dimension(JBUIScale.scale(90), 0)
     component = loadingPanel
 
-    moduleController.coroutineScope.launch {
-      moduleController.state.map { it.issues }.distinctUntilChanged().collect { issues ->
+    scope.launch {
+      controller.state.map { it.issues }.distinctUntilChanged().collect { issues ->
         when (issues) {
           is LoadingState.Loading -> {
             loadingPanel.startLoading()
@@ -118,10 +119,9 @@ class AppInsightsIssuesTableView(
               suppressListener(table) { model.items = issues.value.value.items }
             }
             if (table.selectedObject != issues.value.value.selected) {
-              Logger.getInstance(AppInsightsIssuesTableView::class.java)
-                .info(
-                  "Changed selection from issue ${table.selectedObject?.issueDetails?.id} to ${issues.value.value.selected?.issueDetails?.id}"
-                )
+              LOGGER.info(
+                "Changed selection from issue ${table.selectedObject?.issueDetails?.id} to ${issues.value.value.selected?.issueDetails?.id}"
+              )
               // when selection changes it fires multiple events:
               // 1. clear current selection fires selected item as null
               // 2. new selection is set as requested
@@ -135,8 +135,7 @@ class AppInsightsIssuesTableView(
               }
               table.scrollRectToVisible(table.getCellRect(table.selectedRow, 0, true))
             } else {
-              Logger.getInstance(AppInsightsIssuesTableView::class.java)
-                .info("Issue not changed: ${table.selectedObject?.issueDetails?.id}.")
+              LOGGER.info("Issue not changed: ${table.selectedObject?.issueDetails?.id}.")
             }
             loadingPanel.stopLoading()
           }
@@ -148,7 +147,7 @@ class AppInsightsIssuesTableView(
               appendText(
                 "retry",
                 EMPTY_STATE_LINK_FORMAT,
-              ) { moduleController.refresh() }
+              ) { controller.refresh() }
               appendText(
                 " the request",
                 EMPTY_STATE_TEXT_FORMAT,
@@ -159,7 +158,7 @@ class AppInsightsIssuesTableView(
                 appendText(
                   "Offline Mode",
                   EMPTY_STATE_LINK_FORMAT,
-                ) { moduleController.enterOfflineMode() }
+                ) { controller.enterOfflineMode() }
               }
               appendText(".", EMPTY_STATE_TEXT_FORMAT)
             }
@@ -215,58 +214,15 @@ class AppInsightsIssuesTableView(
                   )
                 }
               }
-              is RevertibleException -> {
-                when (val revertibleCause = cause.cause) {
-                  is CancellableTimeoutException -> {
-                    // TODO: Add loading spinner
-                    table.tableEmptyText.apply {
-                      clear()
-                      appendText(
-                        "Fetching issues is taking longer than expected.",
-                        EMPTY_STATE_TITLE_FORMAT
-                      )
-
-                      if (StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED.get()) {
-                        appendSecondaryText("You can wait, ", EMPTY_STATE_TEXT_FORMAT, null)
-                        appendSecondaryText("retry", EMPTY_STATE_LINK_FORMAT) {
-                          moduleController.refresh()
-                        }
-                        appendSecondaryText(" or ", EMPTY_STATE_TEXT_FORMAT, null)
-                        appendSecondaryText("enter offline mode", EMPTY_STATE_LINK_FORMAT) {
-                          moduleController.enterOfflineMode()
-                        }
-                        appendSecondaryText(" to see cached data.", EMPTY_STATE_TEXT_FORMAT, null)
-                      } else if (cause.snapshot != null) {
-                        appendSecondaryText("You can wait or ", EMPTY_STATE_TEXT_FORMAT, null)
-                        appendSecondaryText("cancel the request", EMPTY_STATE_LINK_FORMAT) {
-                          moduleController.revertToSnapshot(cause.snapshot)
-                        }
-                      }
-                    }
-                  }
-                  else -> {
-                    table.tableEmptyText.apply {
-                      clear()
-                      appendText(
-                        issues.message ?: revertibleCause?.message ?: "An unknown failure occurred",
-                        EMPTY_STATE_TITLE_FORMAT
-                      )
-                      if (cause.snapshot != null) {
-                        appendSecondaryText("Go Back", EMPTY_STATE_LINK_FORMAT) {
-                          moduleController.revertToSnapshot(cause.snapshot)
-                        }
-                      }
-                    }
-                  }
-                }
-              }
               else -> {
-                table.tableEmptyText.apply {
-                  clear()
-                  appendText(
-                    issues.message ?: "An unknown failure occurred",
-                    EMPTY_STATE_TITLE_FORMAT
-                  )
+                if (!handleException(issues)) {
+                  table.tableEmptyText.apply {
+                    clear()
+                    appendText(
+                      issues.message ?: "An unknown failure occurred",
+                      EMPTY_STATE_TITLE_FORMAT
+                    )
+                  }
                 }
               }
             }
@@ -275,8 +231,7 @@ class AppInsightsIssuesTableView(
           }
         }
       }
-      Logger.getInstance(AppInsightsIssuesTableView::class.java)
-        .info("Collection terminated on table view.")
+      LOGGER.info("Collection terminated on table view.")
     }
   }
 
@@ -295,7 +250,8 @@ class AppInsightsIssuesTableView(
 
   override fun dispose() = Unit
 
-  inner class IssuesTableView(model: AppInsightsIssuesTableModel) : TableView<Issue>(model) {
+  inner class IssuesTableView(model: AppInsightsIssuesTableModel<IssueT>) :
+    TableView<IssueT>(model) {
     val tableEmptyText = AppInsightsStatusText(this) { isEmpty && !loadingPanel.isLoading }
 
     init {
@@ -319,10 +275,14 @@ class AppInsightsIssuesTableView(
 
     override fun updateUI() {
       super.updateUI()
-      AppInsightsIssuesTableCellRenderer.updateUI()
+      renderer.updateRenderer()
       tableEmptyText?.setFont(StartupUiUtil.getLabelFont())
     }
 
     @TestOnly fun isLoading() = loadingPanel.isLoading
+  }
+
+  companion object {
+    val LOGGER = Logger.getInstance(AppInsightsIssuesTableView::class.java)
   }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.services.firebase.insights.ui
+package com.android.tools.idea.insights.ui.actions
 
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi
@@ -21,12 +21,13 @@ import com.android.tools.adtui.swing.popup.FakeComponentPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.coroutineScope
+import com.android.tools.idea.insights.GroupAware
+import com.android.tools.idea.insights.MultiSelection
+import com.android.tools.idea.insights.WithCount
+import com.android.tools.idea.insights.ui.TreeDropDownPopup
+import com.android.tools.idea.insights.waitForCondition
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.google.services.firebase.insights.MultiSelection
-import com.google.services.firebase.insights.datamodel.GroupAware
-import com.google.services.firebase.insights.datamodel.WithCount
-import com.google.services.firebase.insights.waitForCondition
 import com.ibm.icu.impl.Assert.fail
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent

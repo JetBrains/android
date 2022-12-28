@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.services.firebase.insights.ui
+package com.android.tools.idea.insights.ui.actions
 
 import com.android.tools.idea.concurrency.SupervisorJob
+import com.android.tools.idea.insights.FakeClock
+import com.android.tools.idea.insights.ui.Timestamp
+import com.android.tools.idea.insights.ui.TimestampState
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
-import com.google.services.firebase.insights.FakeClock
 import com.intellij.testFramework.DisposableRule
 import java.time.Duration
 import kotlinx.coroutines.CoroutineScope

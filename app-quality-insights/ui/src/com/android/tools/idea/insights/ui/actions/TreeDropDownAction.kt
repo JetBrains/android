@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.services.firebase.insights.ui
+package com.android.tools.idea.insights.ui.actions
 
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.idea.insights.GroupAware
+import com.android.tools.idea.insights.MultiSelection
+import com.android.tools.idea.insights.WithCount
+import com.android.tools.idea.insights.ui.TreeDropDownPopup
 import com.google.common.annotations.VisibleForTesting
-import com.google.services.firebase.insights.MultiSelection
-import com.google.services.firebase.insights.datamodel.GroupAware
-import com.google.services.firebase.insights.datamodel.WithCount
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.popup.JBPopupListener
@@ -38,29 +39,28 @@ private fun allSelected(name: String) = "All $name"
 
 private fun noneSelected(name: String) = "No $name selected"
 
-class TreeDropDownAction<T, U : GroupAware<U>>(
+class TreeDropDownAction<ValueT, ValueGroupT : GroupAware<ValueGroupT>>(
   private val name: String,
-  flow: Flow<MultiSelection<WithCount<T>>>,
-  scope: CoroutineScope,
-  private val groupNameSupplier: (T) -> String,
-  private val nameSupplier: (T) -> String,
-  private val secondaryGroupSupplier: (T) -> Set<U> = { emptySet() },
-  private val onSelected: (Set<T>) -> Unit,
+  flow: Flow<MultiSelection<WithCount<ValueT>>>,
+  private val scope: CoroutineScope,
+  private val groupNameSupplier: (ValueT) -> String,
+  private val nameSupplier: (ValueT) -> String,
+  private val secondaryGroupSupplier: (ValueT) -> Set<ValueGroupT> = { emptySet() },
+  private val onSelected: (Set<ValueT>) -> Unit,
   private val secondaryTitleSupplier: () -> JComponent? = { null },
   @TestOnly private val getLocationOnScreen: Component.() -> Point = Component::getLocationOnScreen
 ) : DropDownAction(null, null, null) {
-
   @VisibleForTesting
   val selectionState = flow.stateIn(scope, SharingStarted.Eagerly, MultiSelection.emptySelection())
 
   @VisibleForTesting
-  internal val isDisabled =
+  val isDisabled =
     flow
       .map { selection -> selection.items.isEmpty() }
       .stateIn(scope, SharingStarted.Eagerly, false)
 
   @VisibleForTesting
-  internal val titleState =
+  val titleState =
     flow
       .map { selection ->
         val groupedValues = selection.items.groupBy { groupNameSupplier(it.value) }
@@ -70,9 +70,9 @@ class TreeDropDownAction<T, U : GroupAware<U>>(
       .stateIn(scope, SharingStarted.Eagerly, allSelected(name))
 
   private fun generateTitle(
-    selection: MultiSelection<WithCount<T>>,
-    groupedSelection: Map<String, List<WithCount<T>>>,
-    groupedValues: Map<String, List<WithCount<T>>>
+    selection: MultiSelection<WithCount<ValueT>>,
+    groupedSelection: Map<String, List<WithCount<ValueT>>>,
+    groupedValues: Map<String, List<WithCount<ValueT>>>
   ) =
     if (selection.allSelected()) {
       allSelected(name)
@@ -99,6 +99,7 @@ class TreeDropDownAction<T, U : GroupAware<U>>(
     val dropdown =
       TreeDropDownPopup(
         selectionState.value,
+        scope,
         groupNameSupplier,
         nameSupplier,
         secondaryGroupSupplier,

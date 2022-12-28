@@ -13,19 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights
+package com.android.tools.idea.insights.ui
 
-import java.util.concurrent.TimeoutException
-import kotlinx.coroutines.delay
+import javax.swing.table.TableCellRenderer
 
-suspend fun waitForCondition(timeoutMs: Long = 500, condition: () -> Boolean) {
-  val waitIntervalMs = 50L
-  var index = 0
-
-  while (index * waitIntervalMs < timeoutMs) {
-    if (condition()) return
-    index++
-    delay(waitIntervalMs)
-  }
-  throw TimeoutException()
+interface AppInsightsTableCellRenderer : TableCellRenderer {
+  /** Called whenever the table's UI is updated. */
+  fun updateRenderer()
 }

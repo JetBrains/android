@@ -13,55 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.services.firebase.insights.datamodel
+package com.android.tools.idea.insights
 
-import com.google.services.firebase.insights.client.grpc.toJavaInstant
-import com.google.services.firebase.insights.client.grpc.toProtoTimestamp
-import com.google.services.firebase.insights.proto.Exception
-import com.google.services.firebase.insights.proto.OperatingSystem
-import com.google.services.firebase.insights.proto.TrackType
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.TimeFilter
-import java.time.Duration
 import java.time.Instant
-import java.time.temporal.ChronoUnit
-
-/** Represents a time interval. */
-data class Interval(val startTime: Instant, val endTime: Instant) {
-  fun toProto(): com.google.services.firebase.insights.proto.Interval {
-    return com.google.services.firebase.insights.proto.Interval.newBuilder()
-      .apply {
-        startTime = this@Interval.startTime.toProtoTimestamp()
-        endTime = this@Interval.endTime.toProtoTimestamp()
-      }
-      .build()
-  }
-
-  // This function converts the analog duration to what is assumed to be the filter that caused
-  // them.
-  // Because the duration may not be exact due to time passing,
-  fun toTimeFilter(): TimeFilter {
-    val duration = this.duration
-    if (duration >= Duration.of(85, ChronoUnit.DAYS)) {
-      return TimeFilter.NINETY_DAYS
-    }
-    if (duration >= Duration.of(55, ChronoUnit.DAYS)) {
-      return TimeFilter.SIXTY_DAYS
-    }
-    if (duration >= Duration.of(25, ChronoUnit.DAYS)) {
-      return TimeFilter.THIRTY_DAYS
-    }
-    if (duration >= Duration.of(6, ChronoUnit.DAYS)) {
-      return TimeFilter.SEVEN_DAYS
-    }
-    if (duration >= Duration.of(20, ChronoUnit.HOURS)) {
-      return TimeFilter.TWENTYFOUR_HOURS
-    }
-    return TimeFilter.UNKNOWN_FILTER
-  }
-
-  val duration: Duration
-    get() = Duration.between(startTime, endTime)
-}
 
 /** The title & subtitle of each thread. */
 data class Caption(
@@ -107,20 +61,6 @@ data class Frame(
   fun matches(regex: Regex): Boolean {
     return symbol.matches(regex)
   }
-
-  companion object {
-    fun fromProto(proto: com.google.services.firebase.insights.proto.Frame): Frame {
-      return Frame(
-        line = proto.line,
-        file = proto.file,
-        symbol = proto.symbol,
-        offset = proto.offset,
-        address = proto.address,
-        library = proto.library,
-        blame = if (proto.blamed) Blames.BLAMED else Blames.NOT_BLAMED
-      )
-    }
-  }
 }
 
 /** The frames of the thread's stack, along with name & analysis results. */
@@ -144,7 +84,7 @@ data class ExceptionStack(
   val type: String = "",
 
   // The error message included in the exception
-  val exception_message: String = "",
+  val exceptionMessage: String = "",
 )
 
 /**
@@ -155,32 +95,7 @@ data class ExceptionStack(
 data class StacktraceGroup(
   // Nested exceptions are broken up & represented as peers in this list. See 'nested' field.
   val exceptions: List<ExceptionStack> = listOf()
-) {
-  companion object {
-    private val trampolineFrameRegex: Regex = Regex(".+\\.access\\$\\d+00")
-
-    fun fromProto(proto: List<Exception>): StacktraceGroup {
-      return StacktraceGroup(
-        exceptions =
-          proto.map { exception ->
-            ExceptionStack(
-              stacktrace =
-                Stacktrace(
-                  caption = Caption(title = exception.title, subtitle = exception.subtitle),
-                  blames = if (exception.blamed) Blames.BLAMED else Blames.NOT_BLAMED,
-                  frames =
-                    exception.framesList.map { Frame.fromProto(it) }.filter {
-                      !it.matches(trampolineFrameRegex)
-                    }
-                ),
-              type = exception.type,
-              exception_message = exception.exceptionMessage
-            )
-          }
-      )
-    }
-  }
-}
+)
 
 /** Metadata about the device running an app with Crashlytics. */
 data class Device(
@@ -190,14 +105,6 @@ data class Device(
 ) : Comparable<Device> {
   companion object {
     val ALL = Device(manufacturer = "", model = "")
-
-    fun fromProto(proto: com.google.services.firebase.insights.proto.Device): Device {
-      return Device(
-        manufacturer = proto.manufacturer,
-        model = proto.model,
-        displayName = proto.displayName
-      )
-    }
   }
 
   override fun compareTo(other: Device): Int =
@@ -211,13 +118,6 @@ data class OperatingSystemInfo(
 ) {
   companion object {
     val ALL = OperatingSystemInfo(displayVersion = "", displayName = "")
-
-    fun fromProto(proto: OperatingSystem): OperatingSystemInfo {
-      return OperatingSystemInfo(
-        displayVersion = proto.displayVersion,
-        displayName = proto.displayName
-      )
-    }
   }
 }
 
@@ -231,17 +131,6 @@ enum class PlayTrack(val displayName: String) : GroupAware<PlayTrack> {
 
   override val groupName: String
     get() = displayName
-
-  companion object {
-    fun fromProto(proto: com.google.services.firebase.insights.proto.PlayTrack): PlayTrack? =
-      when (proto.type) {
-        TrackType.TRACK_TYPE_PROD -> PRODUCTION
-        TrackType.TRACK_TYPE_INTERNAL -> INTERNAL
-        TrackType.TRACK_TYPE_OPEN_TESTING -> OPEN_TESTING
-        TrackType.TRACK_TYPE_CLOSED_TESTING -> CLOSED_TESTING
-        else -> null
-      }
-  }
 }
 
 /** Represents the Version of an App. */
@@ -253,16 +142,6 @@ data class Version(
 ) {
   companion object {
     val ALL = Version(buildVersion = "", displayVersion = "ALL", displayName = "ALL")
-
-    fun fromProto(proto: com.google.services.firebase.insights.proto.Version): Version {
-      val tracks = proto.tracksList.asSequence().mapNotNull { PlayTrack.fromProto(it) }.toSet()
-      return Version(
-        buildVersion = proto.buildVersion,
-        displayVersion = proto.displayVersion,
-        displayName = proto.displayName,
-        tracks = tracks
-      )
-    }
   }
 
   // TODO(vkryachko): remove equals and hashCode.
@@ -288,18 +167,6 @@ data class Version(
   }
 }
 
-enum class TimeIntervalFilter(val numDays: Long, val displayString: String) {
-  ONE_DAY(1, "Last 24 hours"),
-  SEVEN_DAYS(7, "Last 7 days"),
-  THIRTY_DAYS(30, "Last 30 days"),
-  SIXTY_DAYS(60, "Last 60 days"),
-  NINETY_DAYS(90, "Last 90 days");
-
-  override fun toString(): String {
-    return this.displayString
-  }
-}
-
 /** Event metadata captured at the time of the event, plus additional analysis. */
 data class EventData(
   // Metadata about the device.
@@ -321,19 +188,7 @@ data class Event(
   // state of the other threads in the process at time of the Event.
   val stacktraceGroup: StacktraceGroup = StacktraceGroup()
 ) {
-  companion object {
-    fun fromProto(proto: com.google.services.firebase.insights.proto.Event): Event {
-      return Event(
-        eventData =
-          EventData(
-            device = Device.fromProto(proto.device),
-            operatingSystemInfo = OperatingSystemInfo.fromProto(proto.operatingSystem),
-            eventTime = proto.eventTime.toJavaInstant()
-          ),
-        stacktraceGroup = StacktraceGroup.fromProto(proto.exceptionsList)
-      )
-    }
-  }
+  companion object
 }
 
 /**

@@ -13,25 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.services.firebase.insights
+package com.android.tools.idea.insights
 
-import com.google.services.firebase.insights.datamodel.Device
-import com.google.services.firebase.insights.datamodel.Fatality
-import com.google.services.firebase.insights.datamodel.Issue
-import com.google.services.firebase.insights.datamodel.Note
-import com.google.services.firebase.insights.datamodel.OperatingSystemInfo
-import com.google.services.firebase.insights.datamodel.SignalType
-import com.google.services.firebase.insights.datamodel.TimeIntervalFilter
-import com.google.services.firebase.insights.datamodel.Version
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsCrashOpenDetails.CrashOpenSource
-import kotlinx.coroutines.CoroutineScope
+import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import kotlinx.coroutines.flow.Flow
 
 /** Provides lifecycle and App Insights state data. */
-interface AppInsightsProjectLevelController {
-
-  /** [CoroutineScope] whose lifecycle is tied to current configuration of the host project. */
-  val coroutineScope: CoroutineScope
+interface AppInsightsProjectLevelController<IssueT : Issue, out StateT : AppInsightsState<IssueT>> {
 
   /**
    * This flow represents the App Insights state of a host Android app module.
@@ -52,26 +40,17 @@ interface AppInsightsProjectLevelController {
    * val selectedIssue: Flow<Issue?> = issues.mapReady { it.selected }.readyOrNull()
    * ```
    */
-  val state: Flow<AppInsightsState>
+  val state: Flow<StateT>
 
   // events
   fun refresh()
-  fun revertToSnapshot(state: AppInsightsState)
-  fun selectIssue(value: Issue?, source: CrashOpenSource)
+  fun selectIssue(value: IssueT?, selectionSource: IssueSelectionSource)
   fun selectVersions(values: Set<Version>)
 
   fun selectDevices(values: Set<Device>)
-  fun selectSignal(value: SignalType)
   fun selectOperatingSystems(values: Set<OperatingSystemInfo>)
   fun selectTimeInterval(value: TimeIntervalFilter)
-  fun selectFirebaseConnection(value: VariantConnection)
-  fun toggleFatality(value: Fatality)
-
-  fun openIssue(issue: Issue)
-  fun closeIssue(issue: Issue)
-
-  fun addNote(issue: Issue, message: String)
-  fun deleteNote(note: Note)
+  fun toggleFailureType(value: FailureType)
 
   fun enterOfflineMode()
 }

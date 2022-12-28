@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.insights
 
-import java.util.concurrent.TimeoutException
-import kotlinx.coroutines.delay
+enum class TimeIntervalFilter(val numDays: Long, private val displayString: String) {
+  ONE_DAY(1, "Last 24 hours"),
+  SEVEN_DAYS(7, "Last 7 days"),
+  FOURTEEN_DAYS(14, "Last 14 days"),
+  TWENTY_EIGHT_DAYS(28, "Last 28 days"),
+  THIRTY_DAYS(30, "Last 30 days"),
+  SIXTY_DAYS(60, "Last 60 days"),
+  NINETY_DAYS(90, "Last 90 days");
 
-suspend fun waitForCondition(timeoutMs: Long = 500, condition: () -> Boolean) {
-  val waitIntervalMs = 50L
-  var index = 0
-
-  while (index * waitIntervalMs < timeoutMs) {
-    if (condition()) return
-    index++
-    delay(waitIntervalMs)
+  override fun toString(): String {
+    return this.displayString
   }
-  throw TimeoutException()
 }

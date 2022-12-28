@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.services.firebase.insights.ui
+package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.workbench.AutoHide
 import com.android.tools.adtui.workbench.Side
 import com.android.tools.adtui.workbench.Split
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowDefinition
-import com.google.services.firebase.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.Issue
 import icons.StudioIcons
 import java.awt.BorderLayout
 import javax.swing.JPanel
@@ -28,10 +29,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
 object DetailsToolWindow {
-  fun create(
+  fun <IssueT : Issue, StateT : AppInsightsState<IssueT>> create(
     scope: CoroutineScope,
-    state: Flow<AppInsightsState>
-  ): ToolWindowDefinition<AppInsightsContext> {
+    state: Flow<StateT>
+  ): ToolWindowDefinition<AppInsightsToolWindowContext> {
     return ToolWindowDefinition(
       "Details",
       StudioIcons.DatabaseInspector.TABLE,
@@ -46,8 +47,10 @@ object DetailsToolWindow {
   }
 }
 
-private class DetailsToolWindowContent(scope: CoroutineScope, state: Flow<AppInsightsState>) :
-  ToolContent<AppInsightsContext> {
+private class DetailsToolWindowContent<IssueT : Issue, StateT : AppInsightsState<IssueT>>(
+  scope: CoroutineScope,
+  state: Flow<StateT>
+) : ToolContent<AppInsightsToolWindowContext> {
   private val component = JPanel(BorderLayout())
 
   init {
@@ -56,5 +59,5 @@ private class DetailsToolWindowContent(scope: CoroutineScope, state: Flow<AppIns
 
   override fun dispose() = Unit
   override fun getComponent() = component
-  override fun setToolContext(toolContext: AppInsightsContext?) = Unit
+  override fun setToolContext(toolContext: AppInsightsToolWindowContext?) = Unit
 }

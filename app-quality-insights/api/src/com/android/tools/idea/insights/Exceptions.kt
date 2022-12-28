@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.services.firebase.insights.datamodel
-
-import com.google.services.firebase.insights.AppInsightsState
+package com.android.tools.idea.insights
 
 object UnconfiguredAppException : Exception()
 
@@ -31,7 +29,14 @@ open class TimeoutException : Exception()
 
 object CancellableTimeoutException : TimeoutException()
 
+// TODO: this is used for Crashlytics only. To be removed when the offline flag is removed.
 data class RevertibleException(
-  val snapshot: AppInsightsState? = null,
+  val snapshot: AppInsightsState<*>? = null,
   override val cause: Throwable? = null
 ) : Exception()
+
+fun <T> LoadingState<T>.isCancellableTimeoutException(): Boolean {
+  return this is LoadingState.UnknownFailure &&
+    cause is RevertibleException &&
+    cause.cause is CancellableTimeoutException
+}

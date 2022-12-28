@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.services.firebase.insights.ui
+package com.android.tools.idea.insights.ui
 
-import com.google.services.firebase.insights.AppInsightsState
-import com.google.services.firebase.insights.LoadingState
-import com.google.services.firebase.insights.isCancellableTimeoutException
+import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.LoadingState
+import com.android.tools.idea.insights.isCancellableTimeoutException
 import com.intellij.util.text.DateFormatUtil
 import java.time.Clock
 import java.time.Instant
@@ -63,7 +63,7 @@ data class Timestamp(val time: Instant?, val state: TimestampState) {
   }
 }
 
-internal fun Flow<AppInsightsState>.toTimestamp(clock: Clock): Flow<Timestamp> {
+fun Flow<AppInsightsState<*>>.toTimestamp(clock: Clock): Flow<Timestamp> {
   return map { state ->
     when (val issues = state.issues) {
       is LoadingState.Ready -> {
