@@ -25,6 +25,14 @@ class StartTrace(timer: FakeTimer) : CommandHandler(timer) {
 
   override fun handleCommand(command: Command, events: MutableList<Common.Event>) {
     val traceId = timer.currentTimeNs
+    // Fake StartTrace command for memory profiler assumes successful start trace status event
+    if (command.startTrace.profilerType == Trace.ProfilerType.MEMORY) {
+      this.startStatus = Trace.TraceStartStatus.newBuilder().apply {
+          startTimeNs = timer.currentTimeNs
+          status = Trace.TraceStartStatus.Status.SUCCESS
+        }.build()
+    }
+
     // Inserts an in-progress trace info object, which the stage will see on the next time update.
     val info = Trace.TraceInfo.newBuilder()
       .setTraceId(traceId)

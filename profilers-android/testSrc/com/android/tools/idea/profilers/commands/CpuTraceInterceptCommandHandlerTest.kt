@@ -146,6 +146,7 @@ class CpuTraceInterceptCommandHandlerTest {
     type = Commands.Command.CommandType.START_TRACE
     commandId = cmdId
     startTrace = Trace.StartTrace.newBuilder().apply {
+      profilerType = Trace.ProfilerType.CPU
       val configuration = Trace.TraceConfiguration.newBuilder().apply {
         abiCpuArch = "FakeAbi"
       }

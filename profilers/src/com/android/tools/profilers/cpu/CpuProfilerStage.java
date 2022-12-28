@@ -350,7 +350,10 @@ public class CpuProfilerStage extends StreamingStage {
       .setStreamId(mySession.getStreamId())
       .setPid(mySession.getPid())
       .setType(Commands.Command.CommandType.START_TRACE)
-      .setStartTrace(Trace.StartTrace.newBuilder().setConfiguration(configuration).build())
+      .setStartTrace(Trace.StartTrace.newBuilder()
+                       .setProfilerType(Trace.ProfilerType.CPU)
+                       .setConfiguration(configuration)
+                       .build())
       .build();
 
     getStudioProfilers().getClient().executeAsync(startCommand, poolExecutor)
