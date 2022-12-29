@@ -96,7 +96,11 @@ import kotlin.math.roundToInt
 /**
  * Fake Screen Sharing Agent for use in tests.
  */
-internal class FakeScreenSharingAgent(val displaySize: Dimension, private val deviceState: DeviceState) : Disposable {
+internal class FakeScreenSharingAgent(
+  val displaySize: Dimension,
+  private val deviceState: DeviceState,
+  val roundDisplay: Boolean = false,
+) : Disposable {
 
   private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor(
      "FakeScreenSharingAgent", AndroidExecutors.getInstance().workerThreadExecutor, 1)
@@ -412,7 +416,7 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
 
       avcodec_find_encoder(codecId) ?: throw RuntimeException("$codecName encoder not found")
     }
-    private val packetHeader = VideoPacketHeader(displaySize)
+    private val packetHeader = VideoPacketHeader(displaySize, roundDisplay)
     private var presentationTimestampOffset = 0L
     private var lastImageFlavor: Int = 0
     @Volatile var stopped = false
@@ -597,8 +601,9 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
       BytePointer(this).apply { capacity(size.toLong()) }.asByteBuffer()
   }
 
-  private class VideoPacketHeader(val displaySize: Dimension) {
+  private class VideoPacketHeader(val displaySize: Dimension, val roundDisplay: Boolean = false) {
     var displayOrientation: Int = 0
+    var displayOrientationCorrection: Int = 0
     var packetSize: Int = 0
     var frameNumber: Long = 0
     var originationTimestampUs: Long = 0
@@ -607,7 +612,9 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
     fun serialize(buffer: ByteBuffer) {
       buffer.putInt(displaySize.width)
       buffer.putInt(displaySize.height)
-      buffer.putInt(displayOrientation)
+      buffer.put(displayOrientation.toByte())
+      buffer.put(displayOrientationCorrection.toByte())
+      buffer.putShort(if (roundDisplay) 1 else 0)
       buffer.putInt(packetSize)
       buffer.putLong(frameNumber)
       buffer.putLong(originationTimestampUs)
@@ -615,7 +622,7 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
     }
 
     companion object {
-      const val WIRE_SIZE = 4 + 4 + 4 + 4 + 8 + 8 + 8
+      const val WIRE_SIZE = 4 + 4 + 1 + 1 + 2 + 4 + 8 + 8 + 8
     }
   }
 

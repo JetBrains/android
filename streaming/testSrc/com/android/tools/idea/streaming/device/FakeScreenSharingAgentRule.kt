@@ -133,6 +133,7 @@ internal class FakeScreenSharingAgentRule : TestRule {
                     apiLevel: Int,
                     displaySize: Dimension,
                     abi: String,
+                    roundDisplay: Boolean = false,
                     additionalDeviceProperties: Map<String, String> = emptyMap(),
                     manufacturer: String = "Google",
                     hostConnectionType: DeviceState.HostConnectionType = DeviceState.HostConnectionType.USB): FakeDevice {
@@ -140,7 +141,7 @@ internal class FakeScreenSharingAgentRule : TestRule {
     val release = "Sweet dessert"
     val deviceState = fakeAdbRule.attachDevice(serialNumber, manufacturer, model, release, apiLevel.toString(), abi,
                                                additionalDeviceProperties, hostConnectionType)
-    val device = FakeDevice(serialNumber, displaySize, deviceState)
+    val device = FakeDevice(serialNumber, displaySize, deviceState, roundDisplay = roundDisplay)
     devices.add(device)
     return device
   }
@@ -164,8 +165,9 @@ internal class FakeScreenSharingAgentRule : TestRule {
     val serialNumber: String,
     val displaySize: Dimension,
     val deviceState: DeviceState,
+    val roundDisplay: Boolean = false,
   ) {
-    val agent: FakeScreenSharingAgent = FakeScreenSharingAgent(displaySize, deviceState)
+    val agent: FakeScreenSharingAgent = FakeScreenSharingAgent(displaySize, deviceState, roundDisplay = roundDisplay)
     var hostPort: Int? = null
     val properties: Map<String, String>
       get() = deviceState.properties

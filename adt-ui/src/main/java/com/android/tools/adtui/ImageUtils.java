@@ -778,6 +778,31 @@ public class ImageUtils {
   }
 
   /**
+   * Clips the image by the ellipse inscribed into the image. The area outside the ellipse is filled
+   * with backgroundColor, or left transparent if backgroundColor is null.
+   */
+  public static @NotNull BufferedImage ellipticalClip(@NotNull BufferedImage image, @Nullable Color backgroundColor) {
+    BufferedImage mask = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g2 = mask.createGraphics();
+    applyQualityRenderingHints(g2);
+    g2.fill(new Area(new Ellipse2D.Double(0, 0, image.getWidth(), image.getHeight())));
+    g2.dispose();
+    BufferedImage shapedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+    g2 = shapedImage.createGraphics();
+    applyQualityRenderingHints(g2);
+    g2.drawImage(image, 0, 0, null);
+    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_IN));
+    g2.drawImage(mask, 0, 0, null);
+    if (backgroundColor != null) {
+      g2.setColor(backgroundColor);
+      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_OVER));
+      g2.fillRect(0, 0, image.getWidth(), image.getHeight());
+    }
+    g2.dispose();
+    return shapedImage;
+  }
+
+  /**
    * Interface implemented by cropping functions that determine whether a pixel should be cropped or not.
    */
   public interface CropFilter {

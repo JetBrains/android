@@ -39,6 +39,8 @@ struct DisplayInfo {
   int32_t rotation;
   int32_t layer_stack;
   int32_t flags;
+
+  static constexpr int32_t FLAG_ROUND = 1 << 4; // From frameworks/base/core/java/android/view/Display.java
 };
 
 }  // namespace screensharing

@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.device
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.adtui.ImageUtils
+import com.android.tools.adtui.ImageUtils.ellipticalClip
 import com.android.tools.idea.streaming.coerceAtMost
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
@@ -155,6 +156,7 @@ internal class VideoDecoder(
       val displaySize: Dimension,
       val orientation: Int,
       val orientationCorrection: Int,
+      val round: Boolean,
       val frameNumber: Int,
       val originationTime: Long)
 
@@ -337,7 +339,7 @@ internal class VideoDecoder(
       synchronized(imageLock) {
         var image = displayFrame?.image
         if (image?.width == imageSize.width && image.height == imageSize.height &&
-            displayFrame?.orientationCorrection == 0 && header.displayOrientationCorrection == 0) {
+            displayFrame?.orientationCorrection == 0 && header.displayOrientationCorrection == 0 && !header.displayRound) {
           val imagePixels = (image.raster.dataBuffer as DataBufferInt).data
           framePixels.get(imagePixels)
         }
@@ -348,10 +350,13 @@ internal class VideoDecoder(
           val sampleModel = SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, imageSize.width, imageSize.height, SAMPLE_MODEL_BIT_MASKS)
           val raster = Raster.createWritableRaster(sampleModel, buffer, ZERO_POINT)
           image = ImageUtils.rotateByQuadrants(BufferedImage(COLOR_MODEL, raster, false, null), header.displayOrientationCorrection)
+          if (header.displayRound) {
+            image = ellipticalClip(image, null)
+          }
         }
 
         displayFrame = VideoFrame(image, header.displaySize, header.displayOrientation, header.displayOrientationCorrection,
-                                  header.frameNumber.toInt(), header.originationTimestampUs / 1000)
+                                  header.displayRound, header.frameNumber.toInt(), header.originationTimestampUs / 1000)
       }
 
       onNewFrameAvailable()
@@ -380,6 +385,7 @@ internal class VideoDecoder(
     val displayOrientation: Int,
     /** The difference between [displayOrientation] and the orientation according to the DisplayInfo Android data structure. */
     val displayOrientationCorrection: Int,
+    val displayRound: Boolean,
     val packetSize: Int,
     val frameNumber: Long,
     val originationTimestampUs: Long,
@@ -391,14 +397,15 @@ internal class VideoDecoder(
       fun deserialize(buffer: ByteBuffer): PacketHeader {
         val width = buffer.getInt()
         val height = buffer.getInt()
-        val displayOrientation = buffer.getShort().toInt()
-        val displayOrientationCorrection = buffer.getShort().toInt()
+        val displayOrientation = buffer.get().toInt()
+        val displayOrientationCorrection = buffer.get().toInt()
+        val displayRound = buffer.getShort().toInt() != 0
         val packetSize = buffer.getInt()
         val frameNumber = buffer.getLong()
         val originationTimestampUs = buffer.getLong()
         val presentationTimestampUs = buffer.getLong()
-        return PacketHeader(Dimension(width, height), displayOrientation, displayOrientationCorrection, packetSize, frameNumber,
-                            originationTimestampUs, presentationTimestampUs)
+        return PacketHeader(Dimension(width, height), displayOrientation, displayOrientationCorrection, displayRound, packetSize,
+                            frameNumber, originationTimestampUs, presentationTimestampUs)
       }
 
       fun createBuffer(): ByteBuffer =

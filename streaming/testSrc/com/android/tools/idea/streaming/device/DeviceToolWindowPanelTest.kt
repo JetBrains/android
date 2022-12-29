@@ -19,7 +19,6 @@ import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt
 import com.android.testutils.TestUtils
-import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
@@ -150,7 +149,7 @@ class DeviceToolWindowPanelTest {
       return
     }
     device = agentRule.connectDevice("Pixel Watch", 30, Dimension(454, 454), "arm64-v8a",
-                                     mapOf(RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
+                                     additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
     panel.createContent(false)
     assertThat(panel.deviceView).isNotNull()
 

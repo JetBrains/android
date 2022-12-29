@@ -479,7 +479,7 @@ class StreamingToolWindowManagerTest {
     assertThat(toolWindow.isVisible).isFalse()
 
     agentRule.connectDevice("LG Watch Sport", 29, Dimension(480, 480), "armeabi-v7a",
-                            mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
+                            additionalDeviceProperties = mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
     toolWindow.show()
 
     dispatchAllEventsInIdeEventQueue()

@@ -319,6 +319,7 @@ void DisplayStreamer::Run() {
       packet_header.display_height = display_size.height;
       packet_header.display_orientation = NormalizeRotation(display_info.rotation + rotation_correction);
       packet_header.display_orientation_correction = NormalizeRotation(rotation_correction);
+      packet_header.display_round = (display_info.flags & DisplayInfo::FLAG_ROUND) ? 1 : 0;
     }
     AMediaFormat* sync_frame_request = AMediaFormat_new();
     AMediaFormat_setInt32(sync_frame_request, AMEDIACODEC_KEY_REQUEST_SYNC_FRAME, 0);

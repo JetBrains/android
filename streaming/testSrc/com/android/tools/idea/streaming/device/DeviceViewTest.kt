@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.adblib.DevicePropertyNames
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
@@ -236,6 +237,24 @@ internal class DeviceViewTest {
     assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
         MotionEventMessage(listOf(MotionEventMessage.Pointer(813, 0, 0)), MotionEventMessage.ACTION_UP, 0))
     fakeUi.mouse.release()
+  }
+
+  @Test
+  fun testRoundWatch() {
+    if (!isFFmpegAvailableToTest()) {
+      return
+    }
+    device = agentRule.connectDevice("Pixel Watch", 30, Dimension(384, 384), "armeabi-v7a", roundDisplay = true,
+                                     additionalDeviceProperties = mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
+
+    createDeviceView(100, 150, 2.0)
+    assertThat(agent.commandLine).matches("CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process" +
+                                          " $DEVICE_PATH_BASE com.android.tools.screensharing.Main" +
+                                          " --socket=screen-sharing-agent-\\d+ --max_size=200,300 --flags=1 --codec=vp8")
+    waitForFrame()
+    assertThat(view.displayRectangle).isEqualTo(Rectangle(0, 50, 200, 200))
+    assertThat(view.displayOrientationQuadrants).isEqualTo(0)
+    assertAppearance("RoundWatch1")
   }
 
   @Test
