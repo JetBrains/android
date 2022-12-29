@@ -65,7 +65,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
 
-  private static final NotNullLazyKey<XmlFile, Project> DUMMY_XSD = NotNullLazyKey.create(
+  private static final NotNullLazyKey<XmlFile, Project> DUMMY_XSD = NotNullLazyKey.createLazyKey(
     AndroidXmlSchemaProvider.class.getName(),
     project ->
       (XmlFile)PsiFileFactory.getInstance(project)
