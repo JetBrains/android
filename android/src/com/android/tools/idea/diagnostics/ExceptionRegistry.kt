@@ -313,8 +313,8 @@ object ExceptionRegistry {
         }
       }
 
-      if (sb.endsWith(arrow)) {
-        sb.trim(arrow)
+      if (sb.endsWith(arrow)) { // remove arrow suffix
+        sb.setLength(sb.length - 1)
       }
 
       if (sb.length > maxWidth) {
