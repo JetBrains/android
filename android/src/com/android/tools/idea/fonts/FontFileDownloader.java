@@ -1,4 +1,4 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.fonts;
 
 import com.google.common.util.concurrent.AtomicDouble;
@@ -16,9 +16,9 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import com.intellij.util.containers.hash.LinkedHashMap;
 import com.intellij.util.download.DownloadableFileDescription;
 import com.intellij.util.io.HttpRequests;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -210,7 +210,8 @@ public class FontFileDownloader {
     private final int myTasksCount;
     private final AtomicDouble myTotalFraction;
     private final Object myLock = new Object();
-    private final LinkedHashMap<SubTaskProgressIndicator, String> myText2Stack = new LinkedHashMap<>();
+    @SuppressWarnings("SSBasedInspection")
+    private final Object2ObjectLinkedOpenHashMap<SubTaskProgressIndicator, String> myText2Stack = new Object2ObjectLinkedOpenHashMap<>();
 
     private ConcurrentTasksProgressManager(ProgressIndicator parent, int tasksCount) {
       myParent = parent;
@@ -238,7 +239,7 @@ public class FontFileDownloader {
         String prev;
         synchronized (myLock) {
           myText2Stack.remove(subTask);
-          prev = myText2Stack.getLastValue();
+          prev = myText2Stack.isEmpty() ? null : myText2Stack.get(myText2Stack.lastKey());
         }
         if (prev != null) {
           myParent.setText2(prev);
