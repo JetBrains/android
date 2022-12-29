@@ -201,7 +201,10 @@ iml_test(
         "@system_image_android-30_default_x86_64//:x86_64-android-30-images",
     ],
     module = ":intellij.android.core.integration",
-    tags_linux = ["block-network"],
+    tags_linux = [
+        "block-network",
+        "very_flaky",  # b/263397644
+    ],
     tags_mac = [],
     tags_windows = [
         "block-network",
