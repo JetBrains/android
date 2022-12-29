@@ -21,6 +21,7 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.run.ApkProvisionException
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiManager
 import com.intellij.psi.XmlRecursiveElementVisitor
@@ -36,39 +37,60 @@ import java.util.Locale
 object FacetFinder {
 
   /**
-   * Finds a facet by package name to use in debugger attachment configuration.
+   * Finds a facet by process name to use in debugger attachment configuration.
    *
    * @return The facet to use for attachment configuration. Null if no suitable facet exists.
    */
   fun findFacetForProcess(project: Project, processName: String): AndroidFacet? {
+    // Local cache so that we don't read the same AndroidManifest.xml file more than once.
+    val processNameCache = mutableMapOf<AndroidFacet, List<String>>()
+
     val facets = project.getAndroidFacets()
     for (facet in facets) {
-      try {
-        val facetPackageName = facet.getModuleSystem().getApplicationIdProvider().packageName
-        if (processName == facetPackageName) {
-          return facet
-        }
-
-        // The facet's package name does not match the given package name. Also check for local/global
-        // processes.
-
-        // Handle local processes under the package. E.g., android:processname=":"foo" causes the process
-        // name to be "com.example.myapplication:foo".
-        if (processName.startsWith(facetPackageName + ProcessNameReader.LOCAL_PROCESS_NAME_SEPARATOR)) {
-          return facet
-        }
-
-        // Search the facet's  AndroidManifest.xml to see if it contains any android:process="..."
-        // that create global processes where the package name will not match the process name.
-        if (ProcessNameReader.hasGlobalProcess(facet, processName)) {
-          // This module has an android:process override that matches the name of the process being attached to.
-          return facet
-        }
+      val facetPackageName = try {
+        facet.getModuleSystem().getApplicationIdProvider().packageName
       }
       catch (e: ApkProvisionException) {
         Logger.getInstance(FacetFinder::class.java).warn(e)
+        continue  // Only scan facets that have an applicationId (i.e., app modules)
+      }
+
+      if (processName == facetPackageName) {
+        return facet
+      }
+
+      // The facet's package name does not match the given process name. Also check for local/global
+      // processes that correspond to this facet.
+
+      // Handle local processes, e.g., android:process=":foo" causes the process name to be
+      // "com.example.myapplication:foo".
+      // This can identify any local processes that are defined by library modules that this module
+      // depends on, because the process names of all such local processes would start with this module's
+      // applicationId. That's why we don't need to separately search library modules for local processes.
+      if (processName.startsWith(facetPackageName + ProcessNameReader.LOCAL_PROCESS_NAME_SEPARATOR)) {
+        return facet
+      }
+
+      // Handle global processes, e.g., android:process="anything" causes the process name to be "anything".
+      // Note that we must search not only the current facet, but also the facets for all modules that the
+      // current module depends on, as any one of them might contain a global process definition.
+      val dependentModules = mutableSetOf<com.intellij.openapi.module.Module>()
+      ModuleUtilCore.getDependencies(facet.mainModule, dependentModules)
+      for (dependentModule in dependentModules) {
+        val dependentAndroidFacet = AndroidFacet.getInstance(dependentModule) ?: continue
+        val globalProcessNames = processNameCache.getOrPut(dependentAndroidFacet) {
+          ProcessNameReader.readGlobalProcessNames(dependentAndroidFacet)
+        }
+        if (globalProcessNames.contains(processName)) {
+          // This module has an android:process override that matches the name of the process being attached to.
+          // Note that we don't return the facet for the dependent module, because it  wouldn't be able to provide
+          // applicationId that is needed by attachment configuration. Instead, we return the facet for the original
+          // module.
+          return facet
+        }
       }
     }
+
     return null
   }
 }
@@ -85,21 +107,10 @@ object ProcessNameReader {
   const val LOCAL_PROCESS_NAME_SEPARATOR = ":"
 
   /**
-   * @param facet The facet whose AndroidManifest.xml file will be searched
-   * @param processName  The process name being searched
-   * @return True if the provided facet contains a global process with the provided name
-   */
-  fun hasGlobalProcess(facet: AndroidFacet, processName: String): Boolean {
-    return readGlobalProcessNames(facet)
-      .stream()
-      .anyMatch { globalProcessName: String -> processName == globalProcessName }
-  }
-
-  /**
    * @param facet The facet whose AndroidManifest.xml will be searched
    * @return the values of the android:process attributes from the manifest file, excluding local processes that start with ":"
    */
-  private fun readGlobalProcessNames(facet: AndroidFacet): List<String> {
+  fun readGlobalProcessNames(facet: AndroidFacet): List<String> {
     val manifestFile = getInstance(facet).mainManifestFile ?: return emptyList()
     val result: MutableList<String> = LinkedList()
     ReadAction.run<RuntimeException> {
