@@ -67,16 +67,14 @@ class ScreenshotAction : DumbAwareAction(
           val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
           val defaultFrame =
               if (framingOptions.isNotEmpty()) screenshotOptions.getDefaultFramingOption(framingOptions, screenshotImage) else 0
-          val viewer: ScreenshotViewer = object : ScreenshotViewer(
-            project,
-            screenshotImage,
-            backingFile,
-            screenshotSupplier,
-            screenshotPostprocessor,
-            framingOptions,
-            defaultFrame,
-            screenshotOptions.screenshotViewerOptions) {
-
+          val viewer: ScreenshotViewer = object : ScreenshotViewer(project,
+                                                                   screenshotImage,
+                                                                   backingFile,
+                                                                   screenshotSupplier,
+                                                                   screenshotPostprocessor,
+                                                                   framingOptions,
+                                                                   defaultFrame,
+                                                                   screenshotOptions.screenshotViewerOptions) {
             override fun doOKAction() {
               super.doOKAction()
               screenshot?.let {
