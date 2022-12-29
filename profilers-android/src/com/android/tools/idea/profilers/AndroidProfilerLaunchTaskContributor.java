@@ -218,10 +218,12 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     String traceFilePath = String.format(Locale.US, "%s/%s.trace", DAEMON_DEVICE_DIR_PATH, appPackageName);
 
     Trace.TraceConfiguration configuration = Trace.TraceConfiguration.newBuilder()
+      .setAppName(appPackageName)
+      .setInitiationType(Trace.TraceInitiationType.INITIATED_BY_STARTUP)
       .setAbiCpuArch(abi)
-      .setAppName(appPackageName).setInitiationType(Trace.TraceInitiationType.INITIATED_BY_UI)
       .setPerfettoOptions(
         PerfettoTraceConfigBuilders.INSTANCE.getMemoryTraceConfig(appPackageName, profilerState.NATIVE_MEMORY_SAMPLE_RATE_BYTES))
+      .setTempPath(traceFilePath)
       .build();
 
     Commands.Command sampleCommand = Commands.Command.newBuilder()
