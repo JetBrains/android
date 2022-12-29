@@ -324,7 +324,6 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
       icon.icon = if (expanded) UIUtil.getTreeExpandedIcon() else UIUtil.getTreeCollapsedIcon()
       if (expanded) {
         icon.icon = UIUtil.getTreeExpandedIcon()
-        constraintText
         constraintNumberText.text = ""
       }
       else {

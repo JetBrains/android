@@ -101,8 +101,8 @@ class NlVisibilityJBList : JBList<ButtonPresentation>(), Disposable {
   }
 
   override fun dispose() {
-    currHovered - 1
-    currClicked - 1
+    currHovered = -1
+    currClicked = -1
     currModel = null
     for (i in 0 until model.size) {
       val item = model.getElementAt(i)
