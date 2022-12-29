@@ -27,12 +27,12 @@ import com.android.tools.idea.gradle.structure.model.android.PsSigningConfig
 import com.android.tools.idea.structure.dialog.logUsagePsdAction
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.PSDEvent
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.Messages.YES
-import com.intellij.util.IconUtil
 
 const val SIGNING_CONFIGS_DISPLAY_NAME = "Signing Configs"
 class SigningConfigsPanel(
@@ -49,7 +49,7 @@ class SigningConfigsPanel(
   private val nameValidator = NameValidator { module.validateSigningConfigName(it.orEmpty()) }
 
   override fun getRemoveAction(): AnAction {
-    return object : DumbAwareAction("Remove Signing Config", "Removes a Signing Config", IconUtil.getRemoveIcon()) {
+    return object : DumbAwareAction("Remove Signing Config", "Removes a Signing Config", AllIcons.General.Remove) {
       override fun update(e: AnActionEvent) {
         e.presentation.isEnabled = selectedConfigurable != null
       }
@@ -71,7 +71,7 @@ class SigningConfigsPanel(
   }
 
   override fun getRenameAction(): AnAction {
-    return object : DumbAwareAction("Rename Signing Config", "Renames a Signing Config", IconUtil.getEditIcon()) {
+    return object : DumbAwareAction("Rename Signing Config", "Renames a Signing Config", AllIcons.Actions.Edit) {
       override fun update(e: AnActionEvent) {
         e.presentation.isEnabled = selectedConfigurable != null
       }
@@ -94,7 +94,7 @@ class SigningConfigsPanel(
 
   override fun getCreateActions(): List<AnAction> {
     return listOf<DumbAwareAction>(
-        object : DumbAwareAction("Add Signing Config", "", IconUtil.getAddIcon()) {
+        object : DumbAwareAction("Add Signing Config", "", AllIcons.General.Add) {
           override fun actionPerformed(e: AnActionEvent) {
             val newName =
                 Messages.showInputDialog(

@@ -202,7 +202,7 @@ internal class DeclaredDependenciesPanel(
   }
 
   private inner class RemoveDependencyAction internal constructor() :
-      DumbAwareAction("Remove Dependency...", "", IconUtil.getRemoveIcon()) {
+      DumbAwareAction("Remove Dependency...", "", IconUtil.removeIcon) {
 
     override fun update(e: AnActionEvent) {
       val details = currentDependencyDetails

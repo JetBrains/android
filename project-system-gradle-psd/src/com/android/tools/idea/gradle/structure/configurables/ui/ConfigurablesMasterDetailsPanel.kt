@@ -114,7 +114,7 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
       createActionInstance = when {
         createActions.size == 1 -> createActions[0]
         createActions.isNotEmpty() ->
-          MyActionGroupWrapper(object : ActionGroup("Add", "Add", IconUtil.getAddIcon()) {
+          MyActionGroupWrapper(object : ActionGroup("Add", "Add", IconUtil.addIcon) {
             override fun getChildren(e: AnActionEvent?): Array<AnAction> {
               return createActions.toTypedArray()
             }
