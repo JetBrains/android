@@ -22,7 +22,6 @@ import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.MainProcessSelector
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture
 import com.google.common.truth.Truth.assertThat
-import com.intellij.util.Base64
 import org.junit.Test
 import perfetto.protos.PerfettoTrace
 import java.util.concurrent.TimeUnit
@@ -45,7 +44,7 @@ class PerfettoParserTest {
   fun `with UiState appended to trace file`() {
     val services = FakeIdeProfilerServices()
     val fakeTraceProcessorService = services.traceProcessorService as FakeTraceProcessorService
-    fakeTraceProcessorService.uiStateForTraceId[1] = Base64.encode(PerfettoTrace.UiState.newBuilder()
+    fakeTraceProcessorService.uiStateForTraceId[1] = java.util.Base64.getEncoder().encodeToString(PerfettoTrace.UiState.newBuilder()
                                                                      .setHighlightProcess(
                                                                        PerfettoTrace.UiState.HighlightProcess.newBuilder().setPid(1001))
                                                                      .setTimelineStartTs(TimeUnit.SECONDS.toNanos(1))
@@ -64,7 +63,7 @@ class PerfettoParserTest {
   fun `with UiState command line`() {
     val services = FakeIdeProfilerServices()
     val fakeTraceProcessorService = services.traceProcessorService as FakeTraceProcessorService
-    fakeTraceProcessorService.uiStateForTraceId[1] = Base64.encode(PerfettoTrace.UiState.newBuilder()
+    fakeTraceProcessorService.uiStateForTraceId[1] = java.util.Base64.getEncoder().encodeToString(PerfettoTrace.UiState.newBuilder()
                                                                      .setHighlightProcess(PerfettoTrace.UiState.HighlightProcess
                                                                                             .newBuilder()
                                                                                             .setCmdline("com.android.phone"))

@@ -21,9 +21,9 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
-import com.intellij.util.Base64
 import com.intellij.util.ThrowableRunnable
 import java.io.File
+import java.util.Base64
 
 class CreateFileQuickFixTest : JavaCodeInsightFixtureTestCase() {
   override fun tuneFixture(builder: JavaModuleFixtureBuilder<*>) {
@@ -97,6 +97,6 @@ class CreateFileQuickFixTest : JavaCodeInsightFixtureTestCase() {
 
     val virtualBinFile = LocalFileSystem.getInstance().findFileByIoFile(binFile)
     val contents = virtualBinFile?.contentsToByteArray()
-    assertEquals(Base64.encode(binary), Base64.encode(contents))
+    assertEquals(Base64.getEncoder().encodeToString(binary), Base64.getEncoder().encodeToString(contents))
   }
 }
