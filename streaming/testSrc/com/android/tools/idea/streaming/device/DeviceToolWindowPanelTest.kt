@@ -19,6 +19,7 @@ import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt
 import com.android.testutils.TestUtils
+import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
@@ -35,6 +36,7 @@ import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
@@ -101,7 +103,7 @@ class DeviceToolWindowPanelTest {
     // Check appearance.
     fakeUi.updateToolbars()
     waitForFrame()
-    assertAppearance("AppearanceAndToolbarActions1", maxPercentDifferent = 0.08)
+    assertAppearance("AppearanceAndToolbarActions1", maxPercentDifferentMac = 0.06, maxPercentDifferentWindows = 0.06)
     assertThat(panel.preferredFocusableComponent).isEqualTo(panel.deviceView)
     assertThat(panel.isClosable).isFalse()
     assertThat(panel.icon).isNotNull()
@@ -303,13 +305,19 @@ class DeviceToolWindowPanelTest {
   }
 
   @Suppress("SameParameterValue")
-  private fun assertAppearance(goldenImageName: String, maxPercentDifferent: Double = 0.0) {
+  private fun assertAppearance(goldenImageName: String,
+                               maxPercentDifferentLinux: Double = 0.0,
+                               maxPercentDifferentMac: Double = 0.0,
+                               maxPercentDifferentWindows: Double = 0.0) {
     fakeUi.layoutAndDispatchEvents()
     fakeUi.updateToolbars()
     val image = fakeUi.render()
-/* b/263906130
+    val maxPercentDifferent = when {
+      SystemInfo.isMac -> maxPercentDifferentMac
+      SystemInfo.isWindows -> maxPercentDifferentWindows
+      else -> maxPercentDifferentLinux
+    }
     ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, maxPercentDifferent)
-b/263906130 */
   }
 
   private fun getGoldenFile(name: String): Path {

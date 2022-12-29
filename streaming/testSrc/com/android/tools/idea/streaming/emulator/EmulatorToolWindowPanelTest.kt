@@ -138,7 +138,7 @@ class EmulatorToolWindowPanelTest {
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 520")
-    assertAppearance(ui, "AppearanceAndToolbarActions1", maxPercentDifferentWindows = 0.03, maxPercentDifferentMac = 0.03)
+    assertAppearance(ui, "AppearanceAndToolbarActions1", maxPercentDifferentMac = 0.03, maxPercentDifferentWindows = 0.3)
 
     // Check EmulatorPowerButtonAction.
     var button = ui.getComponent<ActionButton> { it.action.templateText == "Power" }
@@ -219,7 +219,7 @@ class EmulatorToolWindowPanelTest {
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 320 height: 320")
-    assertAppearance(ui, "WearToolbarActions1", maxPercentDifferentWindows = 0.04, maxPercentDifferentMac = 0.04)
+    assertAppearance(ui, "WearToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
 
     // Check Wear1ButtonAction.
     var button = ui.getComponent<ActionButton> { it.action.templateText == "Button 1" }
@@ -357,7 +357,7 @@ class EmulatorToolWindowPanelTest {
     ui.layoutAndDispatchEvents()
     var streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 1080 height: 1171")
-    assertAppearance(ui, "ChangeDisplayMode1", maxPercentDifferentWindows = 0.002, maxPercentDifferentMac = 0.002)
+    assertAppearance(ui, "ChangeDisplayMode1", maxPercentDifferentMac = 0.002, maxPercentDifferentWindows = 0.05)
 
     // Set the desktop display mode.
     executeDeviceAction("android.emulator.display.mode.tablet", emulatorView, project)
@@ -367,7 +367,7 @@ class EmulatorToolWindowPanelTest {
 
     streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 1200 height: 1171")
-    assertAppearance(ui, "ChangeDisplayMode2", maxPercentDifferentWindows = 0.002, maxPercentDifferentMac = 0.002)
+    assertAppearance(ui, "ChangeDisplayMode2", maxPercentDifferentMac = 0.002, maxPercentDifferentWindows = 0.05)
   }
 
   @Test
@@ -438,7 +438,7 @@ class EmulatorToolWindowPanelTest {
     waitForCondition(2, TimeUnit.SECONDS) { ui.findAllComponents<EmulatorView>().size == 3 }
     ui.layoutAndDispatchEvents()
     waitForNextFrameInAllDisplays(ui, frameNumbers)
-    assertAppearance(ui, "MultipleDisplays1", maxPercentDifferentWindows = 0.09, maxPercentDifferentMac = 0.09)
+    assertAppearance(ui, "MultipleDisplays1", maxPercentDifferentMac = 0.09, maxPercentDifferentWindows = 0.25)
 
     // Resize emulator display panels.
     ui.findAllComponents<EmulatorSplitPanel>().forEach { it.proportion /= 2 }
@@ -655,9 +655,7 @@ class EmulatorToolWindowPanelTest {
       SystemInfo.isWindows -> maxPercentDifferentWindows
       else -> maxPercentDifferentLinux
     }
-/* b/263906130
     ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), scaledImage, maxPercentDifferent)
-b/263906130 */
   }
 
   private fun getGoldenFile(name: String): Path {
