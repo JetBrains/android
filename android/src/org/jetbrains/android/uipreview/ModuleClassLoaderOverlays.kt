@@ -59,7 +59,7 @@ class ModuleClassLoaderOverlays private constructor() : ModificationTracker {
     @Synchronized get
 
   companion object {
-    private val OVERLAY_KEY: NotNullLazyKey<ModuleClassLoaderOverlays, Module> = NotNullLazyKey.create(
+    private val OVERLAY_KEY: NotNullLazyKey<ModuleClassLoaderOverlays, Module> = NotNullLazyKey.createLazyKey(
       ModuleClassLoaderOverlays::class.qualifiedName!!) {
       ModuleClassLoaderOverlays()
     }
