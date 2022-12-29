@@ -16,9 +16,14 @@
 package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.annotations.concurrency.GuardedBy
+import com.android.ddmlib.Client
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
+import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
+import com.android.tools.idea.layoutinspector.pipeline.adb.findClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.errorCode
+import com.android.tools.idea.layoutinspector.pipeline.debugger.isPausedInDebugger
+import com.android.tools.idea.layoutinspector.pipeline.debugger.resumeDebugger
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.util.ListenerCollection
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
@@ -39,6 +44,8 @@ import java.util.concurrent.TimeUnit
 @VisibleForTesting val CONNECTED_STATE = AttachErrorState.MODEL_UPDATED
 @VisibleForTesting const val CONNECT_TIMEOUT_SECONDS: Long = 30L
 @VisibleForTesting const val CONNECT_TIMEOUT_MESSAGE_KEY = "connect.timeout"
+@VisibleForTesting const val DEBUGGER_CHECK_SECONDS: Long = 2L
+@VisibleForTesting const val DEBUGGER_CHECK_MESSAGE_KEY = "debugger.paused"
 
 class InspectorClientLaunchMonitor(
   private val project: Project,
@@ -47,7 +54,8 @@ class InspectorClientLaunchMonitor(
 ) {
   private var lastUpdate: Long = 0L
   private var currentProgress = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
-  private var currentFuture: ScheduledFuture<*>? = null
+  private var timeoutFuture: ScheduledFuture<*>? = null
+  private var debuggerFuture:  ScheduledFuture<*>? = null
   private val clientLock = Any()
 
   // This is to make sure we never schedule a timeout check after the monitor is stopped.
@@ -65,7 +73,7 @@ class InspectorClientLaunchMonitor(
 
   val timeoutHandlerScheduled: Boolean
     @TestOnly
-    get() = currentFuture != null
+    get() = timeoutFuture != null
 
   fun updateProgress(progress: AttachErrorState) {
     attachErrorStateListeners.forEach { it.invoke(progress) }
@@ -73,17 +81,21 @@ class InspectorClientLaunchMonitor(
     if (progress <= currentProgress) {
       return
     }
-    currentFuture?.cancel(true)
+    timeoutFuture?.cancel(true)
+    debuggerFuture?.cancel(true)
     currentProgress = progress
     if (currentProgress < CONNECTED_STATE) {
       lastUpdate = System.currentTimeMillis()
       synchronized(clientLock) {
         if (client != null) {
-          currentFuture = executorService.schedule(::handleTimeout, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+          timeoutFuture = executorService.schedule(::handleTimeout, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+          debuggerFuture = executorService.schedule(::handleDebuggerCheck, DEBUGGER_CHECK_SECONDS, TimeUnit.SECONDS)
         }
       }
     }
-    InspectorBannerService.getInstance(project)?.removeNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+    val banner = InspectorBannerService.getInstance(project)
+    banner?.removeNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+    banner?.removeNotification(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
   }
 
   fun onFailure(t: Throwable) {
@@ -91,21 +103,57 @@ class InspectorClientLaunchMonitor(
     stop()
   }
 
-  private fun handleTimeout() {
-    // Allow the user to wait as long as they want in case it takes a long time to connect.
-    // This action simply removes the banner and schedules another check after CONNECT_TIMEOUT_SECONDS.
-    val continueWaiting = object : AnAction("Continue Waiting") {
+  private fun handleDebuggerCheck() {
+    val banner = InspectorBannerService.getInstance(project)
+    val currentClient = adbClient ?: return
+    if (!isPausedInDebugger(currentClient)) {
+      banner?.removeNotification(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
+      debuggerFuture = executorService.schedule(::handleDebuggerCheck, DEBUGGER_CHECK_SECONDS, TimeUnit.SECONDS)
+      return
+    }
+    // Cancel the timeout check since we now know that the attach delay is caused by a debugging session:
+    timeoutFuture?.cancel(true)
+    val resumeDebugger = object : AnAction("Resume Debugger") {
       override fun actionPerformed(event: AnActionEvent) {
-        InspectorBannerService.getInstance(project)?.removeNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+        banner?.removeNotification(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
         synchronized(clientLock) {
           if (client != null) {
-            currentFuture = executorService.schedule(::handleTimeout, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            adbClient?.let { resumeDebugger(it) }
+            debuggerFuture = executorService.schedule(::handleDebuggerCheck, DEBUGGER_CHECK_SECONDS, TimeUnit.SECONDS)
           }
         }
       }
     }
-    val disconnectText = if (client?.clientType == ClientType.APP_INSPECTION_CLIENT) "Dump Views" else "Disconnect"
-    val disconnect = object : AnAction(disconnectText) {
+    val disconnect = createDisconnectAction(attemptDumpViews = false) // The legacy inspector cannot get information either...
+    banner?.addNotification(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY), listOf(resumeDebugger, disconnect))
+    banner?.removeNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+  }
+
+  private fun handleTimeout() {
+    if (adbClient?.let { isPausedInDebugger(it) } == true) {
+      // Ignore the timeout if we know we are stuck in the debugger
+      return
+    }
+    // Allow the user to wait as long as they want in case it takes a long time to connect.
+    // This action simply removes the banner and schedules another check after CONNECT_TIMEOUT_SECONDS.
+    val banner = InspectorBannerService.getInstance(project)
+    val continueWaiting = object : AnAction("Continue Waiting") {
+      override fun actionPerformed(event: AnActionEvent) {
+        banner?.removeNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+        synchronized(clientLock) {
+          if (client != null) {
+            timeoutFuture = executorService.schedule(::handleTimeout, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+          }
+        }
+      }
+    }
+    val disconnect = createDisconnectAction(attemptDumpViews = true)
+    banner?.addNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY), listOf(continueWaiting, disconnect))
+  }
+
+  private fun createDisconnectAction(attemptDumpViews: Boolean): AnAction {
+    val disconnectText = if (attemptDumpViews && client?.clientType == ClientType.APP_INSPECTION_CLIENT) "Dump Views" else "Disconnect"
+    return object : AnAction(disconnectText) {
       override fun actionPerformed(event: AnActionEvent) {
         InspectorBannerService.getInstance(project)?.removeNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
         Logger.getInstance(InspectorClientLaunchMonitor::class.java).warn(
@@ -114,9 +162,10 @@ class InspectorClientLaunchMonitor(
         client?.disconnect()
       }
     }
-    val banner = InspectorBannerService.getInstance(project)
-    banner?.addNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY), listOf(continueWaiting, disconnect))
   }
+
+  private val adbClient: Client?
+    get() = client?.process?.let { AdbUtils.getAdbFuture(project).get()?.findClient(it) }
 
   private fun logAttachError(errorCode: AttachErrorCode) {
     val stats = client?.stats ?: DisconnectedClient.stats
@@ -128,7 +177,9 @@ class InspectorClientLaunchMonitor(
     synchronized(clientLock) {
       client = null
     }
-    currentFuture?.cancel(true)
-    currentFuture = null
+    timeoutFuture?.cancel(true)
+    timeoutFuture = null
+    debuggerFuture?.cancel(true)
+    debuggerFuture = null
   }
 }
