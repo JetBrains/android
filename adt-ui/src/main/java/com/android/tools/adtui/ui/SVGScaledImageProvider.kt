@@ -16,7 +16,7 @@
 package com.android.tools.adtui.ui
 
 import com.android.annotations.concurrency.WorkerThread
-import com.intellij.openapi.util.IconLoader
+import com.intellij.openapi.util.CachedImageIcon
 import com.intellij.ui.scale.ScaleContext
 import com.intellij.util.SVGLoader
 import java.awt.Image
@@ -43,14 +43,14 @@ class SVGScaledImageProvider(private val url: URL, private val image: Image?) : 
   companion object {
     @JvmStatic
     fun create(icon: Icon): SVGScaledImageProvider {
-      if (icon is IconLoader.CachedImageIcon) {
+      if (icon is CachedImageIcon) {
         return create(icon)
       }
       throw IllegalArgumentException("Icon should be an instance of CachedImageIcon")
     }
 
     @JvmStatic
-    fun create(cachedIcon: IconLoader.CachedImageIcon): SVGScaledImageProvider {
+    fun create(cachedIcon: CachedImageIcon): SVGScaledImageProvider {
       val url = cachedIcon.url
       if (url != null) {
         return SVGScaledImageProvider(url, cachedIcon.getRealIcon().image)

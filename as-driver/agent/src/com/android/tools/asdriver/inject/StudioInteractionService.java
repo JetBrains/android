@@ -28,7 +28,7 @@ import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.impl.ActionMenu;
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.IconLoader;
+import com.intellij.openapi.util.CachedImageIcon;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.LayeredIcon;
@@ -316,8 +316,8 @@ public class StudioInteractionService {
    */
   private List<String> getIconNamesFromIcon(Icon icon) {
     List<String> paths = new ArrayList<>();
-    if (icon instanceof IconLoader.CachedImageIcon) {
-      String path = ((IconLoader.CachedImageIcon)icon).getOriginalPath();
+    if (icon instanceof CachedImageIcon) {
+      String path = ((CachedImageIcon)icon).getOriginalPath();
       paths.add(path);
     }
     else if (icon instanceof LayeredIcon) {

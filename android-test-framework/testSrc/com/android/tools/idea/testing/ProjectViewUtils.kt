@@ -26,7 +26,7 @@ import com.intellij.ide.projectView.impl.ProjectViewImpl
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.ide.util.treeView.AbstractTreeStructure
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.IconLoader
+import com.intellij.openapi.util.CachedImageIcon
 import com.intellij.ui.DeferredIconImpl
 import com.intellij.ui.LayeredIcon
 import com.intellij.ui.RetrievableIcon
@@ -65,7 +65,7 @@ fun <T : Any> Project.dumpAndroidProjectView(
       this is DeferredIconImpl<*> -> (if (!isNeedReadAction) executeOnPooledThread { evaluate() }.get() else evaluate()).toText()
       this is RetrievableIcon -> retrieveIcon().toText()
       this is RowIcon && allIcons.size == 1 -> getIcon(0)?.toText()
-      this is IconLoader.CachedImageIcon -> originalPath ?: Regex("path=([^,]+)").find(toString())?.groups?.get(1)?.value ?: ""
+      this is CachedImageIcon -> originalPath ?: Regex("path=([^,]+)").find(toString())?.groups?.get(1)?.value ?: ""
       this is ImageIconUIResource -> description ?: "ImageIconUIResource(?)"
       this is LayeredIcon && allLayers.size == 1 ->  getIcon(0)?.toText()
       this is LayeredIcon -> "[${allLayers.joinToString(separator = ", ") { it.toText().orEmpty() }}]"

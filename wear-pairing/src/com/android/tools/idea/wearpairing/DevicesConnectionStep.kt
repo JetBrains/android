@@ -37,6 +37,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.CachedImageIcon
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.JBColor
@@ -55,7 +56,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.time.withTimeoutOrNull
@@ -681,7 +681,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   private suspend fun showUiPairingSuccess(phoneName: String, watchName: String, tapAndFinishWarning: Boolean) {
     // Load svg image offline
     check(!EventQueue.isDispatchThread())
-    val svgUrl = (StudioIcons.Common.SUCCESS as IconLoader.CachedImageIcon).url!!
+    val svgUrl = (StudioIcons.Common.SUCCESS as CachedImageIcon).url!!
     val svgImg = SVGLoader.load(svgUrl, svgUrl.openStream(), ScaleContext.create(mainPanel), 150.0, 150.0)
     val successLabel = message(if (tapAndFinishWarning) { "wear.assistant.device.connection.pairing.success.skipandfinish" }
                                else { "wear.assistant.device.connection.pairing.success.subtitle" }, phoneName, watchName)
