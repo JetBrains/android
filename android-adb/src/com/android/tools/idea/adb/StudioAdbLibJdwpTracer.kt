@@ -78,6 +78,6 @@ class StudioAdbLibJdwpTracer : SharedJdwpSessionMonitor {
   }
 
   override fun close() {
-    // Nothing to do
+    tracer.close()
   }
 }

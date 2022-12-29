@@ -38,4 +38,9 @@ public class StudioDDMLibJdwpTracer implements DDMLibJdwpTracer {
     public void onPacket(@NonNull ByteBuffer packet) {
       tracer.addPacket(packet);
     }
+
+    @Override
+    public void close() {
+      tracer.close();
+    }
 }
