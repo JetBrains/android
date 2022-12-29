@@ -51,7 +51,7 @@ object FacetFinder {
         facet.getModuleSystem().getApplicationIdProvider().packageName
       }
       catch (e: ApkProvisionException) {
-        Logger.getInstance(FacetFinder::class.java).warn(e)
+        Logger.getInstance(FacetFinder::class.java).debug(e)
         continue  // Only scan facets that have an applicationId (i.e., app modules)
       }
 
