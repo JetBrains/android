@@ -17,7 +17,7 @@ package com.android.tools.adtui.common
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.util.IconLoader
+import com.intellij.openapi.util.CachedImageIcon
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.Cursor
@@ -80,7 +80,7 @@ private class AdtUiCursorProviderImpl: AdtUiCursorsProvider {
 
     // Icons are loaded at 2x for retina displays. For cursors we don't want to use this double sized icon so we scale it down.
     val scaleFactor = if (UIUtil.isRetina()) 0.5f else 1.0f
-    val scaledIcon = (icon as IconLoader.CachedImageIcon).scale(scaleFactor)
+    val scaledIcon = (icon as CachedImageIcon).scale(scaleFactor)
     val image = UIUtil.createImage(scaledIcon.iconWidth, scaledIcon.iconHeight, BufferedImage.TYPE_INT_ARGB)
     scaledIcon.paintIcon(JPanel(), image.graphics, 0, 0)
     // We offset the icon center from the upper left to the center for a more natural placement with existing cursors.

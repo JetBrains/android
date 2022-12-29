@@ -33,8 +33,8 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.WearPairingEvent
 import com.intellij.openapi.ui.Splitter
+import com.intellij.openapi.util.CachedImageIcon
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.IconLoader
 import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
@@ -195,7 +195,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     val cellListFakeUi = FakeUi(cellList)
 
     val topLabel = cellListFakeUi.getLabelWithText("My Phone")
-    val topLabelIcon = topLabel.icon as IconLoader.CachedImageIcon
+    val topLabelIcon = topLabel.icon as CachedImageIcon
     assertThat(topLabelIcon.originalPath!!).contains("device-play-store.svg")
   }
 
