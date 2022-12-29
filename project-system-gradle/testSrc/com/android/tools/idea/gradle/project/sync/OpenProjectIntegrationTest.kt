@@ -157,7 +157,6 @@ class OpenProjectIntegrationTest {
     assertThat(after).isEqualTo(before)
   }
 
-  @org.junit.Ignore("b/263923608")
   @Test
   fun testOpen36Project() {
     addJdk8ToTableButUseCurrent()
