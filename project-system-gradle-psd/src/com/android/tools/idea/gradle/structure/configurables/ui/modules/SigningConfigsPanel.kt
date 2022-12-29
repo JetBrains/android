@@ -49,7 +49,7 @@ class SigningConfigsPanel(
   private val nameValidator = NameValidator { module.validateSigningConfigName(it.orEmpty()) }
 
   override fun getRemoveAction(): AnAction? {
-    return object : DumbAwareAction("Remove Signing Config", "Removes a Signing Config", IconUtil.getRemoveIcon()) {
+    return object : DumbAwareAction("Remove Signing Config", "Removes a Signing Config", IconUtil.removeIcon) {
       override fun update(e: AnActionEvent) {
         e.presentation.isEnabled = selectedConfigurable != null
       }
@@ -71,7 +71,7 @@ class SigningConfigsPanel(
   }
 
   override fun getRenameAction(): AnAction? {
-    return object : DumbAwareAction("Rename Signing Config", "Renames a Signing Config", IconUtil.getEditIcon()) {
+    return object : DumbAwareAction("Rename Signing Config", "Renames a Signing Config", IconUtil.editIcon) {
       override fun update(e: AnActionEvent) {
         e.presentation.isEnabled = selectedConfigurable != null
       }
@@ -94,7 +94,7 @@ class SigningConfigsPanel(
 
   override fun getCreateActions(): List<AnAction> {
     return listOf<DumbAwareAction>(
-        object : DumbAwareAction("Add Signing Config", "", IconUtil.getAddIcon()) {
+        object : DumbAwareAction("Add Signing Config", "", IconUtil.addIcon) {
           override fun actionPerformed(e: AnActionEvent) {
             val newName =
                 Messages.showInputDialog(

@@ -50,7 +50,7 @@ class ProductFlavorsPanel(
   private val flavorDimensionNameValidator = NameValidator { module.validateFlavorDimensionName(it.orEmpty()) }
 
   override fun getRemoveAction(): AnAction? {
-    return object : DumbAwareAction(removeTextFor(null), removeDescriptionFor(null), IconUtil.getRemoveIcon()) {
+    return object : DumbAwareAction(removeTextFor(null), removeDescriptionFor(null), IconUtil.removeIcon) {
       override fun update(e: AnActionEvent) {
         e.presentation.apply {
           isEnabled = selectedConfigurable != null && (selectedConfigurable?.editableObject as? PsFlavorDimension)?.isInvalid != true
@@ -94,7 +94,7 @@ class ProductFlavorsPanel(
 
   override fun getCreateActions(): List<AnAction> {
     return listOf(
-        object : DumbAwareAction("Add Flavor Dimension", "", IconUtil.getAddIcon()) {
+        object : DumbAwareAction("Add Flavor Dimension", "", IconUtil.addIcon) {
           override fun actionPerformed(e: AnActionEvent) {
             val newName =
                 Messages.showInputDialog(
@@ -112,7 +112,7 @@ class ProductFlavorsPanel(
             }
           }
         },
-        object : DumbAwareAction("Add Product Flavor", "", IconUtil.getAddIcon()) {
+        object : DumbAwareAction("Add Product Flavor", "", IconUtil.addIcon) {
           override fun actionPerformed(e: AnActionEvent) {
             val currentDimension = when (val selectedObject = selectedConfigurable) {
               is FlavorDimensionConfigurable -> selectedObject.flavorDimension.name
@@ -147,7 +147,7 @@ class ProductFlavorsPanel(
   }
 
   override fun getRenameAction(): AnAction? {
-    return object : DumbAwareAction("Rename", "Renames", IconUtil.getEditIcon()) {
+    return object : DumbAwareAction("Rename", "Renames", IconUtil.editIcon) {
       override fun update(e: AnActionEvent) {
         e.presentation.apply {
           isEnabled = selectedConfigurable?.editableObject as? PsProductFlavor != null // TODO("Renaming dimensions")

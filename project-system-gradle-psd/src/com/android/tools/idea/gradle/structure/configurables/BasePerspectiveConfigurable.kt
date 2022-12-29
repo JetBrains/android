@@ -309,7 +309,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
   }
 
   override fun createActions(fromPopup: Boolean): List<AnAction> {
-    val addNewModuleAction = object : DumbAwareAction("New Module", "Add new module", IconUtil.getAddIcon()) {
+    val addNewModuleAction = object : DumbAwareAction("New Module", "Add new module", IconUtil.addIcon) {
       override fun actionPerformed(e: AnActionEvent) {
         if (!context.project.isModified ||
             Messages.showYesNoDialog(
@@ -330,7 +330,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
         }
       }
     }
-    val removeModuleAction = object : DumbAwareAction("Remove Module", "Remove module", IconUtil.getRemoveIcon()) {
+    val removeModuleAction = object : DumbAwareAction("Remove Module", "Remove module", IconUtil.removeIcon) {
       override fun update(e: AnActionEvent) {
         if (uiDisposed) return
         super.update(e)
