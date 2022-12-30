@@ -229,6 +229,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
     )
 
     myFixture.configureFromExistingVirtualFile(androidTest)
+/* b/264602834
     myFixture.checkHighlighting()
 
     myFixture.completeBasic()
@@ -240,6 +241,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
 
     // Private resources are filtered out.
     assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
+b/264602834 */
   }
 
   fun testResolveScope() {
