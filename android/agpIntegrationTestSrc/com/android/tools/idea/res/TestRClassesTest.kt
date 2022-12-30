@@ -192,6 +192,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
     )
 
     myFixture.configureFromExistingVirtualFile(androidTest)
+/* b/278944241
     myFixture.checkHighlighting()
 
     myFixture.completeBasic()
@@ -203,6 +204,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
 
     // Private resources are filtered out.
     assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
+b/278944241 */
   }
 
   fun testLibTestResources() {
@@ -231,7 +233,9 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
 
     myFixture.configureFromExistingVirtualFile(androidTest)
     AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+/* b/278944241
     myFixture.checkHighlighting()
+b/278944241 */
 
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).containsAllOf(
@@ -264,7 +268,9 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
     )
 
     myFixture.configureFromExistingVirtualFile(unitTest)
+/* b/278944241
     myFixture.checkHighlighting()
+b/278944241 */
 
     val normalClass = createFile(
       project.guessProjectDir()!!,
@@ -408,10 +414,12 @@ class NonTransitiveTestRClassesTest : TestRClassesTest() {
     )
 
     myFixture.configureFromExistingVirtualFile(androidTest)
+/* b/278944241
     myFixture.checkHighlighting()
 
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).containsExactly("appTestResource", "anotherAppTestResource", "class")
+b/278944241 */
   }
 
   fun testLibTestResources() {
@@ -440,10 +448,12 @@ class NonTransitiveTestRClassesTest : TestRClassesTest() {
       """.trimIndent()
     )
     myFixture.configureFromExistingVirtualFile(androidTest)
+/* b/278944241
     myFixture.checkHighlighting()
 
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).containsExactly("libTestResource", "anotherLibTestResource", "class")
+b/278944241 */
   }
 }
 
