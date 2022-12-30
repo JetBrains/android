@@ -103,7 +103,6 @@ class PlatformIntegrationTest {
     }
   }
 
-  @org.junit.Ignore("b/263902810")
   @Test
   fun `importing an already built project does not add all files to the VFS - existing idea project`() {
     val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
