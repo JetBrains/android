@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.metrics
+package com.android.tools.idea.metrics
 
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
@@ -22,8 +22,6 @@ import org.junit.rules.ExternalResource
 
 /**
  * Rule that sets up and tears down a [TestUsageTracker]
- *
- * TODO: move this to a common place
  */
 class MetricsTrackerRule(scheduler: VirtualTimeScheduler = VirtualTimeScheduler()) : ExternalResource() {
   val testTracker: TestUsageTracker = TestUsageTracker(scheduler)

@@ -231,6 +231,9 @@ abstract class SyncedProjectTest(
   fun testLightSyncReference() = testProject(TestProject.LIGHT_SYNC_REFERENCE)
 
   @Test
+  fun testMigrateToNonTransitiveRClasses() = testProject(TestProject.MIGRATE_TO_NON_TRANSITIVE_R_CLASSES)
+
+  @Test
   fun testPureJavaProject() = testProject(TestProject.PURE_JAVA_PROJECT)
 
   @Test

@@ -35,6 +35,7 @@ import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.window
+import com.android.tools.idea.metrics.MetricsTrackerRule
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.android.tools.idea.testing.AndroidProjectRule

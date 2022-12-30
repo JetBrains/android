@@ -60,7 +60,6 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
-import com.android.tools.idea.layoutinspector.metrics.MetricsTrackerRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
@@ -81,6 +80,7 @@ import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import com.android.tools.idea.metrics.MetricsTrackerRule
 import com.android.tools.idea.project.AndroidRunConfigurations
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.run.AndroidRunConfiguration

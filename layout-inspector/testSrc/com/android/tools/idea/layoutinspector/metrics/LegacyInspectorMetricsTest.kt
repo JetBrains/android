@@ -32,6 +32,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMoni
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.metrics.MetricsTrackerRule
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.ListenerCollection

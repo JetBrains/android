@@ -183,7 +183,7 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
     trackProcessorUsage(FIND_USAGES, usages.size)
     if (updateTopLevelGradleProperties) {
       val propertiesFile = myProject.getProjectProperties(createIfNotExists = false)
-      if (propertiesFile != null ) {
+      if (propertiesFile != null) {
         return usages.toTypedArray<UsageInfo>() + PropertiesUsageInfo(NON_TRANSITIVE_R_CLASSES_PROPERTY, propertiesFile.containingFile)
       }
     }
