@@ -23,7 +23,7 @@ import com.android.tools.idea.progress.StudioProgressRunner;
 /**
  * Studio-specific utilities for interacting with the SDK.
  */
-public class StudioSdkUtil {
+public final class StudioSdkUtil {
   /**
    * Convenience method to reload the local and remote SDK, showing a modal, non-cancellable progress window.
    */

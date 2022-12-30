@@ -74,7 +74,7 @@ import org.jetbrains.annotations.Nullable;
  *   <li><a href="https://developer.android.com/studio/build/manifest-merge.html#merge_rule_markers">manifest attributes</a></li>
  * </ul>
  */
-public class ToolsAttributeUtil {
+public final class ToolsAttributeUtil {
   private static final ResolvingConverter LAYOUT_REFERENCE_CONVERTER =
     new ResourceReferenceConverter(EnumSet.of(ResourceType.LAYOUT));
   private static final Converter ACTIVITY_CLASS_CONVERTER = new PackageClassConverter.Builder()

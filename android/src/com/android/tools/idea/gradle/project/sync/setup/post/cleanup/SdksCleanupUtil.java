@@ -43,7 +43,7 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SdksCleanupUtil {
+public final class SdksCleanupUtil {
   // If the sdk is outdated, then all of its roots will be recreated.
   // An Sdk is considered outdated if any of the roots are different from expected roots.
   public static void updateSdkIfNeeded(@NotNull Sdk sdk, @NotNull AndroidSdks androidSdks) {

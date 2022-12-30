@@ -68,7 +68,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Utility class for MotionLayout handler.
  */
-public class MotionUtils {
+public final class MotionUtils {
 
   /**
    * Returns true if the motionLayout is in the base state (i.e base layout)

@@ -26,7 +26,7 @@ import javax.swing.Icon;
 /**
  * Provide indirection to StudioIcons
  */
-public class MEIcons {
+public final class MEIcons {
   public static final Icon SLOW_MOTION =  StudioIcons.LayoutEditor.Motion.SLOW_MOTION;
   public static final Icon PLAY =   StudioIcons.LayoutEditor.Motion.PLAY;
   public static final Icon FORWARD = StudioIcons.LayoutEditor.Motion.GO_TO_END;

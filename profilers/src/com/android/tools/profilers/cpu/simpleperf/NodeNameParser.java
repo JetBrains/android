@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
  * Responsible for parsing full method/function names (String) obtained from symbol tables collected when profiling using simpleperf.
  * The names are parsed into {@link CaptureNodeModel} instances containing the class name, method name and signature.
  */
-public class NodeNameParser {
+public final class NodeNameParser {
 
   private static final Pattern JAVA_SEPARATOR_PATTERN = Pattern.compile("\\.");
 

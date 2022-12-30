@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
 
-public class ExceptionTestUtils {
+public final class ExceptionTestUtils {
   /**
    * Attempts to create an exception object that matches the given description, which
    * is in the form of the output of an exception stack dump ({@link Throwable#printStackTrace()})

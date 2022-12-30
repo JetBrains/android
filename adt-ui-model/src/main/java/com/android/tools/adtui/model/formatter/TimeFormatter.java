@@ -19,7 +19,7 @@ import com.intellij.util.text.DateFormatUtil;
 import java.text.DecimalFormat;
 import java.util.concurrent.TimeUnit;
 
-public class TimeFormatter {
+public final class TimeFormatter {
 
   /**
    * Return a formatted time String in the form of "hh:mm:ss.sss".

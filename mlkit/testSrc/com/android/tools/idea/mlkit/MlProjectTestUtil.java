@@ -29,7 +29,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import java.io.File;
 
-public class MlProjectTestUtil {
+public final class MlProjectTestUtil {
 
   public static JavaCodeInsightTestFixture setupTestMlProject(JavaCodeInsightTestFixture fixture, String version, int minSdk) {
     Project project = fixture.getProject();

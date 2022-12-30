@@ -32,7 +32,7 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
 
-class MockIssueFactory {
+final class MockIssueFactory {
 
   @NotNull
   private static Issue createIssue() {

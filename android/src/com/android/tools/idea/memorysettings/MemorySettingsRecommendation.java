@@ -22,7 +22,7 @@ import com.intellij.openapi.util.SystemInfo;
 import java.util.Locale;
 import org.jetbrains.annotations.Nullable;
 
-public class MemorySettingsRecommendation {
+public final class MemorySettingsRecommendation {
   private static final Logger LOG = Logger.getInstance(MemorySettingsRecommendation.class);
 
   // Returns a new Xmx if a recommendation exists, or -1 otherwise.

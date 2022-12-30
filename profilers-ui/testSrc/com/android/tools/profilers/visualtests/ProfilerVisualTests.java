@@ -19,7 +19,7 @@ package com.android.tools.profilers.visualtests;
 import com.android.tools.adtui.visualtests.VisualTestsDialog;
 import javax.swing.SwingUtilities;
 
-public class ProfilerVisualTests {
+public final class ProfilerVisualTests {
   public static void main(String[] args) throws Exception {
     SwingUtilities.invokeAndWait(() -> {
         VisualTestsDialog dialog = new VisualTestsDialog();

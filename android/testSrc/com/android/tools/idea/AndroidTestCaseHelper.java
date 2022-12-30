@@ -24,7 +24,7 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 
-public class AndroidTestCaseHelper {
+public final class AndroidTestCaseHelper {
 
   public static void removeExistingAndroidSdks() {
     ProjectJdkTable table = ProjectJdkTable.getInstance();

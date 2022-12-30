@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Factory of {@link RenderSecurityManager}.
  */
-public class RenderSecurityManagerFactory {
+public final class RenderSecurityManagerFactory {
   /**
    * Returns a {@link RenderSecurityManager} for the current module. The {@link RenderSecurityManager} will be
    * setup with the SDK path and project path of the module.

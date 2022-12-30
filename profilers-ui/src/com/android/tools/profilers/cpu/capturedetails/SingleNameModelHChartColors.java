@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
  * Defines the fill color of the rectangles used to represent {@link SingleNameModel} nodes in a
  * {@link com.android.tools.adtui.chart.hchart.HTreeChart}.
  */
-class SingleNameModelHChartColors {
+final class SingleNameModelHChartColors {
 
   private static void validateModel(@NotNull CaptureNodeModel model) {
     if (!(model instanceof SingleNameModel)) {

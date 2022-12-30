@@ -51,7 +51,7 @@ import org.jetbrains.annotations.Nullable;
 
 public final class TransportFileManager implements TransportFileCopier {
 
-  private static class HostFiles {
+  private static final class HostFiles {
     @NotNull static final DeployableFile TRANSPORT = new DeployableFile.Builder("transport")
       .setReleaseDir(Constants.TRANSPORT_RELEASE_DIR)
       .setDevDir(Constants.TRANSPORT_RELEASE_DIR)

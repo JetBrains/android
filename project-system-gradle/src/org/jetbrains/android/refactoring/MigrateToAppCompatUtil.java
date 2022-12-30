@@ -80,7 +80,7 @@ import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ClassMigrat
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class MigrateToAppCompatUtil {
+final class MigrateToAppCompatUtil {
 
   // Class known for its static members
   private MigrateToAppCompatUtil() {

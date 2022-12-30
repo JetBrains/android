@@ -40,7 +40,7 @@ import org.jetbrains.org.objectweb.asm.ClassWriter;
  * the onDraw, onMeasure and onLayout methods are replaced with methods that capture any exceptions thrown.
  * This way we avoid custom views breaking the rendering.
  */
-public class ClassConverter {
+public final class ClassConverter {
   private static final int ourCurrentJdkClassVersion = jdkToClassVersion(SystemInfo.JAVA_VERSION);
 
    /**

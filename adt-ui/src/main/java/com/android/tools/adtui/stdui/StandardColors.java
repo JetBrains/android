@@ -23,7 +23,7 @@ import java.awt.Color;
 /**
  * Standard UI color constants used in various components.
  */
-public class StandardColors {
+public final class StandardColors {
   public static final Color INNER_BORDER_COLOR = new JBColor(0xBEBEBE, 0x646464);
   public static final Color FOCUSED_INNER_BORDER_COLOR = new JBColor(0x90AADC, 0x5781C6);
   public static final Color FOCUSED_OUTER_BORDER_COLOR = new JBColor(0xB2CCFB, 0x395D82);

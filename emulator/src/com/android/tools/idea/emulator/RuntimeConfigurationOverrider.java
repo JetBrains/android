@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Provides a mechanism for tests to override the default runtime configuration used by the Emulator tool window code.
  */
-public class RuntimeConfigurationOverrider {
+public final class RuntimeConfigurationOverrider {
   private static final RuntimeConfiguration ourDefaultConfiguration = new RuntimeConfiguration();
   @Nullable private static RuntimeConfiguration ourOverridingConfiguration;
 

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator;
 
-public class TextWidgetConstants {
+public final class TextWidgetConstants {
   public static final int TEXT_ALIGNMENT_TEXT_START = 2;
   public static final int TEXT_ALIGNMENT_TEXT_END = 3;
   public static final int TEXT_ALIGNMENT_VIEW_START = 5;

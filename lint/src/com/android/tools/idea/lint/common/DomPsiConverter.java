@@ -70,7 +70,7 @@ import org.w3c.dom.UserDataHandler;
  * only worries about the details Lint cares about; currently this means it only wraps elements,
  * text and comment nodes.)
  */
-public class DomPsiConverter {
+public final class DomPsiConverter {
   private DomPsiConverter() {
   }
 

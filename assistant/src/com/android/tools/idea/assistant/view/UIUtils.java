@@ -44,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * TODO: Add font defaults.
  */
-public class UIUtils {
+public final class UIUtils {
 
   /**
    * Foreground color for positive indication of results.

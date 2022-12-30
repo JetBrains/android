@@ -18,7 +18,7 @@ package com.android.tools.idea.debug;
 /**
  * This class is a partial copy of android.view.View.MeasureSpec
  */
-public class MeasureSpec {
+public final class MeasureSpec {
   private static final int MODE_SHIFT = 30;
   private static final int MODE_MASK = 0x3 << MODE_SHIFT;
 

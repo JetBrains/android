@@ -25,7 +25,7 @@ import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("UseJBColor")
-public class ColorUtils {
+public final class ColorUtils {
   // Recommended minimum contrast ratio between colors for safe readability
   private static final double THRESHOLD = 4.5;
   private static final String DISABLED_PREFIX = "Disabled";

@@ -61,7 +61,7 @@ import org.jetbrains.org.objectweb.asm.Opcodes;
  * Some constants that are needed to render the RecyclerView correctly.
  */
 @SuppressWarnings("SpellCheckingInspection")
-public class RecyclerViewHelper {
+public final class RecyclerViewHelper {
   private static final String SUPPORT_PACKAGE_NAME = "com.android.layoutlib.bridge.android.support";
   public static final String CN_SUPPORT_CUSTOM_ADAPTER = SUPPORT_PACKAGE_NAME + ".Adapter";
   private static final String CN_SUPPORT_CUSTOM_VIEW_HOLDER = SUPPORT_PACKAGE_NAME + ".Adapter$ViewHolder";

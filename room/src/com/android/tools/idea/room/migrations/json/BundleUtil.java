@@ -19,7 +19,7 @@ package com.android.tools.idea.room.migrations.json;
 /**
  * This was copied from the Room Migration project. It is only a temporary solution and in the future we will try to use the real classes.
  */
-public class BundleUtil {
+public final class BundleUtil {
   /**
    * Placeholder for table names in queries.
    */

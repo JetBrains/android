@@ -57,7 +57,7 @@ import org.xmlpull.v1.XmlPullParser;
 /**
  * Design-time metadata lookup for layouts, such as fragment and AdapterView bindings.
  */
-public class LayoutMetadata {
+public final class LayoutMetadata {
   /**
    * The default layout to use for list items in expandable list views
    */

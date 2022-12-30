@@ -21,7 +21,7 @@ import com.android.tools.profiler.proto.Cpu;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
 
-public class CpuProfilerConfigConverter {
+public final class CpuProfilerConfigConverter {
 
   private CpuProfilerConfigConverter() {}
 

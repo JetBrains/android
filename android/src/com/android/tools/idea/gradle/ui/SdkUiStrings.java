@@ -19,7 +19,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import org.jetbrains.annotations.NotNull;
 
-public class SdkUiStrings {
+public final class SdkUiStrings {
   public static final String JDK_LOCATION_WARNING_URL =
     "https://docs.gradle.org/current/userguide/gradle_daemon.html#sec:why_is_there_more_than_one_daemon_process_on_my_machine";
   public static final String JDK_LOCATION_TOOLTIP = "To share the same Gradle daemon between " +

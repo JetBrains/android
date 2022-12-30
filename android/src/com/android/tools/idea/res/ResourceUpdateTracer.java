@@ -39,7 +39,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Used to investigate b/167583128.
  */
-public class ResourceUpdateTracer {
+public final class ResourceUpdateTracer {
   private static boolean enabled;
   private static final Logger LOG = Logger.getInstance(ResourceUpdateTracer.class);
 

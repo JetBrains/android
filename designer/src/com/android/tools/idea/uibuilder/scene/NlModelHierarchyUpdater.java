@@ -41,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Utility class for updating NlModel hierarchy from various sources
  */
-public class NlModelHierarchyUpdater {
+public final class NlModelHierarchyUpdater {
 
   @AndroidCoordinate private static final int VISUAL_EMPTY_COMPONENT_SIZE = 1;
 

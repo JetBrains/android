@@ -58,7 +58,7 @@ import org.jetbrains.annotations.Nullable;
  * Utilities related to image processing.
  */
 @SuppressWarnings("UndesirableClassUsage") // BufferedImage is ok, deliberately not creating Retina images in some cases
-public class ImageUtils {
+public final class ImageUtils {
   public static final double EPSILON = 1e-5;
 
   /**

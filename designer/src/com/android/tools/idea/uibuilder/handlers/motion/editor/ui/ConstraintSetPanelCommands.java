@@ -24,7 +24,7 @@ import java.util.HashMap;
 /**
  * Collection of static commands that run on ConstraintSet
  */
-public class ConstraintSetPanelCommands {
+public final class ConstraintSetPanelCommands {
 
   private static final boolean DEBUG = false;
 

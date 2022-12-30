@@ -22,7 +22,7 @@ import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class BitmapDecoder {
+public final class BitmapDecoder {
   enum PixelFormat {
     ARGB_8888,
     RGB_565,

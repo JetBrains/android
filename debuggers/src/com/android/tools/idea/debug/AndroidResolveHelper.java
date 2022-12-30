@@ -55,7 +55,7 @@ import org.jetbrains.android.inspections.ResourceTypeCompletionContributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidResolveHelper {
+public final class AndroidResolveHelper {
   public static class ResolveResult {
     @NotNull public final String label;
     @Nullable public final Icon icon;

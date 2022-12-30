@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Utility methods for SDK paths.
  */
-public class SdkPaths {
+public final class SdkPaths {
   private SdkPaths() {
   }
 

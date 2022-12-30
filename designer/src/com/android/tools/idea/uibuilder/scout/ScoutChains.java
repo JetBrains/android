@@ -41,7 +41,7 @@ import java.util.Comparator;
 /**
  * Logic to infer and create Chains
  */
-public class ScoutChains {
+public final class ScoutChains {
   static final int MAX_ERROR = 1000;
   static final int MIN_SPREAD = 3;
 

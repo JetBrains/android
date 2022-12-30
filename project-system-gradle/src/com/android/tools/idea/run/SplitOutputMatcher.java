@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * Helper class to help with installation of multi-output variants.
  */
-public class SplitOutputMatcher {
+public final class SplitOutputMatcher {
 
     /**
      * Determines and return the list of APKs to use based on given device abis.

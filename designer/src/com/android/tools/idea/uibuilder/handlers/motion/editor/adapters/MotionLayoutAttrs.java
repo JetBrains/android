@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.adapters;
 /**
  * List of attributes used to copy tags to during conversion to Constraints
  */
-public class MotionLayoutAttrs {
+public final class MotionLayoutAttrs {
 
   public static String[] KeyAttributesAll = {
     "framePosition",

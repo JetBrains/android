@@ -46,7 +46,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Static methods for rendering text as a vector drawable.
  */
-public class VectorTextRenderer {
+public final class VectorTextRenderer {
   private static final String INDENT = "  ";
   private static final String DOUBLE_INDENT = INDENT + INDENT;
 

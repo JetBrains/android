@@ -42,7 +42,7 @@ import org.w3c.dom.Document;
  * http://developer.android.com/guide/topics/ui/menus.html
  * http://developer.android.com/guide/topics/resources/menu-resource.html
  */
-class MenuLayoutParserFactory {
+final class MenuLayoutParserFactory {
   @NotNull
   private static final String FRAME_LAYOUT_XML =
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +

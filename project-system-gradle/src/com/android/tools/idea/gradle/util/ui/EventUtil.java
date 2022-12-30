@@ -29,7 +29,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class EventUtil {
+public final class EventUtil {
   @Nullable
   public static Module getSelectedAndroidModule(@NotNull AnActionEvent e) {
     Module module = getSelectedGradleModule(e);

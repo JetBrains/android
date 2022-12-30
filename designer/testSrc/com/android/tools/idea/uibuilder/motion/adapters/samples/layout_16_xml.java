@@ -22,7 +22,7 @@ import java.nio.charset.Charset;
 /**
  * XML layout file as a string for use in test
  */
-public class layout_16_xml {
+public final class layout_16_xml {
  static String value = "<?xml version=\"1.0\" encoding=\"utf-8\"?><!--<android.support.constraint.motion.MotionLayout   ConstraintLayout-->\n" +
   "<android.support.constraint.motion.MotionLayout\n" +
   "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +

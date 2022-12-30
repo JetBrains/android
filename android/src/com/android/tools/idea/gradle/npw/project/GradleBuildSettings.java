@@ -24,7 +24,7 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import org.jetbrains.annotations.NotNull;
 
-public class GradleBuildSettings {
+public final class GradleBuildSettings {
   /**
    * Gets the recommended gradle tools {@link Revision}. If there is no "stable" installed version, it will use the latest installed
    * "preview" version.

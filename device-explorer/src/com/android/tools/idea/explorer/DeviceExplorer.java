@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  * Note that DeviceExplorerToolWindowFactory is used by the platform directly; these methods are
  * essentially convenience wrappers around it.
  */
-public class DeviceExplorer {
+public final class DeviceExplorer {
   private DeviceExplorer() {}
 
   /** Shows Device Explorer and selects the given AVD. */

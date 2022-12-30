@@ -81,7 +81,7 @@ import org.w3c.dom.Node;
  * Factory of {@link MergedManifestSnapshot}. The created snapshots represent the merged manifest state at a
  * point in time and are immutable.
  */
-class MergedManifestSnapshotFactory {
+final class MergedManifestSnapshotFactory {
 
   /**
    * A resource value defined by the manifest. Unlike its base class, does not need to keep a reference

@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Parses list of dependencies from the build.gradle
  */
-public class GradleProjectDependencyParser {
+public final class GradleProjectDependencyParser {
   @NotNull
   public static Function<VirtualFile, Iterable<String>> newInstance(@NotNull final Project project) {
     return CacheBuilder.newBuilder().build(new CacheLoader<VirtualFile, Iterable<String>>() {

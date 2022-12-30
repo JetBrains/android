@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Comparator that is used to sort a list of CpuThreadinfo by number of child nodes then by default sort order.
  */
-public class CpuThreadComparator {
+public final class CpuThreadComparator {
 
   public static Comparator<CpuThreadInfo> BASE =
     ComparisonsKt.compareBy(CpuThreadComparator::relevancyRank,

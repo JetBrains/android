@@ -30,7 +30,7 @@ import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
 import org.jetbrains.annotations.NotNull;
 
-public class RenderUtils {
+public final class RenderUtils {
   public static void clearCache(@NotNull ImmutableCollection<Configuration> configurations) {
     configurations
       .forEach(configuration -> {

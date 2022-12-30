@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
  * Defines the fill color of the rectangles used to represent {@link NativeNodeModel} nodes in a
  * {@link com.android.tools.adtui.chart.hchart.HTreeChart}.
  */
-public class NativeModelHChartColors {
+public final class NativeModelHChartColors {
 
   private static void validateModel(@NotNull CaptureNodeModel model) {
     if (!(model instanceof NativeNodeModel)) {

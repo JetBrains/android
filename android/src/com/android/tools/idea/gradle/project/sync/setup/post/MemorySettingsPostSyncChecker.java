@@ -38,7 +38,7 @@ import org.jetbrains.android.util.AndroidBundle;
  * A class to check memory settings after project sync. It may recommend new
  * memory settings based on available RAM of the machine and the project size.
  */
-public class MemorySettingsPostSyncChecker {
+public final class MemorySettingsPostSyncChecker {
   private static final Logger LOG = Logger.getInstance(MemorySettingsPostSyncChecker.class);
   private static final NotificationGroup NOTIFICATION_GROUP = new NotificationGroup(
     "Memory Settings Notification",

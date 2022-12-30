@@ -34,7 +34,7 @@ import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 
 // See https://code.google.com/p/android/issues/detail?id=169743
-public class HttpProxySettingsCleanUp {
+public final class HttpProxySettingsCleanUp {
   public static void cleanUp(@NotNull Project project) {
     HttpConfigurable ideHttpProxySettings = HttpConfigurable.getInstance();
     boolean usingProxy = (ideHttpProxySettings.USE_HTTP_PROXY && isNotEmpty(ideHttpProxySettings.PROXY_HOST))

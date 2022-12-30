@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
  * {@link MultiUserUtils} provides utility methods related to
  * This class should eventually be moved into {@link IDevice} itself.
  */
-public class MultiUserUtils {
+public final class MultiUserUtils {
   public static final int PRIMARY_USERID = 0;
 
   public static boolean isCurrentUserThePrimaryUser(@NotNull IDevice device, long timeout, TimeUnit units, boolean defaultValue) {

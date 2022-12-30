@@ -22,7 +22,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import java.util.List;
 
-public class ScoutConnectArrange {
+public final class ScoutConnectArrange {
 
   static int gap(NlComponent fromComponent, Direction fromDir, NlComponent toComponent, Direction toDir) {
     int fromY = 0;

@@ -59,7 +59,7 @@ import org.jetbrains.annotations.Nullable;
  * The reason the test checks for similarity is that whenever rendering includes fonts, there are some
  * platform differences in text rendering etc which does not give us a pixel for pixel match.
  */
-public class RenderTestUtil {
+public final class RenderTestUtil {
   public static final String DEFAULT_DEVICE_ID = "Nexus 4";
   public static final String HOLO_THEME = "@android:style/Theme.Holo";
   private static final float MAX_PERCENT_DIFFERENT = 1.0f;

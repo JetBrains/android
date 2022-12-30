@@ -33,7 +33,7 @@ import java.util.Locale;
 /**
  * This performs direct conversion of ConstraintLayout to MotionLayout
  */
-public class ScoutMotionConvert {
+public final class ScoutMotionConvert {
 
   public static boolean convert(NlComponent layout) {
 

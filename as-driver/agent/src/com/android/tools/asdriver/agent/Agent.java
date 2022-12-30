@@ -26,7 +26,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.security.ProtectionDomain;
 
-public class Agent {
+public final class Agent {
     public static void premain(String agentArgs, Instrumentation inst) throws IOException {
       Path jar = Files.createTempFile("inject", ".jar");
       try (InputStream is = Agent.class.getResourceAsStream("/tools/adt/idea/as-driver/as_driver_inject_deploy.jar")) {

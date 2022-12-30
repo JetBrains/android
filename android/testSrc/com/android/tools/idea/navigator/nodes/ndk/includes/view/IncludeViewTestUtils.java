@@ -23,7 +23,7 @@ import com.intellij.ide.util.treeView.PresentableNodeDescriptor;
 import java.io.File;
 import org.jetbrains.annotations.NotNull;
 
-public class IncludeViewTestUtils {
+public final class IncludeViewTestUtils {
 
   @NotNull
   private static String presentationDataToString(@NotNull PresentationData presentationData) {

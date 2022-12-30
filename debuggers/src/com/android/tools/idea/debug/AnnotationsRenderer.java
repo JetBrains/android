@@ -32,7 +32,7 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AnnotationsRenderer {
+public final class AnnotationsRenderer {
   public static class Result {
     @NotNull public final String label;
     @Nullable public final Icon icon;

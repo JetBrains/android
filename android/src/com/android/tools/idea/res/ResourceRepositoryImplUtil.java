@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Helper methods for classes implementing {@link org.gradle.internal.impldep.aQute.bnd.service.repository.ResourceRepository} interface.
  */
-class ResourceRepositoryImplUtil {
+final class ResourceRepositoryImplUtil {
   /**
    * The standard implementation of the {@link com.android.ide.common.resources.SingleNamespaceResourceRepository#getPackageName()} method.
    */

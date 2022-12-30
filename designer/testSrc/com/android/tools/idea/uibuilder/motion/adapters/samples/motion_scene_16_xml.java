@@ -22,7 +22,7 @@ import java.nio.charset.Charset;
 /**
  * XML MotionScene file as a string for use in test
  */
-public class motion_scene_16_xml {
+public final class motion_scene_16_xml {
  static String value = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
    "<MotionScene xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
    "             xmlns:motion=\"http://schemas.android.com/apk/res-auto\">\n" +

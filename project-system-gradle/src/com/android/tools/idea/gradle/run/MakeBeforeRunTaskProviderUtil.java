@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public class MakeBeforeRunTaskProviderUtil {
+public final class MakeBeforeRunTaskProviderUtil {
   @NotNull
   private static Logger getLogger() {
     return Logger.getInstance(MakeBeforeRunTaskProviderUtil.class);

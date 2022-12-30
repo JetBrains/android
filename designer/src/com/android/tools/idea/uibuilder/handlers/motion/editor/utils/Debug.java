@@ -21,7 +21,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 /**
  * Provides utilities used in debugging
  */
-public class Debug {
+public final class Debug {
 
   public static void log(String msg) {
     StackTraceElement s = new Throwable().getStackTrace()[1];

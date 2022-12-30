@@ -18,7 +18,7 @@ package org.jetbrains.android.dom.transition;
 import java.util.Arrays;
 import java.util.List;
 
-public class TransitionDomUtil {
+public final class TransitionDomUtil {
   public static final String TRANSITION_MANAGER_TAG = "transitionManager";
   public static final String TRANSITION_TAG = "transition";
   public static final String TRANSITION_SET_TAG = "transitionSet";

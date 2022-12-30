@@ -63,7 +63,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Utility methods for style resolution.
  */
-public class ResolutionUtils {
+public final class ResolutionUtils {
   private static final Logger LOG = Logger.getInstance(ResolutionUtils.class);
 
   // Utility methods class isn't meant to be constructed, all methods are static.

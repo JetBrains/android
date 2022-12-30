@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.model;
 
-public class ConstraintWidgetConstants {
+public final class ConstraintWidgetConstants {
   public static final int MATCH_CONSTRAINT_SPREAD = 0;
   public static final int UNKNOWN = -1;
   public static final int HORIZONTAL = 0;

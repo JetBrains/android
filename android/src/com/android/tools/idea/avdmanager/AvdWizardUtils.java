@@ -60,7 +60,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * State store keys for the AVD Manager wizards
  */
-public class AvdWizardUtils {
+public final class AvdWizardUtils {
 
   public static final String WIZARD_ONLY = "AvdManager.WizardOnly.";
 

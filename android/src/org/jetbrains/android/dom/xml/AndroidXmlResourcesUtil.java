@@ -46,7 +46,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public class AndroidXmlResourcesUtil {
+public final class AndroidXmlResourcesUtil {
   @NonNls public static final String SEARCHABLE_TAG_NAME = "searchable";
   @NonNls public static final String KEYBOARD_TAG_NAME = "Keyboard";
   @NonNls public static final String DEVICE_ADMIN_TAG_NAME = "device-admin";

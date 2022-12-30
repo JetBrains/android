@@ -40,7 +40,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
-public class LaunchUtils {
+public final class LaunchUtils {
   /**
    * Returns whether the given application can be debugged on the given device.
    */

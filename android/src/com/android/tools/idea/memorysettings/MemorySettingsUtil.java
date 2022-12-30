@@ -36,7 +36,7 @@ import java.io.IOException;
 import java.util.Locale;
 import org.jetbrains.annotations.Nullable;
 
-public class MemorySettingsUtil {
+public final class MemorySettingsUtil {
   private static final Logger LOG = Logger.getInstance(MemorySettingsUtil.class);
 
   // Show memory settings configuration only for machines with at least this much RAM.

@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Computes a combined 64-bit hash of time stamp and size of a file.
  */
-public class FileTimeStampLengthHasher {
+public final class FileTimeStampLengthHasher {
   private static final byte[] NULL_HASH = new byte[8];
 
   /**

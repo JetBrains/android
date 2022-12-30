@@ -26,7 +26,7 @@ import javax.swing.Icon;
 /**
  * Small static functions used across the system
  */
-public class Utils {
+public final class Utils {
   public static final int ICON_LIGHT = 0;
   public static final int ICON_LIGHT_SELECTED = 1;
   public static final int ICON_SELECTED = 2;

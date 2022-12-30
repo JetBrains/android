@@ -25,7 +25,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import org.jetbrains.annotations.NotNull;
 
-public class NlComponentUtil {
+public final class NlComponentUtil {
   /**
    * Partitions the given list of components into a map where each value is a list of siblings,
    * in the same order as in the original list, and where the keys are the parents (or null

@@ -69,7 +69,7 @@ import org.jetbrains.annotations.NotNull;
  * to the user's Android SDK platforms, if necessary
  */
 @SuppressWarnings("SpellCheckingInspection") // "Modificator" in API usage
-public class ExternalAnnotationsSupport {
+public final class ExternalAnnotationsSupport {
   private static final Logger LOG = Logger.getInstance(ExternalAnnotationsSupport.class);
 
   // Based on similar code in MagicConstantInspection

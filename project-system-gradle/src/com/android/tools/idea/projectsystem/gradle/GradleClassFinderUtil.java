@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
-public class GradleClassFinderUtil {
+public final class GradleClassFinderUtil {
   private GradleClassFinderUtil() {};
 
   @NotNull

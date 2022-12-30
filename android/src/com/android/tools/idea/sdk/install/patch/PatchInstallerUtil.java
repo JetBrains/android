@@ -49,7 +49,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Utilities for creating and installing binary diff packages.
  */
-public class PatchInstallerUtil {
+public final class PatchInstallerUtil {
 
   /**
    * Repo-style path prefix for patcher packages.

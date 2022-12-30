@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 /**
  * List of attributes used to copy tags to during conversion to Constraints
  */
-public class Attributes {
+public final class Attributes {
   static String[] LAYOUT = {
     "android:layout_width",
     "android:layout_height",

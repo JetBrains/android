@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
  * Entry point is {@link #processSubTags(AndroidFacet, AndroidDomElement, boolean, SubtagProcessor)}, look for a
  * Javadoc there.
  */
-public class SubtagsProcessingUtil {
+public final class SubtagsProcessingUtil {
   private SubtagsProcessingUtil() {
   }
 

@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  * Render passes over a Swing tree are sparse, skipping some elements, so this class provides the path between the current
  * node and the most recently rendered parent.
  */
-class JComponentTreeManager {
+final class JComponentTreeManager {
   // It's theoretically possible to have more than one Swing EDTs.
   private static final ThreadLocal<Stack<JComponent>> ourStack = ThreadLocal.withInitial(() -> new Stack<>());
   private static boolean ourIsEnabled;

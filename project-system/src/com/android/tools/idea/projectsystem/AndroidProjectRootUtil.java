@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
 
-public class AndroidProjectRootUtil {
+public final class AndroidProjectRootUtil {
   private AndroidProjectRootUtil() {
   }
 

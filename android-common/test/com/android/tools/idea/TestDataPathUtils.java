@@ -19,7 +19,7 @@ import com.android.testutils.TestUtils;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
-public class TestDataPathUtils {
+public final class TestDataPathUtils {
   private static final String TEST_DATA_PATH = "tools/adt/idea/android-common/testData";
 
   public static @NotNull Path getTestDataPath() {

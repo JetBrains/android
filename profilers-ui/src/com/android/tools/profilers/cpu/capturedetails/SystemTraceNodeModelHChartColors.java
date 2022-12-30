@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
  * Defines the colors (fill and border) of the rectangles used to represent {@link SystemTraceNodeModel} nodes in a
  * {@link com.android.tools.adtui.chart.hchart.HTreeChart}.
  */
-class SystemTraceNodeModelHChartColors {
+final class SystemTraceNodeModelHChartColors {
   private static void validateModel(@NotNull CaptureNodeModel model) {
     if (!(model instanceof SystemTraceNodeModel)) {
       throw new IllegalStateException("Model must be an instance of SystemTraceNodeModel.");

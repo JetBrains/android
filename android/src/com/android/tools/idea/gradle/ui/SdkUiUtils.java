@@ -21,7 +21,7 @@ import com.intellij.ui.ComboboxWithBrowseButton;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
-public class SdkUiUtils {
+public final class SdkUiUtils {
   @NotNull
   public static Path getLocationFromComboBoxWithBrowseButton(@NotNull ComboboxWithBrowseButton comboboxWithBrowseButton) {
     Object item = comboboxWithBrowseButton.getComboBox().getEditor().getItem();

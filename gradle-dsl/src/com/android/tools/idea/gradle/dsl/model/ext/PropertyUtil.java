@@ -45,7 +45,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class PropertyUtil {
+public final class PropertyUtil {
   @NonNls public static final String FILE_METHOD_NAME = "file";
   @NonNls public static final String FILE_CONSTRUCTOR_NAME = "File";
 

@@ -57,7 +57,7 @@ import org.w3c.dom.Node;
 /**
  * Static utilities for generating scaled-down {@link Icon} instances from image resources to display in the gutter.
  */
-public class GutterIconFactory {
+public final class GutterIconFactory {
   private static final Logger LOG = Logger.getInstance(GutterIconCache.class);
   private static final int RENDERING_SCALING_FACTOR = 10;
 

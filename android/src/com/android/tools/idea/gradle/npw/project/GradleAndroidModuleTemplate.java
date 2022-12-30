@@ -50,7 +50,7 @@ import org.jetbrains.annotations.NotNull;
  *      `-com/google/foo/bar/... (test directory of package com.google.foo.bar)
  * </pre>
  */
-public class GradleAndroidModuleTemplate {
+public final class GradleAndroidModuleTemplate {
   public static NamedModuleTemplate createSampleTemplate() {
     return createDefaultTemplateAt(new File(""));
   }

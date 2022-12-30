@@ -21,7 +21,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 
 @SuppressWarnings("UseJBColor")
-public class NlConstants {
+public final class NlConstants {
   public static final int BOUNDS_RECT_DELTA = 20;
 
   public static final int DEFAULT_SCREEN_OFFSET_X = 50;

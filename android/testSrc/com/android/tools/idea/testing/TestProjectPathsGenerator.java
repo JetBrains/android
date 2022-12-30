@@ -36,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Generates TestProjectPaths.
  */
-public class TestProjectPathsGenerator {
+public final class TestProjectPathsGenerator {
   @SuppressWarnings("SpellCheckingInspection")
   private static final List<String> TEST_SUB_FOLDERS =
     Arrays.asList("apk", "buildAnalyzer", "manifestConflict", "moduleInfo", "navigationEditor", "projectModel", "runConfig", "signapk", "sync",

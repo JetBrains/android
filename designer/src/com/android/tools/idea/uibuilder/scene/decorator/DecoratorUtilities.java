@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
  * Timed states have a name, time,  previous state, current state
  * and is to be thought of as this feature of a component changed from previous to next at that time
  */
-public class DecoratorUtilities {
+public final class DecoratorUtilities {
   public static final String VIEW = "view";
   public static final String TOP_CONNECTION = "north";
   public static final String LEFT_CONNECTION = "left";

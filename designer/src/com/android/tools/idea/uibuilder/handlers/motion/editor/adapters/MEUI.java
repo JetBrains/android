@@ -51,7 +51,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The access to platform independent UI features allow us to run using the JB components as well as the stand alone.
  */
-public class MEUI {
+public final class MEUI {
 
   static float userScaleFactor = 1;
   public static final Color ourMySelectedTextColor = new JBColor(0xEAEAEA, 0xCCCCCC);
@@ -169,14 +169,14 @@ public class MEUI {
   }
 
   //0c283e
-  public static class CSPanel {
+  public static final class CSPanel {
     public static final Color our_SelectedFocusBackground =
       makeColor("UIDesigner.motion.CSPanel.SelectedFocusBackground", 0x3973d6, 0x2E65CA);
     public static final Color our_SelectedBackground =
       makeColor("UIDesigner.motion.CSPanel.SelectedBackground", 0xD3D3D3, 0x0C283E);
   }
 
-  public static class Overview {
+  public static final class Overview {
     public static final Color ourCS = makeColor("UIDesigner.motion.ConstraintSet.background", 0xFFFFFF, 0x515658);
     public static final Color ourCSText = makeColor("UIDesigner.motion.ConstraintSetText.foreground", 0x000000, 0xC7C7C7);
     public static final Color ourCS_Background = makeColor("UIDesigner.motion.ourCS.background", 0xFFFFFF, 0x515658);
@@ -200,7 +200,7 @@ public class MEUI {
     public static final Color ourPositionColor = makeColor("UIDesigner.motion.PositionMarkColor", 0XF0A732, 0XF0A732);
   }
 
-  public static class Graph {
+  public static final class Graph {
     public static final Color ourG_Background = makeColor("UIDesigner.motion.motionGraph.background", 0xfcfcfc, 0x313334);
     public static final Color ourG_line = makeColor("UIDesigner.motion.graphLine.lineSeparatorColor", 0xE66F9A, 0xA04E6C);
     public static final Color ourCursorTextColor = makeColor("UIDesigner.motion.CursorTextColor.foreground", 0xFFFFFF, 0x000000);

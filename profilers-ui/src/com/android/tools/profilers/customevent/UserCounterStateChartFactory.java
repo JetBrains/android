@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
  * Class responsible for rendering the event count for Custom Event Visualization. The event count appears as a horizontal
  * bar in its unique color corresponding to how many events are happening relative to the total number of events a user is tracking.
  */
-public class UserCounterStateChartFactory {
+public final class UserCounterStateChartFactory {
 
   private static final StateChartColorProvider<Long> DURATION_STATE_COLOR_PROVIDER = new StateChartColorProvider<Long>() {
     @NotNull

@@ -36,7 +36,7 @@ import jdk.jfr.Event;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class RecordingManager {
+public final class RecordingManager {
 
   public static final int JFR_RECORDING_DURATION_SECONDS = 30;
   public static final int MAX_FROZEN_TIME_RECORDED_SECONDS = 90;

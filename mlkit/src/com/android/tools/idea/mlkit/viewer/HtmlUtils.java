@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Utility class to do conversion between plain text and html.
  */
-public class HtmlUtils {
+public final class HtmlUtils {
   private static final List<String> CHARACTERS_PLAIN = Arrays.asList("<", ">", "&", "'", "\"", "\r\n", "\n");
   private static final List<String> CHARACTERS_HTML = Arrays.asList("&lt;", "&gt;", "&amp;", "&#39;", "&quot;", "<br>", "<br>");
 

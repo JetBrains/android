@@ -21,7 +21,7 @@ package com.android.tools.idea.rendering.classloading;
  * of methods that allow to do the unboxing correctly when called from user code.
  */
 @SuppressWarnings("ConstantConditions")
-public class PrimitiveTypeRemapper {
+public final class PrimitiveTypeRemapper {
   public static float remapFloat(Object source, String fileName, int offset, float value) {
     Object constant = ComposePreviewConstantRemapper.remapAny(source, fileName, offset, value);
     if (constant instanceof Number) {

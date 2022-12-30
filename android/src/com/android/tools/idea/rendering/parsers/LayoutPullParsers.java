@@ -95,7 +95,7 @@ import org.w3c.dom.Element;
 /**
  * Methods for creating layout pull parsers for various different types of files.
  */
-public class LayoutPullParsers {
+public final class LayoutPullParsers {
   static final boolean DEBUG = false;
 
   private static final String[] VALID_XML_TAGS = {

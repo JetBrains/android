@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Utilities for dealing with float values in resources.
  */
-public class FloatResources {
+public final class FloatResources {
   private static final Logger LOG = Logger.getInstance(FloatResources.class);
   private static final String DIMENSION_ERROR_FORMAT = "The specified dimension %1$s does not have a unit";
   private static final Pattern sFloatPattern = Pattern.compile("(-?[0-9]+(?:\\.[0-9]+)?)(.*)");

@@ -40,7 +40,7 @@ import org.xml.sax.helpers.DefaultHandler;
  * Each file is either a specification of a downloadable font with a font query,
  * or a specification of a family with references to individual fonts.
  */
-class FontFamilyParser {
+final class FontFamilyParser {
 
   @NotNull
   static QueryParser.ParseResult parseFontFamily(@NotNull File xmlFile) {

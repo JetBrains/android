@@ -25,7 +25,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 
-public class ProfilerColors {
+public final class ProfilerColors {
 
   // Collections of constant, do not instantiate.
   private ProfilerColors() {

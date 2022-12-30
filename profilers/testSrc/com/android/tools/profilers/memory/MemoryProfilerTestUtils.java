@@ -37,7 +37,7 @@ import javax.swing.JTree;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MemoryProfilerTestUtils {
+public final class MemoryProfilerTestUtils {
   @NotNull
   public static ClassSet findChildClassSetWithName(@NotNull Classifier classifier, @NotNull String className) {
     List<ClassSet> classSets = classifier.getFilteredClassifierSets().stream()

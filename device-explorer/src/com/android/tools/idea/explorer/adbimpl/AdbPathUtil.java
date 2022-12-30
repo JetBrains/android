@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
  * Since paths on Android devices are posix-like, we can't use the {@link Path}
  * or {@link java.io.File} class to manipulate them, as these classes are platform dependent.
  */
-public class AdbPathUtil {
+public final class AdbPathUtil {
   @NotNull
   public static final String FILE_SEPARATOR = FileListingService.FILE_SEPARATOR;
 

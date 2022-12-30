@@ -18,7 +18,7 @@ package com.android.tools.idea.lang.multiDexKeep.psi;
 import com.android.tools.idea.lang.multiDexKeep.MultiDexKeepReference;
 import com.intellij.psi.PsiReference;
 
-public class PsiImplUtil {
+public final class PsiImplUtil {
 
   public static PsiReference getReference(MultiDexKeepClassName className) {
     return new MultiDexKeepReference(className);

@@ -20,7 +20,7 @@ import java.text.NumberFormat;
 import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
-public class NumberFormatter {
+public final class NumberFormatter {
 
   private static final Format INTEGER_FORMAT = NumberFormat.getIntegerInstance();
   private static final String[] FILE_SIZE_UNITS = {"B", "KB", "MB", "GB", "TB", "PB", "EB"};

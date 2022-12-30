@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 
-public class ShellCommandLauncher {
+public final class ShellCommandLauncher {
   private final static String TARGET_REGEX = "\\berror\\b";
   @VisibleForTesting
   static final Pattern errorPattern = Pattern.compile(TARGET_REGEX, Pattern.CASE_INSENSITIVE);

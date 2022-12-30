@@ -49,7 +49,7 @@ public class PatchInstallerTest extends TestCase {
     assertTrue(FakeRunner.ourDidRun);
   }
 
-  private static class FakeRunner {
+  private static final class FakeRunner {
     public static boolean ourDidRun;
     private static boolean ourLoggerInitted;
 

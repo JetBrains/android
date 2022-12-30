@@ -128,7 +128,7 @@ import org.jetbrains.annotations.Nullable;
  * Class support actions that may be common across sub classes of ConstraintLayout
  * Actions are used in Toolbars and right click menus
  */
-public class CommonActions {
+public final class CommonActions {
   private static final String PREFERENCE_KEY_PREFIX = "ConstraintLayoutPreference";
 
   public static final String SHOW_CONSTRAINTS_PREF_KEY = PREFERENCE_KEY_PREFIX + "ShowAllConstraints";
@@ -379,7 +379,7 @@ public class CommonActions {
       presentation.setLabel(myToolTip);
     }
   }
-  private static class ConstraintViewActions {
+  private static final class ConstraintViewActions {
     private static final ImmutableList<ViewAction> ALIGN_HORIZONTALLY_ACTIONS = ImmutableList.of(
       new AlignAction(Scout.Arrange.AlignHorizontallyLeft,
                       LEFT_ALIGNED,

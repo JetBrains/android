@@ -17,7 +17,7 @@ package com.android.tools.idea.run.activity;
 
 import org.jetbrains.annotations.NotNull;
 
-public class AndroidActivityLauncher {
+public final class AndroidActivityLauncher {
   @NotNull
   public static String getStartActivityCommand(@NotNull String activityPath, @NotNull String extraFlags) {
     return "am start" +

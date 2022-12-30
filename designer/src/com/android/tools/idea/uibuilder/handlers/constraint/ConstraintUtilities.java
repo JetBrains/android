@@ -35,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Utility functions
  */
-public class ConstraintUtilities {
+public final class ConstraintUtilities {
 
   private static HashMap<String, Integer> alignmentMap_ltr = new HashMap<>();
   private static HashMap<String, Integer> alignmentMap_rtl = new HashMap<>();

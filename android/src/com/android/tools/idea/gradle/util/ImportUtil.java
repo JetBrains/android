@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.util;
 
 import org.jetbrains.annotations.NotNull;
 
-public class ImportUtil {
+public final class ImportUtil {
   public static final String SUPPORT_GROUP_ID = "com.android.support";
   public static final String CORE_KTX_GROUP_ID = "androidx.core";
   public static final String APPCOMPAT_ARTIFACT = "appcompat-v7";

@@ -19,16 +19,15 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ReflectionUtil;
+import com.intellij.util.containers.ContainerUtil;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
-import com.intellij.util.ReflectionUtil;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -37,7 +36,7 @@ import org.jetbrains.annotations.TestOnly;
  * Collection of methods for accessing {@link Disposer}'s tree.
  */
 @TestOnly
-public class DisposerExplorer {
+public final class DisposerExplorer {
   private static final Object treeLock = getTreeLock();
 
   /**

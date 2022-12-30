@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mockito;
 
-public class IncludeViewTests {
+public final class IncludeViewTests {
 
   /*
   Get the IncludesViewNode for the given nativeIncludes setup

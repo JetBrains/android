@@ -19,7 +19,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
-public class simple_scene_xml {
+public final class simple_scene_xml {
   static String value="<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                       "<MotionScene \n" +
                       "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +

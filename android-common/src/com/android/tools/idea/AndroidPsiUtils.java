@@ -60,7 +60,7 @@ import org.jetbrains.uast.UElementKt;
 import org.jetbrains.uast.UastContext;
 import org.jetbrains.uast.UastUtils;
 
-public class AndroidPsiUtils {
+public final class AndroidPsiUtils {
   /**
    * Looks up the {@link PsiFile} for a given {@link VirtualFile} in a given {@link Project}, in
    * a safe way (meaning it will acquire a read lock first, and will check that the file is valid

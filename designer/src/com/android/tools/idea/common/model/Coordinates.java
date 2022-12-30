@@ -32,7 +32,7 @@ import java.awt.geom.Rectangle2D;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class Coordinates {
+public final class Coordinates {
 
   public static final float DEFAULT_DENSITY = Density.DEFAULT_DENSITY;
 

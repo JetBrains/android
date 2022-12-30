@@ -39,7 +39,7 @@ import org.jetbrains.annotations.Nullable;
  * Various utility methods to navigate through various parts (dynamic features, base split, etc.)
  * of dynamic apps.
  */
-public class DynamicAppUtils {
+public final class DynamicAppUtils {
 
   /**
    * Returns the Base Module of the specified dynamic feature {@link Module module}, or null if none is found.

@@ -25,7 +25,7 @@ import java.awt.geom.Path2D;
 /**
  * Provides utilities used in creating the Overview Drawing
  */
-public class Drawing {
+public final class Drawing {
 
   private static final boolean DEBUG = false;
   

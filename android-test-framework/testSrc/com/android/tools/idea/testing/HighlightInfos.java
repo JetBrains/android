@@ -43,7 +43,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Utility functions for working with HighlightInfos in a source file
  */
-public class HighlightInfos {
+public final class HighlightInfos {
 
   /**
    * Return a List of all the HighlightInfos in a file filtered by the given predicate (the predicate does not need to check for null as

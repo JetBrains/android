@@ -24,7 +24,7 @@ import java.awt.Font;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
-public class FontUtil {
+public final class FontUtil {
   @NotNull
   public static Font getFontAbleToDisplay(@NotNull String s, @NotNull Font defaultFont) {
     if (SystemInfo.isMac          // On Macs, all fonts can display all the characters because the system renders using fallback fonts.

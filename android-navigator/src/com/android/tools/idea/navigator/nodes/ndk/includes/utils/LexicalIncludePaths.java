@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
  * Methods for dealing with file paths in a lexical (string-oriented) manner for display of compact
  * include paths to the user. Requires that paths in strings use *nix separator.
  */
-public class LexicalIncludePaths {
+public final class LexicalIncludePaths {
   @NotNull
   public static final ImmutableSet<String> HEADER_FILE_EXTENSIONS = ImmutableSet.of("", "h", "hpp", "hh", "h++", "hxx", "inl", "tcc", "pch");
 

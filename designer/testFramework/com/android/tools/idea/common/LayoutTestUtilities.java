@@ -69,7 +69,7 @@ import javax.swing.KeyStroke;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class LayoutTestUtilities {
+public final class LayoutTestUtilities {
   public static void dragMouse(InteractionManager manager,
                                @SwingCoordinate int x1,
                                @SwingCoordinate int y1,

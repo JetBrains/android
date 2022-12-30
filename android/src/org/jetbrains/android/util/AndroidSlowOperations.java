@@ -1,4 +1,4 @@
-// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.util;
 
 import static com.intellij.util.SlowOperations.allowSlowOperations;
@@ -8,7 +8,7 @@ import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.util.ThrowableRunnable;
 import org.jetbrains.annotations.NotNull;
 
-public class AndroidSlowOperations {
+public final class AndroidSlowOperations {
   public static <T, E extends Throwable> T allowSlowOperationsInIdea(@NotNull ThrowableComputable<T, E> computable) throws E {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //

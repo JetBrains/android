@@ -18,7 +18,7 @@ package com.android.tools.idea.avdmanager;
 
 import org.jetbrains.annotations.NotNull;
 
-public class AvdNameVerifier {
+public final class AvdNameVerifier {
 
   private static final String ALLOWED_CHARS          = "0-9a-zA-Z-_. ()";
   private static final String ALLOWED_CHARS_READABLE = "a-z A-Z 0-9 . _ - ( )";

@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Utility methods used to anonymize information going to the local logs
  */
-public class LogAnonymizerUtil {
+public final class LogAnonymizerUtil {
   private static final String SALT = Integer.toString((new SecureRandom()).nextInt());
 
   /**

@@ -21,7 +21,7 @@ import com.android.utils.ILogger;
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 
-public class AnonymizerUtil {
+public final class AnonymizerUtil {
   private static final String ANONYMIZATION_ERROR = "*ANONYMIZATION_ERROR*";
   public static final ILogger LOGGER = new LogWrapper(AnonymizerUtil.class);
 

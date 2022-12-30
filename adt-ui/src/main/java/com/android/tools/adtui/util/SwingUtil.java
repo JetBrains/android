@@ -32,7 +32,7 @@ import javax.swing.UIManager;
 import javax.swing.plaf.basic.ComboPopup;
 import org.jetbrains.annotations.NotNull;
 
-public class SwingUtil {
+public final class SwingUtil {
 
   private static final String DOWN = "selectNext";
   private static final String UP = "selectPrevious";

@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Helper methods for using SDK common's {@link HtmlBuilder} in the IDE
  */
-public class HtmlBuilderHelper {
+public final class HtmlBuilderHelper {
   @Nullable
   private static String getIconPath(String relative) {
     // TODO: Find a way to do this more efficiently; not referencing assets but the corresponding

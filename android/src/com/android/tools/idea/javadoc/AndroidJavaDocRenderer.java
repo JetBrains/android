@@ -110,7 +110,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidJavaDocRenderer {
+public final class AndroidJavaDocRenderer {
 
   /** Renders the Javadoc for a resource of given type and name. */
   @Nullable

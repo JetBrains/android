@@ -43,7 +43,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Utility class for creating a {@link NlModel} for a test.
  */
-public class NlModelBuilderUtil {
+public final class NlModelBuilderUtil {
 
   // Prevent instantiation...
   private NlModelBuilderUtil() {}

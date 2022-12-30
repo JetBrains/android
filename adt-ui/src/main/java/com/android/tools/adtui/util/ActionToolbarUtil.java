@@ -27,7 +27,7 @@ import javax.swing.JCheckBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ActionToolbarUtil {
+public final class ActionToolbarUtil {
 
   // Avoid instantiation...
   private ActionToolbarUtil() {}

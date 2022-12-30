@@ -23,7 +23,7 @@ import com.intellij.openapi.ui.Messages;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
-public class ValidationUtil {
+public final class ValidationUtil {
 
   public static void promptAndQuickFixErrors(@NotNull Project project, @NotNull DataContext dataContext, @NotNull Collection<ValidationError> errors) throws ExecutionException {
     if (errors.isEmpty()) {

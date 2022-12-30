@@ -82,7 +82,6 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidTextUtils;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.psi.TagToClassMapper;
@@ -152,7 +151,7 @@ import org.jetbrains.annotations.Nullable;
  * Entry point is {@link #processAttributes(AndroidDomElement, AndroidFacet, boolean, AttributeProcessor)},
  * look for a Javadoc there.
  */
-public class AttributeProcessingUtil {
+public final class AttributeProcessingUtil {
   private static final String PREFERENCE_TAG_NAME = "Preference";
 
   private static final ImmutableSet<String> SIZE_NOT_REQUIRED_TAG_NAMES =

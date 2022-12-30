@@ -21,7 +21,7 @@ import java.awt.Font;
 /**
  * Common fonts shared across the profiler views.
  */
-public class ProfilerFonts {
+public final class ProfilerFonts {
   public static final Font H1_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(11f); // 21 scaled
   public static final Font H2_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(5f); // 15 scaled
   public static final Font H3_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(4f); // 14 scaled

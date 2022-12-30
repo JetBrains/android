@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Utility class for methods involving VirtualFiles.
  */
-public class VirtualFiles {
+public final class VirtualFiles {
 
   /**
    * This method converts a collection of excludes to their equivalent VirtualFile. The result is guaranteed to be a non-null ImmutableList

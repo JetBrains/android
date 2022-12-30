@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sun.awt.AWTAccessor;
 
-class ComponentAccessor {
+final class ComponentAccessor {
   public static void setGraphicsConfiguration(@NotNull Component component, @Nullable GraphicsConfiguration gc) {
     AWTAccessor.getComponentAccessor().setGraphicsConfiguration(component, gc);
   }

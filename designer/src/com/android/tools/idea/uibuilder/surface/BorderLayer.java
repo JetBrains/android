@@ -61,7 +61,7 @@ public class BorderLayer extends Layer {
     BorderPainter.paint(g2d, myScreenView);
   }
 
-  private static class BorderPainter {
+  private static final class BorderPainter {
 
     private static final int SHADOW_SIZE = JBUIScale.scale(4);
     private static final Color COLOR_OUTSIDE = UIUtil.TRANSPARENT_COLOR;

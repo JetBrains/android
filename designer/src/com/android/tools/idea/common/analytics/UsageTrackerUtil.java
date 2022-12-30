@@ -35,7 +35,7 @@ import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class UsageTrackerUtil {
+public final class UsageTrackerUtil {
 
   // Identifies a custom tag name or attribute name i.e. a placeholder for a name we do NOT want to log.
   @VisibleForTesting

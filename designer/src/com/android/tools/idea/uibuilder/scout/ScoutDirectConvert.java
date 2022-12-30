@@ -76,7 +76,7 @@ import java.util.List;
 /**
  * This performs direct conversion of RelativeLayout to ConstraintLayout
  */
-public class ScoutDirectConvert {
+public final class ScoutDirectConvert {
   public static final int VERTICAL = 0x1;
   public static final int HORIZONTAL = 0x2;
   public static final int BOTH = 0x3;

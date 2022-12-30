@@ -1,6 +1,7 @@
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.formatter;
 
-public class ContextSpecificSettingsProviders {
+public final class ContextSpecificSettingsProviders {
   public static final Provider<AndroidXmlCodeStyleSettings.LayoutSettings> LAYOUT =
     new Provider<AndroidXmlCodeStyleSettings.LayoutSettings>() {
       @Override

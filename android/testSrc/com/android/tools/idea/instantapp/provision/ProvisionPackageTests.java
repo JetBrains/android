@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Utils for creating mocks for testing {@link ProvisionPackage}s.
  */
-public class ProvisionPackageTests {
+public final class ProvisionPackageTests {
   @NotNull
   static File getInstantAppSdk() {
     File testData = new File(getTestDataPath());

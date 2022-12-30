@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Looks for the existence of system32\\ucrtbase.dll to check whether Universal C Runtime for Windows is installed
  */
-public class WindowsCRuntimeChecker {
+public final class WindowsCRuntimeChecker {
   static void checkCRT(@NotNull AndroidStudioSystemHealthMonitor systemHealthMonitor) {
     Path dllPath = Paths.get(System.getenv("SystemRoot"), "system32", "ucrtbase.dll");
     if (!dllPath.toFile().exists()) {

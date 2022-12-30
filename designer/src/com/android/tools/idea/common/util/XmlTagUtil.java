@@ -28,7 +28,7 @@ import com.intellij.util.IncorrectOperationException;
 import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 
-public class XmlTagUtil {
+public final class XmlTagUtil {
   /**
    * Creates a new XML tag with the given {@code text}. If the given {@code text} is not valid XML, this method will return a
    * {@code TextView} with the passed content as {@code android:text} value.

@@ -1,3 +1,5 @@
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+
 // This is a generated file. Not intended for manual editing.
 package com.android.tools.idea.compose.preview.util.device.parser;
 
@@ -65,7 +67,7 @@ public interface DeviceSpecTypes {
   IElementType UNIT_KEYWORD = new DeviceSpecTokenType("unit");
   IElementType WIDTH_KEYWORD = new DeviceSpecTokenType("width");
 
-  class Factory {
+  final class Factory {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
       if (type == BOOLEAN_T) {

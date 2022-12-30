@@ -24,7 +24,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ui.IconManager;
 import javax.swing.Icon;
 
-public class DexNodeIcons {
+public final class DexNodeIcons {
   public static Icon forNode(DexElementNode node){
     if (node instanceof DexClassNode){
       return IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Class);

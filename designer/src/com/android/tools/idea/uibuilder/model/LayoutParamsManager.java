@@ -58,7 +58,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Class to handle the access to LayoutParams instances
  */
-public class LayoutParamsManager {
+public final class LayoutParamsManager {
   /**
    * Object that represents a missing default (we can not use null since null is a valid default).
    */

@@ -30,7 +30,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 
-public class ClassFileUtil {
+public final class ClassFileUtil {
   private ClassFileUtil() {}
 
   public static boolean isClassSourceFileNewerThanClassClassFile(

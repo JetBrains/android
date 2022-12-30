@@ -25,7 +25,7 @@ import java.awt.Stroke;
  * <p/>
  * Contains functions dealing with drawing connection between ConstraintAnchors
  */
-public class ConnectionDraw {
+public final class ConnectionDraw {
     static Font sFont = new Font("Helvetica", Font.PLAIN, 12);
 
     public static final Stroke

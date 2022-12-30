@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.build.output;
 
 import org.jetbrains.annotations.NotNull;
 
-public class BuildOutputParserUtils {
+public final class BuildOutputParserUtils {
   @NotNull public static final String MESSAGE_GROUP_INFO_SUFFIX = " info";
   @NotNull public static final String MESSAGE_GROUP_STATISTICS_SUFFIX = " statistics";
   @NotNull public static final String MESSAGE_GROUP_WARNING_SUFFIX = " warnings";

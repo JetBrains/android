@@ -1596,7 +1596,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     return builder.build();
   }
 
-  private static class ConstraintViewActions {
+  private static final class ConstraintViewActions {
     private static final ImmutableList<ViewAction> ALIGN_HORIZONTALLY_ACTIONS = ImmutableList.of(
       new AlignAction(Scout.Arrange.AlignHorizontallyLeft,
                       LEFT_ALIGNED,

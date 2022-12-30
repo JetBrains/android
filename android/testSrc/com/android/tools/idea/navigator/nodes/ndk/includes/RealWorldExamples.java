@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public class RealWorldExamples {
+public final class RealWorldExamples {
 
   public final static String[] NDK_R18_SXS_EXAMPLE = {
     "-I/usr/local/google/home/jomof/Android/Sdk/ndk/18.1.5063045/sysroot/usr/include",

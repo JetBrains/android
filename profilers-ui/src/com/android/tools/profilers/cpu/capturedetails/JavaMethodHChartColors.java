@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
  * Defines the fill color of the rectangles used to represent {@link JavaMethodModel} nodes in a
  * {@link com.android.tools.adtui.chart.hchart.HTreeChart}.
  */
-class JavaMethodHChartColors {
+final class JavaMethodHChartColors {
 
   private static void validateModel(@NotNull CaptureNodeModel model) {
     if (!(model instanceof JavaMethodModel)) {

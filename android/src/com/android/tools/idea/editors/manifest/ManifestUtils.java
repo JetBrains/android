@@ -66,7 +66,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
-public class ManifestUtils {
+public final class ManifestUtils {
 
   private ManifestUtils() {
   }

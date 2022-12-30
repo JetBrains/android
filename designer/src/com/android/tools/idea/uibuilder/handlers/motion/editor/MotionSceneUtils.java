@@ -26,7 +26,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 /**
  * Provide static accessor to various MotionLayout Related functions
  */
-public class MotionSceneUtils {
+public final class MotionSceneUtils {
   private static boolean DEBUG = false;
   public final static String MOTION_LAYOUT_PROPERTIES = "motionLayoutProperties";
   public static final String MTAG_ACCESS = "MotionTagForMotionScene";

@@ -32,7 +32,7 @@ import java.awt.Insets;
  * <p>These concepts are effectively deprecated and should now exist in appropriate locations inside the com.android.tools.idea.ui.wizard
  * package.
  */
-public class WizardConstants {
+public final class WizardConstants {
 
   // Colors
   /**

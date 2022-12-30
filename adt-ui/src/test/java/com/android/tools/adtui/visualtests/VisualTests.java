@@ -20,7 +20,7 @@ import com.android.tools.adtui.visualtests.flamegraph.FlameGraphVisualTest;
 import com.android.tools.adtui.visualtests.threadgraph.ThreadCallsVisualTest;
 import javax.swing.SwingUtilities;
 
-public class VisualTests {
+public final class VisualTests {
 
   interface Value {
     void set(int v);

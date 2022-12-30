@@ -20,7 +20,7 @@ import java.lang.instrument.Instrumentation;
 import javax.swing.JComponent;
 import javax.swing.RepaintManager;
 
-public class Agent {
+public final class Agent {
   public static void premain(String agentArgs, Instrumentation instrumentation) {
     System.out.println("Starting instrumentation agent.");
     agentmain(agentArgs, instrumentation);

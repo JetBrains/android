@@ -39,7 +39,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Utility methods for selecting a running device.
  */
-public class DeviceSelectionUtils {
+public final class DeviceSelectionUtils {
   @NotNull private static final Logger LOG = Logger.getInstance(DeviceSelectionUtils.class);
   // We remember what serials the user uses so we can pre-select them in the manual choosing dialog.
   @NonNls private static final String ANDROID_TARGET_DEVICES_PROPERTY = "AndroidTargetDevices";

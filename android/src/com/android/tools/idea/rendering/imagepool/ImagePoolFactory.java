@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
  * Factory to create new instances of {@link ImagePool}. The factory currently offers another
  * method that returns an {@link ImagePool} instance that has pooling disabled.
  */
-public class ImagePoolFactory {
+public final class ImagePoolFactory {
   private static final ImagePool NO_POOL_INSTANCE = new ImagePool() {
     @NotNull
     @Override

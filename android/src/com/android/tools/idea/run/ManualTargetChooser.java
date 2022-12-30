@@ -1,3 +1,4 @@
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.AndroidDebugBridge;
@@ -11,7 +12,7 @@ import java.util.Set;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
-public class ManualTargetChooser {
+public final class ManualTargetChooser {
   /** Re-use the last used devices if we are configured to do so and the online devices have not changed. */
   @NotNull
   public static Collection<IDevice> getLastUsedDevices(@NotNull Project project, int runConfigId, @NotNull DeviceCount deviceCount) {

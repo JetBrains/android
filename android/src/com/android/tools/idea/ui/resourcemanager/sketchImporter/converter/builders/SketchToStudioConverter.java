@@ -66,7 +66,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Class that holds static methods for the conversion between the {@code SketchModel} and the {@code ShapeModel}
  */
-public class SketchToStudioConverter {
+public final class SketchToStudioConverter {
   private static final String DEFAULT_DOCUMENT_COLOR_NAME = "document_color";
 
   @NotNull

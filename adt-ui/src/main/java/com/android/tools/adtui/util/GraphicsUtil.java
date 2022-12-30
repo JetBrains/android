@@ -22,7 +22,7 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Shape;
 
-public class GraphicsUtil {
+public final class GraphicsUtil {
 
   private static final int BACKGROUND_CELL_SIZE = 4;
 

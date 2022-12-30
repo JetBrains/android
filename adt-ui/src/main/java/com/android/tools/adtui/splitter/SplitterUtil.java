@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Utilities for {@link com.intellij.openapi.ui.ThreeComponentsSplitter}.
  */
-public class SplitterUtil {
+public final class SplitterUtil {
 
   public static void setMinimumWidth(@NotNull JComponent component, int minWidth) {
     Dimension minimumSize = component.getMinimumSize();

@@ -31,7 +31,7 @@ import java.nio.file.Paths;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
 
-public class ImageConverter {
+public final class ImageConverter {
   private static Field bytesField;
   private static Field offsetField;
 

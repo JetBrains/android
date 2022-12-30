@@ -19,7 +19,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
-public class RequestExecutor {
+public final class RequestExecutor {
   public static <T> void execute(Executor executor, Callable<T> callable, Consumer<T> consumer) {
     throw new RuntimeException("method executed");
   }

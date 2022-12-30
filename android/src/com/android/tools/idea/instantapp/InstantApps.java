@@ -29,7 +29,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class InstantApps {
+public final class InstantApps {
 
   /**
    * This method will find and return all Instant App Feature modules associated with the facet of an instant app application module.

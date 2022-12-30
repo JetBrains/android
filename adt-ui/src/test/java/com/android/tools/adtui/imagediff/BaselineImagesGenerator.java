@@ -20,7 +20,7 @@ import java.io.File;
 /**
  * Generates the baseline images for the {@link com.android.tools.adtui.imagediff} package.
  */
-class BaselineImagesGenerator {
+final class BaselineImagesGenerator {
 
   public static void main(String[] args) {
     String resourcesDir;

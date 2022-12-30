@@ -22,7 +22,7 @@ import java.lang.reflect.Method;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
-public class HeapTraverseUtil {
+public final class HeapTraverseUtil {
   // An object has overhead for header and v-table entry
   private static final long ESTIMATED_OBJECT_OVERHEAD = 16;
 

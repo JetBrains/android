@@ -61,7 +61,7 @@ import org.jetbrains.annotations.NotNull;
  * functionality just enough for compose user group to dogfood for now.
  *
  */
-class AndroidLiveLiteralDeployMonitor {
+final class AndroidLiveLiteralDeployMonitor {
 
   // TODO: The logging is overly excessive for now given we have no UI to provide feedback to the user
   // when things go wrong. This will be changed in the final product.

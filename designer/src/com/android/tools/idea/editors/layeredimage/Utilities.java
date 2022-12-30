@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import org.jetbrains.annotations.NotNull;
 
-class Utilities {
+final class Utilities {
   private Utilities() {
   }
 

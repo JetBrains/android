@@ -53,7 +53,7 @@ import org.jetbrains.annotations.Nullable;
  * Functions for create resource dialogs, where the dialogs depend on using source sets, and modules
  * for deciding the base resource directory.
  */
-public class CreateResourceDialogUtils {
+public final class CreateResourceDialogUtils {
   private static final Logger LOG = Logger.getInstance(ExternalSystemUtil.class);
 
   @Nullable

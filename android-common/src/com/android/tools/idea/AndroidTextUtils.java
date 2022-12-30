@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Various utilities for generating user-facing text
  */
-public class AndroidTextUtils {
+public final class AndroidTextUtils {
   // Static utility functions class
   private AndroidTextUtils() { }
 

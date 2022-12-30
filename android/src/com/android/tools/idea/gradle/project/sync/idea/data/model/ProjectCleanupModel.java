@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.idea.data.model;
 
 import org.jetbrains.annotations.NotNull;
 
-public class ProjectCleanupModel {
+public final class ProjectCleanupModel {
   private static final ProjectCleanupModel INSTANCE = new ProjectCleanupModel();
 
   @NotNull

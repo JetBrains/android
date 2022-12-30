@@ -38,7 +38,7 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-public class ActivityLocatorUtils {
+public final class ActivityLocatorUtils {
   public static boolean containsAction(@NotNull Element filter, @NotNull String name) {
     Node action = filter.getFirstChild();
     while (action != null) {

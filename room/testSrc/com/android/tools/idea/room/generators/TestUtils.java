@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Utility functions for testing schema updates.
  */
-public class TestUtils {
+public final class TestUtils {
   @NotNull
   public static DatabaseBundle createDatabaseBundle(int version, @NotNull EntityBundle... entities) {
     return new DatabaseBundle(version, "", Arrays.asList(entities), Collections.emptyList(), null);

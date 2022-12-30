@@ -20,7 +20,7 @@ import com.intellij.util.Function;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ParametersListUtil {
+public final class ParametersListUtil {
   public static final Function<String, List<String>> COMMA_LINE_PARSER = text -> {
     ArrayList<String> result = new ArrayList<>();
     for (String token : text.split(",")) {

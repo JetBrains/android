@@ -82,13 +82,12 @@ import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.kotlin.psi.KtExpression;
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression;
 import org.jetbrains.kotlin.psi.KtPsiFactory;
-import org.jetbrains.kotlin.psi.KtPsiFactoryKt;
 import org.xmlpull.v1.XmlPullParser;
 
 /**
  * Static methods to be used by Android annotators.
  */
-public class AndroidAnnotatorUtil {
+public final class AndroidAnnotatorUtil {
   static final int MAX_ICON_FILE_SIZE = 20000;
   private static final String SET_COLOR_COMMAND_NAME = "Change Color";
   private static final int ICON_SIZE = 8;

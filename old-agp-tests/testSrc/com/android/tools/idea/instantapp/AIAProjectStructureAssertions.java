@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Helper methods for checking modules in an AIA-enabled project are created correctly by a project sync.
  */
-public class AIAProjectStructureAssertions {
+public final class AIAProjectStructureAssertions {
   /**
    * Asserts that the given module is an app module and that it has dependencies that match the given set of expected dependencies.
    */

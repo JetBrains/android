@@ -20,7 +20,7 @@ import com.android.testutils.TestUtils;
 /**
  * Constants for ml model binding test data locations.
  */
-public class TestDataPaths {
+public final class TestDataPaths {
   public static final String TEST_DATA_ROOT = TestUtils.resolveWorkspacePath("tools/adt/idea/mlkit/testData").toString();
 
   public static final String PROJECT_WITH_TWO_LIB_MODULES_BUT_ONLY_ONE_ENABLED = "projects/projectWithTwoLibModulesButOnlyOneEnabled";

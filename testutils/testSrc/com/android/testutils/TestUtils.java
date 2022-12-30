@@ -56,7 +56,7 @@ import org.jetbrains.kotlin.idea.compiler.configuration.KotlinPluginLayout;
 /**
  * Utility methods to deal with loading the test data.
  */
-public class TestUtils {
+public final class TestUtils {
   public static final AndroidLayoutlibDownloaderProxy llDownloader = new AndroidLayoutlibDownloaderProxy();
   public static final AndroidProfilerDownloaderProxy profilerDownloader = new AndroidProfilerDownloaderProxy();
 

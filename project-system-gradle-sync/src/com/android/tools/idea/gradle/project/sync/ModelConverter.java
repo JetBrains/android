@@ -27,7 +27,7 @@ import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.jetbrains.annotations.NotNull;
 
-public class ModelConverter {
+public final class ModelConverter {
   /**
    * Set map from project path to build directory for all modules.
    * It will be used to check if an android library is a sub-module that wraps a local aar.

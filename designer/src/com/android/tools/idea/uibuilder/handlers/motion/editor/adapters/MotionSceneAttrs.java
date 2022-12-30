@@ -22,7 +22,7 @@ import java.util.HashSet;
 /**
  * List of attributes used to copy tags to during conversion to Constraints
  */
-public class MotionSceneAttrs {
+public final class MotionSceneAttrs {
 
   public static final String MOTION = "motion";
   public static final String ANDROID = "android";
@@ -139,7 +139,7 @@ public class MotionSceneAttrs {
   public static final String MOTION_DRAW_PATH = "drawPath";
 
   ///////////////////////////////// PLATFORM INDEPENDENT ACCESS ////////////////////////////
-  public static class Tags {
+  public static final class Tags {
     public static final String TRANSITION = SdkConstants.MotionSceneTags.TRANSITION;
     public static final String VIEW_TRANSITION = SdkConstants.MotionSceneTags.VIEW_TRANSITION;
     public static final String CONSTRAINTSET = SdkConstants.MotionSceneTags.CONSTRAINT_SET;
@@ -194,15 +194,15 @@ public class MotionSceneAttrs {
 
   public static final String ON_CLICK = "OnClick";
 
-  public static class MotionScene {
+  public static final class MotionScene {
     public static final String ATTR_DEFAULT_DURATION = "defaultDuration";
   }
-  public static class ConstraintSet {
+  public static final class ConstraintSet {
     public static final String ATTR_ID = ATTR_ANDROID_ID;
     public static final String DERIVE_CONSTRAINTS_FROM = "deriveConstraintsFrom";
 
   }
-  public static class Transition {
+  public static final class Transition {
     public static final String ATTR_ID = "id";
     public static final String ATTR_CONSTRAINTSET_START = "constraintSetStart";
     public static final String ATTR_CONSTRAINTSET_END = "constraintSetEnd";
@@ -213,18 +213,18 @@ public class MotionSceneAttrs {
     public static final String ATTR_STAGGERED = "staggered";
   }
 
-  public static class Key {
+  public static final class Key {
     public static final String MOTION_TARGET = "motionTarget";
     public static final String FRAME_POSITION = "framePosition";
   }
 
-  public static class KeyCycle {
+  public static final class KeyCycle {
     public static final String WAVE_PERIOD = "wavePeriod";
     public static final String WAVE_SHAPE = "waveShape";
     public static final String WAVE_OFFSET = "waveOffset";
   }
 
-  public static class KeyTrigger {
+  public static final class KeyTrigger {
     public static final String  MOTION_TRIGGER_ON_COLLISION = "motion_triggerOnCollision";
     public static final String  ON_CROSS = "onCross";
   }
@@ -299,12 +299,12 @@ public class MotionSceneAttrs {
     MOTION
   };
 
-  public static class OnClick {
+  public static final class OnClick {
     public static final String ATTR_TARGET_ID = "targetId";
     public static final String ATTR_CLICK_ACTION = "clickAction";
   }
 
-  public static class OnSwipe {
+  public static final class OnSwipe {
 
     public static final String ATTR_DRAG_SCALE = "dragScale";
     public static final String ATTR_MAX_VELOCITY = "maxVelocity";

@@ -49,7 +49,7 @@ import org.xmlpull.v1.XmlPullParserException;
 /**
  * Methods for working with Android file resources.
  */
-public class FileResourceReader {
+public final class FileResourceReader {
   /**
    * Cache to store {@link ZipMap} objects created from zip files.
    * Keys are the full path to the zip file from which the ZipMap is created.

@@ -42,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
  * Common constants and methods used across CPU profiler tests.
  * Should not be instantiated.
  */
-public class CpuProfilerTestUtils {
+public final class CpuProfilerTestUtils {
 
   private static final String CPU_TRACES_DIR = "tools/adt/idea/profilers/testData/cputraces/";
   public static final String ATRACE_DATA_FILE = CPU_TRACES_DIR + "atrace.ctrace";

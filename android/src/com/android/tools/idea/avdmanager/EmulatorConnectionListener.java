@@ -36,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /** A utility class to wait for an emulator to be fully launched (ready for "pm install") and connected to adb. */
-public class EmulatorConnectionListener {
+public final class EmulatorConnectionListener {
   // Wait for a device corresponding to given emulator to come online for the given timeout period
   public static ListenableFuture<IDevice> getDeviceForEmulator(@Nullable Project project,
                                                                @NotNull String avdName,

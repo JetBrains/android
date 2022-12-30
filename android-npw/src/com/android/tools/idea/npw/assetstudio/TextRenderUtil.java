@@ -30,7 +30,7 @@ import java.awt.image.BufferedImage;
  * A set of utility classes for rendering text to a {@link BufferedImage}, suitable for use as a
  * source image to {@link IconGenerator} objects.
  */
-public class TextRenderUtil {
+public final class TextRenderUtil {
     /**
      * Renders the given string with the provided {@link Options} to a {@link BufferedImage}.
      *

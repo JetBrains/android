@@ -36,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Utilities for creating various graphics
  */
-public class DrawConnectionUtils {
+public final class DrawConnectionUtils {
   static final int ZIGZAG = JBUIScale.scale(2);
   static final int CENTER_ZIGZAG = JBUIScale.scale(3);
   public static final int MARGIN_SPACING = JBUIScale.scale(3);

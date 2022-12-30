@@ -34,7 +34,7 @@ import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class TreeUtil {
+public final class TreeUtil {
   /**
    * Returns a {@link Stream}&lt;{@link TreeNode}&gt; over the children of the given {@code node}
    */

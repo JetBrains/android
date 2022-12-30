@@ -24,7 +24,7 @@ import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DevicePropertyUtil {
+public final class DevicePropertyUtil {
   private static final Set<String> ourManufacturerNameIsAcronym =
     ImmutableSet.of("ASUS", "HTC", "LG", "LGE", "ZTE");
 
