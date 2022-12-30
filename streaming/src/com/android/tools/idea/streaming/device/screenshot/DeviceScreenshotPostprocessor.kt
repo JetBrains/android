@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.device.screenshot
 
 import com.android.annotations.concurrency.Slow
 import com.android.tools.adtui.ImageUtils
+import com.android.tools.adtui.ImageUtils.ellipticalClip
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.adtui.device.DeviceArtPainter
 import com.android.tools.idea.streaming.emulator.SkinDefinitionCache
@@ -35,7 +36,7 @@ internal class DeviceScreenshotPostprocessor : ScreenshotPostprocessor {
   @Slow
   override fun addFrame(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage {
     if (framingOption == null) {
-      return if (screenshotImage.isRoundDisplay) ImageUtils.circularClip(screenshotImage.image, backgroundColor) else screenshotImage.image
+      return if (screenshotImage.isRoundDisplay) ellipticalClip(screenshotImage.image, backgroundColor) else screenshotImage.image
     }
     framingOption as DeviceFramingOption
     val skinFolder = framingOption.skinFolder

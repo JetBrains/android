@@ -17,7 +17,7 @@ package com.android.tools.idea.ddms.screenshot
 
 import com.android.annotations.concurrency.Slow
 import com.android.tools.adtui.ImageUtils
-import com.android.tools.adtui.ImageUtils.circularClip
+import com.android.tools.adtui.ImageUtils.ellipticalClip
 import com.android.tools.adtui.device.DeviceArtPainter
 import java.awt.Color
 import java.awt.image.BufferedImage
@@ -30,7 +30,7 @@ class DeviceArtScreenshotPostprocessor : ScreenshotPostprocessor {
   override fun addFrame(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage {
     screenshotImage as DeviceScreenshotImage
     if (framingOption == null) {
-      return if (screenshotImage.isRoundScreen) circularClip(screenshotImage.image, backgroundColor) else screenshotImage.image
+      return if (screenshotImage.isRoundScreen) ellipticalClip(screenshotImage.image, backgroundColor) else screenshotImage.image
     }
     val frameDescriptor = (framingOption as DeviceArtFramingOption).deviceArtDescriptor
     val framedImage = DeviceArtPainter.createFrame(screenshotImage.image, frameDescriptor)
