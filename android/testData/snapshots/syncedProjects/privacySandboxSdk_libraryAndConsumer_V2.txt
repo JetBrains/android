@@ -352,6 +352,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
             -                             : file://<PROJECT>/ads-sdk-implementation/build/intermediates/javac/debug/classes
+            -                             : file://<PROJECT>/ads-sdk-implementation/build/tmp/kotlin-classes/debug
+            -                             : jar://<PROJECT>/ads-sdk-implementation/build/intermediates/compile_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/ads-sdk-implementation/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :ads-sdk-implementation:createMockableJar, :ads-sdk-implementation:generateDebugAndroidTestSources, :ads-sdk-implementation:generateDebugSources
@@ -853,6 +856,12 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app-with-dynamic-feature/build/intermediates/javac/debugUnitTest/classes
+            -                             : file://<PROJECT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debugUnitTest
+            -                             : jar://<PROJECT>/app-with-dynamic-feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/app-with-dynamic-feature/build/intermediates/javac/debugAndroidTest/classes
+            -                             : file://<PROJECT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debugAndroidTest
+            -                             : jar://<PROJECT>/app-with-dynamic-feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app-with-dynamic-feature:createMockableJar, :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:createMockableJar, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
@@ -1011,6 +1020,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
             -                             : file://<PROJECT>/app-with-dynamic-feature/build/intermediates/javac/debug/classes
+            -                             : file://<PROJECT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debug
+            -                             : jar://<PROJECT>/app-with-dynamic-feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app-with-dynamic-feature:createMockableJar, :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:createMockableJar, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
@@ -1420,6 +1432,12 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes
+            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugUnitTest
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes
+            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugAndroidTest
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -1578,6 +1596,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/classes
+            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debug
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/app/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -2107,6 +2128,9 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.app-with-dynamic-feature.main
         Classes
             -                             : file://<PROJECT>/feature/build/intermediates/javac/debug/classes
+            -                             : file://<PROJECT>/feature/build/tmp/kotlin-classes/debug
+            -                             : jar://<PROJECT>/feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/feature/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app-with-dynamic-feature:createMockableJar, :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:createMockableJar, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources

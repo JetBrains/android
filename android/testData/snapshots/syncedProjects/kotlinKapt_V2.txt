@@ -315,6 +315,14 @@ PROJECT                       : MainActivity
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/localDebugUnitTest/classes
+            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/localDebugUnitTest
+            -                             : file://<PROJECT>/app/build/tmp/kapt3/classes/localDebugUnitTest
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/localDebug/R.jar!/
+            -                             : file://<PROJECT>/app/build/intermediates/javac/localDebugAndroidTest/classes
+            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/localDebugAndroidTest
+            -                             : file://<PROJECT>/app/build/tmp/kapt3/classes/localDebugAndroidTest
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/localDebugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/local/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateLocalDebugAndroidTestSources, :app:generateLocalDebugSources
@@ -507,6 +515,10 @@ PROJECT                       : MainActivity
         ORDER_ENTRY                   : MainActivity.javaLib.main
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/localDebug/classes
+            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/localDebug
+            -                             : file://<PROJECT>/app/build/tmp/kapt3/classes/localDebug
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/localDebug/R.jar!/
+            -                             : file://<PROJECT>/app/build/generated/res/resValues/local/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateLocalDebugAndroidTestSources, :app:generateLocalDebugSources
@@ -717,6 +729,14 @@ PROJECT                       : MainActivity
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/localDebugUnitTest/classes
+            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/localDebugUnitTest
+            -                             : file://<PROJECT>/app/build/tmp/kapt3/classes/localDebugUnitTest
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/localDebug/R.jar!/
+            -                             : file://<PROJECT>/app/build/intermediates/javac/localDebugAndroidTest/classes
+            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/localDebugAndroidTest
+            -                             : file://<PROJECT>/app/build/tmp/kapt3/classes/localDebugAndroidTest
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/localDebugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/local/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateLocalDebugAndroidTestSources, :app:generateLocalDebugSources
@@ -872,6 +892,9 @@ PROJECT                       : MainActivity
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
             -                             : file://<PROJECT>/javaLib/build/classes/java/main
+            -                             : file://<PROJECT>/javaLib/build/classes/kotlin/main
+            -                             : file://<PROJECT>/javaLib/build/tmp/kapt3/classes/main
+            -                             : file://<PROJECT>/javaLib/build/resources/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :javaLib:assemble, :javaLib:testClasses

@@ -270,6 +270,10 @@ PROJECT                       : project_sm_src
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>_sm_src/app/build/intermediates/javac/debugUnitTest/classes
+            -                             : jar://<PROJECT>_sm_src/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>_sm_src/app/build/intermediates/javac/debugAndroidTest/classes
+            -                             : jar://<PROJECT>_sm_src/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>_sm_src/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -404,6 +408,8 @@ PROJECT                       : project_sm_src
         LIBRARY                       : Gradle: com.google.guava:guava:19.0 [=]
         Classes
             -                             : file://<PROJECT>_sm_src/app/build/intermediates/javac/debug/classes
+            -                             : jar://<PROJECT>_sm_src/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>_sm_src/app/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -574,6 +580,10 @@ PROJECT                       : project_sm_src
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>_sm_src/app/build/intermediates/javac/debugUnitTest/classes
+            -                             : jar://<PROJECT>_sm_src/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>_sm_src/app/build/intermediates/javac/debugAndroidTest/classes
+            -                             : jar://<PROJECT>_sm_src/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>_sm_src/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources

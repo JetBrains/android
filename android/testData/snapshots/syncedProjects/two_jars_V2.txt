@@ -162,6 +162,10 @@ PROJECT                       : My Application
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/intermediates/javac/debugUnitTest/classes
+            -                             : jar://<PROJECT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/build/intermediates/javac/debugAndroidTest/classes
+            -                             : jar://<PROJECT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :createMockableJar, :generateDebugAndroidTestSources, :generateDebugSources
@@ -266,6 +270,7 @@ PROJECT                       : My Application
                 *CLASSES                      : jar://<PROJECT>/lib2/liba.jar!/
         Classes
             -                             : file://<PROJECT>/lib/build/classes/java/main
+            -                             : file://<PROJECT>/lib/build/resources/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :lib:assemble, :lib:testClasses
@@ -403,6 +408,8 @@ PROJECT                       : My Application
         ORDER_ENTRY                   : My_Application.lib.main
         Classes
             -                             : file://<PROJECT>/build/intermediates/javac/debug/classes
+            -                             : jar://<PROJECT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :createMockableJar, :generateDebugAndroidTestSources, :generateDebugSources

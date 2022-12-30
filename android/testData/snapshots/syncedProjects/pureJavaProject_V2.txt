@@ -58,6 +58,7 @@ PROJECT                       : project
         ORDER_ENTRY                   : <Module source>
         Classes
             -                             : file://<PROJECT>/build/classes/java/main
+            -                             : file://<PROJECT>/build/resources/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :assemble, :testClasses
@@ -101,6 +102,7 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.main
         Classes
             -                             : file://<PROJECT>/build/classes/java/test
+            -                             : file://<PROJECT>/build/resources/test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :assemble, :testClasses

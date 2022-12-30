@@ -1938,7 +1938,6 @@ MODULE                        : kotlinMultiPlatform.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
             debugAndroidTest
@@ -2000,7 +1999,6 @@ MODULE                        : kotlinMultiPlatform.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
             debugUnitTest
@@ -2059,7 +2057,6 @@ MODULE                        : kotlinMultiPlatform.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
         gradleUserHome                : <GRADLE>
@@ -2092,68 +2089,6 @@ MODULE                        : kotlinMultiPlatform.jsModule
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
-    kotlinGradleModel             : KotlinGradleModelImpl
-        additionalVisibleSourceSets
-            main                          : <empty>
-            - test                        : main
-        cachedCompilerArgumentsBySourceSet
-            main
-                compilerArguments             : K2JSCompilerArguments
-                    irModuleName                  : kotlinMultiPlatform:jsModule
-                    irNewIr2Js                    : true
-                    irOnly                        : true
-                    irPerModuleOutputName         : kotlinMultiPlatform-jsModule
-                    irProduceKlibDir              : true
-                    irPropertyLazyInitialization  : true
-                    main                          : call
-                    metaInfo                      : true
-                    moduleKind                    : umd
-                    noStdlib                      : true
-                    outputFile                    : <ROOT>/jsModule/build/classes/kotlin/main [-]
-                    sourceMap                     : true
-                    sourceMapEmbedSources         : never
-                    target                        : v5
-                    typedArrays                   : true
-                    wasmDebug                     : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
-                    explicitApi                   : disable
-            test
-                compilerArguments             : K2JSCompilerArguments
-                    irModuleName                  : kotlinMultiPlatform:jsModule_test
-                    irNewIr2Js                    : true
-                    irOnly                        : true
-                    irPerModuleOutputName         : kotlinMultiPlatform-jsModule-test
-                    irProduceKlibDir              : true
-                    irPropertyLazyInitialization  : true
-                    main                          : call
-                    metaInfo                      : true
-                    moduleKind                    : umd
-                    noStdlib                      : true
-                    outputFile                    : <ROOT>/jsModule/build/classes/kotlin/test [-]
-                    sourceMap                     : true
-                    sourceMapEmbedSources         : never
-                    target                        : v5
-                    typedArrays                   : true
-                    wasmDebug                     : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
-                    explicitApi                   : disable
-        gradleUserHome                : <GRADLE>
-        kotlinTaskProperties
-            main                          : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
-                - pureKotlinSourceFolders     : <ROOT>/jsModule/src/main/kotlin [-]
-                - pureKotlinSourceFolders     : <ROOT>/jsModule/build/externals/kotlinMultiPlatform-jsModule/src [-]
-            test                          : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
-                - pureKotlinSourceFolders     : <ROOT>/jsModule/src/test/kotlin [-]
     kotlinMppGradleModel          : {main=main, test=test} (KotlinMPPGradleModelImpl)
         dependencyMap
             1                             : DefaultExternalLibraryDependency
@@ -2216,7 +2151,6 @@ MODULE                        : kotlinMultiPlatform.jsModule
                         wasmDebug                     : true
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
-                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                 - declaredSourceSets          : main (KotlinSourceSetImpl) (*seen*)
@@ -2274,7 +2208,6 @@ MODULE                        : kotlinMultiPlatform.jsModule
                         wasmDebug                     : true
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
-                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                 - declaredSourceSets          : test (KotlinSourceSetImpl) (*seen*)
@@ -2986,7 +2919,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
-                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -3083,7 +3015,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
-                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -3189,7 +3120,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
-                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true

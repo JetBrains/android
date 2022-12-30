@@ -274,6 +274,10 @@ PROJECT                       : AS36
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources, :features:dynamicfeature2:createMockableJar, :features:dynamicfeature2:generateDebugAndroidTestSources, :features:dynamicfeature2:generateDebugSources, :features:dynamicfeature:createMockableJar, :features:dynamicfeature:generateDebugAndroidTestSources, :features:dynamicfeature:generateDebugSources
@@ -408,6 +412,8 @@ PROJECT                       : AS36
         LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/classes
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/app/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources, :features:dynamicfeature2:createMockableJar, :features:dynamicfeature2:generateDebugAndroidTestSources, :features:dynamicfeature2:generateDebugSources, :features:dynamicfeature:createMockableJar, :features:dynamicfeature:generateDebugAndroidTestSources, :features:dynamicfeature:generateDebugSources
@@ -578,6 +584,10 @@ PROJECT                       : AS36
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources, :features:dynamicfeature2:createMockableJar, :features:dynamicfeature2:generateDebugAndroidTestSources, :features:dynamicfeature2:generateDebugSources, :features:dynamicfeature:createMockableJar, :features:dynamicfeature:generateDebugAndroidTestSources, :features:dynamicfeature:generateDebugSources
@@ -1652,6 +1662,10 @@ PROJECT                       : AS36
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/libs/android_library/build/intermediates/javac/debugUnitTest/classes
+            -                             : jar://<PROJECT>/libs/android_library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar!/
+            -                             : file://<PROJECT>/libs/android_library/build/intermediates/javac/debugAndroidTest/classes
+            -                             : jar://<PROJECT>/libs/android_library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/libs/android_library/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :libs:android_library:createMockableJar, :libs:android_library:generateDebugAndroidTestSources, :libs:android_library:generateDebugSources
@@ -1778,6 +1792,8 @@ PROJECT                       : AS36
         LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
         Classes
             -                             : file://<PROJECT>/libs/android_library/build/intermediates/javac/debug/classes
+            -                             : jar://<PROJECT>/libs/android_library/build/intermediates/compile_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/libs/android_library/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :libs:android_library:createMockableJar, :libs:android_library:generateDebugAndroidTestSources, :libs:android_library:generateDebugSources
@@ -1940,6 +1956,10 @@ PROJECT                       : AS36
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/libs/android_library/build/intermediates/javac/debugUnitTest/classes
+            -                             : jar://<PROJECT>/libs/android_library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar!/
+            -                             : file://<PROJECT>/libs/android_library/build/intermediates/javac/debugAndroidTest/classes
+            -                             : jar://<PROJECT>/libs/android_library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/libs/android_library/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :libs:android_library:createMockableJar, :libs:android_library:generateDebugAndroidTestSources, :libs:android_library:generateDebugSources
@@ -2026,6 +2046,7 @@ PROJECT                       : AS36
         ORDER_ENTRY                   : <Module source>
         Classes
             -                             : file://<PROJECT>/libs/java_lib/build/classes/java/main
+            -                             : file://<PROJECT>/libs/java_lib/build/resources/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :libs:java_lib:assemble, :libs:java_lib:testClasses

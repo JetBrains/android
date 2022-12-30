@@ -17,5 +17,4 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 
-@org.junit.Ignore("b/263902773")
 class CurrentAgp : SyncedProjectTest(agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT)

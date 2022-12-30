@@ -379,6 +379,9 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.javaLibrary.main
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/classes
+            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debug
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/app/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -820,6 +823,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.commonMain
         Classes
             -                             : file://<PROJECT>/common/build/classes/kotlin/jvm/main
+            -                             : file://<PROJECT>/common/build/processedResources/jvm/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :common:assemble, :common:testClasses
@@ -1026,6 +1030,8 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
             -                             : file://<PROJECT>/desktop/build/classes/java/main
+            -                             : file://<PROJECT>/desktop/build/classes/kotlin/main
+            -                             : file://<PROJECT>/desktop/build/resources/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :desktop:assemble, :desktop:testClasses
@@ -1497,6 +1503,9 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.jvmMain
         Classes
             -                             : file://<PROJECT>/feature-a/build/intermediates/javac/debug/classes
+            -                             : file://<PROJECT>/feature-a/build/tmp/kotlin-classes/debug
+            -                             : jar://<PROJECT>/feature-a/build/intermediates/compile_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/feature-a/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :feature-a:createMockableJar, :feature-a:generateDebugAndroidTestSources, :feature-a:generateDebugSources
@@ -2377,6 +2386,8 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.jvmMain
         Classes
             -                             : file://<PROJECT>/javaLibrary/build/classes/java/main
+            -                             : file://<PROJECT>/javaLibrary/build/classes/kotlin/main
+            -                             : file://<PROJECT>/javaLibrary/build/resources/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :javaLibrary:assemble, :javaLibrary:testClasses
@@ -2537,6 +2548,8 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
             -                             : file://<PROJECT>/javaLibrary/build/classes/java/testEnv
+            -                             : file://<PROJECT>/javaLibrary/build/classes/kotlin/testEnv
+            -                             : file://<PROJECT>/javaLibrary/build/resources/testEnv
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :javaLibrary:assemble, :javaLibrary:testClasses
@@ -2860,6 +2873,8 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : <Module source>
         Classes
             -                             : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debug/classes
+            -                             : jar://<PROJECT>/kmp-java/sample-test/build/intermediates/compile_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/kmp-java/sample-test/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :kmp-java:sample-test:createMockableJar, :kmp-java:sample-test:generateDebugAndroidTestSources, :kmp-java:sample-test:generateDebugSources
@@ -3204,6 +3219,8 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.kmp-java.sample.commonMain
         Classes
             -                             : file://<PROJECT>/kmp-java/sample/build/classes/kotlin/jvm/main
+            -                             : file://<PROJECT>/kmp-java/sample/build/classes/java/main
+            -                             : file://<PROJECT>/kmp-java/sample/build/processedResources/jvm/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :kmp-java:sample:assemble, :kmp-java:sample:testClasses
@@ -3710,6 +3727,9 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
             -                             : file://<PROJECT>/lib/build/intermediates/javac/debug/classes
+            -                             : file://<PROJECT>/lib/build/tmp/kotlin-classes/debug
+            -                             : jar://<PROJECT>/lib/build/intermediates/compile_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/lib/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources

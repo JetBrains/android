@@ -206,6 +206,10 @@ PROJECT                       : reference
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/androidlibrary/build/intermediates/javac/debugUnitTest/classes
+            -                             : jar://<PROJECT>/androidlibrary/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar!/
+            -                             : file://<PROJECT>/androidlibrary/build/intermediates/javac/debugAndroidTest/classes
+            -                             : jar://<PROJECT>/androidlibrary/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/androidlibrary/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :androidlibrary:createMockableJar, :androidlibrary:generateDebugAndroidTestSources, :androidlibrary:generateDebugSources
@@ -396,6 +400,10 @@ PROJECT                       : reference
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/androidlibrary/build/intermediates/javac/debugUnitTest/classes
+            -                             : jar://<PROJECT>/androidlibrary/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar!/
+            -                             : file://<PROJECT>/androidlibrary/build/intermediates/javac/debugAndroidTest/classes
+            -                             : jar://<PROJECT>/androidlibrary/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/androidlibrary/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :androidlibrary:createMockableJar, :androidlibrary:generateDebugAndroidTestSources, :androidlibrary:generateDebugSources
@@ -610,6 +618,10 @@ PROJECT                       : reference
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -712,6 +724,8 @@ PROJECT                       : reference
         ORDER_ENTRY                   : reference.androidlibrary.main
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/classes
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/app/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -818,6 +832,10 @@ PROJECT                       : reference
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -912,6 +930,7 @@ PROJECT                       : reference
         ORDER_ENTRY                   : <Module source>
         Classes
             -                             : file://<PROJECT>/javalib/build/classes/java/main
+            -                             : file://<PROJECT>/javalib/build/resources/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :javalib:assemble, :javalib:testClasses

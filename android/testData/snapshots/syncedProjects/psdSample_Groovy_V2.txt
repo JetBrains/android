@@ -478,6 +478,8 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.lib.main
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/basicBarDebug/classes
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/R.jar!/
+            -                             : file://<PROJECT>/app/build/generated/res/resValues/basicBar/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
@@ -1520,6 +1522,8 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.jav.main
         Classes
             -                             : file://<PROJECT>/lib/build/intermediates/javac/debug/classes
+            -                             : jar://<PROJECT>/lib/build/intermediates/compile_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/lib/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources

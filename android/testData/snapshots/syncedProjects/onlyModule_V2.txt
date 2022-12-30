@@ -590,6 +590,8 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.app.main
         Classes
             -                             : file://<PROJECT>/benchmark/build/intermediates/javac/benchmark/classes
+            -                             : jar://<PROJECT>/benchmark/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/benchmark/R.jar!/
+            -                             : file://<PROJECT>/benchmark/build/generated/res/resValues/benchmark
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :benchmark:generateBenchmarkSources
@@ -792,6 +794,8 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.app.main
         Classes
             -                             : file://<PROJECT>/test/build/intermediates/javac/debug/classes
+            -                             : jar://<PROJECT>/test/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/test/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :test:generateDebugSources
@@ -994,6 +998,8 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.app.main
         Classes
             -                             : file://<PROJECT>/test2/build/intermediates/javac/debug/classes
+            -                             : jar://<PROJECT>/test2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/test2/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :test2:generateDebugSources

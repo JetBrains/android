@@ -310,6 +310,12 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debugUnitTest/classes
+            -                             : file://<PROJECT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugUnitTest
+            -                             : jar://<PROJECT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debugAndroidTest/classes
+            -                             : file://<PROJECT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugAndroidTest
+            -                             : jar://<PROJECT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/TestCompositeLib1/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources
@@ -499,6 +505,9 @@ PROJECT                       : project
         ORDER_ENTRY                   : compositeNest.main
         Classes
             -                             : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debug/classes
+            -                             : file://<PROJECT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debug
+            -                             : jar://<PROJECT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/TestCompositeLib1/app/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources
@@ -729,6 +738,12 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debugUnitTest/classes
+            -                             : file://<PROJECT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugUnitTest
+            -                             : jar://<PROJECT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debugAndroidTest/classes
+            -                             : file://<PROJECT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugAndroidTest
+            -                             : jar://<PROJECT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/TestCompositeLib1/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources
@@ -1031,6 +1046,12 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debugUnitTest/classes
+            -                             : file://<PROJECT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugUnitTest
+            -                             : jar://<PROJECT>/TestCompositeLib1/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar!/
+            -                             : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debugAndroidTest/classes
+            -                             : file://<PROJECT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugAndroidTest
+            -                             : jar://<PROJECT>/TestCompositeLib1/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/TestCompositeLib1/lib/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources
@@ -1208,6 +1229,9 @@ PROJECT                       : project
         ORDER_ENTRY                   : composite4.main
         Classes
             -                             : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debug/classes
+            -                             : file://<PROJECT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debug
+            -                             : jar://<PROJECT>/TestCompositeLib1/lib/build/intermediates/compile_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/TestCompositeLib1/lib/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources
@@ -1422,6 +1446,12 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debugUnitTest/classes
+            -                             : file://<PROJECT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugUnitTest
+            -                             : jar://<PROJECT>/TestCompositeLib1/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar!/
+            -                             : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debugAndroidTest/classes
+            -                             : file://<PROJECT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugAndroidTest
+            -                             : jar://<PROJECT>/TestCompositeLib1/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/TestCompositeLib1/lib/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources
@@ -1752,6 +1782,12 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debugUnitTest/classes
+            -                             : file://<PROJECT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugUnitTest
+            -                             : jar://<PROJECT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debugAndroidTest/classes
+            -                             : file://<PROJECT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugAndroidTest
+            -                             : jar://<PROJECT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/TestCompositeLib3/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources
@@ -1939,6 +1975,9 @@ PROJECT                       : project
         ORDER_ENTRY                   : composite4.main
         Classes
             -                             : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debug/classes
+            -                             : file://<PROJECT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debug
+            -                             : jar://<PROJECT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/TestCompositeLib3/app/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources
@@ -2165,6 +2204,12 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debugUnitTest/classes
+            -                             : file://<PROJECT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugUnitTest
+            -                             : jar://<PROJECT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debugAndroidTest/classes
+            -                             : file://<PROJECT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugAndroidTest
+            -                             : jar://<PROJECT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/TestCompositeLib3/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources
@@ -2407,6 +2452,10 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debugUnitTest/classes
+            -                             : jar://<PROJECT>/TestCompositeLib3/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar!/
+            -                             : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debugAndroidTest/classes
+            -                             : jar://<PROJECT>/TestCompositeLib3/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/TestCompositeLib3/lib/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
@@ -2531,6 +2580,8 @@ PROJECT                       : project
         ORDER_ENTRY                   : composite4.main
         Classes
             -                             : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debug/classes
+            -                             : jar://<PROJECT>/TestCompositeLib3/lib/build/intermediates/compile_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/TestCompositeLib3/lib/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
@@ -2685,6 +2736,10 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debugUnitTest/classes
+            -                             : jar://<PROJECT>/TestCompositeLib3/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar!/
+            -                             : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debugAndroidTest/classes
+            -                             : jar://<PROJECT>/TestCompositeLib3/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/TestCompositeLib3/lib/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
@@ -2771,6 +2826,7 @@ PROJECT                       : project
         ORDER_ENTRY                   : <Module source>
         Classes
             -                             : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/build/classes/java/main
+            -                             : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/build/resources/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:testClasses
@@ -2888,6 +2944,7 @@ PROJECT                       : project
         ORDER_ENTRY                   : <Module source>
         Classes
             -                             : file://<PROJECT>/TestCompositeLib2/build/classes/java/main
+            -                             : file://<PROJECT>/TestCompositeLib2/build/resources/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:testClasses
@@ -3005,6 +3062,7 @@ PROJECT                       : project
         ORDER_ENTRY                   : <Module source>
         Classes
             -                             : file://<PROJECT>/TestCompositeLib4/build/classes/java/main
+            -                             : file://<PROJECT>/TestCompositeLib4/build/resources/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:testClasses
@@ -3489,6 +3547,12 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes
+            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugUnitTest
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes
+            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugAndroidTest
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -3679,6 +3743,9 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.lib.main
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/classes
+            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debug
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/app/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -3911,6 +3978,12 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes
+            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugUnitTest
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes
+            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugAndroidTest
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -4207,6 +4280,12 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes
+            -                             : file://<PROJECT>/lib/build/tmp/kotlin-classes/debugUnitTest
+            -                             : jar://<PROJECT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar!/
+            -                             : file://<PROJECT>/lib/build/intermediates/javac/debugAndroidTest/classes
+            -                             : file://<PROJECT>/lib/build/tmp/kotlin-classes/debugAndroidTest
+            -                             : jar://<PROJECT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
@@ -4381,6 +4460,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
             -                             : file://<PROJECT>/lib/build/intermediates/javac/debug/classes
+            -                             : file://<PROJECT>/lib/build/tmp/kotlin-classes/debug
+            -                             : jar://<PROJECT>/lib/build/intermediates/compile_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/lib/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
@@ -4589,6 +4671,12 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes
+            -                             : file://<PROJECT>/lib/build/tmp/kotlin-classes/debugUnitTest
+            -                             : jar://<PROJECT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar!/
+            -                             : file://<PROJECT>/lib/build/intermediates/javac/debugAndroidTest/classes
+            -                             : file://<PROJECT>/lib/build/tmp/kotlin-classes/debugAndroidTest
+            -                             : jar://<PROJECT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
