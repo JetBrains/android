@@ -464,15 +464,16 @@ Android Studio Preview.app/Contents/lib/externalProcess-rt.jar
 Android Studio Preview.app/Contents/lib/forms_rt.jar
 Android Studio Preview.app/Contents/lib/groovy.jar
 Android Studio Preview.app/Contents/lib/idea_rt.jar
-Android Studio Preview.app/Contents/lib/intellij-coverage-agent-1.0.681.jar
+Android Studio Preview.app/Contents/lib/intellij-coverage-agent-1.0.682.jar
 Android Studio Preview.app/Contents/lib/intellij-test-discovery.jar
+Android Studio Preview.app/Contents/lib/jna/amd64/libjnidispatch.jnilib
 Android Studio Preview.app/Contents/lib/jps-model.jar
 Android Studio Preview.app/Contents/lib/junit.jar
 Android Studio Preview.app/Contents/lib/junit4.jar
 Android Studio Preview.app/Contents/lib/platform-objectSerializer-annotations.jar
 Android Studio Preview.app/Contents/lib/platform-statistics-devkit.jar
 Android Studio Preview.app/Contents/lib/protobuf.jar
-Android Studio Preview.app/Contents/lib/pty4j-native/darwin/libpty.dylib
+Android Studio Preview.app/Contents/lib/pty4j/darwin/libpty.dylib
 Android Studio Preview.app/Contents/lib/rd.jar
 Android Studio Preview.app/Contents/lib/resources.jar
 Android Studio Preview.app/Contents/lib/stats.jar
@@ -549,6 +550,7 @@ Android Studio Preview.app/Contents/license/saxon-conditions.html
 Android Studio Preview.app/Contents/license/spantable-NOTICE
 Android Studio Preview.app/Contents/license/swt.jar-NOTICE
 Android Studio Preview.app/Contents/license/third-party-libraries.html
+Android Studio Preview.app/Contents/license/third-party-libraries.json
 Android Studio Preview.app/Contents/license/uiautomatorviewer.jar-NOTICE
 Android Studio Preview.app/Contents/license/webp-headers.txt
 Android Studio Preview.app/Contents/license/yourkit-license-redist.txt
@@ -2744,6 +2746,7 @@ Android Studio Preview.app/Contents/plugins/junit/lib/junit5-rt.jar
 Android Studio Preview.app/Contents/plugins/keymap-eclipse/lib/keymap-eclipse.jar
 Android Studio Preview.app/Contents/plugins/keymap-netbeans/lib/keymap-netbeans.jar
 Android Studio Preview.app/Contents/plugins/keymap-visualStudio/lib/keymap-visualStudio.jar
+Android Studio Preview.app/Contents/plugins/laf-macos/lib/laf-macos.jar
 Android Studio Preview.app/Contents/plugins/markdown/lib/markdown.jar
 Android Studio Preview.app/Contents/plugins/maven-model/lib/maven-model.jar
 Android Studio Preview.app/Contents/plugins/maven-server/lib/maven-server.jar
@@ -3109,6 +3112,12 @@ Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/swift/package.j
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/swift/package.nls.json
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/swift/snippets/swift.code-snippets
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/swift/syntaxes/swift.tmLanguage.json
+Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/terraform/LICENSE
+Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/terraform/README.md
+Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/terraform/language-configuration.json
+Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/terraform/package.json
+Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/terraform/snippets/terraform.json
+Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/terraform/syntaxes/terraform.tmGrammar.json
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/twig/LICENSE.md
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/twig/README.md
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/twig/package.json
