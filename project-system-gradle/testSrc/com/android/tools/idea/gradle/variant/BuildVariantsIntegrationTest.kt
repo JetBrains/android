@@ -393,6 +393,7 @@ class BuildVariantsIntegrationTest {
     }
   }
 
+  @org.junit.Ignore("b/264602704")
   @Test
   fun `switch reopen and switch back`() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
@@ -422,6 +423,7 @@ class BuildVariantsIntegrationTest {
     }
   }
 
+  @org.junit.Ignore("b/264602704")
   @Test
   fun `switch switch back and reopen`() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
@@ -485,6 +487,7 @@ class BuildVariantsIntegrationTest {
     }
   }
 
+  @org.junit.Ignore("b/264602704")
   @Test
   fun `switch variant and abi with cmake`() {
     assumeNotWindows()
