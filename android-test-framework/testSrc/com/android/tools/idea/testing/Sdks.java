@@ -56,10 +56,7 @@ public final class Sdks {
 
   @NotNull
   public static Sdk addLatestAndroidSdk(@NotNull Disposable parentDisposable, @NotNull Module module) {
-    //otherwise sdk will be added in ModuleRootModificationUtil.setModuleSdk; proper parentDisposable should be provided anyway
-    boolean addToSdkTable = !ApplicationManager.getApplication().isUnitTestMode();
-    Sdk androidSdk = createLatestAndroidSdk(parentDisposable, "SDK", addToSdkTable);
-    Disposer.register(parentDisposable, () -> WriteAction.run(() -> ProjectJdkTable.getInstance().removeJdk(androidSdk)));
+    Sdk androidSdk = createLatestAndroidSdk(parentDisposable, "SDK", true);
     ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
     return androidSdk;
   }
