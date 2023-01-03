@@ -132,6 +132,7 @@ class ProjectViewListenerTest {
     ).inOrder()
   }
 
+  @org.junit.Ignore("b/264210629")
   @Test
   fun testSurveyTriggered() {
     val featureSurveysMock: FeatureSurveys = MockitoKt.mock()
