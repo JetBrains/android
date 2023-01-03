@@ -76,7 +76,7 @@ public class AndroidXmlFormattingModelBuilder implements CustomFormattingModelBu
       final XmlPolicy policy = customSettings.createXmlPolicy(settings, model.getDocumentModel());
       return new XmlBlock(b.getNode(), b.getWrap(), b.getAlignment(), policy, b.getIndent(), b.getTextRange()) {
         @Override
-        protected XmlTagBlock createTagBlock(ASTNode child, Indent indent, Wrap wrap, Alignment alignment) {
+        protected XmlTagBlock createTagBlock(@NotNull ASTNode child, Indent indent, Wrap wrap, Alignment alignment) {
           return new XmlTagBlock(child, wrap, alignment, myXmlFormattingPolicy,
                                  indent != null ? indent : Indent.getNoneIndent(),
                                  isPreserveSpace());
@@ -105,7 +105,8 @@ public class AndroidXmlFormattingModelBuilder implements CustomFormattingModelBu
 
     XmlFile xmlFile = (XmlFile)psiFile;
 
-    if (new ColorStateListDomFileDescription().isMyFile(xmlFile, null) || new DrawableStateListDomFileDescription().isMyFile(xmlFile, null)) {
+    if (new ColorStateListDomFileDescription().isMyFile(xmlFile, null) ||
+        new DrawableStateListDomFileDescription().isMyFile(xmlFile, null)) {
       return settings.VALUE_RESOURCE_FILE_SETTINGS;
     }
 
