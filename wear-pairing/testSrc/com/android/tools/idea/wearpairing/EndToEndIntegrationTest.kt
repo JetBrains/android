@@ -25,6 +25,7 @@ import com.android.sdklib.internal.avd.AvdManager
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.analytics.LoggedUsage
@@ -51,8 +52,9 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
   private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
 
   override fun setUp() {
+    // Studio Icons must be of type CachedImageIcon for image asset
+    IconLoaderRule.enableIconLoading()
     super.setUp()
-
     BatchInvoker.setOverrideStrategy(invokeStrategy)
     UsageTracker.setWriterForTest(usageTracker)
     enableHeadlessDialogs(testRootDisposable)

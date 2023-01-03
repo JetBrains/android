@@ -20,6 +20,7 @@ import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.analytics.LoggedUsage
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -36,6 +37,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.labels.LinkLabel
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import java.awt.Dimension
@@ -59,6 +61,8 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
   )
 
   override fun setUp() {
+    // Studio Icons must be of type CachedImageIcon for image asset
+    IconLoaderRule.enableIconLoading()
     super.setUp()
 
     model.selectedPhoneDevice.value = phoneDevice

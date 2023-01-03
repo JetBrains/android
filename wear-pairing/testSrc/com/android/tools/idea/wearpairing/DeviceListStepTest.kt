@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.analytics.LoggedUsage
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -39,6 +40,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import kotlinx.coroutines.runBlocking
 import org.junit.Assume.assumeFalse
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import java.awt.Component
@@ -68,6 +70,8 @@ class DeviceListStepTest : LightPlatform4TestCase() {
   )
 
   override fun setUp() {
+    // Studio Icons must be of type CachedImageIcon for image asset
+    IconLoaderRule.enableIconLoading()
     super.setUp()
     BatchInvoker.setOverrideStrategy(invokeStrategy)
     UsageTracker.setWriterForTest(usageTracker)
