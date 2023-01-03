@@ -25,9 +25,9 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.markup.RangeHighlighter
-import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.DumbServiceImpl
+import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.rd.util.withUiContext
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -119,8 +119,8 @@ class LiteralsTest {
     repeat(3) {
       try {
         return@runBlocking findLiterals(root)
-      } catch (e: ProcessCanceledException) {
-        // After 222.2889.14 the visitor can throw ProcessCanceledException instead of IndexNotReadyException if in dumb mode.
+      } catch (e: IndexNotReadyException) {
+        // After 223.4884.69 the visitor will throw IndexNotReadyException if in dumb mode.
         savedException = e
       }
       delay(500L * it)
@@ -614,7 +614,6 @@ class LiteralsTest {
     }
     """.trimIndent())
 
-/* b/263890401
     runBlocking {
       withUiContext {
         (DumbService.getInstance(projectRule.project) as DumbServiceImpl).isDumb = true
@@ -622,10 +621,9 @@ class LiteralsTest {
 
       try {
         literalsManager.findLiteralsBlocking(file)
-        fail("findLiterals will throw ProcessCanceledException when called not called in smart mode")
-      } catch (_: ProcessCanceledException) {
+        fail("findLiterals will throw IndexNotReadyException when called not called in smart mode")
+      } catch (_: IndexNotReadyException) {
       }
     }
-b/263890401 */
   }
 }
