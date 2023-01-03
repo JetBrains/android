@@ -20,13 +20,10 @@ import static com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDe
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.AndroidProjectRuleKt.onEdt;
-import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.testFramework.UsefulTestCase.assertContainsElements;
 import static com.intellij.testFramework.UsefulTestCase.assertDoesntContain;
-import static com.intellij.testFramework.UsefulTestCase.assertSize;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -41,13 +38,10 @@ import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
 import com.android.tools.idea.testing.JavaModuleModelBuilder;
 import com.google.common.collect.Collections2;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.roots.ModuleRootModel;
 import com.intellij.openapi.roots.OrderEnumerationHandler;
 import com.intellij.openapi.roots.OrderRootType;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.RunsInEdt;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -160,41 +154,6 @@ public class AndroidGradleOrderEnumeratorHandlerTest {
     });
   }
 
-  @Test
-  public void testJavaProjectOutputCorrect() {
-    final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.KOTLIN_KAPT);
-    openPreparedTestProject(preparedProject, project -> {
-      Module module = gradleModule(project, ":javaLib");
-      List<String> result = getAmendedPaths(module, false);
-
-      VirtualFile baseFile = ProjectUtil.guessModuleDir(module);
-      assertNotNull(baseFile);
-      String baseDir = baseFile.getPath();
-
-      assertSize(4, result);
-      assertContainsElements(result,
-                             pathToIdeaUrl(new File(baseDir, join("build", "classes", "java", "main"))),
-                             pathToIdeaUrl(new File(baseDir, join("build", "classes", "kotlin", "main"))),
-                             pathToIdeaUrl(new File(baseDir, join("build", "resources", "main"))),
-                             pathToIdeaUrl(new File(baseDir, join("build", "tmp", "kapt3", "classes", "main")))
-      );
-
-      result = getAmendedPaths(module, true);
-      assertSize(8, result);
-      assertContainsElements(result,
-                             pathToIdeaUrl(new File(baseDir, join("build", "classes", "java", "main"))),
-                             pathToIdeaUrl(new File(baseDir, join("build", "classes", "kotlin", "main"))),
-                             pathToIdeaUrl(new File(baseDir, join("build", "resources", "main"))),
-                             pathToIdeaUrl(new File(baseDir, join("build", "classes", "java", "test"))),
-                             pathToIdeaUrl(new File(baseDir, join("build", "classes", "kotlin", "test"))),
-                             pathToIdeaUrl(new File(baseDir, join("build", "resources", "test"))),
-                             pathToIdeaUrl(new File(baseDir, join("build", "tmp", "kapt3", "classes", "main"))),
-                             pathToIdeaUrl(new File(baseDir, join("build", "tmp", "kapt3", "classes", "test")))
-
-      );
-    });
-  }
-
   @RunsInEdt
   public static class NonGradle {
     @Rule
@@ -211,8 +170,8 @@ public class AndroidGradleOrderEnumeratorHandlerTest {
 
       OrderEnumerationHandler appHandler = new AndroidGradleOrderEnumeratorHandlerFactory().createHandler(appModule);
       assertTrue(appHandler.shouldProcessDependenciesRecursively());
-      OrderEnumerationHandler libHandler = new AndroidGradleOrderEnumeratorHandlerFactory().createHandler(libModule);
-      assertFalse(libHandler.shouldProcessDependenciesRecursively());
+
+      assertFalse(new AndroidGradleOrderEnumeratorHandlerFactory().isApplicable(libModule));
     }
   }
 
