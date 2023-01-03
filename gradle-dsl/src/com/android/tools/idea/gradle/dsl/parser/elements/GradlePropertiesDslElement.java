@@ -424,6 +424,9 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
                        .map(e -> clazz.cast(e)).collect(Collectors.toList());
   }
 
+  /**
+   * @return all elements that visible now (effective elements)
+   */
   @NotNull
   public List<GradleDslElement> getAllPropertyElements() {
     return myProperties.getElementsWhere(PROPERTY_FILTER);
@@ -616,6 +619,9 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     return myProperties.getElementsWhere(e -> e.myElement.getName().equals(propertyName) && PROPERTY_FILTER.test(e));
   }
 
+  /**
+   * @return All elements that loaded from file
+   */
   @NotNull
   public List<GradleDslElement> getOriginalElements() {
     return myProperties.myElements.stream().filter(e -> e.myExistsOnFile).map(e -> e.myElement).collect(Collectors.toList());

@@ -1,0 +1,4 @@
+dependencies {
+  testCompile 'some:gradle:thing'
+  testCompile 'some:other:gradle:thing'
+}

@@ -24,6 +24,7 @@ import com.intellij.testFramework.RunsInEdt
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 @RunsInEdt
@@ -147,6 +148,7 @@ class ModelMapPropertyImplTest : PsdGradleFileModelTestCase() {
     // Add new.
     val newNew = map.addEntry("new")  // Does count as modified. This is required to auto-instantiate "debug" alike entities.
     newNew.testSetValue("new")
+    assertThat(map.getEditableValues()["new"]?.isModified, equalTo(true))
     // Add new and change it.
     val new2 = map.addEntry("new2")  // Does count as modified. This is required to auto-instantiate "debug" alike entities.
     new2.testSetReference("propC")
@@ -177,5 +179,14 @@ class ModelMapPropertyImplTest : PsdGradleFileModelTestCase() {
     assertThat(interpolated?.testValue(), equalTo("2nd"))
     assertThat(new?.testValue(), equalTo("new"))
     assertThat(changed?.testValue(), equalTo("3"))
+  }
+
+  @Test
+  fun testEditMapKeysInitAsLambda() {
+    assumeTrue("Can init map with lambda in kotlin only", isKotlinScript)
+    writeToBuildFile(MODEL_MAP_PROPERTY_IMPL_PROPERTY_VALUES)
+    val extModel = gradleBuildModel.ext()
+    val map = extModel.findProperty("propMap2").wrap(::parseString, ResolvedPropertyModel::asString)
+    assertThat(map.getEditableValues().size, equalTo(0)) // do not parse kotlin lambda initializer for now
   }
 }
