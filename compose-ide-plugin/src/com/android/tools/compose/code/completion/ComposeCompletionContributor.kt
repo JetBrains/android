@@ -202,7 +202,7 @@ private class ComposeInsertHandler(
     val templateManager = TemplateManager.getInstance(project)
     val allParameters = descriptor.valueParameters
     val requiredParameters = allParameters.filter { !it.declaresDefaultValue() }
-    val insertLambda = requiredParameters.lastOrNull()?.isComposableFunctionParameter() == true
+    val insertLambda = allParameters.lastOrNull()?.isComposableFunctionParameter() == true
                        || allParameters.lastOrNull()?.isRequiredLambdaWithNoParameters() == true
     val inParens = if (insertLambda) requiredParameters.dropLast(1) else requiredParameters
 

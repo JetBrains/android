@@ -856,6 +856,129 @@ class ComposeCompletionContributorTest {
       , true)
   }
 
+  /**
+   * Regression test for b/209060418. Autocomplete should not treat required composable method specially if it's not the final argument (ie,
+   * there are optional arguments specified after it.
+   */
+  @Test
+  fun testSignaturesWithRequiredComposableBeforeOptionalArgs() {
+    myFixture.addFileToProject(
+      "src/com/example/ObjectWithComposables.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      // "Foobar" is a unique prefix that no other lookup elements will match.
+
+      @Composable
+      fun FoobarOne(requiredArg: @Composable () -> Unit, optionalArg: Int = 0) {}
+
+      @Composable
+      fun FoobarTwo(optionalArg: Int = 0) {}
+
+      fun FoobarThree(requiredArg: @Composable () -> Unit, optionalArg: Int = 0) {}
+
+      fun FoobarFour(optionalArg: Int = 0) {}
+
+      @Composable
+      fun FoobarFive(requiredArg: () -> Unit, optionalArg: Int = 0) {}
+
+      @Composable
+      fun FoobarSix(optionalArg: Int = 0) {}
+      """.trimIndent()
+    )
+
+    val expectedLookupItems = listOf(
+      "FoobarOne(requiredArg: () -> Unit, ...)",
+      "FoobarTwo(...)",
+      "FoobarThree(requiredArg: () -> Unit, optionalArg: Int = ...) (com.example) Unit",
+      "FoobarFour(optionalArg: Int = ...) (com.example) Unit",
+      "FoobarFive(requiredArg: () -> Unit, ...)",
+      "FoobarSix(...)",
+    )
+
+    // Given:
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        Foobar${caret}
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.completeBasic()
+
+    // Then:
+    // Order doesn't matter here, since we're just validating that the elements are displayed with the correct signature text.
+    assertThat(myFixture.renderedLookupElements).containsExactlyElementsIn(expectedLookupItems)
+  }
+
+  /**
+   * Regression test for b/209060418. Autocomplete should not treat required composable method specially if it's not the final argument (ie,
+   * there are optional arguments specified after it.
+   */
+  @Test
+  fun testInsertHandlerWithRequiredComposableBeforeOptionalArgs() {
+    myFixture.addFileToProject(
+      "src/com/example/ObjectWithComposables.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      // "Foobar" is a unique prefix that no other lookup elements will match.
+
+      @Composable
+      fun FoobarOne(requiredArg: @Composable () -> Unit, optionalArg: Int = 0) {}
+      """.trimIndent()
+    )
+
+    // Given:
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        Foobar${caret}
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        FoobarOne(requiredArg = { /*TODO*/ })
+      }
+      """.trimIndent()
+      , true)
+  }
+
   private val CodeInsightTestFixture.renderedLookupElements: Collection<String>
     get() {
       return runReadAction {

@@ -40,7 +40,7 @@ data class ComposableFunctionRenderParts(val parameters: String?, val tail: Stri
 fun FunctionDescriptor.getComposableFunctionRenderParts(): ComposableFunctionRenderParts {
   val allParameters = valueParameters
   val requiredParameters = allParameters.filter { it.isRequired() }
-  val lastParamIsComposable = requiredParameters.lastOrNull()?.isComposableFunctionParameter() == true
+  val lastParamIsComposable = allParameters.lastOrNull()?.isComposableFunctionParameter() == true
   val inParens = if (lastParamIsComposable) requiredParameters.dropLast(1) else requiredParameters
 
   val descriptorRenderer = when {
