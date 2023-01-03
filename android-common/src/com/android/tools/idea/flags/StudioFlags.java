@@ -596,6 +596,14 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> DEBUG_ATTEMPT_SUSPENDED_START = Flag.create(
+    RUNDEBUG,
+    "debug.app.suspend.upon.start.enable",
+    "Start activity suspended when debugging.",
+    "Start activity suspended when debugging. This reduce the amount of time 'Waiting for Debugger' panel is shown on device",
+    true
+  );
+
   //endregion
 
   //region Logcat

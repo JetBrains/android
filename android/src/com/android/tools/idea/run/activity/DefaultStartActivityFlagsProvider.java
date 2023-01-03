@@ -16,7 +16,9 @@
 package com.android.tools.idea.run.activity;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -26,9 +28,11 @@ public class DefaultStartActivityFlagsProvider implements StartActivityFlagsProv
   private final boolean myWaitForDebugger;
   @NotNull private final String myExtraFlags;
 
+  @NotNull private final Project myProject;
 
-  public DefaultStartActivityFlagsProvider(boolean waitForDebugger,
+  public DefaultStartActivityFlagsProvider(@NotNull Project project, boolean waitForDebugger,
                                            @NotNull String extraFlags) {
+    myProject = project;
     myWaitForDebugger = waitForDebugger;
     myExtraFlags = extraFlags;
   }
@@ -39,11 +43,24 @@ public class DefaultStartActivityFlagsProvider implements StartActivityFlagsProv
     List<String> flags = Lists.newLinkedList();
     if (myWaitForDebugger) {
       flags.add("-D");
+
+      // Request Android app VM to start and then suspend all its threads
+      if (suspendEnabled() && suspendSupported(device)) {
+        flags.add("--suspend");
+      }
     }
     if (!myExtraFlags.isEmpty()) {
       flags.add(myExtraFlags);
     }
 
     return StringUtil.join(flags, " ");
+  }
+
+  private boolean suspendSupported(IDevice device) {
+      return ActivityManagerCapabilities.suspendSupported(myProject, device);
+  }
+
+  private static boolean suspendEnabled() {
+      return StudioFlags.DEBUG_ATTEMPT_SUSPENDED_START.get();
   }
 }
