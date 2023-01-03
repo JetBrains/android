@@ -29,6 +29,7 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.project.DumbAware
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
@@ -49,7 +50,7 @@ class LogcatFormatActionTest {
   private val disposableRule = DisposableRule()
 
   @get:Rule
-  val rule = RuleChain(projectRule, popupRule, disposableRule)
+  val rule = RuleChain(projectRule, popupRule, disposableRule, EdtRule())
 
   private val fakeLogcatPresenter = FakeLogcatPresenter()
 
