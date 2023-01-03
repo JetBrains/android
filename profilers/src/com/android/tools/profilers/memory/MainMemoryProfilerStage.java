@@ -196,7 +196,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
     super.setPendingCaptureStartTime(pendingCaptureStartTime);
   }
 
-  private Transport.ExecuteResponse startNativeAllocationTracking() {
+  private void startNativeAllocationTracking() {
     IdeProfilerServices ide = getStudioProfilers().getIdeServices();
     ide.getFeatureTracker().trackRecordAllocations();
     Common.Process process = getStudioProfilers().getProcess();
@@ -221,11 +221,31 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
                               .setConfiguration(configuration))
       .build();
 
-    return getStudioProfilers().getClient().getTransportClient().execute(
-      Transport.ExecuteRequest.newBuilder().setCommand(dumpCommand).build());
+    getStudioProfilers().getClient().executeAsync(dumpCommand, ide.getPoolExecutor())
+      .thenAcceptAsync(response -> {
+        TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.TRACE_STATUS,
+                                                                           getStudioProfilers().getIdeServices().getMainExecutor(),
+                                                                           event -> event.getCommandId() == response.getCommandId(),
+                                                                           () -> getSessionData().getStreamId(),
+                                                                           () -> getSessionData().getPid(),
+                                                                           event -> {
+                                                                             if (event.getTraceStatus().hasTraceStartStatus()) {
+                                                                               // trace status event is a start tracing event
+                                                                               nativeAllocationTrackingStart(event.getTraceStatus()
+                                                                                                               .getTraceStartStatus());
+                                                                             }
+                                                                             else {
+                                                                               // unknown/undefined trace status event found
+                                                                               getLogger().error("Invalid trace status event received.");
+                                                                             }
+                                                                             // unregisters the listener.
+                                                                             return true;
+                                                                           });
+        getStudioProfilers().getTransportPoller().registerListener(statusListener);
+      }, ide.getPoolExecutor());
   }
 
-  private Transport.ExecuteResponse stopNativeAllocationTracking(long startTime) {
+  private void stopNativeAllocationTracking() {
     Trace.TraceConfiguration configuration = Trace.TraceConfiguration.newBuilder()
       .setAppName(getStudioProfilers().getProcess().getName())
       .setAbiCpuArch(
@@ -242,47 +262,41 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
                              .setConfiguration(configuration))
       .build();
 
-    return getStudioProfilers().getClient().getTransportClient().execute(
-      Transport.ExecuteRequest.newBuilder().setCommand(dumpCommand).build());
+    getStudioProfilers().getClient().executeAsync(dumpCommand, getStudioProfilers().getIdeServices().getPoolExecutor())
+      .thenAcceptAsync(response -> {
+        TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.TRACE_STATUS,
+                                                                           getStudioProfilers().getIdeServices().getMainExecutor(),
+                                                                           event -> event.getCommandId() == response.getCommandId(),
+                                                                           () -> getSessionData().getStreamId(),
+                                                                           () -> getSessionData().getPid(),
+                                                                           event -> {
+                                                                             if (event.getTraceStatus().hasTraceStopStatus()) {
+                                                                               // trace status event is a stop tracing event
+                                                                               nativeAllocationTrackingStop(
+                                                                                 event.getTraceStatus().getTraceStopStatus());
+                                                                             }
+                                                                             else {
+                                                                               // unknown/undefined trace status event found
+                                                                               getLogger().error("Invalid trace status event received.");
+                                                                             }
+                                                                             // unregisters the listener.
+                                                                             return true;
+                                                                           });
+        getStudioProfilers().getTransportPoller().registerListener(statusListener);
+      }, getStudioProfilers().getIdeServices().getPoolExecutor());
   }
 
   public void toggleNativeAllocationTracking() {
-    Transport.ExecuteResponse response;
     if (!myNativeAllocationTracking) {
       assert getStudioProfilers().getProcess() != null;
-      response = startNativeAllocationTracking();
+      startNativeAllocationTracking();
     }
     else {
       // Not asserting on `getStudioProfilers().getProcess()` because it would be null if the user stops the session
       // before stopping native allocation tracking first.
-      response = stopNativeAllocationTracking(getPendingCaptureStartTime());
+      stopNativeAllocationTracking();
     }
-    TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.TRACE_STATUS,
-                                                                       getStudioProfilers().getIdeServices().getMainExecutor(),
-                                                                       event -> event.getCommandId() == response.getCommandId(),
-                                                                       () -> getSessionData().getStreamId(),
-                                                                       () -> getSessionData().getPid(),
-                                                                       event -> {
-                                                                         if (event.getTraceStatus().hasTraceStartStatus()) {
-                                                                           // trace status event is a start tracing event
-                                                                           nativeAllocationTrackingStart(event.getTraceStatus()
-                                                                                                           .getTraceStartStatus());
-                                                                         }
-                                                                         else if (event.getTraceStatus().hasTraceStopStatus()) {
-                                                                           // trace status event is a stop tracing event
-                                                                           nativeAllocationTrackingStop(
-                                                                             event.getTraceStatus().getTraceStopStatus());
-                                                                         }
-                                                                         else {
-                                                                           // unknown/undefined trace status event found
-                                                                           getLogger().error("Invalid trace status event received.");
-                                                                         }
-                                                                         // unregisters the listener.
-                                                                         return true;
-                                                                       });
-    getStudioProfilers().getTransportPoller().registerListener(statusListener);
   }
-
 
   /**
    * Handles start tracing status events received by the transport event listener.
