@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 
 class ParcelRemoveCustomWriteToParcel(function: KtFunction) : AbstractParcelableQuickFix<KtFunction>(function) {
     object Factory : AbstractFactory({ findElement<KtFunction>()?.let(::ParcelRemoveCustomWriteToParcel) })
-    override fun getText() = "Remove custom ''writeToParcel()'' function"
+    override fun getText() = "Remove custom 'writeToParcel()' function"
 
     override fun invoke(ktPsiFactory: KtPsiFactory, element: KtFunction) {
         element.delete()

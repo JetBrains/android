@@ -176,7 +176,7 @@ class ParcelMigrateToParcelizeQuickFix(function: KtClass) : AbstractParcelableQu
         findElement<KtObjectDeclaration>()?.getStrictParentOfType<KtClass>()?.let { ParcelMigrateToParcelizeQuickFix(it) }
     })
 
-    override fun getText() = "Migrate to ''Parceler'' companion object"
+    override fun getText() = "Migrate to 'Parceler' companion object"
 
     @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
     override fun invoke(ktPsiFactory: KtPsiFactory, parcelableClass: KtClass) {

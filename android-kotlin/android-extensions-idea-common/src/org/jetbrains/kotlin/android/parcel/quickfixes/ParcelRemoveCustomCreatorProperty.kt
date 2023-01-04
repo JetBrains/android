@@ -26,7 +26,7 @@ class ParcelRemoveCustomCreatorProperty(property: KtProperty) : AbstractParcelab
         findElement<KtProperty>()?.let(::ParcelRemoveCustomCreatorProperty)
     })
 
-    override fun getText() = "Remove custom ''CREATOR'' property"
+    override fun getText() = "Remove custom 'CREATOR' property"
 
     override fun invoke(ktPsiFactory: KtPsiFactory, element: KtProperty) {
         element.delete()

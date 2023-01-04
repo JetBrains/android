@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 
 class ParcelableAddIgnoreOnParcelAnnotationQuickfix(property: KtProperty) : AbstractParcelableQuickFix<KtProperty>(property) {
     object Factory : AbstractFactory({ findElement<KtProperty>()?.let(::ParcelableAddIgnoreOnParcelAnnotationQuickfix) })
-    override fun getText() = "Add ''@IgnoredOnParcel'' annotation"
+    override fun getText() = "Add '@IgnoredOnParcel' annotation"
 
     override fun invoke(ktPsiFactory: KtPsiFactory, element: KtProperty) {
         element.addAnnotationEntry(ktPsiFactory.createAnnotationEntry("@kotlinx.parcelize.IgnoredOnParcel")).shortenReferences()

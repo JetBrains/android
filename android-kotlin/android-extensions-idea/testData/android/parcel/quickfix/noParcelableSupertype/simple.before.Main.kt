@@ -1,4 +1,4 @@
-// "Add ''Parcelable'' supertype" "true"
+// "Add 'Parcelable' supertype" "true"
 // ERROR: No 'Parcelable' supertype
 // WITH_STDLIB
 

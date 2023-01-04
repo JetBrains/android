@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 class ParcelableRemoveDuplicatingTypeParcelerAnnotationQuickFix(anno: KtAnnotationEntry) : AbstractParcelableQuickFix<KtAnnotationEntry>(anno) {
     object Factory : AbstractFactory({ findElement<KtAnnotationEntry>()?.let(::ParcelableRemoveDuplicatingTypeParcelerAnnotationQuickFix) })
 
-    override fun getText() = "Remove redundant ''@TypeParceler'' annotation"
+    override fun getText() = "Remove redundant '@TypeParceler' annotation"
 
     override fun invoke(ktPsiFactory: KtPsiFactory, element: KtAnnotationEntry) {
         element.delete()

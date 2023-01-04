@@ -1,4 +1,4 @@
-// "Annotate containing class with ''@Parcelize''" "true"
+// "Annotate containing class with '@Parcelize'" "true"
 // ERROR: Class 'Foo' should be annotated with '@Parcelize'
 // WITH_STDLIB
 

@@ -39,6 +39,6 @@ class Test(
 class Test2(@<warning descr="[PLUGIN_WARNING] This 'TypeParceler' is already provided for Class 'Test2'">TypeParceler</warning><String, StringParceler> val a: String) : Parcelable
 
 @Parcelize
-@TypeParceler<<error descr="[PLUGIN_ERROR] Duplicating ''TypeParceler'' annotations">String</error>, StringParceler>
-@TypeParceler<<error descr="[PLUGIN_ERROR] Duplicating ''TypeParceler'' annotations">String</error>, CharSequenceParceler>
+@TypeParceler<<error descr="[PLUGIN_ERROR] Duplicating 'TypeParceler' annotations">String</error>, StringParceler>
+@TypeParceler<<error descr="[PLUGIN_ERROR] Duplicating 'TypeParceler' annotations">String</error>, CharSequenceParceler>
 class Test3(val a: String) : Parcelable
