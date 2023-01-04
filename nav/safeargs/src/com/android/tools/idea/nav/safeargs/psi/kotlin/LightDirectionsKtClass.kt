@@ -113,6 +113,8 @@ class LightDirectionsKtClass(
   private val scope = storageManager.createLazyValue { DirectionsClassScope() }
 
   override fun getUnsubstitutedMemberScope(): MemberScope = scope()
+  override fun getUnsubstitutedMemberScope(kotlinTypeRefiner: KotlinTypeRefiner): MemberScope = unsubstitutedMemberScope
+
   override fun getConstructors(): Collection<ClassConstructorDescriptor> = emptyList()
   override fun getUnsubstitutedPrimaryConstructor(): ClassConstructorDescriptor? = null
   override fun getCompanionObjectDescriptor() = _companionObject()

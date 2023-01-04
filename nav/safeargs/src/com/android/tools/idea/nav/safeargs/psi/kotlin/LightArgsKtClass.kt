@@ -96,6 +96,7 @@ class LightArgsKtClass(
   private val scope = storageManager.createLazyValue { ArgsClassScope() }
 
   override fun getUnsubstitutedMemberScope(): MemberScope = scope()
+  override fun getUnsubstitutedMemberScope(kotlinTypeRefiner: KotlinTypeRefiner): MemberScope = unsubstitutedMemberScope
 
   override fun getConstructors() = listOf(_primaryConstructor())
   override fun getUnsubstitutedPrimaryConstructor() = _primaryConstructor()
