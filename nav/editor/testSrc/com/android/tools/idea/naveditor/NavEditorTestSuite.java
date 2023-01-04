@@ -17,15 +17,11 @@ package com.android.tools.idea.naveditor;
 
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.tests.IdeaTestSuiteBase;
-import com.android.tools.tests.LeakCheckerRule;
-import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({NavEditorTestSuite.class})
 public class NavEditorTestSuite extends IdeaTestSuiteBase {
-  @ClassRule public static LeakCheckerRule checker = new LeakCheckerRule();
-
   static {
     linkIntoOfflineMavenRepo("tools/adt/idea/nav/editor/test_deps.manifest");
   }

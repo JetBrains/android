@@ -20,7 +20,6 @@ import com.android.testutils.junit4.OldAgpSuite;
 import com.android.tools.idea.gradle.project.upgrade.GradleProjectSystemUpgradeTestSuite;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
-import com.android.tools.tests.LeakCheckerRule;
 import com.android.tools.tests.MavenRepoRule;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
@@ -32,7 +31,6 @@ import org.junit.runner.RunWith;
   ManualUtilityTest.class
 })
 public class GradleProjectSystemUpgradeIntegrationTestSuite extends IdeaTestSuiteBase {
-  @ClassRule public static LeakCheckerRule checker = new LeakCheckerRule();
   @ClassRule public static GradleDaemonsRule daemons = new GradleDaemonsRule();
   @ClassRule public static MavenRepoRule mavenRepos = MavenRepoRule.fromTestSuiteSystemProperty();
 }

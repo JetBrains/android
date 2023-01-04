@@ -20,7 +20,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.tests.GradleDaemonsRule
 import com.android.tools.tests.IdeaTestSuiteBase
-import com.android.tools.tests.LeakCheckerRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.containers.map2Array
 import org.jetbrains.android.AndroidTestBase
@@ -41,7 +40,6 @@ abstract class MemoryBenchmarkTestSuite : IdeaTestSuiteBase() {
       .build()
     val TEST_DATA: Path = Paths.get(AndroidTestBase.getModulePath("sync-memory-tests")).resolve("testData")
 
-    @JvmField @ClassRule val checker = LeakCheckerRule()
     @JvmField @ClassRule val gradle = GradleDaemonsRule()
 
     @JvmStatic

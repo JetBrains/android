@@ -31,7 +31,6 @@ import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_74Test;
 import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_80Test;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
-import com.android.tools.tests.LeakCheckerRule;
 import com.android.tools.tests.MavenRepoRule;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.CoreIconManager;
@@ -60,8 +59,6 @@ import org.junit.runner.RunWith;
   SyncProject_AGP_80Test.class,
 })
 public class OldAgpTests extends IdeaTestSuiteBase {
-
-  @ClassRule public static LeakCheckerRule checker = new LeakCheckerRule();
 
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 

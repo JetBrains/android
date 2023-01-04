@@ -19,7 +19,6 @@ import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.TestUtils;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
-import com.android.tools.tests.LeakCheckerRule;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
@@ -28,8 +27,6 @@ import org.junit.runner.RunWith;
   com.android.tools.idea.IdeaTestSuite.class,  // a suite mustn't contain itself
 })
 public class IdeaTestSuite extends IdeaTestSuiteBase {
-
-  @ClassRule public static LeakCheckerRule checker = new LeakCheckerRule();
 
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 

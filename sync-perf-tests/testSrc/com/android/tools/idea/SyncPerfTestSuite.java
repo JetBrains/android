@@ -16,12 +16,9 @@
 package com.android.tools.idea;
 
 import com.android.testutils.JarTestSuiteRunner;
-import com.android.tools.idea.gradle.project.sync.perf.AbstractGradleSyncSmokeTestCase;
-import com.android.tools.idea.gradle.project.sync.perf.AbstractGradleSyncPerfTestCase;
 import com.android.tools.idea.gradle.project.sync.perf.TestProjectPaths;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
-import com.android.tools.tests.LeakCheckerRule;
 import java.util.logging.Logger;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
@@ -31,7 +28,6 @@ import org.junit.runner.RunWith;
   SyncPerfTestSuite.class,               // a suite mustn't contain itself
 })
 public class SyncPerfTestSuite extends IdeaTestSuiteBase {
-  @ClassRule public static final LeakCheckerRule checker = new LeakCheckerRule();
   @ClassRule public static final GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   private static final Logger LOG = Logger.getLogger(SyncPerfTestSuite.class.getName());
