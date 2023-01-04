@@ -53,26 +53,20 @@ import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.impl.GlobalInspectionContextForTests;
-import com.intellij.util.concurrency.AppExecutorUtil;
-import com.intellij.util.concurrency.AppScheduledExecutorService;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.mockito.internal.progress.ThreadSafeMockingProgress;
 
 /**
  * NOTE: If you are writing a new test, consider using JUnit4 with
@@ -102,22 +96,11 @@ public abstract class AndroidTestBase extends UsefulTestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    ThreadSafeMockingProgress.mockingProgress().resetOngoingStubbing();
-    Callable<Void> callable = () -> {
-      ThreadSafeMockingProgress.mockingProgress().resetOngoingStubbing();
-      return null;
-    };
-    callable.call();
-    AppScheduledExecutorService service = (AppScheduledExecutorService)AppExecutorUtil.getAppScheduledExecutorService();
-    List<Future<Void>> futures = service.invokeAll(Collections.nCopies(service.getBackendPoolExecutorSize(), callable));
-    for (Future<Void> future : futures) {
-      future.get();
-    }
     myFixture = null;
-
     try {
       super.tearDown();
     } finally {
+      // Clean up Mockito refs *after* super.tearDown() because project disposal may trigger new mock interactions.
       mockitoCleaner.cleanupAndTearDown();
     }
     checkUndisposedAndroidRelatedObjects();
