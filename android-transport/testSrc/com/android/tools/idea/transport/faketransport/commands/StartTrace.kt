@@ -20,7 +20,7 @@ import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Trace
 
-class StartCpuTrace(timer: FakeTimer) : CommandHandler(timer) {
+class StartTrace(timer: FakeTimer) : CommandHandler(timer) {
   var startStatus: Trace.TraceStartStatus = Trace.TraceStartStatus.getDefaultInstance()
 
   override fun handleCommand(command: Command, events: MutableList<Common.Event>) {

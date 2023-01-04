@@ -23,7 +23,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
-import com.android.tools.idea.transport.faketransport.commands.StartCpuTrace;
+import com.android.tools.idea.transport.faketransport.commands.StartTrace;
 import com.android.tools.idea.transport.faketransport.commands.StopCpuTrace;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Trace;
@@ -169,7 +169,7 @@ public class CpuProfilerTestUtils {
   static void startCapturing(CpuProfilerStage stage, FakeTransportService transportService, boolean success)
     throws InterruptedException {
     assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
-    ((StartCpuTrace)transportService.getRegisteredCommand(Commands.Command.CommandType.START_TRACE))
+    ((StartTrace)transportService.getRegisteredCommand(Commands.Command.CommandType.START_TRACE))
       .setStartStatus(Trace.TraceStartStatus.newBuilder()
                         .setStatus(success ? Trace.TraceStartStatus.Status.SUCCESS : Trace.TraceStartStatus.Status.FAILURE)
                         .build());
