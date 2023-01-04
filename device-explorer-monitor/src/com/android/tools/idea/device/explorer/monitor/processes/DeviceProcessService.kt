@@ -67,7 +67,8 @@ class DeviceProcessService {
                     vmIdentifier = client.clientData.vmIdentifier,
                     abi = client.clientData.abi,
                     debuggerStatus = client.clientData.debuggerConnectionStatus,
-                    supportsNativeDebugging = client.clientData.isNativeDebuggable)
+                    supportsNativeDebugging = client.clientData.isNativeDebuggable,
+                    killAction = { client.kill() } )
       }
     }
     catch (e: Throwable) {
@@ -86,6 +87,7 @@ class DeviceProcessService {
       // Run this in a worker thread in case the device/adb is not responsive
       withContext(workerThreadDispatcher) {
         device.kill(process.processName)
+        process.killAction?.invoke()
       }
     }
 
