@@ -21,7 +21,6 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.ClientImpl
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt
-import com.android.tools.idea.editors.literals.EditState
 import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
@@ -104,7 +103,7 @@ class BasicAndroidMonitorTest {
     connection.clientChanged(client, Client.CHANGE_NAME)
     val status = service.editStatus(device)
 
-    assertThat(status.editState).isEqualTo(EditState.UP_TO_DATE)
+    assertThat(status).isEqualTo(LiveEditStatus.UpToDate)
   }
 
   @Test
@@ -118,8 +117,8 @@ class BasicAndroidMonitorTest {
 
     val status = service.editStatus(device)
 
-    assertThat(status.editState).isEqualTo(EditState.ERROR)
-    assertThat(status.message).contains(gradleSyncString)
+    assertThat(status.unrecoverable()).isTrue()
+    assertThat(status.description).contains(gradleSyncString)
   }
 
   @Test
@@ -134,7 +133,7 @@ class BasicAndroidMonitorTest {
 
     val status = service.editStatus(device)
 
-    assertThat(status.editState).isEqualTo(EditState.UP_TO_DATE)
+    assertThat(status).isEqualTo(LiveEditStatus.UpToDate)
 
     `when`(mySyncState.lastSyncFinishedTimeStamp).thenReturn(2)
 
@@ -142,8 +141,8 @@ class BasicAndroidMonitorTest {
 
     val status2 = service.editStatus(device)
 
-    assertThat(status2.editState).isEqualTo(EditState.ERROR)
-    assertThat(status2.message).contains(gradleSyncString)
+    assertThat(status2.unrecoverable()).isTrue()
+    assertThat(status2.description).contains(gradleSyncString)
   }
 
   @After

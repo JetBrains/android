@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment.liveedit;
 
-import static com.android.tools.idea.editors.literals.LiveEditService.DISABLED_STATUS;
 import static com.android.tools.idea.run.deployment.liveedit.ErrorReporterKt.errorMessage;
 import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.PrebuildChecks;
 
@@ -32,11 +31,7 @@ import com.android.tools.deployer.AdbInstaller;
 import com.android.tools.deployer.Installer;
 import com.android.tools.deployer.MetricsRecorder;
 import com.android.tools.deployer.tasks.LiveUpdateDeployer;
-import com.android.tools.idea.editors.literals.EditState;
-import com.android.tools.idea.editors.literals.EditStatus;
 import com.android.tools.idea.editors.literals.LiveEditService;
-import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler;
-import com.android.tools.idea.editors.literals.LiveLiteralsService;
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration;
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration;
 import com.android.tools.idea.log.LogWrapper;
@@ -51,7 +46,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.wm.ToolWindowId;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -151,20 +145,6 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
   // when things go wrong. This will be changed in the final product.
   private static final LogWrapper LOGGER = new LogWrapper(Logger.getInstance(AndroidLiveEditDeployMonitor.class));
 
-  private static final EditStatus LOADING = new EditStatus(EditState.LOADING, "Application being deployed.", null);
-
-  private static final EditStatus UPDATE_IN_PROGRESS = new EditStatus(EditState.IN_PROGRESS, "Live edit update in progress.", null);
-
-  private static final EditStatus UP_TO_DATE = new EditStatus(EditState.UP_TO_DATE, "Up to date.", null);
-
-  private static final EditStatus OUT_OF_DATE = new EditStatus(EditState.OUT_OF_DATE, "Refresh to view the latest Live Edit Changes. App state may be reset.", LiveEditService.getPIGGYBACK_ACTION_ID());
-
-  private static final EditStatus RECOMPOSE_ERROR = new EditStatus(EditState.RECOMPOSE_ERROR, "Error during recomposition.", null);
-
-  private static final EditStatus DEBUGGER_ATTACHED = new EditStatus(EditState.RECOMPOSE_ERROR, "The app is currently running in debugging or profiling mode. These modes are not compatible with Live Edit.", ToolWindowId.RUN);
-
-  private static final EditStatus GRADLE_SYNC_ERROR = new EditStatus(EditState.ERROR, "Gradle sync needs to be performed. Sync and rerun the app.", null);
-
   private final @NotNull Project project;
 
   private @Nullable String applicationId;
@@ -198,9 +178,9 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
   }
 
   @NotNull
-  public EditStatus status(IDevice device) {
-    EditStatus status = deviceStatusManager.get(device);
-    return status == null ? DISABLED_STATUS : status;
+  public LiveEditStatus status(@NotNull IDevice device) {
+    LiveEditStatus status = deviceStatusManager.get(device);
+    return status == null ? LiveEditStatus.Disabled.INSTANCE : status;
   }
 
   // Care should be given when modifying this field to preserve atomicity.
@@ -217,13 +197,13 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
       return;
     }
 
-    if (deviceStatusManager.hasAny(EditState.ERROR)) {
+    if (deviceStatusManager.isUnrecoverable()) {
       return;
     }
 
     if (GradleSyncState.getInstance(project).isSyncNeeded() != ThreeState.NO ||
         gradleTimeSync.get().compareTo(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp()) != 0) {
-      updateEditStatus(GRADLE_SYNC_ERROR);
+      updateEditStatus(LiveEditStatus.SyncNeeded.INSTANCE);
       return;
     }
 
@@ -243,18 +223,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
       return true;
     });
 
-    deviceStatusManager.update(status -> {
-      switch (status.getEditState()) {
-        case PAUSED:
-        case UP_TO_DATE:
-        case LOADING:
-        case IN_PROGRESS:
-        case RECOMPOSE_ERROR:
-          return UPDATE_IN_PROGRESS;
-        default:
-          return status;
-      }
-    });
+    deviceStatusManager.update(status -> status.unrecoverable() ? status : LiveEditStatus.InProgress.INSTANCE);
 
     if (!handleChangedMethods(project, copy)) {
       changedMethodQueue.addAll(copy);
@@ -301,7 +270,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     LOGGER.info("Creating monitor for project %s targeting app %s", project.getName(), applicationId);
 
     // Initialize EditStatus for current device.
-    deviceStatusManager.addDevice(device, LOADING);
+    deviceStatusManager.addDevice(device, LiveEditStatus.Loading.INSTANCE);
 
     return () -> methodChangesExecutor
       .schedule(
@@ -332,7 +301,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
       return;
     }
 
-    updateEditStatus(UPDATE_IN_PROGRESS);
+    updateEditStatus(LiveEditStatus.InProgress.INSTANCE);
 
     while(!processChanges(project, bufferedEvents, LiveEditEvent.Mode.MANUAL)) {
         LOGGER.info("ProcessChanges was interrupted");
@@ -348,13 +317,13 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
 
     // In manual mode, we store changes and update status but defer processing.
     if (LiveEditService.Companion.isLeTriggerManual()) {
-      updateEditStatus(OUT_OF_DATE);
+      updateEditStatus(LiveEditStatus.OutOfDate.INSTANCE);
 
       if (bufferedEvents.size() < 2000) {
         bufferedEvents.addAll(changes);
       } else {
         // Something is wrong. Discard event otherwise we will run Out Of Memory
-        updateEditStatus(new EditStatus(EditState.ERROR, "Too many buffered LE keystrokes. Redeploy app.", null));
+        updateEditStatus(LiveEditStatus.createErrorStatus("Too many buffered LE keystrokes. Redeploy app."));
       }
 
       return true;
@@ -393,7 +362,9 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
       if (recoverable) {
         filesWithCompilationErrors.add(e.getSource().getName());
       }
-      updateEditStatus(new EditStatus(recoverable ? EditState.PAUSED : EditState.ERROR, errorMessage(e), null));
+      updateEditStatus(recoverable ?
+                       LiveEditStatus.createPausedStatus(errorMessage(e)) :
+                       LiveEditStatus.createErrorStatus(errorMessage(e)));
       return true;
     }
 
@@ -429,7 +400,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     ScheduledFuture<?> statusPolling = scheduler.scheduleWithFixedDelay(() -> {
       boolean hasError = !deployer.retrieveComposeStatus(installer, adb, packageName);
       if (hasError) {
-        updateEditStatus(RECOMPOSE_ERROR);
+        updateEditStatus(LiveEditStatus.RecomposeError.INSTANCE);
       }
     }, 2, 2, TimeUnit.SECONDS);
     // Schedule a cancel after 10 seconds.
@@ -471,15 +442,15 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     }
   }
 
-  private void updateEditStatus(@NotNull IDevice device, @NotNull EditStatus status) {
+  private void updateEditStatus(@NotNull IDevice device, @NotNull LiveEditStatus status) {
     deviceStatusManager.update(device, status);
   }
 
-  private void updateEditStatus(@NotNull EditStatus status) {
+  private void updateEditStatus(@NotNull LiveEditStatus status) {
     deviceStatusManager.update(status);
   }
 
-  private void handleDeviceStatusChange(Map<IDevice, EditStatus> map) {
+  private void handleDeviceStatusChange(Map<IDevice, LiveEditStatus> map) {
     // Force the UI to redraw with the new status. See com.intellij.openapi.actionSystem.AnAction#update().
     ActivityTracker.getInstance().inc();
   }
@@ -489,22 +460,19 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
       return;
     }
 
-    switch(event) {
-      case DEVICE_DISCONNECT:
-      case APPLICATION_DISCONNECT:
-        deviceStatusManager.update(device, DISABLED_STATUS);
-        break;
-      case APPLICATION_CONNECT:
+    switch (event) {
+      case DEVICE_DISCONNECT, APPLICATION_DISCONNECT ->
+        deviceStatusManager.update(device, LiveEditStatus.Disabled.INSTANCE);
+      case APPLICATION_CONNECT ->
         // If the device was previously in LOADING state, we are now ready to receive live edits.
-        deviceStatusManager.update(device, status -> status == LOADING ? UP_TO_DATE : status);
-        break;
-      case DEBUGGER_CONNECT:
-        deviceStatusManager.update(device, DEBUGGER_ATTACHED);
-        break;
-      case DEBUGGER_DISCONNECT:
+        deviceStatusManager.update(device, status -> status == LiveEditStatus.Loading.INSTANCE ? LiveEditStatus.UpToDate.INSTANCE : status);
+      case DEBUGGER_CONNECT ->
+        deviceStatusManager.update(device, LiveEditStatus.DebuggerAttached.INSTANCE);
+      case DEBUGGER_DISCONNECT ->
         // Don't return to up-to-date state if another state transition has taken place since.
-        deviceStatusManager.update(device, status -> status == DEBUGGER_ATTACHED ? UP_TO_DATE : status);
-        break;
+        deviceStatusManager.update(device, status -> status == LiveEditStatus.DebuggerAttached.INSTANCE
+                                                     ? LiveEditStatus.UpToDate.INSTANCE
+                                                     : status);
     }
   }
 
@@ -553,20 +521,20 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     }
 
     if (filesWithCompilationErrors.isEmpty()) {
-      updateEditStatus(device, UP_TO_DATE);
+      updateEditStatus(device, LiveEditStatus.UpToDate.INSTANCE);
     } else {
       Optional<String> errorFilename = filesWithCompilationErrors.stream().sequential().findFirst();
       String errorMsg = ErrorReporterKt.leErrorMessage(LiveEditUpdateException.Error.COMPILATION_ERROR, errorFilename.get());
-      updateEditStatus(device, new EditStatus(EditState.PAUSED, errorMsg, null));
+      updateEditStatus(device, LiveEditStatus.createPausedStatus(errorMsg));
     }
     scheduleErrorPolling(deployer, installer, adb, applicationId);
 
     if (!results.isEmpty()) {
       LiveUpdateDeployer.UpdateLiveEditError firstProblem = results.get(0);
       if (firstProblem.getType() == Deploy.UnsupportedChange.Type.UNSUPPORTED_COMPOSE_VERSION) {
-        updateEditStatus(device, new EditStatus(EditState.COMPOSE_VERSION_ERROR, firstProblem.getMessage(), null));
+        updateEditStatus(device, LiveEditStatus.createComposeVersionError(firstProblem.getMessage()));
       } else {
-        updateEditStatus(device, new EditStatus(EditState.ERROR, firstProblem.getMessage(), null));
+        updateEditStatus(device, LiveEditStatus.createErrorStatus(firstProblem.getMessage()));
       }
     }
     return results;

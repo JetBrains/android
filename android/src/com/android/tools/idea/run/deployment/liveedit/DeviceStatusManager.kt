@@ -16,22 +16,20 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.editors.literals.EditState
-import com.android.tools.idea.editors.literals.EditStatus
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
 
-typealias StatusUpdateFunction = (EditStatus) -> EditStatus
-typealias StatusChangeListener = Consumer<Map<IDevice, EditStatus>>
+typealias StatusUpdateFunction = (LiveEditStatus) -> LiveEditStatus
+typealias StatusChangeListener = Consumer<Map<IDevice, LiveEditStatus>>
 
 // Associates devices with their LiveEdit status, and implements state transition logic. Status values may be updated directly or by
 // providing a state transition function, which computes a new status based on the current status. Status changes can be subscribed to, and
 // subscribers will be notified when a device's status changes.
 class DeviceStatusManager {
-  private val deviceStatuses = ConcurrentHashMap<IDevice, EditStatus>()
+  private val deviceStatuses = ConcurrentHashMap<IDevice, LiveEditStatus>()
   private val listeners = mutableListOf<StatusChangeListener>()
 
-  fun addDevice(device: IDevice, status: EditStatus) {
+  fun addDevice(device: IDevice, status: LiveEditStatus) {
     deviceStatuses[device] = status
     listeners.forEach { it.accept(mapOf(Pair(device, status))) }
   }
@@ -40,19 +38,19 @@ class DeviceStatusManager {
     return deviceStatuses.keys
   }
 
-  fun get(device: IDevice): EditStatus? {
+  fun get(device: IDevice): LiveEditStatus? {
     return deviceStatuses[device]
   }
 
-  fun hasAny(state: EditState): Boolean {
-    return deviceStatuses.values.any { it.editState == state }
+  fun isUnrecoverable(): Boolean {
+    return deviceStatuses.values.any { it.unrecoverable() }
   }
 
   fun clear() {
     deviceStatuses.clear()
   }
 
-  fun update(status: EditStatus) {
+  fun update(status: LiveEditStatus) {
     update(deviceStatuses.keys) { _ -> status }
   }
 
@@ -60,7 +58,7 @@ class DeviceStatusManager {
     update(deviceStatuses.keys, transition)
   }
 
-  fun update(device: IDevice, status: EditStatus) {
+  fun update(device: IDevice, status: LiveEditStatus) {
     update(setOf(device)) { _ -> status }
   }
 
@@ -69,7 +67,7 @@ class DeviceStatusManager {
   }
 
   private fun update(devices: Set<IDevice>, transition: StatusUpdateFunction) {
-    val changes = mutableMapOf<IDevice, EditStatus>()
+    val changes = mutableMapOf<IDevice, LiveEditStatus>()
     deviceStatuses.replaceAll { device, oldStatus ->
       if (device !in devices) {
         return@replaceAll oldStatus

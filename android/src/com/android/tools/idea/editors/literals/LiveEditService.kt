@@ -24,6 +24,7 @@ import com.android.tools.idea.run.deployment.liveedit.AdbConnection
 import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditDeployMonitor
 import com.android.tools.idea.run.deployment.liveedit.DeviceConnection
 import com.android.tools.idea.run.deployment.liveedit.EditEvent
+import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
 import com.android.tools.idea.run.deployment.liveedit.PsiListener
 import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
@@ -42,23 +43,6 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.Callable
 import java.util.concurrent.Executor
-
-enum class EditState {
-  ERROR,                  // LiveEdit has encountered an error that is not recoverable.
-  COMPOSE_VERSION_ERROR,  // Compose Runtime version too old.
-  RECOMPOSE_ERROR,        // A possibly recoverable error occurred after a recomposition.
-  PAUSED,                 // No apps are ready to receive live edit updates or a compilation error is preventing push to the device.
-  RECOMPOSE_NEEDED,       // In manual mode, changes have been pushed to the devices but not recomposed yet.
-  OUT_OF_DATE,            // In manual mode, changes have been detected but not pushed to the device yet.
-  LOADING,                // App is being deployed.
-  IN_PROGRESS,            // Processing...
-  UP_TO_DATE,             // The device and the code are in Sync.
-  DISABLED                // LiveEdit has been disabled (via UI or custom properties).
-}
-
-data class EditStatus(val editState: EditState, val message: String, val actionId: String?) {
-  fun merge(other: EditStatus) = if (other.editState.ordinal < editState.ordinal) other else this
-}
 
 /**
  * Allows any component to listen to all method body edits of a project.
@@ -150,11 +134,6 @@ class LiveEditService constructor(val project: Project,
 
     @JvmStatic
     fun getInstance(project: Project): LiveEditService = project.getService(LiveEditService::class.java)
-
-    @JvmField
-    val DISABLED_STATUS = EditStatus(EditState.DISABLED, "", null)
-    @JvmField
-    val UP_TO_DATE_STATUS = EditStatus(EditState.UP_TO_DATE, "All changes applied.", null)
   }
 
   // TODO: Refactor this away when AndroidLiveEditDeployMonitor functionality is moved to LiveEditService/other classes.
@@ -167,7 +146,7 @@ class LiveEditService constructor(val project: Project,
     return deployMonitor.devices();
   }
 
-  fun editStatus(device: IDevice): EditStatus {
+  fun editStatus(device: IDevice): LiveEditStatus {
     return deployMonitor.status(device)
   }
 

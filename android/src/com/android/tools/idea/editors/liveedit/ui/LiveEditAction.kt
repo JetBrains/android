@@ -17,13 +17,11 @@ package com.android.tools.idea.editors.liveedit.ui
 
 import com.android.ddmlib.IDevice
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.adtui.common.ColoredIconGenerator
-import com.android.tools.idea.editors.literals.EditState
-import com.android.tools.idea.editors.literals.EditStatus
 import com.android.tools.idea.editors.literals.LiveEditAnActionListener
 import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
+import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
 import com.intellij.icons.AllIcons
 import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.actionSystem.ActionManager
@@ -46,17 +44,13 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiDocumentManager
-import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.JBColor
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.annotations.VisibleForTesting
-import java.awt.Color
 import java.awt.Insets
 import java.util.Collections
-import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.plaf.FontUIResource
 
@@ -67,24 +61,10 @@ class LiveEditAction(private val instanceEditor: Editor? = null) : DropDownActio
   "Live Edit", "Live Edit status", AllIcons.General.InspectionsOKEmpty), CustomComponentAction {
   companion object {
     val FOREGROUND = ColorKey.createColorKey("ActionButton.iconTextForeground", UIUtil.getContextHelpForeground())
-    val LIVE_EDIT_STATUS = Key<EditStatus>("android.liveedit.action.editstatus")
-    val LIVE_EDIT_STATUS_PREVIOUS = Key<EditStatus>("android.liveedit.action.editstatus.previous")
+    val LIVE_EDIT_STATUS = Key<LiveEditStatus>("android.liveedit.action.editstatus")
+    val LIVE_EDIT_STATUS_PREVIOUS = Key<LiveEditStatus>("android.liveedit.action.editstatus.previous")
     val MANUAL_LIVE_EDIT_METHOD = Key<() -> Unit>("android.liveedit.action.manual")
     val deviceMap = HashMap<Project, DeviceGetter>()
-
-    val stateToIcon = hashMapOf<EditState, Icon>(
-      EditState.ERROR to ColoredIconGenerator.generateColoredIcon(AllIcons.General.InspectionsError, Color.RED),
-      EditState.PAUSED to AllIcons.General.InspectionsPause,
-      EditState.LOADING to AnimatedIcon.Default.INSTANCE,
-      EditState.IN_PROGRESS to AnimatedIcon.Default.INSTANCE,
-      EditState.UP_TO_DATE to AllIcons.General.InspectionsOK,
-      EditState.OUT_OF_DATE to ColoredIconGenerator.generateColoredIcon(AllIcons.General.InlineRefreshHover, Color(0x62B543)),
-      EditState.RECOMPOSE_NEEDED to ColoredIconGenerator.generateColoredIcon(AllIcons.General.InlineRefreshHover, Color.RED),
-      EditState.RECOMPOSE_ERROR to AllIcons.General.Warning,
-      EditState.COMPOSE_VERSION_ERROR to AllIcons.General.Warning
-
-      // DISABLED will end up with null icon
-    )
 
     fun registerProject(project: Project, deviceGetter: DeviceGetter) {
       deviceMap[project] = deviceGetter
@@ -92,11 +72,6 @@ class LiveEditAction(private val instanceEditor: Editor? = null) : DropDownActio
 
     fun unregisterProject(project: Project) {
       deviceMap.remove(project)
-    }
-
-    @VisibleForTesting
-    fun getIconForState(state: EditState): Icon? {
-      return stateToIcon[state]
     }
   }
 
@@ -132,7 +107,7 @@ class LiveEditAction(private val instanceEditor: Editor? = null) : DropDownActio
 
           var tooltip = HelpTooltip.getTooltipFor(this)
           if (tooltip == null || status != previousStatus) {
-            tooltip = HelpTooltip().setTitle(myPresentation.description).setDescription(status.message)
+            tooltip = HelpTooltip().setTitle(myPresentation.description).setDescription(status.description)
             if (!status.actionId.isNullOrBlank()) {
               val actionId = status.actionId
               val action = ActionManager.getInstance().getAction(actionId)
@@ -156,7 +131,7 @@ class LiveEditAction(private val instanceEditor: Editor? = null) : DropDownActio
           toolTipText = myPresentation.description
           return
         }
-        myPresentation.icon = stateToIcon[status.editState]
+        myPresentation.icon = status.icon
         super.updateIcon()
       }
     }.also {
@@ -180,7 +155,7 @@ class LiveEditAction(private val instanceEditor: Editor? = null) : DropDownActio
 
   fun update(project: Project, presentation: Presentation, dataContext: DataContext) {
     val editor: Editor? = dataContext.getData(CommonDataKeys.EDITOR)
-    val editStatus: EditStatus
+    val editStatus: LiveEditStatus
     val liveEditService = LiveEditService.getInstance(project)
     if (editor != null) {
       val allDevices = liveEditService.devices()
@@ -189,7 +164,7 @@ class LiveEditAction(private val instanceEditor: Editor? = null) : DropDownActio
       editStatus = allDevices
         .filter { it !in insetDevices }
         .map { liveEditService.editStatus(it) }
-        .fold(LiveEditService.DISABLED_STATUS, EditStatus::merge)
+        .fold(LiveEditStatus.Disabled, LiveEditStatus::merge)
 
       val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.document)
       if (!project.isInitialized ||
@@ -208,8 +183,8 @@ class LiveEditAction(private val instanceEditor: Editor? = null) : DropDownActio
       }
       editStatus = liveEditService.editStatus(device)
     }
-    presentation.icon = stateToIcon[editStatus.editState]
-    presentation.isEnabledAndVisible = (editStatus.editState != EditState.DISABLED)
+    presentation.icon = editStatus.icon
+    presentation.isEnabledAndVisible = (editStatus != LiveEditStatus.Disabled)
     presentation.putClientProperty(LIVE_EDIT_STATUS, editStatus)
     presentation.putClientProperty(MANUAL_LIVE_EDIT_METHOD) {
       val actionManager = ActionManager.getInstance()
