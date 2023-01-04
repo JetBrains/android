@@ -50,8 +50,10 @@ class DeviceController(
   }
 
   fun sendControlMessage(message: ControlMessage) {
-    executor.submit {
-      send(message)
+    if (!executor.isShutdown) {
+      executor.submit {
+        send(message)
+      }
     }
   }
 
@@ -101,7 +103,12 @@ class DeviceController(
 
   override fun dispose() {
     executor.shutdown()
-    executor.awaitTermination(2, TimeUnit.SECONDS)
+    try {
+      executor.awaitTermination(2, TimeUnit.SECONDS)
+    }
+    finally {
+      deviceClipboardListeners.clear()
+    }
   }
 
   fun addDeviceClipboardListener(listener: DeviceClipboardListener) {
