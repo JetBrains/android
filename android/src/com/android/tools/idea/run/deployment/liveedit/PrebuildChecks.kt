@@ -18,7 +18,10 @@ package com.android.tools.idea.run.deployment.liveedit
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedBuildSrcChange
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedRecoverableSourceModification
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedUnrecoverableSourceModification
 import com.intellij.ide.plugins.PluginManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.extensions.PluginId
@@ -33,9 +36,10 @@ internal fun PrebuildChecks(project: Project, changes: List<EditEvent>) {
   // Technically, we don't NEED IWI until we support persisting changes.
   checkIwiAvailable()
 
-  // Filter out certain files that will not be supported.
+  // Filter out individual files or changes that are not supported.
   for (change in changes) {
     checkSupportedFiles(change.file)
+    checkUnsupportedPsiEvents(change)
   }
 
   // Check that Jetpack Compose plugin is enabled otherwise inline linking will fail with
@@ -76,6 +80,24 @@ internal fun checkKotlinPluginBundled() {
   if (!isKotlinPluginBundled()) {
     throw compilationError(
       "Live Edit does not support running with this Kotlin Plugin version and will only work with the bundled Kotlin Plugin.", null, null)
+  }
+}
+
+internal fun checkUnsupportedPsiEvents(change: EditEvent) {
+  if (change.unsupportedPsiEvents.contains(UnsupportedPsiEvent.CONSTRUCTORS)) {
+    throw unsupportedUnrecoverableSourceModification("Constructor changes", change.file)
+  }
+
+  if (change.unsupportedPsiEvents.contains(UnsupportedPsiEvent.IMPORT_DIRECTIVES)) {
+    throw unsupportedRecoverableSourceModification("Updates to changes to import statement is not supported", change.file)
+  }
+
+  if (change.unsupportedPsiEvents.contains(UnsupportedPsiEvent.FIELD_CHANGES)) {
+    throw unsupportedUnrecoverableSourceModification("Field changes", change.file)
+  }
+
+  if (!change.unsupportedPsiEvents.isEmpty()) {
+    throw internalError("Unrecognized UnsupportedPsiEvents: " + change.unsupportedPsiEvents.joinToString(", "))
   }
 }
 
