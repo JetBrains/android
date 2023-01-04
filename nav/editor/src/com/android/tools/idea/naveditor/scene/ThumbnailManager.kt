@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.naveditor.scene
 
-import com.google.common.annotations.VisibleForTesting
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.res.LocalResourceRepository
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.HashBasedTable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Key
@@ -36,7 +36,6 @@ import org.jetbrains.android.facet.AndroidFacetScopedService
 import java.awt.Dimension
 import java.awt.Image
 import java.awt.image.BufferedImage
-import java.util.HashMap
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 
@@ -59,7 +58,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
   private val myScaledImages = HashBasedTable.create<VirtualFile, Configuration, HashBasedTable<Dimension, ScaleContext, SoftReference<Image>?>?>()
   private val myRenderVersions = HashBasedTable.create<VirtualFile, Configuration, Long>()
   private val myRenderModStamps = HashBasedTable.create<VirtualFile, Configuration, Long>()
-  private val myResourceRepository: LocalResourceRepository = ResourceRepositoryManager.getAppResources(facet)
+  private var myResourceRepository: LocalResourceRepository? = ResourceRepositoryManager.getAppResources(facet)
 
   @GuardedBy("disposalLock")
   private val myPendingFutures = HashMap<VirtualFile, CompletableFuture<RefinableImage?>>()
@@ -69,6 +68,8 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
 
   private val disposalLock = Any()
 
+  private fun modificationCount() = myResourceRepository?.modificationCount ?: 0
+
   override fun onDispose() {
     lateinit var futures: Array<CompletableFuture<RefinableImage?>>
     synchronized(disposalLock) {
@@ -76,6 +77,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
       futures = myPendingFutures.values.toTypedArray()
       myPendingFutures.clear()
     }
+    myResourceRepository = null
     try {
       CompletableFuture.allOf(*futures).get(5, TimeUnit.SECONDS)
     }
@@ -99,7 +101,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
                             }
     val cached = cachedByDimension[dimensions, scaleContext]?.get()
     return if (cached != null &&
-               myRenderVersions.get(file, configuration) == myResourceRepository.modificationCount &&
+               myRenderVersions.get(file, configuration) == modificationCount() &&
                myRenderModStamps.get(file, configuration) == file.timeStamp) {
       RefinableImage(cached)
     }
@@ -180,7 +182,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
     val file = xmlFile.virtualFile
     val fullSize = myImages[file, configuration]?.get()
     return if (fullSize != null &&
-               myRenderVersions.get(file, configuration) == myResourceRepository.modificationCount &&
+               myRenderVersions.get(file, configuration) == modificationCount() &&
                myRenderModStamps.get(file, configuration) == file.timeStamp) {
       CompletableFuture.completedFuture(fullSize)
     }
@@ -215,7 +217,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
       .thenApply {
         val image = it.renderedImage.copy
         myImages.put(file, configuration, SoftReference<BufferedImage>(image))
-        myRenderVersions.put(file, configuration, myResourceRepository.modificationCount)
+        myRenderVersions.put(file, configuration, modificationCount())
         myRenderModStamps.put(file, configuration, file.timeStamp)
         image
       }
