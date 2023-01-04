@@ -30,14 +30,12 @@ interface NavigationHandler : Disposable {
    * be different within a same [SceneComponent].
    *
    * @param sceneView [SceneView] for which the navigation request is being issued
-   * @param sceneComponent [SceneComponent] for which the navigation request is being issued
    * @param x X coordinate within the [SceneView] where the click action was initiated
    * @param y y coordinate within the [SceneView] where the click action was initiated
    * @param requestFocus true if the navigation should focus the editor
    */
   suspend fun handleNavigate(
     sceneView: SceneView,
-    sceneComponent: SceneComponent,
     @SwingCoordinate x: Int,
     @SwingCoordinate y: Int,
     requestFocus: Boolean

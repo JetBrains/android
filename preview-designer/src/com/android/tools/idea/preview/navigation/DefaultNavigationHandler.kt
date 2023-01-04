@@ -17,7 +17,6 @@ package com.android.tools.idea.preview.navigation
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.google.common.annotations.VisibleForTesting
@@ -55,7 +54,6 @@ open class DefaultNavigationHandler(
 
   override suspend fun handleNavigate(
     sceneView: SceneView,
-    sceneComponent: SceneComponent,
     @SwingCoordinate hitX: Int,
     @SwingCoordinate hitY: Int,
     requestFocus: Boolean
