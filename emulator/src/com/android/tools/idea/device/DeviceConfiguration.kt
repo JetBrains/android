@@ -21,7 +21,7 @@ import com.android.sdklib.SdkVersionInfo
 /**
  * Characteristics of a mirrored Android device.
  */
-class DeviceConfiguration(val deviceProperties: Map<String, String>) {
+class DeviceConfiguration(private val deviceProperties: Map<String, String>) {
 
   val apiLevel: Int
     get() = deviceProperties[DevicePropertyNames.RO_BUILD_VERSION_SDK]?.toInt() ?: SdkVersionInfo.HIGHEST_KNOWN_STABLE_API

@@ -39,12 +39,12 @@ import org.jetbrains.kotlin.resolve.BindingTrace
  * ensure that signature are matching serialized functions.
  */
 class RecordDecoySignaturesTransformer(
-    pluginContext: IrPluginContext,
-    symbolRemapper: DeepCopySymbolRemapper,
-    bindingTrace: BindingTrace,
-    override val signatureBuilder: IdSignatureSerializer,
-    metrics: ModuleMetrics,
-    val mangler: KotlinMangler.IrMangler
+  pluginContext: IrPluginContext,
+  symbolRemapper: DeepCopySymbolRemapper,
+  bindingTrace: BindingTrace,
+  override val signatureBuilder: IdSignatureSerializer,
+  metrics: ModuleMetrics,
+  private val mangler: KotlinMangler.IrMangler
 ) : AbstractDecoysLowering(
     pluginContext = pluginContext,
     symbolRemapper = symbolRemapper,

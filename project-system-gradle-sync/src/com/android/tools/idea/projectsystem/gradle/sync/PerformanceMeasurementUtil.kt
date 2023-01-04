@@ -36,10 +36,10 @@ class Counter internal constructor(val name: String) {
   private val maxWall = AtomicLong()
   private val count = AtomicInteger()
 
-  val totalCpuNanos: Long get() = totalCpu.get()
-  val maxCpuNanos: Long get() = maxCpu.get()
-  val totalWallNanos: Long get() = totalWall.get()
-  val maxWallNanos: Long get() = maxWall.get()
+  private val totalCpuNanos: Long get() = totalCpu.get()
+  private val maxCpuNanos: Long get() = maxCpu.get()
+  private val totalWallNanos: Long get() = totalWall.get()
+  private val maxWallNanos: Long get() = maxWall.get()
   val totalCount: Int get() = count.get()
 
   // Resets the counter.

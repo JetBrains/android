@@ -41,7 +41,7 @@ object ComposeFqNames {
     private const val internalRoot = "$root.internal"
     fun fqNameFor(cname: String) = FqName("$root.$cname")
     fun internalFqNameFor(cname: String) = FqName("$internalRoot.$cname")
-    fun composablesFqNameFor(cname: String) = fqNameFor("ComposablesKt.$cname")
+    private fun composablesFqNameFor(cname: String) = fqNameFor("ComposablesKt.$cname")
     val Composable = fqNameFor("Composable")
     val ComposableTarget = fqNameFor("ComposableTarget")
     val ComposableTargetMarker = fqNameFor("ComposableTargetMarker")

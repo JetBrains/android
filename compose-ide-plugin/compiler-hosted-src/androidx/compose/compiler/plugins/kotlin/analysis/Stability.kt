@@ -22,7 +22,6 @@ import androidx.compose.compiler.plugins.kotlin.ComposeFqNames
 import androidx.compose.compiler.plugins.kotlin.lower.annotationClass
 import org.jetbrains.kotlin.backend.common.extensions.FirIncompatiblePluginAPI
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
-import org.jetbrains.kotlin.ir.util.isFinalClass
 import org.jetbrains.kotlin.backend.jvm.ir.isInlineClassType
 import org.jetbrains.kotlin.ir.declarations.IrAnnotationContainer
 import org.jetbrains.kotlin.ir.declarations.IrClass
@@ -65,6 +64,7 @@ import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.ir.util.getInlineClassUnderlyingType
 import org.jetbrains.kotlin.ir.util.isEnumClass
 import org.jetbrains.kotlin.ir.util.isEnumEntry
+import org.jetbrains.kotlin.ir.util.isFinalClass
 import org.jetbrains.kotlin.ir.util.isFunctionOrKFunction
 import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.util.isTypeParameter
@@ -217,13 +217,13 @@ class StabilityInferencer(val context: IrPluginContext) {
         return annotations.any { it.isStableMarker() }
     }
 
-    fun IrConstructorCall.isStableMarker(): Boolean {
+    private fun IrConstructorCall.isStableMarker(): Boolean {
         val symbol = annotationClass ?: return false
         val owner = if (symbol.isBound) symbol.owner else return false
         return owner.annotations.any { it.annotationClass == stableMarker }
     }
 
-    fun IrClass.hasStableMarkedDescendant(): Boolean {
+    private fun IrClass.hasStableMarkedDescendant(): Boolean {
         if (hasStableMarker()) return true
         return superTypes.any {
             !it.isAny() && it.classOrNull?.owner?.hasStableMarkedDescendant() == true
@@ -240,7 +240,7 @@ class StabilityInferencer(val context: IrPluginContext) {
             directParentClassName == "com.google.protobuf.GeneratedMessage"
     }
 
-    fun IrAnnotationContainer.stabilityParamBitmask(): Int? {
+    private fun IrAnnotationContainer.stabilityParamBitmask(): Int? {
         @Suppress("UNCHECKED_CAST")
         return (
             annotations.firstOrNull {
@@ -356,7 +356,7 @@ class StabilityInferencer(val context: IrPluginContext) {
             declaration.origin == IrDeclarationOrigin.IR_EXTERNAL_DECLARATION_STUB
     }
 
-    fun stabilityOf(
+    private fun stabilityOf(
         classifier: IrClassifierSymbol,
         substitutions: Map<IrTypeParameterSymbol, IrTypeArgument> = emptyMap(),
         currentlyAnalyzing: Set<IrClassifierSymbol> = emptySet()
@@ -371,7 +371,7 @@ class StabilityInferencer(val context: IrPluginContext) {
         }
     }
 
-    fun stabilityOf(
+    private fun stabilityOf(
         argument: IrTypeArgument,
         substitutions: Map<IrTypeParameterSymbol, IrTypeArgument> = emptyMap(),
         currentlyAnalyzing: Set<IrClassifierSymbol> = emptySet()
@@ -434,7 +434,7 @@ class StabilityInferencer(val context: IrPluginContext) {
         }
     }
 
-    fun IrSimpleType.substitutionMap(): Map<IrTypeParameterSymbol, IrTypeArgument> {
+    private fun IrSimpleType.substitutionMap(): Map<IrTypeParameterSymbol, IrTypeArgument> {
         val cls = classOrNull ?: return emptyMap()
         val params = cls.owner.typeParameters.map { it.symbol }
         val args = arguments
@@ -443,7 +443,7 @@ class StabilityInferencer(val context: IrPluginContext) {
         }.toMap()
     }
 
-    fun stabilityOf(expr: IrCall): Stability {
+    private fun stabilityOf(expr: IrCall): Stability {
         val function = expr.symbol.owner
         val fqName = function.fqNameForIrSerialization
 

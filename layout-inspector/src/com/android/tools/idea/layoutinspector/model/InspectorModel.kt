@@ -45,7 +45,7 @@ enum class SelectionOrigin { INTERNAL, COMPONENT_TREE }
 /** Callback taking (oldWindow, newWindow, isStructuralChange */
 typealias InspectorModelModificationListener = (AndroidWindow?, AndroidWindow?, Boolean) -> Unit
 
-class InspectorModel(val project: Project, val scheduler: ScheduledExecutorService? = null) : ViewNodeAndResourceLookup {
+class InspectorModel(val project: Project, private val scheduler: ScheduledExecutorService? = null) : ViewNodeAndResourceLookup {
   override val resourceLookup = ResourceLookup(project)
   val selectionListeners = mutableListOf<(ViewNode?, ViewNode?, SelectionOrigin) -> Unit>()
 
@@ -166,7 +166,7 @@ class InspectorModel(val project: Project, val scheduler: ScheduledExecutorServi
   /**
    * In-place update of all nodes (no structural changes should be made).
    */
-  fun updateAll(operation: (ViewNode) -> Unit) {
+  private fun updateAll(operation: (ViewNode) -> Unit) {
     ViewNode.readAccess { root.flatten().forEach { operation(it) } }
   }
 
@@ -212,7 +212,7 @@ class InspectorModel(val project: Project, val scheduler: ScheduledExecutorServi
     updateAll { node -> (node as? ComposeViewNode)?.resetRecomposeCounts() }
   }
 
-  fun updatePropertiesPanel() {
+  private fun updatePropertiesPanel() {
     setSelection(selection, SelectionOrigin.INTERNAL)
   }
 

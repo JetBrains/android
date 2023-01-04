@@ -89,11 +89,11 @@ open class DurableKeyTransformer(
 
     protected fun <T> root(keys: MutableSet<String>, block: () -> T): T =
         keyVisitor.root(keys, block)
-    protected fun <T> enter(key: String, block: () -> T) = keyVisitor.enter(key, block)
-    protected fun <T> siblings(key: String, block: () -> T) = keyVisitor.siblings(key, block)
-    protected fun <T> siblings(block: () -> T) = keyVisitor.siblings(block)
+    private fun <T> enter(key: String, block: () -> T) = keyVisitor.enter(key, block)
+    private fun <T> siblings(key: String, block: () -> T) = keyVisitor.siblings(key, block)
+    private fun <T> siblings(block: () -> T) = keyVisitor.siblings(block)
 
-    protected fun Name.asJvmFriendlyString(): String {
+    private fun Name.asJvmFriendlyString(): String {
         return if (!isSpecial) identifier
         else asString()
             .replace('<', '$')

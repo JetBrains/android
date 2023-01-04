@@ -89,7 +89,7 @@ class ProgressPanel : JPanel() {
     myCancelActionListener = cancelActionListener
   }
 
-  fun setOkStatusColor() {
+  private fun setOkStatusColor() {
     myProgressBar.foreground = ColorProgressBar.GREEN
   }
 
@@ -101,7 +101,7 @@ class ProgressPanel : JPanel() {
     myProgressBar.foreground = ColorProgressBar.RED
   }
 
-  fun setProgress(v: Double) {
+  private fun setProgress(v: Double) {
     val fraction = (v * PROGRESS_STEPS).toInt()
     myProgressBar.value = fraction
   }
@@ -110,7 +110,7 @@ class ProgressPanel : JPanel() {
     myProgressBar.isIndeterminate = indeterminate
   }
 
-  fun setText(text: String) {
+  private fun setText(text: String) {
     myState.clear()
     myState.append(text)
   }

@@ -72,7 +72,7 @@ class FileChannelBackedWriteBuffer(
     position += 2
   }
 
-  fun writeByte(value: Byte) {
+  private fun writeByte(value: Byte) {
     if (tempBuf.remaining() < 1) {
       flushBuffer()
     }

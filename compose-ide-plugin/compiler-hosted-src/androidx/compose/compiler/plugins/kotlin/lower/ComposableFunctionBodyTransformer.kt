@@ -29,11 +29,6 @@ import androidx.compose.compiler.plugins.kotlin.hasNonRestartableComposableAnnot
 import androidx.compose.compiler.plugins.kotlin.hasReadonlyComposableAnnotation
 import androidx.compose.compiler.plugins.kotlin.irTrace
 import androidx.compose.compiler.plugins.kotlin.lower.decoys.DecoyFqNames
-import kotlin.math.abs
-import kotlin.math.absoluteValue
-import kotlin.math.ceil
-import kotlin.math.min
-import kotlin.reflect.KProperty
 import org.jetbrains.kotlin.backend.common.FileLoweringPass
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
@@ -168,6 +163,11 @@ import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.types.typeUtil.isUnit
 import org.jetbrains.kotlin.util.OperatorNameConventions
+import kotlin.math.abs
+import kotlin.math.absoluteValue
+import kotlin.math.ceil
+import kotlin.math.min
+import kotlin.reflect.KProperty
 
 /**
  * An enum of the different "states" a parameter of a composable function can have relating to
@@ -2570,7 +2570,7 @@ class ComposableFunctionBodyTransformer(
         var maskParam: IrChangedBitMaskValue? = null
     )
 
-    fun paramMetaOf(arg: IrExpression, isProvided: Boolean): ParamMeta {
+    private fun paramMetaOf(arg: IrExpression, isProvided: Boolean): ParamMeta {
         val meta = ParamMeta(isProvided = isProvided)
         populateParamMeta(arg, meta)
         return meta
@@ -3256,7 +3256,7 @@ class ComposableFunctionBodyTransformer(
         }
     }
 
-    fun irTypeParameterStability(param: IrTypeParameter): IrExpression? {
+    private fun irTypeParameterStability(param: IrTypeParameter): IrExpression? {
         var scope: Scope? = currentScope
         loop@ while (scope != null) {
             when (scope) {
@@ -3559,7 +3559,7 @@ class ComposableFunctionBodyTransformer(
             override val nearestComposer: IrValueParameter?
                 get() = composerParameter ?: super.nearestComposer
 
-            var composerParameter: IrValueParameter? = null
+            private var composerParameter: IrValueParameter? = null
                 private set
 
             var defaultParameter: IrDefaultBitMaskValue? = null
@@ -3572,7 +3572,7 @@ class ComposableFunctionBodyTransformer(
                 private set
 
             // slotCount will include the dispatchReceiver, extensionReceivers and context receivers
-            var slotCount: Int = 0
+            private var slotCount: Int = 0
                 private set
 
             var dirty: IrChangedBitMaskValue? = null
@@ -3888,7 +3888,7 @@ class ComposableFunctionBodyTransformer(
             // used before they are realized into `sourceInformation()`. This is used
             // by coalesable groups which will mark their source locations used if they
             // become realized.
-            fun addProvisionalSourceLocations(locations: List<SourceLocation>) {
+            private fun addProvisionalSourceLocations(locations: List<SourceLocation>) {
                 sourceLocations += locations
             }
 

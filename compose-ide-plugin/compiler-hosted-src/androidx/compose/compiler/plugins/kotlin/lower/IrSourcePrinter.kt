@@ -241,7 +241,7 @@ class IrSourcePrinterVisitor(
         declaration.printBody()
     }
 
-    fun IrFunction.printBody() {
+    private fun IrFunction.printBody() {
         val body = body ?: return
         if (body.statements.isEmpty()) {
             println("{ }")
@@ -552,7 +552,7 @@ class IrSourcePrinterVisitor(
         expression.function.printAsLambda()
     }
 
-    fun IrFunction.printAsLambda() {
+    private fun IrFunction.printAsLambda() {
         print("{")
         val parameters = valueParameters
         if (parameters.isNotEmpty()) {
@@ -989,7 +989,7 @@ class IrSourcePrinterVisitor(
     }
 
     private var printIntsAsBinary = false
-    fun <T> withIntsAsBinaryLiterals(block: () -> T): T {
+    private fun <T> withIntsAsBinaryLiterals(block: () -> T): T {
         val prev = printIntsAsBinary
         try {
             printIntsAsBinary = true
@@ -1119,7 +1119,7 @@ class IrSourcePrinterVisitor(
         }
     }
 
-    fun IrClass.printAsObject() {
+    private fun IrClass.printAsObject() {
         print("object ")
         if (!name.isSpecial) {
             print(name)

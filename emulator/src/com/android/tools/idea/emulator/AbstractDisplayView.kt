@@ -256,12 +256,12 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
    * of the view. The listener is not allowed to call [addFrameListener] or [removeFrameListener] from its
    * [FrameListener.frameRendered] method.
    */
-  internal fun addFrameListener(listener: FrameListener) {
+  private fun addFrameListener(listener: FrameListener) {
     frameListeners.add(listener)
   }
 
   /** Removes a [listener] so it no longer receives callbacks when the display view has a new frame rendered. */
-  internal fun removeFrameListener(listener: FrameListener) {
+  private fun removeFrameListener(listener: FrameListener) {
     frameListeners.remove(listener)
   }
 

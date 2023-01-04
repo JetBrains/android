@@ -134,7 +134,6 @@ import org.jetbrains.kotlin.ir.types.toKotlinType
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.DeepCopySymbolRemapper
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
-import org.jetbrains.kotlin.ir.util.constructedClass
 import org.jetbrains.kotlin.ir.util.fqNameForIrSerialization
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.getArguments
@@ -177,17 +176,17 @@ abstract class AbstractComposeLowering(
 
     protected val builtIns = context.irBuiltIns
 
-    protected val stabilityInferencer = StabilityInferencer(context)
+    private val stabilityInferencer = StabilityInferencer(context)
 
     fun stabilityOf(expr: IrExpression) = stabilityInferencer.stabilityOf(expr)
     fun stabilityOf(type: IrType) = stabilityInferencer.stabilityOf(type)
-    fun stabilityOf(cls: IrClass) = stabilityInferencer.stabilityOf(cls)
+    private fun stabilityOf(cls: IrClass) = stabilityInferencer.stabilityOf(cls)
 
     fun IrAnnotationContainer.hasStableMarker(): Boolean = with(stabilityInferencer) {
         hasStableMarker()
     }
 
-    fun IrAnnotationContainer.hasStableAnnotation(): Boolean = with(stabilityInferencer) {
+    private fun IrAnnotationContainer.hasStableAnnotation(): Boolean = with(stabilityInferencer) {
         hasStableAnnotation()
     }
 
@@ -226,7 +225,7 @@ abstract class AbstractComposeLowering(
             ?: error("Function not found in the classpath: $fqName")
     }
 
-    fun getTopLevelFunctionOrNull(fqName: FqName): IrFunctionSymbol? {
+    private fun getTopLevelFunctionOrNull(fqName: FqName): IrFunctionSymbol? {
         return context.referenceFunctions(fqName).firstOrNull()
     }
 
@@ -302,7 +301,7 @@ abstract class AbstractComposeLowering(
 
     // NOTE(lmr): This implementation mimics the kotlin-provided unboxInlineClass method, except
     // this one makes sure to bind the symbol if it is unbound, so is a bit safer to use.
-    fun IrType.unboxType(): IrType? {
+    private fun IrType.unboxType(): IrType? {
         val klass = classOrNull?.owner ?: return null
         val representation = klass.inlineClassRepresentation ?: return null
         if (!isInlineClassType()) return null
@@ -568,7 +567,7 @@ abstract class AbstractComposeLowering(
     }
 
     // set the bit at a certain index
-    protected fun Int.withBit(index: Int, value: Boolean): Int {
+    private fun Int.withBit(index: Int, value: Boolean): Int {
         return if (value) {
             this or (1 shl index)
         } else {
@@ -940,7 +939,7 @@ abstract class AbstractComposeLowering(
         }
     }
 
-    protected fun irGet(type: IrType, symbol: IrValueSymbol): IrExpression {
+    private fun irGet(type: IrType, symbol: IrValueSymbol): IrExpression {
         return IrGetValueImpl(
             UNDEFINED_OFFSET,
             UNDEFINED_OFFSET,
@@ -1004,7 +1003,7 @@ abstract class AbstractComposeLowering(
         return IrBranchImpl(condition, result)
     }
 
-    protected fun irElseBranch(
+    private fun irElseBranch(
         expression: IrExpression,
         startOffset: Int = UNDEFINED_OFFSET,
         endOffset: Int = UNDEFINED_OFFSET
@@ -1112,7 +1111,7 @@ abstract class AbstractComposeLowering(
         }
     }
 
-    fun IrConstructorCall.isStatic(): Boolean {
+    private fun IrConstructorCall.isStatic(): Boolean {
         // special case constructors of inline classes as static if their underlying
         // value is static.
         if (type.isInlineClassType()) {

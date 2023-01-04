@@ -22,7 +22,7 @@ import com.intellij.codeInspection.options.OptPane.checkbox
 import com.intellij.codeInspection.options.OptPane.pane
 import com.intellij.codeInspection.options.OptionController
 
-abstract class VisualLintInspection(val type: VisualLintErrorType, val varName: String): GlobalInspectionTool() {
+abstract class VisualLintInspection(val type: VisualLintErrorType, private val varName: String): GlobalInspectionTool() {
   override fun worksInBatchModeOnly() = false
 
   override fun getShortName() = type.shortName

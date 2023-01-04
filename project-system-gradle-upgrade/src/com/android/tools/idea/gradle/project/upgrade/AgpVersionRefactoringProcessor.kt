@@ -65,7 +65,7 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   )
 
   private var _isPre80MavenPublish: Boolean? = null
-  val isPre80MavenPublish: Boolean
+  private val isPre80MavenPublish: Boolean
     get() {
       if (_isPre80MavenPublish == null) {
         _isPre80MavenPublish = runReadAction { computeIsPre80MavenPublish() }
