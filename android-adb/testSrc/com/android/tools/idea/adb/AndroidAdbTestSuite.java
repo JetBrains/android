@@ -25,6 +25,7 @@ import org.junit.runner.RunWith;
 public class AndroidAdbTestSuite extends IdeaTestSuiteBase {
 
   static {
+    leakChecker.enabled = false;  // TODO(b/264602053): fix leaks.
     //WiFiPairingControllerImplTest require real icons
     IconLoaderRule.enableIconLoading();
   }

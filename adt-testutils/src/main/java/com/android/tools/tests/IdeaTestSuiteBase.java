@@ -29,9 +29,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.junit.ClassRule;
 
 public class IdeaTestSuiteBase {
   protected static final String TMP_DIR = System.getProperty("java.io.tmpdir");
+
+  // Note: the leak checker can be disabled in an individual test suite by setting leakChecker.enabled = false.
+  @ClassRule public static final LeakCheckerRule leakChecker = new LeakCheckerRule();
 
   static {
     try {

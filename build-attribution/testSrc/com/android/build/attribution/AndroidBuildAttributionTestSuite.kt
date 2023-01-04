@@ -27,6 +27,7 @@ import org.junit.runner.RunWith
 class AndroidBuildAttributionTestSuite : IdeaTestSuiteBase() {
   companion object {
     init {
+      leakChecker.enabled = false  // TODO(b/264602053): fix leaks.
       linkIntoOfflineMavenRepo("tools/adt/idea/build-attribution/test_deps.manifest")
       unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");
       linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest")

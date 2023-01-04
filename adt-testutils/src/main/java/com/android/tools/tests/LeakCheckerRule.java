@@ -22,8 +22,19 @@ import com.intellij.openapi.application.ApplicationManager;
 import org.junit.rules.ExternalResource;
 
 public class LeakCheckerRule extends ExternalResource {
+  public boolean enabled = true;
+
   @Override
   protected void after() {
+    if (!enabled) {
+      return;
+    }
+    Application app = ApplicationManager.getApplication();
+    if (app == null || app.isDisposed()) {
+      // If the app was already disposed, then the leak checker does not work properly.
+      // This can happen when multiple LeakCheckerRules are "nested", and the inner LeakCheckerRule has already run.
+      return;
+    }
     try {
       clearMockitoThreadLocals();
       Class<?> leakTestClass = Class.forName("_LastInSuiteTest");
@@ -41,19 +52,16 @@ public class LeakCheckerRule extends ExternalResource {
     // and this will repopulate Mockito's thread-local state (ThreadSafeMockingProgress). So, in order
     // to clear Mockito state _after_ all Mockito interactions have finished, we do it inside the
     // 'appWillBeClosed' callback.
-    Application app = ApplicationManager.getApplication();
-    if (app != null) {
-      app.getMessageBus().connect().subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
-        @Override
-        public void appWillBeClosed(boolean isRestart) {
-          try {
-            new MockitoThreadLocalsCleaner().cleanupAndTearDown();
-          }
-          catch (Exception e) {
-            throw new RuntimeException(e);
-          }
+    ApplicationManager.getApplication().getMessageBus().connect().subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
+      @Override
+      public void appWillBeClosed(boolean isRestart) {
+        try {
+          new MockitoThreadLocalsCleaner().cleanupAndTearDown();
         }
-      });
-    }
+        catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
   }
 }

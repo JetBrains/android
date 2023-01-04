@@ -25,6 +25,7 @@ import org.junit.runner.RunWith;
 public class StreamingTestSuite extends IdeaTestSuiteBase {
 
   static {
+    leakChecker.enabled = false;  // TODO(b/264602053): fix leaks.
     // Since icons are cached and not reloaded for each test, loading of realistic icons
     // has to be enabled before the first test in the suite that may trigger icon loading.
     IconLoaderRule.enableIconLoading();
