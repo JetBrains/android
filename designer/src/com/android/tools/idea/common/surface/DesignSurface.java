@@ -1452,7 +1452,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       return null;
     }
 
-    SwingUtilities.convertPointFromScreen(mouseLocation, this);
+    SwingUtilities.convertPointFromScreen(mouseLocation, mySceneViewPanel);
     return getSceneViewAt(mouseLocation.x, mouseLocation.y);
   }
 
