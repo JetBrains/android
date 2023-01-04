@@ -46,7 +46,6 @@ import kotlin.concurrent.read
 import kotlin.concurrent.write
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.streams.toList
 
 /**
  * Keeps track of Android Emulators running on the local machine under the current user account.
@@ -316,7 +315,9 @@ class RunningEmulatorCatalog : Disposable.Parent {
             avdId = line.substring("add.id=".length)
           }
           line.startsWith("avd.name=") -> {
-            avdName = line.substring("avd.name=".length).replace('_', ' ')
+            val name = line.substring("avd.name=".length)
+            // TODO: Remove replace('_', ' ') after January 1, 2024. It was a workaround for b/208966801.
+            avdName = if (name.contains(' ')) name else name.replace('_', ' ')
           }
           line.startsWith("avd.dir=") -> {
             avdFolder = Paths.get(line.substring("add.dir=".length))
