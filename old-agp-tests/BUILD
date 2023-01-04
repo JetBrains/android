@@ -187,7 +187,6 @@ local_old_agp_test(
         "block-network",
         "no_test_mac",
         "no_test_windows",
-        "manual",  # b/263902773
     ],
 )
 
@@ -227,7 +226,6 @@ local_old_agp_test(
         "block-network",
         "no_test_mac",
         "no_test_windows",
-        "manual",  # b/263902773
     ],
 )
 
@@ -240,7 +238,6 @@ local_old_agp_test(
         "block-network",
         "no_test_mac",
         "no_test_windows",
-        "manual",  # b/263902773
     ],
 )
 
@@ -253,7 +250,6 @@ local_old_agp_test(
         "block-network",
         "no_test_mac",
         "no_test_windows",
-        "manual",  # b/263902773
     ],
 )
 
@@ -265,7 +261,6 @@ local_old_agp_test(
         "block-network",
         "no_test_mac",
         "no_test_windows",
-        "manual",  # b/263902773
     ],
 )
 
@@ -277,7 +272,6 @@ local_old_agp_test(
         "block-network",
         "no_test_mac",
         "no_test_windows",
-        "manual",  # b/263902773
     ],
 )
 
@@ -289,7 +283,6 @@ local_old_agp_test(
         "block-network",
         "no_test_mac",
         "no_test_windows",
-        "manual",  # b/263902773
     ],
 )
 
@@ -301,6 +294,5 @@ local_old_agp_test(
         "block-network",
         "no_test_mac",
         "no_test_windows",
-        "manual",  # b/263902773
     ],
 )

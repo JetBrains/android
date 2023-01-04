@@ -315,12 +315,12 @@ PROJECT                       : MainActivity
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/localDebugUnitTest/classes
-            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/localDebugUnitTest
             -                             : file://<PROJECT>/app/build/tmp/kapt3/classes/localDebugUnitTest
+            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/localDebugUnitTest
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/localDebug/R.jar!/
             -                             : file://<PROJECT>/app/build/intermediates/javac/localDebugAndroidTest/classes
-            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/localDebugAndroidTest
             -                             : file://<PROJECT>/app/build/tmp/kapt3/classes/localDebugAndroidTest
+            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/localDebugAndroidTest
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/localDebugAndroidTest/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/local/debug
         BUILD_TASKS
@@ -515,8 +515,8 @@ PROJECT                       : MainActivity
         ORDER_ENTRY                   : MainActivity.javaLib.main
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/localDebug/classes
-            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/localDebug
             -                             : file://<PROJECT>/app/build/tmp/kapt3/classes/localDebug
+            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/localDebug
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/localDebug/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/local/debug
         BUILD_TASKS
@@ -729,12 +729,12 @@ PROJECT                       : MainActivity
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/localDebugUnitTest/classes
-            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/localDebugUnitTest
             -                             : file://<PROJECT>/app/build/tmp/kapt3/classes/localDebugUnitTest
+            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/localDebugUnitTest
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/localDebug/R.jar!/
             -                             : file://<PROJECT>/app/build/intermediates/javac/localDebugAndroidTest/classes
-            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/localDebugAndroidTest
             -                             : file://<PROJECT>/app/build/tmp/kapt3/classes/localDebugAndroidTest
+            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/localDebugAndroidTest
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/localDebugAndroidTest/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/local/debug
         BUILD_TASKS

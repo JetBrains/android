@@ -119,13 +119,9 @@ class AndroidGradleOrderEnumeratorHandlerFactory : GradleOrderEnumeratorHandler.
     }
 
     private fun addFoldersFromBaseArtifact(artifact: IdeBaseArtifact, toAdd: MutableList<String>) {
-      artifact.classesFolder.stream()
-        .filter { obj: File? -> Objects.nonNull(obj) }
-        .map { path: File? ->
-          FilePaths.pathToIdeaUrl(
-            path!!
-          )
-        }
+      artifact.classesFolder
+        .map(FilePaths::pathToIdeaUrl)
+        .sorted()
         .forEach { e: String -> toAdd.add(e) }
     }
 
