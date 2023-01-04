@@ -21,7 +21,6 @@ abstract class AndroidQuickFixMultiFileTest : AbstractAndroidQuickFixMultiFileTe
     private const val TEST_DIR = "idea-android/testData/android/quickfix"
   }
 
-  @org.junit.Ignore("b/263890870")
   class AutoImports : AndroidQuickFixMultiFileTest() {
     fun testAndroidRImport() = doTest("$TEST_DIR/autoImports/androidRImport")
   }

@@ -1,4 +1,4 @@
-// "Import" "true"
+// "Import class 'R'" "true"
 // ERROR: Unresolved reference: R
 // DO_NOT_IMPORT: android.support.v7.appcompat.R
 
