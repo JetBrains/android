@@ -25,6 +25,7 @@ import com.android.tools.lint.detector.api.LintFix.ReplaceString;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Position;
 import com.intellij.codeInsight.intention.impl.AddSingleMemberStaticImportAction;
+import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
@@ -170,7 +171,7 @@ public class ReplaceStringQuickFix extends DefaultLintQuickFix {
         SmartPointerManager manager = SmartPointerManager.getInstance(rangeFile.getProject());
         int startOffset = start.getOffset();
         int endOffset = end.getOffset();
-        if (endOffset > startOffset) {
+        if (endOffset >= startOffset) {
           TextRange textRange = TextRange.create(startOffset, endOffset);
           fix.myRange = manager.createSmartPsiFileRangePointer(rangeFile, textRange);
         }
@@ -260,6 +261,12 @@ public class ReplaceStringQuickFix extends DefaultLintQuickFix {
     PsiDocumentManager documentManager = PsiDocumentManager.getInstance(project);
 
     Document document = context.getDocument(file);
+    if (IntentionPreviewUtils.isIntentionPreviewActive() && context instanceof AndroidQuickfixContexts.EditorContext) {
+      if (((AndroidQuickfixContexts.EditorContext)context).getEditor().getDocument() != document) {
+        // This is a composite fix editing other files outside of the preview; ignore those
+        return;
+      }
+    }
     if (document != null) {
       documentManager.doPostponedOperationsAndUnblockDocument(document);
       editBefore(document);

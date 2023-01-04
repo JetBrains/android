@@ -46,6 +46,7 @@ import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.intention.PriorityAction;
+import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils;
 import com.intellij.codeInspection.BatchSuppressManager;
 import com.intellij.codeInspection.GlobalInspectionContext;
 import com.intellij.codeInspection.GlobalInspectionTool;
@@ -82,6 +83,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileSystemItem;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.SmartPsiFileRange;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
@@ -673,7 +675,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     else if (lintFix instanceof SetAttribute) {
       SetAttribute data = (SetAttribute)lintFix;
       if (data.getValue() == null) {
-        return new LintIdeQuickFix[]{new RemoteAttributeFix(data)};
+        return new LintIdeQuickFix[]{new RemoveAttributeFix(data)};
       }
 
       // TODO: SetAttribute can now have a custom range!
@@ -689,6 +691,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     }
     else if (lintFix instanceof AnnotateFix) {
       AnnotateFix fix = (AnnotateFix)lintFix;
+      // TODO: We need to also paass & handle fix.getRange() here!
       return new LintIdeQuickFix[]{new AnnotateQuickFix(fix.getDisplayName(), fix.getFamilyName(), fix.getAnnotation(), fix.getReplace())};
     }
     else if (lintFix instanceof LintFixGroup) {
@@ -739,8 +742,27 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
 
     @Override
     public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
-      for (LintIdeQuickFix fix : myFixes) {
-        fix.apply(startElement, endElement, context);
+
+      if (IntentionPreviewUtils.isIntentionPreviewActive() && context instanceof AndroidQuickfixContexts.EditorContext editorContext) {
+        // In preview, we should only attempt to run fixes that apply to the current file
+        PsiFile previewFile = editorContext.getFile();
+        String previewName =  previewFile != null ? previewFile.getName() : null;
+        for (LintIdeQuickFix fix : myFixes) {
+          SmartPsiFileRange range = fix.getRange();
+          if (range != null && previewName != null) {
+            PsiFile containingFile = range.getContainingFile();
+            if (containingFile != null) {
+              if (!previewName.equals(containingFile.getName())) {
+                continue;
+              }
+            }
+          }
+          fix.apply(startElement, endElement, context);
+        }
+      } else {
+        for (LintIdeQuickFix fix : myFixes) {
+          fix.apply(startElement, endElement, context);
+        }
       }
     }
 
@@ -757,10 +779,10 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     }
   }
 
-  static class RemoteAttributeFix extends DefaultLintQuickFix {
+  static class RemoveAttributeFix extends DefaultLintQuickFix {
     private final SetAttribute myData;
 
-    RemoteAttributeFix(SetAttribute data) {
+    RemoveAttributeFix(SetAttribute data) {
       super(data.getDisplayName(), data.getFamilyName());
       myData = data;
     }
@@ -769,6 +791,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     public void apply(@NotNull PsiElement startElement,
                       @NotNull PsiElement endElement,
                       @NotNull AndroidQuickfixContexts.Context context) {
+      // TODO: We need to check and process myData.getRange() hre
       XmlAttribute attribute = findAttribute(startElement);
       if (attribute != null && attribute.isValid()) {
         attribute.delete();

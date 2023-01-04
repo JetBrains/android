@@ -22,6 +22,7 @@ import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.codeInsight.intention.AddAnnotationFix
+import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils.prepareElementForWrite
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.SuppressQuickFix
 import com.intellij.codeInspection.SuppressionUtilCore
@@ -99,7 +100,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   @Throws(IncorrectOperationException::class)
   private fun handleXml(element: PsiElement) {
     val tag = PsiTreeUtil.getParentOfType(element, XmlTag::class.java, false) ?: return
-    if (!preparedToWrite(tag)) {
+    if (!prepareElementForWrite(tag)) {
       return
     }
     val file = if (tag is XmlFile) tag else tag.containingFile as? XmlFile ?: return
@@ -110,7 +111,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   @Throws(IncorrectOperationException::class)
   private fun handleJava(element: PsiElement) {
     val container = findJavaSuppressElement(element) ?: return
-    if (!preparedToWrite(container)) {
+    if (!prepareElementForWrite(container)) {
       return
     }
     val project = element.project
@@ -127,7 +128,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   @Throws(IncorrectOperationException::class)
   private fun handleGroovy(element: PsiElement) {
     val file = if (element is PsiFile) element else element.containingFile ?: return
-    if (!preparedToWrite(file)) {
+    if (!prepareElementForWrite(file)) {
       return
     }
     val project = file.project
@@ -138,7 +139,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   @Throws(IncorrectOperationException::class)
   private fun handleToml(element: PsiElement) {
     val file = if (element is PsiFile) element else element.containingFile ?: return
-    if (!preparedToWrite(file)) {
+    if (!prepareElementForWrite(file)) {
       return
     }
     val project = file.project
@@ -201,7 +202,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   private fun handleKotlin(element: PsiElement) {
     val target = findKotlinSuppressElement(element) ?: return
 
-    if (!preparedToWrite(target)) {
+    if (!prepareElementForWrite(target)) {
       return
     }
 

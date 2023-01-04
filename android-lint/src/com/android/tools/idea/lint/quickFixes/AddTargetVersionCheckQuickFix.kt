@@ -19,11 +19,11 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.android.tools.idea.lint.common.DefaultLintQuickFix
 import com.android.tools.idea.lint.common.LintIdeClient
-import com.android.tools.idea.lint.common.preparedToWrite
 import com.android.tools.lint.detector.api.ApiConstraint
 import com.android.tools.lint.detector.api.ExtensionSdk
 import com.android.tools.lint.detector.api.ExtensionSdk.Companion.ANDROID_SDK_ID
 import com.intellij.codeInsight.generation.surroundWith.JavaWithIfSurrounder
+import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils.prepareElementForWrite
 import com.intellij.codeInspection.JavaSuppressionUtil
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ApplicationManager
@@ -43,8 +43,8 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.codeInsight.surroundWith.statement.KotlinIfSurrounder
-import org.jetbrains.kotlin.idea.core.ShortenReferences
 import org.jetbrains.kotlin.idea.codeinsight.utils.findExistingEditor
+import org.jetbrains.kotlin.idea.core.ShortenReferences
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtClassInitializer
 import org.jetbrains.kotlin.psi.KtContainerNode
@@ -94,7 +94,7 @@ class AddTargetVersionCheckQuickFix(
   }
 
   override fun apply(startElement: PsiElement, endElement: PsiElement, context: AndroidQuickfixContexts.Context) {
-    if (!preparedToWrite(startElement)) {
+    if (!prepareElementForWrite(startElement)) {
       return
     }
     when (startElement.language) {
@@ -111,7 +111,7 @@ class AddTargetVersionCheckQuickFix(
     val file = targetExpression.containingFile
     val documentManager = PsiDocumentManager.getInstance(project)
     val document = editor.document
-    if (!preparedToWrite(file)) {
+    if (!prepareElementForWrite(file)) {
       return
     }
 

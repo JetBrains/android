@@ -25,7 +25,6 @@ import com.android.tools.idea.lint.common.DefaultLintQuickFix
 import com.android.tools.idea.lint.common.LintIdeClient
 import com.android.tools.idea.lint.common.isAnnotationTarget
 import com.android.tools.idea.lint.common.isNewLineNeededForAnnotation
-import com.android.tools.idea.lint.common.preparedToWrite
 import com.android.tools.idea.res.ensureNamespaceImported
 import com.android.tools.idea.util.mapAndroidxName
 import com.android.tools.lint.checks.ApiLookup
@@ -37,6 +36,7 @@ import com.android.tools.lint.detector.api.VersionChecks.Companion.REQUIRES_EXTE
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.codeInsight.intention.AddAnnotationFix
 import com.intellij.codeInsight.intention.AddAnnotationPsiFix
+import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils.prepareElementForWrite
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.module.ModuleUtilCore
@@ -195,7 +195,7 @@ class AddTargetApiQuickFix(private val requirements: List<SdkApiConstraint>,
 
   private fun handleKotlin(startElement: PsiElement) {
     val annotationContainer = getAnnotationContainer(startElement) ?: return
-    if (!preparedToWrite(annotationContainer)) {
+    if (!prepareElementForWrite(annotationContainer)) {
       return
     }
     // Reverse order: preserve order, and addAnnotationsKotlin will prepend
