@@ -233,6 +233,7 @@ iml_test(
     timeout = "long",
     data = layout_inspector_view_data,
     module = ":intellij.android.layout-inspector.integration",
+    tags = ["manual"],  # Flaky due to b/264261900
     tags_linux = ["block-network"],
     tags_windows = [
         "block-network",
