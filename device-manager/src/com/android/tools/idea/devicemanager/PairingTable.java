@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanager;
 
 import com.android.tools.idea.wearpairing.WearDevicePairingWizard;
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.scale.JBUIScale;
@@ -28,14 +29,14 @@ final class PairingTable extends DeviceTable<Device> {
   private final @NotNull Object myKey;
   private final @Nullable Project myProject;
 
-  PairingTable(@NotNull Key key, @Nullable Project project) {
+  PairingTable(@NotNull Key key, @Nullable Project project, @NotNull WearPairingManager manager) {
     super(new PairingTableModel(), Device.class);
 
     myKey = key;
     myProject = project;
 
     setDefaultRenderer(DeviceType.class, new DeviceIconButtonTableCellRenderer<>(this));
-    setDefaultRenderer(Device.class, new DeviceManagerPairingDeviceTableCellRenderer());
+    setDefaultRenderer(Device.class, new DeviceManagerPairingDeviceTableCellRenderer(manager));
     setDefaultRenderer(Status.class, new StatusTableCellRenderer());
 
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -66,7 +67,8 @@ final class PairingTable extends DeviceTable<Device> {
     return convertColumnIndexToView(PairingTableModel.STATUS_MODEL_COLUMN_INDEX);
   }
 
-  @NotNull Optional<Pairing> getSelectedPairing() {
+  @NotNull
+  Optional<Pairing> getSelectedPairing() {
     int viewRowIndex = getSelectedRow();
 
     if (viewRowIndex == -1) {

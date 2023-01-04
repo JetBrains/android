@@ -22,6 +22,7 @@ import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.DevicePanel;
 import com.android.tools.idea.devicemanager.Devices;
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.icons.AllIcons;
@@ -54,7 +55,7 @@ import org.jetbrains.annotations.Nullable;
 public final class PhysicalDevicePanel extends DevicePanel {
   private final @NotNull Disposable myParent;
   private final @NotNull Function<Project, PairDevicesUsingWiFiService> myPairDevicesUsingWiFiServiceGetInstance;
-  private final @NotNull Function<PhysicalDevicePanel, PhysicalDeviceTable> myNewPhysicalDeviceTable;
+  private final @NotNull WearPairingManager myManager;
   private final @NotNull Supplier<PhysicalTabPersistentStateComponent> myPhysicalTabPersistentStateComponentGetInstance;
   private final @NotNull Function<PhysicalDeviceTableModel, Disposable> myNewPhysicalDeviceChangeListener;
   private final @NotNull BiFunction<PhysicalDevice, Project, DetailsPanel> myNewPhysicalDeviceDetailsPanel;
@@ -67,29 +68,29 @@ public final class PhysicalDevicePanel extends DevicePanel {
     this(project,
          parent,
          PairDevicesUsingWiFiService::getInstance,
-         PhysicalDeviceTable::new,
+         WearPairingManager.getInstance(),
          PhysicalTabPersistentStateComponent::getInstance,
          PhysicalDeviceChangeListener::new,
+         PhysicalDeviceDetailsPanel::new,
          new PhysicalDeviceAsyncSupplier(project),
-         PhysicalDevicePanel::newSetDevices,
-         PhysicalDeviceDetailsPanel::new);
+         PhysicalDevicePanel::newSetDevices);
   }
 
   @VisibleForTesting
   PhysicalDevicePanel(@Nullable Project project,
                       @NotNull Disposable parent,
                       @NotNull Function<Project, PairDevicesUsingWiFiService> pairDevicesUsingWiFiServiceGetInstance,
-                      @NotNull Function<PhysicalDevicePanel, PhysicalDeviceTable> newPhysicalDeviceTable,
+                      @NotNull WearPairingManager manager,
                       @NotNull Supplier<PhysicalTabPersistentStateComponent> physicalTabPersistentStateComponentGetInstance,
                       @NotNull Function<PhysicalDeviceTableModel, Disposable> newPhysicalDeviceChangeListener,
+                      @NotNull BiFunction<PhysicalDevice, Project, DetailsPanel> newPhysicalDeviceDetailsPanel,
                       @NotNull PhysicalDeviceAsyncSupplier supplier,
-                      @NotNull Function<PhysicalDevicePanel, FutureCallback<List<PhysicalDevice>>> newSetDevices,
-                      @NotNull BiFunction<PhysicalDevice, Project, DetailsPanel> newPhysicalDeviceDetailsPanel) {
+                      @NotNull Function<PhysicalDevicePanel, FutureCallback<List<PhysicalDevice>>> newSetDevices) {
     super(project);
 
     myParent = parent;
     myPairDevicesUsingWiFiServiceGetInstance = pairDevicesUsingWiFiServiceGetInstance;
-    myNewPhysicalDeviceTable = newPhysicalDeviceTable;
+    myManager = manager;
     myPhysicalTabPersistentStateComponentGetInstance = physicalTabPersistentStateComponentGetInstance;
     myNewPhysicalDeviceChangeListener = newPhysicalDeviceChangeListener;
     myNewPhysicalDeviceDetailsPanel = newPhysicalDeviceDetailsPanel;
@@ -148,7 +149,7 @@ public final class PhysicalDevicePanel extends DevicePanel {
 
   @Override
   protected @NotNull JTable newTable() {
-    return myNewPhysicalDeviceTable.apply(this);
+    return new PhysicalDeviceTable(this, myManager);
   }
 
   private @NotNull List<PhysicalDevice> addOfflineDevices(@NotNull List<PhysicalDevice> onlineDevices) {
@@ -178,12 +179,14 @@ public final class PhysicalDevicePanel extends DevicePanel {
     return myNewPhysicalDeviceDetailsPanel.apply(getTable().getSelectedDevice().orElseThrow(AssertionError::new), myProject);
   }
 
+  @Nullable
   @VisibleForTesting
-  @Nullable AbstractButton getPairUsingWiFiButton() {
+  AbstractButton getPairUsingWiFiButton() {
     return myPairUsingWiFiButton;
   }
 
-  @NotNull PhysicalDeviceTable getTable() {
+  @NotNull
+  PhysicalDeviceTable getTable() {
     return (PhysicalDeviceTable)myTable;
   }
 

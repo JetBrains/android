@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import java.util.Optional;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 
 final class DeviceManagerPairingDeviceTableCellRenderer extends DeviceTableCellRenderer<Device> {
-  DeviceManagerPairingDeviceTableCellRenderer() {
-    super(Device.class);
+  DeviceManagerPairingDeviceTableCellRenderer(@NotNull WearPairingManager manager) {
+    super(Device.class, manager);
   }
 
+  @NotNull
   @Override
-  @NotNull Optional<Icon> getPairedLabelIcon(@NotNull Device device) {
+  Optional<Icon> getPairedLabelIcon(@NotNull Device device) {
     return Optional.empty();
   }
 }

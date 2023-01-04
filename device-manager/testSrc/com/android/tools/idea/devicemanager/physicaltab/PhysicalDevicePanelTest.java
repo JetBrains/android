@@ -59,6 +59,7 @@ public final class PhysicalDevicePanelTest {
   private Project myProject;
   private Disposable myParent;
   private PairDevicesUsingWiFiService myService;
+  private WearPairingManager myManager;
   private PhysicalTabPersistentStateComponent myComponent;
   private final Disposable myListener = myDisposableRule.getDisposable();
   private PhysicalDeviceAsyncSupplier mySupplier;
@@ -78,6 +79,11 @@ public final class PhysicalDevicePanelTest {
   @Before
   public void mockService() {
     myService = Mockito.mock(PairDevicesUsingWiFiService.class);
+  }
+
+  @Before
+  public void mockManager() {
+    myManager = Mockito.mock(WearPairingManager.class);
   }
 
   @Before
@@ -107,14 +113,12 @@ public final class PhysicalDevicePanelTest {
     myPanel = new PhysicalDevicePanel(myProject,
                                       myParent,
                                       project -> myService,
-                                      panel -> new PhysicalDeviceTable(panel,
-                                                                       new PhysicalDeviceTableModel(),
-                                                                       Mockito.mock(WearPairingManager.class)),
+                                      myManager,
                                       () -> myComponent,
                                       model -> myListener,
+                                      PhysicalDeviceDetailsPanel::new,
                                       mySupplier,
-                                      this::newSetDevices,
-                                      PhysicalDeviceDetailsPanel::new);
+                                      this::newSetDevices);
 
     // Assert
     CountDownLatchAssert.await(myLatch);
@@ -139,14 +143,12 @@ public final class PhysicalDevicePanelTest {
     myPanel = new PhysicalDevicePanel(myProject,
                                       myParent,
                                       project -> myService,
-                                      panel -> new PhysicalDeviceTable(panel,
-                                                                       new PhysicalDeviceTableModel(),
-                                                                       Mockito.mock(WearPairingManager.class)),
+                                      myManager,
                                       () -> myComponent,
                                       model -> myListener,
+                                      PhysicalDeviceDetailsPanel::new,
                                       mySupplier,
-                                      this::newSetDevices,
-                                      PhysicalDeviceDetailsPanel::new);
+                                      this::newSetDevices);
 
     // Assert
     CountDownLatchAssert.await(myLatch);
@@ -179,12 +181,12 @@ public final class PhysicalDevicePanelTest {
     myPanel = new PhysicalDevicePanel(myProject,
                                       myParent,
                                       project -> myService,
-                                      PhysicalDeviceTable::new,
+                                      myManager,
                                       () -> myComponent,
                                       model -> myListener,
+                                      PhysicalDeviceDetailsPanel::new,
                                       mySupplier,
-                                      PhysicalDevicePanel::newSetDevices,
-                                      PhysicalDeviceDetailsPanel::new);
+                                      PhysicalDevicePanel::newSetDevices);
 
     // Assert
     assertNull(myPanel.getPairUsingWiFiButton());
@@ -202,12 +204,12 @@ public final class PhysicalDevicePanelTest {
     myPanel = new PhysicalDevicePanel(myProject,
                                       myParent,
                                       project -> myService,
-                                      PhysicalDeviceTable::new,
+                                      myManager,
                                       () -> myComponent,
                                       model -> myListener,
+                                      PhysicalDeviceDetailsPanel::new,
                                       mySupplier,
-                                      PhysicalDevicePanel::newSetDevices,
-                                      PhysicalDeviceDetailsPanel::new);
+                                      PhysicalDevicePanel::newSetDevices);
 
     AbstractButton button = myPanel.getPairUsingWiFiButton();
     assert button != null;
@@ -225,12 +227,12 @@ public final class PhysicalDevicePanelTest {
     myPanel = new PhysicalDevicePanel(myProject,
                                       myParent,
                                       project -> myService,
-                                      PhysicalDeviceTable::new,
+                                      myManager,
                                       () -> myComponent,
                                       model -> myListener,
+                                      (device, project) -> newPhysicalDeviceDetailsPanel(device),
                                       mySupplier,
-                                      this::newSetDevices,
-                                      (device, project) -> newPhysicalDeviceDetailsPanel(device));
+                                      this::newSetDevices);
 
     CountDownLatchAssert.await(myLatch);
 
@@ -249,12 +251,12 @@ public final class PhysicalDevicePanelTest {
     myPanel = new PhysicalDevicePanel(myProject,
                                       myParent,
                                       project -> myService,
-                                      PhysicalDeviceTable::new,
+                                      myManager,
                                       () -> myComponent,
                                       model -> myListener,
+                                      (device, project) -> newPhysicalDeviceDetailsPanel(device),
                                       mySupplier,
-                                      this::newSetDevices,
-                                      (device, project) -> newPhysicalDeviceDetailsPanel(device));
+                                      this::newSetDevices);
 
     CountDownLatchAssert.await(myLatch);
 
@@ -266,10 +268,11 @@ public final class PhysicalDevicePanelTest {
     assertTrue(myPanel.hasDetails());
   }
 
-  private static @NotNull DetailsPanel newPhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device) {
+  @NotNull
+  private DetailsPanel newPhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device) {
     AsyncDetailsBuilder builder = Mockito.mock(AsyncDetailsBuilder.class);
     Mockito.when(builder.buildAsync()).thenReturn(Futures.immediateFuture(TestPhysicalDevices.GOOGLE_PIXEL_3));
 
-    return new PhysicalDeviceDetailsPanel(device, builder);
+    return new PhysicalDeviceDetailsPanel(device, builder, myManager);
   }
 }
