@@ -49,11 +49,13 @@ private val VERTICAL_PANEL_MARGINS get() = JBUI.insets(0, 4, 4, 0)
 /**
  * Provides the floating action toolbar for editor. It provides support for pan and zoom specifically, and arbitrary actions can be added
  * in additional toolbar segments.
+ * [actionPlacePrefix] is used to provide additional toolbar place information.
  * [component] is used for data-context retrieval. See [ActionToolbar.setTargetComponent].
  */
 abstract class EditorActionsFloatingToolbarProvider(
   private val component: JComponent,
-  parentDisposable: Disposable
+  parentDisposable: Disposable,
+  private val actionPlacePrefix: String = ""
 ) : PanZoomListener, Disposable {
 
   val floatingToolbar: JComponent = JPanel(GridBagLayout()).apply { isOpaque = false }
@@ -118,13 +120,17 @@ abstract class EditorActionsFloatingToolbarProvider(
   }
 
   protected fun updateToolbar() {
+    val toolbarPlace = actionPlacePrefix + zoomActionPlace
+    val labelPlace = actionPlacePrefix + zoomLabelPlace
+    val otherPlace = actionPlacePrefix + otherActionsPlace
+
     val actionGroups = getActionGroups()
     val actionManager = ActionManager.getInstance()
     val zoomActionGroup = actionGroups.zoomControlsGroup?.let {
-      createToolbar("ZoomActionsToolbar", actionManager, it, component)
+      createToolbar(toolbarPlace, actionManager, it, component)
     }
     val zoomLabelToolbar = actionGroups.zoomLabelGroup?.let {
-      createToolbar("ZoomLabelToolbar", actionManager, it, component).apply {
+      createToolbar(labelPlace, actionManager, it, component).apply {
         component.border = JBUI.Borders.empty(2)
       }
     }
@@ -138,7 +144,7 @@ abstract class EditorActionsFloatingToolbarProvider(
       }
     }
     otherToolbars.clear()
-    actionGroups.otherGroups.associateWithTo(otherToolbars) { createToolbar("DesignSurfaceFloatingOtherActionsToolbar", actionManager, it, component) }
+    actionGroups.otherGroups.associateWithTo(otherToolbars) { createToolbar(otherPlace, actionManager, it, component) }
 
     floatingToolbar.removeAll()
     if (zoomActionGroup != null || otherToolbars.isNotEmpty() || zoomLabelToolbar != null) {

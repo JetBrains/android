@@ -31,7 +31,7 @@ class DesignSurfaceFloatingActionsToolbarProvider(
   private val designSurface: DesignSurface<*>,
   component: JComponent,
   parentDisposable: Disposable
-) : EditorActionsFloatingToolbarProvider(component, parentDisposable), DesignSurfaceListener {
+) : EditorActionsFloatingToolbarProvider(component, parentDisposable, "Surface"), DesignSurfaceListener {
 
 
   init {
