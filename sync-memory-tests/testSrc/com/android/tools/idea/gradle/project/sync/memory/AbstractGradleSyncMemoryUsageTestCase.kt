@@ -84,17 +84,29 @@ abstract class AbstractGradleSyncMemoryUsageTestCase {
     DefaultGradleConnector.close()
 
     val metricBeforeSync = Metric("${projectName}_Before_Sync")
+    val metricBeforeSyncSoft = Metric("${projectName}_Before_Sync_Soft")
+    val metricBeforeSyncWeak = Metric("${projectName}_Before_Sync_Weak")
+    val metricBeforeSyncTotal = Metric("${projectName}_Before_Sync_Total")
     val metricAfterSync = Metric("${projectName}_After_Sync")
+    val metricAfterSyncSoft = Metric("${projectName}_After_Sync_Soft")
+    val metricAfterSyncWeak = Metric("${projectName}_After_Sync_Weak")
+    val metricAfterSyncTotal = Metric("${projectName}_After_Sync_Total")
     val currentTime = Instant.now().toEpochMilli()
     for (hprofPath in File(snapshotDirectory).walk().filter { !it.isDirectory && it.name.endsWith(".hprof")}.asIterable()) {
       val elapsedTime = measureTimeMillis {
-        val size = eclipseMatHelper.getHeapDumpSize(hprofPath.absolutePath)
-        println("Size of ${hprofPath.name}: $size")
+        val metrics = eclipseMatHelper.getHeapUsageMetrics(hprofPath.absolutePath)
+        println("Size of ${hprofPath.name}: $metrics")
         if (hprofPath.name.contains("before_sync")) {
-          metricBeforeSync.addSamples(BENCHMARK, MetricSample(currentTime, size))
+          metricBeforeSync.addSamples(BENCHMARK, MetricSample(currentTime, metrics.excludeSoftAndWeak()))
+          metricBeforeSyncTotal.addSamples(BENCHMARK, MetricSample(currentTime, metrics.totalUsage))
+          metricBeforeSyncSoft.addSamples(BENCHMARK, MetricSample(currentTime, metrics.softlyReferenced))
+          metricBeforeSyncWeak.addSamples(BENCHMARK, MetricSample(currentTime, metrics.weaklyReferenced))
         }
         if (hprofPath.name.contains("after_sync")) {
-          metricAfterSync.addSamples(BENCHMARK, MetricSample(currentTime, size))
+          metricAfterSync.addSamples(BENCHMARK, MetricSample(currentTime, metrics.excludeSoftAndWeak()))
+          metricAfterSyncTotal.addSamples(BENCHMARK, MetricSample(currentTime, metrics.totalUsage))
+          metricAfterSyncSoft.addSamples(BENCHMARK, MetricSample(currentTime, metrics.softlyReferenced))
+          metricAfterSyncWeak.addSamples(BENCHMARK, MetricSample(currentTime, metrics.weaklyReferenced))
         }
       }
       println("Analysis took $elapsedTime MS.")
@@ -103,8 +115,15 @@ abstract class AbstractGradleSyncMemoryUsageTestCase {
         Files.move(hprofPath.toPath(), testOutputDir.resolve(hprofPath.name))
       }
     }
-    metricAfterSync.commit()
     metricBeforeSync.commit()
+    metricBeforeSyncTotal.commit()
+    metricBeforeSyncSoft.commit()
+    metricBeforeSyncWeak.commit()
+
+    metricAfterSync.commit()
+    metricAfterSyncTotal.commit()
+    metricAfterSyncSoft.commit()
+    metricAfterSyncWeak.commit()
   }
 
   private fun reduceMaxMemory() {
