@@ -182,7 +182,6 @@ class PlatformIntegrationTest {
       """.trimMargin())
   }
 
-  @org.junit.Ignore("b/263899190")
   @Test
   fun testCorrectSyncEventsPublished_reopen() {
     val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
@@ -435,7 +434,6 @@ class PlatformIntegrationTest {
     )
   }
 
-  @org.junit.Ignore("b/263899190")
   @Test
   fun testSimpleApplicationNotAtRoot() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT)
@@ -450,7 +448,6 @@ class PlatformIntegrationTest {
       """.trimMargin())
   }
 
-  @org.junit.Ignore("b/263899190")
   @Test
   fun testSimpleApplicationMultipleRoots() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS)
@@ -468,7 +465,6 @@ class PlatformIntegrationTest {
       """.trimMargin())
   }
 
-  @org.junit.Ignore("b/263899190")
   @Test
   fun testSimpleApplicationReopened() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)

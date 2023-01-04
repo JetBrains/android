@@ -163,12 +163,12 @@ import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.StdModuleTypes.JAVA
+import com.intellij.openapi.progress.blockingContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.AdditionalLibraryRootsProvider
 import com.intellij.openapi.roots.ProjectRootManager
-import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.toCanonicalPath
@@ -196,12 +196,12 @@ import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.kotlin.idea.base.externalSystem.findAll
 import org.jetbrains.kotlin.idea.core.script.configuration.ScriptingSupport
 import org.jetbrains.kotlin.idea.core.script.configuration.listener.ScriptChangeListener
 import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptDependenciesLibraryRootProvider
 import org.jetbrains.kotlin.idea.gradleJava.configuration.CompilerArgumentsCacheMergeManager
 import org.jetbrains.kotlin.idea.gradleTooling.arguments.CompilerArgumentsCacheHolder
-import org.jetbrains.kotlin.idea.base.externalSystem.findAll
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtension
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtensions
 import org.jetbrains.plugins.gradle.model.ExternalProject
@@ -2124,12 +2124,20 @@ private fun <T> openPreparedProject(
 
         // NOTE: `::afterCreate` is passed to both `withAfterCreate` and `openOrImport` because, unfortunately, `openOrImport` does not
         // pass it down to `ProjectOpenProcessor`s.
+
         val project = GradleProjectImporter.withAfterCreate(afterCreate = { project -> afterCreate(project) }) {
           ProjectUtil.openOrImport(
             projectPath.toPath(),
             OpenProjectTask(
               projectToClose = null,
               forceOpenInNewFrame = true
+            ).copy(
+              beforeOpen = {
+                blockingContext {
+                  afterCreate(it)
+                  true
+                }
+              },
             )
           )!!
         }
@@ -2440,11 +2448,6 @@ fun updatePluginsResolutionManagement(origContent: String, pluginDefinitions: St
 
 private fun Project.maybeOutputDiagnostics() {
   if (System.getenv("SYNC_BASED_TESTS_DEBUG_OUTPUT")?.toLowerCase() == "y") {
-    println("Libraries:>")
-    LibraryTablesRegistrar.getInstance()
-      .getLibraryTable(this)
-      .libraries
-      .sortedBy { it.name }
-      .forEach { println(it.name) }
+    // Nothing is needed right now.
   }
 }
