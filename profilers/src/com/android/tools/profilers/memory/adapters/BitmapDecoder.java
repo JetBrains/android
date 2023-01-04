@@ -44,7 +44,7 @@ public final class BitmapDecoder {
     BufferedImage getImage(int w, int h, byte[] data);
   }
 
-  protected static final Map<PixelFormat, BitmapExtractor> SUPPORTED_FORMATS = ImmutableMap.of(
+  private static final Map<PixelFormat, BitmapExtractor> SUPPORTED_FORMATS = ImmutableMap.of(
     PixelFormat.ARGB_8888, new ARGB8888_BitmapExtractor(),
     PixelFormat.RGB_565, new RGB565_BitmapExtractor(),
     PixelFormat.ALPHA_8, new ALPHA8_BitmapExtractor());

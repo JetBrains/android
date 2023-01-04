@@ -1,4 +1,4 @@
-// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 
 package com.android.tools.idea.layoutlib;
 
@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
  * Loads a {@link LayoutLibrary}
  */
 public final class LayoutLibraryLoader {
-  protected static final Logger LOG = Logger.getInstance("#org.jetbrains.android.uipreview.LayoutLibraryLoader");
+  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.uipreview.LayoutLibraryLoader");
 
   private static final Map<IAndroidTarget, LayoutLibrary> ourLibraryCache =
     ContainerUtil.createWeakKeySoftValueMap();

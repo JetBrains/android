@@ -80,8 +80,7 @@ public final class RenderTestUtil {
     RenderTestUtil.waitForRenderTaskDisposeToFinish();
   }
 
-  @Nullable
-  public static RenderResult renderOnSeparateThread(@NotNull final RenderTask task) {
+  public static @Nullable RenderResult renderOnSeparateThread(final @NotNull RenderTask task) {
     // Ensure that we don't render on the read lock (since we want to test that all parts of the
     // rendering system which needs a read lock asks for one!)
     final AtomicReference<RenderResult> holder = new AtomicReference<>();
@@ -102,8 +101,7 @@ public final class RenderTestUtil {
     return holder.get();
   }
 
-  @NotNull
-  public static Device findDeviceById(ConfigurationManager manager, String id) {
+  public static @NotNull Device findDeviceById(ConfigurationManager manager, String id) {
     for (Device device : manager.getDevices()) {
       if (device.getId().equals(id)) {
         return device;
@@ -133,8 +131,7 @@ public final class RenderTestUtil {
     }
   }
 
-  @NotNull
-  public static Configuration getConfiguration(@NotNull Module module, @NotNull VirtualFile file, @NotNull String deviceId) {
+  public static @NotNull Configuration getConfiguration(@NotNull Module module, @NotNull VirtualFile file, @NotNull String deviceId) {
     ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(module);
     Configuration configuration = configurationManager.getConfiguration(file);
     configuration.setDevice(findDeviceById(configurationManager, deviceId), false);
@@ -142,26 +139,23 @@ public final class RenderTestUtil {
     return configuration;
   }
 
-  @NotNull
-  public static Configuration getConfiguration(@NotNull Module module, @NotNull VirtualFile file) {
+  public static @NotNull Configuration getConfiguration(@NotNull Module module, @NotNull VirtualFile file) {
     return getConfiguration(module, file, DEFAULT_DEVICE_ID);
   }
 
-  @NotNull
-  public static Configuration getConfiguration(@NotNull Module module,
-                                           @NotNull VirtualFile file,
-                                           @NotNull String deviceId,
-                                           @NotNull String themeStyle) {
+  public static @NotNull Configuration getConfiguration(@NotNull Module module,
+                                                        @NotNull VirtualFile file,
+                                                        @NotNull String deviceId,
+                                                        @NotNull String themeStyle) {
     Configuration configuration = getConfiguration(module, file, deviceId);
     configuration.setTheme(themeStyle);
     return configuration;
   }
 
-  @NotNull
-  private static RenderTask createRenderTask(@NotNull AndroidFacet facet,
-                                       @NotNull VirtualFile file,
-                                       @NotNull Configuration configuration,
-                                       @NotNull RenderLogger logger) {
+  private static @NotNull RenderTask createRenderTask(@NotNull AndroidFacet facet,
+                                                      @NotNull VirtualFile file,
+                                                      @NotNull Configuration configuration,
+                                                      @NotNull RenderLogger logger) {
     Module module = facet.getModule();
     PsiFile psiFile = ReadAction.compute(() -> PsiManager.getInstance(module.getProject()).findFile(file));
     assertNotNull(psiFile);
@@ -176,7 +170,7 @@ public final class RenderTestUtil {
     return task;
   }
 
-  protected static void withRenderTask(@NotNull AndroidFacet facet,
+  private static void withRenderTask(@NotNull AndroidFacet facet,
                                        @NotNull VirtualFile file,
                                        @NotNull Configuration configuration,
                                        @NotNull RenderLogger logger,
@@ -197,7 +191,7 @@ public final class RenderTestUtil {
     }
   }
 
-  protected static void withRenderTask(@NotNull AndroidFacet facet,
+  static void withRenderTask(@NotNull AndroidFacet facet,
                                         @NotNull VirtualFile file,
                                         @NotNull Configuration configuration,
                                         @NotNull RenderLogger logger,
@@ -209,8 +203,7 @@ public final class RenderTestUtil {
    * @deprecated use {@link withRenderTask} instead
    */
   @Deprecated
-  @NotNull
-  public static RenderTask createRenderTask(@NotNull AndroidFacet facet,
+  public static @NotNull RenderTask createRenderTask(@NotNull AndroidFacet facet,
                                     @NotNull VirtualFile file,
                                     @NotNull Configuration configuration) {
     RenderService renderService = RenderService.getInstance(facet.getModule().getProject());
@@ -262,8 +255,7 @@ public final class RenderTestUtil {
     checkRenderedImage(image, thumbnailPath.replace('/', separatorChar));
   }
 
-  @NotNull
-  private static BufferedImage getImage(@NotNull RenderTask task) {
+  private static @NotNull BufferedImage getImage(@NotNull RenderTask task) {
     // Next try a render
     RenderResult result = Futures.getUnchecked(task.render());
     RenderResult render = renderOnSeparateThread(task);
