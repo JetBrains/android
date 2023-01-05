@@ -70,7 +70,7 @@ generate_test_targets_with_multiple_runs(
     tests = {
         "Benchmark100": "com.android.tools.idea.gradle.project.sync.memory.Benchmark100MemoryTest",
         "Benchmark200": "com.android.tools.idea.gradle.project.sync.memory.Benchmark200MemoryTest",
-        "Benchmark500": "com.android.tools.idea.gradle.project.sync.memory.Benchmark500MemoryTest",
     },
+    #"Benchmark500": "com.android.tools.idea.gradle.project.sync.memory.Benchmark500MemoryTest", # b/264523736
     runtime_deps = [":intellij.android.sync-memory-tests_testlib"],
 )
