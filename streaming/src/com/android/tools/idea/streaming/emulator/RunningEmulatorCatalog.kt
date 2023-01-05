@@ -261,7 +261,8 @@ class RunningEmulatorCatalog : Disposable.Parent {
       for (emulator in removedEmulators) {
         Disposer.dispose(emulator)
       }
-    } catch (e: IOException) {
+    }
+    catch (e: IOException) {
       thisLogger().error("Running Emulator detection failed", e)
 
       synchronized(dataLock) {
@@ -281,7 +282,8 @@ class RunningEmulatorCatalog : Disposable.Parent {
       Files.list(directory).use { stream ->
         stream.filter { fileNamePattern.matcher(it.fileName.toString()).matches() }.toList()
       }
-    } catch (e: NoSuchFileException) {
+    }
+    catch (e: NoSuchFileException) {
       emptyList() // The registration directory hasn't been created yet.
     }
   }
