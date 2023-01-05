@@ -59,7 +59,7 @@ class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
     row {
       launchInToolWindowCheckBox =
         checkBox("Launch in a tool window")
-          .comment("Enabling this setting will cause Android Emulator to launch in a tool window. " +
+          .comment("When this setting is enabled, Android Emulator will launch in the Running Devices tool window. " +
                    "Otherwise Android Emulator will launch as a standalone application.")
           .component
     }
