@@ -18,8 +18,6 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.InteractionHandler
-import com.android.tools.idea.compose.preview.navigation.ComposeViewInfo
-import com.android.tools.idea.compose.preview.navigation.parseViewInfo
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.utils.HtmlBuilder
 import com.intellij.ide.HelpTooltip

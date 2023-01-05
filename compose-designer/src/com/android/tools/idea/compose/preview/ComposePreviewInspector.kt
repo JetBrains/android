@@ -20,8 +20,6 @@ import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.compose.preview.navigation.ComposeViewInfo
-import com.android.tools.idea.compose.preview.navigation.findDeepestHits
 import com.intellij.openapi.ui.popup.JBPopup
 
 /**

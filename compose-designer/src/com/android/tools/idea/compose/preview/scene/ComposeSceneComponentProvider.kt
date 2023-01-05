@@ -22,11 +22,11 @@ import com.android.tools.idea.common.scene.DefaultHitProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
+import com.android.tools.idea.compose.preview.ComposeViewInfo
+import com.android.tools.idea.compose.preview.PxBounds
 import com.android.tools.idea.compose.preview.designinfo.parseDesignInfoList
-import com.android.tools.idea.compose.preview.navigation.ComposeViewInfo
-import com.android.tools.idea.compose.preview.navigation.PxBounds
-import com.android.tools.idea.compose.preview.navigation.isEmpty
-import com.android.tools.idea.compose.preview.navigation.parseViewInfo
+import com.android.tools.idea.compose.preview.isEmpty
+import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.intellij.openapi.diagnostic.Logger

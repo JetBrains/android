@@ -20,7 +20,11 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.compose.preview.ComposeViewInfo
+import com.android.tools.idea.compose.preview.SourceLocation
+import com.android.tools.idea.compose.preview.findHitWithDepth
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigation.LOG
+import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.preview.navigation.DefaultNavigationHandler
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.google.common.annotations.VisibleForTesting

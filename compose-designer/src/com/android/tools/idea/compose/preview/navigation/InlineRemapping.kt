@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.navigation
 
+import com.android.tools.idea.compose.preview.SourceLocation
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
@@ -26,8 +27,8 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiUtil
 import kotlin.math.absoluteValue
 import org.jetbrains.kotlin.idea.debugger.base.util.KotlinSourceMapCache
-import org.jetbrains.kotlin.idea.debugger.core.SourceLineKind
 import org.jetbrains.kotlin.idea.debugger.base.util.isInlineFrameLineNumber
+import org.jetbrains.kotlin.idea.debugger.core.SourceLineKind
 import org.jetbrains.kotlin.idea.debugger.core.mapStacktraceLineToSource
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.jvm.JvmClassName

@@ -20,9 +20,6 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.compose.preview.navigation.ComposeViewInfo
-import com.android.tools.idea.compose.preview.navigation.PxBounds
-import com.android.tools.idea.compose.preview.navigation.SourceLocation
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import java.awt.Point
