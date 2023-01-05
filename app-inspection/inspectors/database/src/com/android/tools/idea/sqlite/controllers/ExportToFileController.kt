@@ -59,7 +59,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.copy
 import com.intellij.util.io.delete
-import com.intellij.util.io.exists
 import com.intellij.util.io.isDirectory
 import com.intellij.util.io.move
 import kotlinx.coroutines.CancellationException
@@ -85,6 +84,7 @@ import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import kotlin.io.path.exists
 
 /**
  * @param downloadDatabase allows to download a database from the device (works for file-based databases (i.e. not in-memory))

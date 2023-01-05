@@ -16,15 +16,14 @@
 package com.android.tools.idea.run.deployment.liveedit
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.module.Module
-import com.intellij.util.io.exists
 import org.jetbrains.kotlin.codegen.inline.InlineCache
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
+import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.base.utils.fqname.getKotlinFqName
 import org.jetbrains.kotlin.idea.codeInsight.DescriptorToSourceUtilsIde
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
-import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtDeclarationWithBody
 import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
 import org.jetbrains.kotlin.psi.KtExpression
@@ -39,6 +38,7 @@ import org.jetbrains.kotlin.serialization.deserialization.descriptors.Deserializ
 import org.jetbrains.kotlin.utils.addIfNotNull
 import java.nio.file.Files
 import java.nio.file.Paths
+import kotlin.io.path.exists
 import kotlin.system.measureTimeMillis
 
 /**

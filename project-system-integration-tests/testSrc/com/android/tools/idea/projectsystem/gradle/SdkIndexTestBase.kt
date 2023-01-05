@@ -23,11 +23,11 @@ import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.lint.checks.GooglePlaySdkIndex
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
-import com.intellij.util.io.exists
 import org.junit.Rule
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import kotlin.concurrent.thread
+import kotlin.io.path.exists
 
 open class SdkIndexTestBase {
   private val snapshotPath = "system/sdk_index/snapshot.gz"

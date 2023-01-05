@@ -92,7 +92,6 @@ import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.io.createDirectories
 import com.intellij.util.io.createFile
 import com.intellij.util.io.delete
-import com.intellij.util.io.exists
 import com.intellij.util.io.isDirectory
 import com.intellij.util.io.isFile
 import com.intellij.util.io.size
@@ -130,6 +129,7 @@ import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.io.path.exists
 
 private const val nonAsciiSuffix = " ąę"
 private const val table1 = "t1$nonAsciiSuffix"

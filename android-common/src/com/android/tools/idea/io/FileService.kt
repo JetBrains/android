@@ -16,9 +16,9 @@
 package com.android.tools.idea.io
 
 import com.intellij.openapi.application.PathManager
-import com.intellij.util.io.exists
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.io.path.exists
 
 /**
  * A service that provides common file operations for temporary files or directories.

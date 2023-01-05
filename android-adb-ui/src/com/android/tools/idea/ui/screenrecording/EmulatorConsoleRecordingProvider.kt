@@ -20,11 +20,11 @@ import com.android.adblib.tools.EmulatorConsole
 import com.android.adblib.tools.localConsoleAddress
 import com.android.adblib.tools.openEmulatorConsole
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.util.io.exists
 import com.intellij.util.io.move
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.nio.file.Path
+import kotlin.io.path.exists
 
 private const val SERIAL_NUMBER_PREFIX = "emulator-"
 

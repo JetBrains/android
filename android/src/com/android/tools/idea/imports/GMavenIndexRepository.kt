@@ -21,7 +21,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.io.HttpRequests
-import com.intellij.util.io.exists
 import com.intellij.util.io.outputStream
 import java.io.IOException
 import java.io.InputStream
@@ -39,6 +38,7 @@ import java.util.Locale
 import java.util.Properties
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.io.path.exists
 
 /** Network connection timeout in milliseconds. */
 private const val NETWORK_TIMEOUT_MILLIS = 3000
