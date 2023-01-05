@@ -670,7 +670,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
         GradleDslElement propertyElement = createExpressionElement(blockElement, assignment, name, right);
         propertyElement.setElementType(DERIVED);
 
-        blockElement.setParsedElement(propertyElement);
+        SharedParserUtilsKt.setMaybeIndirectedElement(blockElement, propertyElement, myDslFile);
       }
       // TODO(xof): handle list setting
       else {
@@ -682,7 +682,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
       propertyElement.setExternalSyntax(ASSIGNMENT);
       propertyElement.setElementType(REGULAR);
 
-      blockElement.setParsedElement(propertyElement);
+      SharedParserUtilsKt.setMaybeIndirectedElement(blockElement, propertyElement, myDslFile);
     }
     return true;
   }

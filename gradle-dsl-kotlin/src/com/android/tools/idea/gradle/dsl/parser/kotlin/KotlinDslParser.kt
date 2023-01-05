@@ -45,6 +45,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElem
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.getPropertiesElement
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement
+import com.android.tools.idea.gradle.dsl.parser.setMaybeIndirectedElement
 import com.google.common.collect.Lists
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -432,7 +433,7 @@ class KotlinDslParser(
           val propertyElement = createExpressionElement(parentBlock, expression, name, right, true) ?: return
           propertyElement.elementType = DERIVED
 
-          parentBlock.setParsedElement(propertyElement)
+          parentBlock.setMaybeIndirectedElement(propertyElement, dslFile)
         }
         else -> return
       }
@@ -442,7 +443,7 @@ class KotlinDslParser(
       propertyElement.externalSyntax = ASSIGNMENT
       propertyElement.elementType = REGULAR
 
-      parentBlock.setParsedElement(propertyElement)
+      parentBlock.setMaybeIndirectedElement(propertyElement, dslFile)
     }
   }
 

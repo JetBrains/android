@@ -736,6 +736,18 @@ class PropertyOrderTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testAddExtBlockAfterPluginsWithSettingsRootProject() {
+    writeToBuildFile(TestFile.ADD_EXT_BLOCK_AFTER_PLUGINS)
+    writeToSettingsFile(TestFile.ROOT_PROJECT_SETTINGS)
+
+    val buildModel = gradleBuildModel
+    buildModel.ext().findProperty("newProp").setValue(true)
+
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_EXT_BLOCK_AFTER_PLUGINS_EXPECTED)
+  }
+
+  @Test
   fun testAddExtBlockAfterPluginsWithAllprojects() {
     writeToSettingsFile(subModuleSettingsText)
     writeToBuildFile(TestFile.ADD_EXT_BLOCK_AFTER_PLUGINS_WITH_ALLPROJECTS)
@@ -895,6 +907,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     ADD_BUILDSCRIPT_BLOCK_BEFORE_PLUGINS_EXPECTED("addBuildscriptBlockBeforePluginsExpected"),
     ADD_EXT_BLOCK_AFTER_BUILDSCRIPT_AND_PLUGINS("addExtBlockAfterBuildscriptAndPlugins"),
     ADD_EXT_BLOCK_AFTER_BUILDSCRIPT_AND_PLUGINS_EXPECTED("addExtBlockAfterBuildscriptAndPluginsExpected"),
+    ROOT_PROJECT_SETTINGS("rootProjectSettings"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

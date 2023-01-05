@@ -204,3 +204,13 @@ fun maybeTrimForParent(element: GradleDslElement, converter: GradleDslNameConver
   parts.addAll(externalNameInfo.externalNameParts)
   return ExternalNameInfo(parts, externalNameInfo.syntax, name.isFake)
 }
+
+fun GradlePropertiesDslElement.setMaybeIndirectedElement(propertyElement: GradleDslElement, originalFile: GradleDslFile) {
+  if (dslFile == originalFile) {
+    setParsedElement(propertyElement)
+    return
+  }
+  originalFile.setParsedElement(propertyElement)
+  originalFile.hideProperty(propertyElement)
+  addAppliedProperty(propertyElement)
+}
