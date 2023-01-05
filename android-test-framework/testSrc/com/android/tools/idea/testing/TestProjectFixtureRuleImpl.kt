@@ -46,6 +46,7 @@ internal class TestProjectFixtureRuleImpl(
 
   private val projectTestFixture = object : IdeaProjectTestFixture {
     private val rootDisposable = Disposer.newDisposable()
+
     // Invoked by JavaCodeInsightTestFixtureImpl.setUp()
     override fun setUp() = Unit
 
@@ -60,7 +61,7 @@ internal class TestProjectFixtureRuleImpl(
     override fun getTestRootDisposable(): Disposable = rootDisposable
   }
 
-  private fun noTestYet() : Nothing = error("Test is not yet running")
+  private fun noTestYet(): Nothing = error("Test is not yet running")
 
   override val fixture: JavaCodeInsightTestFixture = JavaCodeInsightTestFixtureImpl(projectTestFixture, tempDirFixture)
 
@@ -82,29 +83,28 @@ internal class TestProjectFixtureRuleImpl(
         val projectBuilder = IdeaTestFixtureFactory.getFixtureFactory()
           .createFixtureBuilder("p", tempDirFixture.projectDir.parentFile.toPath(), true)
 
-        runInEdtAndWait { projectBuilder.fixture.setUp() }
         aggregateAndThrowIfAny {
-          val jdk = IdeSdks.getInstance().jdk ?: error("Failed to het JDK")
-          Disposer.register(testRootDisposable) { runWriteAction { runCatchingAndRecord { ProjectJdkTable.getInstance().removeJdk(jdk) } } }
-          val preparedProject = testProject.prepareTestProject(
-            integrationTestEnvironment = object : IntegrationTestEnvironment {
-              override fun getBaseTestPath(): String = tempDirFixture.tempDirPath
-            },
-            fixtureName ?: "p",
-            AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
-            null
-          )
-          projectRoot_ = preparedProject.root
-          preparedProject.open { project ->
-            project_ = project
+          usingIdeaTestFixture(projectBuilder.fixture) {
+            withSdksHandled(testRootDisposable) {
+              val preparedProject = testProject.prepareTestProject(
+                integrationTestEnvironment = object : IntegrationTestEnvironment {
+                  override fun getBaseTestPath(): String = tempDirFixture.tempDirPath
+                },
+                fixtureName ?: "p",
+                AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
+                null
+              )
+              projectRoot_ = preparedProject.root
+              preparedProject.open { project ->
+                project_ = project
 
-            fixture.setUp()
-            runCatchingAndRecord { base.evaluate() }
-            runCatchingAndRecord { fixture.tearDown() }
+                fixture.setUp()
+                runCatchingAndRecord { base.evaluate() }
+                runCatchingAndRecord { fixture.tearDown() }
+              }
+              runCatchingAndRecord { Disposer.dispose(projectTestFixture.testRootDisposable) }
+            }
           }
-          runCatchingAndRecord { Disposer.dispose(projectTestFixture.testRootDisposable) }
-          runInEdtAndWait { runCatchingAndRecord { removeAllAndroidSdks() } }
-          runInEdtAndWait { runCatchingAndRecord { projectBuilder.fixture.tearDown() } }
         }
       }
     }
@@ -113,4 +113,13 @@ internal class TestProjectFixtureRuleImpl(
   fun selectModule(module: Module) {
     this.module_ = module
   }
+}
+
+private inline fun AggregateAndThrowIfAnyContext.withSdksHandled(testRootDisposable: Disposable, body: () -> Unit) {
+  val jdk = IdeSdks.getInstance().jdk ?: error("Failed to set JDK")
+  Disposer.register(testRootDisposable) {
+    runWriteAction { runCatchingAndRecord { ProjectJdkTable.getInstance().removeJdk(jdk) } }
+  }
+  runCatchingAndRecord { body() }
+  runInEdtAndWait { runCatchingAndRecord { removeAllAndroidSdks() } }
 }
