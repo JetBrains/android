@@ -71,8 +71,6 @@ class EmptyStatePanelTest {
   private val emptyStatePanel by lazy { createEmptyStatePanel() }
   private val ui by lazy { FakeUi(emptyStatePanel) }
   private val emulatorPackage = FakeLocalPackage(SdkConstants.FD_EMULATOR).apply { setRevision(Revision(31, 3, 10)) }
-  private var savedLaunchInToolWindow = false
-  private var savedDeviceMirroringEnabled = false
   private val executedActions = mutableListOf<String>()
 
   @Before
@@ -86,16 +84,13 @@ class EmptyStatePanelTest {
     val mockAndroidSdks = mock<AndroidSdks>()
     whenever(mockAndroidSdks.tryToChooseSdkHandler()).thenReturn(sdkHandler)
     ApplicationManager.getApplication().replaceService(AndroidSdks::class.java, mockAndroidSdks, testRootDisposable)
-
-    savedLaunchInToolWindow = EmulatorSettings.getInstance().launchInToolWindow
-    savedDeviceMirroringEnabled = DeviceMirroringSettings.getInstance().deviceMirroringEnabled
   }
 
   @After
   fun tearDown() {
     Disposer.dispose(emptyStatePanel)
-    EmulatorSettings.getInstance().launchInToolWindow = savedLaunchInToolWindow
-    DeviceMirroringSettings.getInstance().deviceMirroringEnabled = savedDeviceMirroringEnabled
+    EmulatorSettings.getInstance().loadState(EmulatorSettings())
+    DeviceMirroringSettings.getInstance().loadState(DeviceMirroringSettings())
   }
 
   @Test
