@@ -18,10 +18,14 @@ package com.android.build.attribution.analyzers
 import com.android.SdkConstants
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.getSuccessfulResult
+import com.android.build.output.DownloadRequestItem
+import com.android.build.output.DownloadsInfoExecutionConsole
+import com.android.build.output.DownloadsInfoPresentableEvent
 import com.android.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
@@ -29,23 +33,29 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinitio
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.buildAndWait
+import com.android.tools.idea.testing.requestSyncAndWait
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.runInEdtAndWait
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.net.InetSocketAddress
 import java.util.Base64
+import java.util.concurrent.CopyOnWriteArrayList
 
 class DownloadsAnalyzerTest {
   @get:Rule
@@ -57,10 +67,18 @@ class DownloadsAnalyzerTest {
   private lateinit var server1: HttpServerWrapper
   private lateinit var server2: HttpServerWrapper
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
+  private val syncDownloadInfoExecutionConsoles = CopyOnWriteArrayList<DownloadsInfoExecutionConsole>()
+  private val buildDownloadInfoExecutionConsoles = CopyOnWriteArrayList<DownloadsInfoExecutionConsole>()
+
+  @Before
+  fun setup() {
+    StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION.override(true)
+  }
 
   @After
   fun cleanUp() {
     UsageTracker.cleanAfterTesting()
+    StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION.clearOverride()
   }
 
   @Test
@@ -78,7 +96,12 @@ class DownloadsAnalyzerTest {
     addBuildFileContent(preparedProject)
     addBuildSrcFileContent(preparedProject)
 
-    preparedProject.runTest {
+    preparedProject.runTest(updateOptions = { it.copy(syncViewEventHandler = { event ->
+      if (event is DownloadsInfoPresentableEvent) {
+        val downloadsInfoExecutionConsole = event.presentationData.executionConsole as DownloadsInfoExecutionConsole
+        syncDownloadInfoExecutionConsoles.add(downloadsInfoExecutionConsole)
+      }
+    })}) {
       if (!TestUtils.runningFromBazel()) {
         //TODO (b/240887542): this section seems to be the root cause for the Directory not empty failure.
         //      Changing gradle home starts a new daemon and it seems that sometimes it does not stop before test tries to clean this up.
@@ -92,27 +115,11 @@ class DownloadsAnalyzerTest {
       }
 
       verifyDownloadsInformationOnSyncOutput()
-
+      runSecondSyncAndVerifyNoStaleDataIsPresent()
       // Clear any requests happened on sync.
       HttpServerWrapper.detectedHttpRequests.clear()
-
-      val invocationResult = project.buildAndWait {
-        it.executeTasks(GradleBuildInvoker.Request.builder(project, projectDir, "myTestTask").build())
-      }
-
-      invocationResult.buildError?.let { throw it }
-
-      // Verify interaction with server was as expected.
-      // Sometimes requests can change the order so compare without order.
-      Truth.assertThat(HttpServerWrapper.detectedHttpRequests).containsExactlyElementsIn("""
-      Server1: GET on /example/A/1.0/A-1.0.pom - return error 404
-      Server1: HEAD on /example/A/1.0/A-1.0.jar - return error 404
-      Server2: GET on /example/A/1.0/A-1.0.pom - OK
-      Server1: GET on /example/B/1.0/B-1.0.pom - return error 403
-      Server2: GET on /example/B/1.0/B-1.0.pom - OK
-      Server2: GET on /example/A/1.0/A-1.0.jar - OK
-      Server2: GET on /example/B/1.0/B-1.0.jar - OK
-    """.trimIndent().split("\n"))
+      invokeBuild()
+      verifyInformationOnBuildOutput()
 
       // Verify analyzer result.
       val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
@@ -163,7 +170,7 @@ class DownloadsAnalyzerTest {
     // There are requests to 3 repos, Server1 & Server2 defined below and 'repo.gradle.org'
     Truth.assertThat(syncSetupStartedEvent.downloadsData.repositoriesList).hasSize(3)
     Truth.assertThat(syncSetupStartedEvent.downloadsData.repositoriesList.filter {
-    // Looking for content expected for Server2
+      // Looking for content expected for Server2
       it.successRequestsCount == 4 &&
       it.missedRequestsCount == 4 &&
       it.failedRequestsCount == 0
@@ -175,7 +182,81 @@ class DownloadsAnalyzerTest {
       it.failedRequestsCount == 0
     }).hasSize(1)
     Truth.assertThat(syncSetupStartedEvent.downloadsData).isEqualTo(syncEndedEvent.downloadsData)
+
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+    // Check SyncView content
+    // We should see only one event sent to the view.
+    Truth.assertThat(syncDownloadInfoExecutionConsoles).hasSize(1)
+    val shownItems = syncDownloadInfoExecutionConsoles.single().uiModel.repositoriesTableModel.summaryItem.requests.values
+
+    // Dump all content to the test output.
+    println(shownItems.joinToString(separator = "\n", prefix = "==All presented requests on Sync:\n", postfix = "\n===="))
+
+    // Check all requests in the model are in finished state.
+    Truth.assertThat(shownItems.filterNot { it.completed }).isEmpty()
+
+    //Note: Head requests are not reported on Tooling API currently. (See https://github.com/gradle/gradle/issues/20851)
+    Truth.assertThat(shownItems.filter { it.requestKey.url.contains("/example/") }.map { it.toTestString() })
+      .containsExactlyElementsIn("""
+        ${server1.url}/example/C/1.0/C-1.0.pom - Failed
+        ${server2.url}/example/C/1.0/C-1.0.pom - OK
+        ${server2.url}/example/C/1.0/C-1.0.jar - OK
+        ${server2.url}/example/C/1.0/C-1.0-samplessources.jar - Failed
+        ${server2.url}/example/D/1.0/D-1.0.pom - OK
+        ${server2.url}/example/D/1.0/D-1.0.jar - OK
+      """.trimIndent().split("\n"))
   }
+
+  private fun TestContext.runSecondSyncAndVerifyNoStaleDataIsPresent() {
+    project.requestSyncAndWait()
+    Truth.assertThat(syncDownloadInfoExecutionConsoles).hasSize(2)
+    Truth.assertThat(syncDownloadInfoExecutionConsoles[1].uiModel.repositoriesTableModel.summaryItem.requests.values)
+      .containsNoneIn(syncDownloadInfoExecutionConsoles[0].uiModel.repositoriesTableModel.summaryItem.requests.values)
+  }
+
+  private fun TestContext.invokeBuild() {
+    val invocationResult = project.buildAndWait(
+      eventHandler = { event ->
+        if (event is DownloadsInfoPresentableEvent) {
+          val downloadsInfoExecutionConsole = event.presentationData.executionConsole as DownloadsInfoExecutionConsole
+          buildDownloadInfoExecutionConsoles.add(downloadsInfoExecutionConsole)
+        }
+      }
+    ) {
+      it.executeTasks(GradleBuildInvoker.Request.builder(project, projectDir, "myTestTask").build())
+    }
+
+    invocationResult.buildError?.let { throw it }
+  }
+
+  private fun verifyInformationOnBuildOutput() {
+    println(HttpServerWrapper.detectedHttpRequests.joinToString(separator = "\n", prefix = "==All Detected requests to local servers on Build:\n", postfix = "\n===="))
+    // Verify interaction with server was as expected.
+    // Sometimes requests can change the order so compare without order.
+    Truth.assertThat(HttpServerWrapper.detectedHttpRequests).containsExactlyElementsIn("""
+      Server1: GET on /example/A/1.0/A-1.0.pom - return error 404
+      Server1: HEAD on /example/A/1.0/A-1.0.jar - return error 404
+      Server2: GET on /example/A/1.0/A-1.0.pom - OK
+      Server1: GET on /example/B/1.0/B-1.0.pom - return error 403
+      Server2: GET on /example/B/1.0/B-1.0.pom - OK
+      Server2: GET on /example/A/1.0/A-1.0.jar - OK
+      Server2: GET on /example/B/1.0/B-1.0.jar - OK
+    """.trimIndent().split("\n"))
+    Truth.assertThat(buildDownloadInfoExecutionConsoles).hasSize(1)
+    val shownItems = buildDownloadInfoExecutionConsoles.single().uiModel.repositoriesTableModel.summaryItem.requests.values
+    println(shownItems.joinToString(separator = "\n"))
+    Truth.assertThat(shownItems.filterNot { it.completed }).isEmpty()
+    Truth.assertThat(shownItems.map { it.toTestString() }).containsExactlyElementsIn("""
+      ${server1.url}/example/A/1.0/A-1.0.pom - Failed
+      ${server2.url}/example/A/1.0/A-1.0.pom - OK
+      ${server1.url}/example/B/1.0/B-1.0.pom - Failed
+      ${server2.url}/example/B/1.0/B-1.0.pom - OK
+      ${server2.url}/example/A/1.0/A-1.0.jar - OK
+      ${server2.url}/example/B/1.0/B-1.0.jar - OK
+    """.trimIndent().split("\n"))
+  }
+
+  private fun DownloadRequestItem.toTestString(): String = "${requestKey.url} - ${if (failed) "Failed" else "OK"}"
 
   fun addBuildFileContent(preparedProject: PreparedTestProject) {
     FileUtils.join(preparedProject.root, "app", SdkConstants.FN_BUILD_GRADLE).let { file ->
