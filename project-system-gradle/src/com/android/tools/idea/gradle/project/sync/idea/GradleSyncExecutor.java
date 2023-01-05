@@ -68,7 +68,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
-import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
@@ -84,6 +83,7 @@ import org.jetbrains.plugins.gradle.service.project.GradlePartialResolverPolicy;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver;
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache;
 import org.jetbrains.plugins.gradle.service.project.open.GradleProjectImportUtil;
+import org.jetbrains.plugins.gradle.settings.GradleDefaultProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -170,9 +170,8 @@ public class GradleSyncExecutor {
       return null;
     }
 
-    GradleProjectSettings projectSettings = new GradleProjectSettings();
+    GradleProjectSettings projectSettings = GradleDefaultProjectSettings.createProjectSettings(externalProjectPath);
     GradleProjectImportUtil.setupGradleSettings(GradleSettings.getInstance(project));
-    GradleProjectImportUtil.setupGradleProjectSettings(projectSettings, project, new File(externalProjectPath).toPath());
     GradleJvmResolutionUtil.setupGradleJvm(project, projectSettings, projectSettings.resolveGradleVersion());
     //noinspection unchecked
     ExternalSystemApiUtil.getSettings(project, SYSTEM_ID).linkProject(projectSettings);
