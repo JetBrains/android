@@ -66,6 +66,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
@@ -1789,7 +1790,26 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       return new Point(Coordinates.getSwingXDip(view, sceneComponent.getCenterX()),
                        Coordinates.getSwingYDip(view, sceneComponent.getCenterY()));
     }
-    else if (CommonDataKeys.PSI_ELEMENT.is(dataId)) {
+    else if (PlatformCoreDataKeys.BGT_DATA_PROVIDER.is(dataId)) {
+      return (DataProvider)this::getSlowData;
+    }
+    else {
+      NlModel model = getModel();
+      if (PlatformCoreDataKeys.MODULE.is(dataId) && model != null) {
+        return model.getModule();
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * The data which should be obtained from the background thread.
+   * @see PlatformCoreDataKeys#BGT_DATA_PROVIDER
+   */
+  @Nullable
+  private Object getSlowData(@NotNull String dataId) {
+    if (CommonDataKeys.PSI_ELEMENT.is(dataId)) {
       SceneView view = getFocusedSceneView();
       if (view != null) {
         SelectionModel selectionModel = view.getSelectionModel();
@@ -1811,13 +1831,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
         return list.toArray(XmlTag.EMPTY);
       }
     }
-    else {
-      NlModel model = getModel();
-      if (PlatformCoreDataKeys.MODULE.is(dataId) && model != null) {
-        return model.getModule();
-      }
-    }
-
     return null;
   }
 
