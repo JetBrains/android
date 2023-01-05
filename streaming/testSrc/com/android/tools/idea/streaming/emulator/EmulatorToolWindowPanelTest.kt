@@ -43,7 +43,10 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.configurationStore.deserialize
 import com.intellij.configurationStore.serialize
 import com.intellij.ide.ClipboardSynchronizer
+import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
@@ -65,10 +68,14 @@ import java.awt.PointerInfo
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.event.FocusEvent
+import java.awt.event.InputEvent.CTRL_DOWN_MASK
+import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.KEY_RELEASED
 import java.awt.event.KeyEvent.VK_DOWN
 import java.awt.event.KeyEvent.VK_END
 import java.awt.event.KeyEvent.VK_HOME
 import java.awt.event.KeyEvent.VK_LEFT
+import java.awt.event.KeyEvent.VK_P
 import java.awt.event.KeyEvent.VK_PAGE_DOWN
 import java.awt.event.KeyEvent.VK_PAGE_UP
 import java.awt.event.KeyEvent.VK_RIGHT
@@ -150,6 +157,15 @@ class EmulatorToolWindowPanelTest {
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "Power"""")
+
+    // Check EmulatorPowerButtonAction invoked by a keyboard shortcut.
+    val powerAction = ActionManager.getInstance().getAction("android.emulator.power.button")
+    val keyEvent = KeyEvent(panel, KEY_RELEASED, System.currentTimeMillis(), CTRL_DOWN_MASK, VK_P, 0.toChar())
+    val dataContext = DataManager.getInstance().getDataContext(panel.primaryEmulatorView)
+    powerAction.actionPerformed(AnActionEvent.createFromAnAction(powerAction, keyEvent, "", dataContext))
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Power"""")
 
     // Check EmulatorVolumeUpButtonAction.
     button = ui.getComponent { it.action.templateText == "Volume Up" }

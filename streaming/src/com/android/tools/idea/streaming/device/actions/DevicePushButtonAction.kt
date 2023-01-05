@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.device.actions
 
 import com.android.tools.idea.streaming.PushButtonAction
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
+import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.DeviceConfiguration
 import com.android.tools.idea.streaming.device.KeyEventMessage
@@ -31,18 +32,19 @@ internal open class DevicePushButtonAction(
   configFilter: Predicate<DeviceConfiguration>? = null,
 ) : AbstractDeviceAction(configFilter), PushButtonAction {
 
-  override fun buttonPressed(event: AnActionEvent) {
+  final override fun buttonPressed(event: AnActionEvent) {
     getDeviceController(event)?.sendControlMessage(KeyEventMessage(ACTION_DOWN, keyCode, metaState = 0))
   }
 
-  override fun buttonReleased(event: AnActionEvent) {
+  final override fun buttonReleased(event: AnActionEvent) {
     getDeviceController(event)?.sendControlMessage(KeyEventMessage(ACTION_UP, keyCode, metaState = 0))
   }
 
-  /**
-   * This method is called by the framework but does nothing. Real action happens in
-   * the [buttonPressed] and [buttonReleased] methods.
-   */
+  final override fun buttonPressedAndReleased(event: AnActionEvent) {
+    getDeviceController(event)?.sendControlMessage(KeyEventMessage(ACTION_DOWN_AND_UP, keyCode, metaState = 0))
+  }
+
   final override fun actionPerformed(event: AnActionEvent) {
+    actionPerformedImpl(event)
   }
 }
