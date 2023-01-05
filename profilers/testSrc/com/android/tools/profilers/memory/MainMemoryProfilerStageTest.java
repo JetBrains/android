@@ -800,7 +800,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     myProfilers.getSessionsManager().endCurrentSession();
     // First tick sends the END_SESSION command and triggers the stop recording
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    // Second tick sends the STOP_NATIVE_HEAP_SAMPLE command and updates state
+    // Second tick sends the STOP_TRACE command and updates state
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myStage.isTrackingAllocations()).isFalse();
   }

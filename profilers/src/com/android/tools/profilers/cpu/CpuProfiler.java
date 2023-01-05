@@ -322,8 +322,9 @@ public class CpuProfiler implements StudioProfiler {
       .setPid(session.getPid())
       .setType(Commands.Command.CommandType.STOP_TRACE)
       .setStopTrace(Trace.StopTrace.newBuilder()
-                         .setConfiguration(configuration)
-                         .setNeedTraceResponse(responseHandler != null))
+                      .setProfilerType(Trace.ProfilerType.CPU)
+                      .setConfiguration(configuration)
+                      .setNeedTraceResponse(responseHandler != null))
       .build();
     Transport.ExecuteResponse response = profilers.getClient().getTransportClient().execute(
       Transport.ExecuteRequest.newBuilder().setCommand(stopCommand).build());

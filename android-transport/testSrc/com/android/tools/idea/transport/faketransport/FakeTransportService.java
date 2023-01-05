@@ -149,8 +149,6 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     MemoryAllocTracking allocTrackingHandler = new MemoryAllocTracking(myTimer);
     setCommandHandler(Command.CommandType.START_ALLOC_TRACKING, allocTrackingHandler);
     setCommandHandler(Command.CommandType.STOP_ALLOC_TRACKING, allocTrackingHandler);
-    MemoryNativeSampling nativeSampling = new MemoryNativeSampling(myTimer);
-    setCommandHandler(Command.CommandType.STOP_NATIVE_HEAP_SAMPLE, nativeSampling);
     setCommandHandler(Command.CommandType.MEMORY_ALLOC_SAMPLING, new MemoryAllocSampling(myTimer));
     setCommandHandler(Command.CommandType.HEAP_DUMP, new HeapDump(myTimer));
   }

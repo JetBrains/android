@@ -162,7 +162,7 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
       // Delay JVMTI instrumentation until the user stops the native heap sample recording.
       // This prevents a bug in heapprofd from terminating early.
       configBuilder.setAttachMethod(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND);
-      configBuilder.setAttachCommand(Commands.Command.CommandType.STOP_NATIVE_HEAP_SAMPLE);
+      configBuilder.setAttachCommand(Commands.Command.CommandType.STOP_TRACE);
     }
     else if (runConfig != null && runConfig.getProfilerState().isCpuStartupProfilingEnabled()) {
       // Delay JVMTI instrumentation when a user is doing a startup cpu capture.

@@ -29,6 +29,13 @@ class StopTrace(timer: FakeTimer) : CommandHandler(timer) {
   override fun handleCommand(command: Command, events: MutableList<Common.Event>) {
     val traceId = timer.currentTimeNs
     val endTimestamp = traceId + traceDurationNs
+    // Fake StopTrace command for memory profiler assumes successful stop trace status event
+    if (command.stopTrace.profilerType == Trace.ProfilerType.MEMORY) {
+      this.stopStatus = Trace.TraceStopStatus.newBuilder().apply {
+        status = Trace.TraceStopStatus.Status.SUCCESS
+      }.build()
+    }
+
     lastTraceInfo = Trace.TraceInfo.newBuilder()
       .setTraceId(traceId)
       .setFromTimestamp(traceId)

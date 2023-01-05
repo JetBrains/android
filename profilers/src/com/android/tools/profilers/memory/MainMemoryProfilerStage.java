@@ -258,9 +258,10 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
     Commands.Command dumpCommand = Commands.Command.newBuilder()
       .setStreamId(getSessionData().getStreamId())
       .setPid(getSessionData().getPid())
-      .setType(Commands.Command.CommandType.STOP_NATIVE_HEAP_SAMPLE)
-      .setStopNativeSample(Memory.StopNativeSample.newBuilder()
-                             .setConfiguration(configuration))
+      .setType(Commands.Command.CommandType.STOP_TRACE)
+      .setStopTrace(Trace.StopTrace.newBuilder()
+                      .setProfilerType(Trace.ProfilerType.MEMORY)
+                      .setConfiguration(configuration))
       .build();
 
     getStudioProfilers().getClient().executeAsync(dumpCommand, getStudioProfilers().getIdeServices().getPoolExecutor())
