@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.groovy;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE;
 import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INCOMPLETE_PARSING;
@@ -667,8 +668,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
       name = GradleNameElement.create(ensureUnquotedText(index));
       if (blockElement instanceof GradleDslExpressionMap) {
         GradleDslElement propertyElement = createExpressionElement(blockElement, assignment, name, right);
-        propertyElement.setExternalSyntax(ASSIGNMENT);
-        propertyElement.setElementType(REGULAR);
+        propertyElement.setElementType(DERIVED);
 
         blockElement.setParsedElement(propertyElement);
       }
