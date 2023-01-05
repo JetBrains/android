@@ -22,6 +22,7 @@ import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.stats.FeatureSurveys
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ProjectViewSelectionChangeEvent
@@ -30,7 +31,6 @@ import com.intellij.ide.projectView.impl.PackageViewPane
 import com.intellij.ide.projectView.impl.ProjectViewPane
 import com.intellij.openapi.wm.ToolWindowId
 import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectViewTestUtil
 import com.intellij.testFramework.RunsInEdt
 import org.junit.After
@@ -46,10 +46,7 @@ import java.util.concurrent.TimeUnit
 class ProjectViewListenerTest {
 
   @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
-
-  @get:Rule
-  val edtRule = EdtRule()
+  val projectRule = AndroidProjectRule.onDisk().onEdt()
 
   private val virtualTimeScheduler = VirtualTimeScheduler()
   private val virtualTimeProvider = VirtualTimeDateProvider(virtualTimeScheduler)
@@ -132,7 +129,6 @@ class ProjectViewListenerTest {
     ).inOrder()
   }
 
-  @org.junit.Ignore("b/264210629")
   @Test
   fun testSurveyTriggered() {
     val featureSurveysMock: FeatureSurveys = MockitoKt.mock()
