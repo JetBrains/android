@@ -59,7 +59,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.copy
 import com.intellij.util.io.delete
-import com.intellij.util.io.exists
 import com.intellij.util.io.isDirectory
 import com.intellij.util.io.move
 import java.io.Closeable
@@ -71,6 +70,7 @@ import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import kotlin.io.path.exists
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job

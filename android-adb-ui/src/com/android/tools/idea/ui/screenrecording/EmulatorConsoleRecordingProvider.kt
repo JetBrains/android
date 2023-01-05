@@ -23,7 +23,6 @@ import com.android.tools.idea.ui.AndroidAdbUiBundle
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import com.intellij.util.io.exists
 import com.intellij.util.io.move
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -34,6 +33,7 @@ import kotlinx.coroutines.withContext
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.io.path.exists
 
 private const val SERIAL_NUMBER_PREFIX = "emulator-"
 

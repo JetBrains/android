@@ -18,12 +18,12 @@ package com.android.tools.idea.diagnostics
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.createFile
-import com.intellij.util.io.exists
 import junit.framework.TestCase
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.FileTime
 import kotlin.io.path.createDirectory
+import kotlin.io.path.exists
 
 class DiagnosticsReportCleanerTest : TestCase() {
   lateinit var testDirectoryPath: Path

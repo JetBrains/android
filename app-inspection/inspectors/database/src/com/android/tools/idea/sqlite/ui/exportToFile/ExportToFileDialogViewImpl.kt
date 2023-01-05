@@ -48,7 +48,6 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.components.JBLabel
-import com.intellij.util.io.exists
 import com.intellij.util.io.isDirectory
 import com.jgoodies.common.base.Strings
 import java.io.File
@@ -60,6 +59,7 @@ import javax.swing.JComponent
 import javax.swing.JRadioButton
 import javax.swing.JTextField
 import javax.swing.event.DocumentEvent
+import kotlin.io.path.exists
 
 /** @see ExportToFileDialogView */
 class ExportToFileDialogViewImpl(val project: Project, val params: ExportDialogParams) :

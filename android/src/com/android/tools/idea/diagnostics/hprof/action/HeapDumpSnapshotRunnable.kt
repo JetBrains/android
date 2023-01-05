@@ -38,7 +38,6 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.ui.Messages
 import com.intellij.util.MemoryDumpHelper
-import com.intellij.util.io.exists
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.daemon.common.usedMemory
 import java.io.IOException
@@ -47,6 +46,7 @@ import java.nio.file.Path
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.io.path.exists
 import kotlin.math.max
 
 class HeapDumpSnapshotRunnable(

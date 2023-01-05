@@ -22,7 +22,6 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.util.io.HttpRequests
 import com.intellij.util.io.HttpRequests.HttpStatusException
-import com.intellij.util.io.exists
 import com.intellij.util.io.lastModified
 import java.io.IOException
 import java.io.InputStream
@@ -34,6 +33,7 @@ import java.nio.file.StandardCopyOption
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.createTempFile
 import kotlin.io.path.deleteIfExists
+import kotlin.io.path.exists
 
 private const val CONNECT_TIMEOUT_MS = 5_000
 private const val READ_TIMEOUT_MS = 120_000

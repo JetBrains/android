@@ -24,8 +24,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.TempDirTestFixture
-import com.intellij.util.io.exists
 import com.intellij.util.io.isFile
+import kotlin.io.path.exists
 
 class SqliteCliProviderTest : LightPlatformTestCase() {
   private lateinit var tempDirTestFixture: TempDirTestFixture

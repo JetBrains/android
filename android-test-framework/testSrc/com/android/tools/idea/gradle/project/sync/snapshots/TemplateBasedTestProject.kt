@@ -34,7 +34,7 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.util.io.exists
+import kotlin.io.path.exists
 import org.jetbrains.annotations.SystemIndependent
 import org.w3c.dom.Document
 import java.io.File

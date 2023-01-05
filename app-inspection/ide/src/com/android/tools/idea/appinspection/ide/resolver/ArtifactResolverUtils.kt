@@ -23,10 +23,10 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.util.io.ZipUtil
-import com.intellij.util.io.exists
 import com.intellij.util.io.isDirectory
 import java.nio.file.Path
 import java.util.UUID
+import kotlin.io.path.exists
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 

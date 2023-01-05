@@ -18,7 +18,7 @@ package com.android.tools.idea.tests.gui.framework
 import com.android.tools.idea.stats.ConsentDialog
 import com.android.tools.idea.tests.gui.framework.fixture.ConsentDialogFixture.Companion.find
 import com.intellij.openapi.application.PathManager
-import com.intellij.util.io.exists
+import kotlin.io.path.exists
 import org.fest.swing.core.Robot
 import org.fest.swing.exception.WaitTimedOutError
 import java.lang.Boolean.getBoolean

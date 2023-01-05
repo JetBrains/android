@@ -27,7 +27,6 @@ import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.google.common.base.CaseFormat
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.util.io.exists
 import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
@@ -35,6 +34,7 @@ import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
 import java.io.IOException
 import java.nio.file.Paths
+import kotlin.io.path.exists
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt

@@ -17,7 +17,6 @@ package com.android.tools.idea.streaming.benchmark
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.io.HttpRequests.HttpStatusException
-import com.intellij.util.io.exists
 import com.intellij.util.io.isDirectory
 import com.intellij.util.io.isFile
 import com.sun.net.httpserver.Headers
@@ -31,6 +30,7 @@ import java.io.ByteArrayInputStream
 import java.net.HttpURLConnection
 import java.net.InetSocketAddress
 import java.nio.file.Path
+import kotlin.io.path.exists
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.readBytes
 import kotlin.test.assertFailsWith

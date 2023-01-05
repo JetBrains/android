@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.deployment.liveedit
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.util.io.exists
 import org.jetbrains.kotlin.codegen.inline.InlineCache
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
@@ -34,6 +33,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.HashSet
 import java.util.LinkedHashSet
+import kotlin.io.path.exists
 
 /**
  * This is a cache of class name (fully qualify name such as java/lang/String) to a inlinable source (bytecode on disk or in memory)
