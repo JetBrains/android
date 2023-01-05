@@ -21,6 +21,7 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.IntegrationTestEnvironment
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
+import com.android.tools.idea.testing.ResolvedAgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.resolve
@@ -29,6 +30,7 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.ProjectJdkTable
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.io.exists
@@ -156,48 +158,67 @@ interface TemplateBasedTestProject : TestProjectDefinition {
     }
     patch(agpVersion, root)
 
-    return object : PreparedTestProject {
-      override val root: File = root
-      override fun <T> open(
-        updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions,
-        body: PreparedTestProject.Context.(Project) -> T
-      ): T {
-        val jdkOverride = maybeCreateJdkOverride(resolvedAgpVersion.jdkVersion)
-        try {
-          val tearDown = setup()
-          try {
-            val options = updateOptions(defaultOpenPreparedProjectOptions().copy(overrideProjectJdk = jdkOverride))
-            return integrationTestEnvironment.openPreparedProject(
-              name = "$name$pathToOpen",
-              options = options
-            ) { project ->
-              invokeAndWaitIfNeeded {
-                AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
-              }
-              switchVariant?.let { switchVariant ->
-                switchVariant(project, switchVariant.gradlePath, switchVariant.variant)
-                invokeAndWaitIfNeeded {
-                  AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
-                }
-                verifyOpened?.invoke(project) // Second time.
-              }
-              val context = object: PreparedTestProject.Context {
-                override val project: Project = project
-              }
-              body(context, project)
-            }
-          } finally {
-            tearDown()
+    return PreparedTemplateBasedTestProject(this, root, resolvedAgpVersion, integrationTestEnvironment, name)
+  }
+}
+
+private class PreparedTemplateBasedTestProject(
+  private val templateBasedTestProject: TemplateBasedTestProject,
+  override val root: File,
+  private val resolvedAgpVersion: ResolvedAgpVersionSoftwareEnvironment,
+  private val integrationTestEnvironment: IntegrationTestEnvironment,
+  private val name: String
+) : PreparedTestProject {
+  override fun <T> open(
+    updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions,
+    body: PreparedTestProject.Context.(Project) -> T
+  ): T {
+    maybeWithJdkOverride { jdkOverride ->
+      templateBasedTestProject.usingTestProjectSetup {
+        val options = updateOptions(templateBasedTestProject.defaultOpenPreparedProjectOptions().copy(overrideProjectJdk = jdkOverride))
+        return integrationTestEnvironment.openPreparedProject(
+          name = "$name${templateBasedTestProject.pathToOpen}",
+          options = options
+        ) { project ->
+          invokeAndWaitIfNeeded {
+            AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
           }
-        } finally {
-          jdkOverride?.let {
-            runWriteActionAndWait {
-              ProjectJdkTable.getInstance().removeJdk(it)
+          templateBasedTestProject.switchVariant?.let { switchVariant ->
+            switchVariant(project, switchVariant.gradlePath, switchVariant.variant)
+            invokeAndWaitIfNeeded {
+              AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
             }
+            templateBasedTestProject.verifyOpened?.invoke(project) // Second time.
           }
+          val context = object : PreparedTestProject.Context {
+            override val project: Project = project
+          }
+          body(context, project)
         }
       }
     }
+  }
+
+  private inline fun <T> maybeWithJdkOverride(body: (Sdk?) -> T): T {
+    val jdkOverride = maybeCreateJdkOverride(resolvedAgpVersion.jdkVersion)
+    try {
+      return body(jdkOverride)
+    } finally {
+      jdkOverride?.let {
+        runWriteActionAndWait {
+          ProjectJdkTable.getInstance().removeJdk(it)
+        }
+      }
+    }
+  }
+}
+
+private inline fun <T> TemplateBasedTestProject.usingTestProjectSetup(body: () -> T): T {
+  val tearDown = setup()
+  try {
+    return body()
+  } finally {
+    tearDown()
   }
 }
 
