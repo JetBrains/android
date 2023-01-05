@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.resolve
 import com.android.tools.idea.testing.switchVariant
+import com.android.tools.idea.testing.openProjectAndRunTestWithTestFixturesAvailable
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.project.Project
@@ -90,7 +91,7 @@ interface TemplateBasedTestProject : TestProjectDefinition {
    *
    * It is usually used to configure Studio flags and similar settings.
    */
-  val setup: () -> () -> Unit get() =  { {} }
+  val setup: () -> () -> Unit get() = { {} }
 
 
   /**
@@ -120,7 +121,7 @@ interface TemplateBasedTestProject : TestProjectDefinition {
   /**
    * For compatibility with existing tests.
    */
-  val projectName: String  get() = "${template.removePrefix("projects/")}$pathToOpen${if (testName == null) "" else " - $testName"}"
+  val projectName: String get() = "${template.removePrefix("projects/")}$pathToOpen${if (testName == null) "" else " - $testName"}"
 
   /**
    * Returns the root directory of the source test project in the test data directory.
@@ -173,28 +174,34 @@ private class PreparedTemplateBasedTestProject(
     updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions,
     body: PreparedTestProject.Context.(Project) -> T
   ): T {
-    maybeWithJdkOverride { jdkOverride ->
-      templateBasedTestProject.usingTestProjectSetup {
-        val options = updateOptions(templateBasedTestProject.defaultOpenPreparedProjectOptions().copy(overrideProjectJdk = jdkOverride))
-        return integrationTestEnvironment.openPreparedProject(
-          name = "$name${templateBasedTestProject.pathToOpen}",
-          options = options
-        ) { project ->
+    return openProjectAndRunTestWithTestFixturesAvailable(
+      openProjectImplementation = { openProject(updateOptions, body = it)},
+      testBody = body
+    )
+  }
+
+  private fun <T> openProject(
+    updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions,
+    body: (project: Project, projectRoot: File) -> T
+  ) = maybeWithJdkOverride { jdkOverride ->
+    templateBasedTestProject.usingTestProjectSetup {
+      val options =
+        updateOptions(templateBasedTestProject.defaultOpenPreparedProjectOptions().copy(overrideProjectJdk = jdkOverride))
+      integrationTestEnvironment.openPreparedProject(
+        name = "$name${templateBasedTestProject.pathToOpen}",
+        options = options
+      ) { project ->
+        invokeAndWaitIfNeeded {
+          AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+        }
+        templateBasedTestProject.switchVariant?.let { switchVariant ->
+          switchVariant(project, switchVariant.gradlePath, switchVariant.variant)
           invokeAndWaitIfNeeded {
             AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
           }
-          templateBasedTestProject.switchVariant?.let { switchVariant ->
-            switchVariant(project, switchVariant.gradlePath, switchVariant.variant)
-            invokeAndWaitIfNeeded {
-              AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
-            }
-            templateBasedTestProject.verifyOpened?.invoke(project) // Second time.
-          }
-          val context = object : PreparedTestProject.Context {
-            override val project: Project = project
-          }
-          body(context, project)
+          templateBasedTestProject.verifyOpened?.invoke(project) // Second time.
         }
+        body(project, root)
       }
     }
   }

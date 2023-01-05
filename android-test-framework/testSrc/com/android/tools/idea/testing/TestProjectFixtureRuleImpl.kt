@@ -17,19 +17,16 @@
 
 package com.android.tools.idea.testing
 
+import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition
-import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import com.intellij.testFramework.fixtures.impl.JavaCodeInsightTestFixtureImpl
 import com.intellij.testFramework.runInEdtAndWait
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -39,31 +36,11 @@ internal class TestProjectFixtureRuleImpl(
   private val testProject: TestProjectDefinition
 ) : FixtureRule<JavaCodeInsightTestFixture> {
   private val tempDirFixture = AndroidProjectRuleTempDirectoryFixture("p")
-  private var project_: Project? = null
-  private var projectRoot_: File? = null
-  private var module_: Module? = null
-  val projectRoot: File get() = projectRoot_ ?: noTestYet()
+  private val projectBuilder = IdeaTestFixtureFactory.getFixtureFactory()
+    .createFixtureBuilder("_", tempDirFixture.projectDir.parentFile.toPath(), true)
+  private var projectContext_: PreparedTestProject.Context? = null
 
-  private val projectTestFixture = object : IdeaProjectTestFixture {
-    private val rootDisposable = Disposer.newDisposable()
-
-    // Invoked by JavaCodeInsightTestFixtureImpl.setUp()
-    override fun setUp() = Unit
-
-    // Invoked by JavaCodeInsightTestFixtureImpl.tearDown()
-    override fun tearDown() = Unit
-
-    override fun getProject(): Project = project_ ?: noTestYet()
-
-    override fun getModule(): Module? = module_ ?: project.gradleModule(":app")?.getMainModule()
-
-
-    override fun getTestRootDisposable(): Disposable = rootDisposable
-  }
-
-  private fun noTestYet(): Nothing = error("Test is not yet running")
-
-  override val fixture: JavaCodeInsightTestFixture = JavaCodeInsightTestFixtureImpl(projectTestFixture, tempDirFixture)
+  override val fixture: JavaCodeInsightTestFixture get() = projectContext_?.fixture ?: noTestYet()
 
   override var initAndroid: Boolean
     get() = true
@@ -73,36 +50,33 @@ internal class TestProjectFixtureRuleImpl(
 
   override var fixtureName: String? = null
 
-  override val testRootDisposable: Disposable
-    get() = fixture.testRootDisposable
+  override val testRootDisposable: Disposable = projectBuilder.fixture.testRootDisposable
+
+  val projectRoot: File get() = projectContext_?.projectRoot ?: noTestYet()
 
   override fun apply(base: Statement, description: Description): Statement {
     return object : Statement() {
       @Throws(Throwable::class)
       override fun evaluate() {
-        val projectBuilder = IdeaTestFixtureFactory.getFixtureFactory()
-          .createFixtureBuilder("p", tempDirFixture.projectDir.parentFile.toPath(), true)
-
         aggregateAndThrowIfAny {
-          usingIdeaTestFixture(projectBuilder.fixture) {
-            withSdksHandled(testRootDisposable) {
-              val preparedProject = testProject.prepareTestProject(
-                integrationTestEnvironment = object : IntegrationTestEnvironment {
-                  override fun getBaseTestPath(): String = tempDirFixture.tempDirPath
-                },
-                fixtureName ?: "p",
-                AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
-                null
-              )
-              projectRoot_ = preparedProject.root
-              preparedProject.open { project ->
-                project_ = project
-
-                fixture.setUp()
-                runCatchingAndRecord { base.evaluate() }
-                runCatchingAndRecord { fixture.tearDown() }
+          usingIdeaTestFixture(tempDirFixture) {
+            val tempDirPath = File(tempDirFixture.tempDirPath)
+            val fixtureName = fixtureName ?: "p"
+            usingIdeaTestFixture(projectBuilder.fixture) {
+              withSdksHandled(testRootDisposable) {
+                val preparedProject = testProject.prepareTestProject(
+                  integrationTestEnvironment = object : IntegrationTestEnvironment {
+                    override fun getBaseTestPath(): String = tempDirPath.path
+                  },
+                  fixtureName,
+                  AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
+                  null
+                )
+                preparedProject.open {
+                  projectContext_ = this
+                  base.evaluate()
+                }
               }
-              runCatchingAndRecord { Disposer.dispose(projectTestFixture.testRootDisposable) }
             }
           }
         }
@@ -111,7 +85,7 @@ internal class TestProjectFixtureRuleImpl(
   }
 
   fun selectModule(module: Module) {
-    this.module_ = module
+    (projectContext_ ?: noTestYet()).selectModule(module)
   }
 }
 
@@ -123,3 +97,8 @@ private inline fun AggregateAndThrowIfAnyContext.withSdksHandled(testRootDisposa
   runCatchingAndRecord { body() }
   runInEdtAndWait { runCatchingAndRecord { removeAllAndroidSdks() } }
 }
+
+private fun noTestYet(): Nothing {
+  error("Test is not yet running")
+}
+

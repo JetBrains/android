@@ -19,7 +19,9 @@ import com.android.SdkConstants
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.IntegrationTestEnvironment
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.ThrowableConsumer
 import com.intellij.util.ThrowableConvertor
 import java.io.File
@@ -62,6 +64,9 @@ interface TestProjectDefinition {
 interface PreparedTestProject {
   interface Context {
     val project: Project
+    val projectRoot: File
+    val fixture: JavaCodeInsightTestFixture
+    fun selectModule(module: Module)
   }
 
   fun <T> open(
