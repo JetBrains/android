@@ -39,6 +39,7 @@ class Benchmark500MemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
 }
 
 @RunWith(JarTestSuiteRunner::class)
+@ExcludeClasses(SyncMemoryTestSuite::class)
 object SyncMemoryTestSuite : IdeaTestSuiteBase() {
   @JvmField @ClassRule  val checker = LeakCheckerRule()
   @JvmField @ClassRule  val gradle = GradleDaemonsRule()
