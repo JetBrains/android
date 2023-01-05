@@ -19,6 +19,7 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.sdklib.SdkVersionInfo
+import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.model.AndroidModel
@@ -192,8 +193,6 @@ data class GradleModuleSystemIntegrationTest(
   override fun runTest(root: File, project: Project, expect: Expect) {
     body(project, expect)
   }
-
-  override fun runTest(root: File, project: Project) = error("Another variant is overriden")
 }
 
 private val String.gradleCoordinate

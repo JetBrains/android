@@ -64,8 +64,9 @@ interface SyncedProjectTestDef : AgpIntegrationTestDefinition {
    * Note, it is ok to throw exceptions/assertions directly. They will be caught and aggregated in a similar to `Expect` rule manner,
    * however [expect] allows multiple failures to be recorded from a single [SyncedProjectTestDef].
    */
+  fun PreparedTestProject.Context.runTest(root: File, project: Project, expect: Expect) = this@SyncedProjectTestDef.runTest(root, project, expect)
   fun runTest(root: File, project: Project, expect: Expect) = runTest(root, project)
-  fun runTest(root: File, project: Project)
+  fun runTest(root: File, project: Project): Unit = error("At least one runTest has to be overridden")
 
   /**
    * Verified any data captured by listeners registered in [setup].
@@ -140,7 +141,7 @@ abstract class SyncedProjectTestBase<TestProject: TemplateBasedTestProject>(
         ) { project ->
           tests.forEach {
             println("${it::class.java.simpleName}(${testProject.projectName})\n    $preparedProject.root")
-            runCatchingAndRecord { it.runTest(preparedProject.root, project, expectRule) }
+            runCatchingAndRecord { with(it) { this@open.runTest(preparedProject.root, project, expectRule) } }
           }
         }
         tests.forEach {
