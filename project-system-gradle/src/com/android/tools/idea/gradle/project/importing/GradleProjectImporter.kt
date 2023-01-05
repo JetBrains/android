@@ -52,9 +52,8 @@ import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.ExceptionUtil
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.plugins.gradle.service.project.open.setupGradleProjectSettings
 import org.jetbrains.plugins.gradle.service.project.open.setupGradleSettings
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
+import org.jetbrains.plugins.gradle.settings.GradleDefaultProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
@@ -206,9 +205,7 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
           gradleSettings.unlinkExternalProject(setting.externalProjectPath)
         }
       }
-      val projectSettings = GradleProjectSettings()
-      @Suppress("UnstableApiUsage")
-      projectSettings.setupGradleProjectSettings(newProject, File(externalProjectPath).toPath())
+      val projectSettings = GradleDefaultProjectSettings.createProjectSettings(externalProjectPath)
       // Set gradleJvm to USE_PROJECT_JDK since this setting is only available in the PSD for Android Studio and use embedded jdk
       projectSettings.gradleJvm = ExternalSystemJdkUtil.USE_PROJECT_JDK
       ExternalSystemApiUtil.getSettings(newProject, GradleConstants.SYSTEM_ID).linkProject(projectSettings)
