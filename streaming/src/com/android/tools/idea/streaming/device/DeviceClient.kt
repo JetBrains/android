@@ -79,24 +79,24 @@ internal class DeviceClient(
   private val project: Project
 ) : Disposable {
 
-  private val coroutineScope = AndroidCoroutineScope(this)
-  private lateinit var controlChannel: SuspendingSocketChannel
-  private lateinit var videoChannel: SuspendingSocketChannel
+  val deviceName: String = deviceConfig.deviceName ?: deviceSerialNumber
   @Volatile
   var videoDecoder: VideoDecoder? = null
     private set
   @Volatile
   var deviceController: DeviceController? = null
     private set
-  private val connectionState = AtomicReference<CompletableDeferred<Unit>>()
-  private var videoStreamActive = AtomicBoolean()
   internal var startTime = 0L // Time when startAgentAndConnect was called.
   internal var pushEndTime = 0L // Time when the agent push completed.
   internal var startAgentTime = 0L // Time when the command to start the agent was issued.
   internal var channelConnectedTime = 0L // Time when the channels were connected.
+  private val coroutineScope = AndroidCoroutineScope(this)
+  private lateinit var controlChannel: SuspendingSocketChannel
+  private lateinit var videoChannel: SuspendingSocketChannel
+  private val connectionState = AtomicReference<CompletableDeferred<Unit>>()
+  private var videoStreamActive = AtomicBoolean()
   private val logger = thisLogger()
   private val agentTerminationListeners = createLockFreeCopyOnWriteList<AgentTerminationListener>()
-  val deviceName: String = deviceConfig.deviceName ?: deviceSerialNumber
 
   init {
     Disposer.register(disposableParent, this)
