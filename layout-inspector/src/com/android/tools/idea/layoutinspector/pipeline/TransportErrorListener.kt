@@ -27,7 +27,6 @@ import com.android.tools.profiler.proto.Agent
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorTransportError
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 
 /**

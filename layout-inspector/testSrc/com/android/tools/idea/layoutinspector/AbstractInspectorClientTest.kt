@@ -28,8 +28,6 @@ import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.Futures.immediateFuture
-import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.openapi.Disposable
@@ -45,7 +43,6 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.net.Socket
 import java.nio.file.Path
-import java.util.concurrent.CompletableFuture
 
 class AbstractInspectorClientTest {
 
