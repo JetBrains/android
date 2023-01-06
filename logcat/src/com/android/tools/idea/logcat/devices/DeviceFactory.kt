@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.logcat.devices
 
-import com.android.adblib.AdbSession
+import com.android.adblib.AdbDeviceServices
 import com.android.adblib.DevicePropertyNames.RO_BOOT_QEMU_AVD_NAME
 import com.android.adblib.DevicePropertyNames.RO_BUILD_VERSION_RELEASE
 import com.android.adblib.DevicePropertyNames.RO_BUILD_VERSION_SDK
@@ -24,26 +24,41 @@ import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MANUFACTURER
 import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MODEL
 import com.android.adblib.DeviceSelector
 import com.android.adblib.shellAsText
-import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.logcat.util.LOGGER
-import com.intellij.openapi.project.Project
 import java.time.Duration
+import java.util.concurrent.TimeoutException
 
-private val ADB_TIMEOUT = Duration.ofMillis(1000)
+private val adbTimeout = Duration.ofMillis(1000)
+private const val ADB_RETRIES = 3
 
 /** Reads from a running device and creates a [Device] */
-internal class DeviceFactory(project: Project) {
-  private val adbSession: AdbSession = AdbLibService.getSession(project)
+internal class DeviceFactory(private val deviceServices: AdbDeviceServices) {
 
   suspend fun createDevice(serialNumber: String): Device {
-    if (serialNumber.startsWith("emulator-")) {
+    repeat(ADB_RETRIES) {
+      try {
+        return createDeviceInternal(serialNumber)
+      }
+      catch (e: TimeoutException) {
+        LOGGER.warn("Timed out getting device properties: $serialNumber (attempt ${it + 1}")
+      }
+    }
+    LOGGER.warn("Failed to get device properties: $serialNumber. Using default name")
+    return when {
+      serialNumber.isEmulatorSerialNumber() -> Device.createEmulator(serialNumber, isOnline = true, "Unknown", 0, serialNumber)
+      else -> Device.createPhysical(serialNumber, isOnline = true, "Unknown", 0, "Unknown", "Unknown")
+    }
+  }
+
+  private suspend fun createDeviceInternal(serialNumber: String): Device {
+    return if (serialNumber.isEmulatorSerialNumber()) {
       val properties = getProperties(
         serialNumber,
         RO_BUILD_VERSION_RELEASE,
         RO_BUILD_VERSION_SDK,
         RO_BOOT_QEMU_AVD_NAME,
         RO_KERNEL_QEMU_AVD_NAME)
-      return Device.createEmulator(
+      Device.createEmulator(
         serialNumber,
         isOnline = true,
         properties.getValue(RO_BUILD_VERSION_RELEASE),
@@ -57,7 +72,7 @@ internal class DeviceFactory(project: Project) {
         RO_BUILD_VERSION_SDK,
         RO_PRODUCT_MANUFACTURER,
         RO_PRODUCT_MODEL)
-      return Device.createPhysical(
+      Device.createPhysical(
         serialNumber,
         isOnline = true,
         properties.getValue(RO_BUILD_VERSION_RELEASE),
@@ -73,7 +88,7 @@ internal class DeviceFactory(project: Project) {
     val command = properties.joinToString(" ; ") { "getprop $it" }
     //TODO: Check for `stderr` and `exitCode` to report errors
     //TODO: Maybe use `AdbDeviceServices.deviceProperties(selector).allReadonly()` to take advantage of caching
-    val lines = adbSession.deviceServices.shellAsText(selector, command, commandTimeout = ADB_TIMEOUT).stdout.split("\n")
+    val lines = deviceServices.shellAsText(selector, command, commandTimeout = adbTimeout).stdout.split("\n")
     return properties.withIndex().associate { it.value to lines[it.index].trimEnd('\r') }
   }
 
@@ -83,3 +98,5 @@ internal class DeviceFactory(project: Project) {
       serialNumber
     }
 }
+
+private fun String.isEmulatorSerialNumber() = startsWith("emulator-")

@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat.devices
 
 import com.android.adblib.AdbSession
 import com.android.adblib.DeviceInfo
+import com.android.adblib.DeviceList
 import com.android.adblib.DeviceState.ONLINE
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
@@ -30,7 +31,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import java.io.IOException
@@ -40,7 +40,7 @@ import kotlin.coroutines.CoroutineContext
  * An implementation of IDeviceComboBoxDeviceTracker that uses an [AdbSession]
  */
 internal class DeviceComboBoxDeviceTracker(
-  private val project: Project,
+  project: Project,
   private val preexistingDevice: Device?,
   private val coroutineContext: CoroutineContext = Dispatchers.IO,
 ) : IDeviceComboBoxDeviceTracker {
@@ -71,11 +71,24 @@ internal class DeviceComboBoxDeviceTracker(
   private suspend fun FlowCollector<DeviceEvent>.trackDevicesInternal() {
     val onlineDevicesBySerial = mutableMapOf<String, Device>()
     val allDevicesById = mutableMapOf<String, Device>()
-    val deviceFactory = DeviceFactory(project)
+    val deviceFactory = DeviceFactory(adbSession.deviceServices)
+
+    fun logDevices(devices: DeviceList, label: String) {
+      if (LOGGER.isDebugEnabled) {
+        LOGGER.debug("trackDevices: $label (${devices.entries.size})")
+        devices.entries.forEach {
+          LOGGER.debug("trackDevices:   $it")
+        }
+        LOGGER.debug("trackDevices:   onlineDevicesBySerial = $onlineDevicesBySerial")
+        LOGGER.debug("trackDevices:   allDevicesById        = $allDevicesById")
+      }
+    }
 
     // Initialize state by reading all current devices
     coroutineScope {
       val devices = adbSession.hostServices.devices()
+      logDevices(devices, "Initial deviceList")
+
       devices.filter { it.isOnline() }.map { async { deviceFactory.createDevice(it.serialNumber) } }.awaitAll().forEach {
         onlineDevicesBySerial[it.serialNumber] = it
         allDevicesById[it.deviceId] = it
@@ -89,36 +102,41 @@ internal class DeviceComboBoxDeviceTracker(
       emit(Added(preexistingDevice))
     }
 
-    // Track devices changes:
-    // We only care about devices that are online.
-    // If a previously unknown device comes online, we emit Added
-    // If a previously known device comes online, we emit StateChanged
-    // If previously online device is missing from the list, we emit a StateChanged.
-    adbSession.hostServices.trackDevices().collect { deviceList ->
-      val devices = deviceList.entries.filter { it.isOnline() }.associateBy { it.serialNumber }
-      devices.values.forEach {
-        val serialNumber = it.serialNumber
-        if (!onlineDevicesBySerial.containsKey(serialNumber)) {
-          val device = deviceFactory.createDevice(it.serialNumber)
-          if (allDevicesById.containsKey(device.deviceId)) {
-            emit(StateChanged(device))
+    try {
+      // Track devices changes:
+      // We only care about devices that are online.
+      // If a previously unknown device comes online, we emit Added
+      // If a previously known device comes online, we emit StateChanged
+      // If previously online device is missing from the list, we emit a StateChanged.
+      adbSession.hostServices.trackDevices().collect { deviceList ->
+        logDevices(deviceList, "deviceList")
+        val devices = deviceList.entries.filter { it.isOnline() }.associateBy { it.serialNumber }
+        devices.values.forEach {
+          val serialNumber = it.serialNumber
+          if (!onlineDevicesBySerial.containsKey(serialNumber)) {
+            val device = deviceFactory.createDevice(it.serialNumber)
+            if (allDevicesById.containsKey(device.deviceId)) {
+              emit(StateChanged(device))
+            }
+            else {
+              emit(Added(device))
+            }
+            onlineDevicesBySerial[serialNumber] = device
+            allDevicesById[device.deviceId] = device
           }
-          else {
-            emit(Added(device))
-          }
-          onlineDevicesBySerial[serialNumber] = device
-          allDevicesById[device.deviceId] = device
+        }
+
+        // Find devices that were online and are not anymore, then remove them.
+        onlineDevicesBySerial.keys.filter { !devices.containsKey(it) }.forEach {
+          val device = onlineDevicesBySerial[it] ?: return@forEach
+          val deviceOffline = device.copy(isOnline = false)
+          emit(StateChanged(deviceOffline))
+          onlineDevicesBySerial.remove(it)
+          allDevicesById[device.deviceId] = deviceOffline
         }
       }
-
-      // Find devices that were online and are not anymore, then remove them.
-      onlineDevicesBySerial.keys.filter { !devices.containsKey(it) }.forEach {
-        val device = onlineDevicesBySerial[it] ?: return@forEach
-        val deviceOffline = device.copy(isOnline = false)
-        emit(StateChanged(deviceOffline))
-        onlineDevicesBySerial.remove(it)
-        allDevicesById[device.deviceId] = deviceOffline
-      }
+    } finally {
+      LOGGER.debug("trackDevices: Flow ended")
     }
   }
 }
