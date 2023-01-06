@@ -33,20 +33,34 @@ fun DataNode<ModuleData>.setupCompilerOutputPaths(variant: IdeVariant? = null, i
   val androidModel = ExternalSystemApiUtil.find(this, AndroidProjectKeys.ANDROID_MODEL)?.data ?: return
   val selectedVariant = variant ?: androidModel.selectedVariantCore
 
-  // TODO(b/232780259): Look for the compilation output folder. We can have both java and kotlin compilation outputs in classesFolder(IDEA-235250).
-  val sourceCompilerOutput = selectedVariant.mainArtifact.classesFolder.first().absolutePath
-  val testCompilerOutput = selectedVariant.unitTestArtifact?.classesFolder?.first()?.absolutePath
-
-
   data.useExternalCompilerOutput(isDelegatedBuildUsed)
   data.isInheritProjectCompileOutputPath = false
   // MPSS: Set compilation data for Gradle sourceSets too.
   for (sourceSet in ExternalSystemApiUtil.findAll(this, GradleSourceSetData.KEY)) {
     val sourceSetData = sourceSet.data
-    if (IdeModuleWellKnownSourceSet.fromName(sourceSetData.moduleName) == null) {
+    val knownSourceSet = IdeModuleWellKnownSourceSet.fromName(sourceSetData.moduleName)
+    if (knownSourceSet == null) {
       // Ignore any non-Android source sets e.g in a KMP project
       continue
     }
+    val artifact = when(knownSourceSet) {
+      IdeModuleWellKnownSourceSet.MAIN -> selectedVariant.mainArtifact
+      IdeModuleWellKnownSourceSet.TEST_FIXTURES -> selectedVariant.testFixturesArtifact
+      IdeModuleWellKnownSourceSet.UNIT_TEST -> selectedVariant.unitTestArtifact
+      IdeModuleWellKnownSourceSet.ANDROID_TEST -> selectedVariant.androidTestArtifact
+    }
+    val isTestScope = when(knownSourceSet) {
+      IdeModuleWellKnownSourceSet.MAIN -> false
+      IdeModuleWellKnownSourceSet.TEST_FIXTURES -> true
+      IdeModuleWellKnownSourceSet.UNIT_TEST -> true
+      IdeModuleWellKnownSourceSet.ANDROID_TEST -> true
+    }
+
+    // TODO(b/232780259): Look for the compilation output folder. We can have both java and kotlin compilation outputs in classesFolder(IDEA-235250).
+
+    val sourceCompilerOutput = if (!isTestScope) artifact?.classesFolder?.firstOrNull()?.absolutePath else null
+    val testCompilerOutput = if (isTestScope) artifact?.classesFolder?.firstOrNull()?.absolutePath else null
+
     // The compiler output paths are not inherited here as every moduleData can have its own path.
     // In order for CompilerModuleExtension to use the compiler paths of each module, we need to make sure that
     // isInheritProjectCompileOutputPath is set to false.
@@ -57,11 +71,6 @@ fun DataNode<ModuleData>.setupCompilerOutputPaths(variant: IdeVariant? = null, i
     sourceSetData.setExternalCompilerOutputPath(ExternalSystemSourceType.SOURCE, sourceCompilerOutput)
     sourceSetData.setExternalCompilerOutputPath(ExternalSystemSourceType.TEST, testCompilerOutput)
   }
-
-  data.setCompileOutputPath(ExternalSystemSourceType.SOURCE, null)
-  data.setCompileOutputPath(ExternalSystemSourceType.TEST, null)
-  data.setExternalCompilerOutputPath(ExternalSystemSourceType.SOURCE, sourceCompilerOutput)
-  data.setExternalCompilerOutputPath(ExternalSystemSourceType.TEST, testCompilerOutput)
 }
 
 

@@ -64,8 +64,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/NonStandardSourceSetDependencies.app.iml [-]
@@ -145,8 +143,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -293,7 +290,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/NonStandardSourceSetDependencies.app.main.iml [-]
@@ -427,7 +423,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -1129,8 +1124,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/feature-a
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/feature-a/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/feature-a/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/feature-a/NonStandardSourceSetDependencies.feature-a.iml [-]
@@ -1202,8 +1195,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/feature-a
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/feature-a/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/feature-a/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/feature-a/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -1384,7 +1376,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/feature-a/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/feature-a/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/feature-a/NonStandardSourceSetDependencies.feature-a.main.iml [-]
@@ -1532,7 +1523,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/feature-a
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/feature-a/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/feature-a/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -1709,8 +1699,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/feature-b
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/feature-b/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/feature-b/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/feature-b/NonStandardSourceSetDependencies.feature-b.iml [-]
@@ -1782,8 +1770,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/feature-b
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/feature-b/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/feature-b/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/feature-b/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -2098,7 +2085,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/feature-b/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/feature-b/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/feature-b/NonStandardSourceSetDependencies.feature-b.main.iml [-]
@@ -2247,7 +2233,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/feature-b
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/feature-b/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/feature-b/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -2793,8 +2778,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/kmp-java/sample-test
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample-test/NonStandardSourceSetDependencies.kmp-java.sample-test.iml [-]
@@ -2866,8 +2849,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/kmp-java/sample-test
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -2962,7 +2944,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample-test/NonStandardSourceSetDependencies.kmp-java.sample-test.main.iml [-]
@@ -3056,7 +3037,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/kmp-java/sample-test
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -3546,8 +3526,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/lib/NonStandardSourceSetDependencies.lib.iml [-]
@@ -3619,8 +3597,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -3779,7 +3756,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/lib/NonStandardSourceSetDependencies.lib.main.iml [-]
@@ -3900,7 +3876,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true

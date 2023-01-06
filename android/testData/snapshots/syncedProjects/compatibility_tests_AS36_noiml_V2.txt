@@ -37,8 +37,6 @@ PROJECT                       : AS36_noiml
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/AS36_noiml.app.iml [-]
@@ -118,8 +116,7 @@ PROJECT                       : AS36_noiml
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -272,9 +269,9 @@ PROJECT                       : AS36_noiml
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             Scope                         : Test
         Classes
+            -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
-            -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
@@ -322,7 +319,6 @@ PROJECT                       : AS36_noiml
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/AS36_noiml.app.main.iml [-]
@@ -457,7 +453,6 @@ PROJECT                       : AS36_noiml
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -659,8 +654,6 @@ PROJECT                       : AS36_noiml
         LinkedProjectPath             : <PROJECT>/features/dynamicfeature
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/features/dynamicfeature/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/features/dynamicfeature/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature/AS36_noiml.features.dynamicfeature.iml [-]
@@ -736,8 +729,7 @@ PROJECT                       : AS36_noiml
         LinkedProjectPath             : <PROJECT>/features/dynamicfeature
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/features/dynamicfeature/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/features/dynamicfeature/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/features/dynamicfeature/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -838,7 +830,6 @@ PROJECT                       : AS36_noiml
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/features/dynamicfeature/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/features/dynamicfeature/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature/AS36_noiml.features.dynamicfeature.main.iml [-]
@@ -933,7 +924,6 @@ PROJECT                       : AS36_noiml
         LinkedProjectPath             : <PROJECT>/features/dynamicfeature
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/features/dynamicfeature/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/features/dynamicfeature/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -1030,8 +1020,6 @@ PROJECT                       : AS36_noiml
         LinkedProjectPath             : <PROJECT>/features/dynamicfeature2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/features/dynamicfeature2/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/features/dynamicfeature2/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature2/AS36_noiml.features.dynamicfeature2.iml [-]
@@ -1107,8 +1095,7 @@ PROJECT                       : AS36_noiml
         LinkedProjectPath             : <PROJECT>/features/dynamicfeature2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/features/dynamicfeature2/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/features/dynamicfeature2/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/features/dynamicfeature2/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -1209,7 +1196,6 @@ PROJECT                       : AS36_noiml
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/features/dynamicfeature2/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/features/dynamicfeature2/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature2/AS36_noiml.features.dynamicfeature2.main.iml [-]
@@ -1304,7 +1290,6 @@ PROJECT                       : AS36_noiml
         LinkedProjectPath             : <PROJECT>/features/dynamicfeature2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/features/dynamicfeature2/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/features/dynamicfeature2/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -1428,8 +1413,6 @@ PROJECT                       : AS36_noiml
         LinkedProjectPath             : <PROJECT>/libs/android_library
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/libs/android_library/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/libs/android_library/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/libs/android_library/AS36_noiml.libs.android_library.iml [-]
@@ -1501,8 +1484,7 @@ PROJECT                       : AS36_noiml
         LinkedProjectPath             : <PROJECT>/libs/android_library
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/libs/android_library/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/libs/android_library/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/libs/android_library/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -1655,9 +1637,9 @@ PROJECT                       : AS36_noiml
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             Scope                         : Test
         Classes
+            -                             : file://<PROJECT>/libs/android_library/build/intermediates/javac/debugAndroidTest/classes
             -                             : file://<PROJECT>/libs/android_library/build/intermediates/javac/debugUnitTest/classes
             -                             : jar://<PROJECT>/libs/android_library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar!/
-            -                             : file://<PROJECT>/libs/android_library/build/intermediates/javac/debugAndroidTest/classes
             -                             : jar://<PROJECT>/libs/android_library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
             -                             : file://<PROJECT>/libs/android_library/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
@@ -1697,7 +1679,6 @@ PROJECT                       : AS36_noiml
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/libs/android_library/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/libs/android_library/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/libs/android_library/AS36_noiml.libs.android_library.main.iml [-]
@@ -1824,7 +1805,6 @@ PROJECT                       : AS36_noiml
         LinkedProjectPath             : <PROJECT>/libs/android_library
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/libs/android_library/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/libs/android_library/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true

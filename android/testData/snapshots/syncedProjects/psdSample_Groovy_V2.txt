@@ -37,8 +37,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/basicBarDebug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/basicBarDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.iml [-]
@@ -118,8 +116,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/basicBarDebug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/basicBarDebugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/basicBarDebugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -349,7 +346,6 @@ PROJECT                       : project
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/basicBarDebug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/basicBarDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.main.iml [-]
@@ -523,7 +519,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/basicBarDebug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/basicBarDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -720,8 +715,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/dyn_feature
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/dyn_feature/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/dyn_feature/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/project.dyn_feature.iml [-]
@@ -797,8 +790,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/dyn_feature
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/dyn_feature/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/dyn_feature/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/dyn_feature/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -897,7 +889,6 @@ PROJECT                       : project
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/dyn_feature/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/dyn_feature/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/project.dyn_feature.main.iml [-]
@@ -991,7 +982,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/dyn_feature
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/dyn_feature/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/dyn_feature/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -1200,8 +1190,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/lib/project.lib.iml [-]
@@ -1273,8 +1261,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -1431,7 +1418,6 @@ PROJECT                       : project
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/lib/project.lib.main.iml [-]
@@ -1556,7 +1542,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -1709,8 +1694,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested1/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested1/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested1/project.nested1.iml [-]
@@ -1782,8 +1765,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested1/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested1/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/nested1/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -1878,8 +1860,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested1/deep
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested1/deep/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested1/deep/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/project.nested1.deep.iml [-]
@@ -1951,8 +1931,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested1/deep
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested1/deep/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested1/deep/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/nested1/deep/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -2047,7 +2026,6 @@ PROJECT                       : project
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/nested1/deep/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested1/deep/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/project.nested1.deep.main.iml [-]
@@ -2137,7 +2115,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested1/deep
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested1/deep/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/nested1/deep/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -2228,7 +2205,6 @@ PROJECT                       : project
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/nested1/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested1/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested1/project.nested1.main.iml [-]
@@ -2318,7 +2294,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested1/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/nested1/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -2409,8 +2384,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested2/build/intermediates/javac/basicDebug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested2/build/intermediates/javac/basicDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/project.nested2.iml [-]
@@ -2482,8 +2455,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested2/build/intermediates/javac/basicDebug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested2/build/intermediates/javac/basicDebugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/nested2/build/intermediates/javac/basicDebugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -2595,8 +2567,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested2/deep
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested2/deep/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested2/deep/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/project.nested2.deep.iml [-]
@@ -2668,8 +2638,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested2/deep
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested2/deep/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested2/deep/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/nested2/deep/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -2764,7 +2733,6 @@ PROJECT                       : project
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/nested2/deep/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested2/deep/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/project.nested2.deep.main.iml [-]
@@ -2854,7 +2822,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested2/deep
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested2/deep/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/nested2/deep/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -2945,7 +2912,6 @@ PROJECT                       : project
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/nested2/build/intermediates/javac/basicDebug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested2/build/intermediates/javac/basicDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/project.nested2.main.iml [-]
@@ -3080,8 +3046,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested2/trans/deep2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested2/trans/deep2/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested2/trans/deep2/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/project.nested2.trans.deep2.iml [-]
@@ -3153,8 +3117,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested2/trans/deep2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested2/trans/deep2/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested2/trans/deep2/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/nested2/trans/deep2/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -3249,7 +3212,6 @@ PROJECT                       : project
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/nested2/trans/deep2/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested2/trans/deep2/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/project.nested2.trans.deep2.main.iml [-]
@@ -3339,7 +3301,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested2/trans/deep2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested2/trans/deep2/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/nested2/trans/deep2/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -3429,7 +3390,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested2/build/intermediates/javac/basicDebug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/nested2/build/intermediates/javac/basicDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
