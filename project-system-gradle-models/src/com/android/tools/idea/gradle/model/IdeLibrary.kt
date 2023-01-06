@@ -167,52 +167,6 @@ enum class IdeModuleWellKnownSourceSet(
   }
 }
 
-interface IdePreResolvedModuleLibrary : IdeLibrary {
-  /**
-   * Returns the gradle path.
-   */
-  val projectPath: String
-
-  /**
-   * Returns an optional variant name if the consumed artifact of the library is associated to
-   * one.
-   */
-  val variant: String?
-
-  /**
-   * Returns the build id.
-   */
-  val buildId: String
-
-  /**
-   * Returns the sourceSet associated with the library.
-   */
-  val sourceSet: IdeModuleSourceSet
-}
-
-interface IdeUnresolvedModuleLibrary : IdeLibrary {
-  /**
-   * Returns the gradle path.
-   */
-  val projectPath: String
-
-  /**
-   * Returns an optional variant name if the consumed artifact of the library is associated to
-   * one.
-   */
-  val variant: String?
-
-  /**
-   * Returns the build id.
-   */
-  val buildId: String
-
-  /**
-   * The artifact that this module dependency is targeting, this is only populated when V2 models are used
-   */
-  val artifact: File
-}
-
 interface IdeModuleLibrary : IdeLibrary {
   /**
    * Returns the gradle path.

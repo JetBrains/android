@@ -84,7 +84,7 @@ internal class SyncProjectActionWorker(
       getAdditionalClassifierArtifactsModel(
         actionRunner,
         androidModules,
-        internedModels::resolve,
+        internedModels::lookup,
         syncOptions.additionalClassifierArtifactsAction.cachedLibraries,
         syncOptions.additionalClassifierArtifactsAction.downloadAndroidxUISamplesSources
       )
@@ -317,7 +317,7 @@ internal class SyncProjectActionWorker(
           is SyncVariantResultCoreFailure -> SyncVariantResultFailure(syncVariantResultCore)
           is SyncVariantResultCoreSuccess -> SyncVariantResultSuccess(
             syncVariantResultCore,
-            syncVariantResultCore.getModuleDependencyConfigurations(selectedVariants, androidModulesById, internedModels::resolve),
+            syncVariantResultCore.getModuleDependencyConfigurations(selectedVariants, androidModulesById, internedModels::lookup),
           )
         }
       }

@@ -18,24 +18,21 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
-import com.android.tools.idea.gradle.model.IdeLibrary
+import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
-import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
-import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnknownLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedModuleLibraryImpl
-import org.jetbrains.annotations.TestOnly
 import java.io.File
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 class InternedModels(private val buildRootDirectory: File?) {
   private val strings: MutableMap<String, String> = HashMap()
-  private val libraries: MutableList<IdeLibrary> = mutableListOf()
+  private val libraries: MutableList<IdeUnresolvedLibrary> = mutableListOf()
 
   // Library names are expected to be unique, and thus we track already allocated library names to be able to uniqualize names when
   // necessary.
@@ -47,11 +44,11 @@ class InternedModels(private val buildRootDirectory: File?) {
   // We use mutable [Instances] objects to keep record of already instantiated and named library objects for each of the cases.
   private val androidLibraries: MutableMap<IdeAndroidLibraryImpl, Pair<LibraryReference, IdeAndroidLibraryImpl>> = HashMap()
   private val javaLibraries: MutableMap<IdeJavaLibraryImpl, Pair<LibraryReference, IdeJavaLibraryImpl>> = HashMap()
-  private val moduleLibraries: MutableMap<IdeLibrary, Pair<LibraryReference, IdeLibrary>> = HashMap()
-  private val unknownLibraries: MutableMap<IdeLibrary, Pair<LibraryReference, IdeLibrary>> = HashMap()
+  private val moduleLibraries: MutableMap<IdeUnresolvedLibrary, Pair<LibraryReference, IdeUnresolvedLibrary>> = HashMap()
+  private val unknownLibraries: MutableMap<IdeUnresolvedLibrary, Pair<LibraryReference, IdeUnresolvedLibrary>> = HashMap()
   var artifactToLibraryReferenceMap: Map<File, LibraryReference>? = null ; private set
 
-  fun resolve(reference: LibraryReference): IdeLibrary = libraries[reference.libraryIndex]
+  fun lookup(reference: LibraryReference): IdeUnresolvedLibrary = libraries[reference.libraryIndex]
 
   fun intern(string: String): String {
     return strings.getOrPut(string) { string }
@@ -113,7 +110,7 @@ class InternedModels(private val buildRootDirectory: File?) {
    * Note: Naming mechanism is going to change in the future when dependencies and libraries are separated. We will try to assign more
    * meaningful names to libraries representing different artifact variants under the same Gradle coordinates.
    */
-  private fun <T : IdeLibrary> MutableMap<T, Pair<LibraryReference, T>>.createOrGetLibrary(
+  private fun <T : IdeUnresolvedLibrary> MutableMap<T, Pair<LibraryReference, T>>.createOrGetLibrary(
     unnamed: T,
     factory: (unnamed: T) -> T
   ): LibraryReference {

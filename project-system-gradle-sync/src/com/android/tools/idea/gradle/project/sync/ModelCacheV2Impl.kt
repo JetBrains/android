@@ -72,6 +72,7 @@ import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.MAIN
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.TEST_FIXTURES
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeTestOptions
+import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
@@ -1362,7 +1363,7 @@ internal fun modelCacheV2Impl(
   }
 
   return object : ModelCache.V2 {
-    override val libraryResolver: (LibraryReference) -> IdeLibrary = internedModels::resolve
+    override val libraryLookup: (LibraryReference) -> IdeUnresolvedLibrary = internedModels::lookup
     override fun createLibraryTable(): IdeUnresolvedLibraryTableImpl = internedModels.createLibraryTable()
 
     override fun variantFrom(

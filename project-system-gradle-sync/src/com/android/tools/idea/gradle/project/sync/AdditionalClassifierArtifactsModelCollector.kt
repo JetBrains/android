@@ -18,14 +18,14 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.ide.gradle.model.AdditionalClassifierArtifactsModelParameter
 import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
-import com.android.tools.idea.gradle.model.IdeLibrary
+import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import org.gradle.tooling.BuildController
 
 internal fun getAdditionalClassifierArtifactsModel(
   actionRunner: GradleInjectedSyncActionRunner,
   inputModules: List<AndroidModule>,
-  libraryResolver: (LibraryReference) -> IdeLibrary,
+  libraryResolver: (LibraryReference) -> IdeUnresolvedLibrary,
   cachedLibraries: Collection<String>,
   downloadAndroidxUISamplesSources: Boolean
 ) {

@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
 import com.android.tools.idea.gradle.model.IdeUnknownDependency
 import com.android.tools.idea.gradle.model.IdeUnknownLibrary
+import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedModuleLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import org.jetbrains.annotations.VisibleForTesting
@@ -83,7 +84,7 @@ class IdeLibraryModelResolverImpl @VisibleForTesting constructor(
 }
 
 interface IdeUnresolvedLibraryTable {
-  val libraries: List<IdeLibrary>
+  val libraries: List<IdeUnresolvedLibrary>
 }
 
 interface IdeResolvedLibraryTable {
@@ -91,7 +92,7 @@ interface IdeResolvedLibraryTable {
 }
 
 data class IdeUnresolvedLibraryTableImpl(
-  override val libraries: List<IdeLibrary>
+  override val libraries: List<IdeUnresolvedLibrary>
 ) : IdeUnresolvedLibraryTable, Serializable
 
 data class IdeResolvedLibraryTableImpl(

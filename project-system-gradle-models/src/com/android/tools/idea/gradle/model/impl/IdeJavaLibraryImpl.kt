@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.model.impl
 
-import com.android.tools.idea.gradle.model.IdeJavaLibrary
+import com.android.tools.idea.gradle.model.IdeUnresolvedJavaLibrary
 import java.io.File
 import java.io.Serializable
 
@@ -26,7 +26,7 @@ data class IdeJavaLibraryImpl(
   override val artifactAddress: String,
   override val name: String,
   override val artifact: File
-) : IdeJavaLibrary, Serializable {
+) : IdeUnresolvedJavaLibrary, Serializable {
   // Used for serialization by the IDE.
   internal constructor() : this(
     artifactAddress = "",

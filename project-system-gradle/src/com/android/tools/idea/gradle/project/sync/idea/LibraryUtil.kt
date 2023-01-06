@@ -16,13 +16,13 @@
 package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.tools.idea.gradle.model.IdeAndroidLibrary
-import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
-import com.android.tools.idea.gradle.model.IdeUnknownLibrary
+import com.android.tools.idea.gradle.model.IdeUnresolvedAndroidLibrary
+import com.android.tools.idea.gradle.model.IdeUnresolvedJavaLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedModuleLibrary
+import com.android.tools.idea.gradle.model.IdeUnresolvedUnknownLibrary
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
@@ -139,12 +139,11 @@ private fun IdeUnresolvedLibraryTable.resolve(
   return IdeResolvedLibraryTableImpl(
     libraries.map {
       when (it) {
-        is IdeJavaLibrary -> listOf(it)
-        is IdeAndroidLibrary -> listOf(it)
-        is IdeModuleLibrary -> error("Unexpected resolved library: $it")
         is IdeUnresolvedModuleLibrary -> resolve(it)
         is IdePreResolvedModuleLibrary -> resolve(it)
-        is IdeUnknownLibrary -> listOf(it)
+        is IdeUnresolvedUnknownLibrary -> listOf(it)
+        is IdeUnresolvedAndroidLibrary -> listOf(it)
+        is IdeUnresolvedJavaLibrary -> listOf(it)
       }
     }
   )

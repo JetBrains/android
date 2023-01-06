@@ -25,9 +25,9 @@ import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
-import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
+import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
@@ -142,7 +142,7 @@ sealed class AndroidModule constructor(
   /** Returns the list of all libraries this currently selected variant depends on (and temporarily maybe some
    * libraries other variants depend on).
    **/
-  fun getLibraryDependencies(libraryResolver: (LibraryReference) -> IdeLibrary): Collection<ArtifactIdentifier> {
+  fun getLibraryDependencies(libraryResolver: (LibraryReference) -> IdeUnresolvedLibrary): Collection<ArtifactIdentifier> {
     return collectIdentifiers(listOfNotNull(syncedVariant?.variant), libraryResolver)
   }
 
@@ -348,7 +348,7 @@ fun Collection<String>.getDefaultOrFirstItem(defaultValue: String): String? =
 
 private fun collectIdentifiers(
   variants: Collection<IdeVariantCoreImpl>,
-  libraryResolver: (LibraryReference) -> IdeLibrary
+  libraryResolver: (LibraryReference) -> IdeUnresolvedLibrary
 ): List<ArtifactIdentifier> {
   return variants.asSequence()
     .flatMap {
