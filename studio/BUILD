@@ -232,6 +232,7 @@ studio_plugin(
             "//tools/base/deploy/deployer:studio.android.sdktools.deployer",
             "//tools/base/device_validator:studio.android.sdktools.dvlib",
             "//tools/base/draw9patch:studio.android.sdktools.draw9patch",
+            "//tools/base/jdwp-packet:studio.android.sdktools.jdwppacket",
             "//tools/base/jdwp-tracer:studio.android.sdktools.jdwptracer",
             "//tools/base/lint:studio.android.sdktools.lint-api",
             "//tools/base/lint:studio.android.sdktools.lint-checks",
