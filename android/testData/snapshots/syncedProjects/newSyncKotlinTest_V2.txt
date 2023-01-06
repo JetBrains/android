@@ -65,7 +65,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
@@ -866,7 +865,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :awesomeandroidlibrary
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary
             EXCLUDE_FOLDER                : file://<PROJECT>/awesomeandroidlibrary/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/awesomeandroidlibrary/build [-]
@@ -1555,7 +1553,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :contentLib
         CONENT_ENTRY                  : file://<PROJECT>/contentLib
             EXCLUDE_FOLDER                : file://<PROJECT>/contentLib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/contentLib/build

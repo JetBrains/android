@@ -85,7 +85,6 @@ public class GradleFacet extends Facet<GradleFacetConfiguration> {
 
   public void setGradleModuleModel(@NotNull GradleModuleModel gradleModuleModel) {
     myGradleModuleModel = gradleModuleModel;
-    getConfiguration().GRADLE_PROJECT_PATH = myGradleModuleModel.getGradlePath();
     getConfiguration().LAST_KNOWN_AGP_VERSION = myGradleModuleModel.getAgpVersion();
   }
 }

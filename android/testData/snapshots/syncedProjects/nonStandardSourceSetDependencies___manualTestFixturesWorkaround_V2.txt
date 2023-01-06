@@ -41,7 +41,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :aarWrapperLib
         CONENT_ENTRY                  : file://<PROJECT>/aarWrapperLib
             EXCLUDE_FOLDER                : file://<PROJECT>/aarWrapperLib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/aarWrapperLib/build
@@ -93,7 +92,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
@@ -576,7 +574,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :common
         CONENT_ENTRY                  : file://<PROJECT>/common
             EXCLUDE_FOLDER                : file://<PROJECT>/common/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/common/build
@@ -942,7 +939,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :desktop
         CONENT_ENTRY                  : file://<PROJECT>/desktop
             EXCLUDE_FOLDER                : file://<PROJECT>/desktop/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/desktop/build [-]
@@ -1161,7 +1157,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :feature-a
         CONENT_ENTRY                  : file://<PROJECT>/feature-a
             EXCLUDE_FOLDER                : file://<PROJECT>/feature-a/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/feature-a/build [-]
@@ -1742,7 +1737,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :feature-b
         CONENT_ENTRY                  : file://<PROJECT>/feature-b
             EXCLUDE_FOLDER                : file://<PROJECT>/feature-b/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/feature-b/build [-]
@@ -2424,7 +2418,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :jarWrapperLib
         CONENT_ENTRY                  : file://<PROJECT>/jarWrapperLib
             EXCLUDE_FOLDER                : file://<PROJECT>/jarWrapperLib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/jarWrapperLib/build
@@ -2452,7 +2445,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :javaLibrary
         CONENT_ENTRY                  : file://<PROJECT>/javaLibrary
             EXCLUDE_FOLDER                : file://<PROJECT>/javaLibrary/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/javaLibrary/build
@@ -2739,7 +2731,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :kmp-java
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java
             EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/build [-]
@@ -2767,7 +2758,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :kmp-java:sample
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample
             EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/sample/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/sample/build [-]
@@ -2831,7 +2821,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :kmp-java:sample-test
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test
             EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/sample-test/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/sample-test/build [-]
@@ -3585,7 +3574,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :lib
         CONENT_ENTRY                  : file://<PROJECT>/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/build

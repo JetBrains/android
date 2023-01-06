@@ -65,7 +65,6 @@ PROJECT                       : project_sm_src
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>_sm_src/app
             EXCLUDE_FOLDER                : file://<PROJECT>_sm_src/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>_sm_src/app/build [-]

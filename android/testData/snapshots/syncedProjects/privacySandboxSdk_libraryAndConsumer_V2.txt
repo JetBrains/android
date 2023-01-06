@@ -41,7 +41,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :ads-sdk
         CONENT_ENTRY                  : file://<PROJECT>/ads-sdk
             EXCLUDE_FOLDER                : file://<PROJECT>/ads-sdk/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/ads-sdk/build
@@ -93,7 +92,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :ads-sdk-implementation
         CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation
             EXCLUDE_FOLDER                : file://<PROJECT>/ads-sdk-implementation/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/ads-sdk-implementation/build [-]
@@ -544,7 +542,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
@@ -627,7 +624,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :app-with-dynamic-feature
         CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature
             EXCLUDE_FOLDER                : file://<PROJECT>/app-with-dynamic-feature/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app-with-dynamic-feature/build [-]
@@ -1864,7 +1860,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :feature
         CONENT_ENTRY                  : file://<PROJECT>/feature
             EXCLUDE_FOLDER                : file://<PROJECT>/feature/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/feature/build [-]

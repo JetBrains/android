@@ -65,7 +65,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
@@ -650,7 +649,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :javalib1
         CONENT_ENTRY                  : file://<PROJECT>/javalib1
             EXCLUDE_FOLDER                : file://<PROJECT>/javalib1/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/javalib1/build [-]
@@ -780,7 +778,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :javalib2
         CONENT_ENTRY                  : file://<PROJECT>/javalib2
             EXCLUDE_FOLDER                : file://<PROJECT>/javalib2/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/javalib2/build [-]
@@ -922,7 +919,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :library1
         CONENT_ENTRY                  : file://<PROJECT>/library1
             EXCLUDE_FOLDER                : file://<PROJECT>/library1/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/library1/build [-]
@@ -1472,7 +1468,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :library2
         CONENT_ENTRY                  : file://<PROJECT>/library2
             EXCLUDE_FOLDER                : file://<PROJECT>/library2/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/library2/build [-]

@@ -35,7 +35,6 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :
         CONENT_ENTRY                  : file://<TEMP>
             EXCLUDE_FOLDER                : file://<TEMP>/.gradle [-]
             EXCLUDE_FOLDER                : file://<TEMP>/build [-]

@@ -63,7 +63,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_1/app
             EXCLUDE_FOLDER                : file://<PROJECT>/gradle_project_1/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/gradle_project_1/app/build [-]
@@ -677,7 +676,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_2/app
             EXCLUDE_FOLDER                : file://<PROJECT>/gradle_project_2/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/gradle_project_2/app/build [-]

@@ -32,7 +32,6 @@ import org.jetbrains.annotations.NotNull;
  * Configuration options for the Android-Gradle facet. In Android Studio, these options <em>cannot</em> be directly changed by users.
  */
 public class GradleFacetConfiguration implements FacetConfiguration {
-  @NonNls public String GRADLE_PROJECT_PATH;
   @NonNls public String LAST_SUCCESSFUL_SYNC_AGP_VERSION;
   @NonNls public String LAST_KNOWN_AGP_VERSION;
 

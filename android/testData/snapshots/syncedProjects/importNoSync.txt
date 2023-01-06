@@ -15,7 +15,6 @@ PROJECT                       : testImportNoSync
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :
         CONENT_ENTRY                  : file://<PROJECT>
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true

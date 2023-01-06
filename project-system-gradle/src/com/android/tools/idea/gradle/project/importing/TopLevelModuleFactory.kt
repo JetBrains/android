@@ -141,7 +141,6 @@ class TopLevelModuleFactory() {
         @Suppress("UnstableApiUsage")
         facetModel.addFacet(gradleFacet, ExternalSystemApiUtil.toExternalSource(GradleConstants.SYSTEM_ID))
       }
-      gradleFacet.configuration.GRADLE_PROJECT_PATH = SdkConstants.GRADLE_PATH_SEPARATOR
     } finally {
       facetModel.commit()
     }

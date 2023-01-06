@@ -65,7 +65,6 @@ PROJECT                       : BuildSrcWithComposite
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
@@ -935,7 +934,6 @@ PROJECT                       : BuildSrcWithComposite
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc
             EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/build
@@ -963,7 +961,6 @@ PROJECT                       : BuildSrcWithComposite
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :lib1
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib1
             EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/lib1/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/lib1/build
@@ -1046,7 +1043,6 @@ PROJECT                       : BuildSrcWithComposite
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :lib2
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib2
             EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/lib2/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/lib2/build
@@ -1446,7 +1442,6 @@ PROJECT                       : BuildSrcWithComposite
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/android-included/app
             EXCLUDE_FOLDER                : file://<PROJECT>/android-included/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/android-included/app/build [-]
@@ -2153,7 +2148,6 @@ PROJECT                       : BuildSrcWithComposite
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :lib
         CONENT_ENTRY                  : file://<PROJECT>/android-included/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/android-included/lib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/android-included/lib/build [-]
@@ -2664,7 +2658,6 @@ PROJECT                       : BuildSrcWithComposite
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :
         CONENT_ENTRY                  : file://<PROJECT>/java-included
             EXCLUDE_FOLDER                : file://<PROJECT>/java-included/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/java-included/build
