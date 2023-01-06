@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
-import com.android.tools.idea.gradle.model.IdeVariant
+import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
@@ -29,7 +29,7 @@ import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
  */
 // TODO(b/213887150) : once this bug is fixed and we have code coverage exclusively with Jacoco, then this can be deleted.
 @JvmOverloads
-fun DataNode<ModuleData>.setupCompilerOutputPaths(variant: IdeVariant? = null, isDelegatedBuildUsed: Boolean) {
+fun DataNode<ModuleData>.setupCompilerOutputPaths(variant: IdeVariantCore? = null, isDelegatedBuildUsed: Boolean) {
   val androidModel = ExternalSystemApiUtil.find(this, AndroidProjectKeys.ANDROID_MODEL)?.data ?: return
   val selectedVariant = variant ?: androidModel.selectedVariantCore
 

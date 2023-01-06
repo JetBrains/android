@@ -30,8 +30,9 @@ import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.android.tools.idea.gradle.model.IdeBaseArtifact
+import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
+import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
@@ -52,7 +53,8 @@ import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
-import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
+import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
@@ -91,6 +93,8 @@ import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor.SKIPPE
 import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getIdeModuleSourceSet
+import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.toWellKnownSourceSet
+import com.android.tools.idea.gradle.project.sync.idea.ResolvedLibraryTableBuilder
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.project.sync.idea.setupAndroidContentEntriesPerSourceSet
 import com.android.tools.idea.gradle.project.sync.idea.setupAndroidDependenciesForMpss
@@ -113,6 +117,8 @@ import com.android.tools.idea.projectsystem.SourceProvidersFactory
 import com.android.tools.idea.projectsystem.TestProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
+import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.android.tools.idea.projectsystem.gradle.buildNamePrefixedGradleProjectPath
@@ -835,7 +841,7 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
                    listOf(
                      IdeDependencyCoreImpl(
                        internedModels.getOrCreate(
-                         IdeModuleLibraryImpl(
+                         IdePreResolvedModuleLibraryImpl(
                            buildId = buildId,
                            projectPath = gradleProjectPath,
                            variant = variant,
@@ -897,7 +903,7 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
                    listOf(
                      IdeDependencyCoreImpl(
                        internedModels.getOrCreate(
-                         IdeModuleLibraryImpl(
+                         IdePreResolvedModuleLibraryImpl(
                            buildId = buildId,
                            projectPath = gradleProjectPath,
                            variant = variant,
@@ -933,7 +939,7 @@ private fun AndroidProjectStubBuilder.toIdeModuleDependencies(androidModuleDepen
   androidModuleDependencies.map {
     IdeDependencyCoreImpl(
       internedModels.getOrCreate(
-        IdeModuleLibraryImpl(
+        IdePreResolvedModuleLibraryImpl(
           projectPath = it.moduleGradlePath,
           buildId = this.buildId,
           variant = it.variant,
@@ -951,7 +957,7 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
     dependencies = listOf(
       IdeDependencyCoreImpl(
         internedModels.getOrCreate(
-          IdeModuleLibraryImpl(
+          IdePreResolvedModuleLibraryImpl(
             buildId = buildId,
             projectPath = gradleProjectPath,
             variant = variant,
@@ -1317,6 +1323,10 @@ fun Project.readAndClearLastSyncRequest(): GradleSyncInvoker.Request? {
   }
 }
 
+private fun interface MappingRecorder {
+  fun add(moduleId: String, projectPath: GradleProjectPath, node: DataNode<out ModuleData>)
+}
+
 private fun setupTestProjectFromAndroidModelCore(
   project: Project,
   rootProjectBasePath: File,
@@ -1384,9 +1394,15 @@ private fun setupTestProjectFromAndroidModelCore(
   )
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
+  var idToPath = mutableMapOf<String, GradleProjectPath>()
+  val pathToNode = mutableMapOf<GradleProjectPath, DataNode<out ModuleData>>()
+  val mappingRecorder = MappingRecorder { id, path, node ->
+    idToPath[id] = path
+    pathToNode[path] = node
+  }
+
   val androidModels = mutableListOf<GradleAndroidModelData>()
   val internedModels = InternedModels(null)
-  val libraryResolver = IdeLibraryModelResolverImpl { sequenceOf(internedModels.resolve(it)) }
   val featureToBase = mutableMapOf<String, String>()
   moduleBuilders.forEach { moduleBuilder ->
     val gradlePath = moduleBuilder.gradlePath
@@ -1416,6 +1432,7 @@ private fun setupTestProjectFromAndroidModelCore(
         }
 
         createAndroidModuleDataNode(
+          gradleRoot = rootProjectBasePath,
           qualifiedModuleName = qualifiedModuleName,
           gradlePath = gradlePath,
           groupId = moduleBuilder.groupId,
@@ -1426,10 +1443,10 @@ private fun setupTestProjectFromAndroidModelCore(
           agpVersion = moduleBuilder.agpVersion,
           androidProject = androidProject.populateBaseFeature(),
           variants = variants.let { if (!setupAllVariants) it.filter { it.name == moduleBuilder.selectedBuildVariant } else it },
-          libraryResolver = libraryResolver,
           ndkModel = ndkModel,
           selectedVariantName = moduleBuilder.selectedBuildVariant,
-          selectedAbiName = moduleBuilder.selectedAbiVariant
+          selectedAbiName = moduleBuilder.selectedAbiVariant,
+          mappingRecorder = mappingRecorder
         ).also { androidModelDataNode ->
           val model = ExternalSystemApiUtil.find(androidModelDataNode, AndroidProjectKeys.ANDROID_MODEL)?.data
           if (model != null) {
@@ -1440,6 +1457,7 @@ private fun setupTestProjectFromAndroidModelCore(
 
       is JavaModuleModelBuilder ->
         createJavaModuleDataNode(
+          gradleRoot = rootProjectBasePath,
           parentModuleOrProjectName = projectName,
           qualifiedModuleName = qualifiedModuleName,
           gradlePath = gradlePath,
@@ -1448,22 +1466,32 @@ private fun setupTestProjectFromAndroidModelCore(
           imlBasePath = imlBasePath,
           moduleBasePath = moduleBasePath,
           buildable = moduleBuilder.buildable,
-          isBuildSrc = moduleBuilder.isBuildSrc
+          isBuildSrc = moduleBuilder.isBuildSrc,
+          mappingRecorder = mappingRecorder
         )
     }
     projectDataNode.addChild(moduleDataNode)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }
-  projectDataNode.createChild(
-    AndroidProjectKeys.IDE_LIBRARY_TABLE,
-    internedModels.createResolvedLibraryTable()
-  )
+
+  val unresolvedTable = internedModels.createLibraryTable()
+  val resolvedTable = ResolvedLibraryTableBuilder(
+    getGradlePathBy = idToPath::get,
+    getModuleDataNode = pathToNode::get,
+    resolveArtifact = { null }
+  ).buildResolvedLibraryTable(unresolvedTable)
+  val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTable(resolvedTable)
   projectDataNode.createChild(
     AndroidProjectKeys.IDE_COMPOSITE_BUILD_MAP,
     IdeCompositeBuildMapImpl(
       builds = listOf(IdeBuildImpl(buildName = ":", buildId = rootProjectBasePath)),
       gradleSupportsDirectTaskInvocation = true
     )
+  )
+
+  projectDataNode.createChild(
+    AndroidProjectKeys.IDE_LIBRARY_TABLE,
+    resolvedTable
   )
 
   setupDataNodesForSelectedVariant(project, toSystemIndependentName(rootProjectBasePath.path), androidModels, projectDataNode,
@@ -1493,6 +1521,7 @@ private fun setupTestProjectFromAndroidModelCore(
 }
 
 private fun createAndroidModuleDataNode(
+  gradleRoot: File,
   qualifiedModuleName: String,
   gradlePath: String,
   groupId: String?,
@@ -1503,10 +1532,10 @@ private fun createAndroidModuleDataNode(
   agpVersion: String?,
   androidProject: IdeAndroidProjectImpl,
   variants: Collection<IdeVariantCoreImpl>,
-  libraryResolver: IdeLibraryModelResolver,
   ndkModel: NdkModel?,
   selectedVariantName: String,
-  selectedAbiName: String?
+  selectedAbiName: String?,
+  mappingRecorder: MappingRecorder
 ): DataNode<ModuleData> {
 
   val moduleDataNode = createGradleModuleDataNode(
@@ -1518,6 +1547,7 @@ private fun createAndroidModuleDataNode(
     imlBasePath = imlBasePath,
     moduleBasePath = moduleBasePath
   )
+  mappingRecorder.add(moduleDataNode.data.id, GradleHolderProjectPath(toSystemIndependentName(gradleRoot.path), gradlePath), moduleDataNode)
 
   moduleDataNode.addChild(
     DataNode<GradleModuleModel>(
@@ -1599,24 +1629,29 @@ private fun createAndroidModuleDataNode(
     }
   }
 
-  fun IdeBaseArtifact.setup() {
+  fun IdeBaseArtifactCore.setup() {
     val sourceSetModuleName = ModuleUtil.getModuleName(this.name)
-    moduleDataNode.addChild(
-      DataNode<GradleSourceSetData>(
-        GradleSourceSetData.KEY,
-        GradleSourceSetData(
-          moduleDataNode.data.id + ":" + sourceSetModuleName,
-          moduleDataNode.data.externalName + ":" + sourceSetModuleName,
-          moduleDataNode.data.internalName + "." + sourceSetModuleName,
-          moduleDataNode.data.moduleFileDirectoryPath,
-          moduleDataNode.data.linkedExternalProjectPath
-        ),
-        null
-      )
+    val sourceSetModuleId = moduleDataNode.data.id + ":" + sourceSetModuleName
+    val sourceSetDataDataNode = DataNode<GradleSourceSetData>(
+      GradleSourceSetData.KEY,
+      GradleSourceSetData(
+        sourceSetModuleId,
+        moduleDataNode.data.externalName + ":" + sourceSetModuleName,
+        moduleDataNode.data.internalName + "." + sourceSetModuleName,
+        moduleDataNode.data.moduleFileDirectoryPath,
+        moduleDataNode.data.linkedExternalProjectPath
+      ),
+      null
+    )
+    moduleDataNode.addChild(sourceSetDataDataNode)
+    mappingRecorder.add(
+      moduleDataNode.data.id,
+      GradleSourceSetProjectPath(toSystemIndependentName(gradleRoot.path), gradlePath, name.toWellKnownSourceSet()),
+      sourceSetDataDataNode
     )
   }
 
-  val selectedVariant = gradleAndroidModel.selectedVariant(libraryResolver)
+  val selectedVariant = gradleAndroidModel.selectedVariantCore
   selectedVariant.mainArtifact.setup()
   selectedVariant.androidTestArtifact?.setup()
   selectedVariant.unitTestArtifact?.setup()
@@ -1626,6 +1661,7 @@ private fun createAndroidModuleDataNode(
 }
 
 private fun createJavaModuleDataNode(
+  gradleRoot: File,
   parentModuleOrProjectName: String,
   qualifiedModuleName: String,
   gradlePath: String,
@@ -1634,7 +1670,8 @@ private fun createJavaModuleDataNode(
   imlBasePath: File,
   moduleBasePath: File,
   buildable: Boolean,
-  isBuildSrc: Boolean
+  isBuildSrc: Boolean,
+  mappingRecorder: MappingRecorder
 ): DataNode<ModuleData> {
 
   val moduleDataNode = createGradleModuleDataNode(
@@ -1650,15 +1687,16 @@ private fun createJavaModuleDataNode(
   }
 
   moduleDataNode.addDefaultJdk()
+  mappingRecorder.add(moduleDataNode.data.id, GradleHolderProjectPath(toSystemIndependentName(gradleRoot.path), gradlePath), moduleDataNode)
 
-  fun setupSourceSet(sourceSetName: String, isTest: Boolean) {
-    val sourceSetModuleName = sourceSetName
+  fun setupSourceSet(sourceSetName: IdeModuleSourceSet, isTest: Boolean) {
+    val ideSourceSet = sourceSetName
     val sourceSetDataDataNode = DataNode<GradleSourceSetData>(
       GradleSourceSetData.KEY,
       GradleSourceSetData(
-        moduleDataNode.data.id + ":" + sourceSetModuleName,
-        moduleDataNode.data.externalName + ":" + sourceSetModuleName,
-        moduleDataNode.data.internalName + "." + sourceSetModuleName,
+        moduleDataNode.data.id + ":" + ideSourceSet.sourceSetName,
+        moduleDataNode.data.externalName + ":" + ideSourceSet.sourceSetName,
+        moduleDataNode.data.internalName + "." + ideSourceSet.sourceSetName,
         moduleDataNode.data.moduleFileDirectoryPath,
         moduleDataNode.data.linkedExternalProjectPath
       ).also {
@@ -1667,6 +1705,11 @@ private fun createJavaModuleDataNode(
         if (isBuildSrc) it.setBuildSrcModule()
       },
       null
+    )
+    mappingRecorder.add(
+      sourceSetDataDataNode.data.id,
+      GradleSourceSetProjectPath(toSystemIndependentName(gradleRoot.path), gradlePath, ideSourceSet),
+      sourceSetDataDataNode
     )
     val root = moduleDataNode.data.linkedExternalProjectPath + "/src/" + sourceSetName
     sourceSetDataDataNode.addChild(
@@ -1702,8 +1745,8 @@ private fun createJavaModuleDataNode(
   }
 
   if (buildable) {
-    setupSourceSet("main", isTest = false)
-    setupSourceSet("test", isTest = true)
+    setupSourceSet(IdeModuleWellKnownSourceSet.MAIN, isTest = false)
+    setupSourceSet(IdeModuleSourceSetImpl("test", canBeConsumed = false), isTest = true)
 
     val gradleExtensions = DefaultGradleExtensions()
     gradleExtensions.extensions.add(DefaultGradleExtension("java", "org.gradle.api.plugins.internal.DefaultJavaPluginExtension"));
@@ -2279,7 +2322,7 @@ private fun setupDataNodesForSelectedVariant(
   buildId: @SystemIndependent String,
   androidModuleModels: List<GradleAndroidModelData>,
   projectDataNode: DataNode<ProjectData>,
-  libraryResolver: IdeLibraryModelResolverImpl
+  libraryResolver: IdeLibraryModelResolver
 ) {
   val moduleNodes = ExternalSystemApiUtil.findAll(projectDataNode, ProjectKeys.MODULE)
   val moduleIdToDataMap = createGradleProjectPathToModuleDataMap(buildId, moduleNodes)

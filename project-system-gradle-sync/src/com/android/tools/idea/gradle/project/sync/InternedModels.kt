@@ -100,15 +100,6 @@ class InternedModels(private val buildRootDirectory: File?) {
   }
 
   /**
-   * Interns [moduleLibrary].
-   */
-  @TestOnly
-  fun getOrCreate(moduleLibrary: IdeModuleLibraryImpl): LibraryReference {
-    return moduleLibraries.createOrGetLibrary(moduleLibrary) { it }
-  }
-
-
-  /**
    * Interns [unknownLibrary].
    */
   fun getOrCreate(unknownLibrary: IdeUnknownLibraryImpl): LibraryReference {
@@ -136,11 +127,6 @@ class InternedModels(private val buildRootDirectory: File?) {
 
   fun createLibraryTable(): IdeUnresolvedLibraryTableImpl {
     return IdeUnresolvedLibraryTableImpl(libraries.toList())
-  }
-
-  @TestOnly
-  fun createResolvedLibraryTable(): IdeResolvedLibraryTableImpl {
-    return IdeResolvedLibraryTableImpl(libraries.map(::listOf))
   }
 
   /**
