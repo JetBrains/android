@@ -39,7 +39,7 @@ import javax.swing.JCheckBox
 /**
  * Implementation of Settings > Tools > Emulator preference page.
  */
-class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
+class EmulatorSettingsPage : SearchableConfigurable, Configurable.NoScroll {
 
   private lateinit var launchInToolWindowCheckBox: JCheckBox
   private lateinit var activateOnAppLaunchCheckBox: JBCheckBox

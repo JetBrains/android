@@ -26,8 +26,8 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.streaming.device.settings.DeviceMirroringSettingsUi
-import com.android.tools.idea.streaming.emulator.settings.EmulatorSettingsUi
+import com.android.tools.idea.streaming.device.settings.DeviceMirroringSettingsPage
+import com.android.tools.idea.streaming.emulator.settings.EmulatorSettingsPage
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -92,10 +92,10 @@ internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridB
             ActionUtil.invokeAction(action, SimpleDataContext.getProjectContext(project), ActionPlaces.UNKNOWN, null, null)
           }
           "EmulatorSettings" -> {
-            ShowSettingsUtil.getInstance().showSettingsDialog(project, EmulatorSettingsUi::class.java)
+            ShowSettingsUtil.getInstance().showSettingsDialog(project, EmulatorSettingsPage::class.java)
           }
           "DeviceMirroringSettings" -> {
-            ShowSettingsUtil.getInstance().showSettingsDialog(project, DeviceMirroringSettingsUi::class.java)
+            ShowSettingsUtil.getInstance().showSettingsDialog(project, DeviceMirroringSettingsPage::class.java)
           }
         }
       }

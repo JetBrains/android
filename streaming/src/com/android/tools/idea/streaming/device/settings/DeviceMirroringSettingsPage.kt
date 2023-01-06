@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nls
 /**
  * Implementation of Settings > Tools > Device Mirroring preference page.
  */
-class DeviceMirroringSettingsUi : SearchableConfigurable, Configurable.NoScroll {
+class DeviceMirroringSettingsPage : SearchableConfigurable, Configurable.NoScroll {
 
   private lateinit var deviceMirroringEnabledCheckBox: JBCheckBox
   private lateinit var synchronizeClipboardCheckBox: JBCheckBox

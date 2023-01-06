@@ -27,8 +27,8 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.streaming.device.settings.DeviceMirroringSettingsUi
-import com.android.tools.idea.streaming.emulator.settings.EmulatorSettingsUi
+import com.android.tools.idea.streaming.device.settings.DeviceMirroringSettingsPage
+import com.android.tools.idea.streaming.emulator.settings.EmulatorSettingsPage
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
@@ -124,10 +124,10 @@ class EmptyStatePanelTest {
     ApplicationManager.getApplication().replaceService(ShowSettingsUtil::class.java, mockSettings, testRootDisposable)
 
     htmlComponent.clickOnHyperlink("EmulatorSettings")
-    assertThat(shownSettings).containsExactly(EmulatorSettingsUi::class.java)
+    assertThat(shownSettings).containsExactly(EmulatorSettingsPage::class.java)
     shownSettings.clear()
     htmlComponent.clickOnHyperlink("DeviceMirroringSettings")
-    assertThat(shownSettings).containsExactly(DeviceMirroringSettingsUi::class.java)
+    assertThat(shownSettings).containsExactly(DeviceMirroringSettingsPage::class.java)
   }
 
   @Test

@@ -32,10 +32,10 @@ import org.junit.Test
 import javax.swing.JCheckBox
 
 /**
- * Tests for [EmulatorSettingsUi] and [EmulatorSettings].
+ * Tests for [EmulatorSettingsPage] and [EmulatorSettings].
  */
 @RunsInEdt
-class EmulatorSettingsUiTest {
+class EmulatorSettingsPageTest {
   @get:Rule
   val ruleChain = RuleChain(AndroidProjectRule.inMemory(), EdtRule())
 

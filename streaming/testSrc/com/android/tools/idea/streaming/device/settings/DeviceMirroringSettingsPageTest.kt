@@ -33,10 +33,10 @@ import javax.swing.JCheckBox
 import javax.swing.JTextField
 
 /**
- * Tests for [DeviceMirroringSettingsUi] and [DeviceMirroringSettings].
+ * Tests for [DeviceMirroringSettingsPage] and [DeviceMirroringSettings].
  */
 @RunsInEdt
-class DeviceMirroringSettingsUiTest {
+class DeviceMirroringSettingsPageTest {
   @get:Rule
   val ruleChain = RuleChain(AndroidProjectRule.inMemory(), HeadlessDialogRule(), EdtRule())
 
