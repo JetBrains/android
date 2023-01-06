@@ -348,14 +348,18 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   private fun doSendKeyboardEvent(keyboardEvent: KeyboardEvent, streamObserver: StreamObserver<Empty>) {
     val observer = object : DelegatingStreamObserver<KeyboardEvent, Empty>(streamObserver, EmulatorControllerGrpc.getSendKeyMethod()) {
       override fun onCompleted() {
-        super.onCompleted()
-        val item: Pair<KeyboardEvent, StreamObserver<Empty>>?
-        synchronized(keyboardEventQueue) {
-          item = keyboardEventQueue.removeFirstOrNull()
-          if (item == null) {
-            keyboardEventInFlight = false
+        try {
+          super.onCompleted()
+        }
+        finally {
+          val item: Pair<KeyboardEvent, StreamObserver<Empty>>?
+          synchronized(keyboardEventQueue) {
+            item = keyboardEventQueue.removeFirstOrNull()
+            if (item == null) {
+              keyboardEventInFlight = false
+            }
           }
-          else {
+          if (item != null) {
             doSendKeyboardEvent(item.first, item.second)
           }
         }
