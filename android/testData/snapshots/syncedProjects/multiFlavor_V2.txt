@@ -291,8 +291,6 @@ PROJECT                       : MultiFlavor
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/firstAbcSecondAbcDebugAndroidTest/classes
-            -                             : file://<PROJECT>/app/build/intermediates/javac/firstAbcSecondAbcDebugUnitTest/classes
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/R.jar!/
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebugAndroidTest/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/firstAbcSecondAbc/debug
         BUILD_TASKS
@@ -646,9 +644,6 @@ PROJECT                       : MultiFlavor
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/firstAbcSecondAbcDebugUnitTest/classes
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/R.jar!/
-            -                             : file://<PROJECT>/app/build/intermediates/javac/firstAbcSecondAbcDebugAndroidTest/classes
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebugAndroidTest/R.jar!/
-            -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/firstAbcSecondAbc/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources

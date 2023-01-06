@@ -158,8 +158,6 @@ PROJECT                       : My Application
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/intermediates/javac/debugAndroidTest/classes
-            -                             : file://<PROJECT>/build/intermediates/javac/debugUnitTest/classes
-            -                             : jar://<PROJECT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
             -                             : jar://<PROJECT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
             -                             : file://<PROJECT>/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS

@@ -842,9 +842,6 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app-with-dynamic-feature/build/intermediates/javac/debugAndroidTest/classes
-            -                             : file://<PROJECT>/app-with-dynamic-feature/build/intermediates/javac/debugUnitTest/classes
-            -                             : file://<PROJECT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debugUnitTest
-            -                             : jar://<PROJECT>/app-with-dynamic-feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
             -                             : file://<PROJECT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debugAndroidTest
             -                             : jar://<PROJECT>/app-with-dynamic-feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
             -                             : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/resValues/androidTest/debug
@@ -1415,9 +1412,6 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes
-            -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes
-            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugUnitTest
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugAndroidTest
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug

@@ -81,7 +81,7 @@ interface IdeBaseArtifactCore : Serializable {
   val unresolvedDependencies: List<IdeUnresolvedDependency>
 }
 
-interface IdeBaseArtifact : IdeBaseArtifactCore {
+sealed interface IdeBaseArtifact : IdeBaseArtifactCore {
   val compileClasspath: IdeDependencies
   val runtimeClasspath: IdeDependencies
 }

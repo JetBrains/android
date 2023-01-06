@@ -123,6 +123,9 @@ import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.android.tools.idea.projectsystem.gradle.buildNamePrefixedGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.getBuildAndRelativeGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.resolveIn
+import com.android.tools.idea.projectsystem.gradle.toSourceSetPath
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.ValidationError
@@ -1948,11 +1951,17 @@ private fun mergeModuleContentRoots(weightMap: Map<String, Int>, moduleNode: Dat
  *
  * Note: In the case of composite build [gradlePath] can be in a form of `includedProject:module:module` for modules from included projects.
  */
-fun Project.gradleModule(gradlePath: String): Module? =
+@JvmOverloads
+fun Project.gradleModule(gradlePath: String, sourceSet: IdeModuleSourceSet? = null): Module? =
   ModuleManager.getInstance(this).modules
-    .firstOrNull {
-      it.getBuildAndRelativeGradleProjectPath()?.buildNamePrefixedGradleProjectPath() == gradlePath
-    }?.getHolderModule()
+    .firstOrNull { it.getBuildAndRelativeGradleProjectPath()?.buildNamePrefixedGradleProjectPath() == gradlePath }
+    ?.getHolderModule()
+    ?.let {
+      if (sourceSet == null) it
+      else {
+        it.getGradleProjectPath()?.toSourceSetPath(sourceSet)?.resolveIn(it.project)
+      }
+    }
 
 /**
  * Gets the text content of a PSI file specificed by [relativeFile].

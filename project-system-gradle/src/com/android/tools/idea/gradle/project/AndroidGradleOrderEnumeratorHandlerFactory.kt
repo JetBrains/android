@@ -20,13 +20,14 @@ import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.io.FilePaths
+import com.android.tools.idea.projectsystem.isAndroidTestModule
+import com.android.tools.idea.projectsystem.isMainModule
+import com.android.tools.idea.projectsystem.isTestFixturesModule
+import com.android.tools.idea.projectsystem.isUnitTestModule
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.ModuleRootModel
 import com.intellij.openapi.roots.OrderRootType
 import org.jetbrains.plugins.gradle.execution.GradleOrderEnumeratorHandler
-import java.io.File
-import java.util.LinkedList
-import java.util.Objects
 
 /**
  * [AndroidGradleOrderEnumeratorHandlerFactory] was introduced to make
@@ -55,6 +56,21 @@ class AndroidGradleOrderEnumeratorHandlerFactory : GradleOrderEnumeratorHandler.
 
       override fun shouldProcessDependenciesRecursively(): Boolean = true
 
+      private fun applicableArtifacts(
+        module: Module,
+        androidModel: GradleAndroidModel,
+        includeProduction: Boolean,
+        includeTests: Boolean
+      ): List<IdeBaseArtifact> {
+        return listOfNotNull(
+          androidModel.mainArtifact.takeIf { includeProduction && module.isMainModule() },
+          androidModel.getArtifactForAndroidTest()?.takeIf { includeTests && module.isAndroidTestModule() },
+          androidModel.selectedVariant.unitTestArtifact?.takeIf { includeTests && module.isUnitTestModule() },
+          androidModel.selectedVariant.testFixturesArtifact?.takeIf { includeTests && module.isTestFixturesModule() },
+        )
+          .distinct()
+      }
+
       override fun addCustomModuleRoots(
         type: OrderRootType,
         rootModel: ModuleRootModel,
@@ -67,9 +83,10 @@ class AndroidGradleOrderEnumeratorHandlerFactory : GradleOrderEnumeratorHandler.
         if (type != OrderRootType.CLASSES) {
           return false
         }
-        getAndroidCompilerOutputFolders(androidModel, includeProduction, includeTests).stream()
-          .filter { root: String -> !result.contains(root) }
-          .forEachOrdered { e: String -> result.add(e) }
+        val artifacts = applicableArtifacts(module, androidModel, includeProduction, includeTests)
+
+        val existingResults = result.toHashSet()
+        result.addAll(getAndroidCompilerOutputFolders(artifacts).distinct().filter { !existingResults.contains(it) })
         return true
       }
     }
@@ -77,51 +94,32 @@ class AndroidGradleOrderEnumeratorHandlerFactory : GradleOrderEnumeratorHandler.
 
   companion object {
     private fun getAndroidCompilerOutputFolders(
-      androidModel: GradleAndroidModel,
-      includeProduction: Boolean,
-      includeTests: Boolean
-    ): List<String> {
-      val toAdd: MutableList<String> = LinkedList()
+      artifacts: List<IdeBaseArtifact>
+    ): Sequence<String> {
       // The test artifact must be added to the classpath before the main artifact, this is so that tests pick up the correct classes
       // if multiple definitions of the same class exist in both the test and the main artifact.
-      if (includeTests) {
-        if (androidModel.selectedVariant.unitTestArtifact != null) {
-          addFoldersFromJavaArtifact(androidModel.selectedVariant.unitTestArtifact!!, toAdd)
+
+      return artifacts
+        .asSequence()
+        .flatMap {
+          when (it) {
+            is IdeJavaArtifact -> addFoldersFromJavaArtifact(it)
+            is IdeAndroidArtifact -> addFoldersFromAndroidArtifact(it)
+          }
         }
-        if (androidModel.selectedVariant.androidTestArtifact != null) {
-          addFoldersFromAndroidArtifact(androidModel.selectedVariant.androidTestArtifact!!, toAdd)
-        }
-        if (androidModel.selectedVariant.testFixturesArtifact != null) {
-          addFoldersFromAndroidArtifact(androidModel.selectedVariant.testFixturesArtifact!!, toAdd)
-        }
-      }
-      if (includeProduction) {
-        addFoldersFromAndroidArtifact(androidModel.selectedVariant.mainArtifact, toAdd)
-      }
-      return toAdd
     }
 
-    private fun addFoldersFromBaseArtifact(artifact: IdeBaseArtifact, toAdd: MutableList<String>) {
-      artifact.classesFolder
-        .map(FilePaths::pathToIdeaUrl)
-        .sorted()
-        .forEach { e: String -> toAdd.add(e) }
+    private fun foldersFromBaseArtifact(artifact: IdeBaseArtifact): Sequence<String> {
+      return artifact.classesFolder.asSequence().map(FilePaths::pathToIdeaUrl)
     }
 
-    private fun addFoldersFromJavaArtifact(artifact: IdeJavaArtifact, toAdd: MutableList<String>) {
-      addFoldersFromBaseArtifact(artifact, toAdd)
+    private fun addFoldersFromJavaArtifact(artifact: IdeJavaArtifact): Sequence<String> {
+      return foldersFromBaseArtifact(artifact)
     }
 
-    private fun addFoldersFromAndroidArtifact(artifact: IdeAndroidArtifact, toAdd: MutableList<String>) {
-      addFoldersFromBaseArtifact(artifact, toAdd)
-      artifact.generatedResourceFolders.stream()
-        .filter { obj: File? -> Objects.nonNull(obj) }
-        .map { path: File? ->
-          FilePaths.pathToIdeaUrl(
-            path!!
-          )
-        }
-        .forEach { e: String -> toAdd.add(e) }
+    private fun addFoldersFromAndroidArtifact(artifact: IdeAndroidArtifact): Sequence<String> {
+      return foldersFromBaseArtifact(artifact) +
+        artifact.generatedResourceFolders.asSequence().map(FilePaths::pathToIdeaUrl)
     }
   }
 }

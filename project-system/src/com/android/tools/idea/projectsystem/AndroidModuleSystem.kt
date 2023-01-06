@@ -478,6 +478,8 @@ fun Module.getTestFixturesModule() : Module? {
   return linkedGroup.testFixtures
 }
 
+fun Module.isTestFixturesModule() : Boolean = getTestFixturesModule() == this
+
 /**
  * Utility method to find out if a module is derived from an Android Gradle project. This will return true
  * if the given module is the module representing any of the Android source sets (main/unitTest/androidTest) or the

@@ -277,7 +277,6 @@ PROJECT                       : project_sm_src
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>_sm_src/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
-            -                             : file://<PROJECT>_sm_src/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
             -                             : file://<PROJECT>_sm_src/app/build/generated/res/rs/androidTest/debug
             -                             : file://<PROJECT>_sm_src/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
@@ -595,9 +594,6 @@ PROJECT                       : project_sm_src
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>_sm_src/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
-            -                             : file://<PROJECT>_sm_src/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
-            -                             : file://<PROJECT>_sm_src/app/build/generated/res/rs/androidTest/debug
-            -                             : file://<PROJECT>_sm_src/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources

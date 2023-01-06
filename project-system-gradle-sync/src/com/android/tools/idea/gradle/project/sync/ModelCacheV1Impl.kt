@@ -769,7 +769,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       name = ideArtifactName,
       compileTaskName = artifact.compileTaskName,
       assembleTaskName = artifact.assembleTaskName,
-      classesFolder = listOf(listOf(artifact.classesFolder), artifact.additionalClassesFolders).flatten(),
+      classesFolder = listOf(listOf(artifact.classesFolder), artifact.additionalClassesFolders.sorted()).flatten(),
       ideSetupTaskNames = copyNewPropertyWithDefault(artifact::getIdeSetupTaskNames,
                                                      defaultValue = { setOf(artifact.sourceGenTaskName) }).toList(),
       generatedSourceFolders = copy(
