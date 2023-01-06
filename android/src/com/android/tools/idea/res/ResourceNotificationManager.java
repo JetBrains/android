@@ -34,6 +34,7 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -203,6 +204,7 @@ public class ResourceNotificationManager {
         }
         moduleEventObserver = new ModuleEventObserver(facet);
         myModuleToObserverMap.put(module, moduleEventObserver);
+        Disposer.register(facet, () -> facetDisposed(facet));
       }
       moduleEventObserver.addListener(listener);
 
@@ -229,6 +231,12 @@ public class ResourceNotificationManager {
     }
 
     return getCurrentVersion(facet, file != null ? AndroidPsiUtils.getPsiFileSafely(myProject, file) : null, configuration);
+  }
+
+  private void facetDisposed(@NotNull AndroidFacet facet) {
+    synchronized (myObserverLock) {
+      myModuleToObserverMap.remove(facet.getModule());
+    }
   }
 
   /**
