@@ -91,7 +91,7 @@ class ViewLayoutInspectorClient(
   private val scope: CoroutineScope,
   private val messenger: AppInspectorMessenger,
   private val composeInspector: ComposeLayoutInspectorClient?,
-  private val fireError: (String) -> Unit = {},
+  private val fireError: (String?, Throwable?) -> Unit = { _, _ -> },
   private val fireRootsEvent: (List<Long>) -> Unit = {},
   private val fireTreeEvent: (Data) -> Unit = {},
   private val launchMonitor: InspectorClientLaunchMonitor
@@ -125,7 +125,7 @@ class ViewLayoutInspectorClient(
       stats: SessionStatistics,
       eventScope: CoroutineScope,
       composeLayoutInspectorClient: ComposeLayoutInspectorClient?,
-      fireError: (String) -> Unit,
+      fireError: (String?, Throwable?) -> Unit,
       fireRootsEvent: (List<Long>) -> Unit,
       fireTreeEvent: (Data) -> Unit,
       launchMonitor: InspectorClientLaunchMonitor
@@ -260,7 +260,7 @@ class ViewLayoutInspectorClient(
   }
 
   private fun handleErrorEvent(errorEvent: ErrorEvent) {
-    fireError(errorEvent.message)
+    fireError(errorEvent.message, null)
   }
 
   private fun handleRootsEvent(rootsEvent: WindowRootsEvent) {

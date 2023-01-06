@@ -31,12 +31,10 @@ import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetr
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
-import com.android.tools.idea.layoutinspector.pipeline.InspectorConnectionError
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
@@ -66,7 +64,6 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.nio.file.Path
@@ -118,7 +115,7 @@ class AppInspectionInspectorClient(
     private set
 
   private val loggingExceptionHandler = CoroutineExceptionHandler { _, t ->
-    fireError(t.message!!)
+    fireError(t.message, t)
   }
 
   private var debugViewAttributesChanged = false
@@ -196,21 +193,7 @@ class AppInspectionInspectorClient(
   }
 
   private fun handleException(throwable: Throwable) {
-    fireError(throwable.message!!)
-
-    val message = when {
-      throwable is ConnectionFailedException -> throwable.message!!
-      process.device.apiLevel >= 29 -> {
-        logUnexpectedError(InspectorConnectionError(throwable))
-        AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY)
-      }
-      else -> {
-        logUnexpectedError(InspectorConnectionError(throwable))
-        "Unknown error"
-      }
-    }
-
-    InspectorBannerService.getInstance(model.project)?.addNotification(message)
+    fireError(throwable.message, throwable)
   }
 
   override suspend fun doDisconnect() = withContext(AndroidDispatchers.workerThread) {
@@ -226,7 +209,7 @@ class AppInspectionInspectorClient(
       logEvent(DynamicLayoutInspectorEventType.SESSION_DATA)
 
     } catch (t: Throwable) {
-      fireError(t.message!!)
+      fireError(t.message, t)
       throw t
     }
   }
@@ -258,7 +241,7 @@ class AppInspectionInspectorClient(
       stats.currentModeIsLive = false
       viewInspector?.stopFetching()
     } catch (t: Throwable) {
-      fireError(t.message!!)
+      fireError(t.message, t)
       throw t
     }
   }
