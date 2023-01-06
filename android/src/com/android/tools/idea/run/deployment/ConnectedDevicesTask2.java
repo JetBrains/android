@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.ddmlib.AvdData;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.run.AndroidDevice;
@@ -92,7 +93,7 @@ final class ConnectedDevicesTask2 implements AsyncSupplier<Collection<ConnectedD
 
     if (device.isEmulator()) {
       // noinspection UnstableApiUsage
-      return Futures.transform(device.getAvdData(), d -> getName(d.getName(), device.getSerialNumber()), executor);
+      return Futures.transform(device.getAvdData(), d -> getName(d, device.getSerialNumber()), executor);
     }
 
     var modelFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MODEL);
@@ -103,7 +104,14 @@ final class ConnectedDevicesTask2 implements AsyncSupplier<Collection<ConnectedD
       .call(() -> DeviceNameProperties.getName(Futures.getDone(modelFuture), Futures.getDone(manufacturerFuture)), executor);
   }
 
-  private static @NotNull String getName(@Nullable String name, @NotNull String serialNumber) {
+  @NotNull
+  private static String getName(@Nullable AvdData device, @NotNull String serialNumber) {
+    if (device == null) {
+      return serialNumber;
+    }
+
+    var name = device.getName();
+
     if (name == null) {
       return serialNumber;
     }
@@ -123,13 +131,22 @@ final class ConnectedDevicesTask2 implements AsyncSupplier<Collection<ConnectedD
     }
 
     // noinspection UnstableApiUsage
-    return Futures.transform(device.getAvdData(), d -> getKey(d.getPath(), d.getName(), serialNumber), EdtExecutorService.getInstance());
+    return Futures.transform(device.getAvdData(), d -> getKey(d, serialNumber), EdtExecutorService.getInstance());
   }
 
-  private static @NotNull Key getKey(@Nullable String path, @Nullable String name, @NotNull String serialNumber) {
+  @NotNull
+  private static Key getKey(@Nullable AvdData device, @NotNull String serialNumber) {
+    if (device == null) {
+      return new SerialNumber(serialNumber);
+    }
+
+    var path = device.getPath();
+
     if (path != null) {
       return new VirtualDevicePath(path);
     }
+
+    var name = device.getName();
 
     if (name == null) {
       return new SerialNumber(serialNumber);

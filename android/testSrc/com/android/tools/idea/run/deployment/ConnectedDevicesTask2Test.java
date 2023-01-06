@@ -51,6 +51,22 @@ public final class ConnectedDevicesTask2Test {
   }
 
   @Test
+  public void getNameDeviceIsNull() throws Exception {
+    // Arrange
+    Mockito.when(myDevice.isEmulator()).thenReturn(true);
+    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(null));
+    Mockito.when(myDevice.getSerialNumber()).thenReturn("emulator-5554");
+
+    myTask = new ConnectedDevicesTask2(myBridge, null);
+
+    // Act
+    var future = myTask.get();
+
+    // Assert
+    assertEquals("emulator-5554", ((List<ConnectedDevice>)future.get(60, TimeUnit.SECONDS)).get(0).getName());
+  }
+
+  @Test
   public void getNameNameIsNull() throws Exception {
     // Arrange
     Mockito.when(myDevice.isEmulator()).thenReturn(true);
@@ -128,6 +144,22 @@ public final class ConnectedDevicesTask2Test {
 
     // Assert
     assertEquals(new SerialNumber("02131FQC200017"), ((List<ConnectedDevice>)future.get(60, TimeUnit.SECONDS)).get(0).getKey());
+  }
+
+  @Test
+  public void getKeyDeviceIsNull() throws Exception {
+    // Arrange
+    Mockito.when(myDevice.isEmulator()).thenReturn(true);
+    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(null));
+    Mockito.when(myDevice.getSerialNumber()).thenReturn("emulator-5554");
+
+    myTask = new ConnectedDevicesTask2(myBridge, null);
+
+    // Act
+    var future = myTask.get();
+
+    // Assert
+    assertEquals(new SerialNumber("emulator-5554"), ((List<ConnectedDevice>)future.get(60, TimeUnit.SECONDS)).get(0).getKey());
   }
 
   @Test
