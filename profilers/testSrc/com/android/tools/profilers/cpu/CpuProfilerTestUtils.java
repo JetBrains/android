@@ -24,7 +24,7 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.idea.transport.faketransport.commands.StartTrace;
-import com.android.tools.idea.transport.faketransport.commands.StopCpuTrace;
+import com.android.tools.idea.transport.faketransport.commands.StopTrace;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.FakeIdeProfilerServices;
@@ -209,7 +209,7 @@ public class CpuProfilerTestUtils {
     throws InterruptedException {
     // Trace id is needed for the stop response.
     long traceId = stage.getStudioProfilers().getUpdater().getTimer().getCurrentTimeNs();
-    StopCpuTrace stopTraceCommand = (StopCpuTrace)transportService.getRegisteredCommand(Commands.Command.CommandType.STOP_TRACE);
+    StopTrace stopTraceCommand = (StopTrace)transportService.getRegisteredCommand(Commands.Command.CommandType.STOP_TRACE);
     stopTraceCommand.setStopStatus(
       Trace.TraceStopStatus.newBuilder()
         .setStatus(success ? Trace.TraceStopStatus.Status.SUCCESS : Trace.TraceStopStatus.Status.STOP_COMMAND_FAILED)

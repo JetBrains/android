@@ -21,7 +21,7 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Trace
 import java.util.concurrent.TimeUnit
 
-class StopCpuTrace(timer: FakeTimer) : CommandHandler(timer) {
+class StopTrace(timer: FakeTimer) : CommandHandler(timer) {
   var stopStatus: Trace.TraceStopStatus = Trace.TraceStopStatus.getDefaultInstance()
   var traceDurationNs: Long = TimeUnit.SECONDS.toNanos(1)
   var lastTraceInfo: Trace.TraceInfo = Trace.TraceInfo.getDefaultInstance()
