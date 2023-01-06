@@ -16,18 +16,18 @@
 package com.android.tools.idea.databinding.gradle
 
 import com.android.tools.idea.databinding.TestDataPaths
-import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
+import com.android.tools.idea.gradle.project.sync.snapshots.testProjectTemplateFromPath
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.buildAndWait
 import com.google.common.truth.Truth.assertThat
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -37,23 +37,19 @@ import java.io.StringWriter
  */
 @RunsInEdt
 class CompileErrorsTest {
-  private val projectRule = AndroidGradleProjectRule()
-
   // ProjectRule must be initialized off the EDT thread
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
-
-  @Before
-  fun setUp() {
-    projectRule.fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
-    projectRule.load(TestDataPaths.PROJECT_WITH_COMPILE_ERRORS)
-  }
+  val projectRule =
+    AndroidProjectRule.testProject(testProjectTemplateFromPath(
+      path = TestDataPaths.PROJECT_WITH_COMPILE_ERRORS,
+      testDataPath = TestDataPaths.TEST_DATA_ROOT
+    ))
 
   @Test
   fun compileErrorsContainExpectedValues() {
-    val assembleDebug = projectRule.invokeTasks("assembleDebug")
+    val assembleDebug = projectRule.project.buildAndWait { it.assemble(TestCompileType.NONE) }
     val errorMessage = with(StringWriter()) {
-      assembleDebug.buildError!!.printStackTrace(PrintWriter(this))
+      assembleDebug.invocationResult.invocations.first().buildError!!.printStackTrace(PrintWriter(this))
       toString()
     }
 

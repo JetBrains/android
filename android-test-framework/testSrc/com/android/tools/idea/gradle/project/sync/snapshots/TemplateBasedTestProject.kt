@@ -329,3 +329,32 @@ private fun TemplateBasedTestProject.defaultOpenPreparedProjectOptions(): OpenPr
       if (verifyOpened != null) it.copy(verifyOpened = verifyOpened) else it
     }
 }
+
+fun testProjectTemplateFromAbsolutePath(path: String): TemplateBasedTestProject {
+  return object: TemplateBasedTestProject{
+    override val name: String
+      get() = File(path).name
+    override val template: String
+      get() = error("unexpected")
+
+    override fun getTestDataDirectoryWorkspaceRelativePath(): String = error("unexpected")
+
+    override fun getAdditionalRepos(): Collection<File> = emptyList()
+
+    override val templateAbsolutePath: File
+      get() = File(path)
+  }
+}
+
+fun testProjectTemplateFromPath(path: String, testDataPath: String): TemplateBasedTestProject {
+  return object: TemplateBasedTestProject{
+    override val name: String
+      get() = File(path).name
+    override val template: String
+      get() = path
+
+    override fun getTestDataDirectoryWorkspaceRelativePath(): String = testDataPath
+
+    override fun getAdditionalRepos(): Collection<File> = emptyList()
+  }
+}
