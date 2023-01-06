@@ -35,6 +35,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.util.concurrency.AppExecutorUtil
+import kotlinx.coroutines.CancellationException
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.ScheduledExecutorService
@@ -99,7 +100,10 @@ class InspectorClientLaunchMonitor(
   }
 
   fun onFailure(t: Throwable) {
-    logAttachError(t.errorCode.code)
+    // CancellationExceptions will be forwarded to LayoutInspector.logError no need to handle it here.
+    if (t !is CancellationException) {
+      logAttachError(t.errorCode.code)
+    }
     stop()
   }
 

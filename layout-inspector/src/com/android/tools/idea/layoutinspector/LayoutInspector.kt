@@ -33,6 +33,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.Messages
+import kotlinx.coroutines.CancellationException
 import java.awt.Component
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicLong
@@ -162,6 +163,11 @@ class LayoutInspector private constructor(
       throwable is ConnectionFailedException -> {
         Logger.getInstance(LayoutInspector::class.java).warn(error)
         throwable.message
+      }
+      throwable is CancellationException -> {
+        // Do not alert the user. This can happen in normal circumstances e.g. b/264667192
+        Logger.getInstance(LayoutInspector::class.java).warn(throwable)
+        return
       }
       throwable != null -> {
         logUnexpectedError(InspectorConnectionError(throwable))
