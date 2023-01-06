@@ -24,6 +24,7 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.ContainerUtil
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.EOFException
 import java.io.IOException
@@ -41,11 +42,12 @@ class DeviceController(
   private val outputStream = Base128OutputStream(newOutputStream(controlChannel, CONTROL_MSG_BUFFER_SIZE))
   private val suspendingInputStream = newInputStream(controlChannel, CONTROL_MSG_BUFFER_SIZE)
   private val inputStream = Base128InputStream(suspendingInputStream)
-  private val receiverScope = AndroidCoroutineScope(this)
+  private val receiverScope: CoroutineScope
   private val deviceClipboardListeners: MutableList<DeviceClipboardListener> = ContainerUtil.createLockFreeCopyOnWriteList()
 
   init {
     Disposer.register(disposableParent, this)
+    receiverScope = AndroidCoroutineScope(this)
     startReceivingMessages()
   }
 
@@ -133,7 +135,7 @@ class DeviceController(
           break
         }
         catch (e: IOException) {
-          if (e.message == "Connection reset by peer") {
+          if (e.message?.startsWith("Connection reset") == true) {
             break
           }
           throw e

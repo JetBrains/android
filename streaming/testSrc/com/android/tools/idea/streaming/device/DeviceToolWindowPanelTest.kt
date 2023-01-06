@@ -71,7 +71,7 @@ class DeviceToolWindowPanelTest {
   private val agentRule = FakeScreenSharingAgentRule()
 
   @get:Rule
-  val ruleChain = RuleChain(agentRule, ClipboardSynchronizationDisablementRule(), PortableUiFontRule(), EdtRule())
+  val ruleChain = RuleChain(ClipboardSynchronizationDisablementRule(), agentRule, PortableUiFontRule(), EdtRule())
 
   private lateinit var device: FakeDevice
   private val panel: DeviceToolWindowPanel by lazy { createToolWindowPanel() }

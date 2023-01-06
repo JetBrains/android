@@ -122,7 +122,7 @@ internal class DeviceViewTest {
   private val agentRule = FakeScreenSharingAgentRule()
   private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = Executors.newCachedThreadPool())
   @get:Rule
-  val ruleChain = RuleChain(agentRule, ClipboardSynchronizationDisablementRule(), androidExecutorsRule, EdtRule())
+  val ruleChain = RuleChain(ClipboardSynchronizationDisablementRule(), androidExecutorsRule, agentRule, EdtRule())
   private lateinit var device: FakeScreenSharingAgentRule.FakeDevice
   private lateinit var view: DeviceView
   private lateinit var fakeUi: FakeUi

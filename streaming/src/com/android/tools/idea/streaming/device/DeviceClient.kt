@@ -35,6 +35,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.IncorrectOperationException
 import com.intellij.util.containers.ContainerUtil.createLockFreeCopyOnWriteList
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -163,7 +164,12 @@ internal class DeviceClient(
         // Port forwarding can be removed since the already established connections will continue to work without it.
       }
     }
-    deviceController = DeviceController(this, controlChannel)
+    try {
+      deviceController = DeviceController(this, controlChannel)
+    }
+    catch (e: IncorrectOperationException) {
+      return // Already disposed.
+    }
     videoDecoder = VideoDecoder(videoChannel, coroutineScope, maxVideoSize).apply { start() }
     videoStreamActive.set(startVideoStream)
   }
