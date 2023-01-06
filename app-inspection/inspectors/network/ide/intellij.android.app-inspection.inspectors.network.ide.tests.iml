@@ -19,7 +19,7 @@
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.network.model" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api-ide" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.codenavigation" />
-    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
+    <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="intellij.platform.core" scope="TEST" />
