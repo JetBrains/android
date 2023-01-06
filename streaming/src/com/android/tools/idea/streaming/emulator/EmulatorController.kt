@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.emulator
 
 import com.android.annotations.concurrency.AnyThread
+import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.emulator.control.AudioPacket
 import com.android.emulator.control.ClipData
@@ -116,6 +117,9 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       ch.notifyWhenStateChanged(state, this)
     }
   }
+  private val keyboardEventQueue = ArrayDeque<Pair<KeyboardEvent, StreamObserver<Empty>>>()
+  @GuardedBy("keyboardEventQueue")
+  private var keyboardEventInFlight = false
 
   var emulatorConfig: EmulatorConfiguration
     get() {
@@ -327,7 +331,38 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("sendKey(${shortDebugString(keyboardEvent)})")
     }
-    emulatorControllerStub.sendKey(keyboardEvent, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSendKeyMethod()))
+    // Non-streaming gRPC calls don't guarantee in-order delivery. To make sure that the keyboard
+    // events don't arrive out of order, we don't issue a new sendKey call until the previous one
+    // is completed.
+    synchronized(keyboardEventQueue) {
+      if (keyboardEventInFlight) {
+        keyboardEventQueue.add(Pair(keyboardEvent, streamObserver))
+        return
+      }
+      keyboardEventInFlight = true
+    }
+
+    doSendKeyboardEvent(keyboardEvent, streamObserver)
+  }
+
+  private fun doSendKeyboardEvent(keyboardEvent: KeyboardEvent, streamObserver: StreamObserver<Empty>) {
+    val observer = object : DelegatingStreamObserver<KeyboardEvent, Empty>(streamObserver, EmulatorControllerGrpc.getSendKeyMethod()) {
+      override fun onCompleted() {
+        super.onCompleted()
+        val item: Pair<KeyboardEvent, StreamObserver<Empty>>?
+        synchronized(keyboardEventQueue) {
+          item = keyboardEventQueue.removeFirstOrNull()
+          if (item == null) {
+            keyboardEventInFlight = false
+          }
+          else {
+            doSendKeyboardEvent(item.first, item.second)
+          }
+        }
+      }
+    }
+
+    emulatorControllerStub.sendKey(keyboardEvent, observer)
   }
 
   /**
