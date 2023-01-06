@@ -53,8 +53,9 @@ class ModelClassDumperDescriptor(klass: KClass<Any>) {
 
   private val allNamedProperties: List<Property> = allProperties.mapNotNull {
     when {
-      // TODO(b/232112062): KotlinGradleModelImpl::partialCacheAware throws "not yet implemented" exception.
-      it.name == "partialCacheAware" -> null
+      // KotlinGradleModelImpl::partialCacheAware can be ignored.
+      // TODO(b/264651143): Fix handling of kotlinGradlePluginVersion
+      it.name == "partialCacheAware" || it.name == "kotlinGradlePluginVersion" -> null
       it.visibility == KVisibility.PUBLIC -> Property(it.name, it::get)
       it.visibility != KVisibility.PUBLIC -> allFunctions[it.name]?.let { function -> Property(it.name, fun(v: Any) = function.call(v)) }
       else -> null
