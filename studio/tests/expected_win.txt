@@ -528,7 +528,9 @@ android-studio/lib/junit4.jar
 android-studio/lib/platform-objectSerializer-annotations.jar
 android-studio/lib/platform-statistics-devkit.jar
 android-studio/lib/protobuf.jar
+android-studio/lib/pty4j/win/x86-64/cyglaunch.exe
 android-studio/lib/pty4j/win/x86-64/win-helper.dll
+android-studio/lib/pty4j/win/x86-64/winpty-agent.exe
 android-studio/lib/pty4j/win/x86-64/winpty.dll
 android-studio/lib/rd.jar
 android-studio/lib/resources.jar
