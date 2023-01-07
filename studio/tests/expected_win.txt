@@ -747,6 +747,7 @@ android-studio/plugins/Kotlin/lib/kotlin-plugin.jar
 android-studio/plugins/Kotlin/lib/kotlinc-lib.jar
 android-studio/plugins/Kotlin/lib/kotlinc.allopen-compiler-plugin.jar
 android-studio/plugins/Kotlin/lib/kotlinc.android-extensions-compiler-plugin.jar
+android-studio/plugins/Kotlin/lib/kotlinc.assignment-compiler-plugin.jar
 android-studio/plugins/Kotlin/lib/kotlinc.kotlin-compiler-common.jar
 android-studio/plugins/Kotlin/lib/kotlinc.kotlin-compiler-fe10.jar
 android-studio/plugins/Kotlin/lib/kotlinc.kotlin-compiler-ir.jar

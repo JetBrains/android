@@ -684,6 +684,7 @@ Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-plugin.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc-lib.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc.allopen-compiler-plugin.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc.android-extensions-compiler-plugin.jar
+Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc.assignment-compiler-plugin.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc.kotlin-compiler-common.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc.kotlin-compiler-fe10.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc.kotlin-compiler-ir.jar
