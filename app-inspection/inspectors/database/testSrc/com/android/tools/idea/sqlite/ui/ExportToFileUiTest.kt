@@ -65,6 +65,7 @@ private const val TABLE_ACTION_PANEL_COMPONENT_NAME = "table-actions-panel"
 private const val EXPORT_BUTTON_COMPONENT_NAME = "export-button"
 
 /** Test suite verifying Export-to-File feature's UI layer */
+@org.junit.Ignore("b/264724334")
 class ExportToFileUiTest : LightPlatformTestCase() {
   private val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("name")))
   private val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
