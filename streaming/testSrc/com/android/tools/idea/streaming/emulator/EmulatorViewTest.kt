@@ -43,6 +43,7 @@ import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerComponentInstance
 import com.intellij.testFramework.replaceService
@@ -51,7 +52,6 @@ import com.intellij.util.ui.UIUtil
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.Mockito.atLeast
@@ -83,7 +83,7 @@ import javax.swing.JScrollPane
 class EmulatorViewTest {
   private val emulatorViewRule = EmulatorViewRule()
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(emulatorViewRule).around(EdtRule())
+  val ruleChain = RuleChain(emulatorViewRule, EdtRule())
   private val filesOpened = mutableListOf<VirtualFile>()
 
   private val testRootDisposable
