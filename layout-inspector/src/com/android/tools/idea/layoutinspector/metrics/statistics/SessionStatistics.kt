@@ -99,6 +99,11 @@ interface SessionStatistics {
   fun frameReceived()
 
   /**
+   * A debugger was detected. Indicate if the debugger [isPaused] during attach.
+   */
+  fun debuggerInUse(isPaused: Boolean)
+
+  /**
    * Live mode changed.
    */
   var currentModeIsLive: Boolean
@@ -205,6 +210,10 @@ class SessionStatisticsImpl(
 
   override fun frameReceived() {
     compose.frameReceived()
+  }
+
+  override fun debuggerInUse(isPaused: Boolean) {
+    attach.debuggerInUse(isPaused)
   }
 
   override var currentModeIsLive : Boolean

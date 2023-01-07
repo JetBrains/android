@@ -295,6 +295,7 @@ private object DisconnectedSessionStatistics : SessionStatistics {
   override fun attachError(errorState: AttachErrorState?, errorCode: AttachErrorCode) {}
   override fun composeAttachError(errorCode: AttachErrorCode) {}
   override fun frameReceived() {}
+  override fun debuggerInUse(isPaused: Boolean) {}
 
   override var currentModeIsLive: Boolean = false
   override var currentMode3D: Boolean = false

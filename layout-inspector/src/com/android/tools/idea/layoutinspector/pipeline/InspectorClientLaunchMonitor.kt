@@ -109,12 +109,16 @@ class InspectorClientLaunchMonitor(
 
   private fun handleDebuggerCheck() {
     val banner = InspectorBannerService.getInstance(project)
-    val currentClient = adbClient ?: return
-    if (!isPausedInDebugger(currentClient)) {
+    val currentClient = adbClient
+    if (currentClient == null || !isPausedInDebugger(currentClient)) {
+      if (currentClient?.isDebuggerAttached == true) {
+        client?.stats?.debuggerInUse(isPaused = false)
+      }
       banner?.removeNotification(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
       debuggerFuture = executorService.schedule(::handleDebuggerCheck, DEBUGGER_CHECK_SECONDS, TimeUnit.SECONDS)
       return
     }
+    client?.stats?.debuggerInUse(isPaused = true)
     // Cancel the timeout check since we now know that the attach delay is caused by a debugging session:
     timeoutFuture?.cancel(true)
     val resumeDebugger = object : AnAction("Resume Debugger") {

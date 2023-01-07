@@ -29,6 +29,8 @@ class AttachStatistics(
 ) {
   private var success = false
   private var error = false
+  private var debugging = false
+  private var pausedDuringAttach = false
   private var errorState = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
   private var errorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
   private var composeErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
@@ -51,6 +53,8 @@ class AttachStatistics(
       }
       it.composeErrorCode = composeErrorCode
       it.multipleProjectsOpen = multipleProjectsOpen.invoke()
+      it.debuggerAttached = debugging
+      it.debuggerPausedDuringAttach = pausedDuringAttach
     }
   }
 
@@ -66,5 +70,10 @@ class AttachStatistics(
 
   fun composeAttachError(errorCode: AttachErrorCode) {
     composeErrorCode = errorCode
+  }
+
+  fun debuggerInUse(isPaused: Boolean) {
+    debugging = true
+    pausedDuringAttach = pausedDuringAttach || isPaused
   }
 }

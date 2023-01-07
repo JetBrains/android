@@ -28,6 +28,7 @@ import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.project.DefaultProjectSystem
@@ -38,6 +39,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.debugger.engine.JavaDebugProcess
 import com.intellij.debugger.impl.DebuggerSession
@@ -234,6 +236,12 @@ class InspectorClientLaunchMonitorTest {
       val manager = XDebuggerManager.getInstance(projectRule.project)
       verify(manager.debugSessions.single()).resume()
       verify(client, never()).disconnect()
+
+      val data = DynamicLayoutInspectorSession.newBuilder()
+      client.stats.save(data)
+      val savedStats = data.build()
+      assertThat(savedStats.attach.debuggerAttached).isTrue()
+      assertThat(savedStats.attach.debuggerPausedDuringAttach).isTrue()
     }
   }
 
@@ -265,6 +273,7 @@ class InspectorClientLaunchMonitorTest {
   private fun setupDebuggingProcess(debuggerType: DebuggerType, pausedInJava: Boolean): InspectorClient {
     val client: InspectorClient = mock()
     whenever(client.process).thenReturn(processDescriptor)
+    whenever(client.stats).thenReturn(SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT, areMultipleProjectsOpen = { false }))
     val adbFileProvider = projectRule.mockProjectService(AdbFileProvider::class.java)
     whenever(adbFileProvider.get()).thenReturn(mock())
     val adbService = projectRule.mockService(AdbService::class.java)
