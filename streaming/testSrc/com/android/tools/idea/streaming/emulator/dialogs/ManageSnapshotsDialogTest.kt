@@ -39,6 +39,7 @@ import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.AnActionButton
@@ -49,7 +50,6 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import org.junit.rules.Timeout
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
@@ -73,7 +73,7 @@ class ManageSnapshotsDialogTest {
   private val timeoutRule = Timeout.builder().withTimeout(60, TimeUnit.SECONDS).withLookingForStuckThread(true).build()
 
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(timeoutRule).around(emulatorViewRule).around(EdtRule())
+  val ruleChain = RuleChain(timeoutRule, emulatorViewRule, EdtRule())
 
   @get:Rule
   val portableUiFontRule = PortableUiFontRule()

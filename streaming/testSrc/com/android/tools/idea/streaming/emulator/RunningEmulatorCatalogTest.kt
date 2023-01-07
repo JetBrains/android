@@ -17,9 +17,9 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.RuleChain
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.TimeUnit
 
@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit
 class RunningEmulatorCatalogTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val emulatorRule = FakeEmulatorRule()
-  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule)
+  @get:Rule val ruleChain = RuleChain(projectRule, emulatorRule)
 
   @Test
   fun testCatalogUpdates() {

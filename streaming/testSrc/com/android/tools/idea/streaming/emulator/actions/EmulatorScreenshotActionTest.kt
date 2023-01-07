@@ -29,13 +29,13 @@ import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.EDT
 import org.intellij.images.ui.ImageComponent
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import java.awt.image.BufferedImage
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
@@ -49,7 +49,7 @@ class EmulatorScreenshotActionTest {
   private val emulatorViewRule = EmulatorViewRule()
 
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(emulatorViewRule).around(EdtRule())
+  val ruleChain = RuleChain(emulatorViewRule, EdtRule())
 
   private var nullableEmulator: FakeEmulator? = null
   private var nullableEmulatorView: EmulatorView? = null
