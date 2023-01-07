@@ -571,10 +571,8 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
 
   public void testJavaCreateFromUsage() throws Throwable {
     VirtualFile virtualFile = copyFileToProject(getTestName(false) + ".java", "src/p1/p2/" + getTestName(false) + ".java");
-/* b/263898646
     doCreateValueResourceFromUsage(virtualFile);
     myFixture.checkResultByFile("res/values/drawables.xml", myTestFolder + '/' + getTestName(true) + "_drawables_after.xml", true);
-b/263898646 */
   }
 
   public void testJavaCreateFromUsage1() throws Throwable {
