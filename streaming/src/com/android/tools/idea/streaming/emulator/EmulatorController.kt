@@ -352,21 +352,22 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
           super.onCompleted()
         }
         finally {
-          val item: Pair<KeyboardEvent, StreamObserver<Empty>>?
-          synchronized(keyboardEventQueue) {
-            item = keyboardEventQueue.removeFirstOrNull()
-            if (item == null) {
-              keyboardEventInFlight = false
-            }
-          }
-          if (item != null) {
-            doSendKeyboardEvent(item.first, item.second)
-          }
+          sendQueuedKeyboardEventIfAny()
         }
       }
     }
 
     emulatorControllerStub.sendKey(keyboardEvent, observer)
+  }
+
+  private fun sendQueuedKeyboardEventIfAny() {
+    val item: Pair<KeyboardEvent, StreamObserver<Empty>>
+    synchronized(keyboardEventQueue) {
+      keyboardEventInFlight = false
+      item = keyboardEventQueue.removeFirstOrNull() ?: return
+      keyboardEventInFlight = true
+    }
+    doSendKeyboardEvent(item.first, item.second)
   }
 
   /**
@@ -440,7 +441,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    * Streams a series of screenshots.
    *
    * **Note**: The value returned by the [Image.getImage] method of the response object cannot be used
-   * outside of the [StreamObserver.onNext] method because it is backed by a mutable reusable byte array.
+   * outside the [StreamObserver.onNext] method because it is backed by a mutable reusable byte array.
    */
   fun streamScreenshot(imageFormat: ImageFormat, streamObserver: StreamObserver<Image>): Cancelable {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
@@ -448,7 +449,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     }
     val call = emulatorControllerStub.channel.newCall(streamScreenshotMethod, emulatorControllerStub.callOptions)
     ClientCalls.asyncServerStreamingCall(call, imageFormat, DelegatingStreamObserver(streamObserver, streamScreenshotMethod))
-    return CancelableClientCall(call);
+    return CancelableClientCall(call)
   }
 
   /**
