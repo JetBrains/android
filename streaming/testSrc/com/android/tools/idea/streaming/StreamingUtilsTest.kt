@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming.emulator
+package com.android.tools.idea.streaming
 
-import com.android.tools.idea.streaming.scaledUnbiased
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.fail
 import org.junit.Test
 
 /**
- * Tests for functions defined in EmulatorUtils.kt.
+ * Tests for functions defined in StreamingUtils.kt.
  */
-class EmulatorUtilsTest {
+class StreamingUtilsTest {
 
   @Test
   fun testIntScaledUnbiased() {
