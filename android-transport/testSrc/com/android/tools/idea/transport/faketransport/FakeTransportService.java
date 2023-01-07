@@ -31,7 +31,6 @@ import com.android.tools.idea.transport.faketransport.commands.EndSession;
 import com.android.tools.idea.transport.faketransport.commands.HeapDump;
 import com.android.tools.idea.transport.faketransport.commands.MemoryAllocSampling;
 import com.android.tools.idea.transport.faketransport.commands.MemoryAllocTracking;
-import com.android.tools.idea.transport.faketransport.commands.MemoryNativeSampling;
 import com.android.tools.idea.transport.faketransport.commands.StartTrace;
 import com.android.tools.idea.transport.faketransport.commands.StopTrace;
 import com.android.tools.profiler.proto.Commands.Command;
