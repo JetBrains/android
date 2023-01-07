@@ -394,6 +394,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.0-Beta",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.0-Beta",
     ],
+    visibility = ["//visibility:public"],
 )
 
 maven_repository(
@@ -422,6 +423,7 @@ maven_repository(
 filegroup(
     name = "minapp",
     srcs = glob(["testData/minapp/**"]),
+    visibility = ["//visibility:public"],
 )
 
 filegroup(
