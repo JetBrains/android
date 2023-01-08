@@ -70,6 +70,7 @@ public class StartUpTest {
         "com.intellij.dev",
         "Configuration Script",
         "Copyright",
+        "Core of CIDR Test Framework",
         "Design Tools",
         "Eclipse Keymap",
         "EditorConfig",

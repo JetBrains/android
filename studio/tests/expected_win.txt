@@ -1,7 +1,5 @@
 android-studio/LICENSE.txt
 android-studio/NOTICE.txt
-android-studio/bin/IdeaWin32.dll
-android-studio/bin/IdeaWin64.dll
 android-studio/bin/WinProcessListHelper.exe
 android-studio/bin/WinShellIntegrationBridge.dll
 android-studio/bin/appletviewer.policy
@@ -2020,12 +2018,12 @@ android-studio/plugins/google-login-as/lib/jsr305-2.0.1.jar
 android-studio/plugins/google-samples/lib/google-samples.jar
 android-studio/plugins/gradle-java/lib/gradle-java.jar
 android-studio/plugins/gradle-java/lib/gradle-jps.jar
-android-studio/plugins/gradle/lib/gradle-api-7.4.jar
-android-studio/plugins/gradle/lib/gradle-api-impldep-7.4.jar
-android-studio/plugins/gradle/lib/gradle-launcher-7.4.jar
+android-studio/plugins/gradle/lib/gradle-api-7.5.1.jar
+android-studio/plugins/gradle/lib/gradle-api-impldep-7.5.1.jar
+android-studio/plugins/gradle/lib/gradle-launcher-7.5.1.jar
 android-studio/plugins/gradle/lib/gradle-tooling-extension-api.jar
 android-studio/plugins/gradle/lib/gradle-tooling-extension-impl.jar
-android-studio/plugins/gradle/lib/gradle-wrapper-7.4.jar
+android-studio/plugins/gradle/lib/gradle-wrapper-7.5.1.jar
 android-studio/plugins/gradle/lib/gradle.jar
 android-studio/plugins/java-coverage/lib/jacoco.jar
 android-studio/plugins/java-coverage/lib/java-coverage-rt.jar
@@ -2486,9 +2484,6 @@ android-studio/plugins/vcs-github/lib/vcs-github.jar
 android-studio/plugins/vcs-hg/lib/vcs-hg.jar
 android-studio/plugins/vcs-svn/lib/sqlite.jar
 android-studio/plugins/vcs-svn/lib/vcs-svn.jar
-android-studio/plugins/webp/lib/libwebp/linux/libwebp_jni.so
-android-studio/plugins/webp/lib/libwebp/linux/libwebp_jni64.so
-android-studio/plugins/webp/lib/libwebp/mac/libwebp_jni64.dylib
 android-studio/plugins/webp/lib/libwebp/win/webp_jni.dll
 android-studio/plugins/webp/lib/libwebp/win/webp_jni64.dll
 android-studio/plugins/webp/lib/webp.jar

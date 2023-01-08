@@ -2708,12 +2708,12 @@ Android Studio Preview.app/Contents/plugins/google-login-as/lib/jsr305-2.0.1.jar
 Android Studio Preview.app/Contents/plugins/google-samples/lib/google-samples.jar
 Android Studio Preview.app/Contents/plugins/gradle-java/lib/gradle-java.jar
 Android Studio Preview.app/Contents/plugins/gradle-java/lib/gradle-jps.jar
-Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-api-7.4.jar
-Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-api-impldep-7.4.jar
-Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-launcher-7.4.jar
+Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-api-7.5.1.jar
+Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-api-impldep-7.5.1.jar
+Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-launcher-7.5.1.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-tooling-extension-api.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-tooling-extension-impl.jar
-Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-wrapper-7.4.jar
+Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-wrapper-7.5.1.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/gradle.jar
 Android Studio Preview.app/Contents/plugins/java-coverage/lib/jacoco.jar
 Android Studio Preview.app/Contents/plugins/java-coverage/lib/java-coverage-rt.jar
@@ -3174,11 +3174,7 @@ Android Studio Preview.app/Contents/plugins/vcs-github/lib/vcs-github.jar
 Android Studio Preview.app/Contents/plugins/vcs-hg/lib/vcs-hg.jar
 Android Studio Preview.app/Contents/plugins/vcs-svn/lib/sqlite.jar
 Android Studio Preview.app/Contents/plugins/vcs-svn/lib/vcs-svn.jar
-Android Studio Preview.app/Contents/plugins/webp/lib/libwebp/linux/libwebp_jni.so
-Android Studio Preview.app/Contents/plugins/webp/lib/libwebp/linux/libwebp_jni64.so
 Android Studio Preview.app/Contents/plugins/webp/lib/libwebp/mac/libwebp_jni64.dylib
-Android Studio Preview.app/Contents/plugins/webp/lib/libwebp/win/webp_jni.dll
-Android Studio Preview.app/Contents/plugins/webp/lib/libwebp/win/webp_jni64.dll
 Android Studio Preview.app/Contents/plugins/webp/lib/webp.jar
 Android Studio Preview.app/Contents/plugins/yaml/lib/yaml.jar
 _codesign/entitlements.xml

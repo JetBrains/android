@@ -444,7 +444,7 @@ android-studio/lib/ant/lib/ant.pom
 android-studio/lib/ant/lib/libraries.properties
 android-studio/lib/ant/src.zip
 android-studio/lib/app.jar
-android-studio/lib/build-marker-AI-223.6646.99.2231.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-223.7126.7.2231.__BUILD_NUMBER__
 android-studio/lib/byte-buddy-agent.jar
 android-studio/lib/cds/classesLogAgent.jar
 android-studio/lib/error-prone-annotations.jar
@@ -2686,12 +2686,12 @@ android-studio/plugins/google-login-as/lib/jsr305-2.0.1.jar
 android-studio/plugins/google-samples/lib/google-samples.jar
 android-studio/plugins/gradle-java/lib/gradle-java.jar
 android-studio/plugins/gradle-java/lib/gradle-jps.jar
-android-studio/plugins/gradle/lib/gradle-api-7.4.jar
-android-studio/plugins/gradle/lib/gradle-api-impldep-7.4.jar
-android-studio/plugins/gradle/lib/gradle-launcher-7.4.jar
+android-studio/plugins/gradle/lib/gradle-api-7.5.1.jar
+android-studio/plugins/gradle/lib/gradle-api-impldep-7.5.1.jar
+android-studio/plugins/gradle/lib/gradle-launcher-7.5.1.jar
 android-studio/plugins/gradle/lib/gradle-tooling-extension-api.jar
 android-studio/plugins/gradle/lib/gradle-tooling-extension-impl.jar
-android-studio/plugins/gradle/lib/gradle-wrapper-7.4.jar
+android-studio/plugins/gradle/lib/gradle-wrapper-7.5.1.jar
 android-studio/plugins/gradle/lib/gradle.jar
 android-studio/plugins/java-coverage/lib/jacoco.jar
 android-studio/plugins/java-coverage/lib/java-coverage-rt.jar
@@ -3153,9 +3153,6 @@ android-studio/plugins/vcs-svn/lib/sqlite.jar
 android-studio/plugins/vcs-svn/lib/vcs-svn.jar
 android-studio/plugins/webp/lib/libwebp/linux/libwebp_jni.so
 android-studio/plugins/webp/lib/libwebp/linux/libwebp_jni64.so
-android-studio/plugins/webp/lib/libwebp/mac/libwebp_jni64.dylib
-android-studio/plugins/webp/lib/libwebp/win/webp_jni.dll
-android-studio/plugins/webp/lib/libwebp/win/webp_jni64.dll
 android-studio/plugins/webp/lib/webp.jar
 android-studio/plugins/yaml/lib/yaml.jar
 android-studio/product-info.json

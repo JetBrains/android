@@ -7,7 +7,7 @@
 %prefix%Contents/plugins/android/lib/javacpp-1.5.7-macosx-x86_64.jar
 %prefix%Contents/plugins/android/lib/sqlite-jdbc-3.34.0.jar
 %prefix%Contents/plugins/java/lib/debugger-memory-agent.jar
-%prefix%Contents/plugins/gradle/lib/gradle-api-7.4.jar
+%prefix%Contents/plugins/gradle/lib/gradle-api-7.5.1.jar
 %prefix%Contents/plugins/Kotlin/kotlinc/lib/kotlin-compiler.jar
 %prefix%Contents/plugins/Kotlin/kotlinc/lib/kotlin-daemon-client.jar
 %prefix%Contents/plugins/Kotlin/lib/jps/kotlin-jps-plugin.jar
