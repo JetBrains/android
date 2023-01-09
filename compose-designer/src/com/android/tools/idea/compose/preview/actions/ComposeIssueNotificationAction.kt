@@ -51,8 +51,10 @@ import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.ui.JBColor
+import com.intellij.ui.components.AnActionLink
 import com.intellij.util.ui.JBUI
 import java.lang.ref.WeakReference
+import kotlin.reflect.KFunction0
 import org.jetbrains.annotations.VisibleForTesting
 
 private val GREEN_REFRESH_BUTTON =
@@ -116,61 +118,90 @@ fun defaultCreateInformationPopup(
   dataContext: DataContext,
 ): InformationPopup? {
   val fileProvider = ComposePreviewManagerFileProvider(dataContext)::invoke
-  return getStatusInfo(project, dataContext)?.let {
+  return getStatusInfo(project, dataContext)?.let { previewStatusNotification ->
     val isAutoDisabled =
-      it is PreviewStatusNotification.FastPreviewFailed && project.fastPreviewManager.isAutoDisabled
-    return@let InformationPopupImpl(
-        null,
-        it.description,
-        listOfNotNull(StudioFlags.COMPOSE_FAST_PREVIEW.ifEnabled { ToggleFastPreviewAction() }),
+      previewStatusNotification is PreviewStatusNotification.FastPreviewFailed &&
+        project.fastPreviewManager.isAutoDisabled
+
+    with(dataContext) {
+      val linksList =
         listOfNotNull(
-          actionLink(
-            message("action.build.and.refresh.title").replace("&&", "&") +
-              getBuildAndRefreshShortcut()
-                .asString(), // Remove any ampersand escaping for tooltips (not needed in these
-            // links)
-            BuildAndRefresh(fileProvider),
-            dataContext
-          ),
-          when (it) {
-            is PreviewStatusNotification.SyntaxError, PreviewStatusNotification.RenderIssues ->
-              actionLink(message("action.view.problems"), ShowProblemsPanel(), dataContext)
-            else -> null
-          },
-          if (isAutoDisabled)
-            actionLink(
-              message("fast.preview.disabled.notification.reenable.action.title"),
-              ReEnableFastPreview(),
-              dataContext
-            )
-          else null,
-          if (isAutoDisabled)
-            actionLink(
-              message("fast.preview.disabled.notification.stop.autodisable.action.title"),
-              ReEnableFastPreview(false),
-              dataContext
-            )
-          else null,
-          if (it is PreviewStatusNotification.FastPreviewFailed)
-            actionLink(
-              message("fast.preview.disabled.notification.show.details.action.title"),
-              ShowEventLogAction(),
-              dataContext
-            )
-          else null
+          createTitleActionLink(fileProvider),
+          createErrorsActionLink(previewStatusNotification),
+          createReenableFastPreviewActionLink(isAutoDisabled),
+          createDisableFastPreviewActionLink(isAutoDisabled),
+          createFastPreviewFailedActionLink(previewStatusNotification)
         )
-      )
-      .also { newPopup ->
-        // Register the data provider of the popup to be the same as the one used in the toolbar.
-        // This allows for actions within the
-        // popup to query for things like the Editor even when the Editor is not directly related to
-        // the popup.
-        DataManager.registerDataProvider(newPopup.popupComponent) { dataId ->
-          dataContext.getData(dataId)
+      return@let InformationPopupImpl(
+          title = null,
+          description = previewStatusNotification.description,
+          additionalActions =
+            listOfNotNull(StudioFlags.COMPOSE_FAST_PREVIEW.ifEnabled { ToggleFastPreviewAction() }),
+          links = linksList
+        )
+        .also { newPopup ->
+          // Register the data provider of the popup to be the same as the one used in the toolbar.
+          // This allows for actions within the
+          // popup to query for things like the Editor even when the Editor is not directly related
+          // to
+          // the popup.
+          DataManager.registerDataProvider(newPopup.popupComponent) { dataId ->
+            dataContext.getData(dataId)
+          }
         }
-      }
+    }
   }
 }
+
+private fun DataContext.createFastPreviewFailedActionLink(
+  previewStatusNotification: PreviewStatusNotification,
+): AnActionLink? =
+  previewStatusNotification.takeIf { it is PreviewStatusNotification.FastPreviewFailed }?.let {
+    actionLink(
+      text = message("fast.preview.disabled.notification.show.details.action.title"),
+      action = ShowEventLogAction(),
+      delegateDataContext = this
+    )
+  }
+
+private fun DataContext.createDisableFastPreviewActionLink(isAutoDisabled: Boolean): AnActionLink? =
+  isAutoDisabled.takeIf { it }?.let {
+    actionLink(
+      text = message("fast.preview.disabled.notification.stop.autodisable.action.title"),
+      action = ReEnableFastPreview(false),
+      delegateDataContext = this
+    )
+  }
+
+private fun DataContext.createReenableFastPreviewActionLink(
+  isAutoDisabled: Boolean,
+): AnActionLink? =
+  isAutoDisabled.takeIf { it }?.let {
+    actionLink(
+      text = message("fast.preview.disabled.notification.reenable.action.title"),
+      action = ReEnableFastPreview(),
+      delegateDataContext = this
+    )
+  }
+
+private fun DataContext.createErrorsActionLink(it: PreviewStatusNotification): AnActionLink? =
+  when (it) {
+    is PreviewStatusNotification.SyntaxError, PreviewStatusNotification.RenderIssues ->
+      actionLink(message("action.view.problems"), ShowProblemsPanel(), this)
+    else -> null
+  }
+
+private fun DataContext.createTitleActionLink(
+  fileProvider: KFunction0<PsiFile?>,
+): AnActionLink =
+  actionLink(
+    text =
+      message("action.build.and.refresh.title").replace("&&", "&") +
+        getBuildAndRefreshShortcut().asString(),
+    // Remove any ampersand escaping for tooltips (not needed in these links)
+    action = BuildAndRefresh(fileProvider),
+    delegateDataContext = this
+  )
 
 /**
  * Action that reports the current state of the Compose Preview.
