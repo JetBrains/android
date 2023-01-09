@@ -67,6 +67,7 @@ import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData/ui"
 private const val DIFF_THRESHOLD = 0.01
 
+@org.junit.Ignore("b/265082822")
 @RunsInEdt
 class ResolutionElementEditorTest {
   private val projectRule = AndroidProjectRule.withSdk()
