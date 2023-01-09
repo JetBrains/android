@@ -1,160 +1,9 @@
 [
   {
-    "name": "Jelly Bean",
-    "version": "4.1",
-    "apiLevel": 16,
-    "distributionPercentage": 0.001,
-    "url": "https://developer.android.com/about/versions/android-4.1.html",
-    "descriptionBlocks" : [
-      {
-        "title": "App Components",
-        "body": "Isolated services<br>Memory management<br>Content providers<br>Live wallpapers<br>App stack navigation"
-      },
-      {
-        "title": "Multimedia",
-        "body": "Media codecs<br>Record audio on cue<br>Timed text tracks<br>Gapless playback"
-      },
-      {
-        "title": "Camera",
-        "body": "Auto focus movement<br>Camera sounds"
-      },
-      {
-        "title": "Connectivity",
-        "body": "Android Beam over Bluetooth<br>Network service discovery<br>Wi-Fi P2P service discovery<br>Detect metered networks"
-      },
-      {
-        "title": "Accessibility",
-        "body": "Accessibility service APIs<br>Customizable app navigation<br>More accessible widgets"
-      },
-      {
-        "title": "Copy and Paste",
-        "body": "Copy and paste with intents"
-      },
-      {
-        "title": "Multimedia",
-        "body": "Enhanced RenderScript functionality"
-      },
-      {
-        "title": "Animations",
-        "body": "Activity launch animations<br>Time animator"
-      },
-      {
-        "title": "User Interface",
-        "body": "Improved notifications<br>Controls for system UI<br>Remote views<br>More font families"
-      },
-      {
-        "title": "Input Framework",
-        "body": "Multiple input devices<br>Vibrate for input controllers"
-      },
-      {
-        "title": "",
-        "body": "Last updated: August 4th, 2022"
-      }
-    ]
-  },
-  {
-    "name": "Jelly Bean",
-    "version": "4.2",
-    "apiLevel": 17,
-    "distributionPercentage": 0.002,
-    "url": "https://developer.android.com/about/versions/android-4.2.html",
-    "descriptionBlocks" : [
-      {
-        "title": "Screensaver",
-        "body": "Daydream interactive screensaver"
-      },
-      {
-        "title": "Secondary Displays",
-        "body": "Display content on additional screens"
-      },
-      {
-        "title": "Lockscreen Widgets",
-        "body": "Add widgets to the lock screen"
-      },
-      {
-        "title": "Multiple Users",
-        "body": "Save data in a multi-user environment<br>Identify users in a multi-user environment<br>Global settings"
-      },
-      {
-        "title": "User Interface",
-        "body": "Layout orientation for right-to-left (RTL) UIs<br>Nested fragments"
-      },
-      {
-        "title": "Multimedia",
-        "body": "RenderScript script intrinsics<br>RenderScript script groups<br>RenderScript Filterscript"
-      },
-      {
-        "title": "",
-        "body": "Last updated: August 4th, 2022"
-      }
-    ]
-  },
-  {
-    "name": "Jelly Bean",
-    "version": "4.3",
-    "apiLevel": 18,
-    "distributionPercentage": 0.000,
-    "url": "https://developer.android.com/about/versions/android-4.3.html",
-    "descriptionBlocks" : [
-      {
-        "title": "Restricted Profiles",
-        "body": "App restrictions in profiles<br>Supporting accounts"
-      },
-      {
-        "title": "Wireless and Connectivity",
-        "body": "Bluetooth Low Energy (BLE)<br>Wi-Fi scan-only mode<br>Managed Wi-Fi configuration<br>Quick response for incoming calls"
-      },
-      {
-        "title": "Multimedia",
-        "body": "MediaExtractor and MediaCodec enhancements<br>Media DRM<br>Video encoding from a Surface<br>Media muxing<br>RemoteControlClient progress and scrubbing"
-      },
-      {
-        "title": "Graphics",
-        "body": "Support for OpenGL ES 3.0<br>Mipmapping for drawables"
-      },
-      {
-        "title": "User Interface",
-        "body": "View overlays<br>Optical bounds layout<br>Window attach and focus listener<br>TV overscan support<br>Screen orientation preference<br>Rotation animations"
-      },
-      {
-        "title": "User Input",
-        "body": "Uncalibrated sensors<br>Game rotation vector sensor"
-      },
-      {
-        "title": "Notifications",
-        "body": "Notification listener"
-      },
-      {
-        "title": "Contacts Provider",
-        "body": "Contacts provider query"
-      },
-      {
-        "title": "Localization",
-        "body": "Improved support for bidirectional text"
-      },
-      {
-        "title": "Accessibility",
-        "body": "Handle key events<br>Select text and copy/paste<br>Declare accessibility features"
-      },
-      {
-        "title": "Testing and Debugging",
-        "body": "Automated UI testing<br>Systrace events for apps"
-      },
-      {
-        "title": "Security",
-        "body": "Android key store for app-private keys<br>Hardware credential storage"
-      },
-      {
-        "title": "",
-        "body": "Last updated: August 4th, 2022"
-      }
-    ]
-  },
-  {
     "name": "KitKat",
     "version": "4.4",
     "apiLevel": 19,
-    "distributionPercentage": 0.009,
+    "distributionPercentage": 0.007,
     "url": "https://developer.android.com/about/versions/android-4.4.html",
     "descriptionBlocks" : [
       {
@@ -191,7 +40,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: August 4th, 2022"
+        "body": "Last updated: January 6th, 2023"
       }
     ]
   },
@@ -199,7 +48,7 @@
     "name": "Lollipop",
     "version": "5.0",
     "apiLevel": 21,
-    "distributionPercentage": 0.004,
+    "distributionPercentage": 0.003,
     "url": "https://developer.android.com/about/versions/android-5.0.html",
     "descriptionBlocks" : [
 
@@ -257,7 +106,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: August 4th, 2022"
+        "body": "Last updated: January 6th, 2023"
       }
     ]
   },
@@ -265,7 +114,7 @@
     "name": "Lollipop",
     "version": "5.1",
     "apiLevel": 22,
-    "distributionPercentage": 0.022,
+    "distributionPercentage": 0.018,
     "url": "https://developer.android.com/about/versions/android-5.1.html",
     "descriptionBlocks" : [
       {
@@ -278,7 +127,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: August 4th, 2022"
+        "body": "Last updated: January 6th, 2023"
       }
     ]
   },
@@ -286,7 +135,7 @@
     "name": "Marshmallow",
     "version": "6.0",
     "apiLevel": 23,
-    "distributionPercentage": 0.035,
+    "distributionPercentage": 0.028,
     "url": "https://developer.android.com/about/versions/marshmallow/android-6.0.html",
     "descriptionBlocks" : [
       {
@@ -319,7 +168,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: August 4th, 2022"
+        "body": "Last updated: January 6th, 2023"
       }
     ]
   },
@@ -327,7 +176,7 @@
     "name": "Nougat",
     "version": "7.0",
     "apiLevel": 24,
-    "distributionPercentage": 0.023,
+    "distributionPercentage": 0.019,
     "url": "https://developer.android.com/about/versions/nougat/android-7.0.html",
     "descriptionBlocks" : [
       {
@@ -376,7 +225,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: August 4th, 2022"
+        "body": "Last updated: January 6th, 2023"
       }
     ]
   },
@@ -384,7 +233,7 @@
     "name": "Nougat",
     "version": "7.1",
     "apiLevel": 25,
-    "distributionPercentage": 0.022,
+    "distributionPercentage": 0.018,
     "url": "https://developer.android.com/about/versions/nougat/android-7.1.html",
     "descriptionBlocks" : [
       {
@@ -413,7 +262,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: August 4th, 2022"
+        "body": "Last updated: January 6th, 2023"
       }
     ]
   },
@@ -421,7 +270,7 @@
     "name": "Oreo",
     "version": "8.0",
     "apiLevel": 26,
-    "distributionPercentage": 0.03,
+    "distributionPercentage": 0.026,
     "url": "https://developer.android.com/about/versions/oreo/android-8.0",
     "descriptionBlocks" : [
       {
@@ -450,7 +299,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: August 4th, 2022"
+        "body": "Last updated: January 6th, 2023"
       }
     ]
   },
@@ -458,7 +307,7 @@
     "name": "Oreo",
     "version": "8.1",
     "apiLevel": 27,
-    "distributionPercentage": 0.079,
+    "distributionPercentage": 0.069,
     "url": "https://developer.android.com/about/versions/oreo/android-8.1",
     "descriptionBlocks" : [
       {
@@ -479,7 +328,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: August 4th, 2022"
+        "body": "Last updated: January 6th, 2023"
       }
     ]
   },
@@ -487,7 +336,7 @@
     "name": "Pie",
     "version": "9.0",
     "apiLevel": 28,
-    "distributionPercentage": 0.145,
+    "distributionPercentage": 0.132,
     "url": "https://developer.android.com/about/versions/pie/android-9.0",
     "descriptionBlocks" : [
       {
@@ -512,7 +361,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: August 4th, 2022"
+        "body": "Last updated: January 6th, 2023"
       }
     ]
   },
@@ -520,7 +369,7 @@
     "name": "Q",
     "version": "10.0",
     "apiLevel": 29,
-    "distributionPercentage": 0.223,
+    "distributionPercentage": 0.195,
     "url": "https://developer.android.com/about/versions/10",
     "descriptionBlocks" : [
       {
@@ -541,7 +390,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: August 4th, 2022"
+        "body": "Last updated: January 6th, 2023"
       }
     ]
   },
@@ -549,7 +398,7 @@
     "name": "R",
     "version": "11.0",
     "apiLevel": 30,
-    "distributionPercentage": 0.27,
+    "distributionPercentage": 0.244,
     "url": "https://developer.android.com/about/versions/11",
     "descriptionBlocks" : [
       {
@@ -566,7 +415,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: August 4th, 2022"
+        "body": "Last updated: January 6th, 2023"
       }
     ]
   },
@@ -574,7 +423,7 @@
     "name": "S",
     "version": "12.0",
     "apiLevel": 31,
-    "distributionPercentage": 0.133,
+    "distributionPercentage": 0.189,
     "url": "https://developer.android.com/about/versions/12",
     "descriptionBlocks" : [
       {
@@ -591,7 +440,32 @@
       },
       {
         "title": "",
-        "body": "Last updated: August 4th, 2022"
+        "body": "Last updated: January 6th, 2023"
+      }
+    ]
+  },
+  {
+    "name": "T",
+    "version": "13.0",
+    "apiLevel": 33,
+    "distributionPercentage": 0.05,
+    "url": "https://developer.android.com/about/versions/13",
+    "descriptionBlocks" : [
+      {
+        "title": "New features",
+        "body": "Tablet and large screen support<br>Programmable shaders<br>Color vector fonts<br>Predictive back gesture<br>Bluetooth LE Audio<br>Splash screen efficiency improvements<br>ART optimizations"
+      },
+      {
+        "title": "Behavior changes",
+        "body": "OpenJDK 11 updates<br>Battery Resource Utilization<br>Media controls derived from PlaybackState<br>Permission required for advertising ID<br>Updated non-SDK restrictions"
+      },
+      {
+        "title": "Security and privacy",
+        "body": "Safer exporting of context-registered receivers<br>Enhanced photo picker privacy<br>New runtime permission for nearby Wi-Fi devices<br>Exact alarms permission<br>Developer downgradable permissions<br>APK Signature Scheme v3.1<br>Better error reporting in Keystore and KeyMint"
+      },
+      {
+        "title": "",
+        "body": "Last updated: January 6th, 2023"
       }
     ]
   }
