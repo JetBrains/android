@@ -932,9 +932,10 @@ def _intellij_platform_impl(ctx):
     base_linux, plugins_linux = _intellij_platform_impl_os(ctx, LINUX, ctx.attr.studio_data)
     base_win, plugins_win = _intellij_platform_impl_os(ctx, WIN, ctx.attr.studio_data)
     base_mac, plugins_mac = _intellij_platform_impl_os(ctx, MAC, ctx.attr.studio_data)
+    base_mac_arm, plugins_mac_arm = _intellij_platform_impl_os(ctx, MAC_ARM, ctx.attr.studio_data)
 
     runfiles = ctx.runfiles(files = ctx.files.data)
-    files = depset([base_linux, base_mac, base_win])
+    files = depset([base_linux, base_mac, base_mac_arm, base_win])
     return struct(
         providers = [
             DefaultInfo(files = files, runfiles = runfiles),
@@ -944,7 +945,7 @@ def _intellij_platform_impl(ctx):
             files = depset([]),
             files_linux = depset([base_linux]),
             files_mac = depset([base_mac]),
-            files_mac_arm = depset([base_mac]),
+            files_mac_arm = depset([base_mac_arm]),
             files_win = depset([base_win]),
             mappings = {},
         ),
@@ -952,7 +953,7 @@ def _intellij_platform_impl(ctx):
             files = depset([]),
             files_linux = depset(plugins_linux),
             files_mac = depset(plugins_mac),
-            files_mac_arm = depset(plugins_mac),
+            files_mac_arm = depset(plugins_mac_arm),
             files_win = depset(plugins_win),
             mappings = {},
         ),
@@ -1054,10 +1055,12 @@ def intellij_platform(
         name = name + ".data",
         files_linux = native.glob([src + "/linux/**"]),
         files_mac = native.glob([src + "/darwin/**"]),
+        files_mac_arm = native.glob([src + "/darwin_aarch64/**"]),
         files_win = native.glob([src + "/windows/**"]),
         mappings = {
             "prebuilts/studio/intellij-sdk/%s/linux/android-studio/" % src: "",
             "prebuilts/studio/intellij-sdk/%s/darwin/android-studio/" % src: "",
+            "prebuilts/studio/intellij-sdk/%s/darwin_aarch64/android-studio/" % src: "",
             "prebuilts/studio/intellij-sdk/%s/windows/android-studio/" % src: "",
         },
     )

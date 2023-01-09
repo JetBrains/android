@@ -24,12 +24,14 @@ ALL = "all"
 LINUX = "linux"
 WIN = "windows"
 MAC = "darwin"
+MAC_ARM = "darwin_aarch64"
 
-PLATFORMS = [LINUX, WIN, MAC]
+PLATFORMS = [LINUX, WIN, MAC, MAC_ARM]
 
 HOME_PATHS = {
     LINUX: "/linux/android-studio",
     MAC: "/darwin/android-studio/Contents",
+    MAC_ARM: "/darwin_aarch64/android-studio/Contents",
     WIN: "/windows/android-studio",
 }
 
@@ -43,10 +45,11 @@ def list_sdk_jars(sdk):
     jars = [jar for jar in jars if jar not in HIDDEN]
     sets[platform] = set(jars)
 
-  sets[ALL] = sets[WIN] & sets[MAC] & sets[LINUX]
+  sets[ALL] = sets[WIN] & sets[MAC] & sets[MAC_ARM] & sets[LINUX]
   sets[LINUX] = sets[LINUX] - sets[ALL]
   sets[WIN] = sets[WIN] - sets[ALL]
   sets[MAC] = sets[MAC] - sets[ALL]
+  sets[MAC_ARM] = sets[MAC_ARM] - sets[ALL]
 
   sdk_jars = {}
   for platform in [ALL] + PLATFORMS:
@@ -73,15 +76,17 @@ def list_plugin_jars(sdk):
   plugin_jars = {}
   plugin_jars[ALL] = {}
   plugin_jars[MAC] = {}
+  plugin_jars[MAC_ARM] = {}
   plugin_jars[WIN] = {}
   plugin_jars[LINUX] = {}
   for p in plugins:
-    if p in all[LINUX] and p in all[MAC] and p in all[WIN]:
-      common = all[LINUX][p] & all[MAC][p] & all[WIN][p]
+    if p in all[LINUX] and p in all[MAC] and p in all[MAC_ARM] and p in all[WIN]:
+      common = all[LINUX][p] & all[MAC][p] & all[MAC_ARM][p] & all[WIN][p]
     else:
       common = set()
     plugin_jars[ALL][p] = sorted(common)
     plugin_jars[MAC][p] = sorted(all[MAC][p] - common) if p in all[MAC] else []
+    plugin_jars[MAC_ARM][p] = sorted(all[MAC_ARM][p] - common) if p in all[MAC_ARM] else []
     plugin_jars[WIN][p] = sorted(all[WIN][p] - common) if p in all[WIN] else []
     plugin_jars[LINUX][p] = sorted(all[LINUX][p] - common) if p in all[LINUX] else []
 
@@ -93,6 +98,7 @@ def write_spec_file(workspace, sdk_rel, version, sdk_jars, plugin_jars, mac_bund
   suffix = {
     ALL: "",
     MAC: "_darwin",
+    MAC_ARM: "_darwin_aarch64",
     WIN: "_windows",
     LINUX: "_linux",
   }
@@ -152,7 +158,7 @@ def write_xml_files(workspace, sdk, sdk_jars, plugin_jars):
   rel_workspace = os.path.relpath(workspace, project_dir)
 
   # Add all jars, IJ will ignore the ones that don't exist
-  all_jars = sdk_jars[ALL] + sorted(set(sdk_jars[MAC] + sdk_jars[WIN] + sdk_jars[LINUX]))
+  all_jars = sdk_jars[ALL] + sorted(set(sdk_jars[MAC] + sdk_jars[MAC_ARM] + sdk_jars[WIN] + sdk_jars[LINUX]))
   paths = [rel_workspace + sdk + "/$SDK_PLATFORM$" + j for j in all_jars]
   gen_lib(project_dir, "studio-sdk", paths, [workspace + sdk + "/android-studio-sources.zip"])
 
@@ -167,7 +173,7 @@ def write_xml_files(workspace, sdk, sdk_jars, plugin_jars):
 
 
   for plugin, jars in plugin_jars[ALL].items():
-    add = sorted(set(plugin_jars[WIN][plugin] + plugin_jars[MAC][plugin] + plugin_jars[LINUX][plugin]))
+    add = sorted(set(plugin_jars[WIN][plugin] + plugin_jars[MAC][plugin] + plugin_jars[MAC_ARM][plugin] + plugin_jars[LINUX][plugin]))
     paths = [ rel_workspace + sdk + f"/$SDK_PLATFORM$" + j for j in jars + add]
     gen_lib(project_dir, "studio-plugin-" + plugin, paths, [workspace + sdk + "/android-studio-sources.zip"])
 
@@ -190,7 +196,7 @@ def check_artifacts(dir):
   files = sorted(os.listdir(dir))
   if not files:
     sys.exit("There are no artifacts in " + dir)
-  regex = re.compile("android-studio-([^.]*)\.(.*)\.([^.-]+)(-sources.zip|.mac.x64-no-jdk.zip|-no-jbr.tar.gz|-no-jbr.win.zip)$")
+  regex = re.compile("android-studio-([^.]*)\.(.*)\.([^.-]+)(-sources.zip|.mac.x64-no-jdk.zip|.mac.aarch64-no-jdk.zip|-no-jbr.tar.gz|-no-jbr.win.zip)$")
   files = [file for file in files if regex.match(file) or file == "updater-full.jar"]
   if not files:
     sys.exit("No artifacts found in " + dir)
@@ -202,6 +208,7 @@ def check_artifacts(dir):
       "android-studio-%s.%s.%s-no-jbr.tar.gz" % (version_major, version_minor, bid),
       "android-studio-%s.%s.%s-no-jbr.win.zip" % (version_major, version_minor, bid),
       "android-studio-%s.%s.%s-sources.zip" % (version_major, version_minor, bid),
+      "android-studio-%s.%s.%s.mac.aarch64-no-jdk.zip" % (version_major, version_minor, bid),
       "android-studio-%s.%s.%s.mac.x64-no-jdk.zip" % (version_major, version_minor, bid),
       "updater-full.jar",
   ]
@@ -217,7 +224,7 @@ def check_artifacts(dir):
   if len(manifests) == 1:
     manifest = os.path.basename(manifests[0])
 
-  return "AI-" + version_major, files[0], files[1], files[2], files[3], files[4], manifest
+  return "AI-" + version_major, files[0], files[1], files[2], files[3], files[4], files[5], manifest
 
 
 def download(workspace, bid):
@@ -239,7 +246,7 @@ sudo apt install android-fetch-artifact""")
     sys.exit("--bid argument needs to be set to download")
   dir = tempfile.mkdtemp(prefix="studio_sdk", suffix=bid)
 
-  for artifact in ["android-studio-*-sources.zip", "android-studio-*.mac.x64-no-jdk.zip", "android-studio-*-no-jbr.tar.gz", "android-studio-*-no-jbr.win.zip", "updater-full.jar", "manifest_%s.xml" % bid]:
+  for artifact in ["android-studio-*-sources.zip", "android-studio-*.mac.x64-no-jdk.zip", "android-studio-*.mac.aarch64-no-jdk.zip", "android-studio-*-no-jbr.tar.gz", "android-studio-*-no-jbr.win.zip", "updater-full.jar", "manifest_%s.xml" % bid]:
     os.system(
         "%s %s --bid %s --target IntelliJ '%s' %s"
         % (fetch_artifact, auth_flag, bid, artifact, dir))
@@ -253,7 +260,7 @@ def write_metadata(path, data):
       file.write(k + ": " + str(v) + "\n")
 
 def extract(workspace, dir, delete_after, metadata):
-  version, linux, win, sources, mac, updater, manifest = check_artifacts(dir)
+  version, linux, win, sources, mac_arm, mac, updater, manifest = check_artifacts(dir)
   path = workspace + "/prebuilts/studio/intellij-sdk/" + version
 
   if os.path.exists(path):
@@ -266,12 +273,16 @@ def extract(workspace, dir, delete_after, metadata):
   print("Unzipping mac distribution...")
   # Call to unzip to preserve mac symlinks
   os.system("unzip -q -d \"%s\" \"%s\"" % (path + "/darwin", dir + "/" + mac))
+  print("Unzipping mac aarch64 distribution...")
+  # Call to unzip to preserve mac symlinks
+  os.system("unzip -q -d \"%s\" \"%s\"" % (path + "/darwin_aarch64", dir + "/" + mac_arm))
   # Mac is the only one that contains the version in the directory, rename for
   # consistency with other platforms and easier tooling
   apps = ["/darwin/" + app for app in os.listdir(path + "/darwin") if app.startswith("Android Studio")]
   if len(apps) != 1:
     sys.exit("Only one directory starting with Android Studio expected for Mac")
   os.rename(path + apps[0], path + "/darwin/android-studio")
+  os.rename(path + apps[0].replace("darwin", "darwin_aarch64"), path + "/darwin_aarch64/android-studio")
   mac_bundle_name = os.path.basename(apps[0])
 
   print("Unzipping windows distribution...")
