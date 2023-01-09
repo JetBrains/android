@@ -459,7 +459,7 @@ Android Studio Preview.app/Contents/lib/groovy.jar
 Android Studio Preview.app/Contents/lib/idea_rt.jar
 Android Studio Preview.app/Contents/lib/intellij-coverage-agent-1.0.682.jar
 Android Studio Preview.app/Contents/lib/intellij-test-discovery.jar
-Android Studio Preview.app/Contents/lib/jna/amd64/libjnidispatch.jnilib
+Android Studio Preview.app/Contents/lib/jna/aarch64/libjnidispatch.jnilib
 Android Studio Preview.app/Contents/lib/jps-model.jar
 Android Studio Preview.app/Contents/lib/junit.jar
 Android Studio Preview.app/Contents/lib/junit4.jar
