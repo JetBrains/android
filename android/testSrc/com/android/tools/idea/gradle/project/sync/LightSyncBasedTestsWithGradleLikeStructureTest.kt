@@ -152,9 +152,7 @@ class LightSyncForAndroidTestCaseTest : AndroidTestCase(), SnapshotComparisonTes
       AndroidModuleModelBuilder(":", "debug", createAndroidProjectBuilderForDefaultTestProjectStructure())
     )
     val dump = project.saveAndDump(additionalRoots = mapOf("TEMP" to File(myFixture.tempDirPath)))
-/* b/263902773
     assertIsEqualToSnapshot(dump)
-b/263902773 */
   }
 
   @Test

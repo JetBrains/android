@@ -1714,7 +1714,7 @@ private fun createJavaModuleDataNode(
       GradleSourceSetProjectPath(toSystemIndependentName(gradleRoot.path), gradlePath, ideSourceSet),
       sourceSetDataDataNode
     )
-    val root = moduleDataNode.data.linkedExternalProjectPath + "/src/" + sourceSetName
+    val root = moduleDataNode.data.linkedExternalProjectPath + "/src/" + sourceSetName.sourceSetName
     sourceSetDataDataNode.addChild(
       DataNode(
         ProjectKeys.CONTENT_ROOT,
