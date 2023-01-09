@@ -78,6 +78,12 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
 
   lateinit var psiFilePointer: SmartPsiElementPointer<PsiFile>
 
+  enum class AnimationState {
+    State1,
+    State2,
+    State3
+  }
+
   enum class ClockType {
     DEFAULT,
     WITH_TRANSITIONS,
@@ -287,14 +293,14 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
   fun comboBoxesDisplayComposeAnimationStates() {
     val inspector = createAndOpenInspector()
 
-    val animationStates = setOf("State1", "State2", "State3")
+    val animationStates = setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3)
 
     val transitionAnimation =
       object : ComposeAnimation {
         override val animationObject =
           object {
             @Suppress("unused") // Method is called via reflection.
-            fun getCurrentState() = "State1"
+            fun getCurrentState() = AnimationState.State1
           }
         override val type = ComposeAnimationType.TRANSITION_ANIMATION
         override val states = animationStates
@@ -356,10 +362,11 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
         override val animationObject =
           object {
             @Suppress("unused") // Method is called via reflection.
-            fun getCurrentState() = "State1"
+            fun getCurrentState() = AnimationState.State1
           }
         override val type = ComposeAnimationType.TRANSITION_ANIMATION
-        override val states = setOf("State1", "State2", "State3")
+        override val states =
+          setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3)
       }
 
     invokeAndWaitIfNeeded {
@@ -394,10 +401,11 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
         override val animationObject =
           object {
             @Suppress("unused") // Method is called via reflection.
-            fun getCurrentState() = "State1"
+            fun getCurrentState() = AnimationState.State1
           }
         override val type = ComposeAnimationType.TRANSITION_ANIMATION
-        override val states = setOf("State1", "State2", "State3")
+        override val states =
+          setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3)
       }
 
     invokeAndWaitIfNeeded {
@@ -455,10 +463,11 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
         override val animationObject =
           object {
             @Suppress("unused") // Method is called via reflection.
-            fun getCurrentState() = "State1"
+            fun getCurrentState() = AnimationState.State1
           }
         override val type = ComposeAnimationType.TRANSITION_ANIMATION
-        override val states = setOf("State1", "State2", "State3")
+        override val states =
+          setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3)
       }
 
     ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)

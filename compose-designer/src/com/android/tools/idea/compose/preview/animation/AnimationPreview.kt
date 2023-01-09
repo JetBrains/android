@@ -365,7 +365,7 @@ class AnimationPreview(
   fun createTab(animation: ComposeAnimation) {
     animationsMap[animation] =
       when (animation.type) {
-        ComposeAnimationType.TRANSITION_ANIMATION -> TransitionAnimationManager(animation)
+        ComposeAnimationType.TRANSITION_ANIMATION -> SupportedAnimationManager(animation)
         ComposeAnimationType.ANIMATED_VALUE ->
           UnsupportedAnimationManager(animation, tabNames.createName(animation))
         ComposeAnimationType.ANIMATED_VISIBILITY -> AnimatedVisibilityAnimationManager(animation)
@@ -460,52 +460,17 @@ class AnimationPreview(
     loadingPanelVisible = true
   }
 
-  private inner class TransitionAnimationManager(animation: ComposeAnimation) :
-    SupportedAnimationManager(animation) {
-
-    /**
-     * Updates the `from` and `to` state combo boxes to display the states of the given animation,
-     * and resets the timeline. Invokes a given callback once everything is populated.
-     */
-    override fun setup(callback: () -> Unit) {
-      val states: Set<Any> = handleKnownStateTypes(animation.states)
-      stateComboBox.updateStates(states)
-      val transition = animation.animationObject
-      transition::class.java.methods.singleOrNull { it.name == "getCurrentState" }?.let {
-        it.isAccessible = true
-        it.invoke(transition)?.let { state -> stateComboBox.setStartState(state) }
-      }
-
-      // Call updateAnimationStartAndEndStates directly here to set the initial animation states in
-      // PreviewAnimationClock
-      updateAnimationStatesExecutor.execute {
-        // Use a longer timeout the first time we're updating the start and end states. Since we're
-        // running off EDT, the UI will not freeze.
-        // This is necessary here because it's the first time the animation mutable states will be
-        // written, when setting the clock, and
-        // read, when getting its duration. These operations take longer than the default 30ms
-        // timeout the first time they're executed.
-        updateAnimationStartAndEndStates(longTimeout = true)
-        loadTransitionFromCacheOrLib(longTimeout = true)
-        loadProperties()
-        // Set up the combo box listeners so further changes to the selected state will trigger a
-        // call to updateAnimationStartAndEndStates.
-        stateComboBox.callbackEnabled = true
-        callback.invoke()
-      }
+  fun ComposeAnimation.getCurrentState(): Any? {
+    return when (type) {
+      ComposeAnimationType.TRANSITION_ANIMATION ->
+        animationObject::class.java.methods.singleOrNull { it.name == "getCurrentState" }?.let {
+          it.isAccessible = true
+          it.invoke(animationObject)
+        }
+          ?: states.firstOrNull()
+      ComposeAnimationType.ANIMATED_VISIBILITY -> {}
+      else -> states.firstOrNull()
     }
-
-    /**
-     * Due to a limitation in the Compose Animation framework, we might not know all the available
-     * states for a given animation, only the initial/current one. However, we can infer all the
-     * states based on the initial one depending on its type, e.g. for a boolean we know the
-     * available states are only `true` or `false`.
-     */
-    private fun handleKnownStateTypes(originalStates: Set<Any>) =
-      when (originalStates.iterator().next()) {
-        is Boolean -> setOf(true, false)
-        else -> originalStates
-      }
   }
 
   private inner class AnimatedVisibilityAnimationManager(animation: ComposeAnimation) :
@@ -623,7 +588,11 @@ class AnimationPreview(
      * animation, and resets the timeline. Invokes a given callback once everything is populated.
      */
     override fun setup(callback: () -> Unit) {
-      stateComboBox.updateStates(animation.states)
+      val states: Set<Any> = handleKnownStateTypes(animation.states)
+      val currentState = animation.getCurrentState()
+      stateComboBox.updateStates(states)
+      stateComboBox.setStartState(currentState)
+
       // Call updateAnimationStartAndEndStates directly here to set the initial animation states in
       // PreviewAnimationClock
       updateAnimationStatesExecutor.execute {
@@ -642,6 +611,18 @@ class AnimationPreview(
         callback.invoke()
       }
     }
+
+    /**
+     * Due to a limitation in the Compose Animation framework, we might not know all the available
+     * states for a given animation, only the initial/current one. However, we can infer all the
+     * states based on the initial one depending on its type, e.g. for a boolean we know the
+     * available states are only `true` or `false`.
+     */
+    private fun handleKnownStateTypes(originalStates: Set<Any>) =
+      when (originalStates.iterator().next()) {
+        is Boolean -> setOf(true, false)
+        else -> originalStates
+      }
 
     private fun ComposeAnimation.findCallback(): () -> Unit {
       return when (type) {

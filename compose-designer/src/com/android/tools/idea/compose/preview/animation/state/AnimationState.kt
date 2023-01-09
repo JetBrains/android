@@ -34,20 +34,33 @@ abstract class AnimationState(callback: () -> Unit = {}) {
     ): AnimationState {
       val unit = ComposeUnit.parseValue(this.states.firstOrNull())
       return when (this.type) {
-        ComposeAnimationType.TRANSITION_ANIMATION -> FromToState(tracker, callback)
+        ComposeAnimationType.TRANSITION_ANIMATION ->
+          when {
+            unit is ComposeUnit.Color -> ColorPickerState(tracker, callback)
+            unit !is ComposeUnit.UnitUnknown -> PickerState(tracker, callback)
+            states.firstOrNull() is Boolean -> FromToState(tracker, callback)
+            states.firstOrNull() is Enum<*> -> FromToState(tracker, callback)
+            else -> FromToState(tracker, callback)
+          }
         ComposeAnimationType.ANIMATED_VISIBILITY -> SingleState(tracker, callback)
         ComposeAnimationType.ANIMATE_X_AS_STATE ->
           if (StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE.get()) {
-            when (unit) {
-              is ComposeUnit.Color -> ColorPickerState(tracker, callback)
-              else -> PickerState(tracker, callback)
+            when {
+              unit is ComposeUnit.Color -> ColorPickerState(tracker, callback)
+              unit !is ComposeUnit.UnitUnknown -> PickerState(tracker, callback)
+              states.firstOrNull() is Boolean -> FromToState(tracker, callback)
+              states.firstOrNull() is Enum<*> -> FromToState(tracker, callback)
+              else -> FromToState(tracker, callback)
             }
           } else EmptyState()
         ComposeAnimationType.ANIMATED_CONTENT ->
           if (StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATED_CONTENT.get()) {
-            when (unit) {
-              is ComposeUnit.Color -> ColorPickerState(tracker, callback)
-              else -> PickerState(tracker, callback)
+            when {
+              unit is ComposeUnit.Color -> ColorPickerState(tracker, callback)
+              unit !is ComposeUnit.UnitUnknown -> PickerState(tracker, callback)
+              states.firstOrNull() is Boolean -> FromToState(tracker, callback)
+              states.firstOrNull() is Enum<*> -> FromToState(tracker, callback)
+              else -> FromToState(tracker, callback)
             }
           } else EmptyState()
         ComposeAnimationType.ANIMATED_VALUE,
