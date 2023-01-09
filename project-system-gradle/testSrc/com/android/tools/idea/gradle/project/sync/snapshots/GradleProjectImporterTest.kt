@@ -22,7 +22,6 @@ import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.saveAndDump
 
-@org.junit.Ignore("b/264602704")
 class GradleProjectImporterTest : AndroidGradleTestCase(), SnapshotComparisonTest {
   fun testImportNoSync() {
     prepareProjectForImport(TestProjectToSnapshotPaths.SIMPLE_APPLICATION)

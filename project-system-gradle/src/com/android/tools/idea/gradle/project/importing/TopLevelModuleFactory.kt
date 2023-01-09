@@ -122,7 +122,7 @@ class TopLevelModuleFactory() {
     val model = ModuleRootManager.getInstance(module).modifiableModel
 
     if (model.contentEntries.singleOrNull() == null) {
-      model.addContentEntry(gradleRootVirtualFile)
+      model.addContentEntry(gradleRootVirtualFile, ExternalSystemApiUtil.toExternalSource(GradleConstants.SYSTEM_ID))
     }
     if (IdeInfo.getInstance().isAndroidStudio) {
       // If sync fails, make sure that the project has a JDK, otherwise Groovy indices won't work (a common scenario where
