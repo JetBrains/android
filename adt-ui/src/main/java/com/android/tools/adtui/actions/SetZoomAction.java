@@ -18,6 +18,7 @@ package com.android.tools.adtui.actions;
 import com.android.tools.adtui.Zoomable;
 import com.android.tools.adtui.ZoomableKt;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +34,11 @@ abstract public class SetZoomAction extends AnAction {
   public SetZoomAction(@NotNull ZoomType type) {
     super(type.getLabel());
     myType = type;
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override
