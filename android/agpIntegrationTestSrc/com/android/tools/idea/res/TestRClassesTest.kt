@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.findAppModule
@@ -229,7 +230,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
     )
 
     myFixture.configureFromExistingVirtualFile(androidTest)
-/* b/264602834
+    AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
     myFixture.checkHighlighting()
 
     myFixture.completeBasic()
@@ -241,7 +242,6 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
 
     // Private resources are filtered out.
     assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
-b/264602834 */
   }
 
   fun testResolveScope() {
