@@ -264,6 +264,7 @@ class InspectorModelDescriptor(val project: Project, private val scheduler: Sche
       }
     }
     model.update(newWindow, listOf(windowRoot.drawId), 0)
+/* b/265082823
     if (ModuleManager.getInstance(project) != null) {
       val facet = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).singleOrNull() ?: error("AndroidFacet required")
       AndroidModel.set(facet, TestAndroidModel("com.example"))
@@ -272,6 +273,7 @@ class InspectorModelDescriptor(val project: Project, private val scheduler: Sche
       model.resourceLookup.updateConfiguration(
         FolderConfiguration.createDefault(), 0f, config.makeSampleContext(project), strings, config.makeSampleProcess(project))
     }
+b/265082823 */
     // This is usually added by DeviceViewPanel
     model.modificationListeners.add { _, new, _ ->
       new?.refreshImages(1.0)
