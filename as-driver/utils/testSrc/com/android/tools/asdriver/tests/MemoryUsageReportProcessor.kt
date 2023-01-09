@@ -18,6 +18,8 @@ package com.android.tools.asdriver.tests
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import io.ktor.util.date.getTimeMillis
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.concurrent.TimeUnit
 
 /**
@@ -41,7 +43,8 @@ class MemoryUsageReportProcessor {
       memoryDashboardName: String?
     ) {
       val testDisplayNameNoWhitespaces = memoryDashboardName!!.replace(' ', '_')
-      println("Collecting memory statistics. This could take 15-30 seconds")
+      val dateFormat = SimpleDateFormat("HH:mm:ss z")
+      println("Collecting memory statistics. Started at ${dateFormat.format(Date())}. This could take 15-30 seconds")
       studio.executeAction("IntegrationTestCollectMemoryUsageStatisticsAction")
       var m = installation.memoryReportFile.waitForMatchingLine("Total used memory: (\\d+) bytes/(\\d+) objects",
                                                                 "Memory usage report collection failed: .*", 60,
