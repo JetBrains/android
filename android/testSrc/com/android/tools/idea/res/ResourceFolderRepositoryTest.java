@@ -92,6 +92,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -359,7 +360,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
   public void testAddFile() throws Exception {
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
-    myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.xml");
+    VirtualFile layout2 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.xml");
     ResourceFolderRepository repository = createRegisteredRepository();
     assertNotNull(repository);
     Collection<String> layouts = repository.getResources(RES_AUTO, ResourceType.LAYOUT).keySet();
@@ -368,7 +369,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(repository.getResources(RES_AUTO, ResourceType.LAYOUT, "layout2"));
 
     long generation = repository.getModificationCount();
-    myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.xml");
+    // Change modification time of the layout2 file without changing its contents.
+    Path file = Paths.get(layout2.getPath());
+    Files.setLastModifiedTime(file, FileTime.from(Files.getLastModifiedTime(file).toInstant().plusSeconds(1)));
+    VfsUtil.markDirtyAndRefresh(false, false, false, layout2);
     assertThat(repository.getModificationCount()).isEqualTo(generation); // no changes in file: no new generation
 
     generation = repository.getModificationCount();
