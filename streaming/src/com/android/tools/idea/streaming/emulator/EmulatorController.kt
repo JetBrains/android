@@ -698,9 +698,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   inner class CancelableClientCall(private val call: ClientCall<*, *>) : Cancelable {
 
     override fun cancel() {
-      if (connectionState == ConnectionState.CONNECTED) {
-        call.cancel("Canceled by consumer", null)
-      }
+      call.cancel("Canceled by consumer", null)
     }
   }
 
