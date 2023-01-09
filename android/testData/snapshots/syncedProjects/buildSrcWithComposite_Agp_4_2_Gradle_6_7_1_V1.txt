@@ -2533,8 +2533,8 @@ PROJECT                       : BuildSrcWithComposite
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/android-included/lib/build/intermediates/javac/debugUnitTest/classes
-            -                             : file://<PROJECT>/android-included/lib/build/tmp/kotlin-classes/debugUnitTest
             -                             : jar://<PROJECT>/android-included/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar!/
+            -                             : file://<PROJECT>/android-included/lib/build/tmp/kotlin-classes/debugUnitTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources

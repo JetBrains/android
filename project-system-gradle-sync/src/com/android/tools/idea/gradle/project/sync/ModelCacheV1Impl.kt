@@ -829,7 +829,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       name = convertArtifactName(artifact.name),
       compileTaskName = artifact.compileTaskName,
       assembleTaskName = artifact.assembleTaskName,
-      classesFolder = listOf(artifact.classesFolder) + artifact.additionalClassesFolders,
+      classesFolder = listOf(artifact.classesFolder) + artifact.additionalClassesFolders.sorted(),
       ideSetupTaskNames = copy(artifact::getIdeSetupTaskNames, ::deduplicateString).toList(),
       generatedSourceFolders = copy(artifact::getGeneratedSourceFolders, ::deduplicateFile).distinct(),
       variantSourceProvider = copyNewModel(artifact::getVariantSourceProvider, ::sourceProviderFrom),
