@@ -12,7 +12,7 @@ PROJECT                       : project_sm_src
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project_sm_src [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/project_sm_src.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/project_sm_src.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>_sm_src
             EXCLUDE_FOLDER                : file://<PROJECT>_sm_src/.gradle

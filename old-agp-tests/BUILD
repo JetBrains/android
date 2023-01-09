@@ -185,7 +185,6 @@ local_old_agp_test(
     shard_count = 1,
     tags = [
         "block-network",
-        "manual",  # b/264602704
         "no_test_mac",
         "no_test_windows",
     ],
@@ -249,7 +248,6 @@ local_old_agp_test(
     shard_count = 3,
     tags = [
         "block-network",
-        "manual",  # b/264602704
         "no_test_mac",
         "no_test_windows",
     ],
@@ -261,7 +259,6 @@ local_old_agp_test(
     shard_count = 3,
     tags = [
         "block-network",
-        "manual",  # b/264602704
         "no_test_mac",
         "no_test_windows",
     ],
@@ -273,7 +270,6 @@ local_old_agp_test(
     shard_count = 5,
     tags = [
         "block-network",
-        "manual",  # b/264602704
         "no_test_mac",
         "no_test_windows",
     ],
@@ -285,7 +281,6 @@ local_old_agp_test(
     shard_count = 5,
     tags = [
         "block-network",
-        "manual",  # b/264602704
         "no_test_mac",
         "no_test_windows",
     ],
@@ -297,7 +292,6 @@ local_old_agp_test(
     shard_count = 5,
     tags = [
         "block-network",
-        "manual",  # b/264602704
         "no_test_mac",
         "no_test_windows",
     ],
