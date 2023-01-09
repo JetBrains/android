@@ -23,17 +23,15 @@ import com.android.tools.idea.gradle.project.sync.constants.JDK_11_PATH
 import com.android.tools.idea.gradle.project.sync.constants.JDK_17_PATH
 import com.android.tools.idea.gradle.project.sync.constants.JDK_1_8_PATH
 import com.android.tools.idea.sdk.Jdks
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.testFramework.RunsInEdt
-import org.hamcrest.collection.IsEmptyCollection.empty
-import org.hamcrest.core.IsNot.not
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -66,7 +64,7 @@ class ProjectJdkRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
     setGradleInstallationPath(JDK_1_8_PATH)
     val processor = ProjectJdkRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("8.0.0"))
     assertFalse(processor.isBlocked)
-    assertThat(processor.findUsages().asList(), not(empty()))
+    assertThat(processor.findUsages()).isNotEmpty()
   }
 
   @Test
@@ -74,7 +72,7 @@ class ProjectJdkRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
     setGradleInstallationPath(JDK_11_PATH)
     val processor = ProjectJdkRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     assertFalse(processor.isBlocked)
-    assertThat(processor.findUsages().asList(), not(empty()))
+    assertThat(processor.findUsages()).isNotEmpty()
   }
 
   @Test
@@ -82,7 +80,7 @@ class ProjectJdkRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
     setGradleInstallationPath(JDK_17_PATH)
     val processor = ProjectJdkRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     assertFalse(processor.isBlocked)
-    assertThat(processor.findUsages().asList(), empty())
+    assertThat(processor.findUsages()).isEmpty()
   }
 
   @Test
