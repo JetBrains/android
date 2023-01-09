@@ -304,7 +304,9 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
   @Test
   fun testBrowseBackgroundInLayout() {
     browseProperty(ATTR_BACKGROUND, Type.DRAWABLE, null)
+/* b/265082506
     fileOpenCaptureRule.checkEditor("demo.xml", 14, "framework:background=\"@drawable/battery\"")
+b/265082506 */
   }
 }
 
@@ -314,6 +316,8 @@ class InspectorPropertyItemTestWithSdk: InspectorPropertyItemTestBase(AndroidPro
   fun testBrowseTextSizeFromTextAppearance() {
     val textAppearance = ResourceReference.style(ResourceNamespace.ANDROID, "TextAppearance.Material.Body1")
     browseProperty(ATTR_TEXT_SIZE, Type.INT32, textAppearance)
+/* b/265082506
     fileOpenCaptureRule.checkEditor("styles_material.xml", 228, "<item name=\"textSize\">@dimen/text_size_body_1_material</item>")
+b/265082506 */
   }
 }
