@@ -66,7 +66,6 @@ import com.intellij.ide.actions.PreviousOccurenceAction;
 import com.intellij.ide.actions.SaveAllAction;
 import com.intellij.ide.actions.UndoRedoAction;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManagerConfigurable;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.ide.plugins.PluginUtil;
 import com.intellij.ide.util.PropertiesComponent;
@@ -691,29 +690,12 @@ public class AndroidStudioSystemHealthMonitor {
    */
   private void checkRuntime() {
     warnIfOpenJDK();
-    warnIfMaterialThemePlugin();
   }
 
   private void warnIfOpenJDK() {
     if (StringUtil.containsIgnoreCase(System.getProperty("java.vm.name", ""), "OpenJDK") &&
         !SystemInfo.isJetBrainsJvm && !SystemInfo.isStudioJvm) {
       showNotification("unsupported.jvm.openjdk.message", null);
-    }
-  }
-
-  private void warnIfMaterialThemePlugin() {
-    for (IdeaPluginDescriptor descriptor: PluginManagerCore.getLoadedPlugins()) {
-      if ("com.chrisrm.idea.MaterialThemeUI".equals(descriptor.getPluginId().getIdString())) {
-        NotificationAction notificationAction = NotificationAction.create(
-          IdeBundle.message("plugins.configurable.disable"),
-          (event, notification) -> {
-            PluginManagerCore.disablePlugin(descriptor.getPluginId());
-            notification.expire();
-            PluginManagerConfigurable.shutdownOrRestartApp();
-          }
-        );
-        showNotification("unsupported.material.theme.plugin", notificationAction);
-      }
     }
   }
 
