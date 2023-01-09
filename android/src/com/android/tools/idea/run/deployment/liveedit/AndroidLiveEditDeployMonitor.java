@@ -535,7 +535,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
         new LiveUpdateDeployer.UpdateLiveEditsParam(
           update.getClassName(),
           usePartialRecompose,
-          update.getGroupId(),
+          List.of(update.getGroupId()),
           update.getClassData(),
           update.getSupportClasses(), useDebugMode);
 
