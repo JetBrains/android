@@ -57,7 +57,6 @@ class LaunchInspectorsTest {
   @Test
   fun openAppInspectionToolWindow() {
     val project = AndroidProject("tools/adt/idea/app-inspection/integration/testData/minapp")
-    project.setDistribution("tools/external/gradle/gradle-7.5-bin.zip")
     system.installRepo(MavenRepo("tools/adt/idea/app-inspection/integration/minapp_deps.manifest"))
 
     system.runAdb { adb ->

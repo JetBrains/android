@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
+load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
 
 # managed by go/iml_to_build
 iml_module(
@@ -90,7 +91,7 @@ iml_test(
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
-        "//tools/base/build-system:gradle-distrib-7.5",
+        INTEGRATION_TEST_GRADLE_VERSION,
         "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
     ],
     module = ":intellij.android.device-explorer.integration.tests",

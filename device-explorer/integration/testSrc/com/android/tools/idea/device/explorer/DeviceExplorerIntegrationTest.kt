@@ -36,7 +36,6 @@ class DeviceExplorerIntegrationTest {
   @Test
   fun viewDeviceExplorerToolWindow() {
     val project = AndroidProject("tools/adt/idea/android/integration/testData/minapp")
-    project.setDistribution("tools/external/gradle/gradle-7.5-bin.zip")
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"))
     system.installation.addVmOption("-Didea.log.debug.categories=#com.android.tools.idea.device.explorer.files.DeviceFileExplorerControllerImpl,com.android.tools.idea.device.explorer.monitor.DeviceMonitorModel")
 

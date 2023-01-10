@@ -52,7 +52,6 @@ class BuildAndRunTest {
   @Test
   fun deploymentTest() {
     val project = AndroidProject("tools/adt/idea/android/integration/testData/minapp")
-    project.setDistribution("tools/external/gradle/gradle-7.5-bin.zip")
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"))
 
     system.runAdb { adb ->
