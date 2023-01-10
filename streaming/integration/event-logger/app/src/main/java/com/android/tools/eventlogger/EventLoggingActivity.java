@@ -74,4 +74,31 @@ public class EventLoggingActivity extends Activity {
     Log.i(TAG, "TOUCH EVENT: " + MotionEvent.actionToString(event.getAction()) + pointerStringBuilder);
     return true;
   }
+
+  @Override
+  public boolean onGenericMotionEvent(MotionEvent event) {
+    StringBuilder stringBuilder = new StringBuilder("MOTION EVENT:");
+    switch (event.getAction()) {
+      case MotionEvent.ACTION_SCROLL:
+        processScrollEvent(event, stringBuilder);
+        break;
+      default:
+        stringBuilder.append(" UNSUPPORTED");
+    }
+    Log.i(TAG, stringBuilder.toString());
+    return true;
+  }
+
+  private void processScrollEvent(MotionEvent event, StringBuilder stringBuilder) {
+    stringBuilder.append(" ACTION_SCROLL");
+    for (int i = 0; i < event.getPointerCount(); ++i) {
+      stringBuilder
+        // Coordinates of the pointer at the time of the scrolling.
+        .append(" (").append(event.getX(i)).append(",").append(event.getY(i)).append(")")
+        // Vertical scroll component
+        .append(" v=").append(event.getAxisValue(MotionEvent.AXIS_VSCROLL, i))
+        // Horizontal scroll component
+        .append(" h=").append(event.getAxisValue(MotionEvent.AXIS_HSCROLL, i));
+    }
+  }
 }
