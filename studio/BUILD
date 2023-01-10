@@ -121,6 +121,8 @@ studio_plugin(
             "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:app-inspection.inspectors.backgroundtask.view",
             "//tools/adt/idea/app-quality-insights/api:intellij.android.app-quality-insights.api",
             "//tools/adt/idea/app-quality-insights/ui:intellij.android.app-quality-insights.ui",
+            "//tools/adt/idea/app-quality-insights/play-vitals/model:intellij.android.app-quality-insights.play-vitals.model",
+            "//tools/adt/idea/app-quality-insights/play-vitals/view:intellij.android.app-quality-insights.play-vitals.view",
             "//tools/adt/idea/build-attribution:intellij.android.build-attribution",
             "//tools/adt/idea/intellij.android.compose-common:intellij.android.compose-common",
             "//tools/adt/idea/intellij.android.device",

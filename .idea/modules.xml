@@ -39,8 +39,8 @@
       <module fileurl="file://$PROJECT_DIR$/../../base/device_validator/dvlib/android.sdktools.dvlib.iml" filepath="$PROJECT_DIR$/../../base/device_validator/dvlib/android.sdktools.dvlib.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/fakeadbserver/android.sdktools.fakeadbserver.iml" filepath="$PROJECT_DIR$/../../base/fakeadbserver/android.sdktools.fakeadbserver.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/flags/android.sdktools.flags.iml" filepath="$PROJECT_DIR$/../../base/flags/android.sdktools.flags.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../base/jdwp-tracer/android.sdktools.jdwptracer.iml" filepath="$PROJECT_DIR$/../../base/jdwp-tracer/android.sdktools.jdwptracer.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/jdwp-packet/android.sdktools.jdwppacket.iml" filepath="$PROJECT_DIR$/../../base/jdwp-packet/android.sdktools.jdwppacket.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/jdwp-tracer/android.sdktools.jdwptracer.iml" filepath="$PROJECT_DIR$/../../base/jdwp-tracer/android.sdktools.jdwptracer.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/layoutlib-api/android.sdktools.layoutlib-api.iml" filepath="$PROJECT_DIR$/../../base/layoutlib-api/android.sdktools.layoutlib-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/layoutlib-extensions/android.sdktools.layoutlib-extensions.iml" filepath="$PROJECT_DIR$/../../base/layoutlib-extensions/android.sdktools.layoutlib-extensions.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/lint/libs/lint-api/android.sdktools.lint-api.iml" filepath="$PROJECT_DIR$/../../base/lint/libs/lint-api/android.sdktools.lint-api.iml" />
@@ -61,8 +61,8 @@
       <module fileurl="file://$PROJECT_DIR$/../../base/ninepatch/android.sdktools.ninepatch.iml" filepath="$PROJECT_DIR$/../../base/ninepatch/android.sdktools.ninepatch.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/perflib/android.sdktools.perflib.iml" filepath="$PROJECT_DIR$/../../base/perflib/android.sdktools.perflib.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/pixelprobe/android.sdktools.pixelprobe.iml" filepath="$PROJECT_DIR$/../../base/pixelprobe/android.sdktools.pixelprobe.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../base/profgen/profgen/android.sdktools.profgen.iml" filepath="$PROJECT_DIR$/../../base/profgen/profgen/android.sdktools.profgen.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/process-monitor/android.sdktools.process-monitor.iml" filepath="$PROJECT_DIR$/../../base/process-monitor/android.sdktools.process-monitor.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/profgen/profgen/android.sdktools.profgen.iml" filepath="$PROJECT_DIR$/../../base/profgen/profgen/android.sdktools.profgen.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/repository/android.sdktools.repository.iml" filepath="$PROJECT_DIR$/../../base/repository/android.sdktools.repository.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/resource-repository/android.sdktools.resource-repository.iml" filepath="$PROJECT_DIR$/../../base/resource-repository/android.sdktools.resource-repository.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/sdk-common/android.sdktools.sdk-common.iml" filepath="$PROJECT_DIR$/../../base/sdk-common/android.sdktools.sdk-common.iml" />
@@ -144,6 +144,8 @@
       <module fileurl="file://$PROJECT_DIR$/androidx-integration-tests/intellij.android.androidx-integration-tests.iml" filepath="$PROJECT_DIR$/androidx-integration-tests/intellij.android.androidx-integration-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/apkanalyzer/intellij.android.apkanalyzer.iml" filepath="$PROJECT_DIR$/apkanalyzer/intellij.android.apkanalyzer.iml" />
       <module fileurl="file://$PROJECT_DIR$/app-quality-insights/api/intellij.android.app-quality-insights.api.iml" filepath="$PROJECT_DIR$/app-quality-insights/api/intellij.android.app-quality-insights.api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app-quality-insights/play-vitals/model/intellij.android.app-quality-insights.play-vitals.model.iml" filepath="$PROJECT_DIR$/app-quality-insights/play-vitals/model/intellij.android.app-quality-insights.play-vitals.model.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app-quality-insights/play-vitals/view/intellij.android.app-quality-insights.play-vitals.view.iml" filepath="$PROJECT_DIR$/app-quality-insights/play-vitals/view/intellij.android.app-quality-insights.play-vitals.view.iml" />
       <module fileurl="file://$PROJECT_DIR$/app-quality-insights/ui/intellij.android.app-quality-insights.ui.iml" filepath="$PROJECT_DIR$/app-quality-insights/ui/intellij.android.app-quality-insights.ui.iml" />
       <module fileurl="file://$PROJECT_DIR$/app-quality-insights/ui/intellij.android.app-quality-insights.ui.tests.iml" filepath="$PROJECT_DIR$/app-quality-insights/ui/intellij.android.app-quality-insights.ui.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/artwork/intellij.android.artwork.iml" filepath="$PROJECT_DIR$/artwork/intellij.android.artwork.iml" />
