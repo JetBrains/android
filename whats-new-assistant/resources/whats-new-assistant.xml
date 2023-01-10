@@ -25,7 +25,7 @@
     <tutorial
         key="whats-new"
         label=" What's New in Giraffe"
-        icon="preview/whats_new_icon.png"
+        icon="preview/product-icon.svg"
         remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/preview-release-notes/2022-3-1"
         remoteLinkLabel="Read in a browser">
       <description>
