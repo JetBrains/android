@@ -25,7 +25,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.concurrent.ExecutionException;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -158,26 +157,6 @@ public abstract class Device {
     }
 
     return device.getLaunchedDevice();
-  }
-
-  /**
-   * @deprecated Use {@link #getDdmlibDeviceAsync}
-   */
-  @Deprecated(forRemoval = true)
-  @Nullable
-  final IDevice getDdmlibDevice() {
-    AndroidDevice device = getAndroidDevice();
-
-    if (!device.isRunning()) {
-      return null;
-    }
-
-    try {
-      return device.getLaunchedDevice().get();
-    }
-    catch (InterruptedException | ExecutionException exception) {
-      throw new AssertionError(exception);
-    }
   }
 
   @NotNull
