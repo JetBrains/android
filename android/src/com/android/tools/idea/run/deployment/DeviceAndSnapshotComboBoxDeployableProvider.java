@@ -35,7 +35,6 @@ import java.awt.EventQueue;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.Future;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -114,8 +113,8 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
 
     @NotNull
     @Override
-    public Future<AndroidVersion> getVersion() {
-      return myDevice.getAndroidVersion();
+    public ListenableFuture<AndroidVersion> getVersionAsync() {
+      return myDevice.getAndroidVersionAsync();
     }
 
     @Override

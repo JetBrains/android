@@ -29,9 +29,10 @@ public interface Deployable {
    * Returns the API level of the device.
    */
   @NotNull
-  Future<AndroidVersion> getVersion();
+  ListenableFuture<AndroidVersion> getVersionAsync();
 
-  @NotNull ListenableFuture<List<Client>> searchClientsForPackageAsync();
+  @NotNull
+  ListenableFuture<List<Client>> searchClientsForPackageAsync();
 
   /**
    * @deprecated This is called by the EDT and must execute quickly. The current implementation calls {@link Future#get()} which can block
@@ -41,7 +42,8 @@ public interface Deployable {
   @NotNull
   List<Client> searchClientsForPackage();
 
-  @NotNull ListenableFuture<Boolean> isOnlineAsync();
+  @NotNull
+  ListenableFuture<Boolean> isOnlineAsync();
 
   /**
    * @deprecated This is called by the EDT and must execute quickly. The current implementation calls {@link Future#get()} which can block
@@ -50,7 +52,8 @@ public interface Deployable {
   @Deprecated
   boolean isOnline();
 
-  @NotNull ListenableFuture<Boolean> isUnauthorizedAsync();
+  @NotNull
+  ListenableFuture<Boolean> isUnauthorizedAsync();
 
   /**
    * @deprecated This is called by the EDT and must execute quickly. The current implementation calls {@link Future#get()} which can block

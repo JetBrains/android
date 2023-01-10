@@ -18,10 +18,10 @@ package com.android.tools.idea.run.deployment;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
+import com.google.common.util.concurrent.ListenableFuture;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
-import java.util.concurrent.Future;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +35,7 @@ final class ConnectedDevice extends Device {
     }
 
     @NotNull
+    @SuppressWarnings("UnusedReturnValue")
     Builder setLaunchCompatibility(@NotNull LaunchCompatibility launchCompatibility) {
       myLaunchCompatibility = launchCompatibility;
       return this;
@@ -52,7 +53,8 @@ final class ConnectedDevice extends Device {
       return this;
     }
 
-    @NotNull Builder setType(@NotNull Type type) {
+    @NotNull
+    Builder setType(@NotNull Type type) {
       myType = type;
       return this;
     }
@@ -87,24 +89,27 @@ final class ConnectedDevice extends Device {
     throw new UnsupportedOperationException();
   }
 
+  @NotNull
   @Override
-  @NotNull Collection<Snapshot> getSnapshots() {
+  Collection<Snapshot> getSnapshots() {
     return Collections.emptyList();
   }
 
+  @NotNull
   @Override
-  @NotNull Target getDefaultTarget() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  @NotNull Collection<Target> getTargets() {
+  Target getDefaultTarget() {
     throw new UnsupportedOperationException();
   }
 
   @NotNull
   @Override
-  Future<AndroidVersion> getAndroidVersion() {
+  Collection<Target> getTargets() {
+    throw new UnsupportedOperationException();
+  }
+
+  @NotNull
+  @Override
+  ListenableFuture<AndroidVersion> getAndroidVersionAsync() {
     throw new UnsupportedOperationException();
   }
 

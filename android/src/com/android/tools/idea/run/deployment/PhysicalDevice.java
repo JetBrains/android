@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeploymentApplicationService;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.LayeredIcon;
@@ -29,7 +31,6 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
-import java.util.concurrent.Future;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,7 +62,9 @@ final class PhysicalDevice extends Device {
       return this;
     }
 
-    @NotNull Builder setLaunchCompatibility(@NotNull LaunchCompatibility launchCompatibility) {
+    @NotNull
+    @VisibleForTesting
+    Builder setLaunchCompatibility(@NotNull LaunchCompatibility launchCompatibility) {
       myLaunchCompatibility = launchCompatibility;
       return this;
     }
@@ -87,7 +90,9 @@ final class PhysicalDevice extends Device {
       return this;
     }
 
-    @NotNull Builder setType(@NotNull Type type) {
+    @NotNull
+    @VisibleForTesting
+    Builder setType(@NotNull Type type) {
       myType = type;
       return this;
     }
@@ -128,28 +133,31 @@ final class PhysicalDevice extends Device {
     return true;
   }
 
+  @NotNull
   @Override
-  @NotNull Collection<Snapshot> getSnapshots() {
+  Collection<Snapshot> getSnapshots() {
     return Collections.emptyList();
   }
 
+  @NotNull
   @Override
-  @NotNull Target getDefaultTarget() {
+  Target getDefaultTarget() {
     return new RunningDeviceTarget(getKey());
   }
 
+  @NotNull
   @Override
-  @NotNull Collection<Target> getTargets() {
+  Collection<Target> getTargets() {
     return Collections.singletonList(new RunningDeviceTarget(getKey()));
   }
 
   @NotNull
   @Override
-  Future<AndroidVersion> getAndroidVersion() {
-    IDevice device = getDdmlibDevice();
-    assert device != null;
+  ListenableFuture<AndroidVersion> getAndroidVersionAsync() {
+    var service = DeploymentApplicationService.getInstance();
 
-    return DeploymentApplicationService.getInstance().getVersion(device);
+    // noinspection UnstableApiUsage
+    return Futures.transformAsync(getDdmlibDeviceAsync(), service::getVersion, MoreExecutors.directExecutor());
   }
 
   @Override
