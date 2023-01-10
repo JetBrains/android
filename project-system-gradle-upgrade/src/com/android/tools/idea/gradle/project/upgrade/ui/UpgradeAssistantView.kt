@@ -229,7 +229,7 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
     }
     add(topPanel, BorderLayout.NORTH)
     add(treePanel, BorderLayout.WEST)
-    add(detailsPanel, BorderLayout.CENTER)
+    add(ScrollPaneFactory.createScrollPane(detailsPanel, SideBorder.NONE), BorderLayout.CENTER)
 
     myListeners.listenAndFire(model.uiState) { uiState ->
       setLoadingText(uiState.loadingText)
