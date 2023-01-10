@@ -216,16 +216,21 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
   int32_t action = message.action();
   event.action = action;
   event.event_time_millis = now;
-  if (action == AMOTION_EVENT_ACTION_DOWN) {
-    motion_event_start_time_ = now;
+  if (action == AMOTION_EVENT_ACTION_SCROLL) {
+    event.down_time_millis = now;
   }
-  if (motion_event_start_time_ == 0) {
-    Log::W("Motion event started with action %d instead of expected %d", action, AMOTION_EVENT_ACTION_DOWN);
-    motion_event_start_time_ = now;
-  }
-  event.down_time_millis = motion_event_start_time_;
-  if (action == AMOTION_EVENT_ACTION_UP) {
-    motion_event_start_time_ = 0;
+  else {
+    if (action == AMOTION_EVENT_ACTION_DOWN) {
+      motion_event_start_time_ = now;
+    }
+    if (motion_event_start_time_ == 0) {
+      Log::E("Motion event started with action %d instead of expected %d", action, AMOTION_EVENT_ACTION_DOWN);
+      motion_event_start_time_ = now;
+    }
+    event.down_time_millis = motion_event_start_time_;
+    if (action == AMOTION_EVENT_ACTION_UP) {
+      motion_event_start_time_ = 0;
+    }
   }
 
   DisplayInfo display_info = Agent::GetDisplayInfo();
@@ -234,11 +239,16 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
     JObject properties = pointer_properties_.GetElement(jni_, event.pointer_count);
     pointer_helper_->SetPointerId(properties, pointer.pointer_id);
     JObject coordinates = pointer_coordinates_.GetElement(jni_, event.pointer_count);
+    // We must clear first so that axis information from previous runs is not reused.
+    pointer_helper_->ClearPointerCoords(coordinates);
     Point point = AdjustedDisplayCoordinates(pointer.x, pointer.y, display_info);
     pointer_helper_->SetPointerCoords(coordinates, point.x, point.y);
     float pressure =
         (action == AMOTION_EVENT_ACTION_POINTER_UP && event.pointer_count == action >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT) ? 0 : 1;
     pointer_helper_->SetPointerPressure(coordinates, pressure);
+    for (auto const& [axis, value] : pointer.axis_values) {
+      pointer_helper_->SetAxisValue(coordinates, axis, value);
+    }
     event.pointer_count++;
   }
 

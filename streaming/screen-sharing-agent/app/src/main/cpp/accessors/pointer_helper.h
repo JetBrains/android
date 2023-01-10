@@ -36,6 +36,8 @@ public:
   JObject NewPointerCoords();
   void SetPointerCoords(const JObject& pointer_coords, float x, float y);
   void SetPointerPressure(const JObject& pointer_coords, float pressure);
+  void SetAxisValue(const JObject& pointer_coords, int32_t axis, float value);
+  void ClearPointerCoords(const JObject& pointer_coords);
 
 private:
   Jni jni_;
@@ -47,6 +49,8 @@ private:
   // MotionEvent.PointerCoords
   JClass pointer_coords_class_;
   jmethodID pointer_coords_ctor_;
+  jmethodID pointer_coords_set_axis_value_method_;
+  jmethodID pointer_coords_clear_method_;
   jfieldID x_field_;
   jfieldID y_field_;
   jfieldID pressure_field_;

@@ -69,16 +69,22 @@ void ControlMessage::Serialize(Base128OutputStream& stream) const {
 }
 
 MotionEventMessage* MotionEventMessage::Deserialize(Base128InputStream& stream) {
-  uint32_t n = stream.ReadUInt32();
-  vector<Pointer> pointers(n);
-  for (auto i = 0; i < n; i++) {
+  uint32_t num_pointers = stream.ReadUInt32();
+  vector<Pointer> pointers(num_pointers);
+  for (auto i = 0; i < num_pointers; i++) {
     Pointer& pointer = pointers.at(i);
     pointer.x = stream.ReadInt32();
     pointer.y = stream.ReadInt32();
     pointer.pointer_id = stream.ReadInt32();
+    uint32_t num_axes = stream.ReadUInt32();
+    for (auto j = 0; j < num_axes; j++) {
+      int32_t axis = stream.ReadInt32();
+      float value = stream.ReadFloat();
+      pointer.axis_values[axis] = value;
+    }
   }
-  if (n > MAX_POINTERS) {
-    Log::W("Motion event with %d pointers, pointers after first %d are ignored)", n, MAX_POINTERS);
+  if (num_pointers > MAX_POINTERS) {
+    Log::W("Motion event with %d pointers, pointers after first %d are ignored)", num_pointers, MAX_POINTERS);
     pointers.resize(MAX_POINTERS);
   }
   int32_t action = stream.ReadInt32();
