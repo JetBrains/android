@@ -314,7 +314,7 @@ open class IssueNotificationAction(
       val textAlignment: Int
         get() = myPresentation.getClientProperty(PreviewStatusNotification.TEXT_ALIGNMENT) ?: SwingConstants.LEADING
 
-      private val font = UIUtil.getLabelFont(UIUtil.FontSize.NORMAL)
+      private val font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
 
       private val textColor = JBColor(Gray._110, Gray._187)
 
