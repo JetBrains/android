@@ -143,6 +143,18 @@ unique_ptr<u16string> Base128InputStream::ReadString16() {
   return result;
 }
 
+float Base128InputStream::ReadFloat() {
+  // Float will be sent as a 32-bit integer in network byte order as per IEEE 754 standard.
+  float f;
+  int32_t f_as_int32 = ReadFixed32();
+  memcpy(&f, &f_as_int32, sizeof f);
+  return f;
+}
+
+int32_t Base128InputStream::ReadFixed32() {
+  return ReadByte() | ReadByte() << 8 | ReadByte() << 16 | ReadByte() << 24;
+}
+
 Base128InputStream::StreamFormatException Base128InputStream::StreamFormatException::InvalidFormat() {
   return StreamFormatException("Invalid file format");
 }

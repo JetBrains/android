@@ -46,6 +46,8 @@ public:
   int64_t ReadInt64();
   uint64_t ReadUInt64() { return static_cast<uint64_t>(ReadInt64()); }
   bool ReadBool();
+  float ReadFloat();
+  int32_t ReadFixed32();
   std::unique_ptr<std::u16string> ReadString16();
 
   class StreamFormatException : public IoException {
