@@ -57,7 +57,7 @@ public final class PhysicalDevicePanel extends DevicePanel {
   private final @NotNull Function<Project, PairDevicesUsingWiFiService> myPairDevicesUsingWiFiServiceGetInstance;
   private final @NotNull WearPairingManager myManager;
   private final @NotNull Supplier<PhysicalTabPersistentStateComponent> myPhysicalTabPersistentStateComponentGetInstance;
-  private final @NotNull Function<PhysicalDeviceTableModel, Disposable> myNewPhysicalDeviceChangeListener;
+  private final @NotNull BiFunction<PhysicalDeviceTableModel, Project, Disposable> myNewPhysicalDeviceChangeListener;
   private final @NotNull BiFunction<PhysicalDevice, Project, DetailsPanel> myNewPhysicalDeviceDetailsPanel;
 
   private @Nullable AbstractButton myPairUsingWiFiButton;
@@ -82,7 +82,7 @@ public final class PhysicalDevicePanel extends DevicePanel {
                       @NotNull Function<Project, PairDevicesUsingWiFiService> pairDevicesUsingWiFiServiceGetInstance,
                       @NotNull WearPairingManager manager,
                       @NotNull Supplier<PhysicalTabPersistentStateComponent> physicalTabPersistentStateComponentGetInstance,
-                      @NotNull Function<PhysicalDeviceTableModel, Disposable> newPhysicalDeviceChangeListener,
+                      @NotNull BiFunction<PhysicalDeviceTableModel, Project, Disposable> newPhysicalDeviceChangeListener,
                       @NotNull BiFunction<PhysicalDevice, Project, DetailsPanel> newPhysicalDeviceDetailsPanel,
                       @NotNull PhysicalDeviceAsyncSupplier supplier,
                       @NotNull Function<PhysicalDevicePanel, FutureCallback<List<PhysicalDevice>>> newSetDevices) {
@@ -171,7 +171,7 @@ public final class PhysicalDevicePanel extends DevicePanel {
     model.addTableModelListener(event -> myPhysicalTabPersistentStateComponentGetInstance.get().set(model.getDevices()));
     model.setDevices(devices);
 
-    Disposer.register(myParent, myNewPhysicalDeviceChangeListener.apply(model));
+    Disposer.register(myParent, myNewPhysicalDeviceChangeListener.apply(model, myProject));
   }
 
   @Override

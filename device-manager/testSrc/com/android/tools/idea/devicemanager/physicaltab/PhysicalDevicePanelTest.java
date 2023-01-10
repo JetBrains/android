@@ -115,7 +115,7 @@ public final class PhysicalDevicePanelTest {
                                       project -> myService,
                                       myManager,
                                       () -> myComponent,
-                                      model -> myListener,
+                                      (model, project) -> myListener,
                                       PhysicalDeviceDetailsPanel::new,
                                       mySupplier,
                                       this::newSetDevices);
@@ -145,7 +145,7 @@ public final class PhysicalDevicePanelTest {
                                       project -> myService,
                                       myManager,
                                       () -> myComponent,
-                                      model -> myListener,
+                                      (model, project) -> myListener,
                                       PhysicalDeviceDetailsPanel::new,
                                       mySupplier,
                                       this::newSetDevices);
@@ -183,7 +183,7 @@ public final class PhysicalDevicePanelTest {
                                       project -> myService,
                                       myManager,
                                       () -> myComponent,
-                                      model -> myListener,
+                                      (model, project) -> myListener,
                                       PhysicalDeviceDetailsPanel::new,
                                       mySupplier,
                                       PhysicalDevicePanel::newSetDevices);
@@ -206,7 +206,7 @@ public final class PhysicalDevicePanelTest {
                                       project -> myService,
                                       myManager,
                                       () -> myComponent,
-                                      model -> myListener,
+                                      (model, project) -> myListener,
                                       PhysicalDeviceDetailsPanel::new,
                                       mySupplier,
                                       PhysicalDevicePanel::newSetDevices);
@@ -229,7 +229,7 @@ public final class PhysicalDevicePanelTest {
                                       project -> myService,
                                       myManager,
                                       () -> myComponent,
-                                      model -> myListener,
+                                      (model, project) -> myListener,
                                       (device, project) -> newPhysicalDeviceDetailsPanel(device),
                                       mySupplier,
                                       this::newSetDevices);
@@ -253,7 +253,7 @@ public final class PhysicalDevicePanelTest {
                                       project -> myService,
                                       myManager,
                                       () -> myComponent,
-                                      model -> myListener,
+                                      (model, project) -> myListener,
                                       (device, project) -> newPhysicalDeviceDetailsPanel(device),
                                       mySupplier,
                                       this::newSetDevices);
