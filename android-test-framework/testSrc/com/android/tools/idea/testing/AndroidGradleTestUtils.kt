@@ -2099,6 +2099,7 @@ data class OpenPreparedProjectOptions @JvmOverloads constructor(
     println(e.message)
     e.printStackTrace()
   },
+  val syncViewEventHandler: (BuildEvent) -> Unit = {},
   val subscribe: (MessageBusConnection) -> Unit = {},
   val disableKtsRelatedIndexing: Boolean = false,
   val overrideProjectJdk: Sdk? = null
@@ -2187,7 +2188,7 @@ private fun <T> openPreparedProject(
           if (outputHandler != null || syncExceptionHandler != null) {
             injectSyncOutputDumper(project, project, options.outputHandler ?: {}, options.syncExceptionHandler ?: {})
           }
-          fixDummySyncViewManager(project, disposable)
+          fixDummySyncViewManager(project, disposable, options.syncViewEventHandler)
         }
 
         // NOTE: `::afterCreate` is passed to both `withAfterCreate` and `openOrImport` because, unfortunately, `openOrImport` does not
@@ -2418,7 +2419,7 @@ fun injectBuildOutputDumpingBuildViewManager(
 }
 
 @Suppress("UnstableApiUsage")
-private fun fixDummySyncViewManager(project: Project, disposable: Disposable) {
+private fun fixDummySyncViewManager(project: Project, disposable: Disposable, eventHandler: (BuildEvent) -> Unit = {}) {
   if (project.getService(SyncViewManager::class.java) is DummySyncViewManager) {
     val listeners = CopyOnWriteArrayList<BuildProgressListener>()
     project.replaceService(
@@ -2436,6 +2437,7 @@ private fun fixDummySyncViewManager(project: Project, disposable: Disposable) {
           if (event is MessageEvent) {
             println(event.result.details)
           }
+          eventHandler(event)
           listeners.forEach {
             it.onEvent(buildId, event)
           }

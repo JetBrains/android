@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.buildAndWait
 import com.intellij.openapi.project.Project
 import org.gradle.tooling.Failure
@@ -216,9 +217,12 @@ interface TestContext {
   fun invokeTasks(vararg tasks: String): GradleInvocationResult
 }
 
-fun PreparedTestProject.runTest(testAction: TestContext.() -> Unit) {
+fun PreparedTestProject.runTest(
+  updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions = { it },
+  testAction: TestContext.() -> Unit
+) {
   val projectDir = root
-  open { project ->
+  open(updateOptions) { project ->
     testAction(
       object : TestContext {
         override val project: Project = project
