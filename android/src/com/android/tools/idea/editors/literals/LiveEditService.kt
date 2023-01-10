@@ -19,7 +19,7 @@ package com.android.tools.idea.editors.literals
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.ui.EmulatorLiveEditAdapter
-import com.android.tools.idea.editors.liveedit.ui.LiveEditAction
+import com.android.tools.idea.editors.liveedit.ui.LiveEditIssueNotificationAction
 import com.android.tools.idea.run.deployment.liveedit.AdbConnection
 import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditDeployMonitor
 import com.android.tools.idea.run.deployment.liveedit.DeviceConnection
@@ -61,8 +61,8 @@ class LiveEditService constructor(val project: Project,
 
   init {
     val adapter = EmulatorLiveEditAdapter(project)
-    LiveEditAction.registerProject(project, adapter)
-    Disposer.register(this) { LiveEditAction.unregisterProject(project) }
+    LiveEditIssueNotificationAction.registerProject(project, adapter)
+    Disposer.register(this) { LiveEditIssueNotificationAction.unregisterProject(project) }
     ApplicationManager.getApplication().invokeLater {
       val contentManager = project.getServiceIfCreated(ToolWindowManager::class.java)
         ?.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)

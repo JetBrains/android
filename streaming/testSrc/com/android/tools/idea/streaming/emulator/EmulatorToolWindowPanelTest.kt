@@ -29,7 +29,7 @@ import com.android.tools.adtui.swing.HeadlessRootPaneContainer
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.editors.liveedit.ui.LiveEditAction
+import com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel.MultiDisplayStateStorage
@@ -190,7 +190,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "AudioVolumeDown"""")
 
     // Ensures that LiveEditAction starts off hidden since it's disconnected.
-    assertThat(ui.findComponent<LiveEditAction>()).isNull()
+    assertThat(ui.findComponent<LiveEditNotificationGroup>()).isNull()
 
     assertThat(streamScreenshotCall.completion.isCancelled).isFalse()
 

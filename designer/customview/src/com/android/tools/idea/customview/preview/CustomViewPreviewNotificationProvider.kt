@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.customview.preview
 
-import com.android.tools.adtui.common.ColoredIconGenerator
+import com.android.tools.adtui.compose.REFRESH_BUTTON
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileEditor.FileEditor
@@ -34,7 +33,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
-import com.intellij.ui.JBColor
 import com.intellij.ui.LightColors
 
 private const val PREVIEW_OUT_OF_DATE = "The preview is out of date"
@@ -71,9 +69,6 @@ internal class CustomViewPreviewNotificationProvider : EditorNotifications.Provi
 }
 
 
-private val GREEN_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
-                                                                            JBColor(0x59A869, 0x499C54))
-
 internal fun requestBuildForSurface(surface: DesignSurface<*>) {
   surface.models.map { it.module }.distinct().forEach {
     requestBuild(surface.project, it)
@@ -83,7 +78,7 @@ internal fun requestBuildForSurface(surface: DesignSurface<*>) {
  * [AnAction] that triggers a compilation of the current module. The build will automatically trigger a refresh of the surface.
  */
 internal class ForceCompileAndRefreshAction(private val surface: DesignSurface<*>) :
-  AnAction(BUILD_AND_REFRESH, null, GREEN_REFRESH_BUTTON) {
+  AnAction(BUILD_AND_REFRESH, null, REFRESH_BUTTON) {
   override fun actionPerformed(e: AnActionEvent) = requestBuildForSurface(surface)
 
   override fun update(e: AnActionEvent) {

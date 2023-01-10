@@ -16,10 +16,10 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.flags.ifEnabled
-import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.compose.InformationPopup
 import com.android.tools.adtui.compose.InformationPopupImpl
 import com.android.tools.adtui.compose.IssueNotificationAction
+import com.android.tools.adtui.compose.REFRESH_BUTTON
 import com.android.tools.adtui.compose.actionLink
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.DesignSurface
@@ -38,7 +38,6 @@ import com.android.tools.idea.preview.actions.ShowEventLogAction
 import com.android.tools.idea.preview.actions.ShowProblemsPanel
 import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.projectsystem.requestBuild
-import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -50,18 +49,12 @@ import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
-import com.intellij.ui.JBColor
 import com.intellij.ui.components.AnActionLink
 import com.intellij.util.ui.JBUI
+import java.awt.Insets
 import java.lang.ref.WeakReference
 import kotlin.reflect.KFunction0
 import org.jetbrains.annotations.VisibleForTesting
-
-private val GREEN_REFRESH_BUTTON =
-  ColoredIconGenerator.generateColoredIcon(
-    AllIcons.Actions.ForceRefresh,
-    JBColor(0x59A869, 0x499C54)
-  )
 
 @VisibleForTesting
 internal fun getStatusInfo(project: Project, dataContext: DataContext): PreviewStatus? {
@@ -210,10 +203,14 @@ private fun DataContext.createTitleActionLink(
  * - State of Live Edit or preview out of date if Live Edit is disabled
  * - Syntax errors
  */
-class ComposeIssueNotificationAction(
+class PreviewIssueNotificationAction(
   createInformationPopup: (Project, DataContext) -> InformationPopup? =
     ::defaultCreateInformationPopup
-) : IssueNotificationAction(::getStatusInfo, createInformationPopup)
+) : IssueNotificationAction(::getStatusInfo, createInformationPopup), RightAlignedToolbarAction {
+  override fun margins(): Insets {
+    return JBUI.insets(3)
+  }
+}
 
 /**
  * [AnAction] that triggers a compilation of the current module. The build will automatically
@@ -224,7 +221,7 @@ private class ForceCompileAndRefreshActionForNotification(private val surface: D
   AnAction(
     message("action.build.and.refresh.title"),
     message("action.build.and.refresh.description"),
-    GREEN_REFRESH_BUTTON
+    REFRESH_BUTTON
   ),
   RightAlignedToolbarAction,
   CustomComponentAction {
@@ -275,5 +272,5 @@ private class ForceCompileAndRefreshActionForNotification(private val surface: D
  */
 class ComposeNotificationGroup(surface: DesignSurface<*>) :
   DefaultActionGroup(
-    listOf(ComposeIssueNotificationAction(), ForceCompileAndRefreshActionForNotification(surface))
+    listOf(PreviewIssueNotificationAction(), ForceCompileAndRefreshActionForNotification(surface))
   )

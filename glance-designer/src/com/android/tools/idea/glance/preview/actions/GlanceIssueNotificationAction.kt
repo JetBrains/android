@@ -28,7 +28,10 @@ import com.android.tools.idea.preview.actions.PreviewStatus
 import com.android.tools.idea.preview.actions.ShowProblemsPanel
 import com.android.tools.idea.projectsystem.needsBuild
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
 import com.intellij.openapi.project.Project
+import com.intellij.util.ui.JBUI
+import java.awt.Insets
 
 /**
  * Provides [PreviewStatus] based on [Project] and [PreviewViewModelStatus] (passed through
@@ -83,4 +86,8 @@ internal fun createInformationPopup(project: Project, dataContext: DataContext):
 
 /** [IssueNotificationAction] for Glance previews. */
 class GlanceIssueNotificationAction :
-  IssueNotificationAction(::getStatusInfo, ::createInformationPopup)
+  IssueNotificationAction(::getStatusInfo, ::createInformationPopup), RightAlignedToolbarAction {
+  override fun margins(): Insets {
+    return JBUI.insets(3)
+  }
+}

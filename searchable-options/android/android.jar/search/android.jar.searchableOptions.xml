@@ -302,11 +302,10 @@
     <option name="library" path="ActionManager" hit="Library Properties..." />
     <option name="properties" path="ActionManager" hit="Library Properties..." />
     <option name="licenses" path="ActionManager" hit="Licenses" />
-    <option name="edit" path="ActionManager" hit="Live Edit" />
-    <option name="live" path="ActionManager" hit="Live Edit" />
-    <option name="edit" path="ActionManager" hit="Live Edit status" />
-    <option name="live" path="ActionManager" hit="Live Edit status" />
-    <option name="status" path="ActionManager" hit="Live Edit status" />
+    <option name="actions" path="ActionManager" hit="Live Edit Notification Actions" />
+    <option name="edit" path="ActionManager" hit="Live Edit Notification Actions" />
+    <option name="live" path="ActionManager" hit="Live Edit Notification Actions" />
+    <option name="notification" path="ActionManager" hit="Live Edit Notification Actions" />
     <option name="and" path="ActionManager" hit="Load and set up Android Test Retention for debug" />
     <option name="android" path="ActionManager" hit="Load and set up Android Test Retention for debug" />
     <option name="debug" path="ActionManager" hit="Load and set up Android Test Retention for debug" />

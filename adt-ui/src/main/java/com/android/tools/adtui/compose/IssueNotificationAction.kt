@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.compose
 
+import com.android.tools.adtui.common.ColoredIconGenerator
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -24,14 +25,13 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.registry.Registry
-import com.intellij.ui.Gray
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.JBColor
 import com.intellij.ui.RoundedLineBorder
 import com.intellij.ui.components.AnActionLink
@@ -40,13 +40,11 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
-import java.awt.Dimension
 import java.awt.Insets
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.Icon
 import javax.swing.JComponent
-import javax.swing.JToolTip
 import javax.swing.SwingConstants
 import javax.swing.border.Border
 
@@ -55,7 +53,13 @@ private const val ACTION_BORDER_ALPHA = 0xBF
 private const val ACTION_BORDER_ARC_SIZE = 5
 private const val ACTION_BORDER_THICKNESS = 1
 
-private fun chipBorder(color: Color): Border = RoundedLineBorder(UIUtil.toAlpha(color, ACTION_BORDER_ALPHA),
+val REFRESH_BUTTON =
+  ColoredIconGenerator.generateColoredIcon(
+    AllIcons.Actions.ForceRefresh,
+    JBColor(0x59A869, 0x499C54)
+  )
+
+internal fun chipBorder(color: Color): Border = RoundedLineBorder(UIUtil.toAlpha(color, ACTION_BORDER_ALPHA),
                                                                  ACTION_BORDER_ARC_SIZE,
                                                                  ACTION_BORDER_THICKNESS)
 
@@ -110,7 +114,7 @@ open class IssueNotificationAction(
   private val createStatusInfo: (Project, DataContext) -> ComposeStatus?,
   private val createInformationPopup: (Project, DataContext) -> InformationPopup?,
   private val popupAlarm: Alarm = Alarm()
-) : AnAction(), RightAlignedToolbarAction, CustomComponentAction, Disposable {
+) : AnAction(), CustomComponentAction, Disposable {
 
   /**
    * The currently opened popup.
@@ -134,7 +138,6 @@ open class IssueNotificationAction(
   /**
    * [MouseAdapter] that schedules the popup.
    */
-  @VisibleForTesting
   val mouseListener = object : MouseAdapter() {
     override fun mouseEntered(me: MouseEvent) {
       popupAlarm.cancelAllRequests()
@@ -169,55 +172,27 @@ open class IssueNotificationAction(
     }
   }
 
-  override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
-    object : ActionButtonWithText(this, presentation, place, Dimension(0, 0)) {
-      private val insets = JBUI.insets(3)
-      private val actionPresentation: ComposeStatus.Presentation?
-        get() = myPresentation.getClientProperty(ComposeStatus.PRESENTATION)
-      val textAlignment: Int
-        get() = myPresentation.getClientProperty(ComposeStatus.TEXT_ALIGNMENT) ?: SwingConstants.LEADING
+  /**
+   * Override this method to change the behavior of spacing between buttons (which includes the area around a button when hovered over).
+   */
+  open fun margins(): Insets {
+    return JBUI.emptyInsets()
+  }
 
-      private val font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
+  /**
+   * Override this method to add padding between the button and its borders.
+   */
+  open fun insets(): Insets {
+    return JBUI.emptyInsets()
+  }
 
-      private val textColor = JBColor(Gray._110, Gray._187)
+  open fun iconTextSpace(component: ActionButtonWithText): Int = 3
 
-      override fun isBackgroundSet(): Boolean =
-        actionPresentation != null || super.isBackgroundSet()
+  override fun createCustomComponent(presentation: Presentation, place: String): JComponent = IssueNotificationActionButton(this, presentation, place)
 
-      override fun getBackground(): Color? =
-        actionPresentation?.color ?: super.getBackground()
-
-      override fun getFont() = font
-
-      override fun getForeground() = textColor
-
-      override fun getBorder(): Border =
-        if (popState == POPPED)
-          chipBorder(JBUI.CurrentTheme.ActionButton.hoverBorder())
-        else
-          actionPresentation?.border ?: JBUI.Borders.empty()
-
-      override fun getMargins(): Insets = insets
-
-      override fun addNotify() {
-        super.addNotify()
-        addMouseListener(mouseListener)
-        setHorizontalTextPosition(textAlignment)
-      }
-
-      override fun removeNotify() {
-        removeMouseListener(mouseListener)
-        super.removeNotify()
-      }
-
-      override fun createToolTip(): JToolTip? = null
-
-      // Do not display the regular tooltip
-      override fun updateToolTipText() {}
-
-    }.apply {
-      setHorizontalTextPosition(textAlignment)
-    }
+  override fun updateCustomComponent(component: JComponent, presentation: Presentation) {
+    (component as ActionButtonWithText).update()
+  }
 
   override fun displayTextInToolbar(): Boolean = true
 
@@ -225,13 +200,19 @@ open class IssueNotificationAction(
     val project = e.project ?: return
     val presentation = e.presentation
     createStatusInfo(project, e.dataContext)?.let {
-      presentation.icon = it.icon
-      presentation.text = it.title
-      presentation.description = it.description
-      presentation.putClientProperty(ComposeStatus.PRESENTATION, it.presentation)
-      val isErrorOrWarningIcon = it.icon == AllIcons.General.Error || it.icon == AllIcons.General.Warning
-      presentation.putClientProperty(ComposeStatus.TEXT_ALIGNMENT,
-                                     if (isErrorOrWarningIcon) SwingConstants.TRAILING else SwingConstants.LEADING)
+      presentation.apply {
+        if (it.icon == null && StringUtil.isEmpty(it.title)) {
+          isEnabledAndVisible = false
+          return@let
+        }
+        isEnabledAndVisible = true
+        icon = it.icon
+        text = it.title
+        description = it.description
+        putClientProperty(ComposeStatus.PRESENTATION, it.presentation)
+        val isErrorOrWarningIcon = it.icon == AllIcons.General.Error || it.icon == AllIcons.General.Warning
+        putClientProperty(ComposeStatus.TEXT_ALIGNMENT, if (isErrorOrWarningIcon) SwingConstants.TRAILING else SwingConstants.LEADING)
+      }
     }
   }
 

@@ -28,7 +28,6 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.P
 import com.intellij.icons.AllIcons
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.JBColor
-import java.awt.Color
 import javax.swing.Icon
 
 open class LiveEditStatus(
@@ -89,7 +88,7 @@ open class LiveEditStatus(
     }
   }
 
-  object Disabled : LiveEditStatus(AllIcons.General.Warning, "", "", LOWEST)
+  object Disabled : LiveEditStatus(null, "", "", LOWEST)
 
   object UnrecoverableError :
     LiveEditStatus(
@@ -129,10 +128,7 @@ open class LiveEditStatus(
 
   object OutOfDate :
     LiveEditStatus(
-      ColoredIconGenerator.generateColoredIcon(
-        AllIcons.General.InlineRefreshHover,
-        Color(0x62B543)
-      ),
+      null,
       message("le.status.out_of_date.title"),
       message("le.status.out_of_date.description"),
       REFRESH_NEEDED,

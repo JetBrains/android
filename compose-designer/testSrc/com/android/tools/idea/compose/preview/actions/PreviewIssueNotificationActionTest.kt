@@ -48,12 +48,12 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
 
-/** Use this method when [ComposeIssueNotificationAction] should not create a popup. */
+/** Use this method when [PreviewIssueNotificationAction] should not create a popup. */
 @Suppress("UNUSED_PARAMETER")
 private fun noPopupFactor(project: Project, dataContext: DataContext): InformationPopup =
   throw IllegalStateException("Unexpected popup created")
 
-internal class ComposeIssueNotificationActionTest {
+internal class PreviewIssueNotificationActionTest {
   val projectRule = AndroidProjectRule.inMemory()
 
   @get:Rule val chain: TestRule = RuleChain.outerRule(projectRule).around(FastPreviewRule())
@@ -81,7 +81,7 @@ internal class ComposeIssueNotificationActionTest {
   @Test
   fun `check simple states`() {
     val action =
-      ComposeIssueNotificationAction(::noPopupFactor).also {
+      PreviewIssueNotificationAction(::noPopupFactor).also {
         Disposer.register(projectRule.testRootDisposable, it)
       }
     val event = TestActionEvent(context)
@@ -133,7 +133,7 @@ internal class ComposeIssueNotificationActionTest {
   @Test
   fun `check state priorities`() {
     val action =
-      ComposeIssueNotificationAction(::noPopupFactor).also {
+      PreviewIssueNotificationAction(::noPopupFactor).also {
         Disposer.register(projectRule.testRootDisposable, it)
       }
     val event = TestActionEvent(context)
@@ -336,7 +336,7 @@ internal class ComposeIssueNotificationActionTest {
 
     var popupRequested = 0
     val action =
-      ComposeIssueNotificationAction { _, _ ->
+      PreviewIssueNotificationAction { _, _ ->
         popupRequested++
         fakePopup
       }
