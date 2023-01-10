@@ -66,25 +66,25 @@ class ComposePreviewInspectorTest {
     manager.isInspectionTooltipEnabled = true
     whenever(surface.getData(COMPOSE_PREVIEW_MANAGER.name)).thenReturn(manager)
 
-    val verifier = mock<(List<ComposeViewInfo>) -> Unit>()
+    val verifier = mock<(List<ComposeViewInfo>, Int, Int) -> Unit>()
 
     val composeViewInfo = createViewInfo()
     val handler = ComposePreviewInspector(surface, { listOf(composeViewInfo) }, verifier)
 
     handler.inspect(50, 50)
-    Mockito.verify(verifier).invoke(listOf(composeViewInfo.children[0]))
+    Mockito.verify(verifier).invoke(listOf(composeViewInfo.children[0]), 50, 50)
 
     handler.inspect(150, 150)
-    Mockito.verify(verifier).invoke(listOf(composeViewInfo.children[1]))
+    Mockito.verify(verifier).invoke(listOf(composeViewInfo.children[1]), 150, 150)
 
     handler.inspect(350, 250)
-    Mockito.verify(verifier).invoke(listOf(composeViewInfo.children[1].children[0]))
+    Mockito.verify(verifier).invoke(listOf(composeViewInfo.children[1].children[0]), 350, 250)
 
     handler.inspect(800, 250)
-    Mockito.verify(verifier).invoke(listOf(composeViewInfo.children[2]))
+    Mockito.verify(verifier).invoke(listOf(composeViewInfo.children[2]), 800, 250)
 
     handler.inspect(900, 380)
-    Mockito.verify(verifier).invoke(listOf(composeViewInfo))
+    Mockito.verify(verifier).invoke(listOf(composeViewInfo), 900, 380)
   }
 
   private fun createViewInfo(): ComposeViewInfo {

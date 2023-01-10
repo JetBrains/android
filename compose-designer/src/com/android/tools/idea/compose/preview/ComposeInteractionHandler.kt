@@ -36,6 +36,12 @@ import javax.swing.JPanel
 private val colorAttributeName = Color.gray
 private val colorAttributeValue = Color(0x80, 0x17, 0x8B)
 
+/**
+ * The x and y shift between tooltips and mouse position. This gives a small gap between mouse and
+ * the top-left corner of tooltips to have better visual effect.
+ */
+@SwingCoordinate private const val TOOLTIPS_MOUSE_GAP = 10
+
 open class ComposeNavigationInteractionHandler(
   surface: DesignSurface<*>,
   private val base: InteractionHandler
@@ -66,21 +72,28 @@ open class ComposeNavigationInteractionHandler(
   }
 
   private inner class TooltipPopupCreator(private val surface: DesignSurface<*>) :
-    (List<ComposeViewInfo>) -> Unit {
+    (List<ComposeViewInfo>, Int, Int) -> Unit {
     private var currentViewInfo: ComposeViewInfo? = null
     private var currentTooltipPopup: JBPopup? = null
 
-    override fun invoke(viewInfos: List<ComposeViewInfo>) {
+    override fun invoke(
+      viewInfos: List<ComposeViewInfo>,
+      @SwingCoordinate swingX: Int,
+      @SwingCoordinate swingY: Int
+    ) {
       if (viewInfos.isEmpty()) {
         currentViewInfo = null
         currentTooltipPopup?.cancel()
         currentTooltipPopup = null
+        return
       }
       val viewInfo = viewInfos.last()
 
       if (viewInfo == currentViewInfo) {
         return
       }
+      currentTooltipPopup?.cancel()
+      currentTooltipPopup = null
 
       val interactionPane = surface.interactionPane
 
@@ -109,9 +122,13 @@ open class ComposeNavigationInteractionHandler(
         }
       )
 
+      currentViewInfo = viewInfo
       currentTooltipPopup = popup
       // TODO: Make the position of tooltip not overlap to the hovered component.
-      val p = Point(interactionPane.locationOnScreen).apply { translate(x, y) }
+      val p =
+        Point(interactionPane.locationOnScreen).apply {
+          translate(swingX + TOOLTIPS_MOUSE_GAP, swingY + TOOLTIPS_MOUSE_GAP)
+        }
       popup.show(RelativePoint.fromScreen(p))
     }
 
