@@ -121,9 +121,11 @@ abstract class SyncedProjectTest(
   @Test
   fun testNonStandardSourceSets() = testProject(TestProject.NON_STANDARD_SOURCE_SETS)
 
+  @org.junit.Ignore("b/265088504")
   @Test
   fun testNonStandardSourceSetDependencies() = testProject(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES)
 
+  @org.junit.Ignore("b/265088504")
   @Test
   fun testNonStandardSourceSetDependencies_manualTestFixturesWorkaround() = testProject(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_MANUAL_TEST_FIXTURES_WORKAROUND)
 
@@ -145,6 +147,7 @@ abstract class SyncedProjectTest(
   @Test
   fun testTestOnlyModule() = testProject(TestProject.TEST_ONLY_MODULE)
 
+  @org.junit.Ignore("b/265088504")
   @Test
   fun testKotlinMultiplatform() = testProject(TestProject.KOTLIN_MULTIPLATFORM)
 
@@ -163,6 +166,7 @@ abstract class SyncedProjectTest(
   @Test
   fun testKotlinMultiplatform_jvm_hierarchical_kmpapp() = testProject(TestProject.KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP)
 
+  @org.junit.Ignore("b/265088504")
   @Test
   fun testKotlinMultiplatform_jvm_hierarchical_kmpapp_withintermediate() =
     testProject(TestProject.KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP_WITHINTERMEDIATE)
