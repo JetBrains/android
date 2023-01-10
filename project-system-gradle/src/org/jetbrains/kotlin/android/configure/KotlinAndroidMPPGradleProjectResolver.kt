@@ -70,7 +70,9 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
     return super.createModule(gradleModule, projectDataNode)!!.also { ideModule ->
       val sourceSetByName = ideModule.sourceSetsByName()
       for ((sourceSetDesc, compilation) in mppModel.androidCompilationsForVariant(selectedVariantName)) {
-        val kotlinSourceSetInfo = KotlinMPPGradleProjectResolver.createSourceSetInfo(compilation, gradleModule, resolverCtx) ?: continue
+        val kotlinSourceSetInfo = KotlinMPPGradleProjectResolver.createSourceSetInfo(
+          mppModel, compilation, gradleModule, resolverCtx
+        ) ?: continue
         val androidGradleSourceSetDataNode = sourceSetByName[sourceSetDesc.sourceSetName] ?: continue
 
         androidGradleSourceSetDataNode.createChild(KotlinSourceSetData.KEY, KotlinSourceSetData(kotlinSourceSetInfo))
