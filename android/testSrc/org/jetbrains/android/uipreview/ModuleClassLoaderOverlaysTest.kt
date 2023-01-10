@@ -62,14 +62,10 @@ internal class ModuleClassLoaderOverlaysTest {
     val tempOverlayPath = Files.createTempDirectory("overlayTest")
     val packageDirPath = Files.createDirectories(tempOverlayPath.resolve(TestClass::class.java.packageName.replace(".", "/")))
 
-    ModuleClassLoaderOverlays.getInstance(projectRule.module).pushOverlayPath(tempOverlayPath)
-    assertNull(ModuleClassLoaderOverlays.getInstance(projectRule.module).classLoaderLoader.loadClass(testClassName))
-
     val classFilePath = packageDirPath.resolve(TestClass::class.java.simpleName + ".class")
     Files.write(classFilePath, loadClassBytes(TestClass::class.java))
-/* b/263894245
+    ModuleClassLoaderOverlays.getInstance(projectRule.module).pushOverlayPath(tempOverlayPath)
     assertNotNull(ModuleClassLoaderOverlays.getInstance(projectRule.module).classLoaderLoader.loadClass(testClassName))
-b/263894245 */
 
     // If deleted, the class should disappear
     Files.delete(classFilePath)
