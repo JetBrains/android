@@ -3150,10 +3150,6 @@ MODULE                        : NonStandardSourceSetDependencies.common
                 - dependencies                : 18
                 - dependencies                : 19
                 - dependencies                : 20
-                - dependencies                : 2
-                - dependencies                : 3
-                - dependencies                : 4
-                - dependencies                : 5
                 disambiguationClassifier      : jvm
                 isTestComponent               : true
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
@@ -4378,6 +4374,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                 actualPlatforms               : KotlinPlatformContainerImpl
                     arePlatformsInitialized       : true
                     - platforms                   : ANDROID
+                androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
+                    androidSourceSetName          : androidTestRelease
+                    kotlinSourceSetName           : androidAndroidTestRelease
                 languageSettings              : KotlinLanguageSettingsImpl
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -4397,6 +4396,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                 actualPlatforms               : KotlinPlatformContainerImpl
                     arePlatformsInitialized       : true
                     - platforms                   : ANDROID
+                androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
+                    androidSourceSetName          : testFixtures
+                    kotlinSourceSetName           : androidTestFixtures
                 languageSettings              : KotlinLanguageSettingsImpl
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -4417,6 +4419,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                 actualPlatforms               : KotlinPlatformContainerImpl
                     arePlatformsInitialized       : true
                     - platforms                   : ANDROID
+                androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
+                    androidSourceSetName          : testFixturesDebug
+                    kotlinSourceSetName           : androidTestFixturesDebug
                 languageSettings              : KotlinLanguageSettingsImpl
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -4437,6 +4442,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                 actualPlatforms               : KotlinPlatformContainerImpl
                     arePlatformsInitialized       : true
                     - platforms                   : ANDROID
+                androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
+                    androidSourceSetName          : testFixturesRelease
+                    kotlinSourceSetName           : androidTestFixturesRelease
                 languageSettings              : KotlinLanguageSettingsImpl
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -4480,6 +4488,11 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         arePlatformsInitialized       : true
                         - platforms                   : ANDROID
                     - allDependsOnSourceSets      : commonMain
+                    androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
+                        androidSourceSetName          : main
+                        - androidVariantNames         : debug
+                        - androidVariantNames         : release
+                        kotlinSourceSetName           : androidMain
                     - declaredDependsOnSourceSets : commonMain
                     - dependencies                : 4
                     - dependencies                : 3
@@ -4557,6 +4570,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                 - dependencies                : 11
                 - dependencies                : 12
                 - dependencies                : 13
+                - dependencies                : 2
                 disambiguationClassifier      : android
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
@@ -4604,6 +4618,10 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     - additionalVisibleSourceSets : androidMain
                     - additionalVisibleSourceSets : commonMain
                     - allDependsOnSourceSets      : commonTest
+                    androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
+                        androidSourceSetName          : androidTest
+                        - androidVariantNames         : debugAndroidTest
+                        kotlinSourceSetName           : androidAndroidTest
                     - declaredDependsOnSourceSets : commonTest
                     - dependencies                : 1
                     - dependencies                : 2
@@ -4702,6 +4720,11 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     - additionalVisibleSourceSets : androidMain
                     - additionalVisibleSourceSets : commonMain
                     - allDependsOnSourceSets      : commonTest
+                    androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
+                        androidSourceSetName          : test
+                        - androidVariantNames         : debugUnitTest
+                        - androidVariantNames         : releaseUnitTest
+                        kotlinSourceSetName           : androidTest
                     - declaredDependsOnSourceSets : commonTest
                     - dependencies                : 1
                     - dependencies                : 2
@@ -5215,10 +5238,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                 - dependencies                : 20
                 - dependencies                : 21
                 - dependencies                : 22
-                - dependencies                : 2
-                - dependencies                : 3
-                - dependencies                : 4
-                - dependencies                : 5
                 disambiguationClassifier      : jvm
                 isTestComponent               : true
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl

@@ -1947,6 +1947,9 @@ MODULE                        : kotlinMultiPlatform.app
                     arePlatformsInitialized       : true
                     - platforms                   : ANDROID
                     - platforms                   : JVM
+                androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
+                    androidSourceSetName          : androidTestRelease
+                    kotlinSourceSetName           : androidAndroidTestRelease
                 languageSettings              : KotlinLanguageSettingsImpl
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -1967,6 +1970,9 @@ MODULE                        : kotlinMultiPlatform.app
                     arePlatformsInitialized       : true
                     - platforms                   : ANDROID
                     - platforms                   : JVM
+                androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
+                    androidSourceSetName          : testFixtures
+                    kotlinSourceSetName           : androidTestFixtures
                 languageSettings              : KotlinLanguageSettingsImpl
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -1988,6 +1994,9 @@ MODULE                        : kotlinMultiPlatform.app
                     arePlatformsInitialized       : true
                     - platforms                   : ANDROID
                     - platforms                   : JVM
+                androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
+                    androidSourceSetName          : testFixturesDebug
+                    kotlinSourceSetName           : androidTestFixturesDebug
                 languageSettings              : KotlinLanguageSettingsImpl
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2009,6 +2018,9 @@ MODULE                        : kotlinMultiPlatform.app
                     arePlatformsInitialized       : true
                     - platforms                   : ANDROID
                     - platforms                   : JVM
+                androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
+                    androidSourceSetName          : testFixturesRelease
+                    kotlinSourceSetName           : androidTestFixturesRelease
                 languageSettings              : KotlinLanguageSettingsImpl
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2050,6 +2062,11 @@ MODULE                        : kotlinMultiPlatform.app
                         arePlatformsInitialized       : true
                         - platforms                   : ANDROID
                     - allDependsOnSourceSets      : commonMain
+                    androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
+                        androidSourceSetName          : main
+                        - androidVariantNames         : debug
+                        - androidVariantNames         : release
+                        kotlinSourceSetName           : androidMain
                     - declaredDependsOnSourceSets : commonMain
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -2188,6 +2205,10 @@ MODULE                        : kotlinMultiPlatform.app
                     - additionalVisibleSourceSets : androidMain
                     - additionalVisibleSourceSets : commonMain
                     - allDependsOnSourceSets      : commonTest
+                    androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
+                        androidSourceSetName          : androidTest
+                        - androidVariantNames         : debugAndroidTest
+                        kotlinSourceSetName           : androidAndroidTest
                     - declaredDependsOnSourceSets : commonTest
                     isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
@@ -2313,6 +2334,11 @@ MODULE                        : kotlinMultiPlatform.app
                     - additionalVisibleSourceSets : androidMain
                     - additionalVisibleSourceSets : commonMain
                     - allDependsOnSourceSets      : commonTest
+                    androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
+                        androidSourceSetName          : test
+                        - androidVariantNames         : debugUnitTest
+                        - androidVariantNames         : releaseUnitTest
+                        kotlinSourceSetName           : androidTest
                     - declaredDependsOnSourceSets : commonTest
                     isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
@@ -2609,10 +2635,6 @@ MODULE                        : kotlinMultiPlatform.app
                 - dependencies                : 31
                 - dependencies                : 32
                 - dependencies                : 33
-                - dependencies                : 2
-                - dependencies                : 3
-                - dependencies                : 4
-                - dependencies                : 5
                 disambiguationClassifier      : jvm
                 isTestComponent               : true
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
@@ -3161,6 +3183,9 @@ MODULE                        : kotlinMultiPlatform.module2
                     arePlatformsInitialized       : true
                     - platforms                   : ANDROID
                     - platforms                   : JVM
+                androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
+                    androidSourceSetName          : androidTestRelease
+                    kotlinSourceSetName           : androidAndroidTestRelease
                 languageSettings              : KotlinLanguageSettingsImpl
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3181,6 +3206,9 @@ MODULE                        : kotlinMultiPlatform.module2
                     arePlatformsInitialized       : true
                     - platforms                   : ANDROID
                     - platforms                   : JVM
+                androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
+                    androidSourceSetName          : testFixtures
+                    kotlinSourceSetName           : androidTestFixtures
                 languageSettings              : KotlinLanguageSettingsImpl
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3202,6 +3230,9 @@ MODULE                        : kotlinMultiPlatform.module2
                     arePlatformsInitialized       : true
                     - platforms                   : ANDROID
                     - platforms                   : JVM
+                androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
+                    androidSourceSetName          : testFixturesDebug
+                    kotlinSourceSetName           : androidTestFixturesDebug
                 languageSettings              : KotlinLanguageSettingsImpl
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3223,6 +3254,9 @@ MODULE                        : kotlinMultiPlatform.module2
                     arePlatformsInitialized       : true
                     - platforms                   : ANDROID
                     - platforms                   : JVM
+                androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
+                    androidSourceSetName          : testFixturesRelease
+                    kotlinSourceSetName           : androidTestFixturesRelease
                 languageSettings              : KotlinLanguageSettingsImpl
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3264,6 +3298,11 @@ MODULE                        : kotlinMultiPlatform.module2
                         arePlatformsInitialized       : true
                         - platforms                   : ANDROID
                     - allDependsOnSourceSets      : commonMain
+                    androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
+                        androidSourceSetName          : main
+                        - androidVariantNames         : debug
+                        - androidVariantNames         : release
+                        kotlinSourceSetName           : androidMain
                     - declaredDependsOnSourceSets : commonMain
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -3372,6 +3411,10 @@ MODULE                        : kotlinMultiPlatform.module2
                     - additionalVisibleSourceSets : androidMain
                     - additionalVisibleSourceSets : commonMain
                     - allDependsOnSourceSets      : commonTest
+                    androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
+                        androidSourceSetName          : androidTest
+                        - androidVariantNames         : debugAndroidTest
+                        kotlinSourceSetName           : androidAndroidTest
                     - declaredDependsOnSourceSets : commonTest
                     isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
@@ -3480,6 +3523,11 @@ MODULE                        : kotlinMultiPlatform.module2
                     - additionalVisibleSourceSets : androidMain
                     - additionalVisibleSourceSets : commonMain
                     - allDependsOnSourceSets      : commonTest
+                    androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
+                        androidSourceSetName          : test
+                        - androidVariantNames         : debugUnitTest
+                        - androidVariantNames         : releaseUnitTest
+                        kotlinSourceSetName           : androidTest
                     - declaredDependsOnSourceSets : commonTest
                     isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
@@ -3747,10 +3795,6 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependencies                : 39
                 - dependencies                : 40
                 - dependencies                : 41
-                - dependencies                : 2
-                - dependencies                : 3
-                - dependencies                : 4
-                - dependencies                : 5
                 disambiguationClassifier      : jvm
                 isTestComponent               : true
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
