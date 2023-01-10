@@ -450,6 +450,29 @@ class GradleConnectedAndroidTestInvokerTest {
   }
 
   @Test
+  fun testTaskNamesCanHandleCompositeBuild() {
+    // This is a regression test for b/117064606.
+    whenever(mockModuleData.id).thenReturn(":includedModule")
+    whenever(mockModuleData.getProperty(eq("compositeBuildGradlePath"))).thenReturn(":ModulesSDK")
+
+    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
+
+    gradleConnectedTestInvoker.runGradleTask(
+      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView, mockAndroidModuleModel, waitForDebugger = true,
+      testPackageName = "", testClassName = "", testMethodName = "", testRegex = "",
+      RetentionConfiguration(), extraInstrumentationOptions = "")
+
+    verify(mockGradleTaskManager).executeTasks(
+      any(),
+      eq(listOf(":ModulesSDK:includedModule:connectedDebugAndroidTest")),
+      anyString(),
+      any(),
+      nullable(String::class.java),
+      any()
+    )
+  }
+
+  @Test
   fun retryExecuteTaskAfterInstallationFailure() {
     whenever(mockGradleTaskManager.executeTasks(
       any(),
