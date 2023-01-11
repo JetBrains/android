@@ -1015,6 +1015,28 @@ def intellij_platform(
         }),
     )
 
+    resource_jars = {
+        "mac": src + "/darwin/android-studio/Contents/lib/resources.jar",
+        "mac_arm": src + "/darwin_aarch64/android-studio/Contents/lib/resources.jar",
+        "linux": src + "/linux/android-studio/lib/resources.jar",
+        "windows": src + "/windows/android-studio/lib/resources.jar",
+    }
+    native.py_test(
+        name = name + "_version_test",
+        srcs = ["//tools/adt/idea/studio:sdk_version_test.py"],
+        main = "sdk_version_test.py",
+        tags = ["no_test_windows", "no_test_mac"],
+        data = resource_jars.values(),
+        env = {
+            "expected_major_version": spec.major_version,
+            "expected_minor_version": spec.minor_version,
+            "intellij_resource_jars": ",".join(
+                [k + "=" + "$(execpath :" + v + ")" for k, v in resource_jars.items()],
+            ),
+        },
+        deps = ["//tools/adt/idea/studio:intellij"],
+    )
+
     # Expose lib/resources.jar as a separate target
     native.java_import(
         name = name + "-resources-jar",

@@ -709,6 +709,12 @@ py_test(
     deps = [":stamper"],
 )
 
+py_library(
+    name = "intellij",
+    srcs = ["intellij.py"],
+    visibility = ["//visibility:public"],
+)
+
 java_binary(
     name = "updater",
     main_class = "com.intellij.updater.Runner",
@@ -904,6 +910,11 @@ iml_test(
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.UpdateTest",
+)
+
+exports_files(
+    ["sdk_version_test.py"],
+    visibility = ["//visibility:public"],
 )
 
 # TODO(b/239839457): Remove this export when a real metadata file is generated.

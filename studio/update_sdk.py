@@ -9,6 +9,7 @@ import re
 import glob
 import shutil
 import xml.etree.ElementTree as ET
+import intellij
 
 # A list of files not included in the SDK because they are made by files in the root lib directory
 # This should be sorted out at a different level, but for now removing them here
@@ -103,10 +104,22 @@ def write_spec_file(workspace, sdk_rel, version, sdk_jars, plugin_jars, mac_bund
     LINUX: "_linux",
   }
 
+  sdk_versions = {}
+  for platform in [LINUX, WIN, MAC, MAC_ARM]:
+    sdk_version = intellij.extract_sdk_version(
+      f'{workspace}{sdk_rel}{HOME_PATHS[platform]}/lib/resources.jar')
+    sdk_versions[platform] = sdk_version
+  if len(set(sdk_versions.values())) > 1:
+    raise ValueError(f'Major and minor versions differ between OS platforms! {sdk_versions}')
+  sdk_version = sdk_versions[LINUX]
+
   with open(workspace + sdk_rel + "/spec.bzl", "w") as file:
     name = version.replace("-", "").replace(".", "_")
     file.write("# Auto-generated file, do not edit manually.\n")
     file.write(name  + " = struct(\n" )
+    file.write(f'    major_version="{sdk_version.major}",\n')
+    file.write(f'    minor_version="{sdk_version.minor}",\n')
+
     for platform in [ALL] + PLATFORMS:
       file.write(f"    jars{suffix[platform]} = [\n")
       for jar in sdk_jars[platform]:
