@@ -257,10 +257,10 @@ class SceneViewPeerPanel(val sceneView: SceneView,
                    (sceneViewToolbar?.minimumSize?.width ?: 0)
     // Since sceneViewToolbar visibility can change, sceneViewTopPanel (its container) might want to reduce its size when sceneViewToolbar
     // gets invisible, resulting in a visual misbehavior where the toolbar moves a little when the actions appear/disappear. To fix this,
-    // we should set sceneViewTopPanel preferred size to always occupy the height taken by sceneViewToolbar.
+    // we should set sceneViewTopPanel preferred size to always occupy the height taken by sceneViewToolbar when it exists.
     val minHeight = maxOf(minimumSize.height, sceneViewToolbar?.preferredSize?.height ?: 0)
     minimumSize = Dimension(minWidth, minHeight)
-    preferredSize = Dimension(minWidth, minHeight)
+    preferredSize = sceneViewToolbar?.let { Dimension(minWidth, minHeight) }
 
     setUpTopPanelMouseListeners()
   }
