@@ -991,6 +991,7 @@ def intellij_platform(
         jars = select({
             "//tools/base/bazel:windows": [src + "/windows/android-studio" + jar for jar in spec.jars + spec.jars_windows],
             "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents" + jar for jar in spec.jars + spec.jars_darwin],
+            "//tools/base/bazel:darwin_arm64": [src + "/darwin_aarch64/android-studio/Contents" + jar for jar in spec.jars + spec.jars_darwin_aarch64],
             "//conditions:default": [src + "/linux/android-studio" + jar for jar in spec.jars + spec.jars_linux],
         }),
     )
@@ -1014,6 +1015,10 @@ def intellij_platform(
                 include = [src + "/darwin/android-studio/**"],
                 exclude = [src + "/darwin/android-studio/Contents/plugins/textmate/lib/bundles/**"],
             ),
+            "//tools/base/bazel:darwin_arm64": native.glob(
+                include = [src + "/darwin_aarch64/android-studio/**"],
+                exclude = [src + "/darwin_aarch64/android-studio/Contents/plugins/textmate/lib/bundles/**"],
+            ),
             "//conditions:default": native.glob(
                 include = [src + "/linux/android-studio/**"],
                 exclude = [src + "/linux/android-studio/plugins/textmate/lib/bundles/**"],
@@ -1027,6 +1032,7 @@ def intellij_platform(
         jars = select({
             "//tools/base/bazel:windows": [src + "/windows/android-studio/lib/resources.jar"],
             "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/lib/resources.jar"],
+            "//tools/base/bazel:darwin_arm64": [src + "/darwin_aarch64/android-studio/Contents/lib/resources.jar"],
             "//conditions:default": [src + "/linux/android-studio/lib/resources.jar"],
         }),
         visibility = ["//visibility:public"],
@@ -1038,6 +1044,7 @@ def intellij_platform(
         srcs = select({
             "//tools/base/bazel:windows": [src + "/windows/android-studio/build.txt"],
             "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/Resources/build.txt"],
+            "//tools/base/bazel:darwin_arm64": [src + "/darwin_aarch64/android-studio/Contents/Resources/build.txt"],
             "//conditions:default": [src + "/linux/android-studio/build.txt"],
         }),
         visibility = ["//visibility:public"],
@@ -1086,6 +1093,8 @@ def _gen_plugin_jars_import_target(name, src, spec, plugin, jars):
     jars_windows = [src + "/windows/android-studio/plugins/" + plugin + "/lib/" + jar for jar in jars + add_windows]
     add_darwin = spec.plugin_jars_darwin[plugin] if plugin in spec.plugin_jars_darwin else []
     jars_darwin = [src + "/darwin/android-studio/Contents/plugins/" + plugin + "/lib/" + jar for jar in jars + add_darwin]
+    add_darwin_aarch64 = spec.plugin_jars_darwin_aarch64[plugin] if plugin in spec.plugin_jars_darwin_aarch64 else []
+    jars_darwin_aarch64 = [src + "/darwin_aarch64/android-studio/Contents/plugins/" + plugin + "/lib/" + jar for jar in jars + add_darwin_aarch64]
     add_linux = spec.plugin_jars_linux[plugin] if plugin in spec.plugin_jars_linux else []
     jars_linux = [src + "/linux/android-studio/plugins/" + plugin + "/lib/" + jar for jar in jars + add_linux]
 
@@ -1094,6 +1103,7 @@ def _gen_plugin_jars_import_target(name, src, spec, plugin, jars):
         jars = select({
             "//tools/base/bazel:windows": jars_windows,
             "//tools/base/bazel:darwin": jars_darwin,
+            "//tools/base/bazel:darwin_arm64": jars_darwin_aarch64,
             "//conditions:default": jars_linux,
         }),
     )
