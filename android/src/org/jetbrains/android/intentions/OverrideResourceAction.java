@@ -90,7 +90,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
 
   @Override
   public boolean startInWriteAction() {
-    return false;
+    return super.startInWriteAction();
   }
 
   @Override
@@ -553,7 +553,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     public boolean isApplicable(@NotNull PsiElement startElement,
                                 @NotNull PsiElement endElement,
                                 @NotNull AndroidQuickfixContexts.ContextType contextType) {
-      return true;
+      return super.isApplicable(startElement, endElement, contextType);
     }
   }
 }

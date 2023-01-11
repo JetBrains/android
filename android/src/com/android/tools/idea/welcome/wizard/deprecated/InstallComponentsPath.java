@@ -331,7 +331,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
   @Override
   public boolean isPathVisible() {
-    return true;
+    return super.isPathVisible();
   }
 
   public boolean shouldDownloadingComponentsStepBeShown() {

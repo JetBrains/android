@@ -52,7 +52,7 @@ public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
 
   @Override
   protected boolean isSmartExpand() {
-    return true;
+    return super.isSmartExpand();
   }
 
   public void expandAllNodes() {

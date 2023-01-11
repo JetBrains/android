@@ -117,7 +117,7 @@ public class NativeAllocationInstanceObject implements InstanceObject {
 
   @Override
   public boolean getIsRoot() {
-    return false;
+    return InstanceObject.super.getIsRoot();
   }
 
   @NotNull

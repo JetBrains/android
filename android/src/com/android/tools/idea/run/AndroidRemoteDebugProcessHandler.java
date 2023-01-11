@@ -154,7 +154,7 @@ final public class AndroidRemoteDebugProcessHandler extends ProcessHandler imple
 
   @Override
   public boolean isSilentlyDestroyOnClose() {
-    return false;
+    return super.isSilentlyDestroyOnClose();
   }
 
   @Override

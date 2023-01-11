@@ -170,6 +170,6 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
 
   @Override
   public boolean startInWriteAction() {
-    return false;
+    return super.startInWriteAction();
   }
 }

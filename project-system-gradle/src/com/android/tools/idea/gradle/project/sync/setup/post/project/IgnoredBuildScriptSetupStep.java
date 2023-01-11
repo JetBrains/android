@@ -73,7 +73,7 @@ public class IgnoredBuildScriptSetupStep extends ProjectSetupStep {
 
   @Override
   public boolean invokeOnFailedSync() {
-    return false;
+    return super.invokeOnFailedSync();
   }
 
   public static String getIgnoredFileTypesPathInSettings() {

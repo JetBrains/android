@@ -48,7 +48,7 @@ public class GuidelineCycleTarget extends GuidelineTarget {
 
   @Override
   public int getPreferenceLevel() {
-    return Target.GUIDELINE_LEVEL;
+    return super.getPreferenceLevel();
   }
 
   @Override

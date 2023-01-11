@@ -193,7 +193,7 @@ public class AndroidLintMissingSuperCallInspection extends AndroidLintInspection
         public boolean isApplicable(@NotNull PsiElement startElement,
                                     @NotNull PsiElement endElement,
                                     @NotNull AndroidQuickfixContexts.ContextType contextType) {
-          return true;
+          return super.isApplicable(startElement, endElement, contextType);
         }
       }
     };

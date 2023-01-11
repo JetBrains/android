@@ -115,6 +115,6 @@ public class Guideline extends ConstraintWidget {
 
     @Override
     public ArrayList<ConstraintAnchor> getAnchors() {
-        return mAnchors;
+      return super.getAnchors();
     }
 }

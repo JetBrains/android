@@ -877,7 +877,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   @Nullable
   @Override
   public BackgroundEditorHighlighter getBackgroundHighlighter() {
-    return null;
+    return FileEditor.super.getBackgroundHighlighter();
   }
 
   @Override

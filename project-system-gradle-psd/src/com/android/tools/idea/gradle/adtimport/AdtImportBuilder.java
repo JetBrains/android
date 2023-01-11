@@ -108,7 +108,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
   @Override
   @Nullable
   public List<String> getList() {
-    return null;
+    return super.getList();
   }
 
   @Override

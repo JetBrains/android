@@ -671,7 +671,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
     @Override
     public boolean isVisible(@NotNull DeviceFileEntryNode node) {
-      return true;
+      return super.isVisible(node);
     }
 
     @Override
@@ -738,7 +738,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
     @Override
     public boolean isVisible(@NotNull DeviceFileEntryNode node) {
-      return true;
+      return super.isVisible(node);
     }
 
     @Override
@@ -810,7 +810,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
     @Override
     public boolean isVisible(@NotNull DeviceFileEntryNode node) {
-      return true;
+      return super.isVisible(node);
     }
 
     @Nullable
@@ -848,7 +848,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
     @Override
     public boolean isVisible(@NotNull DeviceFileEntryNode node) {
-      return true;
+      return super.isVisible(node);
     }
 
     @Override

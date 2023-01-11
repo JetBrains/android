@@ -167,7 +167,7 @@ public class LightDataBindingComponentClass extends AndroidLightClassBase implem
 
   @Override
   public boolean isAnnotationType() {
-    return false;
+    return super.isAnnotationType();
   }
 
   private PsiMethod createPsiMethod(PsiElementFactory factory, String name, String type, Project project, GlobalSearchScope scope) {
@@ -197,7 +197,7 @@ public class LightDataBindingComponentClass extends AndroidLightClassBase implem
   @NotNull
   @Override
   public PsiField[] getFields() {
-    return PsiField.EMPTY_ARRAY;
+    return super.getFields();
   }
 
   @NotNull

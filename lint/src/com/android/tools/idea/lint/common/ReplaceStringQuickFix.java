@@ -226,7 +226,7 @@ public class ReplaceStringQuickFix extends DefaultLintQuickFix {
   @Nullable
   @Override
   public String getFamilyName() {
-    return myFamilyName;
+    return super.getFamilyName();
   }
 
   @Nullable

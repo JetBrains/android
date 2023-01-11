@@ -60,7 +60,7 @@ public class UnusedResourcesAction extends BaseRefactoringAction {
 
   @Override
   protected boolean isAvailableForLanguage(Language language) {
-    return true;
+    return super.isAvailableForLanguage(language);
   }
 
   @Override

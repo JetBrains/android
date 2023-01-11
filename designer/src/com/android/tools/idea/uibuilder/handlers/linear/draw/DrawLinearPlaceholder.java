@@ -54,7 +54,7 @@ public class DrawLinearPlaceholder extends DrawRegion {
 
   @Override
   public int getLevel() {
-    return DrawCommand.TARGET_LEVEL;
+    return super.getLevel();
   }
 
   /**

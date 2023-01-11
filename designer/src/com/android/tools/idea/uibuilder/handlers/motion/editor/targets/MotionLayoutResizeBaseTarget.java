@@ -119,16 +119,10 @@ public abstract class MotionLayoutResizeBaseTarget extends ResizeBaseTarget {
    */
   @Override
   public void mouseCancel() {
-    myComponent.setPosition(myStartX1, myStartY1);
 
     // rollback the transaction. The value may be temporarily changed by live rendering.
-    NlComponent component = myComponent.getAuthoritativeNlComponent();
-    AttributesTransaction transaction = component.startAttributeTransaction();
-    transaction.rollback();
-    component.fireLiveChangeEvent();
 
-    myComponent.setDragging(false);
-    myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
+    super.mouseCancel();
   }
 
   //endregion

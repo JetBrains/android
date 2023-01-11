@@ -642,7 +642,7 @@ public class LightBindingClass extends AndroidLightClassBase {
 
   @Override
   public boolean isInterface() {
-    return false;
+    return super.isInterface();
   }
 
   @NotNull

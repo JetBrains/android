@@ -121,6 +121,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
 
   @Override
   public void disposeUIResources() {
+    SearchableConfigurable.super.disposeUIResources();
   }
 
   private void createUIComponents() {

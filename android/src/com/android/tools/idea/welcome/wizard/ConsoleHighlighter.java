@@ -122,6 +122,7 @@ public final class ConsoleHighlighter implements EditorHighlighter, DocumentList
   @Override
   public void setText(@NotNull CharSequence text) {
 
+    EditorHighlighter.super.setText(text);
   }
 
   @Override
@@ -132,6 +133,7 @@ public final class ConsoleHighlighter implements EditorHighlighter, DocumentList
   @Override
   public void setColorScheme(@NotNull EditorColorsScheme scheme) {
 
+    EditorHighlighter.super.setColorScheme(scheme);
   }
 
   private synchronized HighlightRange getRange(int index) {

@@ -82,7 +82,7 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
   @NotNull
   @Override
   public FileEditorState getState(@NotNull FileEditorStateLevel level) {
-    return FileEditorState.INSTANCE;
+    return FileEditor.super.getState(level);
   }
 
   @Override

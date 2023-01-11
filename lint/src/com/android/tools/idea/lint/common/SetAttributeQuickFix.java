@@ -67,13 +67,13 @@ public class SetAttributeQuickFix extends DefaultLintQuickFix {
   @NotNull
   @Override
   public String getName() {
-    return myName;
+    return super.getName();
   }
 
   @Nullable
   @Override
   public String getFamilyName() {
-    return myFamilyName;
+    return super.getFamilyName();
   }
 
   @Override

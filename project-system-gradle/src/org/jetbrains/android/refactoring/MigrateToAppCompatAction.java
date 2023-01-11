@@ -60,7 +60,7 @@ public class MigrateToAppCompatAction extends BaseRefactoringAction {
 
   @Override
   protected boolean isAvailableForLanguage(Language language) {
-    return true;
+    return super.isAvailableForLanguage(language);
   }
 
   private static boolean isEnabled(@Nullable Project project) {

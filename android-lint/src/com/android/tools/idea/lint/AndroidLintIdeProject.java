@@ -482,6 +482,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
   protected void initialize() {
     // NOT calling super: super performs ADT/ant initialization. Here we want to use
     // the gradle data instead
+    super.initialize();
   }
 
   /**

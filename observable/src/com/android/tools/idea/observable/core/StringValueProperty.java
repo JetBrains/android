@@ -44,13 +44,13 @@ public final class StringValueProperty extends StringProperty {
   @NotNull
   @Override
   public ObservableBool isEmpty() {
-    return new IsEmptyExpression(this);
+    return super.isEmpty();
   }
 
   @NotNull
   @Override
   public ObservableString trim() {
-    return new TrimExpression(this);
+    return super.trim();
   }
 
   @Override

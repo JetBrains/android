@@ -76,6 +76,7 @@ final class DeviceFileExplorerConfigurable implements SearchableConfigurable {
 
   @Override
   public void disposeUIResources() {
+    SearchableConfigurable.super.disposeUIResources();
   }
 
   @NlsContexts.ConfigurableName

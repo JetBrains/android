@@ -140,7 +140,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
     @NotNull
     @Override
     public List<String> getLibraryClassesRoots() {
-      return Collections.emptyList();
+      return super.getLibraryClassesRoots();
     }
 
     @Nullable

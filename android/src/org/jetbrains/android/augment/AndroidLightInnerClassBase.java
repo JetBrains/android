@@ -22,7 +22,7 @@ public abstract class AndroidLightInnerClassBase extends AndroidLightClassBase {
 
   @Override
   public void checkAdd(@NotNull PsiElement element) throws IncorrectOperationException {
-    throw new IncorrectOperationException("Cannot add elements to R class");
+    super.checkAdd(element);
   }
 
   @Override

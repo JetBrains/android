@@ -65,6 +65,7 @@ class AdtImportSdkStep extends ProjectImportWizardStep {
 
   @Override
   public void updateStep() {
+    super.updateStep();
   }
 
   @Override

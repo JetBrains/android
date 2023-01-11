@@ -117,7 +117,7 @@ public class RemovedApiField extends ProvidedDocumentationPsiElement implements 
 
   @Override
   protected boolean isVisibilitySupported() {
-    return false;
+    return super.isVisibilitySupported();
   }
 
   @Override

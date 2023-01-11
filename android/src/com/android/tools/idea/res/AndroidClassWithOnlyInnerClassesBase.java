@@ -127,6 +127,6 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
 
   @Override
   public TextRange getTextRange() {
-    return TextRange.EMPTY_RANGE;
+    return super.getTextRange();
   }
 }

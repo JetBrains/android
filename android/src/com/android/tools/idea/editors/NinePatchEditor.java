@@ -150,7 +150,7 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
   @NotNull
   @Override
   public FileEditorState getState(@NotNull FileEditorStateLevel level) {
-    return FileEditorState.INSTANCE;
+    return FileEditor.super.getState(level);
   }
 
   @Override

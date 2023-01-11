@@ -123,6 +123,7 @@ public class AndroidProfilerCaptureEditor implements FileEditor {
 
   @Override
   public void deselectNotify() {
+    FileEditor.super.deselectNotify();
   }
 
   @Override
