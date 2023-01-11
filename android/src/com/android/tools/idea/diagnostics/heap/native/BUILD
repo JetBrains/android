@@ -41,13 +41,13 @@ cc_library(
         "-O2",
         "-shared",
     ] + select({
-        "//tools/base/bazel:darwin": [
+        "@platforms//os:macos": [
             "-Iprebuilts/studio/jdk/mac/Contents/Home/include",
         ],
-        "//tools/base/bazel:windows": [
+        "@platforms//os:windows": [
             "-Iprebuilts/studio/jdk/win64/include",
         ],
-        "//conditions:default": [
+        "@platforms//os:linux": [
             "-Iprebuilts/studio/jdk/linux/include",
             "-Iprebuilts/studio/jdk/linux/include/linux",
         ],

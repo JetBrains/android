@@ -8,7 +8,7 @@ cc_library(
         "-fPIC",
         "-shared",
     ] + select({
-        "//tools/base/bazel:darwin": [
+        "@platforms//os:macos": [
             "-Iprebuilts/studio/jdk/mac/Contents/Home/include",
         ],
         "//conditions:default": [
