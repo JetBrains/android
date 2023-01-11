@@ -1496,6 +1496,8 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
             Scope                         : Test
+        ORDER_ENTRY                   : kotlinMultiPlatform.module2.jvmAndAndroid
+            Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.jvmMain
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.jvmMain
