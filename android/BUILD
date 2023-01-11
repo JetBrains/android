@@ -187,8 +187,12 @@ iml_module(
             "test_filter": "com.android.tools.idea.rendering",
             "shard_count": 2,
         },
+        "jetbrains": {
+            "test_filter": "org.jetbrains.android",
+            "shard_count": 6,
+        },
         "other": {
-            "shard_count": 7,
+            "shard_count": 5,
         },
     },
     test_class = "com.android.tools.idea.IdeaTestSuite",
