@@ -69,10 +69,8 @@ class GotoDeclarationActionTest {
       GotoDeclarationAction.actionPerformed(event)
       stats
     }
-/* b/265082506
     fileOpenCaptureRule.checkEditor("demo.xml", 9, "<TextView")
     checkStats(stats, clickCount = 1)
-b/265082506 */
   }
 
   @Test
