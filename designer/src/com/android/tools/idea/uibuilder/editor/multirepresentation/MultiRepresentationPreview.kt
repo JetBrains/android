@@ -51,13 +51,13 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
+import java.util.concurrent.CancellationException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import javax.swing.BorderFactory
@@ -210,23 +210,31 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
   private var allowNewUpdateCallbacks = true
   @GuardedBy("updateCallbacksLock")
   private val updateCallbacks: MutableSet<CompletableDeferred<Unit>> = mutableSetOf()
+  // Indicates that representation is potentially being updated. Used for tracking end of processing in tests.
+  private val isUpdating = AtomicBoolean(false)
 
   init {
     launch(workerThread) {
       updateRepresentationsFlow.collect { request ->
         if (request == null) return@collect
-        val callbacks = updateCallbacksLock.withLock { updateCallbacks.toSet() }
+        isUpdating.set(true)
+        val callbacks = updateCallbacksLock.withLock {
+          updateCallbacks.toSet()
+        }
         try {
           updateRepresentationsImpl()
-        } catch (t: Throwable) {
-          LOG.error("Unexpected error while updating representations", t)
-        } finally {
           updateCallbacksLock.withLock {
             updateCallbacks.removeAll(callbacks)
           }
           callbacks.forEach {
             it.complete(Unit)
           }
+        } catch (ex: CancellationException) {
+          throw ex
+        } catch (t: Throwable) {
+          LOG.error("Unexpected error while updating representations", t)
+        } finally {
+          isUpdating.set(false)
         }
       }
     }
@@ -350,7 +358,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
    */
   @TestOnly
   suspend fun awaitForRepresentationsUpdated() {
-    while (updateCallbacksLock.withLock { updateCallbacks.isNotEmpty() }) {
+    while (updateCallbacksLock.withLock { updateCallbacks.isNotEmpty() } || isUpdating.get()) {
       delay(100)
     }
   }
@@ -497,6 +505,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     updateCallbacksLock.withLock {
       allowNewUpdateCallbacks = false
       updateCallbacks.forEach { it.complete(Unit) }
+      updateCallbacks.clear()
     }
     onDeactivate()
     synchronized(representations) {
