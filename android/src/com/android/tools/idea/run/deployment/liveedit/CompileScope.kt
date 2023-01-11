@@ -137,8 +137,7 @@ private object CompileScopeImpl : CompileScope {
   }
 
   override fun performInlineSourceDependencyAnalysis(resolution: ResolutionFacade, file: KtFile, bindingContext: BindingContext) : List<KtFile> {
-    val (_, filesToCompile) = analyzeInlinedFunctions(resolution, file, false, bindingContext)
-    return filesToCompile
+    return analyzeInlinedFunctions(resolution, file, false)
   }
 
   override fun analyze(input: List<KtFile>, resolution: ResolutionFacade): BindingContext {
