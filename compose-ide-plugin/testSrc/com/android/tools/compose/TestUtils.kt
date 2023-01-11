@@ -19,6 +19,8 @@ import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.intellij.openapi.application.ex.PathManagerEx
 import java.nio.file.Files
 
+const val COMPOSABLE_FQ_NAMES_ROOT = "androidx.compose.runtime"
+
 fun getComposePluginTestDataPath():String {
   val adtPath = resolveWorkspacePath("tools/adt/idea/compose-ide-plugin/testData")
   return if (Files.exists(adtPath)) adtPath.toString()

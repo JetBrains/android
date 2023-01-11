@@ -15,6 +15,7 @@
  */
 package com.android.tools.compose
 
+import androidx.compose.compiler.plugins.kotlin.hasComposableAnnotation
 import com.android.tools.compose.code.getComposableFunctionRenderParts
 import com.intellij.navigation.ItemPresentation
 import com.intellij.navigation.ItemPresentationProvider

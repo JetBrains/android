@@ -60,6 +60,18 @@ fun CodeInsightTestFixture.stubComposeRuntime() {
     @Target(AnnotationTarget.TYPE)
     annotation class DisallowComposableCalls
 
+    @Target(
+        AnnotationTarget.FILE,
+        AnnotationTarget.CLASS,
+        AnnotationTarget.FUNCTION,
+        AnnotationTarget.PROPERTY_GETTER,
+        AnnotationTarget.TYPE,
+        AnnotationTarget.TYPE_PARAMETER,
+    )
+    annotation class ComposableTarget(val applier: String)
+
+    @Target(AnnotationTarget.ANNOTATION_CLASS)
+    annotation class ComposableTargetMarker(val description: String = "")
 
     @Composable
     inline fun <T> remember(calculation: @DisallowComposableCalls () -> T): T = calculation()
@@ -133,6 +145,24 @@ fun CodeInsightTestFixture.stubKotlinStdlib() {
     object Math {
       fun random(): Float = 0.5
     }
+    """.trimIndent()
+  )
+}
+
+fun CodeInsightTestFixture.stubComposeFoundation() {
+  addFileToProject(
+    "src/androidx/compose/foundation/text/BasicText.kt",
+    // language=kotlin
+    """
+    package androidx.compose.foundation.text
+
+    import androidx.compose.Composable
+
+    @Composable
+    @ComposableTarget("UI Composable")
+    fun BasicText(
+        text: String
+    ) { }
     """.trimIndent()
   )
 }

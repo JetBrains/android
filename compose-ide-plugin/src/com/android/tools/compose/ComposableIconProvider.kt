@@ -15,6 +15,7 @@
  */
 package com.android.tools.compose
 
+import androidx.compose.compiler.plugins.kotlin.hasComposableAnnotation
 import com.intellij.openapi.util.Iconable
 import com.intellij.psi.PsiElement
 import com.intellij.ui.RowIcon
