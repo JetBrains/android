@@ -17,11 +17,11 @@ package com.android.tools.idea.run;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner;
 import com.google.common.truth.Truth;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.ui.RunContentDescriptor;
@@ -30,22 +30,22 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import javax.swing.Icon;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mockito;
 
-public class StudioProgramRunnerTest {
+public class AndroidConfigurationProgramRunnerTest {
 
   @Rule
   public ProjectRule projectRule = new ProjectRule();
 
   /**
    * {@link HiddenRunContentDescriptor} is a almost-pure wrapper class for
-   * {@link RunContentDescriptor}, with the exception of the {@link RunContentDescriptor#isHiddenContent()} method overridden to return
+   * {@link RunContentDescriptor}, with the excDefaultStudioProgramRunnerTesteption of the {@link RunContentDescriptor#isHiddenContent()} method overridden to return
    * {@code false}. All other methods in the wrapper class should be overrides to the base class (with the addition of
    * {@link com.intellij.openapi.Disposable} handling.
    * <p>
@@ -73,19 +73,27 @@ public class StudioProgramRunnerTest {
 
   @Test
   public void ensureCannotRunOnMultipleDevices() {
-    AndroidRunConfigurationBase runConfiguration = Mockito.mock(AndroidRunConfigurationBase.class);
-    when(runConfiguration.getProject()).thenReturn(projectRule.getProject());
+    AndroidRunConfiguration runConfiguration =
+      new AndroidRunConfiguration(projectRule.getProject(), AndroidRunConfigurationType.getInstance()
+        .getFactory());
     FakeExecutionTarget target = new FakeExecutionTarget();
-    StudioProgramRunner runner = new StudioProgramRunner(GradleSyncState::getInstance, (project, profileState) -> target) {
-      @Override
-      protected boolean canRunWithMultipleDevices(@NotNull String executorId) {
-        return false;
-      }
+    AndroidConfigurationProgramRunner runner =
+      new AndroidConfigurationProgramRunner(GradleSyncState::getInstance, (project, profileState) -> target) {
+        @NotNull
+        @Override
+        protected List<String> getSupportedConfigurationTypeIds() {
+          return List.of(new AndroidRunConfigurationType().getId());
+        }
 
-      @Override
-      public @NotNull String getRunnerId() {
-        return "Fake Runner";
-      }
+        @Override
+        protected boolean canRunWithMultipleDevices(@NotNull String executorId) {
+          return false;
+        }
+
+        @Override
+        public @NotNull String getRunnerId() {
+          return "Fake Runner";
+        }
     };
     target.setAvailableDeviceCount(2);
     assertFalse(runner.canRun(DefaultDebugExecutor.EXECUTOR_ID, runConfiguration));
@@ -93,20 +101,27 @@ public class StudioProgramRunnerTest {
 
   @Test
   public void ensureCanRunOnNoneOrSingleDevice() {
-    AndroidRunConfigurationBase runConfiguration = Mockito.mock(AndroidRunConfigurationBase.class);
-    when(runConfiguration.getProject()).thenReturn(projectRule.getProject());
+    AndroidRunConfiguration runConfiguration =
+      new AndroidRunConfiguration(projectRule.getProject(), AndroidRunConfigurationType.getInstance().getFactory());
     FakeExecutionTarget target = new FakeExecutionTarget();
-    StudioProgramRunner runner = new StudioProgramRunner(GradleSyncState::getInstance, (project, profileState) -> target) {
-      @Override
-      protected boolean canRunWithMultipleDevices(@NotNull String executorId) {
-        return false;
-      }
+    AndroidConfigurationProgramRunner runner =
+      new AndroidConfigurationProgramRunner(GradleSyncState::getInstance, (project, profileState) -> target) {
+        @NotNull
+        @Override
+        protected List<String> getSupportedConfigurationTypeIds() {
+          return List.of(new AndroidRunConfigurationType().getId());
+        }
 
-      @Override
-      public @NotNull String getRunnerId() {
-        return "Fake Runner";
-      }
-    };
+        @Override
+        protected boolean canRunWithMultipleDevices(@NotNull String executorId) {
+          return false;
+        }
+
+        @Override
+        public @NotNull String getRunnerId() {
+          return "Fake Runner";
+        }
+      };
     target.setAvailableDeviceCount(0);
 
     assertTrue(runner.canRun(DefaultDebugExecutor.EXECUTOR_ID, runConfiguration));

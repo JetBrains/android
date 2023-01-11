@@ -124,8 +124,6 @@ open class ComposePreviewRunConfiguration(
         (providerIndex.takeIf { it >= 0 }?.let { " --ei parameterProviderIndex $it" } ?: "")
   }
 
-  override fun isProfilable() = false
-
   override fun readExternal(element: Element) {
     super.readExternal(element)
 

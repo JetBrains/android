@@ -80,10 +80,6 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
     )
   }
 
-  fun testConfigurationIsNotProfilable() {
-    assertFalse(runConfiguration.isProfilable)
-  }
-
   fun testTriggerSourceType() {
     assertEquals(
       ComposeDeployEvent.ComposeDeployEventType.UNKNOWN_EVENT_TYPE,

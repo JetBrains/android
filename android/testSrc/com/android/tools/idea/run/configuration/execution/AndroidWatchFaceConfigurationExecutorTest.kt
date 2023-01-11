@@ -60,7 +60,11 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     val configSettings = RunManager.getInstance(project).createConfiguration(
       "run WatchFace", AndroidWatchFaceConfigurationType().configurationFactories.single())
     // Use debug executor
-    return ExecutionEnvironment(executorInstance, AndroidConfigurationProgramRunner(), configSettings, project)
+    return ExecutionEnvironment(executorInstance, object : AndroidConfigurationProgramRunner() {
+      override fun canRunWithMultipleDevices(executorId: String) = true
+      override val supportedConfigurationTypeIds: List<String>
+        get() = listOf(AndroidWatchFaceConfigurationType().id)
+    }, configSettings, project)
   }
 
   @Test

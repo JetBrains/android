@@ -403,14 +403,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                                             @NotNull ApkProvider apkProvider,
                                                             @NotNull ConsolePrinter consolePrinter,
                                                             @NotNull IDevice device);
-
-  /**
-   * @return true iff this configuration can run while out of sync with the build system.
-   */
-  public boolean canRunWithoutSync() {
-    return false;
-  }
-
   public void updateExtraRunStats(RunStats runStats) {
 
   }
@@ -467,12 +459,5 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @NotNull
   public ProfilerState getProfilerState() {
     return myProfilerState;
-  }
-
-  /**
-   * Returns whether this configuration can run in Android Profiler.
-   */
-  public boolean isProfilable() {
-    return true;
   }
 }

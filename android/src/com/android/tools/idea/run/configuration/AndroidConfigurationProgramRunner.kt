@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.run.configuration
 
+import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.AndroidSessionInfo
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.run.AndroidRunConfiguration
+import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
-import com.android.tools.idea.run.configuration.user.settings.AndroidConfigurationExecutionSettings
 import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.stats.RunStats
 import com.intellij.execution.ExecutionException
+import com.intellij.execution.ExecutionTargetManager
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
@@ -36,6 +36,8 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
+import com.intellij.openapi.project.Project
+import com.intellij.util.ThreeState
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 
@@ -44,23 +46,40 @@ import org.jetbrains.concurrency.Promise
  *
  * Actual execution for a configuration, after build, happens in [AndroidConfigurationExecutor].
  */
-class AndroidConfigurationProgramRunner : AsyncProgramRunner<RunnerSettings>() {
+abstract class AndroidConfigurationProgramRunner internal constructor(
+  private val getGradleSyncState: (Project) -> GradleSyncState,
+  private val getAndroidTarget: (Project, RunConfiguration) -> AndroidExecutionTarget?
+) : AsyncProgramRunner<RunnerSettings>() {
+  constructor() : this(
+    { project -> GradleSyncState.getInstance(project) },
+    { project, profile -> getAvailableAndroidTarget(project, profile) })
+
   companion object {
-    val useNewExecutionForActivities: Boolean
-      get() = StudioFlags.NEW_EXECUTION_FLOW_ENABLED.get() &&
-              AndroidConfigurationExecutionSettings.getInstance().state.enableNewConfigurationFlow
+    private fun getAvailableAndroidTarget(project: Project, profile: RunConfiguration): AndroidExecutionTarget? {
+      return ExecutionTargetManager.getInstance(project).getTargetsFor(profile)
+        .filterIsInstance<AndroidExecutionTarget>()
+        .firstOrNull()
+    }
   }
+
+  protected abstract fun canRunWithMultipleDevices(executorId: String): Boolean
+  protected abstract val supportedConfigurationTypeIds: List<String>
 
   override fun getRunnerId(): String = "AndroidConfigurationProgramRunner"
 
   override fun canRun(executorId: String, profile: RunProfile): Boolean {
-    val supportExecutor = DefaultRunExecutor.EXECUTOR_ID == executorId || DefaultDebugExecutor.EXECUTOR_ID == executorId
-
-    if (!supportExecutor) {
+    if (profile !is RunConfiguration) {
       return false
     }
-
-    return profile is AndroidWearConfiguration || (profile is AndroidRunConfiguration && useNewExecutionForActivities)
+    if (!supportedConfigurationTypeIds.contains(profile.type.id)) {
+      return false
+    }
+    val target = getAndroidTarget(profile.project, profile) ?: return false
+    if (target.availableDeviceCount > 1 && !canRunWithMultipleDevices(executorId)) {
+      return false
+    }
+    val syncState = getGradleSyncState(profile.project)
+    return !syncState.isSyncInProgress && syncState.isSyncNeeded() == ThreeState.NO
   }
 
   @Throws(ExecutionException::class)
