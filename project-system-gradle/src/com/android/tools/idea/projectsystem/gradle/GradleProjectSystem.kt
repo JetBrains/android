@@ -312,6 +312,10 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
    */
   override fun supportsProfilingMode() = true
 
+  override fun desugarLibraryConfigFiles(project: Project): List<File> {
+    return (getModel(project) as GradleAndroidModel).getDesugarLibraryConfigFiles
+  }
+
   // TODO(b/228120633) reimplement this in a more efficient way
   private fun getModel(project: Project): AndroidModel? {
     if (project.isDisposed) {

@@ -1342,6 +1342,10 @@ internal fun modelCacheV2Impl(
     val lintChecksJarsCopy: List<File> = project.lintChecksJars.deduplicateFiles()
     val isBaseSplit = basicProject.projectType == ProjectType.APPLICATION
     val agpFlags: IdeAndroidGradlePluginProjectFlagsImpl = androidGradlePluginProjectFlagsFrom(project.flags)
+    val desugarLibConfig = if (agpVersion.isAtLeast(8, 1, 0, "alpha", 5, false))
+      project.desugarLibConfig
+    else
+      listOf()
 
     return ModelResult.create {
       if (syncTestMode == SyncTestMode.TEST_EXCEPTION_HANDLING) error("**internal error for tests**")
@@ -1379,7 +1383,8 @@ internal fun modelCacheV2Impl(
         projectType = copyProjectType(basicProject.projectType),
         isBaseSplit = isBaseSplit,
         agpFlags = agpFlags,
-        isKaptEnabled = false
+        isKaptEnabled = false,
+        desugarLibraryConfigFiles = desugarLibConfig,
       )
     }
   }

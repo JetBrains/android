@@ -180,6 +180,8 @@ interface IdeAndroidProject : Serializable {
   val testNamespace: String?
 
   val isKaptEnabled: Boolean
+
+  val desugarLibraryConfigFiles: List<File>
 }
 
 val IdeAndroidProject.variantNames: Collection<String> get() = basicVariants.map { it.name }

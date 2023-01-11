@@ -1146,7 +1146,8 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
       IdeVariantBuildInformationImpl(variantName = it.name, buildInformation = it.mainArtifact.buildInformation)
     },
     lintChecksJars = listOf(),
-    isKaptEnabled = false
+    isKaptEnabled = false,
+    desugarLibraryConfigFiles = listOf(),
   )
 }
 
@@ -1294,6 +1295,8 @@ fun setupTestProjectFromAndroidModel(
     override fun getKnownApplicationIds(project: Project): Set<String> = gradleProjectSystem.getKnownApplicationIds(project)
 
     override fun supportsProfilingMode(): Boolean = gradleProjectSystem.supportsProfilingMode()
+
+    override fun desugarLibraryConfigFiles(project: Project) = gradleProjectSystem.desugarLibraryConfigFiles(project)
   })
   setupTestProjectFromAndroidModelCore(project, rootProjectBasePath, moduleBuilders, setupAllVariants, cacheExistingVariants = false)
 }

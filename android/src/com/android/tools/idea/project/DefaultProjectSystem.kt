@@ -171,4 +171,8 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
       .filter { facet -> facet.sourceProviders.mainManifestFile?.let(projectScope::contains) == true }
       .toList()
   }
+
+  override fun desugarLibraryConfigFiles(project: Project): List<File> {
+    return listOf()
+  }
 }

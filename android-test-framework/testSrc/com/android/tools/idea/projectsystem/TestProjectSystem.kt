@@ -261,6 +261,10 @@ class TestProjectSystem @JvmOverloads constructor(
     error("not supported for the test implementation")
   }
 
+  override fun desugarLibraryConfigFiles(project: Project): List<File> {
+    error("not supported for the test implementation")
+  }
+
   override fun getPsiElementFinders() = emptyList<PsiElementFinder>()
 
   override fun getLightResourceClassService(): LightResourceClassService {

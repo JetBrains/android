@@ -127,6 +127,8 @@ class GradleAndroidModel constructor(
 
   fun getJavaLanguageLevel(): LanguageLevel? = data.getJavaLanguageLevel()
 
+  val getDesugarLibraryConfigFiles: List<File> = data.getDesugarLibraryConfig()
+
   override fun getAgpVersion(): AgpVersion = agpVersion
 
   /**
