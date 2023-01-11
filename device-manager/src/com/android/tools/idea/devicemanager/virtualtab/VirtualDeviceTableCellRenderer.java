@@ -18,14 +18,15 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
 import com.android.tools.idea.devicemanager.DeviceTableCellRenderer;
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import icons.StudioIcons;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class VirtualDeviceTableCellRenderer extends DeviceTableCellRenderer<VirtualDevice> {
-  VirtualDeviceTableCellRenderer() {
-    super(VirtualDevice.class);
+  VirtualDeviceTableCellRenderer(@NotNull WearPairingManager manager) {
+    super(VirtualDevice.class, manager);
   }
 
   @Override

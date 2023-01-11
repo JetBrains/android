@@ -34,6 +34,7 @@ import com.android.tools.idea.devicemanager.MergedTableColumn;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.EditValue;
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -78,14 +79,15 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   }
 
   VirtualDeviceTable(@NotNull VirtualDevicePanel panel) {
-    this(panel, panel.getProject(), new VirtualDeviceAsyncSupplier(), VirtualDeviceTable::newSetDevices);
+    this(panel, panel.getProject(), new VirtualDeviceAsyncSupplier(), VirtualDeviceTable::newSetDevices, WearPairingManager.getInstance());
   }
 
   @VisibleForTesting
   VirtualDeviceTable(@NotNull VirtualDevicePanel panel,
                      @Nullable Project project,
                      @NotNull VirtualDeviceAsyncSupplier asyncSupplier,
-                     @NotNull NewSetDevices newSetDevices) {
+                     @NotNull NewSetDevices newSetDevices,
+                     @NotNull WearPairingManager manager) {
     super(new VirtualDeviceTableModel(project), VirtualDevice.class);
 
     myAsyncSupplier = asyncSupplier;
@@ -102,10 +104,10 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
                                                                                  EventKind.VIRTUAL_DEVICE_FILE_EXPLORER_ACTION));
 
     setDefaultEditor(EditValue.class, new EditButtonTableCellEditor(panel));
-    setDefaultEditor(PopUpMenuValue.class, new VirtualDevicePopUpMenuButtonTableCellEditor(panel));
+    setDefaultEditor(PopUpMenuValue.class, new VirtualDevicePopUpMenuButtonTableCellEditor(panel, manager));
 
     setDefaultRenderer(DeviceType.class, new VirtualDeviceIconButtonTableCellRenderer());
-    setDefaultRenderer(Device.class, new VirtualDeviceTableCellRenderer());
+    setDefaultRenderer(Device.class, new VirtualDeviceTableCellRenderer(manager));
     setDefaultRenderer(AndroidVersion.class, new ApiTableCellRenderer());
     setDefaultRenderer(Long.class, new SizeOnDiskTableCellRenderer());
     setDefaultRenderer(VirtualDevice.State.class, new LaunchOrStopButtonTableCellRenderer());

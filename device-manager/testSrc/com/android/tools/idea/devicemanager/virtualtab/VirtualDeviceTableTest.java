@@ -21,6 +21,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.devicemanager.CountDownLatchAssert;
 import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.testFramework.ApplicationRule;
@@ -39,7 +40,9 @@ import org.mockito.Mockito;
 public final class VirtualDeviceTableTest {
   @Rule
   public ApplicationRule rule = new ApplicationRule();
-  private final @NotNull VirtualDevicePanel myPanel = Mockito.mock(VirtualDevicePanel.class);
+
+  private final VirtualDevicePanel myPanel = Mockito.mock(VirtualDevicePanel.class);
+  private final WearPairingManager myManager = Mockito.mock(WearPairingManager.class);
   private final CountDownLatch myLatch = new CountDownLatch(1);
 
   @Test
@@ -55,7 +58,7 @@ public final class VirtualDeviceTableTest {
         myLatch.countDown();
       }
     };
-    VirtualDeviceTable table = new VirtualDeviceTable(myPanel, null, mockSupplier(List.of()), callback);
+    VirtualDeviceTable table = new VirtualDeviceTable(myPanel, null, mockSupplier(List.of()), callback, myManager);
 
     CountDownLatchAssert.await(myLatch);
 
@@ -73,7 +76,7 @@ public final class VirtualDeviceTableTest {
 
     VirtualDevice device = TestVirtualDevices.pixel5Api31(avdInfo);
 
-    VirtualDeviceTable table = new VirtualDeviceTable(myPanel, null, mockSupplier(List.of(device)), this::newSetDevices);
+    VirtualDeviceTable table = new VirtualDeviceTable(myPanel, null, mockSupplier(List.of(device)), this::newSetDevices, myManager);
 
     CountDownLatchAssert.await(myLatch);
 

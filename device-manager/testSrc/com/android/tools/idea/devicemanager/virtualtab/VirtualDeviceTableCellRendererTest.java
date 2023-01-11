@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
 import com.android.tools.idea.devicemanager.DeviceTableCellRenderer;
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.intellij.ui.table.JBTable;
 import icons.StudioIcons;
 import javax.swing.JTable;
@@ -32,7 +33,8 @@ import org.mockito.Mockito;
 @RunWith(JUnit4.class)
 public final class VirtualDeviceTableCellRendererTest {
   private final @NotNull AvdInfo myAvd = Mockito.mock(AvdInfo.class);
-  private final @NotNull DeviceTableCellRenderer<VirtualDevice> myRenderer = new VirtualDeviceTableCellRenderer();
+  private final @NotNull DeviceTableCellRenderer<VirtualDevice> myRenderer
+    = new VirtualDeviceTableCellRenderer(Mockito.mock(WearPairingManager.class));
   private final @NotNull JTable myTable = new JBTable();
   private final @NotNull Object myDevice = TestVirtualDevices.onlinePixel5Api31(myAvd);
 
