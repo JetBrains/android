@@ -21,6 +21,8 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.insertText
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.diagnostic.DefaultLogger
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.project.DumbServiceImpl
@@ -32,6 +34,7 @@ import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import com.intellij.testFramework.UsefulTestCase.assertNotEmpty
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.After
@@ -641,7 +644,7 @@ class MultiRepresentationPreviewTest {
     multiPreview = UpdatableMultiRepresentationPreview(sampleFile, myFixture.editor, listOf(provider))
 
     // Essentially the same as Init but async
-    multiPreview.updateRepresentationsInTestAsync()
+    val promise = multiPreview.updateRepresentationsInTestAsync()
 
     // Wait until the representation is requested and dispose the parent
     createRepresentationLatch.await()
@@ -650,9 +653,55 @@ class MultiRepresentationPreviewTest {
     // The createRepresentationm
     parentDisposedLatch.countDown()
 
+    promise.await()
     multiPreview.awaitForRepresentationsUpdated()
 
     assertTrue(Disposer.isDisposed(representation))
+  }
+
+  @Test
+  fun testCancellationDoesNotCauseCrash() = runBlocking {
+    val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
+    myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
+
+    val startLatch = CountDownLatch(1)
+    val busyLatch = CountDownLatch(1)
+
+    val provider = object : PreviewRepresentationProvider {
+      override val displayName: RepresentationName = "Representation"
+      override suspend fun accept(project: Project, psiFile: PsiFile): Boolean {
+        startLatch.countDown()
+        busyLatch.await()
+        delay(1) // Make this throw CancellationException
+        return true
+      }
+      override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
+        return TestPreviewRepresentation()
+      }
+    }
+
+    val errors = mutableListOf<String?>()
+    val failingOnErrorLogger = object : DefaultLogger("") {
+      override fun error(message: String?, t: Throwable?, vararg details: String?) {
+        errors.add(message)
+      }
+    }
+    val previousFactory = Logger.getFactory()
+    try {
+      Logger.setFactory { failingOnErrorLogger }
+
+      multiPreview = UpdatableMultiRepresentationPreview(sampleFile, myFixture.editor, listOf(provider))
+      multiPreview.updateRepresentationsInTestAsync()
+      startLatch.await()
+      Disposer.dispose(multiPreview)
+      busyLatch.countDown()
+
+      multiPreview.awaitForRepresentationsUpdated()
+
+      assertTrue(errors.isEmpty())
+    } finally {
+      Logger.setFactory(previousFactory)
+    }
   }
 }
 
