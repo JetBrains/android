@@ -50,7 +50,7 @@ class DeviceHandleRendererTest {
       )
     )
 
-  val plugin = FakeAdbDeviceProvisionerPlugin(fakeAdb)
+  val plugin = FakeAdbDeviceProvisionerPlugin(session.scope, fakeAdb)
   val provisioner = DeviceProvisioner.create(session, listOf(plugin))
 
   private fun DeviceProperties.Builder.baseProperties() {

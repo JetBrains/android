@@ -27,8 +27,10 @@ import com.intellij.openapi.project.Project
 @Service
 class DeviceProvisionerService(project: Project) {
   val deviceProvisioner =
-    DeviceProvisioner.create(
-      AdbLibService.getSession(project),
-      DeviceProvisionerFactory.createProvisioners(project)
-    )
+    AdbLibService.getSession(project).let { session ->
+      DeviceProvisioner.create(
+        session,
+        DeviceProvisionerFactory.createProvisioners(session.scope, project)
+      )
+    }
 }

@@ -52,7 +52,7 @@ class AdbDeviceFileSystemServiceTest {
     ))
 
   val provisioner = DeviceProvisioner.create(session, emptyList())
-  val plugin = FakeAdbDeviceProvisionerPlugin(fakeAdb)
+  val plugin = FakeAdbDeviceProvisionerPlugin(session.scope, fakeAdb)
   val service = AdbDeviceFileSystemService(DeviceProvisioner.create(session, listOf(plugin)))
 
   /**

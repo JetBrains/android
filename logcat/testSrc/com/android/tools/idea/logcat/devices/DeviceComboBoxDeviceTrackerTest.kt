@@ -62,7 +62,7 @@ class DeviceComboBoxDeviceTrackerTest {
       fakeAdb.createChannelProvider(host),
       Duration.ofMillis(SOCKET_CONNECT_TIMEOUT_MS)
     ))
-  private val plugin = FakeAdbDeviceProvisionerPlugin(fakeAdb)
+  private val plugin = FakeAdbDeviceProvisionerPlugin(adbSession.scope, fakeAdb)
   private val deviceProvisioner = DeviceProvisioner.create(adbSession, listOf(plugin))
 
   private val device1 = TestDevice("device-1", ONLINE, "11", 30, "manufacturer1", "model1")

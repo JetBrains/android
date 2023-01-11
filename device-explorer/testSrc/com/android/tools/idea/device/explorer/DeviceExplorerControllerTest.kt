@@ -63,7 +63,7 @@ class DeviceExplorerControllerTest {
       Duration.ofMillis(SOCKET_CONNECT_TIMEOUT_MS)
     ))
 
-  private val plugin = FakeAdbDeviceProvisionerPlugin(fakeAdb)
+  private val plugin = FakeAdbDeviceProvisionerPlugin(session.scope, fakeAdb)
   private val deviceProvisioner = DeviceProvisioner.create(session, listOf(plugin))
 
   private lateinit var model: DeviceExplorerModel
