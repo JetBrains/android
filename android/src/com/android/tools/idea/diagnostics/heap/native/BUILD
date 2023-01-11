@@ -66,6 +66,7 @@ cc_binary(
         "no_mac",
         "no_windows",
     ],
+    target_compatible_with = ["@platforms//os:linux"],
     visibility = ["//visibility:public"],
     deps = [
         ":jni_object_tagger",
@@ -80,6 +81,7 @@ cc_binary(
         "no_linux",
         "no_windows",
     ],
+    target_compatible_with = ["@platforms//os:macos"],
     visibility = ["//visibility:public"],
     deps = [
         ":jni_object_tagger",
@@ -94,6 +96,7 @@ cc_binary(
         "no_linux",
         "no_mac",
     ],
+    target_compatible_with = ["@platforms//os:windows"],
     visibility = ["//visibility:public"],
     deps = [
         ":jni_object_tagger",
