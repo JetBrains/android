@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.logcat.devices
 
-import kotlinx.coroutines.flow.Flow
+import com.intellij.openapi.project.Project
 
 /**
- * Tracks devices for [DeviceComboBox].
- *
- * Notifies when a previously unseen device comes online and when a tracked device changes state. Only offline/online states are tracked.
- *
- * Devices are not removed when they go offline.
+ * A [Project] service that creates an [IDeviceComboBoxDeviceTracker]
  */
-internal interface IDeviceComboBoxDeviceTracker {
-  suspend fun trackDevices(): Flow<DeviceEvent>
-}
+internal fun interface DeviceComboBoxDeviceTrackerFactory {
+  fun createDeviceComboBoxDeviceTracker(preexistingDevice: Device?): IDeviceComboBoxDeviceTracker
 
+  companion object {
+    fun getInstance(project: Project): DeviceComboBoxDeviceTrackerFactory =
+      project.getService(DeviceComboBoxDeviceTrackerFactory::class.java)
+  }
+
+}

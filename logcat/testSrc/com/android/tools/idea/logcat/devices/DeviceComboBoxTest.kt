@@ -18,19 +18,15 @@ package com.android.tools.idea.logcat.devices
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
-import com.android.tools.idea.logcat.devices.DeviceEvent.TrackingReset
+import com.android.tools.idea.testing.ProjectServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
-import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.ui.CollectionComboBoxModel
 import com.intellij.ui.components.JBList
 import kotlinx.coroutines.async
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.TestCoroutineScope
 import kotlinx.coroutines.test.runBlockingTest
@@ -38,21 +34,24 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.any
 import org.mockito.Mockito.spy
-import java.io.Closeable
 
 /**
  * Tests for [DeviceComboBox]
  */
 @Suppress("OPT_IN_USAGE") // runBlockingTest is experimental
 class DeviceComboBoxTest {
-
+  private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
+  private val deviceTracker = FakeDeviceComboBoxDeviceTracker()
 
   @get:Rule
-  val rule = RuleChain(ApplicationRule(), disposableRule)
+  val rule = RuleChain(
+    projectRule,
+    ProjectServiceRule(projectRule, DeviceComboBoxDeviceTrackerFactory::class.java, DeviceComboBoxDeviceTrackerFactory { deviceTracker }),
+    disposableRule,
+  )
 
   private val selectionEvents = mutableListOf<Any?>()
-  private val deviceTracker = FakeDeviceComboBoxDeviceTracker()
 
   private val device1 = Device.createPhysical("device1", false, "11", 30, "Google", "Pixel 2")
   private val device2 = Device.createPhysical("device2", false, "11", 30, "Google", "Pixel 2")
@@ -60,7 +59,7 @@ class DeviceComboBoxTest {
 
   @Test
   fun noDevice_noSelection(): Unit = runBlockingTest {
-    val deviceComboBox = deviceComboBox(deviceTracker = deviceTracker, selectionEvents = selectionEvents)
+    val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
 
     val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
     deviceTracker.close()
@@ -72,7 +71,7 @@ class DeviceComboBoxTest {
   @Test
   fun noInitialDevice_selectsFirstDevice(): Unit = runBlockingTest {
 
-    val deviceComboBox = deviceComboBox(deviceTracker = deviceTracker, selectionEvents = selectionEvents)
+    val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
     val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
 
     deviceTracker.use {
@@ -92,7 +91,7 @@ class DeviceComboBoxTest {
 
   @Test
   fun withInitialDevice_selectsInitialDevice(): Unit = runBlockingTest {
-    val deviceComboBox = deviceComboBox(initialDevice = device2, deviceTracker = deviceTracker, selectionEvents = selectionEvents)
+    val deviceComboBox = deviceComboBox(initialDevice = device2, selectionEvents = selectionEvents)
 
     val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
 
@@ -113,7 +112,7 @@ class DeviceComboBoxTest {
 
   @Test
   fun selectedDeviceStateChanges_selectsDevice(): Unit = runBlockingTest {
-    val deviceComboBox = deviceComboBox(deviceTracker = deviceTracker, selectionEvents = selectionEvents)
+    val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
     val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
 
     deviceTracker.use {
@@ -135,7 +134,7 @@ class DeviceComboBoxTest {
 
   @Test
   fun unselectedDeviceStateChanges_doesNotSelect(): Unit = runBlockingTest {
-    val deviceComboBox = deviceComboBox(deviceTracker = deviceTracker, selectionEvents = selectionEvents)
+    val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
     val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
 
     deviceTracker.use {
@@ -156,7 +155,7 @@ class DeviceComboBoxTest {
 
   @Test
   fun userSelection_sendsToFlow(): Unit = runBlockingTest {
-    val deviceComboBox = deviceComboBox(deviceTracker = deviceTracker, selectionEvents = selectionEvents)
+    val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
     val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
 
     deviceTracker.use {
@@ -171,34 +170,8 @@ class DeviceComboBoxTest {
   }
 
   @Test
-  fun trackingReset(): Unit = runBlockingTest {
-    val deviceComboBox = deviceComboBox(deviceTracker = deviceTracker, selectionEvents = selectionEvents)
-    val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
-
-    deviceTracker.use {
-      it.sendEvents(
-        Added(device1.online()),
-        TrackingReset(Exception()),
-        Added(device1.online()),
-        Added(device2.online()),
-      )
-    }
-
-    assertThat(selectionEvents).containsExactly(
-      device1.online(),
-      device1.offline(),
-      device1.online(),
-    )
-    assertThat(selectedDevices.await()).isEqualTo(selectionEvents)
-    assertThat(deviceComboBox.getItems()).containsExactly(
-      device1.online(),
-      device2.online()
-    )
-  }
-
-  @Test
   fun renderer_physicalDevice_offline() {
-    val deviceComboBox = deviceComboBox(deviceTracker = deviceTracker)
+    val deviceComboBox = deviceComboBox()
 
     assertThat(deviceComboBox.getRenderedText(device1.offline()))
       .isEqualTo("Google Pixel 2 Android 11, API 30 [OFFLINE]")
@@ -206,7 +179,7 @@ class DeviceComboBoxTest {
 
   @Test
   fun renderer_physicalDevice_online() {
-    val deviceComboBox = deviceComboBox(deviceTracker = deviceTracker)
+    val deviceComboBox = deviceComboBox()
 
     assertThat(deviceComboBox.getRenderedText(device1.online()))
       .isEqualTo("Google Pixel 2 (device1) Android 11, API 30")
@@ -214,7 +187,7 @@ class DeviceComboBoxTest {
 
   @Test
   fun renderer_emulator_offline() {
-    val deviceComboBox = deviceComboBox(deviceTracker = deviceTracker)
+    val deviceComboBox = deviceComboBox()
 
     assertThat(deviceComboBox.getRenderedText(emulator.offline()))
       .isEqualTo("AVD Android 11, API 30 [OFFLINE]")
@@ -222,7 +195,7 @@ class DeviceComboBoxTest {
 
   @Test
   fun renderer_emulator_online() {
-    val deviceComboBox = deviceComboBox(deviceTracker = deviceTracker)
+    val deviceComboBox = deviceComboBox()
 
     assertThat(deviceComboBox.getRenderedText(emulator.online()))
       .isEqualTo("AVD (emulator-5555) Android 11, API 30")
@@ -231,10 +204,9 @@ class DeviceComboBoxTest {
   private fun deviceComboBox(
     disposable: Disposable = disposableRule.disposable,
     initialDevice: Device? = null,
-    deviceTracker: IDeviceComboBoxDeviceTracker = FakeDeviceComboBoxDeviceTracker(),
     selectionEvents: MutableList<Any?> = mutableListOf(),
-  ): DeviceComboBox =
-    DeviceComboBox(disposable, initialDevice, deviceTracker, TestCoroutineScope()).also {
+  ): DeviceComboBox {
+    return DeviceComboBox(projectRule.project, disposable, initialDevice, TestCoroutineScope()).also {
       // Replace the model with a spy that records all the calls to setSelectedItem()
       it.model = spy(it.model)
       whenever(it.model.setSelectedItem(any())).thenAnswer { invocation ->
@@ -242,20 +214,6 @@ class DeviceComboBoxTest {
         selectionEvents.add(invocation.arguments[0])
       }
     }
-}
-
-private class FakeDeviceComboBoxDeviceTracker : IDeviceComboBoxDeviceTracker, Closeable {
-
-  private var eventChannel = Channel<DeviceEvent>(UNLIMITED)
-
-  suspend fun sendEvents(vararg events: DeviceEvent) {
-    events.forEach { eventChannel.send(it) }
-  }
-
-  override suspend fun trackDevices(retryOnException: Boolean): Flow<DeviceEvent> = eventChannel.consumeAsFlow()
-
-  override fun close() {
-    eventChannel.close()
   }
 }
 

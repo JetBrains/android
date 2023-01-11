@@ -17,7 +17,6 @@ package com.android.tools.idea.logcat
 
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.devices.DeviceComboBox
-import com.android.tools.idea.logcat.devices.DeviceComboBoxDeviceTracker
 import com.android.tools.idea.logcat.filters.FilterTextComponent
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
 import com.intellij.icons.AllIcons
@@ -49,13 +48,8 @@ internal class LogcatHeaderPanel(
   filter: String,
   initialDevice: Device?,
 ) : JPanel() {
-  private val deviceComboBox = DeviceComboBox(
-    logcatPresenter,
-    initialDevice,
-    DeviceComboBoxDeviceTracker(project, initialDevice))
-
+  private val deviceComboBox = DeviceComboBox(project, logcatPresenter, initialDevice)
   private val filterComponent: FilterTextComponent = FilterTextComponent.createComponent(project, logcatPresenter, filterParser, filter)
-
   private val helpIcon: JLabel = JLabel(AllIcons.General.ContextHelp)
 
   init {

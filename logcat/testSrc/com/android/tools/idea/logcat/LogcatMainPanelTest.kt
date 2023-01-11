@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.adblib.AdbSession
-import com.android.adblib.DeviceState
 import com.android.adblib.testing.FakeAdbSession
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
@@ -38,6 +36,9 @@ import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.actions.PopupActionGroupAction
+import com.android.tools.idea.logcat.devices.Device
+import com.android.tools.idea.logcat.devices.DeviceComboBoxDeviceTrackerFactory
+import com.android.tools.idea.logcat.devices.FakeDeviceComboBoxDeviceTracker
 import com.android.tools.idea.logcat.filters.AndroidLogcatFilterHistory
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
@@ -60,9 +61,6 @@ import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.TagFormat
 import com.android.tools.idea.logcat.service.LogcatService
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
-import com.android.tools.idea.logcat.testing.TestDevice
-import com.android.tools.idea.logcat.testing.setDevices
-import com.android.tools.idea.logcat.testing.setupCommandsForDevice
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.LOGGER
 import com.android.tools.idea.logcat.util.isCaretAtBottom
@@ -98,7 +96,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
@@ -138,14 +135,15 @@ class LogcatMainPanelTest {
 
   private val androidLogcatFormattingOptions = AndroidLogcatFormattingOptions()
   private val fakeLogcatService = FakeLogcatService()
-  private val fakeAdbSession = FakeAdbSession()
+  private val deviceTracker = FakeDeviceComboBoxDeviceTracker()
 
   @get:Rule
   val rule = RuleChain(
     projectRule,
     ApplicationServiceRule(AndroidLogcatFormattingOptions::class.java, androidLogcatFormattingOptions),
-    ProjectServiceRule(projectRule, AdbLibService::class.java, TestAdbLibService(fakeAdbSession)),
+    ProjectServiceRule(projectRule, AdbLibService::class.java, TestAdbLibService(FakeAdbSession())),
     ProjectServiceRule(projectRule, LogcatService::class.java, fakeLogcatService),
+    ProjectServiceRule(projectRule, DeviceComboBoxDeviceTrackerFactory::class.java, DeviceComboBoxDeviceTrackerFactory { deviceTracker }),
     EdtRule(),
     androidExecutorsRule,
     popupRule,
@@ -158,6 +156,8 @@ class LogcatMainPanelTest {
   private val mockFoldingDetector = mock<FoldingDetector>()
   private val project get() = projectRule.project
   private val disposable get() = disposableRule.disposable
+  private val device1 = Device.createPhysical("device1", true, "11", 30, "Google", "Pixel")
+  private val device2 = Device.createPhysical("device2", true, "11", 30, "Google", "Pixel")
 
   @RunsInEdt
   @Test
@@ -381,17 +381,15 @@ class LogcatMainPanelTest {
 
   @Test
   fun clearMessageView_bySubscriptionToClearLogcatListener() {
-    val testDevice = TestDevice("device1", DeviceState.ONLINE, "11", 30, "Google", "Pixel", "")
-    fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice)
-    fakeAdbSession.hostServices.setDevices(testDevice)
+    deviceTracker.addDevices(device1)
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(adbSession = fakeAdbSession).also {
+      logcatMainPanel().also {
         waitForCondition { it.getConnectedDevice() != null }
         it.editor.document.setText("not-empty")
       }
     }
 
-    project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat("device1")
+    project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device1.serialNumber)
 
     ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, TIMEOUT_SEC, SECONDS)
     runInEdtAndWait { }
@@ -400,20 +398,16 @@ class LogcatMainPanelTest {
 
   @Test
   fun clearMessageView_bySubscriptionToClearLogcatListener_otherDevice() {
-    val testDevice1 = TestDevice("device1", DeviceState.ONLINE, "11", 30, "Google", "Pixel", "")
-    val testDevice2 = TestDevice("device2", DeviceState.ONLINE, "11", 30, "Google", "Pixel", "")
-    fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice1)
-    fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice2)
-    fakeAdbSession.hostServices.setDevices(testDevice1, testDevice2)
+    deviceTracker.addDevices(device1, device2)
 
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(adbSession = fakeAdbSession).also {
+      logcatMainPanel().also {
         waitForCondition { it.getConnectedDevice() != null }
         it.editor.document.setText("not-empty")
       }
     }
 
-    project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat("device2")
+    project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device2.serialNumber)
 
     ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, TIMEOUT_SEC, SECONDS)
     runInEdtAndWait { }
@@ -612,11 +606,9 @@ class LogcatMainPanelTest {
   @Test
   fun connectDevice_readLogcat() = runBlocking {
     val message1 = LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1")
-    val testDevice = TestDevice("device1", DeviceState.ONLINE, "11", 30, "Google", "Pixel", "")
-    fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice)
-    fakeAdbSession.hostServices.setDevices(testDevice)
+    deviceTracker.addDevices(device1)
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(adbSession = fakeAdbSession).also {
+      logcatMainPanel().also {
         waitForCondition { it.getConnectedDevice() != null }
       }
     }
@@ -630,11 +622,9 @@ class LogcatMainPanelTest {
 
   @Test
   fun pauseLogcat_jobCanceled() = runBlocking {
-    val testDevice = TestDevice("device1", DeviceState.ONLINE, "11", 30, "Google", "Pixel", "")
-    fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice)
-    fakeAdbSession.hostServices.setDevices(testDevice)
+    deviceTracker.addDevices(device1)
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(adbSession = fakeAdbSession).also {
+      logcatMainPanel().also {
         waitForCondition { it.getConnectedDevice() != null && it.logcatServiceJob != null }
       }
     }
@@ -651,11 +641,9 @@ class LogcatMainPanelTest {
   @Test
   fun resumeLogcat_jobResumed() = runBlocking {
     val message1 = LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1")
-    val testDevice = TestDevice("device1", DeviceState.ONLINE, "11", 30, "Google", "Pixel", "")
-    fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice)
-    fakeAdbSession.hostServices.setDevices(testDevice)
+    deviceTracker.addDevices(device1)
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(adbSession = fakeAdbSession).also {
+      logcatMainPanel().also {
         waitForCondition { it.getConnectedDevice() != null }
       }
     }
@@ -1123,12 +1111,10 @@ class LogcatMainPanelTest {
 
   @Test
   fun projectAppMonitorInstalled() {
-    val testDevice = TestDevice("device1", DeviceState.ONLINE, "11", 30, "Google", "Pixel", "")
-    fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice)
-    fakeAdbSession.hostServices.setDevices(testDevice)
+    deviceTracker.addDevices(device1)
     val fakePackageNamesProvider = FakeProjectApplicationIdsProvider(project, "myapp")
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(adbSession = fakeAdbSession, projectApplicationIdsProvider = fakePackageNamesProvider).also {
+      logcatMainPanel(projectApplicationIdsProvider = fakePackageNamesProvider).also {
         waitForCondition { it.getConnectedDevice() != null }
       }
     }
@@ -1138,7 +1124,7 @@ class LogcatMainPanelTest {
 
     whenever(clientData.packageName).thenReturn("myapp")
     whenever(client.clientData).thenReturn(clientData)
-    whenever(iDevice.serialNumber).thenReturn("device1")
+    whenever(iDevice.serialNumber).thenReturn(device1.serialNumber)
     whenever(iDevice.clients).thenReturn(arrayOf(client))
     AndroidDebugBridge.deviceChanged(iDevice, CHANGE_CLIENT_LIST)
 
@@ -1215,11 +1201,9 @@ class LogcatMainPanelTest {
     hyperlinkDetector: HyperlinkDetector? = null,
     foldingDetector: FoldingDetector? = null,
     projectApplicationIdsProvider: ProjectApplicationIdsProvider = FakeProjectApplicationIdsProvider(project),
-    adbSession: AdbSession = FakeAdbSession(),
     zoneId: ZoneId = ZoneId.of("Asia/Yerevan"),
   ): LogcatMainPanel {
     project.replaceService(ProjectApplicationIdsProvider::class.java, projectApplicationIdsProvider, disposableRule.disposable)
-    project.registerOrReplaceServiceInstance(AdbLibService::class.java, TestAdbLibService(adbSession), disposable)
     return LogcatMainPanel(
       project,
       splitterPopupActionGroup,
