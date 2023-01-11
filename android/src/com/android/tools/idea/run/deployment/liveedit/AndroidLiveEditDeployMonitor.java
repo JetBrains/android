@@ -342,7 +342,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     long start = System.nanoTime();
     long compileFinish, pushFinish;
 
-    ArrayList<LiveEditCompilerOutput> compiled = new ArrayList<>();
+    Optional<LiveEditCompilerOutput> compiled;
 
     try {
       PrebuildChecks(project, changes);
@@ -350,9 +350,11 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
         change ->
           new LiveEditCompilerInput(change.getFile(), change.getOrigin(), change.getParentGroup()))
         .collect(Collectors.toList());
-      if (!compiler.compile(inputs, compiled, !LiveEditService.isLeTriggerManual())) {
+      compiled = compiler.compile(inputs, !LiveEditService.isLeTriggerManual());
+      if (compiled.isEmpty()) {
         return false;
       }
+
       // Remove files successfully compiled from the error set.
       for (EditEvent change : changes) {
         filesWithCompilationErrors.remove(change.getFile().getName());
@@ -368,16 +370,15 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
       return true;
     }
 
-    // Ignore FunctionType.NONE, since those are changes to non-function elements. Counting any change to a non-function as a non-compose
-    // change might make the data useless, as a lot of "noisy" class-level/file-level PSI events are generated along with function edits.
-    event.setHasNonCompose(compiled.stream().anyMatch(c -> !c.getHasGroupId()));
+    final LiveEditCompilerOutput finalCompiled = compiled.get();
+    event.setHasNonCompose(finalCompiled.getResetState());
 
     compileFinish = System.nanoTime();
     event.setCompileDurationMs(TimeUnit.NANOSECONDS.toMillis(compileFinish - start));
     LOGGER.info("LiveEdit compile completed in %dms", event.getCompileDurationMs());
 
     Optional<LiveUpdateDeployer.UpdateLiveEditError> error = deviceIterator()
-      .map(device -> pushUpdatesToDevice(applicationId, device, compiled))
+      .map(device -> pushUpdatesToDevice(applicationId, device, finalCompiled).errors)
       .flatMap(List::stream)
       .findFirst();
 
@@ -491,39 +492,36 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     return  new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
   }
 
-  private List<LiveUpdateDeployer.UpdateLiveEditError> pushUpdatesToDevice(
-      String applicationId, IDevice device, List<LiveEditCompilerOutput> updates) {
+  private LiveUpdateDeployer.UpdateLiveEditResult pushUpdatesToDevice(
+      String applicationId, IDevice device, LiveEditCompilerOutput update) {
     LiveUpdateDeployer deployer = new LiveUpdateDeployer(LOGGER);
     Installer installer = newInstaller(device);
     AdbClient adb = new AdbClient(device, LOGGER);
 
-    // TODO: Batch multiple updates in one LiveEdit operation; listening to all PSI events means multiple class events can be
-    //  generated from a single keystroke, leading to multiple LEs and multiple recomposes.
-    List<LiveUpdateDeployer.UpdateLiveEditError> results = new ArrayList<>();
-    for (LiveEditCompilerOutput update : updates) {
-      boolean useDebugMode = LiveEditAdvancedConfiguration.getInstance().getUseDebugMode();
-      boolean usePartialRecompose = LiveEditAdvancedConfiguration.getInstance().getUsePartialRecompose() && update.getHasGroupId();
+    boolean useDebugMode = LiveEditAdvancedConfiguration.getInstance().getUseDebugMode();
+    boolean usePartialRecompose = LiveEditAdvancedConfiguration.getInstance().getUsePartialRecompose() && !update.getResetState();
 
-      LiveUpdateDeployer.UpdateLiveEditsParam param =
-        new LiveUpdateDeployer.UpdateLiveEditsParam(
-          update.getClassName(),
-          usePartialRecompose,
-          List.of(update.getGroupId()),
-          update.getClassData(),
-          update.getSupportClasses(), useDebugMode);
+    LiveUpdateDeployer.UpdateLiveEditsParam param =
+      new LiveUpdateDeployer.UpdateLiveEditsParam(
+        update.getClasses(),
+        update.getSupportClasses(),
+        update.getGroupIds(),
+        usePartialRecompose,
+        useDebugMode);
 
-
-      if (useDebugMode) {
-        writeDebugToTmp(update.getClassName().replaceAll("/", ".") + ".class", update.getClassData());
-        for (String supportClassName : update.getSupportClasses().keySet()) {
-          byte[] bytecode = update.getSupportClasses().get(supportClassName);
-          writeDebugToTmp(supportClassName.replaceAll("/", ".") + ".class", bytecode);
-        }
+    if (useDebugMode) {
+      for (String className : update.getSupportClasses().keySet()) {
+        byte[] bytecode = update.getSupportClasses().get(className);
+        writeDebugToTmp(className.replaceAll("/", ".") + ".class", bytecode);
       }
 
-      LiveUpdateDeployer.UpdateLiveEditResult result = deployer.updateLiveEdit(installer, adb, applicationId, param);
-      results.addAll(result.errors);
+      for (String supportClassName : update.getSupportClasses().keySet()) {
+        byte[] bytecode = update.getSupportClasses().get(supportClassName);
+        writeDebugToTmp(supportClassName.replaceAll("/", ".") + ".class", bytecode);
+      }
     }
+
+    LiveUpdateDeployer.UpdateLiveEditResult result = deployer.updateLiveEdit(installer, adb, applicationId, param);
 
     if (filesWithCompilationErrors.isEmpty()) {
       updateEditStatus(device, LiveEditStatus.UpToDate.INSTANCE);
@@ -534,15 +532,15 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     }
     scheduleErrorPolling(deployer, installer, adb, applicationId);
 
-    if (!results.isEmpty()) {
-      LiveUpdateDeployer.UpdateLiveEditError firstProblem = results.get(0);
+    if (!result.errors.isEmpty()) {
+      LiveUpdateDeployer.UpdateLiveEditError firstProblem = result.errors.get(0);
       if (firstProblem.getType() == Deploy.UnsupportedChange.Type.UNSUPPORTED_COMPOSE_VERSION) {
         updateEditStatus(device, LiveEditStatus.createComposeVersionError(firstProblem.getMessage()));
       } else {
         updateEditStatus(device, LiveEditStatus.createErrorStatus(firstProblem.getMessage()));
       }
     }
-    return results;
+    return result;
   }
 
   private static void writeDebugToTmp(String name, byte[] data) {

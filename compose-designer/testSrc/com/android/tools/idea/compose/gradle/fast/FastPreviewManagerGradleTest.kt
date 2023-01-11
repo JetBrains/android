@@ -292,7 +292,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
       startCountDownLatch.await()
       while (compile) {
         LiveEditCompiler(projectRule.project)
-          .compile(listOf(LiveEditCompilerInput(psiMainFile, function)), output)
+          .compile(listOf(LiveEditCompilerInput(psiMainFile, function)))
         deviceCompilations.incrementAndGet()
       }
     }

@@ -19,8 +19,4 @@ import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFunction
 
-enum class LiveEditFunctionType {
-  NONE, KOTLIN, COMPOSABLE
-}
-
 data class LiveEditCompilerInput(val file: PsiFile, var element: KtElement, var parentGroups: List<KtFunction>? = null)

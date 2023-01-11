@@ -47,6 +47,7 @@ import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
+import java.util.Optional
 
 class LiveEditCompiler(val project: Project) {
 
@@ -62,8 +63,8 @@ class LiveEditCompiler(val project: Project) {
    * LiveEditException detailing the failure.
    */
   @Trace
-  fun compile(inputs: List<LiveEditCompilerInput>, outputs: MutableList<LiveEditCompilerOutput>, giveWritePriority : Boolean = true) : Boolean {
-    outputs.clear()
+  fun compile(inputs: List<LiveEditCompilerInput>, giveWritePriority : Boolean = true) : Optional<LiveEditCompilerOutput> {
+    var output = LiveEditCompilerOutput.Builder()
 
     // Bundle changes per-file to prevent wasted recompilation of the same file. The most common
     // scenario is multiple pending changes in the same file, so this is somewhat important.
@@ -78,10 +79,9 @@ class LiveEditCompiler(val project: Project) {
     // which prevents the UI from freezing during compilation if the user continues typing.
     val progressManager = ProgressManager.getInstance()
 
-
     val compileCmd = {
       for ((file, input) in changedFiles.asMap()) {
-        outputs.addAll(compileKtFile(file, input))
+        compileKtFile(file, input, output)
       }
     }
 
@@ -92,19 +92,22 @@ class LiveEditCompiler(val project: Project) {
     //
     // In automatic mode, we want to be interrupted on each keystroke so we only run when the user is done typing.
     // A keystroke writes the PSI trees so running with runInReadActionWithWriteActionPriority yield exactly the interrupt policy we need.
+
+    var success = true
     if (giveWritePriority) {
-      return progressManager.runInReadActionWithWriteActionPriority(compileCmd, progressManager.progressIndicator)
+      success = progressManager.runInReadActionWithWriteActionPriority(compileCmd, progressManager.progressIndicator)
     } else {
       ApplicationManager.getApplication().runReadAction(compileCmd)
-      return true
     }
+
+    return if (success) Optional.of(output.build()) else Optional.empty()
   }
 
-  private fun compileKtFile(file: KtFile, inputs: Collection<LiveEditCompilerInput>) : List<LiveEditCompilerOutput> {
+  private fun compileKtFile(file: KtFile, inputs: Collection<LiveEditCompilerInput>, output: LiveEditCompilerOutput.Builder) {
     val tracker = PerformanceTracker()
     var inputFiles = listOf(file)
 
-    return runWithCompileLock {
+    runWithCompileLock {
       ReadActionPrebuildChecks(file)
 
       // This is a three-step process:
@@ -170,74 +173,70 @@ class LiveEditCompiler(val project: Project) {
       // 3) From the information we gather at the PSI changes and the output classes of Step 2, we
       //    decide which classes we want to send to the device along with what extra meta-information the
       //    agent need.
-      return@runWithCompileLock inputs.map { getGeneratedCode(it, generationState!!)}
+      return@runWithCompileLock getGeneratedCode(inputs, generationState!!, output)
     }
   }
 
   /**
    * Pick out what classes we need from the generated list of .class files.
    */
-  private fun getGeneratedCode(input: LiveEditCompilerInput, generationState: GenerationState): LiveEditCompilerOutput {
+  private fun getGeneratedCode(inputs: Collection<LiveEditCompilerInput>, generationState: GenerationState,
+                               output: LiveEditCompilerOutput.Builder) {
     val compilerOutput = generationState.factory.asList()
     val bindingContext = generationState.bindingContext
 
     if (compilerOutput.isEmpty()) {
-      throw internalError("No compiler output.", input.file)
+      throw internalError("No compiler output.")
     }
 
-    if (input.element.containingFile == null) {
+    for (input in inputs) {
       // The function we are looking at no longer belongs to file. This is mostly an IDE refactor. Make it a recoverable error
       // to see if the next step of the refactor can fix it. This should be solve nicely with a ClassDiffer.
-      throw compilationError("Invalid AST. Function no longer belong to any files.")
-    }
+      input.element.containingFile?: throw compilationError("Invalid AST. Function no longer belong to any files.")
 
-    when(input.element) {
-      // When the edit event was contained in a function
-      is KtNamedFunction -> {
-        val targetFunction = input.element as KtNamedFunction
-        val group = if (LiveEditAdvancedConfiguration.getInstance().usePartialRecompose)
-          getGroupKey(compilerOutput, targetFunction) else null
-        return getGeneratedMethodCode(compilerOutput, targetFunction, group, generationState)
-      }
+      when(input.element) {
+        // When the edit event was contained in a function
+        is KtNamedFunction -> {
+          val targetFunction = input.element as KtNamedFunction
+          val group = if (LiveEditAdvancedConfiguration.getInstance().usePartialRecompose)
+            getGroupKey(compilerOutput, targetFunction) else null
+          group?.let { output.addGroupId(group) }
+          getGeneratedMethodCode(compilerOutput, targetFunction, generationState, output)
+        }
 
-      is KtFunction -> {
-        val targetFunction = input.element as KtFunction
-        val group = if (LiveEditAdvancedConfiguration.getInstance().usePartialRecompose)
+        is KtFunction -> {
+          val targetFunction = input.element as KtFunction
+          val group = if (LiveEditAdvancedConfiguration.getInstance().usePartialRecompose)
             getGroupKey(compilerOutput, targetFunction, input.parentGroups) else null
-        return getGeneratedMethodCode(compilerOutput, targetFunction, group, generationState)
-      }
+          group?.let { output.addGroupId(group) }
+          getGeneratedMethodCode(compilerOutput, targetFunction, generationState, output)
+        }
 
-      // When the edit event was at class level
-      is KtClass -> {
-        val targetClass = input.element as KtClass
-        val desc = bindingContext[BindingContext.CLASS, targetClass]!!
-        val internalClassName = getInternalClassName(desc.containingPackage(), targetClass.fqName.toString(), input.file)
-        val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, input.file as KtFile, compilerOutput)
-        return LiveEditCompilerOutput.Builder()
-          .className(internalClassName)
-          .classData(primaryClass)
-          .supportClasses(supportClasses)
-          .build()
-      }
+        // When the edit event was at class level
+        is KtClass -> {
+          val targetClass = input.element as KtClass
+          val desc = bindingContext[BindingContext.CLASS, targetClass]!!
+          val internalClassName = getInternalClassName(desc.containingPackage(), targetClass.fqName.toString(), input.file)
+          val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, input.file as KtFile, compilerOutput)
+          output.addClass(internalClassName, primaryClass).addSupportClasses(supportClasses)
+        }
 
-      // When the edit was at top level
-      is KtFile -> {
-        val targetFile = input.element as KtFile
-        val internalClassName = getInternalClassName(targetFile.packageFqName, targetFile.javaFileFacadeFqName.toString(), input.file)
-        val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, input.file as KtFile, compilerOutput)
-        return LiveEditCompilerOutput.Builder()
-          .className(internalClassName)
-          .classData(primaryClass)
-          .supportClasses(supportClasses)
-          .build()
+        // When the edit was at top level
+        is KtFile -> {
+          val targetFile = input.element as KtFile
+          val internalClassName = getInternalClassName(targetFile.packageFqName, targetFile.javaFileFacadeFqName.toString(), input.file)
+          val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, input.file as KtFile, compilerOutput)
+          output.addClass(internalClassName,primaryClass).addSupportClasses(supportClasses)
+        }
+
+        else -> throw compilationError("Event was generated for unsupported kotlin element")
       }
     }
-
-    throw compilationError("Event was generated for unsupported kotlin element")
   }
 
-  private fun getGeneratedMethodCode(compilerOutput: List<OutputFile>, targetFunction: KtFunction, groupId: Int?, generationState: GenerationState) : LiveEditCompilerOutput {
+  private fun getGeneratedMethodCode(compilerOutput: List<OutputFile>, targetFunction: KtFunction, generationState: GenerationState, builder : LiveEditCompilerOutput.Builder) {
     val desc = generationState.bindingContext[BindingContext.FUNCTION, targetFunction]!!
+    val isCompose = desc.hasComposableAnnotation()
 
     var elem: PsiElement = targetFunction
     while (elem.getKotlinFqName() == null || elem !is KtNamedFunction) {
@@ -264,14 +263,11 @@ class LiveEditCompiler(val project: Project) {
     val internalClassName = getInternalClassName(desc.containingPackage(), className, function.containingFile)
     val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, elem.containingFile as KtFile, compilerOutput)
 
-    val result = LiveEditCompilerOutput.Builder()
-      .className(internalClassName)
-      .classData(primaryClass)
-      .supportClasses(supportClasses)
-    groupId?.let {result.groupId(groupId)}
-
+    builder.addClass(internalClassName, primaryClass).addSupportClasses(supportClasses)
+    if (!isCompose) {
+      builder.resetState = true
+    }
     checkNonPrivateInline(desc, function.containingFile)
-    return result.build();
   }
 
   private inline fun checkNonPrivateInline(desc: SimpleFunctionDescriptor, file: PsiFile) {

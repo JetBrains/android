@@ -78,12 +78,12 @@ class BasicCompileTest {
   @Test
   fun simpleChange() {
     // Compile A.kt targetting foo()
-    var output = compile(files["A.kt"], "foo").singleOutput()
+    var output = compile(files["A.kt"], "foo")
     var returnedValue = invokeStatic("foo", loadClass(output))
     Assert.assertEquals("I am foo", returnedValue)
 
     // Compile A.kt again targeting bar()
-    output = compile(files["A.kt"], "bar").singleOutput()
+    output = compile(files["A.kt"], "bar")
 
     // Replace the return value of foo.
     var foo = findFunction(files["A.kt"], "foo")
@@ -95,12 +95,12 @@ class BasicCompileTest {
     }
 
     // Re-compile A.kt like how live edit work.
-    var leOutput = compile(files["A.kt"], "foo").singleOutput()
+    var leOutput = compile(files["A.kt"], "foo")
     var leReturnedValue = invokeStatic("foo", loadClass(leOutput))
     Assert.assertEquals("I am not foo", leReturnedValue)
 
     // Re-compiling A.kt targetting bar(). Note that the offsets of bar() does not change despite foo() is now longer.
-    output = compile(files["A.kt"], "bar").singleOutput()
+    output = compile(files["A.kt"], "bar")
   }
 
   @Test
@@ -116,19 +116,19 @@ class BasicCompileTest {
   @Test
   fun inlineTarget() {
     try {
-      compile(files["CallInlineTarget.kt"], "callInlineTarget", useInliner = false).singleOutput()
+      compile(files["CallInlineTarget.kt"], "callInlineTarget", useInliner = false)
       Assert.fail("Expecting LiveEditUpdateException")
     } catch (e: LiveEditUpdateException) {
       Assert.assertEquals(LiveEditUpdateException.Error.UNABLE_TO_INLINE, e.error)
     }
-    var output = compile(files["CallInlineTarget.kt"], "callInlineTarget", useInliner = true).singleOutput()
+    var output = compile(files["CallInlineTarget.kt"], "callInlineTarget", useInliner = true)
     var returnedValue = invokeStatic("callInlineTarget", loadClass(output))
     Assert.assertEquals("I am foo", returnedValue)
   }
 
   @Test
   fun lambdaChange() {
-    var output = compile(files["HasLambda.kt"], "hasLambda").singleOutput()
+    var output = compile(files["HasLambda.kt"], "hasLambda")
     Assert.assertEquals(1, output.supportClasses.size)
     var returnedValue = invokeStatic("hasLambda", loadClass(output))
     Assert.assertEquals("y", returnedValue)
@@ -136,7 +136,7 @@ class BasicCompileTest {
 
   @Test
   fun samChange() {
-    val output = compile(files["HasSAM.kt"], "hasSAM").singleOutput()
+    val output = compile(files["HasSAM.kt"], "hasSAM")
     Assert.assertEquals(1, output.supportClasses.size)
     // Can't test invocation of the method since the functional interface "A" is not loaded.
   }
@@ -148,8 +148,8 @@ class BasicCompileTest {
 
   @Test
   fun internalVar() {
-    var output = compile(files["HasInternalVar.kt"], "getNum").singleOutput()
-    Assert.assertTrue(output.classData.isNotEmpty())
+    var output = compile(files["HasInternalVar.kt"], "getNum")
+    Assert.assertTrue(output.classes["HasInternalVarKt"]!!.isNotEmpty())
     var returnedValue = invokeStatic("getNum", loadClass(output))
     Assert.assertEquals(1, returnedValue)
   }

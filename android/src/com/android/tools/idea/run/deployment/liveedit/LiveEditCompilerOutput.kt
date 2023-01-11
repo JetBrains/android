@@ -15,29 +15,38 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-data class LiveEditCompilerOutput private constructor (val className: String,
-                                                  val classData: ByteArray,
-                                                  val hasGroupId : Boolean,
-                                                  val groupId: Int ,
-                                                  val supportClasses: Map<String, ByteArray>) {
+data class LiveEditCompilerOutput private constructor (val classes: Map<String, ByteArray>,
+                                                       val supportClasses: Map<String, ByteArray>,
+                                                       val groupIds: List<Int>,
+                                                       val resetState: Boolean) {
+  fun hasGroupIds() = groupIds.isNotEmpty()
+
   class Builder(
-    var className: String = "",
-    var classData: ByteArray = ByteArray(0),
-    var hasGroupId : Boolean = false,
-    var groupId: Int = 0,
-    var supportClasses: Map<String, ByteArray> = emptyMap()) {
+    var classes: HashMap<String, ByteArray> = HashMap(),
+    var supportClasses: HashMap<String, ByteArray> = HashMap(),
+    var groupIds: ArrayList<Int> = ArrayList(),
+    var resetState: Boolean = false) {
 
-    fun className(className: String) = apply { this.className = className }
-
-    fun classData(classData: ByteArray) = apply { this.classData = classData }
-
-    fun groupId(groupId: Int) = apply {
-      this.groupId = groupId
-      this.hasGroupId = true
+    fun addClass(name: String, code: ByteArray) : Builder {
+      classes[name] = code
+      return this
     }
 
-    fun supportClasses(supportClasses: Map<String, ByteArray>) = apply { this.supportClasses = supportClasses }
+    fun addSupportClass(name: String, code: ByteArray): Builder {
+      supportClasses[name] = code
+      return this
+    }
 
-    fun build() = LiveEditCompilerOutput(className, classData, hasGroupId, groupId, supportClasses)
+    fun addSupportClasses(classes: Map<String, ByteArray>): Builder {
+      supportClasses.putAll(classes)
+      return this
+    }
+
+    fun addGroupId(id: Int) : Builder{
+      groupIds.add(id)
+      return this
+    }
+
+    fun build() = LiveEditCompilerOutput(classes, supportClasses, groupIds, resetState)
   }
 }
