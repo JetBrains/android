@@ -61,7 +61,6 @@ class OpenProjectIntegrationTest {
     restoreJdk()
   }
 
-  @org.junit.Ignore("b/264602704")
   @Test
   fun testReopenProject() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
@@ -136,7 +135,6 @@ class OpenProjectIntegrationTest {
     // TODO(b/211782178): assertThat(after).isEqualTo(before)
   }
 
-  @org.junit.Ignore("b/264602704")
   @Test
   fun testReopenCompositeBuildProject() {
     val preparedProject = projectRule.prepareTestProject(TestProject.COMPOSITE_BUILD)
@@ -148,7 +146,6 @@ class OpenProjectIntegrationTest {
     assertThat(after).isEqualTo(before)
   }
 
-  @org.junit.Ignore("b/264602704")
   @Test
   fun testReopenPsdSampleGroovy() {
     val preparedProject = projectRule.prepareTestProject(TestProject.PSD_SAMPLE_GROOVY)
@@ -209,7 +206,6 @@ class OpenProjectIntegrationTest {
     }
   }
 
-  @org.junit.Ignore("b/264602704")
   @Test
   fun testReopenAndResync() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
