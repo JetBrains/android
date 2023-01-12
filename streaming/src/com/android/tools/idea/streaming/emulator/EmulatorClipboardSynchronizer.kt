@@ -56,6 +56,10 @@ internal class EmulatorClipboardSynchronizer(val emulator: EmulatorController, p
     Disposer.register(parentDisposable, this)
   }
 
+  override fun dispose() {
+    cancelClipboardFeed()
+  }
+
   @UiThread
   fun setDeviceClipboardAndKeepHostClipboardInSync() {
     synchronized(lock) {
@@ -132,9 +136,5 @@ internal class EmulatorClipboardSynchronizer(val emulator: EmulatorController, p
         }
       }
     }
-  }
-
-  override fun dispose() {
-    cancelClipboardFeed()
   }
 }
