@@ -18,10 +18,9 @@ package com.android.tools.idea.uibuilder.surface
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.surface.layout.TestPositionableContent
 import com.android.tools.idea.uibuilder.LayoutTestCase
-import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
-import org.junit.Test
+import com.intellij.util.ui.JBInsets
 
 private class ForcedDirectoryLayoutManager(@SwingCoordinate private val horizontalPadding: Int,
                                            @SwingCoordinate private val verticalPadding: Int,
@@ -288,6 +287,29 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
       val scale = manager.getFitIntoScale(contents, 100, 1000)
       assertEquals(0.8, scale)
     }
+  }
+
+  fun testZoomToFitValueIsIndependentOfContentScale() {
+    val manager = SingleDirectionLayoutManager(0, 0, 0, 0)
+
+    val contents = List(4) {
+      TestPositionableContent(0, 0, 100, 100, 1.0) { scale ->
+        val value = (10 * scale).toInt()
+        JBInsets(value, value, value, value)
+      }
+    }
+
+    val width = 1000
+    val height = 1000
+
+    val zoomToFitScale1 = manager.getFitIntoScale(contents, width, height)
+    contents.forEach { it.scale = 0.5 }
+    val zoomToFitScale2 = manager.getFitIntoScale(contents, width, height)
+    contents.forEach { it.scale = 0.25 }
+    val zoomToFitScale3 = manager.getFitIntoScale(contents, width, height)
+
+    assertEquals(zoomToFitScale1, zoomToFitScale2)
+    assertEquals(zoomToFitScale1, zoomToFitScale3)
   }
 
   fun testVerticalLayoutHorizontalAlignments() {

@@ -49,8 +49,6 @@ interface PositionableContent {
   @get:SwingCoordinate
   val y: Int
 
-  val margin: Insets
-
   val isVisible: Boolean
 
   /**
@@ -60,7 +58,18 @@ interface PositionableContent {
   fun getContentSize(dimension: Dimension?): Dimension
 
   fun setLocation(@SwingCoordinate x: Int, @SwingCoordinate y: Int)
+
+  /**
+   * Get the margin value with the given scale.
+   */
+  fun getMargin(scale: Double): Insets
 }
+
+/**
+ * Get the margin with the current [PositionableContent.scale] value.
+ */
+val PositionableContent.margin: Insets
+  get() = getMargin(scale)
 
 val PositionableContent.scaledContentSize: Dimension
   @SwingCoordinate get() = getScaledContentSize(Dimension())

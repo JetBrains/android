@@ -53,21 +53,22 @@ open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPaddi
                                 @SwingCoordinate availableWidth: Int,
                                 @SwingCoordinate availableHeight: Int,
                                 @SwingCoordinate dimension: Dimension?) =
-    getSize(content, PositionableContent::contentSize, availableWidth, dimension)
+    getSize(content, PositionableContent::contentSize, { 1.0 }, availableWidth, dimension)
 
   override fun getRequiredSize(content: Collection<PositionableContent>,
                                @SwingCoordinate availableWidth: Int,
                                @SwingCoordinate availableHeight: Int,
                                @SwingCoordinate dimension: Dimension?) =
-    getSize(content, PositionableContent::scaledContentSize, availableWidth, dimension)
+    getSize(content, PositionableContent::scaledContentSize, { scale }, availableWidth, dimension)
 
   private fun getSize(content: Collection<PositionableContent>,
                       sizeFunc: PositionableContent.() -> Dimension,
+                      scaleFunc: PositionableContent.() -> Double,
                       availableWidth: Int,
                       dimension: Dimension?): Dimension {
     val dim = dimension ?: Dimension()
 
-    val grid = layoutGrid(content, availableWidth) { sizeFunc().width }
+    val grid = layoutGrid(content, availableWidth, scaleFunc) { sizeFunc().width }
     var requiredWidth = 0
     var requiredHeight = 0
 
@@ -76,8 +77,9 @@ open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPaddi
       val rowY = requiredHeight
       var currentHeight = 0
       for (view in row) {
-        rowX += view.sizeFunc().width + horizontalViewDelta + view.margin.horizontal
-        currentHeight = max(currentHeight, rowY + verticalViewDelta + view.sizeFunc().height + view.margin.vertical)
+        val margin = view.getMargin(view.scaleFunc())
+        rowX += view.sizeFunc().width + horizontalViewDelta + margin.horizontal
+        currentHeight = max(currentHeight, rowY + verticalViewDelta + view.sizeFunc().height + margin.vertical)
       }
       requiredWidth = max(requiredWidth, max(rowX - horizontalViewDelta, 0))
       requiredHeight = currentHeight
@@ -93,6 +95,7 @@ open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPaddi
    */
   protected open fun layoutGrid(content: Collection<PositionableContent>,
                                 @SwingCoordinate availableWidth: Int,
+                                scaleFunc: PositionableContent.() -> Double,
                                 @SwingCoordinate widthFunc: PositionableContent.() -> Int): List<List<PositionableContent>> {
     val visibleContent = content.filter { it.isVisible }
     if (visibleContent.isEmpty()) {
@@ -102,12 +105,12 @@ open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPaddi
     val gridList = mutableListOf<List<PositionableContent>>()
 
     val firstView = visibleContent.first()
-    var nextX = startX + firstView.widthFunc() + firstView.margin.horizontal + horizontalViewDelta
+    var nextX = startX + firstView.widthFunc() + firstView.getMargin(firstView.scaleFunc()).horizontal + horizontalViewDelta
 
     var columnList = mutableListOf(firstView)
     for (view in visibleContent.drop(1)) {
       // The full width is the view width + any horizontal margins
-      val totalWidth = view.widthFunc() + view.margin.horizontal
+      val totalWidth = view.widthFunc() + view.getMargin(view.scaleFunc()).horizontal
       if (nextX + totalWidth > availableWidth) {
         nextX = horizontalPadding + totalWidth + horizontalViewDelta
         gridList.add(columnList)
@@ -143,7 +146,7 @@ open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPaddi
     // Calculate the sum of the area of the original content sizes. This considers the margins of every content.
     val rawSizes = content.map {
       val contentSize = it.contentSize
-      val margin = it.margin
+      val margin = it.getMargin(1.0)
       Dimension(contentSize.width + margin.horizontal, contentSize.height + margin.vertical)
     }
 
@@ -182,11 +185,11 @@ open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPaddi
                           cache: Dimension): Double {
     if (max - min <= SCALE_UNIT) {
       // Last attempt.
-      val dim = getSize(content, { contentSize.scaleBy(max) }, width, cache)
+      val dim = getSize(content, { contentSize.scaleBy(max) }, { max }, width, cache)
       return if (dim.width <= width && dim.height <= height) max else min
     }
     val scale = (min + max) / 2
-    val dim = getSize(content, { contentSize.scaleBy(scale) }, width, cache)
+    val dim = getSize(content, { contentSize.scaleBy(scale) }, { scale }, width, cache)
     return if (dim.width <= width && dim.height <= height) {
       getMaxScale(content, scale, max, width, height, cache)
     }
@@ -223,7 +226,7 @@ open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPaddi
       previousVerticalPadding = startY
     }
 
-    val grid = layoutGrid(content, availableWidth) { scaledContentSize.width }
+    val grid = layoutGrid(content, availableWidth, { scale }) { scaledContentSize.width }
 
     var nextX = startX
     var nextY = startY

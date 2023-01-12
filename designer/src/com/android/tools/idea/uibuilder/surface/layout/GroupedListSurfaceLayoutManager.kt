@@ -55,7 +55,7 @@ class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
     }
     // We reserve the spaces for margins paddings when calculate the zoom-to-fit scale. So there is always enough spaces for them.
 
-    val margins = content.map { it.margin }
+    val margins = content.map { it.getMargin(1.0) }
     // Reserve the canvas and frame paddings, so the scaled content must be able to fit into the area.
     val reducedAvailableWidth = availableWidth - 2 * previewFramePaddingProvider(1.0) - margins.sumOf { it.horizontal }
     val reducedAvailableHeight =
@@ -93,10 +93,12 @@ class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
     var totalRequiredHeight = canvasTopPadding
 
     for (view in verticalList) {
+      val scale = view.scaleFunc()
+      val margin = view.getMargin(scale)
       val viewSize = view.sizeFunc()
-      val framePadding = previewFramePaddingProvider(scaleFunc(view))
-      val viewWidth = framePadding + viewSize.width + view.margin.horizontal + framePadding
-      val requiredHeight = framePadding + viewSize.height + view.margin.vertical + framePadding
+      val framePadding = previewFramePaddingProvider(scale)
+      val viewWidth = framePadding + viewSize.width + margin.horizontal + framePadding
+      val requiredHeight = framePadding + viewSize.height + margin.vertical + framePadding
 
       requiredWidth = maxOf(requiredWidth, viewWidth)
       totalRequiredHeight += requiredHeight

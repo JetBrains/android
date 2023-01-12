@@ -86,10 +86,12 @@ class GroupedGridSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
         val rowY = 0
         var currentHeight = 0
         for (view in row) {
-          val framePadding = previewFramePaddingProvider(scaleFunc(view))
-          rowX += framePadding + view.sizeFunc().width + view.margin.horizontal + framePadding
+          val scale = scaleFunc(view)
+          val margin = view.getMargin(scale)
+          val framePadding = previewFramePaddingProvider(scale)
+          rowX += framePadding + view.sizeFunc().width + margin.horizontal + framePadding
           currentHeight = max(currentHeight,
-                              rowY + framePadding + view.sizeFunc().height + view.margin.vertical + framePadding)
+                              rowY + framePadding + view.sizeFunc().height + margin.vertical + framePadding)
         }
         val lastFramePadding = row.lastOrNull()?.let { previewFramePaddingProvider(scaleFunc(it)) } ?: 0
         requiredWidth = max(requiredWidth, max(rowX - lastFramePadding, 0))
@@ -128,13 +130,13 @@ class GroupedGridSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
 
     val firstView = visibleContent.first()
     val firstPreviewFramePadding = previewFramePaddingProvider(scaleFunc(firstView))
-    var nextX = firstPreviewFramePadding + firstView.widthFunc() + firstView.margin.horizontal + firstPreviewFramePadding
+    var nextX = firstPreviewFramePadding + firstView.widthFunc() + firstView.getMargin(firstView.scaleFunc()).horizontal + firstPreviewFramePadding
 
     var columnList = mutableListOf(firstView)
     for (view in visibleContent.drop(1)) {
       val framePadding = previewFramePaddingProvider(scaleFunc(view))
       // The width without right padding is: left frame padding + view width + any horizontal margins.
-      val totalWidth = framePadding + view.widthFunc() + view.margin.horizontal
+      val totalWidth = framePadding + view.widthFunc() + view.getMargin(view.scaleFunc()).horizontal
       if (nextX + totalWidth > availableWidth) {
         nextX = totalWidth + framePadding // Append the right padding.
         gridList.add(columnList)
@@ -156,7 +158,6 @@ class GroupedGridSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
     if (content.isEmpty()) {
       return
     }
-
 
     val visibleContents = content.filter { it.isVisible }
     if (visibleContents.size == 1) {

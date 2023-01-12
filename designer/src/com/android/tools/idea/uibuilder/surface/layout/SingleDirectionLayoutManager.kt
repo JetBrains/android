@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.surface.layout
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.SurfaceScale
 import java.awt.Dimension
 import kotlin.math.max
@@ -110,7 +109,7 @@ open class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalP
 
     val vertical = isVertical(content, availableWidth, availableHeight)
     // We reserve the spaces for margins and paddings when calculate the zoom-to-fit scale. So there is always enough spaces for them.
-    val margins = content.map { it.margin }
+    val margins = content.map { it.getMargin(1.0) }
     val reducedAvailableWidth: Int
     val reducedAvailableHeight: Int
     if (vertical) {

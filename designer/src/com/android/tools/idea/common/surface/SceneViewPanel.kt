@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.getScaledContentSize
 import com.android.tools.idea.uibuilder.surface.layout.horizontal
+import com.android.tools.idea.uibuilder.surface.layout.margin
 import com.android.tools.idea.uibuilder.surface.layout.scaledContentSize
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
@@ -159,39 +160,38 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     override val y: Int get() = sceneView.y
     override val isVisible: Boolean get() = sceneView.isVisible
 
-    override val margin: Insets
-      get() {
-        val contentSize = getScaledContentSize(null)
-        val sceneViewMargin = sceneView.margin.also {
-          // Extend top to account for the top toolbar
-          it.top += sceneViewTopPanel.preferredSize.height
-          it.bottom += sceneViewBottomPanel.preferredSize.height
-          it.left += maxOf(sceneViewLeftPanel.preferredSize.width, sceneViewStatusIcon?.minimumSize?.width ?: 0)
-          it.right += sceneViewRightPanel.preferredSize.width
-        }
-        return if (contentSize.width < minimumSize.width ||
-                   contentSize.height < minimumSize.height) {
-          // If there is no content, or the content is smaller than the minimum size, pad the margins to occupy the empty space.
-          // Horizontally, we align the content to the left.
-          val hSpace = (minimumSize.width - contentSize.width).coerceAtLeast(0)
-          val vSpace = (minimumSize.height - contentSize.height).coerceAtLeast(0)
-
-          val (left, right) = when (alignmentX) {
-            LEFT_ALIGNMENT -> sceneViewMargin.left to sceneViewMargin.right + hSpace
-            RIGHT_ALIGNMENT -> sceneViewMargin.left + hSpace to sceneViewMargin.right
-            CENTER_ALIGNMENT -> sceneViewMargin.left + hSpace / 2 to sceneViewMargin.right + hSpace / 2
-            else -> throw IllegalArgumentException("$alignmentX is not supported")
-          }
-
-          Insets(sceneViewMargin.top,
-                 left,
-                 sceneViewMargin.bottom + vSpace,
-                 right)
-        }
-        else {
-          sceneViewMargin
-        }
+    override fun getMargin(scale: Double): Insets {
+      val contentSize = getContentSize(null).scaleBy(scale)
+      val sceneViewMargin = sceneView.margin.also {
+        // Extend top to account for the top toolbar
+        it.top += sceneViewTopPanel.preferredSize.height
+        it.bottom += sceneViewBottomPanel.preferredSize.height
+        it.left += maxOf(sceneViewLeftPanel.preferredSize.width, sceneViewStatusIcon?.minimumSize?.width ?: 0)
+        it.right += sceneViewRightPanel.preferredSize.width
       }
+      return if (contentSize.width < minimumSize.width ||
+                 contentSize.height < minimumSize.height) {
+        // If there is no content, or the content is smaller than the minimum size, pad the margins to occupy the empty space.
+        // Horizontally, we align the content to the left.
+        val hSpace = (minimumSize.width - contentSize.width).coerceAtLeast(0)
+        val vSpace = (minimumSize.height - contentSize.height).coerceAtLeast(0)
+
+        val (left, right) = when (alignmentX) {
+          LEFT_ALIGNMENT -> sceneViewMargin.left to sceneViewMargin.right + hSpace
+          RIGHT_ALIGNMENT -> sceneViewMargin.left + hSpace to sceneViewMargin.right
+          CENTER_ALIGNMENT -> sceneViewMargin.left + hSpace / 2 to sceneViewMargin.right + hSpace / 2
+          else -> throw IllegalArgumentException("$alignmentX is not supported")
+        }
+
+        Insets(sceneViewMargin.top,
+               left,
+               sceneViewMargin.bottom + vSpace,
+               right)
+      }
+      else {
+        sceneViewMargin
+      }
+    }
 
     override fun getContentSize(dimension: Dimension?): Dimension =
       if (sceneView.hasContentSize())
@@ -212,7 +212,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
      */
     private fun applyLayout() {
       getScaledContentSize(cachedScaledContentSize)
-      val margin = margin // To avoid recalculating the size
+      val margin = this.margin // To avoid recalculating the size
       setBounds(x - margin.left,
                 y - margin.top,
                 cachedScaledContentSize.width + margin.left + margin.right,
