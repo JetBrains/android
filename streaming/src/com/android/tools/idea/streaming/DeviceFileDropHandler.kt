@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming
 import com.android.adblib.DeviceSelector
 import com.android.adblib.RemoteFileMode
 import com.android.adblib.syncSend
+import com.android.adblib.tools.InstallException
 import com.android.adblib.tools.install
 import com.android.tools.idea.adblib.AdbLibService
 import com.intellij.ide.dnd.DnDDropHandler
@@ -90,7 +91,12 @@ private class DeviceFileDropHandler(
           notifyOfSuccess("${formatForDisplay("App consisting of ", files)} installed")
         }
         catch (e: Throwable) {
-          val message = e.message ?: "Installation failed"
+          val message = if (e is InstallException && e.isInvalidCompoundApk() && files.size > 1) {
+            "The ${files.size} files don't belong to the same app"
+          }
+          else {
+            e.message ?: "Installation failed - ${e.javaClass.simpleName}"
+          }
           notifyOfError(message)
         }
         UIUtil.invokeLaterIfNeeded {
@@ -141,6 +147,9 @@ private class DeviceFileDropHandler(
   private fun notifyOfError(message: String) {
     RUNNING_DEVICES_NOTIFICATION_GROUP.createNotification(message, NotificationType.WARNING).notify(project)
   }
+
+  private fun InstallException.isInvalidCompoundApk() =
+      errorCode == "INSTALL_FAILED_INVALID_APK" && errorMessage.endsWith(" Split null was defined multiple times")
 
   private enum class FileType { APK, OTHER }
 }
