@@ -262,7 +262,7 @@ class EmulatorToolWindowPanel(
 
   private fun getScreenRecorderParameters(): ScreenRecorderAction.Parameters? {
     return if (emulator.connectionState == ConnectionState.CONNECTED) {
-      ScreenRecorderAction.Parameters(id.serialNumber, emulator.emulatorConfig.api, emulatorId.avdId, emulator)
+      ScreenRecorderAction.Parameters(emulatorId.avdName, id.serialNumber, emulator.emulatorConfig.api, emulatorId.avdId, emulator)
     }
     else {
       null

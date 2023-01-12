@@ -55,6 +55,7 @@ private const val SAVE_PATH_KEY = "ScreenRecorder.SavePath"
 internal class ScreenRecorder(
   private val project: Project,
   private val recordingProvider: RecordingProvider,
+  private val deviceName: String,
   private val clock: Clock = Clock.systemDefaultZone(),
 ) {
   suspend fun recordScreen(timeLimitSec: Int) {
@@ -64,7 +65,7 @@ internal class ScreenRecorder(
     val start = clock.millis()
 
     val stoppingLatch = CountDownLatch(1)
-    val dialog = ScreenRecorderDialog(AndroidAdbUiBundle.message("screenrecord.action.title")) { stoppingLatch.countDown() }
+    val dialog = ScreenRecorderDialog(AndroidAdbUiBundle.message("screenrecord.dialog.title", deviceName)) { stoppingLatch.countDown() }
     val dialogWrapper: DialogWrapper
     withContext(uiThread) {
       dialogWrapper = dialog.createWrapper(project)
@@ -158,7 +159,7 @@ internal class ScreenRecorder(
       val exitCode: Int = Messages.showYesNoCancelDialog(
         project,
         message,
-        AndroidAdbUiBundle.message("screenrecord.action.title"),
+        AndroidAdbUiBundle.message("screenrecord.dialog.title", deviceName),
         AndroidAdbUiBundle.message("screenrecord.action.open"),
         no,
         cancel,
@@ -173,7 +174,7 @@ internal class ScreenRecorder(
     else if (Messages.showOkCancelDialog(
         project,
         message,
-        AndroidAdbUiBundle.message("screenrecord.action.title"),
+        AndroidAdbUiBundle.message("screenrecord.dialog.title", deviceName),
         AndroidAdbUiBundle.message("screenrecord.action.open.file"),
         cancel,
         icon) == Messages.OK) {

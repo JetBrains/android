@@ -66,7 +66,7 @@ class ScreenRecorderActionTest {
   @Before
   fun setUp() {
     userData[CommonDataKeys.PROJECT.name] = project
-    userData[SCREEN_RECORDER_PARAMETERS_KEY.name] = ScreenRecorderAction.Parameters("device", 30, null, testRootDisposable)
+    userData[SCREEN_RECORDER_PARAMETERS_KEY.name] = ScreenRecorderAction.Parameters("My device", "device", 30, null, testRootDisposable)
   }
 
   @Test
