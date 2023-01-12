@@ -191,6 +191,12 @@ iml_module(
             "test_filter": "org.jetbrains.android",
             "shard_count": 6,
         },
+        "AndroidGutterIconTest": {
+            # test requires actual image assets from icons to be rendered, if other tests run
+            # before it in the same shard, image assets wouldn't be rendered as they'd be DummyIcons
+            "test_filter": "org.jetbrains.android.AndroidGutterIconAnnotatorTest",
+            "shard_count": 1,
+        },
         "other": {
             "shard_count": 5,
         },
