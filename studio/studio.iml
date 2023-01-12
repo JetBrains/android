@@ -26,7 +26,7 @@
     <orderEntry type="module" module-name="targetsdkversion-upgrade-assistant" />
     <orderEntry type="library" name="studio-plugin-configurationScript" level="project" />
     <orderEntry type="library" name="studio-plugin-copyright" level="project" />
-    <orderEntry type="library" name="studio-plugin-coverage" level="project" />
+    <orderEntry type="library" name="studio-plugin-java-coverage" level="project" />
     <orderEntry type="library" name="studio-plugin-editorconfig" level="project" />
     <orderEntry type="library" name="studio-plugin-filePrediction" level="project" />
     <orderEntry type="library" name="studio-plugin-git4idea" level="project" />

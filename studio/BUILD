@@ -773,6 +773,7 @@ iml_module(
         "//tools/vendor/google/targetsdkversion-upgrade-assistant[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-configurationScript",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-copyright",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-coverage",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-editorconfig",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
