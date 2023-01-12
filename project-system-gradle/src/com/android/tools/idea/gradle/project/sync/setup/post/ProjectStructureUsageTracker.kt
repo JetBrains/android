@@ -26,6 +26,8 @@ import com.android.tools.idea.gradle.util.GradleVersions
 import com.android.tools.idea.model.UsedFeatureRawText
 import com.android.tools.idea.model.queryUsedFeaturesFromManifestIndex
 import com.android.tools.idea.projectsystem.getAndroidFacets
+import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.android.tools.idea.stats.withProjectId
 import com.google.common.annotations.VisibleForTesting
@@ -38,33 +40,33 @@ import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule
 import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ModuleRootManagerEx
+import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.util.Ref
 import org.jetbrains.android.dom.manifest.UsesFeature
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.SystemIndependent
-import org.jetbrains.plugins.gradle.model.ExternalProject
-import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache
-import java.util.function.Consumer
 
 /**
  * Tracks, using [UsageTracker], the structure of a project.
  */
 class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncListenerWithRoot {
   override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
-    trackProjectStructure(rootProjectPath)
+    trackProjectStructure()
   }
 
-  private fun trackProjectStructure(linkedGradleBuildPath: String) {
+  private fun trackProjectStructure() {
     if (ApplicationManager.getApplication().isUnitTestMode) {
       // Run synchronously in unit tests as it is difficult to wait for a pooled thread in unit tests.
-      doTrackProjectStructure(linkedGradleBuildPath)
+      doTrackProjectStructure()
       return
     }
     ApplicationManager.getApplication().executeOnPooledThread {
       try {
-        doTrackProjectStructure(linkedGradleBuildPath)
+        doTrackProjectStructure()
       } catch (e: Throwable) {
         // Any errors in project tracking should not be displayed to the user.
         LOG.warn("Failed to track project structure", e)
@@ -72,12 +74,35 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
     }
   }
 
-  private fun doTrackProjectStructure(linkedGradleBuildPath: String) {
-    val externalProject = ExternalProjectDataCache.getInstance(myProject).getRootExternalProject(linkedGradleBuildPath)
-    externalProject?.let { trackProjectStructure(it) }
-  }
+  private fun doTrackProjectStructure() {
+    val allModules = ModuleManager
+      .getInstance(myProject)
+      .modules
+      .filter { it.getGradleProjectPath() != null }
 
-  private fun trackProjectStructure(externalProject: ExternalProject) {
+    fun countHolderModules(): Long {
+      return allModules.asSequence().filter { it.getGradleProjectPath() is GradleHolderProjectPath }.count().toLong()
+    }
+
+    fun countExternalLibraries(): Long {
+      val allLibraries = hashSetOf<Library>()
+      allModules.asSequence()
+        .map { ModuleRootManagerEx.getInstanceEx(it) }
+        .forEach {
+          it
+            .orderEntries()
+            .withoutSdk()
+            .withoutModuleSourceEntries()
+            .withoutDepModules()
+            .librariesOnly()
+            .forEachLibrary {
+              allLibraries.add(it)
+              true // Continue processing.
+            }
+        }
+      return allLibraries.size.toLong()
+    }
+
     var appModel: GradleAndroidModel? = null
     var libModel: GradleAndroidModel? = null
     var appCount = 0
@@ -120,10 +145,12 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
       gradleVersionString = "0.0.0"
     }
 
-    val gradleModule = GradleModule.newBuilder().setTotalModuleCount(countGradleProjects(externalProject).toLong())
+    val gradleModule = GradleModule.newBuilder()
+      .setTotalModuleCount(countHolderModules())
       .setAppModuleCount(appCount.toLong())
       .setLibModuleCount(libCount.toLong())
       .build()
+
     for (facet in myProject.getAndroidFacets()) {
       val androidModel = get(facet)
       if (androidModel != null) {
@@ -161,17 +188,25 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
         gradleNativeAndroidModules.add(nativeModule.build())
       }
     }
-    val gradleBuild = GradleBuildDetails.newBuilder()
-    gradleBuild.setAppId(appId).setAndroidPluginVersion(androidProject.agpVersion)
+    val gradleBuild = GradleBuildDetails
+      .newBuilder()
+      .setAppId(appId)
+      .setAndroidPluginVersion(androidProject.agpVersion)
       .setGradleVersion(gradleVersionString)
       .addAllLibraries(gradleLibraries)
       .addModules(gradleModule)
       .addAllAndroidModules(gradleAndroidModules)
       .addAllNativeAndroidModules(gradleNativeAndroidModules)
-    val event = AndroidStudioEvent.newBuilder()
-    event.setCategory(AndroidStudioEvent.EventCategory.GRADLE)
-      .setKind(AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS)
-      .setGradleBuildDetails(gradleBuild)
+      .setModuleCount(countHolderModules())
+      .setLibCount(countExternalLibraries())
+
+    val event =
+      AndroidStudioEvent
+        .newBuilder()
+        .setCategory(AndroidStudioEvent.EventCategory.GRADLE)
+        .setKind(AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS)
+        .setGradleBuildDetails(gradleBuild)
+
     log(event.withProjectId(myProject))
   }
 
@@ -223,18 +258,6 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
       return GradleLibrary.newBuilder().setAarDependencyCount(dependencies.androidLibraries.size.toLong())
         .setJarDependencyCount(dependencies.javaLibraries.size.toLong())
         .build()
-    }
-
-    private fun countGradleProjects(externalProject: ExternalProject): Int {
-      val projects: MutableList<ExternalProject> = ArrayList()
-      projects.add(externalProject)
-      var count = 0
-      while (!projects.isEmpty()) {
-        count++
-        val project = projects.removeAt(0)
-        projects.addAll(project.childProjects.values)
-      }
-      return count
     }
   }
 }

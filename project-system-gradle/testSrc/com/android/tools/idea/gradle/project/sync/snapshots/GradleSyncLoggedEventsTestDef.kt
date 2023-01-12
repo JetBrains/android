@@ -153,6 +153,8 @@ data class GradleSyncLoggedEventsTestDef(
       ) { events ->
         assertThat(events.dumpModuleCounts()).isEqualTo(
           """
+            |Module count: 11
+            |Library count: 48
             |total_module_count: 11
             |app_module_count: 1
             |lib_module_count: 6
@@ -165,7 +167,9 @@ data class GradleSyncLoggedEventsTestDef(
       ) { events ->
         assertThat(events.dumpModuleCounts()).isEqualTo(
           """
-            |total_module_count: 12
+            |Module count: 13
+            |Library count: 37
+            |total_module_count: 13
             |app_module_count: 3
             |lib_module_count: 3
           """.trimMargin()
@@ -200,9 +204,19 @@ data class GradleSyncLoggedEventsTestDef(
     private fun List<LoggedUsage>.dumpModuleCounts(): String {
       return map { it.studioEvent }
         .filter { it.hasGradleBuildDetails() }
-        .flatMap { it.gradleBuildDetails.modulesList }
-        .joinToString("\n") { buildString { TextFormat.printer().print(it, this) } }
-        .trim()
+        .map { it.gradleBuildDetails }
+        .let {
+          buildString {
+            it
+              .forEach { gradleBuildDetails ->
+                appendLine("Module count: ${gradleBuildDetails.getModuleCount()}")
+                appendLine("Library count: ${gradleBuildDetails.libCount}")
+                gradleBuildDetails.modulesList.forEach { gradleModule ->
+                  TextFormat.printer().print(gradleModule, this)
+                }
+              }
+          }.trim()
+        }
     }
   }
 }
