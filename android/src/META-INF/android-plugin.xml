@@ -720,7 +720,6 @@
         serviceInterface="com.android.tools.idea.sdk.sources.SdkSourcePositionFinder"
         serviceImplementation="com.android.tools.idea.sdk.sources.SdkSourcePositionFinderImpl"/>
 
-    <postStartupActivity implementation="com.android.tools.idea.startup.ProjectMetricsInitializer$MyStartupActivity"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
@@ -810,8 +809,6 @@
   <applicationListeners>
     <listener class="com.android.tools.idea.editors.literals.LiveEditAnActionListener"
               topic="com.intellij.openapi.actionSystem.ex.AnActionListener"/>
-    <listener class="com.android.tools.idea.startup.ProjectMetricsInitializer"
-              topic="com.intellij.openapi.project.ProjectCloseListener"/>
     <listener class="com.android.tools.idea.stats.ManifestMergerStatsTracker"
               topic="com.android.tools.idea.model.MergedManifestSnapshotComputeListener"/>
   </applicationListeners>
