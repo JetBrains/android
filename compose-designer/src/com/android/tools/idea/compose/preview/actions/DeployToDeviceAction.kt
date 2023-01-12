@@ -46,7 +46,7 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
 
   override fun actionPerformed(e: AnActionEvent) {
     previewElement()?.let {
-      val psiElement = it.previewBodyPsi?.element
+      val psiElement = it.previewElementDefinitionPsi?.element
       val project = psiElement?.project ?: return@actionPerformed
       val module = psiElement.module ?: return@actionPerformed
 
