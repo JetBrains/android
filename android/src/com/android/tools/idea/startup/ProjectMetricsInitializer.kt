@@ -40,9 +40,6 @@ class ProjectMetricsService {
 private class ProjectMetricsInitializer : ProjectCloseListener {
   class MyStartupActivity : ProjectPostStartupActivity {
     override suspend fun execute(project: Project) {
-      // do not load heavy class AndroidStudioEvent on IDEA startup, see IDEA-310292
-      if (!IdeInfo.getInstance().isAndroidStudio) return
-
       // don't include current project to be consistent with projectClosed
       val projectsOpen = ProjectManager.getInstance().openProjects.size - 1
       UsageTracker.log(AndroidStudioEvent.newBuilder()

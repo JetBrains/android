@@ -690,8 +690,6 @@
     <notificationGroup id="Fast Preview Notification" displayType="NONE"/>
 
     <runningApplicationUpdaterProvider implementation="com.android.tools.idea.run.ui.ApplyChangesAction$UpdaterProvider"/>
-
-    <postStartupActivity implementation="com.android.tools.idea.startup.ProjectMetricsInitializer$MyStartupActivity"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
@@ -785,10 +783,6 @@
   <applicationListeners>
     <listener class="com.android.tools.idea.startup.AdbFileProviderInitializer"
               topic="com.intellij.openapi.project.ProjectManagerListener"/>
-
-    <listener class="com.android.tools.idea.startup.ProjectMetricsInitializer"
-              topic="com.intellij.openapi.project.ProjectCloseListener"/>
-
   </applicationListeners>
 
   <projectListeners>

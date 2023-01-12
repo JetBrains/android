@@ -193,7 +193,14 @@
                     serviceImplementation="com.android.tools.idea.lang.AndroidNullableNotNullManagerImpl"
                     overrides="true"
     />
+
+    <postStartupActivity implementation="com.android.tools.idea.startup.ProjectMetricsInitializer$MyStartupActivity"/>
   </extensions>
+
+  <applicationListeners>
+    <listener class="com.android.tools.idea.startup.ProjectMetricsInitializer"
+              topic="com.intellij.openapi.project.ProjectCloseListener"/>
+  </applicationListeners>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
