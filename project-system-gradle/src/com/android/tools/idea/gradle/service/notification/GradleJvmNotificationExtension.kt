@@ -45,7 +45,6 @@ import java.nio.file.Paths
  * "Invalid Gradle JDK configuration found.<Cause of invalid JDK error, if a reason was found>\n
  *  <Notification message suffix>\n
  *  <Use embedded JDK quickfix (if applicable)\n>
- *  <Use default JDK quickfix (if applicable)\n>
  *  <Change JDK location link (if not added already)\n>
  * "
  *

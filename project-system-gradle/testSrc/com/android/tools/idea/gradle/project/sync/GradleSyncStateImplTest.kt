@@ -19,7 +19,6 @@ import com.android.testutils.MockitoKt.mockStatic
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
-import com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_WARNING_URL
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
@@ -103,13 +102,13 @@ class GradleSyncStateImplTest : AndroidGradleTestCase() {
     jdkFromJavaHomePath: String? = null
   ) = StringBuilder().apply {
     append(
-      AndroidBundle.message("project.sync.warning.multiple.gradle.daemons",
+      AndroidBundle.message("project.sync.warning.multiple.gradle.daemons.message",
                             project.name,
                             GradleInstallationManager.getInstance().getGradleJvmPath(project, project.basePath.orEmpty()) ?: "Undefined",
                             jdkFromJavaHomePath ?: "Undefined"
       )
     )
-    append("<br>", OpenUrlHyperlink(JDK_LOCATION_WARNING_URL, "More info...").toHtml())
+    append("<br>", OpenUrlHyperlink(AndroidBundle.message("project.sync.warning.multiple.gradle.daemons.url"), "More info...").toHtml())
     append("<br>", DoNotShowJdkHomeWarningAgainHyperlink().toHtml())
   }.toString()
 }

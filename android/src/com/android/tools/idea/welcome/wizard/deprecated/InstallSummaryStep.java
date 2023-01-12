@@ -15,15 +15,11 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
-import static com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_WARNING_URL;
-import static com.android.tools.idea.sdk.IdeSdks.isSameAsJavaHomeJdk;
 import static com.android.tools.idea.welcome.wizard.InstallSummaryStepKt.getPackagesTable;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 
 import com.android.repository.api.RemotePackage;
 import com.android.repository.impl.meta.Archive;
-import com.android.repository.io.FileOpUtils;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.welcome.SdkLocationUtils;
 import com.android.tools.idea.welcome.wizard.WelcomeUiUtils;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -36,7 +32,6 @@ import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
 import java.net.URL;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.function.Supplier;
 import javax.swing.JComponent;
@@ -55,19 +50,16 @@ import org.jetbrains.annotations.Nullable;
 public final class InstallSummaryStep extends FirstRunWizardStep {
   private final Key<Boolean> myKeyCustomInstall;
   private final Key<String> myKeySdkInstallLocation;
-  private final Key<String> myKeyJdkLocation;
   private final Supplier<? extends Collection<RemotePackage>> myPackagesProvider;
   private JTextPane mySummaryText;
   private JPanel myRoot;
 
   public InstallSummaryStep(Key<Boolean> keyCustomInstall,
                             Key<String> keySdkInstallLocation,
-                            Key<String> keyJdkLocation,
                             Supplier<? extends Collection<RemotePackage>> packagesProvider) {
     super("Verify Settings");
     myKeyCustomInstall = keyCustomInstall;
     myKeySdkInstallLocation = keySdkInstallLocation;
-    myKeyJdkLocation = keyJdkLocation;
     myPackagesProvider = packagesProvider;
     mySummaryText.setEditorKit(HTMLEditorKitBuilder.simple());
     // There is no need to add whitespace on the top
@@ -120,7 +112,7 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
       mySummaryText.setText("An error occurred while trying to compute required packages.");
       return;
     }
-    Section[] sections = {getSetupTypeSection(), getSdkFolderSection(), getJdkFolderSection(), getDownloadSizeSection(packages), getPackagesSection(packages)};
+    Section[] sections = {getSetupTypeSection(), getSdkFolderSection(), getDownloadSizeSection(packages), getPackagesSection(packages)};
 
     StringBuilder builder = new StringBuilder("<html><head>");
     builder.append(UIUtil.getCssFontDeclaration(StartupUiUtil.getLabelFont(), UIUtil.getLabelForeground(), null, null)).append("</head><body>");
@@ -134,21 +126,6 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
     mySummaryText.setText(builder.toString());
   }
 
-  @NotNull
-  private Section getJdkFolderSection() {
-    String title = "JDK Location";
-    String jdkLocation = "";
-    if (StudioFlags.NPW_SHOW_JDK_STEP.get()) {
-      jdkLocation = myState.get(myKeyJdkLocation);
-    }
-    if (!isEmptyOrSpaces(jdkLocation)) {
-      if (!isSameAsJavaHomeJdk(Paths.get(jdkLocation))) {
-        jdkLocation += " (<b>Note:</b> Gradle may be using JAVA_HOME when invoked from command line. " +
-                       "<a href=\"" + JDK_LOCATION_WARNING_URL + "\">More info...</a>)";
-      }
-    }
-    return new Section(title, jdkLocation);
-  }
   private Section getSdkFolderSection() {
     File location = getSdkDirectory();
 

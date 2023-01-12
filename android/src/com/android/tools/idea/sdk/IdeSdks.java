@@ -119,7 +119,6 @@ public class IdeSdks {
   @NonNls public static final String MAC_JDK_CONTENT_PATH = "Contents/Home";
   @NotNull public static final JavaSdkVersion DEFAULT_JDK_VERSION = MAX_JDK_VERSION;
   @NotNull public static final String JDK_LOCATION_ENV_VARIABLE_NAME = "STUDIO_GRADLE_JDK";
-  @NotNull public static final String ANDROID_STUDIO_DEFAULT_JDK_NAME = "Android Studio default JDK";
   @NotNull private static final Logger LOG = Logger.getInstance(IdeSdks.class);
 
   @NotNull private final AndroidSdks myAndroidSdks;
@@ -654,13 +653,7 @@ public class IdeSdks {
     if (myEnvVariableSettings.isUseJdkEnvVariable()) {
       return myEnvVariableSettings.getSdk();
     }
-    if (myIdeInfo.isAndroidStudio() || myIdeInfo.isGameTools()) {
-      // Try to get default JDK
-      Sdk jdk = ProjectJdkTable.getInstance().findJdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, JavaSdk.getInstance().getName());
-      if (jdk != null) {
-        return jdk;
-      }
-    }
+
     JavaSdkVersion preferredVersion = DEFAULT_JDK_VERSION;
     Sdk existingJdk = getExistingJdk(preferredVersion);
     if (existingJdk != null) return existingJdk;

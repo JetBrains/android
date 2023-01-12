@@ -48,15 +48,13 @@ import java.nio.file.Path
 import javax.swing.JPanel
 import kotlin.io.path.absolutePathString
 
+private const val GRADLE_JDK_LABEL_TEXT = "Gradle JDK:"
+
 @Suppress("UnstableApiUsage")
 class AndroidGradleProjectSettingsControlBuilder(
   private val myInitialSettings: GradleProjectSettings
 ) : JavaGradleProjectSettingsControlBuilder(myInitialSettings) {
-  companion object {
-    const val GRADLE_JDK_LABEL_TEXT = "Gradle JDK:"
-    const val EMBEDDED_JDK_NAME = "Embedded JDK"
-    const val ANDROID_STUDIO_JAVA_HOME_NAME = "Android Studio java home"
-  }
+
   init {
     // Drop original JdkComponents so new ones can be generated
     super.dropGradleJdkComponents()

@@ -71,11 +71,6 @@ public final class StudioFlags {
     "Show the Welcome Wizard when Studio starts",
     false);
 
-  public static final Flag<Boolean> NPW_SHOW_JDK_STEP = Flag.create(
-    NPW, "first.run.jdk.step", "Show JDK setup step",
-    "Show JDK Setup Step in Welcome Wizard",
-    true);
-
   public static final Flag<Boolean> NPW_SHOW_FRAGMENT_GALLERY = Flag.create(
     NPW, "show.fragment.gallery", "Show fragment gallery",
     "Show fragment gallery which contains fragment based templates",

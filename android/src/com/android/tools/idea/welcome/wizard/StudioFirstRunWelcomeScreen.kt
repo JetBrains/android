@@ -59,7 +59,6 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
       addStep(FirstRunWelcomeStep(model))
       if (model.installationType.get() != FirstRunModel.InstallationType.CUSTOM) {
         addStep(InstallationTypeWizardStep(model))
-        addStep(JdkSetupStep(model))
       }
       addStep(SelectThemeStep())
       if (mode == FirstRunWizardMode.MISSING_SDK) {

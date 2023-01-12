@@ -16,8 +16,6 @@
 package com.android.tools.idea.sdk;
 
 import static com.android.testutils.TestUtils.getSdk;
-import static com.android.tools.idea.sdk.IdeSdks.ANDROID_STUDIO_DEFAULT_JDK_NAME;
-import static com.android.tools.idea.testing.AndroidGradleTests.getEmbeddedJdk8Path;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.google.common.truth.Truth.assertThat;
@@ -328,23 +326,6 @@ public class IdeSdksTest extends PlatformTestCase {
     });
     verify(spyJdks, never()).createJdk(any());
     assertThat(newJdk.get()).isSameAs(currentJdk);
-  }
-
-  /**
-   * Confirm that the default JDK is used when it is in the JDK table
-   */
-  public void testDefaultJdkIsUsed() throws IOException {
-    Sdk currentJdk = myIdeSdks.getJdk();
-    assertThat(currentJdk).isNotNull();
-    String homePath = currentJdk.getHomePath();
-    assertThat(homePath).isNotNull();
-    assertThat(homePath).isNotEqualTo("");
-
-    Sdk jdk8 = IdeSdks.findOrCreateJdk(ANDROID_STUDIO_DEFAULT_JDK_NAME,
-                                       Paths.get(getEmbeddedJdk8Path()));
-    assertThat(jdk8).isNotNull();
-    Sdk newJdk = myIdeSdks.getJdk();
-    assertThat(newJdk).isSameAs(jdk8);
   }
 
   /**
