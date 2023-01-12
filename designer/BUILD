@@ -219,7 +219,10 @@ iml_test(
     timeout = "long",
     data = layout_editor_data,
     module = ":intellij.android.designer.integration",
-    tags_linux = ["block-network"],
+    tags_linux = [
+        "block-network",
+        "cpu:100",
+    ],
     tags_windows = [
         "block-network",
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
