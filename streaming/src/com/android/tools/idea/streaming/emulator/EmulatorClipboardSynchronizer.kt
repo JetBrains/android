@@ -24,6 +24,7 @@ import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.util.Disposer
 import java.awt.EventQueue
 import java.awt.datatransfer.DataFlavor
@@ -34,6 +35,7 @@ import java.awt.datatransfer.StringSelection
  */
 internal class EmulatorClipboardSynchronizer(val emulator: EmulatorController, parentDisposable: Disposable) : Disposable {
 
+  private val copyPasteManager = CopyPasteManager.getInstance()
   @GuardedBy("lock")
   private var clipboardFeed: Cancelable? = null
   @GuardedBy("lock")
@@ -104,9 +106,8 @@ internal class EmulatorClipboardSynchronizer(val emulator: EmulatorController, p
 
   @UiThread
   private fun getClipboardText(): String {
-    val synchronizer = ClipboardSynchronizer.getInstance()
-    return if (synchronizer.areDataFlavorsAvailable(DataFlavor.stringFlavor)) {
-      synchronizer.getData(DataFlavor.stringFlavor) as String? ?: ""
+    return if (copyPasteManager.areDataFlavorsAvailable(DataFlavor.stringFlavor)) {
+      copyPasteManager.getContents(DataFlavor.stringFlavor) ?: ""
     }
     else {
       ""
