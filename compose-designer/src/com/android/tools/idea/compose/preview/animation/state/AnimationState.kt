@@ -32,7 +32,7 @@ abstract class AnimationState(callback: () -> Unit = {}) {
       tracker: ComposeAnimationEventTracker,
       callback: () -> Unit
     ): AnimationState {
-      val unit = ComposeUnit.parseNumberUnit(this.states.firstOrNull())
+      val unit = ComposeUnit.parseStateUnit(this.states.firstOrNull())
       return when (this.type) {
         ComposeAnimationType.TRANSITION_ANIMATION ->
           when {

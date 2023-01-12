@@ -134,6 +134,22 @@ object ComposeUnit {
     }
   }
 
+  /**
+   * Parses and creates a [Unit]
+   *
+   * @return a property which could 1, 2, 3 or 4 - dimensional property - [Unit1D], [Unit2D],
+   * [Unit3D], [Unit4D] respectively.
+   */
+  fun parseStateUnit(value: Any?): Unit<*>? {
+    return parseNumberUnit(value)?.takeIf { it !is UnknownNumberUnit }
+      ?: value?.let {
+        when (value) {
+          is String -> StringUnit(value)
+          else -> UnitUnknown(value)
+        }
+      }
+  }
+
   class IntUnit(value: Int) : Unit1D<Int>(value), NumberUnit<Int> {
     override fun createProperties(prefix: String) =
       listOf(AnimatedPropertyItem(prefix, "$component1", IntValidation, "Int"))
@@ -177,6 +193,13 @@ object ComposeUnit {
     }
 
     override fun getPickerTitle() = message("animation.inspector.picker.float")
+  }
+
+  class StringUnit(value: String) : Unit1D<String>(value) {
+    override fun createProperties(prefix: String) =
+      listOf(AnimatedPropertyItem(prefix, component1, { EDITOR_NO_ERROR }, "String"))
+    override fun parseUnit(getValue: (Int) -> String?) = getValue(0)?.let { StringUnit(it) }
+    override fun getPickerTitle() = message("animation.inspector.picker.string")
   }
 
   open class UnitUnknown(val any: Any) : Unit1D<Int>(0) {

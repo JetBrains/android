@@ -92,14 +92,12 @@ class AnimationManagerTests(private val animationType: ComposeAnimationType) : I
 
   @Test
   fun stringTransitionStates() {
-    setupAndCheckToolbar(animationType, setOf("a", "b", "c")) { toolbar, ui ->
-      // Freeze, swap, from state, label, to state
-      Assert.assertEquals(5, toolbar.componentCount)
-      Assert.assertEquals("a", toolbar.components[2].findComboBox().text)
-      Assert.assertEquals("b", toolbar.components[4].findComboBox().text)
+    setupAndCheckToolbar(animationType, setOf("a")) { toolbar, ui ->
+      // Freeze, swap, picker state.
+      Assert.assertEquals(3, toolbar.componentCount)
+      Assert.assertEquals("a to a", (toolbar.components[2] as JButton).text)
       ui.clickOn(toolbar.components[1])
-      Assert.assertEquals("b", toolbar.components[2].findComboBox().text)
-      Assert.assertEquals("a", toolbar.components[4].findComboBox().text)
+      Assert.assertEquals("a to a", (toolbar.components[2] as JButton).text)
     }
   }
 
