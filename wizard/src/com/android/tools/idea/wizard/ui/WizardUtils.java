@@ -19,7 +19,7 @@ import static com.intellij.util.ui.JBUI.Borders.empty;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
-import com.intellij.ide.GeneralSettings;
+import com.intellij.ide.GeneralLocalSettings;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.util.text.StringUtil;
@@ -58,8 +58,8 @@ public final class WizardUtils {
       return new File(PathUtil.toSystemDependentName(parent));
     }
 
-    String defaultProjectLocation = GeneralSettings.getInstance().getDefaultProjectDirectory();
-    if (defaultProjectLocation != null && !defaultProjectLocation.isEmpty()) {
+    String defaultProjectLocation = GeneralLocalSettings.getInstance().getDefaultProjectDirectory();
+    if (!defaultProjectLocation.isEmpty()) {
       return new File(defaultProjectLocation);
     }
 

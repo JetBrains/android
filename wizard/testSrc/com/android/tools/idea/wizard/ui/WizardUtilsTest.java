@@ -15,20 +15,20 @@
  */
 package com.android.tools.idea.wizard.ui;
 
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.testing.AndroidProjectRule;
+import com.intellij.ide.GeneralLocalSettings;
+import com.intellij.ide.RecentProjectsManager;
+import com.intellij.openapi.util.io.FileUtil;
+import org.jetbrains.annotations.Nullable;
+import org.junit.Rule;
+import org.junit.Test;
+import java.io.File;
+
 import static com.android.tools.idea.wizard.ui.WizardUtils.getProjectLocationParent;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.testing.AndroidProjectRule;
-import com.intellij.ide.GeneralSettings;
-import com.intellij.ide.RecentProjectsManager;
-import com.intellij.openapi.util.io.FileUtil;
-import java.io.File;
-import org.jetbrains.annotations.Nullable;
-import org.junit.Rule;
-import org.junit.Test;
 
 public class WizardUtilsTest {
   @Rule
@@ -67,8 +67,8 @@ public class WizardUtilsTest {
   }
 
   private void setDefaultProjectDirectory(@Nullable String defaultProjectDirectory) {
-    GeneralSettings generalSettingsMock = mock(GeneralSettings.class);
+    GeneralLocalSettings generalSettingsMock = mock(GeneralLocalSettings.class);
     when(generalSettingsMock.getDefaultProjectDirectory()).thenReturn(defaultProjectDirectory);
-    projectRule.replaceService(GeneralSettings.class, generalSettingsMock);
+    projectRule.replaceService(GeneralLocalSettings.class, generalSettingsMock);
   }
 }
