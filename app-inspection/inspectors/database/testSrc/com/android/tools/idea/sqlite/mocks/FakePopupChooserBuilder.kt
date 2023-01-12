@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
+import com.intellij.openapi.ui.GenericListComponentUpdater
 import com.intellij.openapi.ui.ListComponentUpdater
 import com.intellij.openapi.ui.popup.IPopupChooserBuilder
 import com.intellij.openapi.ui.popup.JBPopup
@@ -119,5 +120,5 @@ open class FakePopupChooserBuilder: IPopupChooserBuilder<SqliteDatabaseId> {
 
   override fun withFixedRendererSize(dimension: Dimension): IPopupChooserBuilder<SqliteDatabaseId> = this
 
-  override fun getBackgroundUpdater(): ListComponentUpdater = mock(ListComponentUpdater::class.java)
+  override fun getBackgroundUpdater(): GenericListComponentUpdater<SqliteDatabaseId>? = null
 }

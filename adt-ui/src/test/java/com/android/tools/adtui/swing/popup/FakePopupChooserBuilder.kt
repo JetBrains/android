@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.swing.popup
 
-import com.intellij.openapi.ui.ListComponentUpdater
+import com.intellij.openapi.ui.GenericListComponentUpdater
 import com.intellij.openapi.ui.popup.IPopupChooserBuilder
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupListener
@@ -218,7 +218,7 @@ internal class FakePopupChooserBuilder<T>(
     TODO("Not yet implemented")
   }
 
-  override fun getBackgroundUpdater(): ListComponentUpdater {
+  override fun getBackgroundUpdater(): GenericListComponentUpdater<T>? {
     TODO("Not yet implemented")
   }
 }
