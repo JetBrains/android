@@ -114,7 +114,6 @@ import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.ex.util.EditorUtil
 import com.intellij.openapi.editor.impl.ContextMenuPopupHandler
 import com.intellij.openapi.project.Project
-import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.tools.SimpleActionGroup
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.JBColor
@@ -485,11 +484,9 @@ internal class LogcatMainPanel @TestOnly constructor(
   }
 
   override fun dispose() {
-    runInEdtAndWait {
-      EditorFactory.getInstance().releaseEditor(editor)
-      AndroidDebugBridge.removeDeviceChangeListener(clientListener)
-      AndroidDebugBridge.removeClientChangeListener(clientListener)
-    }
+    EditorFactory.getInstance().releaseEditor(editor)
+    AndroidDebugBridge.removeDeviceChangeListener(clientListener)
+    AndroidDebugBridge.removeClientChangeListener(clientListener)
   }
 
   override fun applyLogcatSettings(logcatSettings: AndroidLogcatSettings) {

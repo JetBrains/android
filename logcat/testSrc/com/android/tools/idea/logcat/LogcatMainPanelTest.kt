@@ -1231,7 +1231,7 @@ class LogcatMainPanelTest {
       foldingDetector,
       zoneId,
     ).also {
-      Disposer.register(disposable, it)
+      Disposer.register(disposable) { runInEdtAndWait { Disposer.dispose(it) } }
     }
   }
 }
