@@ -28,9 +28,8 @@ import com.android.tools.idea.stats.AndroidStudioUsageTracker.buildActiveExperim
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.deviceToDeviceInfo
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.deviceToDeviceInfoApiLevelOnly
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.getMachineDetails
-import com.android.tools.idea.stats.FeatureSurveys.featureSurveyInvoked
-import com.android.tools.idea.stats.FeatureSurveys.shouldInvokeFeatureSurvey
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.shouldRequestUserSentiment
+import com.android.tools.idea.stats.FeatureSurveys.shouldInvokeFeatureSurvey
 import com.android.utils.DateProvider
 import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.DeviceInfo
@@ -41,7 +40,11 @@ import org.easymock.EasyMock
 import org.junit.Assert
 import java.awt.GraphicsDevice
 import java.io.File
+import java.time.ZoneOffset
 import java.util.Date
+import java.util.GregorianCalendar
+import java.util.Locale
+import java.util.TimeZone
 
 class AndroidStudioUsageTrackerTest : TestCase() {
   fun testDeviceToDeviceInfo() {
@@ -211,7 +214,8 @@ class AndroidStudioUsageTrackerTest : TestCase() {
       })
       Assert.assertFalse(shouldRequestUserSentiment())
 
-    } finally {
+    }
+    finally {
       AnalyticsSettings.dateProvider = DateProvider.SYSTEM
     }
   }
@@ -225,38 +229,73 @@ class AndroidStudioUsageTrackerTest : TestCase() {
     })
     assertFalse(shouldInvokeFeatureSurvey("featureSurvey"))
 
-    // First time requested should return true, second time false
+    //  shouldInvokeFeatureSurvey should return false before general interval elapses
     AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
       userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
       optedIn = true
+      nextFeatureSurveyDate = Date(120, 4, 19)
+      nextFeatureSurveyDateMap = mutableMapOf("featureSurvey" to Date(120, 4, 17))
     })
-    featureSurveyInvoked("featureSurvey", -5, -5)
+    assertFalse(shouldInvokeFeatureSurvey("featureSurvey"))
+
+    //  shouldInvokeFeatureSurvey should return false before specific interval elapses
+    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
+      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+      optedIn = true
+      nextFeatureSurveyDate = Date(120, 4, 17)
+      nextFeatureSurveyDateMap = mutableMapOf("featureSurvey" to Date(120, 4, 19))
+    })
+    assertFalse(shouldInvokeFeatureSurvey("featureSurvey"))
+
+    // shouldInvokeFeatureSurvey should return true after both intervals elapse
+    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
+      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+      optedIn = true
+      nextFeatureSurveyDate = Date(120, 4, 17)
+      nextFeatureSurveyDateMap = mutableMapOf("featureSurvey" to Date(120, 4, 17))
+    })
     assertTrue(shouldInvokeFeatureSurvey("featureSurvey"))
-    assertFalse(shouldInvokeFeatureSurvey("featureSurvey"))
+    FeatureSurveys.FeatureSurveyChoiceLogger.log("featureSurvey", 0)
+  }
 
-    // Test before general interval elapses
+  fun testFeatureSurveyResponded() {
+    AnalyticsSettings.dateProvider = StubDateProvider(2020, 4, 18)
     AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
       userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
       optedIn = true
     })
-    featureSurveyInvoked("featureSurvey", 5, 5)
+
+    assertTrue(shouldInvokeFeatureSurvey("featureSurvey"))
+    FeatureSurveys.FeatureSurveyChoiceLogger.log("featureSurvey", 0)
     assertFalse(shouldInvokeFeatureSurvey("featureSurvey"))
 
-    // Test before general interval elapses
+    var calendar = GregorianCalendar(2020, 4, 18 + DEFAULT_FEATURE_SURVEY_CONFIG.generalIntervalCompleted)
+    calendar.timeZone = TimeZone.getTimeZone(ZoneOffset.UTC)
+    assertEquals(calendar.time, AnalyticsSettings.nextFeatureSurveyDate)
+
+    calendar = GregorianCalendar(2020, 4, 18 + DEFAULT_FEATURE_SURVEY_CONFIG.specificIntervalCompleted)
+    calendar.timeZone = TimeZone.getTimeZone(ZoneOffset.UTC)
+    assertEquals(calendar.time, AnalyticsSettings.nextFeatureSurveyDateMap?.let { it["featureSurvey"] })
+  }
+
+  fun testFeatureSurveyCancelled() {
+    AnalyticsSettings.dateProvider = StubDateProvider(2020, 4, 18)
     AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
       userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
       optedIn = true
     })
-    featureSurveyInvoked("featureSurvey", -5, 5)
+
+    assertTrue(shouldInvokeFeatureSurvey("featureSurvey"))
+    FeatureSurveys.FeatureSurveyChoiceLogger.cancel("featureSurvey")
     assertFalse(shouldInvokeFeatureSurvey("featureSurvey"))
 
-    // Test after both intervals elapse
-    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-      optedIn = true
-    })
-    featureSurveyInvoked("featureSurvey1", -5, -5)
-    assertTrue(shouldInvokeFeatureSurvey("featureSurvey2"))
+    var calendar = GregorianCalendar(2020, 4, 18 + DEFAULT_FEATURE_SURVEY_CONFIG.generalIntervalCancelled)
+    calendar.timeZone = TimeZone.getTimeZone(ZoneOffset.UTC)
+    assertEquals(calendar.time, AnalyticsSettings.nextFeatureSurveyDate)
+
+    calendar = GregorianCalendar(2020, 4, 18 + DEFAULT_FEATURE_SURVEY_CONFIG.specificIntervalCancelled)
+    calendar.timeZone = TimeZone.getTimeZone(ZoneOffset.UTC)
+    assertEquals(calendar.time, AnalyticsSettings.nextFeatureSurveyDateMap?.let { it["featureSurvey"] })
   }
 
   fun testHasUserBeenPromptedForOptin() {
