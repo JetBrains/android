@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.SurfaceScale
 import java.awt.Dimension
 import java.awt.Insets
+import java.awt.Point
 
 /**
  * Sorts the [Collection<PositionableContent>] by its x and y coordinates.
@@ -133,8 +134,9 @@ interface SurfaceLayoutManager {
                       @SwingCoordinate availableHeight: Int): Double
 
   /**
-   * Place the given [PositionableContent]s in the proper positions by using [PositionableContent.setLocation]
-   * Note that it only changes the locations of [PositionableContent]s but doesn't change their sizes.
+   * Measure the given [PositionableContent]s in the proper positions by using [PositionableContent.setLocation].
+   * Note that it doesn't change the locations of [PositionableContent]s, it returns a map of [PositionableContent] to the measured
+   * positions.
    *
    * @param content all [PositionableContent]s to be laid out.
    * @param availableWidth the width of current visible area, which doesn't include the hidden part in the scroll view.
@@ -142,8 +144,28 @@ interface SurfaceLayoutManager {
    * @param keepPreviousPadding true if all padding values should be the same as current one. This happens when resizing
    * the [PositionableContent].
    */
-  fun layout(content: Collection<PositionableContent>,
-             @SwingCoordinate availableWidth: Int,
-             @SwingCoordinate availableHeight: Int,
-             keepPreviousPadding: Boolean = false)
+  fun measure(content: Collection<PositionableContent>,
+              @SwingCoordinate availableWidth: Int,
+              @SwingCoordinate availableHeight: Int,
+              keepPreviousPadding: Boolean = false): Map<PositionableContent, Point>
+}
+
+/**
+ * Place the given [PositionableContent]s in the proper positions by using [PositionableContent.setLocation]
+ * Note that it only changes the locations of [PositionableContent]s but doesn't change their sizes.
+ *
+ * @param content all [PositionableContent]s to be laid out.
+ * @param availableWidth the width of current visible area, which doesn't include the hidden part in the scroll view.
+ * @param availableHeight the height of current visible area, which doesn't include the hidden part in the scroll view.
+ * @param keepPreviousPadding true if all padding values should be the same as current one. This happens when resizing
+ * the [PositionableContent].
+ */
+fun SurfaceLayoutManager.layout(content: Collection<PositionableContent>,
+                                @SwingCoordinate availableWidth: Int,
+                                @SwingCoordinate availableHeight: Int,
+                                keepPreviousPadding: Boolean = false) {
+  val contentToPositionMap = measure(content, availableWidth, availableHeight, keepPreviousPadding)
+  for ((positionableContent, position) in contentToPositionMap) {
+    positionableContent.setLocation(position.x, position.y)
+  }
 }

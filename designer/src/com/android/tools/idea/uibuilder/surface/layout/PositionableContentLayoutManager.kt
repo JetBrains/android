@@ -18,10 +18,12 @@ package com.android.tools.idea.uibuilder.surface.layout
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneViewPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
+import org.jetbrains.annotations.NotNull
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
 import java.awt.LayoutManager
+import java.awt.Point
 
 /**
  * [LayoutManager] responsible for positioning and measuring all the [PositionableContent] in a [DesignSurface]
@@ -59,4 +61,7 @@ abstract class PositionableContentLayoutManager : LayoutManager {
 
   override fun addLayoutComponent(name: String?, comp: Component?) {}
   override fun removeLayoutComponent(comp: Component?) {}
+
+  abstract fun getMeasuredPositionableContentPosition(content: Collection<PositionableContent>, availableWidth: Int, availableHeight: Int)
+    : Map<PositionableContent, Point>
 }

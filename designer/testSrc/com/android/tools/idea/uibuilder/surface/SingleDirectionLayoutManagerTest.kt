@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
 import com.intellij.util.ui.JBInsets
+import com.android.tools.idea.uibuilder.surface.layout.layout
 
 private class ForcedDirectoryLayoutManager(@SwingCoordinate private val horizontalPadding: Int,
                                            @SwingCoordinate private val verticalPadding: Int,

@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.SurfaceScale
 import java.awt.Dimension
+import java.awt.Point
 import kotlin.math.max
 import kotlin.math.sqrt
 
@@ -198,12 +199,12 @@ open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPaddi
     }
   }
 
-  override fun layout(content: Collection<PositionableContent>,
+  override fun measure(content: Collection<PositionableContent>,
                       @SwingCoordinate availableWidth: Int,
                       @SwingCoordinate availableHeight: Int,
-                      keepPreviousPadding: Boolean) {
+                      keepPreviousPadding: Boolean): Map<PositionableContent, Point> {
     if (content.isEmpty()) {
-      return
+      return emptyMap()
     }
 
     val startX: Int
@@ -228,6 +229,8 @@ open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPaddi
 
     val grid = layoutGrid(content, availableWidth, { scale }) { scaledContentSize.width }
 
+    val positionMap = mutableMapOf<PositionableContent, Point>()
+
     var nextX = startX
     var nextY = startY
     var maxBottomInRow = 0
@@ -236,7 +239,7 @@ open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPaddi
         if (!view.isVisible) {
           continue
         }
-        view.setLocation(nextX + view.margin.left, nextY)
+        positionMap[view] = Point(nextX + view.margin.left, nextY)
         nextX += view.scaledContentSize.width + horizontalViewDelta + view.margin.horizontal
         maxBottomInRow = max(maxBottomInRow, nextY + view.margin.vertical + view.scaledContentSize.height)
       }
@@ -244,7 +247,7 @@ open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPaddi
       nextY = maxBottomInRow + verticalViewDelta
     }
 
-    content.filterNot { it.isVisible }.forEach { it.setLocation(-1, -1) }
+    return positionMap + content.filterNot { it.isVisible }.associateWith { Point(-1, -1) }
   }
 
   /**

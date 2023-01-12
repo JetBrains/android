@@ -84,6 +84,12 @@ class SinglePositionableContentLayoutManager : PositionableContentLayoutManager(
       .singleOrNull()
       ?.getScaledContentSize(null)
     ?: availableSize
+
+  override fun getMeasuredPositionableContentPosition(content: Collection<PositionableContent>,
+                                                      availableWidth: Int,
+                                                      availableHeight: Int): Map<PositionableContent, Point> {
+    return content.singleOrNull()?.let { mapOf(it to Point(0, 0)) } ?: emptyMap()
+  }
 }
 
 private data class LayoutData private constructor(
@@ -618,4 +624,18 @@ internal class SceneViewPanel(private val sceneViewProvider: () -> Collection<Sc
       .filter { sceneView == it.sceneView }
       .map { it.bounds }
       .firstOrNull()
+
+  /**
+   * Find the predicted rectangle of the [sceneView] when layout manager re-layout the content with the given [content] and [availableSize].
+   */
+  fun findMeasuredSceneViewRectangle(sceneView: SceneView, content: Collection<PositionableContent>, availableSize: Dimension): Rectangle? {
+    val panel = components
+      .filterIsInstance<SceneViewPeerPanel>()
+      .firstOrNull { sceneView == it.sceneView } ?: return null
+
+    val layoutManager = layout as PositionableContentLayoutManager ?: return null
+    val positions = layoutManager.getMeasuredPositionableContentPosition(content, availableSize.width, availableSize.height)
+    val position = positions[panel.positionableAdapter] ?: return null
+    return panel.bounds.apply { location = position }
+  }
 }

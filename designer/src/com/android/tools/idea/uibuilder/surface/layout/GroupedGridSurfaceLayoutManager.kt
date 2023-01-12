@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.surface.layout
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.surface.SurfaceScale
 import java.awt.Dimension
+import java.awt.Point
 import kotlin.math.max
 
 /**
@@ -151,21 +152,21 @@ class GroupedGridSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
     return gridList
   }
 
-  override fun layout(content: Collection<PositionableContent>,
-                      @SwingCoordinate availableWidth: Int,
-                      @SwingCoordinate availableHeight: Int,
-                      keepPreviousPadding: Boolean) {
+  override fun measure(content: Collection<PositionableContent>,
+                       availableWidth: Int,
+                       availableHeight: Int,
+                       keepPreviousPadding: Boolean): Map<PositionableContent, Point> {
     if (content.isEmpty()) {
-      return
+      return emptyMap()
     }
 
     val visibleContents = content.filter { it.isVisible }
     if (visibleContents.size == 1) {
+      val singleContent = content.single()
       // When there is only one visible preview, centralize it as a special case.
-      layoutSingleContent(content.single(), availableWidth, availableHeight)
+      val point = getSingleContentPosition(singleContent, availableWidth, availableHeight)
 
-      content.filterNot { it.isVisible }.forEach { it.setLocation(-1, -1) }
-      return
+      return mapOf(singleContent to point) + content.filterNot { it.isVisible }.associateWith { Point(-1, -1) }
     }
 
     val groupedViews = transform(content)
@@ -174,6 +175,8 @@ class GroupedGridSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
     val startY: Int = canvasTopPadding
 
     var nextGroupY = startY
+
+    val positionMap = mutableMapOf<PositionableContent, Point>()
 
     for (group in groupedViews) {
       val grid = layoutGroup(group, { scale }, availableWidth) { scaledContentSize.width }
@@ -186,7 +189,7 @@ class GroupedGridSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
             continue
           }
           val framePadding = previewFramePaddingProvider(view.scale)
-          setContentPosition(view, nextX + view.margin.left + framePadding, nextY + framePadding)
+          positionMap[view] = getContentPosition(view, nextX + view.margin.left + framePadding, nextY + framePadding)
           nextX += framePadding + view.scaledContentSize.width + view.margin.horizontal + framePadding
           maxBottomInRow = max(maxBottomInRow,
                                nextY + framePadding + view.margin.vertical + view.scaledContentSize.height + framePadding)
@@ -198,12 +201,13 @@ class GroupedGridSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
       nextGroupY = nextY
     }
 
-    content.filterNot { it.isVisible }.forEach { it.setLocation(-1, -1) }
+    return positionMap + content.filterNot { it.isVisible }.associateWith { Point(-1, -1) }
   }
 
-  private fun layoutSingleContent(content: PositionableContent,
-                                  @SwingCoordinate availableWidth: Int,
-                                  @SwingCoordinate availableHeight: Int) {
+  @SwingCoordinate
+  private fun getSingleContentPosition(content: PositionableContent,
+                                       @SwingCoordinate availableWidth: Int,
+                                       @SwingCoordinate availableHeight: Int): Point {
     val size = content.scaledContentSize
     val margin = content.margin
     val frameWidth = size.width + margin.horizontal
@@ -214,14 +218,18 @@ class GroupedGridSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
     // Try to centralize the content.
     val x = maxOf((availableWidth - frameWidth) / 2, framePadding)
     val y = maxOf((availableHeight - frameHeight) / 2, framePadding)
-    setContentPosition(content, x, y)
+    return getContentPosition(content, x, y)
   }
 
-  private fun setContentPosition(content: PositionableContent, x: Int, y: Int) {
+  /**
+   * Get the actual position should be set to the given [PositionableContent]
+   */
+  @SwingCoordinate
+  private fun getContentPosition(content: PositionableContent, @SwingCoordinate previewX: Int, @SwingCoordinate previewY: Int): Point {
     // The new compose layout consider the toolbar size as the anchor of location.
     val margin = content.margin
-    val shiftedX = x + margin.left
-    val shiftedY = y + margin.top
-    content.setLocation(shiftedX, shiftedY)
+    val shiftedX = previewX + margin.left
+    val shiftedY = previewY + margin.top
+    return Point(shiftedX, shiftedY)
   }
 }

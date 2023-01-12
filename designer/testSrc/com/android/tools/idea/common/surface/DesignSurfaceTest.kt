@@ -321,6 +321,12 @@ class TestLayoutManager(private val surface: DesignSurface<*>) : PositionableCon
 
   override fun preferredLayoutSize(content: Collection<PositionableContent>, availableSize: Dimension): Dimension =
     surface.sceneViews.map { it.getContentSize(null) }.firstOrNull() ?: Dimension(0, 0)
+
+  override fun getMeasuredPositionableContentPosition(content: Collection<PositionableContent>,
+                                                      availableWidth: Int,
+                                                      availableHeight: Int): Map<PositionableContent, Point> {
+    return content.firstOrNull()?.let { mapOf(it to Point(0, 0)) } ?: emptyMap()
+  }
 }
 
 class TestActionHandler(surface: DesignSurface<*>) : DesignSurfaceActionHandler(surface) {

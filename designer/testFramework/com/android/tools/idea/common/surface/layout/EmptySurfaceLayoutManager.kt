@@ -18,10 +18,11 @@ package com.android.tools.idea.common.surface.layout
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 import java.awt.Dimension
+import java.awt.Point
 
 /**
  * A [SurfaceLayoutManager] for testing which returns empty [Dimension] and always return zoom-to-fit scale as 100%.
- * It also does nothing when [layout] is called.
+ * It also does nothing when [measure] is called.
  */
 class EmptySurfaceLayoutManager: SurfaceLayoutManager {
   override fun getPreferredSize(content: Collection<PositionableContent>,
@@ -35,6 +36,8 @@ class EmptySurfaceLayoutManager: SurfaceLayoutManager {
 
   override fun getFitIntoScale(content: Collection<PositionableContent>, availableWidth: Int, availableHeight: Int): Double = 1.0
 
-  override fun layout(content: Collection<PositionableContent>, availableWidth: Int, availableHeight: Int, keepPreviousPadding: Boolean)
-    = Unit
+  override fun measure(content: Collection<PositionableContent>,
+                       availableWidth: Int,
+                       availableHeight: Int,
+                       keepPreviousPadding: Boolean): Map<PositionableContent, Point> = emptyMap()
 }
