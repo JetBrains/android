@@ -25,15 +25,13 @@ import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
-import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.xdebugger.impl.XDebugSessionImpl
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.concurrency.Promise
 
 class DefaultConnectDebuggerTask<S : AndroidDebuggerState>(
   private val debugger: AndroidDebugger<S>,
@@ -46,12 +44,10 @@ class DefaultConnectDebuggerTask<S : AndroidDebuggerState>(
     device: IDevice,
     applicationId: String,
     environment: ExecutionEnvironment,
-    oldProcessHandler: ProcessHandler
-  ): Promise<XDebugSessionImpl> {
-    // Reuse the current ConsoleView to retain the UI state and not to lose test results.
-    val androidTestResultListener = oldProcessHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY) as? ConsoleView
+    progressIndicator: ProgressIndicator,
+    console: ConsoleView
+  ): XDebugSessionImpl {
     LOG.info("Attaching ${debugger.id} debugger")
-
 
     return DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
@@ -60,8 +56,10 @@ class DefaultConnectDebuggerTask<S : AndroidDebuggerState>(
       debugger,
       debuggerState,
       destroyRunningProcess = { d -> d.forceStop(applicationId) },
-      androidTestResultListener,
-      timeoutSeconds.toLong())
+      progressIndicator,
+      console,
+      timeoutSeconds.toLong()
+    )
   }
 }
 

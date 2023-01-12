@@ -329,10 +329,10 @@ class LaunchTaskRunnerTest {
 
     override fun getConnectDebuggerTask(): ConnectDebuggerTask? {
       if (isDebug) {
-        return ConnectDebuggerTask { _, _, _, _ ->
+        return ConnectDebuggerTask { _, _, _, _, _ ->
           val xDebugSessionImpl = mock(XDebugSessionImpl::class.java)
           whenever(xDebugSessionImpl.runContentDescriptor).thenReturn(mock(RunContentDescriptor::class.java))
-          resolvedPromise(xDebugSessionImpl)
+          xDebugSessionImpl
         }
       }
       return null

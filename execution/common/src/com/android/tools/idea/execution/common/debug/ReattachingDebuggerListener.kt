@@ -18,6 +18,7 @@ package com.android.tools.idea.execution.common.debug
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
+import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.execution.common.debug.utils.showError
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.process.ProcessAdapter
@@ -27,6 +28,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 
@@ -108,9 +110,13 @@ internal class ReattachingDebuggerListener<S : AndroidDebuggerState>(
     const val CHANGE_MASK = Client.CHANGE_DEBUGGER_STATUS or Client.CHANGE_NAME
   }
 
+  private val processedClientPids = HashSet<Int>()
   private val LOG = Logger.getInstance(ReattachingDebuggerListener::class.java)
 
   private fun isClientForDebug(client: Client, changeMask: Int): Boolean {
+    if (processedClientPids.contains(client.clientData.pid)) {
+      return false
+    }
     val clientDescription = client.clientData.clientDescription
     if (applicationId == clientDescription) {
       if (changeMask and CHANGE_MASK != 0 && client.clientData.debuggerConnectionStatus == ClientData.DebuggerStatus.WAITING) {
@@ -137,31 +143,33 @@ internal class ReattachingDebuggerListener<S : AndroidDebuggerState>(
   }
 
   override fun clientChanged(client: Client, changeMask: Int) {
-    if (isClientForDebug(client, changeMask)) {
-      if (!masterProcessHandler.isProcessTerminating && !masterProcessHandler.isProcessTerminated) {
+    if (isClientForDebug(client, changeMask) && !masterProcessHandler.isProcessTerminating && !masterProcessHandler.isProcessTerminated) {
+      addProcessedClientPid(client.clientData.pid)
+      executeOnPooledThread {
         LOG.info("Attaching debugger to a client, PID: ${client.clientData.pid}")
-        DebugSessionStarter.attachDebuggerToStartedProcess(client.device, client.clientData.clientDescription!!, environment,
-                                                           androidDebugger, androidDebuggerState,
-                                                           { it.forceStop(client.clientData.clientDescription!!) },
-                                                           consoleViewToReuse)
-          .onSuccess { session ->
-            processHandlerForOpenedTab.detachProcess()
+        val session = DebugSessionStarter.attachDebuggerToStartedProcess(client.device, client.clientData.clientDescription!!,
+                                                                         environment,
+                                                                         androidDebugger, androidDebuggerState,
+                                                                         { it.forceStop(client.clientData.clientDescription!!) },
+                                                                         indicator = EmptyProgressIndicator(), consoleViewToReuse)
+        processHandlerForOpenedTab.detachProcess()
+        processHandlerForOpenedTab = ReattachingProcessHandler(masterProcessHandler)
+        processHandlerForOpenedTab.subscribeOnDebugProcess(session.debugProcess.processHandler)
 
-            processHandlerForOpenedTab = ReattachingProcessHandler(masterProcessHandler)
-            processHandlerForOpenedTab.subscribeOnDebugProcess(session.debugProcess.processHandler)
-
-            session.runContentDescriptor.processHandler = processHandlerForOpenedTab
-            runInEdt {
-              try {
-                session.showSessionTab()
-              }
-              catch (e: Throwable) {
-                handleError(e)
-              }
-            }
+        session.runContentDescriptor.processHandler = processHandlerForOpenedTab
+        runInEdt {
+          try {
+            session.showSessionTab()
           }
-          .onError { handleError(it) }
+          catch (e: Throwable) {
+            handleError(e)
+          }
+        }
       }
     }
+  }
+
+  fun addProcessedClientPid(pid: Int) {
+    processedClientPids.add(pid)
   }
 }

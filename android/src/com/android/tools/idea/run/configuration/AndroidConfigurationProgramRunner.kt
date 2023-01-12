@@ -100,7 +100,8 @@ abstract class AndroidConfigurationProgramRunner internal constructor(
         getRunner(environment, state)(indicator)
           .onSuccess {
             val processHandler = it.processHandler
-                                 ?: throw RuntimeException("AndroidConfigurationExecutor returned RunContentDescriptor without process handler")
+                                 ?: throw RuntimeException(
+                                   "AndroidConfigurationExecutor returned RunContentDescriptor without process handler")
             AndroidSessionInfo.create(processHandler, runProfile as RunConfiguration, environment.executor.id, environment.executionTarget)
             promise.setResult(it)
           }

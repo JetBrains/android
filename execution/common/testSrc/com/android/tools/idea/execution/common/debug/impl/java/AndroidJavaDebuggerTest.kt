@@ -34,6 +34,7 @@ import com.intellij.debugger.DebuggerManagerEx
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.testFramework.replaceService
@@ -104,8 +105,9 @@ class AndroidJavaDebuggerTest {
       executionEnvironment,
       javaDebugger,
       javaDebugger.createState(),
-      onDebugProcessDestroyed)
-      .blockingGet(10, TimeUnit.SECONDS)
+      onDebugProcessDestroyed,
+      EmptyProgressIndicator()
+    )
 
     val processHandler = session!!.debugProcess.processHandler
     // For AndroidPositionManager.
@@ -123,8 +125,8 @@ class AndroidJavaDebuggerTest {
       FakeAdbTestRule.CLIENT_PACKAGE_NAME,
       executionEnvironment,
       javaDebugger,
-      javaDebugger.createState(), onDebugProcessDestroyed)
-      .blockingGet(10, TimeUnit.SECONDS)
+      javaDebugger.createState(), onDebugProcessDestroyed, EmptyProgressIndicator()
+    )
     assertThat(session).isNotNull()
     assertThat(session!!.sessionName).isEqualTo("myConfiguration")
   }
@@ -137,7 +139,7 @@ class AndroidJavaDebuggerTest {
       FakeAdbTestRule.CLIENT_PACKAGE_NAME,
       executionEnvironment,
       javaDebugger,
-      javaDebugger.createState(), destroyRunningProcess = { countDownLatch.countDown() }).blockingGet(10, TimeUnit.SECONDS)!!
+      javaDebugger.createState(), destroyRunningProcess = { countDownLatch.countDown() }, EmptyProgressIndicator())
 
     session.debugProcess.processHandler.destroyProcess()
     session.debugProcess.processHandler.waitFor()
@@ -178,8 +180,7 @@ class AndroidJavaDebuggerTest {
       FakeAdbTestRule.CLIENT_PACKAGE_NAME,
       executionEnvironment,
       javaDebugger,
-      javaDebugger.createState(), onDebugProcessDestroyed)
-      .blockingGet(10, TimeUnit.SECONDS)!!
+      javaDebugger.createState(), onDebugProcessDestroyed, indicator = EmptyProgressIndicator())
 
     val countDownLatch = CountDownLatch(1)
 
@@ -222,8 +223,9 @@ class AndroidJavaDebuggerTest {
       executionEnvironment,
       javaDebugger,
       javaDebugger.createState(),
-      onDebugProcessDestroyed)
-      .blockingGet(10, TimeUnit.SECONDS)!!
+      onDebugProcessDestroyed,
+      EmptyProgressIndicator()
+    )
 
     session.debugProcess.processHandler.detachProcess()
     session.debugProcess.processHandler.waitFor()

@@ -52,9 +52,11 @@ class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment,
     activityLaunchOptions.launch(device, app, apkProvider, isDebug, getFlags(device), console)
   }
 
-  public override fun startDebugSession(device: IDevice, console: ConsoleView): Promise<XDebugSessionImpl> {
+  public override fun startDebugSession(device: IDevice, console: ConsoleView, indicator: ProgressIndicator): XDebugSessionImpl {
     return DebugSessionStarter.attachDebuggerToStartedProcess(device, appId, environment, AndroidJavaDebugger(),
-                                                              AndroidJavaDebugger().createState(), { it.forceStop(appId) }, console)
+                                                              AndroidJavaDebugger().createState(), { it.forceStop(appId) },
+                                                              indicator = indicator,
+                                                              console)
   }
 
   override fun runAsInstantApp(indicator: ProgressIndicator): Promise<RunContentDescriptor> {

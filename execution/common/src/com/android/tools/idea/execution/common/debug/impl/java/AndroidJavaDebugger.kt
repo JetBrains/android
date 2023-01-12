@@ -64,7 +64,7 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
       return resolvedPromise(existingDebugSession)
     }
 
-    return attachDebuggerToClientAndShowTab(project, client, this, createState());
+    return resolvedPromise(attachDebuggerToClientAndShowTab(project, client, this, createState()));
   }
 
 

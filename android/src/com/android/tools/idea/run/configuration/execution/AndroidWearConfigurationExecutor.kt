@@ -53,11 +53,14 @@ abstract class AndroidWearConfigurationExecutor(environment: ExecutionEnvironmen
 
   override fun startDebugSession(
     device: IDevice,
-    console: ConsoleView
-  ): Promise<XDebugSessionImpl> {
+    console: ConsoleView,
+    indicator: ProgressIndicator
+  ): XDebugSessionImpl {
     checkAndroidVersionForWearDebugging(device.version, console)
     return DebugSessionStarter.attachDebuggerToStartedProcess(device, appId, environment, AndroidJavaDebugger(),
-                                                              AndroidJavaDebugger().createState(), getStopCallback(console, true), console)
+                                                              AndroidJavaDebugger().createState(), getStopCallback(console, true),
+                                                              indicator = indicator,
+                                                              console)
   }
 
   protected fun showWatchFace(device: IDevice, console: ConsoleView, indicator: ProgressIndicator) {

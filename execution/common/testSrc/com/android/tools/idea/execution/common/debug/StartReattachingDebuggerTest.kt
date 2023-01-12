@@ -28,6 +28,7 @@ import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebug
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentManager
+import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.xdebugger.XDebuggerManager
@@ -85,10 +86,11 @@ class StartReattachingDebuggerTest {
       executionEnvironment,
       AndroidJavaDebugger(),
       AndroidJavaDebugger().createState(),
-      destroyRunningProcess = { }).blockingGet(20, TimeUnit.SECONDS)
+      destroyRunningProcess = { },
+      EmptyProgressIndicator()
+    )
 
-    assertThat(firstSession).isNotNull()
-    assertThat(firstSession!!.sessionName).isEqualTo("myTestConfiguration")
+    assertThat(firstSession.sessionName).isEqualTo("myTestConfiguration")
     assertThat(firstSession.debugProcess.processHandler).isInstanceOf(
       AndroidRemoteDebugProcessHandler::class.java)
   }
@@ -134,7 +136,8 @@ class StartReattachingDebuggerTest {
       executionEnvironment,
       AndroidJavaDebugger(),
       AndroidJavaDebugger().createState(),
-      destroyRunningProcess = { it.forceStop(APP_ID) }).blockingGet(20, TimeUnit.SECONDS)
+      destroyRunningProcess = { it.forceStop(APP_ID) }, EmptyProgressIndicator()
+    )
 
     val tabsOpened = AtomicInteger(0)
     repeat(ADDITIONAL_CLIENTS) {
@@ -180,7 +183,9 @@ class StartReattachingDebuggerTest {
       executionEnvironment,
       AndroidJavaDebugger(),
       AndroidJavaDebugger().createState(),
-      destroyRunningProcess = { it.forceStop(APP_ID) }).blockingGet(20, TimeUnit.SECONDS)!!
+      destroyRunningProcess = { it.forceStop(APP_ID) },
+      EmptyProgressIndicator()
+    )
 
     // when we stop for debug, master process should be stopped too
     sessionImpl.runContentDescriptor.processHandler!!.destroyProcess()

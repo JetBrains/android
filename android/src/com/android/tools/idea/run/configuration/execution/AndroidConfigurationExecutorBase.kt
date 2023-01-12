@@ -38,6 +38,7 @@ import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
@@ -59,6 +60,8 @@ abstract class AndroidConfigurationExecutorBase(
   protected val applicationIdProvider: ApplicationIdProvider,
   protected val apkProvider: ApkProvider
 ) : AndroidConfigurationExecutor {
+
+  private val LOG = Logger.getInstance(this::class.java)
 
   override val configuration: RunConfiguration = environment.runProfile as RunConfiguration
 
@@ -138,15 +141,30 @@ abstract class AndroidConfigurationExecutorBase(
 
     executeOnPooledThread {
       promise.catchError {
-        startDebugSession(device, console)
-          .onError(promise::setError)
-          .then { it.runContentDescriptor }.processed(promise)
+        promise.setResult(startDebugSession(device, console, indicator).runContentDescriptor)
       }
     }
+
     launch(device, deployResult.app, console, true, indicator)
 
     promise.onSuccess {
       RunStats.from(environment).endLaunchTasks()
+    }
+
+    promise.onError {
+      if (device.isOffline) return@onError
+      try {
+        getStopCallback(console, isDebug).invoke(device)
+      }
+      catch (e: Exception) {
+        LOG.warn(e)
+      }
+      try {
+        ApplicationTerminator(device, appId).killApp()
+      }
+      catch (e: Exception) {
+        LOG.warn(e)
+      }
     }
 
     return promise
@@ -159,7 +177,7 @@ abstract class AndroidConfigurationExecutorBase(
   @Throws(ExecutionException::class)
   abstract fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean, indicator: ProgressIndicator)
 
-  protected abstract fun startDebugSession(device: IDevice, console: ConsoleView): Promise<XDebugSessionImpl>
+  protected abstract fun startDebugSession(device: IDevice, console: ConsoleView, indicator: ProgressIndicator): XDebugSessionImpl
 
   @Throws(ExecutionException::class)
   private fun getDevices(indicator: ProgressIndicator, stats: RunStats): List<IDevice> {
