@@ -18,6 +18,7 @@ package com.android.tools.profilers;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.idea.codenavigation.FakeNavSource;
+import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.analytics.FeatureTracker;
@@ -125,9 +126,13 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myProfileablsBuildsEnabled = true;
 
   /**
-   * Whether power data tracks should be visible in system trace.
+   * Whether power and battery data tracks should be visible in system trace and if shown,
+   * which graph display style will be used for the power and battery tracks.
+   * Value of HIDE -> Hide both power + battery tracks.
+   * Value of MINMAX -> Show power rails is min-max view and battery counters in zero-based view.
+   * Value of DELTA -> Show power rails in delta view and battery counters in zero-based view.
    */
-  private boolean mySystemTracePowerTracksEnabled = false;
+  private PowerProfilerDisplayMode mySystemTracePowerProfilerDisplayMode = PowerProfilerDisplayMode.HIDE;
 
   /**
    * Whether we support navigate-to-source action for Compose Tracing
@@ -253,7 +258,9 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isSystemTracePowerTracksEnabled() { return mySystemTracePowerTracksEnabled; }
+      public PowerProfilerDisplayMode getSystemTracePowerProfilerDisplayMode() {
+        return mySystemTracePowerProfilerDisplayMode;
+      }
 
       @Override
       public boolean isCustomEventVisualizationEnabled() {
@@ -425,8 +432,8 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
     myProfileablsBuildsEnabled = enabled;
   }
 
-  public void enableSystemTracePowerTracks(boolean enabled) {
-    mySystemTracePowerTracksEnabled = enabled;
+  public void setSystemTracePowerProfilerDisplayMode(PowerProfilerDisplayMode mode) {
+    mySystemTracePowerProfilerDisplayMode = mode;
   }
 
   public void enableComposeTracingNavigateToSource(boolean enabled) {

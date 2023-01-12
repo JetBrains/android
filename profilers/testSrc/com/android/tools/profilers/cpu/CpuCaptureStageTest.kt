@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
@@ -209,7 +210,8 @@ class CpuCaptureStageTest {
   @Test
   fun trackGroupModelsAreSetForPerfettoWithPower() {
     services.enableJankDetectionUi(false)
-    services.enableSystemTracePowerTracks(true)
+    // Enable power rail and battery counter tracks in min-max and zero-based display mode respectively.
+    services.setSystemTracePowerProfilerDisplayMode(PowerProfilerDisplayMode.MINMAX)
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                        CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage_with_power.trace"), SESSION_ID)
     profilers.stage = stage

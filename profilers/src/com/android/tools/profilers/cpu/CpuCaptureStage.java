@@ -28,6 +28,7 @@ import com.android.tools.adtui.model.event.UserEvent;
 import com.android.tools.adtui.model.trackgroup.TrackGroupActionListener;
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
+import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.EventStreamServer;
 import com.android.tools.profiler.perfetto.proto.TraceProcessor;
@@ -461,7 +462,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
     }
 
     if (capture instanceof SystemTraceCpuCapture && capture.getSystemTraceData() != null &&
-        getStudioProfilers().getIdeServices().getFeatureConfig().isSystemTracePowerTracksEnabled()) {
+        getStudioProfilers().getIdeServices().getFeatureConfig().getSystemTracePowerProfilerDisplayMode() !=
+        PowerProfilerDisplayMode.HIDE) {
       // Power rail data is ODPM hardware exclusive, but we take a data driven approach for checking compatibility.
       if (!capture.getSystemTraceData().getPowerRailCounters().isEmpty()) {
         // Power rail counters.

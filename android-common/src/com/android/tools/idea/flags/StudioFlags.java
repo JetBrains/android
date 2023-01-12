@@ -21,6 +21,7 @@ import com.android.flags.FlagOverrides;
 import com.android.flags.Flags;
 import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
+import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.android.tools.idea.util.StudioPathManager;
 import com.intellij.openapi.application.Application;
@@ -155,10 +156,14 @@ public final class StudioFlags {
     "Allow users to build apps as profileable with a supported Gradle plugin version (>7.3.0)",
     true);
 
-  public static final Flag<Boolean> PROFILER_SYSTRACE_POWER_TRACKS = Flag.create(
-    PROFILER, "power.tracks", "Enable power tracks in system trace UI",
-    "Shows power data track groups in the system trace.",
-    false);
+  public static final Flag<PowerProfilerDisplayMode> PROFILER_SYSTEM_TRACE_POWER_PROFILER_DISPLAY_MODE = Flag.create(
+    PROFILER, "power.tracks", "Set display mode of power rails and battery counters in system trace UI",
+    "Allows users to customize whether the power rail and battery counter tracks are shown in the system trace UI, " +
+    "and if shown, which type of graph displays the tracks. " +
+    "When set to HIDE, hides power and battery data track groups in the system trace. " +
+    "When set to MINMAX, shows the power rail tracks in a min-max view and keep the battery counter rails in a zero-based view. " +
+    "When set to DELTA, shows the power rail tracks in a delta view and keeps the battery counter rails in a zero-based view.",
+    PowerProfilerDisplayMode.HIDE);
 
   // TODO(b/211154220): Pending user's feedback, either completely remove the keyboard event functionality in
   // Event Timeline or find a proper way to support it for Android S and newer.
