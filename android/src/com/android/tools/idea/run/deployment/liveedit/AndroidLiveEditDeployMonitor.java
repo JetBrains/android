@@ -461,11 +461,16 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     }
 
     switch (event) {
-      case DEVICE_DISCONNECT, APPLICATION_DISCONNECT ->
+      case DEVICE_DISCONNECT ->
         deviceStatusManager.update(device, LiveEditStatus.Disabled.INSTANCE);
       case APPLICATION_CONNECT ->
         // If the device was previously in LOADING state, we are now ready to receive live edits.
         deviceStatusManager.update(device, status -> status == LiveEditStatus.Loading.INSTANCE ? LiveEditStatus.UpToDate.INSTANCE : status);
+      case APPLICATION_DISCONNECT ->
+        // If the application disconnects while in the Loading status (if it's the current session that disconnected while loading, we
+        // would've gotten an APPLICATION_CONNECT event first before the Client disconnected), that means it is the disconnect from the
+        // previous session that has finally arrived in Studio through ADB. Ignore the event in this case.
+        deviceStatusManager.update(device, status -> status != LiveEditStatus.Loading.INSTANCE ? LiveEditStatus.Disabled.INSTANCE : status);
       case DEBUGGER_CONNECT ->
         deviceStatusManager.update(device, LiveEditStatus.DebuggerAttached.INSTANCE);
       case DEBUGGER_DISCONNECT ->
