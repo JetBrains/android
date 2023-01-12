@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.dsl.model.android
 
 import com.android.tools.idea.gradle.dsl.TestFileName
+import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.MAP_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
@@ -25,11 +27,16 @@ import com.android.tools.idea.gradle.dsl.model.android.productFlavors.NdkOptions
 import com.android.tools.idea.gradle.dsl.model.android.productFlavors.externalNativeBuild.CMakeOptionsModelImpl
 import com.android.tools.idea.gradle.dsl.model.android.productFlavors.externalNativeBuild.NdkBuildOptionsModelImpl
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.Lists
 import com.google.common.truth.Truth.assertThat
+import org.hamcrest.CoreMatchers
+import org.hamcrest.MatcherAssert
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.io.File
+import java.io.IOException
 
 /**
  * Tests for [ProductFlavorModelImpl].
@@ -2305,6 +2312,39 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  @Throws(IOException::class)
+  fun testReadInitWith() {
+    writeToBuildFile(TestFile.OVERRIDE_WITH_INIT_WITH)
+    val productFlavorsModels = gradleBuildModel.android().productFlavors()
+    assertEquals(productFlavorsModels.size, 2)
+    val freeFlavor = productFlavorsModels[0]
+    val paidFlavor = productFlavorsModels[1]
+
+    assertEquals("free", freeFlavor.name())
+    assertEquals("paid", paidFlavor.name())
+
+    verifyFlavorType(
+      "buildConfigFields",
+      ImmutableList.of<List<Any>>(Lists.newArrayList<Any>("abcd", "efgh", "ijkl")),
+      freeFlavor.buildConfigFields()
+    )
+
+    // Check if initWith is applied
+    assertInstanceOf(paidFlavor, FlavorTypeModelImpl::class.java) // initWith is not part of the interface, need to cast
+    val referenceTo = (paidFlavor as FlavorTypeModelImpl).initWith().getRawValue(GradlePropertyModel.REFERENCE_TO_TYPE)
+    assertEquals(ReferenceTo(freeFlavor), referenceTo)
+    verifyFlavorType(
+      "buildConfigFields",
+      ImmutableList.of<List<Any>>(Lists.newArrayList<Any>("abcd", "efgh", "ijkl")),
+      paidFlavor.buildConfigFields()
+    )
+
+    // check that initWith doesn't change the target flavor
+    assertEquals(".free", freeFlavor.applicationIdSuffix().valueAsString())
+    assertEquals(".paid", paidFlavor.applicationIdSuffix().valueAsString())
+  }
+
+  @Test
   fun testParseMatchingFallbacks() {
     writeToBuildFile(TestFile.PARSE_MATCHING_FALLBACKS)
     val buildModel = gradleBuildModel
@@ -2737,6 +2777,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     FUNCTION_CALL_WITH_PARENTHESES("functionCallWithParentheses"),
     ENSURE_SDK_VERSION_USES_APPLICATION_SYNTAX_EXPECTED("ensureSdkVersionUsesApplicationSyntaxExpected"),
     ENSURE_SDK_VERSION_USES_APPLICATION_SYNTAX_EXPECTED_400("ensureSdkVersionUsesApplicationSyntaxExpected400"),
+    OVERRIDE_WITH_INIT_WITH("overrideWithInitWith"),
     PARSE_MATCHING_FALLBACKS("parseMatchingFallbacks"),
     APPEND_MATCHING_FALLBACKS("appendMatchingFallbacks"),
     APPEND_MATCHING_FALLBACKS_EXPECTED("appendMatchingFallbacksExpected"),

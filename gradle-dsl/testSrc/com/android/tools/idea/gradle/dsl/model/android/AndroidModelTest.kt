@@ -1929,7 +1929,51 @@ class AndroidModelTest : GradleFileModelTestCase() {
     }
   }
 
-  enum class TestFile(val path: @SystemDependent String): TestFileName {
+  @Test
+  fun testAddBuildTypeWithInitWith() {
+    writeToBuildFile(TestFile.ADD_BUILD_TYPE_SET_INIT_WITH)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    var buildTypes = android.buildTypes()
+    assertThat(buildTypes).hasSize(3)
+
+    val fooBuildType = buildTypes.first { it.name() == "foo" }
+    assertTrue(fooBuildType.minifyEnabled().toBoolean()!!)
+
+    val newBuildType = android.addBuildType("bar", fooBuildType)
+
+    buildTypes = android.buildTypes()
+    assertThat(buildTypes).hasSize(4)
+
+    assertTrue(newBuildType.minifyEnabled().toBoolean()!!)
+
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_BUILD_TYPE_SET_INIT_WITH_EXPECTED)
+  }
+
+  @Test
+  fun testAddProductFlavorWithInitWith() {
+    writeToBuildFile(TestFile.ADD_PRODUCT_FLAVOR_SET_INIT_WITH)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    val dependentFlavor = android.addProductFlavor("dependent")
+    var flavors = android.productFlavors()
+
+    assertThat(flavors).hasSize(1)
+    assertEquals(".dependent", dependentFlavor.applicationIdSuffix().valueAsString())
+
+    val newFlavor = android.addProductFlavor("demo", dependentFlavor)
+
+    flavors = android.productFlavors()
+    assertThat(flavors).hasSize(2)
+
+    assertEquals(".dependent", newFlavor.applicationIdSuffix().valueAsString())
+
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_PRODUCT_FLAVOR_SET_INIT_WITH_EXPECTED)
+  }
+
+  enum class TestFile(val path: @SystemDependent String) : TestFileName {
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS("androidBlockWithApplicationStatements"),
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS_WITH_PARENTHESES("androidBlockWithApplicationStatementsWithParentheses"),
     ANDROID_BLOCK_WITH_ASSIGNMENT_STATEMENTS("androidBlockWithAssignmentStatements"),
@@ -2026,6 +2070,10 @@ class AndroidModelTest : GradleFileModelTestCase() {
     SET_PROGUARD_FILES_TO_REFERENCE_EXPECTED("setProguardFilesToReferenceExpected"),
     SET_PROGUARD_FILES_TO_LIST("setProguardFilesToList"),
     SET_PROGUARD_FILES_TO_LIST_EXPECTED("setProguardFilesToListExpected"),
+    ADD_BUILD_TYPE_SET_INIT_WITH("addBuildTypeSetInitWith"),
+    ADD_BUILD_TYPE_SET_INIT_WITH_EXPECTED("addBuildTypeSetInitWithExpected"),
+    ADD_PRODUCT_FLAVOR_SET_INIT_WITH("addProductFlavorSetInitWith"),
+    ADD_PRODUCT_FLAVOR_SET_INIT_WITH_EXPECTED("addProductFlavorSetInitWithExpected"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

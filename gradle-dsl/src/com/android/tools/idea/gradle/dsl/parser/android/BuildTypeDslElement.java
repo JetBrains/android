@@ -24,9 +24,12 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanti
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableMap;
@@ -43,6 +46,7 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
     {"isDebuggable", property, DEBUGGABLE, VAR},
     {"isDefault", property, DEFAULT, VAR},
     {"isEmbedMicroApp", property, EMBED_MICRO_APP, VAR},
+    {"initWith", exactly(1), INIT_WITH, OTHER},
     {"isJniDebuggable", property, JNI_DEBUGGABLE, VAR},
     {"setJniDebuggable", exactly(1), JNI_DEBUGGABLE, SET},
     {"isMinifyEnabled", property, MINIFY_ENABLED, VAR},
@@ -69,6 +73,7 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
     {"isDefault", exactly(1), DEFAULT, SET},
     {"embedMicroApp", property, EMBED_MICRO_APP, VAR},
     {"embedMicroApp", exactly(1), EMBED_MICRO_APP, SET},
+    {"initWith", exactly(1), INIT_WITH, OTHER},
     {"jniDebuggable", property, JNI_DEBUGGABLE, VAR},
     {"jniDebuggable", exactly(1), JNI_DEBUGGABLE, SET},
     {"minifyEnabled", property, MINIFY_ENABLED, VAR},
@@ -95,6 +100,19 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap);
+  }
+
+  @Override
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    if (element.getFullName().equals("initWith") && element instanceof GradleDslLiteral) {
+      GradleReferenceInjection referenceTo = ((GradleDslLiteral)element).getReferenceInjection();
+      if (referenceTo != null && referenceTo.getToBeInjected() != null) {
+        // Merge properties with the target
+        mergePropertiesFrom((GradlePropertiesDslElement)referenceTo.getToBeInjected());
+      }
+    }
+
+    super.addParsedElement(element);
   }
 
   private ImmutableMap<String, PropertiesElementDescription> CHILD_PROPERTIES_ELEMENT_DESCRIPTION_MAP = Stream.of(new Object[][]{

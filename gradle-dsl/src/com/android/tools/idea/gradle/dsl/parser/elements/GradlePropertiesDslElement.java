@@ -154,7 +154,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     mergePropertiesFrom(file);
   }
 
-  private void mergePropertiesFrom(@NotNull GradlePropertiesDslElement other) {
+  public void mergePropertiesFrom(@NotNull GradlePropertiesDslElement other) {
     Map<String, GradleDslElement> ourProperties = getPropertyElements();
     for (Map.Entry<String, GradleDslElement> entry : other.getPropertyElements().entrySet()) {
       GradleDslElement newProperty = entry.getValue();
