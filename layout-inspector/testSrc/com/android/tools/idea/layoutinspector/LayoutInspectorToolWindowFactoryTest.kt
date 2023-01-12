@@ -213,7 +213,9 @@ class LayoutInspectorToolWindowFactoryTest {
     projectRule.replaceService(AppInspectionDiscoveryService::class.java, mock())
     whenever(AppInspectionDiscoveryService.instance.apiServices).thenReturn(inspectionRule.inspectionService.apiServices)
     val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(inspectorRule.project)
-    LayoutInspectorToolWindowFactory().createToolWindowContent(inspectorRule.project, toolWindow)
+    runInEdtAndWait {
+      LayoutInspectorToolWindowFactory().createToolWindowContent(inspectorRule.project, toolWindow)
+    }
     val component = toolWindow.contentManager.selectedContent?.component!!
     waitForCondition(5L, TimeUnit.SECONDS) {
       ComponentUtil.flatten(component).firstIsInstanceOrNull<DeviceViewPanel>() != null
