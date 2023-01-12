@@ -98,7 +98,7 @@ class PickerButtonAction(
   }
 
   fun updateStates(initial: Any, target: Any) {
-    setUnitStates(ComposeUnit.parseValue(initial), ComposeUnit.parseValue(target))
+    setUnitStates(ComposeUnit.parseNumberUnit(initial), ComposeUnit.parseNumberUnit(target))
   }
 
   private fun setUnitStates(initial: ComposeUnit.Unit<*>?, target: ComposeUnit.Unit<*>?) {

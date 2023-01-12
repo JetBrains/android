@@ -718,7 +718,7 @@ class AnimationPreview(
             AnimatedProperty.Builder()
               .setStartTimeMs(composeTransition.startTimeMillis.toInt())
               .setEndTimeMs(composeTransition.endTimeMillis.toInt())
-          composeTransition.values.mapValues { ComposeUnit.parseValue(it.value) }.forEach {
+          composeTransition.values.mapValues { ComposeUnit.parseNumberUnit(it.value) }.forEach {
             (ms, unit) ->
             unit?.let { builder.add(ms.toInt(), unit) }
           }

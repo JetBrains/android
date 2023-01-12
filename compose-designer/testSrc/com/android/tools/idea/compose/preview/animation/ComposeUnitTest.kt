@@ -29,7 +29,7 @@ class ComposeUnitTest {
   fun parseInt() {
     val composeUnit = ComposeUnit.parse(ComposeAnimatedProperty("", 1))
     assertNotNull(composeUnit)
-    composeUnit as ComposeUnit.Unit1D
+    composeUnit as ComposeUnit.Unit1D<*>
     assertEquals(1, composeUnit.component1)
     assertEquals(listOf(1), composeUnit.components)
     assertEquals("1", composeUnit.toString(0))
@@ -56,7 +56,7 @@ class ComposeUnitTest {
   fun parseDouble() {
     val composeUnit = ComposeUnit.parse(ComposeAnimatedProperty("", 1.2345))
     assertNotNull(composeUnit)
-    composeUnit as ComposeUnit.Unit1D
+    composeUnit as ComposeUnit.Unit1D<*>
     assertEquals(1.2345, composeUnit.component1)
     assertEquals(listOf(1.2345), composeUnit.components)
     assertEquals("1.2345", composeUnit.toString(0))
@@ -81,7 +81,7 @@ class ComposeUnitTest {
   fun parseFloat() {
     val composeUnit = ComposeUnit.parse(ComposeAnimatedProperty("", 1.2345f))
     assertNotNull(composeUnit)
-    composeUnit as ComposeUnit.Unit1D
+    composeUnit as ComposeUnit.Unit1D<*>
     assertEquals(1.2345f, composeUnit.component1)
     assertEquals(listOf(1.2345f), composeUnit.components)
     assertEquals("1.2345", composeUnit.toString(0))
@@ -540,7 +540,7 @@ class ComposeUnitTest {
 
   @Test
   fun parseNull() {
-    val result = ComposeUnit.parseValue(null)
+    val result = ComposeUnit.parseNumberUnit(null)
     assertNull(result)
   }
 }
