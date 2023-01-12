@@ -494,6 +494,12 @@ def _form_version_full(ctx):
             " " +
             str(ctx.attr.version_release_number))
 
+def _full_display_version(ctx):
+    """Returns the output of _form_version_full with versions applied."""
+    intellij_info = ctx.attr.platform[IntellijInfo]
+    (micro, _) = _split_version(ctx.attr.version_micro_patch)
+    return _form_version_full(ctx).format(intellij_info.major_version, intellij_info.minor_version, micro)
+
 def _stamp(ctx, platform, zip, extra, srcs, out):
     args = ["--platform", zip.path]
     args += ["--os", platform.name]
@@ -543,9 +549,18 @@ def _produce_manifest(ctx, platform):
     )
 
 def _produce_update_message_html(ctx):
-    ctx.actions.write(
+    if not ctx.file.update_message_template:
+        ctx.actions.write(output = ctx.outputs.update_message, content = "")
+        return
+
+    channel, _ = _get_channel_info(ctx.attr.version_type)
+    ctx.actions.expand_template(
+        template = ctx.file.update_message_template,
         output = ctx.outputs.update_message,
-        content = ctx.attr.version_update_message,
+        substitutions = {
+            "{full_version}": _full_display_version(ctx),
+            "{channel}": channel,
+        },
     )
 
 def _stamp_platform(ctx, platform, zip, out):
@@ -723,14 +738,14 @@ _android_studio = rule(
         "files_mac_arm": attr.label_keyed_string_dict(allow_files = True, default = {}),
         "files_win": attr.label_keyed_string_dict(allow_files = True, default = {}),
         "jre": attr.label(),
-        "platform": attr.label(),
+        "platform": attr.label(providers = [IntellijInfo]),
         "plugins": attr.label_list(providers = [PluginInfo]),
         "searchable_options": attr.label(),
         "version_code_name": attr.string(),
         "version_micro_patch": attr.string(),
         "version_release_number": attr.int(),
         "version_type": attr.string(),
-        "version_update_message": attr.string(),
+        "update_message_template": attr.label(allow_single_file = True),
         "_singlejar": attr.label(
             default = Label("@bazel_tools//tools/jdk:singlejar"),
             cfg = "host",
@@ -782,6 +797,10 @@ _android_studio = rule(
 #       plugins: A list of plugins to be bundled
 #       modules: A dictionary (see studio_plugin) with modules bundled at top level
 #       resources: A dictionary (see studio_plugin) with resources bundled at top level
+#       update_message_template: A file to use for the update message. The following
+#                                substitutions are available to message templates:
+#                                 {full_version} - See _form_version_full below.
+#                                 {channel} - The channel derived from version_type.
 #
 # Regarding versioning information:
 # - The "version_*" parameters (like "version_micro_path" and
