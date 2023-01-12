@@ -90,6 +90,7 @@ public class Emulator implements AutoCloseable {
       "-feature",
       "-ModemSimulator",
       "-delay-adb",
+      "-no-boot-anim",
       "-verbose");
     pb.environment().put("ANDROID_EMULATOR_HOME", fileSystem.getAndroidHome().toString());
     pb.environment().put("ANDROID_AVD_HOME", getAvdHome(fileSystem).toString());
