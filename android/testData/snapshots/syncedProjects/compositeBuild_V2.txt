@@ -3475,8 +3475,6 @@ PROJECT                       : project
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib1.lib.main
             Scope                         : Test
-        ORDER_ENTRY                   : TestCompositeLib3.lib.main
-            Scope                         : Test
         ORDER_ENTRY                   : composite2.main
             Scope                         : Test
         ORDER_ENTRY                   : composite4.main
@@ -3674,7 +3672,6 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         ORDER_ENTRY                   : TestCompositeLib1.lib.main
-        ORDER_ENTRY                   : TestCompositeLib3.lib.main
         ORDER_ENTRY                   : composite2.main
         ORDER_ENTRY                   : composite4.main
         ORDER_ENTRY                   : compositeNest.main
@@ -3900,8 +3897,6 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib1.lib.main
-            Scope                         : Test
-        ORDER_ENTRY                   : TestCompositeLib3.lib.main
             Scope                         : Test
         ORDER_ENTRY                   : composite2.main
             Scope                         : Test

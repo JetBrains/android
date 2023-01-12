@@ -2693,7 +2693,6 @@ MODULE                        : project.app
                     artifacts::                   : null => :@main
                     artifacts::lib                : null => :lib@main
                     artifacts::lib                : null => :lib@main
-                    artifacts::lib                : null => :lib@main
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2@aar
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0@aar
@@ -2735,7 +2734,6 @@ MODULE                        : project.app
                     artifacts::                   : null => :@main
                     artifacts::                   : null => :@main
                     artifacts::                   : null => :@main
-                    artifacts::lib                : null => :lib@main
                     artifacts::lib                : null => :lib@main
                     artifacts::lib                : null => :lib@main
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2@aar
@@ -2787,7 +2785,6 @@ MODULE                        : project.app
                     artifacts::app                : null => :app@main
                     artifacts::lib                : null => :lib@main
                     artifacts::lib                : null => :lib@main
-                    artifacts::lib                : null => :lib@main
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2@aar
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0@aar
@@ -2830,7 +2827,6 @@ MODULE                        : project.app
                     artifacts::                   : null => :@main
                     artifacts::                   : null => :@main
                     artifacts::app                : null => :app@main
-                    artifacts::lib                : null => :lib@main
                     artifacts::lib                : null => :lib@main
                     artifacts::lib                : null => :lib@main
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2@aar
@@ -2885,7 +2881,6 @@ MODULE                        : project.app
                 artifacts::app                : null => :app@main
                 artifacts::lib                : null => :lib@main
                 artifacts::lib                : null => :lib@main
-                artifacts::lib                : null => :lib@main
                 com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2@aar
                 com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                 com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0@aar
@@ -2921,7 +2916,6 @@ MODULE                        : project.app
                 artifacts::                   : null => :@main
                 artifacts::                   : null => :@main
                 artifacts::app                : null => :app@main
-                artifacts::lib                : null => :lib@main
                 artifacts::lib                : null => :lib@main
                 artifacts::lib                : null => :lib@main
         - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]

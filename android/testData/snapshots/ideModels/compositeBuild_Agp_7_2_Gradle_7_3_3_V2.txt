@@ -2141,14 +2141,14 @@ MODULE                        : TestCompositeLib1.lib
                     - runtimeClasspath            : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                     - runtimeClasspath            : com.android.support:support-vector-drawable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                     - runtimeClasspath            : com.android.support:animated-vector-drawable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                    - runtimeClasspath            : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
-                    - runtimeClasspath            : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl) (*seen*)
-                    - runtimeClasspath            : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
-                    - runtimeClasspath            : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
                     - runtimeClasspath            : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                     - runtimeClasspath            : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                     - runtimeClasspath            : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                     - runtimeClasspath            : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
                     - runtimeClasspath            : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                     - runtimeClasspath            : <ROOT>/TestCompositeLib2:: (IdeModuleLibraryImpl) (*seen*)
                     - runtimeClasspath            : <ROOT>/TestCompositeLib3::lib@debug (IdeModuleLibraryImpl) (*seen*)
@@ -2242,14 +2242,14 @@ MODULE                        : TestCompositeLib1.lib
                     - runtimeClasspath            : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                     - runtimeClasspath            : com.android.support:support-vector-drawable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                     - runtimeClasspath            : com.android.support:animated-vector-drawable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                    - runtimeClasspath            : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
-                    - runtimeClasspath            : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl) (*seen*)
-                    - runtimeClasspath            : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
-                    - runtimeClasspath            : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
                     - runtimeClasspath            : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                     - runtimeClasspath            : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                     - runtimeClasspath            : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                     - runtimeClasspath            : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
                     - runtimeClasspath            : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                     - runtimeClasspath            : <ROOT>/TestCompositeLib1::lib@debug (IdeModuleLibraryImpl) (*seen*)
                     - runtimeClasspath            : <ROOT>/TestCompositeLib2:: (IdeModuleLibraryImpl) (*seen*)
@@ -2343,14 +2343,14 @@ MODULE                        : TestCompositeLib1.lib
                     - runtimeClasspath            : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                     - runtimeClasspath            : com.android.support:support-vector-drawable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                     - runtimeClasspath            : com.android.support:animated-vector-drawable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                    - runtimeClasspath            : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
-                    - runtimeClasspath            : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl) (*seen*)
-                    - runtimeClasspath            : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
-                    - runtimeClasspath            : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
                     - runtimeClasspath            : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                     - runtimeClasspath            : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                     - runtimeClasspath            : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                     - runtimeClasspath            : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
                     - runtimeClasspath            : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                     - runtimeClasspath            : <ROOT>/TestCompositeLib1::lib@debug (IdeModuleLibraryImpl) (*seen*)
                     - runtimeClasspath            : <ROOT>/TestCompositeLib2:: (IdeModuleLibraryImpl) (*seen*)
@@ -2370,6 +2370,11 @@ MODULE                        : TestCompositeLib1.lib
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0-api.jar
@@ -2400,11 +2405,6 @@ MODULE                        : TestCompositeLib1.lib
                     - classpath                   : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0-api.jar
                     - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
                     destination                   : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debug
@@ -2503,6 +2503,9 @@ MODULE                        : TestCompositeLib1.lib
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0-api.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0-api.jar
@@ -2532,9 +2535,6 @@ MODULE                        : TestCompositeLib1.lib
                     - classpath                   : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0-api.jar
                     - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
                     destination                   : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugUnitTest
@@ -5395,7 +5395,6 @@ MODULE                        : project.app
                     - compileClasspath            : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1:: (IdeModuleLibraryImpl) (*seen*)
                     - compileClasspath            : <ROOT>/TestCompositeLib1::lib@debug (IdeModuleLibraryImpl) (*seen*)
                     - compileClasspath            : <ROOT>/TestCompositeLib2:: (IdeModuleLibraryImpl) (*seen*)
-                    - compileClasspath            : <ROOT>/TestCompositeLib3::lib@debug (IdeModuleLibraryImpl) (*seen*)
                     - compileClasspath            : <ROOT>/TestCompositeLib4:: (IdeModuleLibraryImpl) (*seen*)
                     - compileClasspath            : <ROOT>::lib@debug (IdeModuleLibraryImpl)
                         buildId                       : <ROOT>
@@ -5517,7 +5516,6 @@ MODULE                        : project.app
                     - compileClasspath            : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1:: (IdeModuleLibraryImpl) (*seen*)
                     - compileClasspath            : <ROOT>/TestCompositeLib1::lib@debug (IdeModuleLibraryImpl) (*seen*)
                     - compileClasspath            : <ROOT>/TestCompositeLib2:: (IdeModuleLibraryImpl) (*seen*)
-                    - compileClasspath            : <ROOT>/TestCompositeLib3::lib@debug (IdeModuleLibraryImpl) (*seen*)
                     - compileClasspath            : <ROOT>/TestCompositeLib4:: (IdeModuleLibraryImpl) (*seen*)
                     - compileClasspath            : <ROOT>::app@debug (IdeModuleLibraryImpl)
                         buildId                       : <ROOT>
@@ -5626,7 +5624,6 @@ MODULE                        : project.app
                     - compileClasspath            : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1:: (IdeModuleLibraryImpl) (*seen*)
                     - compileClasspath            : <ROOT>/TestCompositeLib1::lib@debug (IdeModuleLibraryImpl) (*seen*)
                     - compileClasspath            : <ROOT>/TestCompositeLib2:: (IdeModuleLibraryImpl) (*seen*)
-                    - compileClasspath            : <ROOT>/TestCompositeLib3::lib@debug (IdeModuleLibraryImpl) (*seen*)
                     - compileClasspath            : <ROOT>/TestCompositeLib4:: (IdeModuleLibraryImpl) (*seen*)
                     - compileClasspath            : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                     - compileClasspath            : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
