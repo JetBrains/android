@@ -3014,6 +3014,11 @@ MODULE                        : NonStandardSourceSetDependencies.common
                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
         extraFeatures                 : ExtraFeaturesImpl
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 8
+            patch                         : 0
+            versionString                 : 1.8.0-Beta
         - targets                     : jvm (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
@@ -4473,6 +4478,11 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
         extraFeatures                 : ExtraFeaturesImpl
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 8
+            patch                         : 0
+            versionString                 : 1.8.0-Beta
         - kotlinImportingDiagnostics  : OrphanSourceSetsImportingDiagnostic
             kotlinSourceSet               : androidAndroidTestRelease (KotlinSourceSetImpl)
                 actualPlatforms               : KotlinPlatformContainerImpl
@@ -5144,6 +5154,11 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
         extraFeatures                 : ExtraFeaturesImpl
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 8
+            patch                         : 0
+            versionString                 : 1.8.0-Beta
         - targets                     : jvm (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)

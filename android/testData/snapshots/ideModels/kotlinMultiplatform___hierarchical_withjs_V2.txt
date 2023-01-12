@@ -1911,6 +1911,11 @@ MODULE                        : kotlinMultiPlatform.jsModule
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 8
+            patch                         : 0
+            versionString                 : 1.8.0-Beta
         - targets                     : js (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : main (KotlinSourceSetImpl)
@@ -2527,6 +2532,11 @@ MODULE                        : kotlinMultiPlatform.module2
                 file                          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 8
+            patch                         : 0
+            versionString                 : 1.8.0-Beta
         - kotlinImportingDiagnostics  : OrphanSourceSetsImportingDiagnostic
             kotlinSourceSet               : androidAndroidTestRelease (KotlinSourceSetImpl)
                 actualPlatforms               : KotlinPlatformContainerImpl
