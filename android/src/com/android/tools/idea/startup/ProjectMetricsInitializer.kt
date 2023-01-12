@@ -16,7 +16,6 @@
 package com.android.tools.idea.startup
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.StudioProjectChange
