@@ -444,7 +444,7 @@ android-studio/lib/ant/lib/ant.pom
 android-studio/lib/ant/lib/libraries.properties
 android-studio/lib/ant/src.zip
 android-studio/lib/app.jar
-android-studio/lib/build-marker-AI-223.7255.1.2231.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-223.7401.7.2231.__BUILD_NUMBER__
 android-studio/lib/byte-buddy-agent.jar
 android-studio/lib/cds/classesLogAgent.jar
 android-studio/lib/error-prone-annotations.jar
