@@ -21,6 +21,14 @@ PluginInfo = provider(
     },
 )
 
+IntellijInfo = provider(
+    doc = "Info about the IntelliJ SDK provided by the intellij_platform rule",
+    fields = {
+        "major_version": "The major IntelliJ version.",
+        "minor_version": "The minor IntelliJ version.",
+    },
+)
+
 # Valid types (and their corresponding channels) which can be specified
 # by the android_studio rule.
 type_channel_mappings = {
@@ -929,6 +937,10 @@ def _intellij_platform_impl(ctx):
         providers = [
             DefaultInfo(files = files, runfiles = runfiles),
             java_common.merge([export[JavaInfo] for export in ctx.attr.exports]),
+            IntellijInfo(
+                major_version = ctx.attr.major_version,
+                minor_version = ctx.attr.minor_version,
+            ),
         ],
         data = struct(
             files = depset([]),
@@ -954,6 +966,8 @@ def _intellij_platform_impl(ctx):
 
 _intellij_platform = rule(
     attrs = {
+        "major_version": attr.string(),
+        "minor_version": attr.string(),
         "exports": attr.label_list(providers = [JavaInfo]),
         "extra_plugins": attr.label_list(providers = [PluginInfo]),
         "data": attr.label_list(allow_files = True),
@@ -966,6 +980,7 @@ _intellij_platform = rule(
             executable = True,
         ),
     },
+    provides = [DefaultInfo, JavaInfo, IntellijInfo],
     implementation = _intellij_platform_impl,
 )
 
@@ -987,6 +1002,8 @@ def intellij_platform(
 
     _intellij_platform(
         name = name,
+        major_version = spec.major_version,
+        minor_version = spec.minor_version,
         exports = [":" + name + "_jars"],
         extra_plugins = extra_plugins,
         compress = is_release(),
