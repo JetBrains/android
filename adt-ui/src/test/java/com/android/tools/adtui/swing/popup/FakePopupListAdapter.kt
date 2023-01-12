@@ -17,8 +17,8 @@ package com.android.tools.adtui.swing.popup
 
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.ui.GenericListComponentUpdater
 import com.intellij.openapi.ui.JBListUpdater
-import com.intellij.openapi.ui.ListComponentUpdater
 import com.intellij.openapi.ui.popup.PopupChooserBuilder
 import com.intellij.openapi.ui.popup.PopupChooserBuilder.PopupComponentAdapter
 import com.intellij.openapi.wm.IdeFocusManager
@@ -88,7 +88,7 @@ class FakePopupListAdapter<T>(val builder: PopupChooserBuilder<T>, val list: JLi
     }
   }
 
-  override fun getBackgroundUpdater(): ListComponentUpdater {
+  override fun getBackgroundUpdater(): GenericListComponentUpdater<T>? {
     return JBListUpdater(list as JBList<*>?)
   }
 
