@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model.dependencies;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.api.dependencies.PlatformDependencyModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
@@ -52,10 +53,11 @@ abstract class PlatformArtifactDependencyModelImpl extends ArtifactDependencyMod
 
     MapNotation(@NotNull String configurationName,
                 @NotNull GradleDslExpressionMap dslElement,
+                @NotNull GradleDslElement originalElement,
                 @Nullable GradleDslClosure configurationElement,
                 @NotNull Maintainer maintainer,
                 @NotNull String methodName) {
-      super(configurationName, dslElement, configurationElement, maintainer);
+      super(configurationName, dslElement, originalElement, configurationElement, maintainer);
       this.methodName = methodName;
     }
 

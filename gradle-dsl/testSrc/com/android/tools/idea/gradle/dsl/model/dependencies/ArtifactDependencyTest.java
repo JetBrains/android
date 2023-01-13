@@ -31,11 +31,17 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+import static com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyTest.TestFile.EDIT_CATALOG_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyTest.TestFile.EDIT_CATALOG_DEPENDENCY_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyTest.TestFile.EDIT_CATALOG_FILE;
+import static com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyTest.TestFile.EDIT_CATALOG_FILE_EXPECTED;
 import static com.google.common.truth.Truth.assertThat;
+
 import static org.junit.Assume.assumeTrue;
 
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
@@ -57,8 +63,10 @@ import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemDependent;
@@ -213,6 +221,42 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(2));
 
     // We do not support: test wrapped('something:else:1.0')
+  }
+
+  @Test
+  public void testEditCatalogDependency() throws IOException {
+    writeToBuildFile(EDIT_CATALOG_DEPENDENCY);
+    writeToVersionCatalogFile(EDIT_CATALOG_FILE);
+    ProjectBuildModel projectBuildModel = getProjectBuildModel();
+    GradleBuildModel buildModel = projectBuildModel.getProjectBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    final List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(3);
+
+    final List<ExpectedArtifactDependency> expected =
+      Arrays.asList(new ExpectedArtifactDependency("implementation", "core-ktx", "androidx.core", "1.9.0"),
+                    new ExpectedArtifactDependency("implementation", "junit", "junit", "4.13"),
+                    new ExpectedArtifactDependency("implementation", "ui", "androidx.compose.ui", "1.0.0"));
+
+    final List<String> newVersions = Arrays.asList("1.9.1", "4.14", "1.0.1");
+
+    IntStream.range(0, 3)
+      .forEach(i ->
+               {
+                 ArtifactDependencyModel actual = dependencies.get(i);
+                 expected.get(i).assertMatches(actual);
+                 actual.enableSetThrough();
+                 actual.setConfigurationName("testImplementation");
+                 actual.version().setValue(newVersions.get(i));
+               });
+
+    assertTrue(buildModel.isModified());
+    applyChanges(projectBuildModel);
+
+    verifyFileContents(myBuildFile, EDIT_CATALOG_DEPENDENCY_EXPECTED);
+    verifyVersionCatalogFileContents(myVersionCatalogFile, EDIT_CATALOG_FILE_EXPECTED);
+    assertFalse(buildModel.isModified());
   }
 
   @Test
@@ -1343,6 +1387,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertThat(secondModel.completeModel().getRawValue(STRING_TYPE)).isEqualTo("com.google.guava:$name:+");
   }
 
+  // The difference between previous and this test is in following one uses InterpolatedText API
+  // as the result it changes literal quotation mark to double quote.
   @Test
   public void CompactNotationSetToInterpolation() throws IOException {
     writeToBuildFile(TestFile.COMPACT_NOTATION_SET_TO_INTERPOLATION);
@@ -1374,6 +1420,166 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertThat(artifactModel.completeModel().getRawValue(STRING_TYPE)).isEqualTo("org.gradle.test.classifiers:service:$version");
   }
 
+  @Test
+  public void testCompactNotationSetToReferenceFromRootProjectFile() throws IOException {
+    writeToSubModuleBuildFile(TestFile.COMPACT_NOTATION_SET_TO_ROOT_PROJECT_REFERENCE);
+    writeToBuildFile(TestFile.ROOT_BUILD_WITH_SIMPLE_VARIABLE);
+    writeToSettingsFile(getSubModuleSettingsText());
+
+    ProjectBuildModel projectModel = getProjectBuildModel();
+    GradleBuildModel buildModel = projectModel.getModuleBuildModel(mySubModule);
+    GradleBuildModel rootModel = projectModel.getProjectBuildModel();
+
+    DependenciesModel dependencies = buildModel.dependencies();
+    List<ArtifactDependencyModel> artifacts = dependencies.artifacts();
+    assertSize(2, artifacts);
+
+    // Get the version variable model
+    ExtModel extModel = rootModel.ext();
+    GradlePropertyModel name = extModel.findProperty("name");
+    GradlePropertyModel version = extModel.findProperty("version");
+
+    ArtifactDependencyModel firstModel = artifacts.get(0);
+    firstModel.version().setValue(new ReferenceTo(version));
+    ArtifactDependencyModel secondModel = artifacts.get(1);
+    secondModel.name().setValue(new ReferenceTo(name));
+
+    applyChangesAndReparse(projectModel);
+
+    verifyFileContents(mySubModuleBuildFile, TestFile.COMPACT_NOTATION_SET_TO_ROOT_PROJECT_REFERENCE_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ROOT_BUILD_WITH_SIMPLE_VARIABLE);
+
+    dependencies = buildModel.dependencies();
+    artifacts = dependencies.artifacts();
+    assertSize(2, artifacts);
+
+    firstModel = artifacts.get(0);
+
+    verifyPropertyModel(firstModel.version(), STRING_TYPE, "3.6", STRING, FAKE, 1, "version");
+    assertThat(firstModel.completeModel().getRawValue(STRING_TYPE)).isEqualTo(
+      isKotlinScript() ?
+      "org.gradle.test.classifiers:service:${rootProject.extra[\"version\"]}" :
+      "org.gradle.test.classifiers:service:$version"
+    );
+
+    secondModel = artifacts.get(1);
+    verifyPropertyModel(secondModel.name(), STRING_TYPE, "guava", STRING, FAKE, 1, "name");
+    assertThat(secondModel.completeModel().getRawValue(STRING_TYPE)).isEqualTo(
+      isKotlinScript() ?
+      "com.google.guava:${rootProject.extra[\"name\"]}:+" :
+      "com.google.guava:$name:+"
+    );
+  }
+
+  @Test
+  public void testCompactNotationEditValueViaReferenceToRootProjectFile() throws IOException {
+    writeToSubModuleBuildFile(TestFile.COMPACT_NOTATION_EDIT_REFERENCED_DEPENDENCY);
+    writeToBuildFile(TestFile.ROOT_BUILD_WITH_SIMPLE_VARIABLE);
+    writeToSettingsFile(getSubModuleSettingsText());
+
+    ProjectBuildModel projectModel = getProjectBuildModel();
+    GradleBuildModel buildModel = projectModel.getModuleBuildModel(mySubModule);
+
+    DependenciesModel dependencies = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> artifacts = dependencies.artifacts();
+    assertSize(2, artifacts);
+
+    ArtifactDependencyModel firstModel = artifacts.get(0);
+    firstModel.enableSetThrough();
+    firstModel.version().setValue("1.0");
+    firstModel.setConfigurationName("testCompile");
+
+    ArtifactDependencyModel secondModel = artifacts.get(1);
+    secondModel.enableSetThrough();
+    secondModel.name().getResultModel().setValue("guava2"); // that's the api for set value for referenced variable
+    secondModel.setConfigurationName("testCompile");
+
+    applyChangesAndReparse(projectModel);
+
+    verifyFileContents(mySubModuleBuildFile, TestFile.COMPACT_NOTATION_EDIT_REFERENCED_DEPENDENCY_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ROOT_BUILD_WITH_SIMPLE_VARIABLE_EXPECTED);
+    buildModel = projectModel.getModuleBuildModel(mySubModule);
+    dependencies = buildModel.dependencies();
+    artifacts = dependencies.artifacts();
+    assertSize(2, artifacts);
+
+    firstModel = artifacts.get(0);
+    verifyPropertyModel(firstModel.version(), STRING_TYPE, "1.0", STRING, FAKE, 0, "version");
+    assertThat(firstModel.completeModel().getRawValue(STRING_TYPE)).isEqualTo(
+      "org.gradle.test.classifiers:service:1.0"
+    );
+    GradleBuildModel rootProject = projectModel.getProjectBuildModel();
+    ExtModel ext = rootProject.ext();
+    assertThat(ext.findProperty("name").getValue(STRING_TYPE)).isEqualTo("guava2");
+  }
+
+  // testing case for "compile group: 'com.google.guava', name: 'guava', version: guavaVersion"
+  @Test
+  public void testMapNotationEditValueViaReferenceToRootProjectFile() throws IOException {
+    writeToSubModuleBuildFile(TestFile.MAP_NOTATION_EDIT_REFERENCE_VALUE);
+    writeToBuildFile(TestFile.MAP_NOTATION_EDIT_REFERENCE_VALUE_ROOT);
+    writeToSettingsFile(getSubModuleSettingsText());
+
+    ProjectBuildModel projectModel = getProjectBuildModel();
+    GradleBuildModel buildModel = projectModel.getModuleBuildModel(mySubModule);
+
+    DependenciesModel dependencies = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> artifacts = dependencies.artifacts();
+    assertSize(1, artifacts);
+
+    ArtifactDependencyModel firstModel = artifacts.get(0);
+    firstModel.enableSetThrough();
+    firstModel.version().setValue("19.0");
+    firstModel.setConfigurationName("testCompile");
+
+    applyChangesAndReparse(projectModel);
+    verifyFileContents(mySubModuleBuildFile, TestFile.MAP_NOTATION_EDIT_REFERENCE_VALUE_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.MAP_NOTATION_EDIT_REFERENCE_VALUE_ROOT);
+
+    dependencies = buildModel.dependencies();
+    artifacts = dependencies.artifacts();
+    assertSize(1, artifacts);
+
+    firstModel = artifacts.get(0);
+    verifyPropertyModel(firstModel.version(), STRING_TYPE, "19.0", STRING, DERIVED, 0, "version");
+    assertThat(firstModel.completeModel().getRawValue(STRING_TYPE)).isEqualTo(
+      "{group=com.google.guava, name=guava, version=19.0}"
+    );
+  }
+
+  @Test
+  public void testEditViaReferenceToRootMapVariable() throws IOException {
+    writeToSubModuleBuildFile(TestFile.EDIT_REFERENCE_DEPENDENCY);
+    writeToBuildFile(TestFile.ROOT_BUILD_WITH_MAP_VARIABLE);
+    writeToSettingsFile(getSubModuleSettingsText());
+
+    ProjectBuildModel projectModel = getProjectBuildModel();
+    GradleBuildModel buildModel = projectModel.getModuleBuildModel(mySubModule);
+
+    DependenciesModel dependencies = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> artifacts = dependencies.artifacts();
+    assertSize(1, artifacts);
+
+    ArtifactDependencyModel firstModel = artifacts.get(0);
+    firstModel.enableSetThrough();
+    firstModel.version().setValue("1.1.5");
+    firstModel.setConfigurationName("compile");
+
+    applyChangesAndReparse(projectModel);
+
+    verifyFileContents(mySubModuleBuildFile, TestFile.EDIT_REFERENCE_DEPENDENCY_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ROOT_BUILD_WITH_MAP_VARIABLE_EXPECTED);
+
+    dependencies = buildModel.dependencies();
+    artifacts = dependencies.artifacts();
+    assertSize(1, artifacts);
+
+    firstModel = artifacts.get(0);
+    verifyPropertyModel(firstModel.version(), STRING_TYPE, "1.1.5", STRING, isGroovy() ? REGULAR : DERIVED, 0, "version");
+  }
   @Test
   public void testSetPropertyWithDottedName() throws IOException {
     writeToBuildFile(TestFile.SET_REFERENCE_PROPERTY_WITH_DOTTED_NAME);
@@ -1719,6 +1925,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     artModel.group().setValue("d");
     artModel.disableSetThrough();
     artModel.group().setValue("e");
+    artModel.setConfigurationName("testCompile");
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.COMPACT_SET_THROUGH_REFERENCES_EXPECTED);
@@ -1750,6 +1957,9 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     applyChangesAndReparse(buildModel);
 
+    ExtModel extModel = buildModel.ext();
+    GradlePropertyModel dep = extModel.findProperty("dep");
+    verifyPropertyModel(dep,STRING_TYPE,"a:z:1.0",STRING, REGULAR, 0);
     verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "a:z:1.0", STRING, REGULAR, 1);
   }
 
@@ -2229,6 +2439,20 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     MAP_NOTATION_PSI_ELEMENT("mapNotationPsiElement"),
     COMPACT_NOTATION_SET_TO_REFERENCE("compactNotationSetToReference"),
     COMPACT_NOTATION_SET_TO_REFERENCE_EXPECTED("compactNotationSetToReferenceExpected"),
+    ROOT_BUILD_WITH_MAP_VARIABLE("rootProjectMapExtVariable"),
+    ROOT_BUILD_WITH_MAP_VARIABLE_EXPECTED("rootProjectMapExtVariableExpected"),
+    EDIT_REFERENCE_DEPENDENCY("editReferencedDependency"),
+    EDIT_REFERENCE_DEPENDENCY_EXPECTED("editReferencedDependencyExpected"),
+    ROOT_BUILD_WITH_SIMPLE_VARIABLE("rootProjectSimpleExtVariable"),
+    ROOT_BUILD_WITH_SIMPLE_VARIABLE_EXPECTED("rootProjectSimpleExtVariableExpected"),
+    COMPACT_NOTATION_EDIT_REFERENCED_DEPENDENCY("compactNotationEditReferencedDependency"),
+    MAP_NOTATION_EDIT_REFERENCE_VALUE("editReferencedValueFromMapNotation"),
+    MAP_NOTATION_EDIT_REFERENCE_VALUE_EXPECTED("editReferencedValueFromMapNotationExpected"),
+    MAP_NOTATION_EDIT_REFERENCE_VALUE_ROOT("editReferencedValueFromMapNotation_root"),
+    MAP_NOTATION_EDIT_REFERENCE_VALUE_EXPECTED_ROOT("editReferencedValueFromMapNotationExpected_root"),
+    COMPACT_NOTATION_EDIT_REFERENCED_DEPENDENCY_EXPECTED("compactNotationEditReferencedDependencyExpected"),
+    COMPACT_NOTATION_SET_TO_ROOT_PROJECT_REFERENCE("compactNotationSetToRootProjectReference"),
+    COMPACT_NOTATION_SET_TO_ROOT_PROJECT_REFERENCE_EXPECTED("compactNotationSetToRootProjectReferenceExpected"),
     COMPACT_NOTATION_SET_TO_INTERPOLATION("compactNotationSetToInterpolation"),
     COMPACT_NOTATION_SET_TO_INTERPOLATION_EXPECTED("compactNotationSetToInterpolationExpected"),
     COMPACT_NOTATION_SET_TO_RAW_TEXT("compactNotationSetToRawText"),
@@ -2278,6 +2502,10 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     SET_PLATFORM_DEPENDENCY_VERSIONS_EXPECTED("setPlatformDependencyVersionsExpected"),
     DELETE_PLATFORM_DEPENDENCIES_EXPECTED("deletePlatformDependenciesExpected"),
     ADD_PLATFORM_DEPENDENCIES_EXPECTED("addPlatformDependenciesExpected"),
+    EDIT_CATALOG_DEPENDENCY("editCatalogDependency"),
+    EDIT_CATALOG_FILE("editCatalogDependency.versions.toml"),
+    EDIT_CATALOG_FILE_EXPECTED("editCatalogDependencyExpected.versions.toml"),
+    EDIT_CATALOG_DEPENDENCY_EXPECTED("editCatalogDependencyExpected"),
     ;
 
     @NotNull private @SystemDependent String path;

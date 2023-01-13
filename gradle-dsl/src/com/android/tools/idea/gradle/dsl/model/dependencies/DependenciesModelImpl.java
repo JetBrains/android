@@ -110,7 +110,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
       }
       if (resolved instanceof GradleDslExpressionMap) {
         ArtifactDependencyModel mapNotation = ArtifactDependencyModelImpl.MapNotation.create(
-            configurationName, (GradleDslExpressionMap)resolved, configurationElement, maintainer, methodName);
+            configurationName, (GradleDslExpressionMap)resolved, element, configurationElement, maintainer, methodName);
         if (mapNotation != null) {
           dest.add(mapNotation);
           // cannot do extract variables for version catalog dependencies for now
@@ -224,7 +224,6 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
         GradleDslExpressionList parentList = (GradleDslExpressionList)(dslElement.getParent());
         List<GradleDslExpression> expressions = parentList.getExpressions();
         GradleDslElement nameHolder = parentList;
-        GradleNameElement nameElement = nameHolder.getNameElement();
 
         if (expressions.size() == 1) {
           renameSingleElementConfiguration(nameHolder, newConfigurationName);

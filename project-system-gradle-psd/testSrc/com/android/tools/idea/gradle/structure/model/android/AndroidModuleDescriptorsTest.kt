@@ -161,6 +161,7 @@ class AndroidModuleDescriptorsTest {
   fun testSetListReferencesGroovy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
     preparedProject.open { resolvedProject ->
+      // Groovy can resolve variable without rootProject.ext prefix
       val expectedGrRawValues = listOf("localList[0]", "listProp[0]")
       doTestSetListReferences(resolvedProject, expectedGrRawValues)
     }

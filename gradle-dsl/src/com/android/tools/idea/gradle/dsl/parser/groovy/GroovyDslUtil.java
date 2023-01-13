@@ -419,8 +419,9 @@ public final class GroovyDslUtil {
         int i = parent.getSimpleExpressions().indexOf(currentElement);
         externalName.append(i + "]");
       }
-      else if (currentElement instanceof ExtDslElement || currentElement instanceof BuildScriptDslElement) {
-        // do nothing
+      else if (currentElement instanceof ExtDslElement || currentElement instanceof BuildScriptDslElement){
+        // don't need to add ext.variableName or parentProject variable name for Groovy as it smart enough to
+        // fall back to ext and to root in case it cannot find variable during runtime
       }
       else {
         externalName.append(quotePartIfNecessary(elementExternalNameParts.get(0)));
