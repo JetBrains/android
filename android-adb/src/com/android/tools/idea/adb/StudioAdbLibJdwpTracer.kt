@@ -25,6 +25,7 @@ import com.android.adblib.tools.debugging.packets.JdwpPacketView
 import com.android.adblib.tools.debugging.packets.appendJdwpPacket
 import com.android.adblib.utils.ResizableBuffer
 import com.android.jdwptracer.JDWPTracer
+import com.android.tools.idea.flags.StudioFlags
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -55,7 +56,7 @@ class StudioAdbLibJdwpTracerFactory : SharedJdwpSessionMonitorFactory {
 }
 
 class StudioAdbLibJdwpTracer : SharedJdwpSessionMonitor {
-  private val tracer = JDWPTracer(true)
+  private val tracer = JDWPTracer(StudioFlags.JDWP_TRACER.get())
   private val sendMutex = Mutex()
   private val sendBuffer = ResizableBuffer()
   private val receiveMutex = Mutex()
