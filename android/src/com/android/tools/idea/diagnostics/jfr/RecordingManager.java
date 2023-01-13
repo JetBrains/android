@@ -28,13 +28,14 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.LowMemoryWatcher;
 import com.intellij.util.messages.MessageBusConnection;
+import jdk.jfr.Event;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
 import java.nio.file.Path;
 import java.util.IdentityHashMap;
 import java.util.concurrent.TimeUnit;
-import jdk.jfr.Event;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public final class RecordingManager {
 
@@ -105,7 +106,7 @@ public final class RecordingManager {
     Application application = ApplicationManager.getApplication();
     application.getMessageBus().connect(application).subscribe(IdePerformanceListener.TOPIC, new IdePerformanceListener() {
       @Override
-      public void uiFreezeStarted() {
+      public void uiFreezeStarted(@NotNull File reportDir) {
         synchronized (jfrLock) {
           recordings.startFreeze();
           freezeStart = System.currentTimeMillis();
