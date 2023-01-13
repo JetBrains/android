@@ -31,7 +31,6 @@ import com.android.tools.idea.gradle.project.build.attribution.getAgpAttribution
 import com.android.tools.idea.gradle.project.build.attribution.isBuildAttributionEnabledForProject
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration
 import com.android.tools.idea.gradle.project.common.GradleInitScripts
-import com.android.tools.idea.gradle.project.common.addAndroidSupportVersionArg
 import com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink
 import com.android.tools.idea.gradle.util.AndroidGradleSettings
 import com.android.tools.idea.gradle.util.GradleBuilds
@@ -247,7 +246,6 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
             commandLineArguments.add(GradleBuilds.PARALLEL_BUILD_OPTION)
           }
           commandLineArguments.add(AndroidGradleSettings.createProjectProperty(PROPERTY_INVOKED_FROM_IDE, true))
-          addAndroidSupportVersionArg(commandLineArguments)
           if (enableBuildAttribution) {
             val attributionFileDir = getAgpAttributionFileDir(myRequest.data)
             commandLineArguments.add(
