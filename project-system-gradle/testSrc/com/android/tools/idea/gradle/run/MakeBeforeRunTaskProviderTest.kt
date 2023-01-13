@@ -137,6 +137,18 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     }
   }
 
+  fun `test when device api level injection is disabled`() {
+    StudioFlags.API_OPTIMIZATION_ENABLE.override(false)
+    setUpTestProject()
+    whenever(myDevice.version).thenReturn(AndroidVersion(20, null))
+    val arguments = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
+                                                                         myRunConfiguration,
+                                                                         deviceSpec(myDevice))
+    assertFalse(arguments.contains("-Pandroid.injected.build.api=20"))
+
+    StudioFlags.API_OPTIMIZATION_ENABLE.clearOverride()
+  }
+
   fun testResizableDevice() {
     setUpTestProject()
     whenever(myDevice.version).thenReturn(AndroidVersion(33, null))
@@ -395,9 +407,9 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
         receiver.addOutput(byteArray, 0, byteArray.size)
         null
       }.whenever(device).executeShellCommand(ArgumentMatchers.anyString(),
-                                           ArgumentMatchers.any(),
-                                           ArgumentMatchers.anyLong(),
-                                           ArgumentMatchers.any())
+                                             ArgumentMatchers.any(),
+                                             ArgumentMatchers.anyLong(),
+                                             ArgumentMatchers.any())
     }
   }
 }

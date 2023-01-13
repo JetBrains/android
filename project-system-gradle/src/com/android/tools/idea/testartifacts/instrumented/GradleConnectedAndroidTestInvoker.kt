@@ -20,6 +20,7 @@ import com.android.builder.model.PROPERTY_BUILD_API
 import com.android.builder.model.PROPERTY_BUILD_API_CODENAME
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.Projects
+import com.android.tools.idea.flags.StudioFlags.API_OPTIMIZATION_ENABLE
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.run.createSpec
@@ -53,6 +54,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
+import org.jetbrains.android.refactoring.getProjectProperties
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
@@ -370,9 +372,11 @@ class GradleConnectedAndroidTestInvoker(
 
     val deviceSpecificArguments = mutableListOf<String>()
     deviceSpec.commonVersion?.let { version ->
-      deviceSpecificArguments.add(createProjectProperty(PROPERTY_BUILD_API, version.apiLevel.toString()))
-      version.codename?.let { codename ->
-        deviceSpecificArguments.add(createProjectProperty(PROPERTY_BUILD_API_CODENAME, codename))
+      if (API_OPTIMIZATION_ENABLE.get()) {
+        deviceSpecificArguments.add(createProjectProperty(PROPERTY_BUILD_API, version.apiLevel.toString()))
+        version.codename?.let { codename ->
+          deviceSpecificArguments.add(createProjectProperty(PROPERTY_BUILD_API_CODENAME, codename))
+        }
       }
     }
     if (deviceSpec.abis.isNotEmpty()) {

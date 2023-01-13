@@ -702,6 +702,14 @@ public final class StudioFlags {
 
   //region Gradle Project System
   private static final FlagGroup GRADLE_IDE = new FlagGroup(FLAGS, "gradle.ide", "Gradle Project System");
+
+  public static final Flag<Boolean> API_OPTIMIZATION_ENABLE = Flag.create(
+    GRADLE_IDE, "build.injection.device.api.enabled",
+    "Enable injection of device api level optimization from IDE",
+    "Enable injection of device api level optimization from IDE",
+    true
+  );
+
   public static final Flag<Boolean> FIX_ANDROID_RUN_CONFIGURATIONS_ENABLED = Flag.create(
     GRADLE_IDE, "gradle.run.configuration.fix.enabled",
     "Check Android Run Configurations contains the \"Gradle-aware Make\" task and fix them",
