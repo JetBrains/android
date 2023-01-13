@@ -646,10 +646,10 @@ android_studio(
     ],
     searchable_options = "//tools/adt/idea/searchable-options",
     version_code_name = "Giraffe",
-    version_micro_patch = "1.1",
+    version_micro_patch = "1.2",
     # This will get added to the end of the full-version string.
     # TODO(b/240707039): automate this.
-    version_release_number = 1,
+    version_release_number = 2,
     version_type = "Canary",
     # version_update_message = "<html>this is optional</html>",
     visibility = ["//visibility:public"],
