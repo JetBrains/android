@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.io;
+package com.android.tools.idea.layoutlib;
 
 import com.android.io.IAbstractFile;
 import com.android.io.StreamException;
@@ -27,7 +27,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import org.jetbrains.annotations.NotNull;
 
-public class BufferingFileWrapper implements IAbstractFile {
+class BufferingFileWrapper implements IAbstractFile {
   private final File myFile;
 
   public BufferingFileWrapper(@NotNull File file) {

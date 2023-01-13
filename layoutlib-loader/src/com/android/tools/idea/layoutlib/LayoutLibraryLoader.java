@@ -21,7 +21,6 @@ import com.android.ide.common.rendering.api.Bridge;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.project.ProjectProperties;
-import com.android.tools.idea.io.BufferingFileWrapper;
 import com.android.utils.ILogger;
 import com.intellij.internal.statistic.analytics.StudioCrashDetails;
 import com.intellij.internal.statistic.analytics.StudioCrashDetection;
