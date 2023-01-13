@@ -39,7 +39,7 @@ object JfrFreezeReports {
   fun createFreezeReportManager(parentDisposable: Disposable) =
     JfrReportManager.create(::JfrFreezeReportGenerator, null) {
       val listener = object : IdePerformanceListener {
-        override fun uiFreezeStarted() {
+        override fun uiFreezeStarted(reportDir: File) {
           startCapture()
           currentReportGenerator!!.edtStackForCrash =
             ThreadDumper.getEdtStackForCrash(ThreadDumper.dumpThreadsToString(), EXCEPTION_TYPE) ?: EMPTY_ANR_STACKTRACE
