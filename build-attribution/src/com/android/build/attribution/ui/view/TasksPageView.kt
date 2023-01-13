@@ -23,6 +23,7 @@ import com.android.build.attribution.ui.panels.CriticalPathChartLegend
 import com.android.build.attribution.ui.view.chart.TimeDistributionTreeChart
 import com.android.build.attribution.ui.view.details.TaskViewDetailPagesFactory
 import com.intellij.ide.HelpTooltip
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.CardLayoutPanel
 import com.intellij.ui.CollectionComboBoxModel
@@ -64,6 +65,7 @@ private const val SPLITTER_PROPERTY = "BuildAnalyzer.TasksView.Splitter.Proporti
 class TasksPageView(
   val model: TasksDataPageModel,
   val actionHandlers: ViewActionHandlers,
+  val disposable: Disposable,
   val detailPagesFactory: TaskViewDetailPagesFactory = TaskViewDetailPagesFactory(model, actionHandlers)
 ) : BuildAnalyzerDataPageView {
 
@@ -193,12 +195,12 @@ class TasksPageView(
     } else {
       add(groupingCheckBox)
     }
-    add(tasksFilterComponent(model, actionHandlers))
+    add(tasksFilterComponent(model, actionHandlers, disposable))
   }
 
   init {
     updateViewFromModel(true)
-    model.addModelUpdatedListener(this::updateViewFromModel)
+    model.addModelUpdatedListener(disposable, this::updateViewFromModel)
   }
 
   private fun updateViewFromModel(treeStructureChanged: Boolean) {

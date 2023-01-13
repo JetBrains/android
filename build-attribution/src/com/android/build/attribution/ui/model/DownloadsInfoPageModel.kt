@@ -33,7 +33,8 @@ class DownloadsInfoPageModel(
   private val downloadsData: DownloadsAnalyzer.Result
 ) {
 
-  val repositoriesTableModel: ListTableModel<DownloadsAnalyzer.RepositoryResult> = RepositoriesTableModel(downloadsData)
+  var repositoriesTableModel: ListTableModel<DownloadsAnalyzer.RepositoryResult> = RepositoriesTableModel(downloadsData)
+    private set
 
   val repositoriesTableEmptyText: String get() = when(downloadsData) {
     is DownloadsAnalyzer.GradleDoesNotProvideEvents -> "Minimal Gradle version providing downloads data is ${minGradleVersionProvidingDownloadEvents.version}."
@@ -41,12 +42,16 @@ class DownloadsInfoPageModel(
     is DownloadsAnalyzer.AnalyzerIsDisabled -> error("UI Should not be available for this state.")
   }
 
-  val requestsListModel: ListTableModel<DownloadsAnalyzer.DownloadResult> = RequestsListTableModel().apply {
-    isSortable = true
-  }
+  var requestsListModel: ListTableModel<DownloadsAnalyzer.DownloadResult> = RequestsListTableModel()
+    private set
 
   fun selectedRepositoriesUpdated(repositories: List<DownloadsAnalyzer.RepositoryResult>) {
     requestsListModel.items = repositories.flatMap { it.downloads }
+  }
+
+  fun recreateTableModels() {
+    repositoriesTableModel = RepositoriesTableModel(downloadsData)
+    requestsListModel = RequestsListTableModel()
   }
 }
 
@@ -120,6 +125,7 @@ class RequestsListTableModel : ListTableModel<DownloadsAnalyzer.DownloadResult>(
         override fun getComparator(): Comparator<DownloadsAnalyzer.DownloadResult> = Comparator.comparing { it.bytes }
       }
     )
+    isSortable = true
   }
 }
 

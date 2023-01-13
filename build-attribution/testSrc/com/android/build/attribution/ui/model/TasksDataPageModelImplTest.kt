@@ -22,9 +22,14 @@ import com.android.build.attribution.ui.mockTask
 import com.android.build.attribution.ui.model.TasksDataPageModel.Grouping
 import com.android.buildanalyzer.common.TaskCategory
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.DisposableRule
+import org.junit.Rule
 import org.junit.Test
 
 class TasksDataPageModelImplTest {
+
+  @get:Rule
+  var disposableRule = DisposableRule()
 
   private val task1 = mockTask(":app", "compile", "compiler.plugin", 2000, taskCategory = TaskCategory.JAVA)
   private val task2 = mockTask(":app", "resources", "resources.plugin", 1000, taskCategory = TaskCategory.ANDROID_RESOURCES)
@@ -34,10 +39,12 @@ class TasksDataPageModelImplTest {
 
   private var modelUpdateListenerCallsCount = 0
   private var modelUpdateListenerCallsWithTreeUpdateCount = 0
-  private val model: TasksDataPageModel = TasksDataPageModelImpl(mockData).apply {
-    addModelUpdatedListener { treeUpdated ->
-      modelUpdateListenerCallsCount++
-      if (treeUpdated) modelUpdateListenerCallsWithTreeUpdateCount++
+  private val model: TasksDataPageModel by lazy {
+    TasksDataPageModelImpl(mockData).apply {
+      addModelUpdatedListener(disposableRule.disposable) { treeUpdated ->
+        modelUpdateListenerCallsCount++
+        if (treeUpdated) modelUpdateListenerCallsWithTreeUpdateCount++
+      }
     }
   }
 

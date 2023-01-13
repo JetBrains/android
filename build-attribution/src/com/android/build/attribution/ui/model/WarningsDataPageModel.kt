@@ -44,7 +44,10 @@ import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.N
 import com.android.build.attribution.ui.warningsCountString
 import com.android.buildanalyzer.common.TaskCategory
 import com.android.buildanalyzer.common.TaskCategoryIssue
+import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.util.concurrent.CopyOnWriteArrayList
@@ -79,7 +82,7 @@ interface WarningsDataPageModel {
   fun selectPageById(warningsPageId: WarningsPageId)
 
   /** Install the listener that will be called on model state changes. */
-  fun addModelUpdatedListener(listener: (Boolean) -> Unit)
+  fun addModelUpdatedListener(disposable: Disposable, listener: (Boolean) -> Unit)
 
   /** Retrieve node descriptor by it's page id. Null if node does not exist in currently presented tree structure. */
   fun getNodeDescriptorById(pageId: WarningsPageId): WarningsTreePresentableNodeDescriptor?
@@ -90,6 +93,8 @@ class WarningsDataPageModelImpl(
 ) : WarningsDataPageModel {
 
   private val modelUpdatedListeners: MutableList<((treeStructureChanged: Boolean) -> Unit)> = CopyOnWriteArrayList()
+  @VisibleForTesting
+  val listenersCount: Int get() = modelUpdatedListeners.size
 
   override val treeHeaderText: String
     get() = treeStructure.treeStats.let { treeStats ->
@@ -163,8 +168,9 @@ class WarningsDataPageModelImpl(
     treeStructure.pageIdToNode[warningsPageId]?.let { selectNode(it) }
   }
 
-  override fun addModelUpdatedListener(listener: (Boolean) -> Unit) {
+  override fun addModelUpdatedListener(disposable: Disposable, listener: (Boolean) -> Unit) {
     modelUpdatedListeners.add(listener)
+    Disposer.register(disposable) { modelUpdatedListeners.remove(listener) }
   }
 
   override fun getNodeDescriptorById(pageId: WarningsPageId): WarningsTreePresentableNodeDescriptor? =

@@ -27,9 +27,14 @@ import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.mockTask
 import com.android.buildanalyzer.common.TaskCategory
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.DisposableRule
+import org.junit.Rule
 import org.junit.Test
 
 class WarningsDataPageModelImplTest {
+
+  @get:Rule
+  var disposableRule = DisposableRule()
 
   val task1 = mockTask(":app", "compile", "compiler.plugin", 2000, taskCategory = TaskCategory.ANDROID_RESOURCES).apply {
     issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
@@ -45,8 +50,10 @@ class WarningsDataPageModelImplTest {
   val mockData = MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryWarning = true)
 
   var modelUpdateListenerCallsCount = 0
-  val model: WarningsDataPageModel = WarningsDataPageModelImpl(mockData).apply {
-    addModelUpdatedListener { modelUpdateListenerCallsCount++ }
+  val model: WarningsDataPageModel by lazy {
+    WarningsDataPageModelImpl(mockData).apply {
+      addModelUpdatedListener(disposableRule.disposable) { modelUpdateListenerCallsCount++ }
+    }
   }
 
   @Test

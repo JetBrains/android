@@ -92,7 +92,7 @@ class BuildAnalyzerFiltersTest {
 
   @Test
   fun testInitialWarningsFilterState() {
-    val initialFilterActionsState = (warningsFilterActions(model.warningsPageModel, controller) as DefaultActionGroup).childActionsOrStubs
+    val initialFilterActionsState = (warningsFilterActions(model.warningsPageModel, controller, disposableRule.disposable) as DefaultActionGroup).childActionsOrStubs
       .filterIsInstance<WarningsFilterToggleAction>()
       .map { it.templateText to it.isSelected(model.warningsPageModel.filter) }
 
@@ -113,7 +113,7 @@ class BuildAnalyzerFiltersTest {
 
   @Test
   fun testShowAlwaysRunTasksFilterApplyToWarnings() {
-    val filterActions = warningsFilterActions(model.warningsPageModel, controller) as DefaultActionGroup
+    val filterActions = warningsFilterActions(model.warningsPageModel, controller, disposableRule.disposable) as DefaultActionGroup
     val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show Always-run tasks" }
 
     filterToggleAction.actionPerformed(TestActionEvent())
@@ -129,7 +129,7 @@ class BuildAnalyzerFiltersTest {
 
   @Test
   fun testShowTasksForAndroidPluginsFilterApplyToWarnings() {
-    val filterActions = warningsFilterActions(model.warningsPageModel, controller) as DefaultActionGroup
+    val filterActions = warningsFilterActions(model.warningsPageModel, controller, disposableRule.disposable) as DefaultActionGroup
     val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show issues for Android/Java/Kotlin plugins" }
 
     filterToggleAction.actionPerformed(TestActionEvent())
@@ -146,7 +146,7 @@ class BuildAnalyzerFiltersTest {
 
   @Test
   fun testShowAnnotationProcessorIssuesFilterApplyToWarnings() {
-    val filterActions = warningsFilterActions(model.warningsPageModel, controller) as DefaultActionGroup
+    val filterActions = warningsFilterActions(model.warningsPageModel, controller, disposableRule.disposable) as DefaultActionGroup
     val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show annotation processors issues" }
 
     filterToggleAction.actionPerformed(TestActionEvent())
@@ -162,7 +162,7 @@ class BuildAnalyzerFiltersTest {
 
   @Test
   fun testShowConfigurationCacheIssuesFilterApplyToWarnings() {
-    val filterActions = warningsFilterActions(model.warningsPageModel, controller) as DefaultActionGroup
+    val filterActions = warningsFilterActions(model.warningsPageModel, controller, disposableRule.disposable) as DefaultActionGroup
     val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show configuration cache issues" }
 
     filterToggleAction.actionPerformed(TestActionEvent())
@@ -178,7 +178,7 @@ class BuildAnalyzerFiltersTest {
 
   @Test
   fun testShowJetifierUsageWarningFilterApplyToWarnings() {
-    val filterActions = warningsFilterActions(model.warningsPageModel, controller) as DefaultActionGroup
+    val filterActions = warningsFilterActions(model.warningsPageModel, controller, disposableRule.disposable) as DefaultActionGroup
     val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show Jetifier usage warning" }
 
     filterToggleAction.actionPerformed(TestActionEvent())
