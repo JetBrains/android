@@ -69,8 +69,7 @@ class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
       snapshotAutoDeletionPolicyComboBox =
         comboBox(snapshotAutoDeletionPolicyComboBoxModel,
                  renderer = SimpleListCellRenderer.create(DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY.displayName) { it?.displayName })
-          .bindItem({ snapshotAutoDeletionPolicyComboBoxModel.selectedItem },
-                    { snapshotAutoDeletionPolicyComboBoxModel.setSelectedItem(it) })
+          .bindItem(snapshotAutoDeletionPolicyComboBoxModel::getSelectedItem, snapshotAutoDeletionPolicyComboBoxModel::setSelectedItem)
           .enabledIf(launchInToolWindowCheckBox.selected)
           .label("When encountering snapshots incompatible with the current configuration:", LabelPosition.TOP)
           .component
@@ -79,8 +78,7 @@ class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
       cameraVelocityControlComboBox =
         comboBox(cameraVelocityControlComboBoxModel,
                  renderer = SimpleListCellRenderer.create(DEFAULT_CAMERA_VELOCITY_CONTROLS.label) { it?.label })
-          .bindItem({ cameraVelocityControlComboBoxModel.selectedItem },
-                    { cameraVelocityControlComboBoxModel.setSelectedItem(it) })
+          .bindItem(cameraVelocityControlComboBoxModel::getSelectedItem, cameraVelocityControlComboBoxModel::setSelectedItem)
           .enabledIf(launchInToolWindowCheckBox.selected)
           .component
     }

@@ -66,8 +66,7 @@ private class BuildAnalyzerConfigurable(val project: Project) : BoundSearchableC
   override fun createPanel(): DialogPanel = panel {
     row {
       checkBox("Notify about new warning types").bindSelected(
-        getter = { buildAnalyzerSettings.settingsState.notifyAboutWarnings },
-        setter = { buildAnalyzerSettings.settingsState.notifyAboutWarnings = it }
+        buildAnalyzerSettings.settingsState::notifyAboutWarnings
       )
     }
   }
