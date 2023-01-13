@@ -207,7 +207,7 @@ private object CompileScopeImpl : CompileScope {
             return FacadeClassSourceShimForFragmentCompilation(psiSourceFile)
           }
         },
-        shouldStubAndNotLinkUnboundSymbols = true,
+        stubSettings = JvmIrCodegenFactory.StubSettings(shouldStubAndNotLinkUnboundSymbols = true),
       ))
     }
 
