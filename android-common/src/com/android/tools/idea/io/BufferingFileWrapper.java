@@ -18,7 +18,6 @@ package com.android.tools.idea.io;
 import com.android.io.IAbstractFile;
 import com.android.io.StreamException;
 import com.google.common.base.MoreObjects;
-import com.intellij.openapi.util.io.FileUtil;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.File;
@@ -83,21 +82,6 @@ public class BufferingFileWrapper implements IAbstractFile {
   @Override
   public boolean exists() {
     return myFile.isFile();
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    BufferingFileWrapper wrapper = (BufferingFileWrapper)o;
-
-    return FileUtil.filesEqual(myFile, wrapper.myFile);
-  }
-
-  @Override
-  public int hashCode() {
-    return FileUtil.fileHashCode(myFile);
   }
 
   @Override
