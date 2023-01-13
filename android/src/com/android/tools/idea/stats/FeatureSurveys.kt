@@ -16,13 +16,17 @@
 package com.android.tools.idea.stats
 
 import com.android.tools.analytics.AnalyticsSettings
+import com.android.tools.idea.actions.FeatureSurveyNotificationAction
 import com.android.tools.idea.serverflags.FEATURE_SURVEY_CONFIG
 import com.android.tools.idea.serverflags.FEATURE_SURVEY_ROOT
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.serverflags.protos.FeatureSurveyConfig
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.intellij.ide.IdeEventQueue
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
+import com.intellij.openapi.application.ApplicationManager
 
 object FeatureSurveys {
   private var isFeatureSurveyPending = false
@@ -31,6 +35,7 @@ object FeatureSurveys {
   fun processEvent(event: AndroidStudioEvent.Builder) {
     triggerSurveyByName(event.kind.valueDescriptor.name)
   }
+
   fun triggerSurveyByName(surveyFileName: String) {
     val name = "$FEATURE_SURVEY_ROOT$surveyFileName"
     val survey = ServerFlagService.instance
@@ -40,19 +45,18 @@ object FeatureSurveys {
     if (!shouldInvokeFeatureSurvey(name)) {
       return
     }
+    val notificationGroup =
+      NotificationGroupManager.getInstance().getNotificationGroup("Feature Survey") ?: return
 
-    val eventQueue = IdeEventQueue.getInstance()
-    lateinit var runner: Runnable
+    val notification = notificationGroup.createNotification(
+      survey.title,
+      "Would you like to take a survey based on your recent activity to help us improve Android Studio?",
+      NotificationType.INFORMATION
+    )
 
-    runner = Runnable {
-      // Ensure we're invoked only once.
-      eventQueue.removeIdleListener(runner)
+    notification.addAction(FeatureSurveyNotificationAction(surveyFileName, survey))
 
-      val dialog = createDialog(survey, FeatureSurveyChoiceLogger)
-      dialog.show()
-    }
-
-    eventQueue.addIdleListener(runner, config.idleIntervalMs)
+    ApplicationManager.getApplication().invokeLater { Notifications.Bus.notify(notification) }
   }
 
   // Determines whether the specified feature survey should be invoked.

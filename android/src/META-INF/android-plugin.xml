@@ -692,6 +692,7 @@
     <notificationGroup id="DeviceMirrorBenchmarking" displayType="STICKY_BALLOON" key="android.emulator" />
     <notificationGroup id="Font Downloading Problems" displayType="BALLOON" isLogByDefault="true" />
     <notificationGroup id="Create Diagnostic Report" displayType="BALLOON" isLogByDefault="true" />
+    <notificationGroup id="Feature Survey" displayType="STICKY_BALLOON" isLogByDefault="true" />
 
     <webHelpProvider implementation="com.android.tools.idea.help.AndroidWebHelpProvider"/>
 
