@@ -34,6 +34,7 @@
     <externalAnnotator language="TEXT" implementationClass="com.android.tools.idea.lint.common.LintExternalAnnotator"/>
     <externalAnnotator language="Groovy" implementationClass="com.android.tools.idea.lint.common.LintExternalAnnotator"/>
     <externalAnnotator language="Properties" implementationClass="com.android.tools.idea.lint.common.LintExternalAnnotator"/>
+    <externalAnnotator language="TOML" implementationClass="com.android.tools.idea.lint.common.LintExternalAnnotator"/>
 
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAccidentalOctal" displayName="Accidental Octal" bundle="messages.LintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.common.AndroidLintAccidentalOctalInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAssertionSideEffect" displayName="Assertions with Side Effects" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintAssertionSideEffectInspection"/>
@@ -79,6 +80,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintSuspiciousIndentation" displayName="Suspicious indentation" bundle="messages.LintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.common.AndroidLintSuspiciousIndentationInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintUastImplementation" displayName="Avoid using UAST implementation" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintUastImplementationInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintUnknownNullness" displayName="Unknown nullness" bundle="messages.LintBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintUnknownNullnessInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintUseTomlInstead" displayName="Use TOML Version Catalog Instead" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintUseTomlInsteadInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintUseValueOf" displayName="Should use valueOf instead of new" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintUseValueOfInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintUsingHttp" displayName="Using HTTP instead of HTTPS" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintUsingHttpInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintVisibleForTests" displayName="Visible Only For Tests" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintVisibleForTestsInspection"/>

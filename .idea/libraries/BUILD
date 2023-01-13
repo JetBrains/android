@@ -317,10 +317,3 @@ jvm_import(
     jars = ["//prebuilts/tools/common/m2:oauth2_files"],
     visibility = ["//visibility:public"],
 )
-
-# managed by go/iml_to_build
-jvm_import(
-    name = "tomlj",
-    jars = ["//prebuilts/tools/common/m2:tomlj_files"],
-    visibility = ["//visibility:public"],
-)

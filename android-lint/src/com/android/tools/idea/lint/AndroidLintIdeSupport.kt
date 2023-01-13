@@ -70,6 +70,7 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.gradle.config.isGradleFile
+import org.toml.lang.psi.TomlFileType
 import java.io.File
 import java.util.EnumSet
 
@@ -146,7 +147,8 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     val fileType = file.fileType
     if (fileType === JavaFileType.INSTANCE
         || fileType === KotlinFileType.INSTANCE
-        || fileType === PropertiesFileType.INSTANCE) {
+        || fileType === PropertiesFileType.INSTANCE
+        || fileType === TomlFileType) {
       return true
     }
     if (fileType === XmlFileType.INSTANCE) {

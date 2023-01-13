@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.SdkConstants.DOT_VERSIONS_DOT_TOML;
 import static com.android.SdkConstants.EXT_GRADLE_KTS;
 import static com.android.SdkConstants.FD_RES_RAW;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
@@ -243,7 +244,7 @@ public class AndroidFileChangeListener implements Disposable {
       return true;
     }
     // Do not test getFileType() as this will differ depending on whether the Toml plugin is active or not.
-    if (psiFile.getName().endsWith(".versions.toml")) {
+    if (psiFile.getName().endsWith(DOT_VERSIONS_DOT_TOML)) {
       return true;
     }
     if (fileType == PropertiesFileType.INSTANCE &&
