@@ -29,6 +29,7 @@ import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.testFramework.EdtRule
@@ -309,7 +310,12 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
 }
 
 @RunsInEdt
-class InspectorPropertyItemTestWithSdk: InspectorPropertyItemTestBase(AndroidProjectRule.withSdk()) {
+class InspectorPropertyItemTestWithSdk: InspectorPropertyItemTestBase(
+  AndroidProjectRule.withAndroidModel(
+    createAndroidProjectBuilderForDefaultTestProjectStructure()
+      .copy(applicationIdFor = { variant -> "com.example" })
+  ).named(InspectorPropertyItemTestWithSdk::class.simpleName)
+) {
   @Test
   fun testBrowseTextSizeFromTextAppearance() {
     val textAppearance = ResourceReference.style(ResourceNamespace.ANDROID, "TextAppearance.Material.Body1")

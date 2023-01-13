@@ -20,7 +20,8 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.resource.data.AppContext
-import com.android.tools.idea.testing.findModule
+import com.android.tools.idea.projectsystem.isMainModule
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.runInEdtAndGet
 import org.jetbrains.android.dom.manifest.Manifest
@@ -53,7 +54,7 @@ class ConfigurationParamsBuilder(private val strings: TestStringTable) {
   }
 
   private fun getAppPackageName(project: Project): String {
-    val module = project.findModule("app")
+    val module = ModuleManager.getInstance(project).modules.find { it.isMainModule() } ?: return defaultPackageName
     val facet = AndroidFacet.getInstance(module)
     return Manifest.getMainManifest(facet)?.`package`?.value ?: defaultPackageName
   }
