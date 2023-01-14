@@ -34,15 +34,18 @@ import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.mock
 import java.awt.Component
 import java.awt.Container
+import java.awt.Graphics2D
 import java.awt.GraphicsConfiguration
 import java.awt.GraphicsDevice
+import java.awt.ImageCapabilities
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.Window
 import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
 import java.awt.image.ColorModel
-import java.lang.AssertionError
+import java.awt.image.ImageObserver
+import java.awt.image.VolatileImage
 import java.util.function.Predicate
 import javax.swing.JLabel
 import javax.swing.JRootPane
@@ -294,6 +297,9 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
 
     override fun getDevice(): GraphicsDevice = device
 
+    override fun createCompatibleVolatileImage(width: Int, height: Int, caps: ImageCapabilities?, transparency: Int): VolatileImage =
+      FakeVolatileImage(width, height, caps)
+
     override fun getColorModel(): ColorModel = ColorModel.getRGBdefault()
 
     override fun getColorModel(transparency: Int): ColorModel = ColorModel.getRGBdefault()
@@ -303,6 +309,36 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
     override fun getNormalizingTransform(): AffineTransform = transform
 
     override fun getBounds(): Rectangle = Rectangle()
+  }
+
+  private class FakeVolatileImage(
+    private val width: Int,
+    private val height: Int,
+    private val capabilities: ImageCapabilities?,
+  ) : VolatileImage() {
+
+    @Suppress("UndesirableClassUsage")
+    private val bufferedImage = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
+
+    override fun getWidth(): Int = width
+
+    override fun getWidth(observer: ImageObserver?): Int = width
+
+    override fun getHeight(): Int = height
+
+    override fun getHeight(observer: ImageObserver?): Int = height
+
+    override fun getProperty(name: String, observer: ImageObserver?): Any? = null
+
+    override fun getCapabilities(): ImageCapabilities? = capabilities
+
+    override fun getSnapshot(): BufferedImage = bufferedImage
+
+    override fun createGraphics(): Graphics2D = bufferedImage.createGraphics()
+
+    override fun validate(gc: GraphicsConfiguration): Int = IMAGE_OK
+
+    override fun contentsLost(): Boolean = false
   }
 
   private class FakeGraphicsDevice constructor(private val defaultConfiguration: GraphicsConfiguration) : GraphicsDevice() {
