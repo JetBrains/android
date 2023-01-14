@@ -16,22 +16,23 @@
 package com.android.tools.idea.diagnostics.jfr.reports
 
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.idea.diagnostics.jfr.reports.JfrTypingLatencyReports.MyLatencyListener
 import com.android.tools.idea.serverflags.protos.JfrTypingLatencyConfig
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoInteractions
-import org.mockito.Mockito.verifyNoMoreInteractions
-import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.test.TestCoroutineScheduler
+import kotlinx.coroutines.test.TestScope
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(JUnit4::class)
 class JfrTypingLatencyReportsTest {
 
@@ -39,10 +40,10 @@ class JfrTypingLatencyReportsTest {
   val projectRule = AndroidProjectRule.onDisk()
 
   private val mockEditor: Editor = mock()
-  private val mockStartCapture: () -> Unit = mock()
-  private val mockStopCapture: (Int) -> Unit = mock()
 
-  private val fakeScheduler = VirtualTimeScheduler()
+  private val scheduler = TestCoroutineScheduler()
+  private val dispatcher = StandardTestDispatcher(scheduler)
+  private val testScope = TestScope(dispatcher)
 
   private val testLatencyConfig = JfrTypingLatencyConfig.newBuilder()
     .setMaxReportLengthBytes(200_000)
@@ -52,178 +53,165 @@ class JfrTypingLatencyReportsTest {
     .setLatencyReportingThresholdMillis(1_000L)  // 1 second
     .build()
 
+  private var startCaptureCalls = 0
+  private val stopCaptureArgs: MutableList<Int> = mutableListOf()
+
+  private val latencyListener = MyLatencyListener(testLatencyConfig, { startCaptureCalls++ }, stopCaptureArgs::add, testScope)
+
   @Test
-  fun latencyListener_keystrokesBelowThreshold() {
-    val latencyListener = MyLatencyListener(testLatencyConfig, mockStartCapture, mockStopCapture, fakeScheduler)
+  fun latencyListener_keystrokesAtThreshold() {
+    latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis)
+    scheduler.advanceTimeBy(100.milliseconds)
+    latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis)
+    scheduler.advanceTimeBy(100.milliseconds)
+    latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis)
+    scheduler.advanceTimeBy(100.milliseconds)
+    latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis)
+    scheduler.advanceTimeBy(100.milliseconds)
 
-    latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis - 1)
-    fakeScheduler.advanceBy(100, TimeUnit.MILLISECONDS)
-    latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis - 1)
-    fakeScheduler.advanceBy(100, TimeUnit.MILLISECONDS)
-    latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis - 1)
-    fakeScheduler.advanceBy(100, TimeUnit.MILLISECONDS)
-    latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis - 1)
-    fakeScheduler.advanceBy(100, TimeUnit.MILLISECONDS)
-
-    assertThat(fakeScheduler.actionsExecuted).isEqualTo(0)
-    assertThat(fakeScheduler.actionsQueued).isEqualTo(0)
-    verifyNoInteractions(mockStartCapture)
-    verifyNoInteractions(mockStopCapture)
+    assertThat(startCaptureCalls).isEqualTo(0)
+    assertThat(stopCaptureArgs).isEmpty()
   }
 
   @Test
   fun latencyListener_recordingStoppedByKeystrokeUnderThreshold() {
-    val latencyListener = MyLatencyListener(testLatencyConfig, mockStartCapture, mockStopCapture, fakeScheduler)
-
     // First keystroke, above threshold.
     latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis + 1)
 
-    verify(mockStartCapture).invoke()
-    verifyNoInteractions(mockStopCapture)
+    assertThat(startCaptureCalls).isEqualTo(1)
+    assertThat(stopCaptureArgs).isEmpty()
 
     // Second keystroke, above threshold.
-    fakeScheduler.advanceBy(100, TimeUnit.MILLISECONDS)
+    scheduler.advanceTimeBy(100.milliseconds)
     latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis + 1)
 
-    verifyNoMoreInteractions(mockStartCapture)
-    verifyNoInteractions(mockStopCapture)
+    assertThat(startCaptureCalls).isEqualTo(1)
+    assertThat(stopCaptureArgs).isEmpty()
 
-    // Third keystroke, below threshold
-    fakeScheduler.advanceBy(100, TimeUnit.MILLISECONDS)
-    latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis - 1)
+    // Third keystroke, at threshold
+    scheduler.advanceTimeBy(100.milliseconds)
+    latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis)
 
-    verifyNoMoreInteractions(mockStartCapture)
-    verify(mockStopCapture).invoke(/* keystrokes = */ 2)
+    assertThat(startCaptureCalls).isEqualTo(1)
+    assertThat(stopCaptureArgs).containsExactly(2)
   }
 
   @Test
   fun latencyListener_recordingStoppedByTypingTimeout() {
-    val latencyListener = MyLatencyListener(testLatencyConfig, mockStartCapture, mockStopCapture, fakeScheduler)
-
     // First keystroke
     latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis + 1)
 
-    verify(mockStartCapture).invoke()
-    verifyNoInteractions(mockStopCapture)
+    assertThat(startCaptureCalls).isEqualTo(1)
+    assertThat(stopCaptureArgs).isEmpty()
 
     // Second keystroke
-    fakeScheduler.advanceBy(100, TimeUnit.MILLISECONDS)
+    scheduler.advanceTimeBy(100.milliseconds)
     latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis + 1)
 
-    verifyNoMoreInteractions(mockStartCapture)
-    verifyNoInteractions(mockStopCapture)
+    assertThat(startCaptureCalls).isEqualTo(1)
+    assertThat(stopCaptureArgs).isEmpty()
 
     // Third keystroke
-    fakeScheduler.advanceBy(100, TimeUnit.MILLISECONDS)
+    scheduler.advanceTimeBy(100.milliseconds)
     latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis + 1)
 
-    verifyNoMoreInteractions(mockStartCapture)
-    verifyNoInteractions(mockStopCapture)
+    assertThat(startCaptureCalls).isEqualTo(1)
+    assertThat(stopCaptureArgs).isEmpty()
 
-    // Advance just short of the typing timeout. Nothing should be happening yet.
-    fakeScheduler.advanceBy(testLatencyConfig.typingTimeoutMillis - 1, TimeUnit.MILLISECONDS)
+    // Advance just up to but not beyond the typing timeout. Nothing should be happening yet.
+    scheduler.advanceTimeBy(testLatencyConfig.typingTimeoutMillis)
 
-    verifyNoMoreInteractions(mockStartCapture)
-    verifyNoInteractions(mockStopCapture)
+    assertThat(startCaptureCalls).isEqualTo(1)
+    assertThat(stopCaptureArgs).isEmpty()
 
     // Advance to typing timeout.
-    fakeScheduler.advanceBy(1, TimeUnit.MILLISECONDS)
-    flushEventThread()
-    verifyNoMoreInteractions(mockStartCapture)
-    verify(mockStopCapture).invoke(/* keystrokes = */ 3)
+    scheduler.advanceTimeBy(1.milliseconds)
+    assertThat(startCaptureCalls).isEqualTo(1)
+    assertThat(stopCaptureArgs).containsExactly(3)
   }
 
   @Test
   fun latencyListener_recordingStoppedBySessionTimeout() {
-    val latencyListener = MyLatencyListener(testLatencyConfig, mockStartCapture, mockStopCapture, fakeScheduler)
-
     // Choose a length between keystrokes just under the typing timeout to ensure it doesn't fire.
     // Simulate keystrokes until we're just under the session timeout threshold.
     val millisBetweenKeystrokes = testLatencyConfig.typingTimeoutMillis - 10
-    val keystrokesBeforeSessionTimeout = testLatencyConfig.sessionTimeoutMillis / millisBetweenKeystrokes
+    val keystrokesBeforeSessionTimeout = (testLatencyConfig.sessionTimeoutMillis / millisBetweenKeystrokes).toInt()
 
     latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis + 1)
-    verify(mockStartCapture).invoke()
-    verifyNoInteractions(mockStopCapture)
+    assertThat(startCaptureCalls).isEqualTo(1)
+    assertThat(stopCaptureArgs).isEmpty()
 
-    for (unused in 1..keystrokesBeforeSessionTimeout) {
-      fakeScheduler.advanceBy(millisBetweenKeystrokes, TimeUnit.MILLISECONDS)
+    repeat(keystrokesBeforeSessionTimeout) {
+      scheduler.advanceTimeBy(millisBetweenKeystrokes)
       latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis + 1)
 
-      verifyNoMoreInteractions(mockStartCapture)
-      verifyNoInteractions(mockStopCapture)
+      assertThat(startCaptureCalls).isEqualTo(1)
+      assertThat(stopCaptureArgs).isEmpty()
     }
 
     // Wait until just before the session timeout.
-    fakeScheduler.advanceBy(testLatencyConfig.sessionTimeoutMillis - fakeScheduler.currentTimeMillis - 1, TimeUnit.MILLISECONDS)
+    scheduler.advanceTimeBy(testLatencyConfig.sessionTimeoutMillis - scheduler.currentTime)
 
-    verifyNoMoreInteractions(mockStartCapture)
-    verifyNoInteractions(mockStopCapture)
+    assertThat(startCaptureCalls).isEqualTo(1)
+    assertThat(stopCaptureArgs).isEmpty()
 
     // Advance to session timeout.
-    fakeScheduler.advanceBy(1, TimeUnit.MILLISECONDS)
-    flushEventThread()
-    verifyNoMoreInteractions(mockStartCapture)
-    verify(mockStopCapture).invoke(/* keystrokes = */ (keystrokesBeforeSessionTimeout + 1).toInt())
+    scheduler.advanceTimeBy(1.milliseconds)
+    assertThat(startCaptureCalls).isEqualTo(1)
+    assertThat(stopCaptureArgs).containsExactly(keystrokesBeforeSessionTimeout + 1)
   }
 
   @Test
   fun latencyListener_cooldownPreventsAnotherReport() {
-    val latencyListener = MyLatencyListener(testLatencyConfig, mockStartCapture, mockStopCapture, fakeScheduler)
-
-    // Send a keystroke above and then below the threshold, to trigger a report session followed by a cooldown.
+    // Send a keystroke above and then at the threshold, to trigger a report session followed by a cooldown.
     latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis + 1)
-    verify(mockStartCapture).invoke()
-    verifyNoInteractions(mockStopCapture)
+    assertThat(startCaptureCalls).isEqualTo(1)
+    assertThat(stopCaptureArgs).isEmpty()
 
-    fakeScheduler.advanceBy(100, TimeUnit.MILLISECONDS)
-    latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis - 1)
-    verifyNoMoreInteractions(mockStartCapture)
-    verify(mockStopCapture).invoke(/* keystrokes = */ 1)
+    scheduler.advanceTimeBy(100.milliseconds)
+    latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis)
+    assertThat(startCaptureCalls).isEqualTo(1)
+    assertThat(stopCaptureArgs).containsExactly(1)
 
-    val cooldownStartTime = fakeScheduler.currentTimeMillis
+    val cooldownStartTime = scheduler.currentTime
     val cooldownEndTime = cooldownStartTime + testLatencyConfig.cooldownTimeoutMillis
 
-    // Send a bunch of keystrokes above and below the threshold. None should cause a report to be started.
-    // Include a keystroke 1 milli before the cooldown expires.
-    fakeScheduler.advanceBy(100, TimeUnit.MILLISECONDS)
+    // Send a bunch of keystrokes above and at the threshold. None should cause a report to be started.
+    // Include a keystroke 1 ms before the cooldown expires.
+    scheduler.advanceTimeBy(100.milliseconds)
     latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis + 1)
-    fakeScheduler.advanceBy(100, TimeUnit.MILLISECONDS)
+    scheduler.advanceTimeBy(100.milliseconds)
     latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis + 1)
-    fakeScheduler.advanceBy(100, TimeUnit.MILLISECONDS)
-    latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis - 1)
-    fakeScheduler.advanceBy(100, TimeUnit.MILLISECONDS)
-    latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis - 1)
-    fakeScheduler.advanceBy(100, TimeUnit.MILLISECONDS)
+    scheduler.advanceTimeBy(100.milliseconds)
+    latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis)
+    scheduler.advanceTimeBy(100.milliseconds)
+    latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis)
+    scheduler.advanceTimeBy(100.milliseconds)
     latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis + 1)
-    fakeScheduler.advanceBy(testLatencyConfig.sessionTimeoutMillis + 100, TimeUnit.MILLISECONDS)
+    scheduler.advanceTimeBy(testLatencyConfig.sessionTimeoutMillis + 100)
     latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis + 1)
-    fakeScheduler.advanceBy(testLatencyConfig.sessionTimeoutMillis + 100, TimeUnit.MILLISECONDS)
-    latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis - 1)
+    scheduler.advanceTimeBy(testLatencyConfig.sessionTimeoutMillis + 100)
+    latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis)
 
-    fakeScheduler.advanceBy(cooldownEndTime - fakeScheduler.currentTimeMillis - 1, TimeUnit.MILLISECONDS)
+    scheduler.advanceTimeBy(cooldownEndTime - scheduler.currentTime)
     latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis + 1)
 
-    // Nothing is expected to have timed out, but flush any pending events just in case.
-    flushEventThread()
-
-    verifyNoMoreInteractions(mockStartCapture)
-    verifyNoMoreInteractions(mockStopCapture)
+    assertThat(startCaptureCalls).isEqualTo(1)
+    assertThat(stopCaptureArgs).containsExactly(1)
 
     // Advance to cooldown end.
-    fakeScheduler.advanceBy(1, TimeUnit.MILLISECONDS)
-    flushEventThread()
-    verifyNoMoreInteractions(mockStartCapture)
-    verifyNoMoreInteractions(mockStopCapture)
+    scheduler.advanceTimeBy(1.milliseconds)
+    assertThat(startCaptureCalls).isEqualTo(1)
+    assertThat(stopCaptureArgs).containsExactly(1)
 
     // Now that cooldown is over, a high-latency keystroke should start a new session (even without any additional time passing).
     latencyListener.recordTypingLatency(mockEditor, null, testLatencyConfig.latencyReportingThresholdMillis + 1)
 
-    verify(mockStartCapture, times(2)).invoke()
-    verifyNoMoreInteractions(mockStopCapture)
+    assertThat(startCaptureCalls).isEqualTo(2)
+    assertThat(stopCaptureArgs).containsExactly(1)
   }
 
-  private fun flushEventThread() {
-    ApplicationManager.getApplication().invokeAndWait { }
+  private fun TestCoroutineScheduler.advanceTimeBy(duration: Duration) {
+    advanceTimeBy(duration.inWholeMilliseconds)
   }
 }
