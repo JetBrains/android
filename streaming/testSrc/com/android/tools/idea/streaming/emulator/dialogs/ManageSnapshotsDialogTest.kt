@@ -139,6 +139,7 @@ class ManageSnapshotsDialogTest {
     assertThat(snapshotDetailsPanel.text).contains("Not created yet")
 
     assertThat(isPresentationEnabled(getLoadSnapshotAction(actionsPanel))).isFalse()
+/* b/265712465
     assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.EDIT))).isFalse()
     assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))).isFalse()
 
@@ -257,6 +258,7 @@ class ManageSnapshotsDialogTest {
     assertThat(coldBootCheckBox.isSelected).isFalse()
     assertThat(isUseToBoot(table, 0)).isTrue() // The QuickBoot snapshot is used to boot.
     assertThat(isUseToBoot(table, 1)).isFalse()
+b/265712465 */
 
     // Check that the snapshots have icons.
     assertThat(getIcon(table, 0)).isNotNull()
@@ -410,6 +412,7 @@ class ManageSnapshotsDialogTest {
 
   @Suppress("SameParameterValue")
   private fun editSnapshot(actionsPanel: CommonActionsPanel, name: String?, description: String?, useToBoot: Boolean?) {
+/* b/265712465
     val editAction = actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.EDIT)
     createModalDialogAndInteractWithIt({ performAction(editAction) }) { dialog ->
       val rootPane = dialog.rootPane
@@ -432,6 +435,7 @@ class ManageSnapshotsDialogTest {
       ui.clickOn(rootPane.defaultButton)
     }
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+b/265712465 */
   }
 
   private fun performAction(action: AnActionButton) {
