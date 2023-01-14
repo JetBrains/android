@@ -14,7 +14,7 @@ public final class AndroidIcons {
   private static @NotNull Icon load(@NotNull String path, int cacheKey, int flags) {
     return IconManager.getInstance().loadRasterizedIcon(path, AndroidIcons.class.getClassLoader(), cacheKey, flags);
   }
-  /** 16x16 */ public static final @NotNull Icon Android = load("icons/android.svg", 1013768402, 0);
+  /** 16x16 */ public static final @NotNull Icon Android = load("icons/android.svg", 120530273, 0);
 
   public static final class Explorer {
     /** 220x125 */ public static final @NotNull Icon DevicesLineup = load("icons/explorer/devices-lineup.png", 0, 7);
