@@ -62,6 +62,7 @@ class ComposePreviewKotlin {
       studio.waitForComponentByClass("InstructionsComponent")
       // A build is necessary for Compose Preview to show.
       studio.executeAction("MakeGradleProject")
+      studio.waitForBuild()
       studio.waitForComponent("DefaultPreview")
 
       val matcher =
