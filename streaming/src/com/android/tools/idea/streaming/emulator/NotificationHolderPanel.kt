@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.emulator
 
 import com.intellij.codeInsight.hint.HintUtil
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.IdeBorderFactory
@@ -158,8 +159,9 @@ class NotificationHolderPanel(contentPanel: Component) : JBLayeredPane() {
     }
 
     override fun paintCycleEnd() {
-      // In a headless environment paintCycleEnd is called by the Animator's constructor. Don't hide the notification is that case.
-      if (!GraphicsEnvironment.isHeadless()) {
+      // In a headless or a test environment paintCycleEnd is called by the Animator's constructor.
+      // Don't hide the notification is that case.
+      if (!skipAnimation()) {
         hideNotificationPopup()
       }
       Disposer.dispose(this)
@@ -168,6 +170,15 @@ class NotificationHolderPanel(contentPanel: Component) : JBLayeredPane() {
     override fun dispose() {
       super.dispose()
       animator = null
+    }
+
+    /** Copied from the [Animator] class where it is unfortunately private. */
+    private fun skipAnimation(): Boolean {
+      if (GraphicsEnvironment.isHeadless()) {
+        return true
+      }
+      val app = ApplicationManager.getApplication()
+      return app != null && app.isUnitTestMode
     }
   }
 }

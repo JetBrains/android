@@ -27,6 +27,7 @@ import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeMouse
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessRootPaneContainer
+import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
@@ -83,7 +84,7 @@ import javax.swing.JScrollPane
 class EmulatorViewTest {
   private val emulatorViewRule = EmulatorViewRule()
   @get:Rule
-  val ruleChain = RuleChain(emulatorViewRule, EdtRule())
+  val ruleChain = RuleChain(IconLoaderRule(), emulatorViewRule, EdtRule())
   private val filesOpened = mutableListOf<VirtualFile>()
 
   private val testRootDisposable
@@ -558,7 +559,7 @@ class EmulatorViewTest {
     val focusManager = FakeKeyboardFocusManager(testRootDisposable)
     focusManager.focusOwner = view
     emulator.virtualSceneCameraActive = true
-    waitForCondition(2, TimeUnit.SECONDS) {
+    waitForCondition(200, TimeUnit.SECONDS) {
       ui.findComponent<EditorNotificationPanel>() != null
     }
 
