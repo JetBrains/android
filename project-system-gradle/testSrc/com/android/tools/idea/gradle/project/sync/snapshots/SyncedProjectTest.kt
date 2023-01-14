@@ -242,6 +242,12 @@ abstract class SyncedProjectTest(
   @Test
   fun testAppWithBuildFeaturesEnabled() = testProject(TestProject.APP_WITH_BUILD_FEATURES_ENABLED)
 
+  @Test
+  fun testNonTransitiveRClassSymbol() = testProject(TestProject.NON_TRANSITIVE_R_CLASS_SYMBOL)
+
+  @Test
+  fun testNonTransitiveRClassSymbolTrue() = testProject(TestProject.NON_TRANSITIVE_R_CLASS_SYMBOL_TRUE)
+
   override fun getTestDefs(testProject: TestProject): List<SyncedProjectTestDef> {
     return tests[testProject].orEmpty()
   }
