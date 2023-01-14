@@ -33,6 +33,7 @@ import java.util.Deque
 import java.util.LinkedList
 import java.util.concurrent.TimeUnit
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
+import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel.Companion.powerRailDisplayNameMappings
 
 class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializable {
 
@@ -72,9 +73,9 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
     processMap = processMapBuilder.toSortedMap()
 
     // Power counter data contains two types of counters: power rail and battery drain.
-    // The name of each power rail is prefixed by 'power.rails.' while
+    // The name of each power rail is prefixed by 'power.' while
     // the name of each battery drain metric is prefixed by 'batt.'.
-    powerRails = builder.powerCounters.filter { it.name.contains("power.rails.") }
+    powerRails = builder.powerCounters.filter { it.name.contains("power.") }
     batteryDrain = builder.powerCounters.filter { it.name.contains("batt.") }
 
     // Build cpuCores
@@ -313,7 +314,7 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
     fun addPowerCounters(counters: PowerCounterTracksResult) {
       // powerCounters include both power rail counter and battery drain counter data
       powerCounters.addAll(counters.counterList.map { counter ->
-        CounterModel(counter.name, counter.valueList.associate {
+        CounterModel(powerRailDisplayNameMappings.getOrDefault(counter.name, counter.name), counter.valueList.associate {
           convertToUs(it.timestampNanoseconds) to it.value
         }.toSortedMap())
       })
