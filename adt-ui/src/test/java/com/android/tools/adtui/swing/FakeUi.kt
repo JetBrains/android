@@ -164,7 +164,7 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
     var c = component
     while (true) {
       if (!c.isVisible) {
-        return false;
+        return false
       }
       if (c == root) {
         break
@@ -217,7 +217,6 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
    * Returns the first component of the given type satisfying the given predicate by doing breadth-first
    * search starting from the root component, or null if no components satisfy the predicate.
    */
-  @Suppress("UNCHECKED_CAST")
   fun <T: Any> findComponent(type: Class<T>, predicate: (T) -> Boolean = { true }): T? = root.findDescendant(type, predicate)
 
   inline fun <reified T: Any> findComponent(crossinline predicate: (T) -> Boolean = { true }): T? = root.findDescendant(predicate)
