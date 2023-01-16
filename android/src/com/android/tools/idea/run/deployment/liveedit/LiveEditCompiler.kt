@@ -132,8 +132,7 @@ class LiveEditCompiler(val project: Project) {
                            analysisResult,
                            inputFiles,
                            inputFiles.first().module!!,
-                           inlineCandidates,
-                           LiveEditCompilerLanguageSettings(file.languageVersionSettings))
+                           inlineCandidates)
           },
           "codegen")
       } catch (e : LiveEditUpdateException) {
@@ -156,8 +155,7 @@ class LiveEditCompiler(val project: Project) {
                              newAnalysisResult,
                              inputFiles,
                              inputFiles.first().module!!,
-                             inlineCandidates,
-                             LiveEditCompilerLanguageSettings(file.languageVersionSettings))
+                             inlineCandidates)
             },
             "codegen_inline")
         }

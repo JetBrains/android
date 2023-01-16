@@ -18,7 +18,6 @@ package com.android.tools.idea.editors.fast
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
-import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerLanguageSettings
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.analyzeSingleDepthInlinedFunctions
 import com.android.tools.idea.run.deployment.liveedit.isKotlinPluginBundled
@@ -42,7 +41,6 @@ import kotlinx.coroutines.sync.Mutex
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.descriptors.InvalidModuleException
-import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
 import org.jetbrains.kotlin.psi.KtFile
 import java.nio.file.Files
 import java.nio.file.Path
@@ -197,7 +195,6 @@ class EmbeddedCompilerClientImpl private constructor(
         log.debug("fetchResolution")
         val resolution = fetchResolution(project, inputs)
         ProgressManager.checkCanceled()
-        val languageVersionSettings = inputs.first().languageVersionSettings
         log.debug("analyze")
         val analysisResult = analyze(inputs, resolution)
         val inlineCandidates = inputs
@@ -206,8 +203,7 @@ class EmbeddedCompilerClientImpl private constructor(
         ProgressManager.checkCanceled()
         log.debug("backCodeGen")
         try {
-          backendCodeGen(project, analysisResult, inputs, module, inlineCandidates,
-                         LiveEditCompilerLanguageSettings(languageVersionSettings))
+          backendCodeGen(project, analysisResult, inputs, module, inlineCandidates)
         }
         catch (e: LiveEditUpdateException) {
           if (e.isCompilationError() || e.cause.isCompilationError()) {
@@ -233,8 +229,7 @@ class EmbeddedCompilerClientImpl private constructor(
 
           // We will need to start using the new analysis for code gen.
           log.debug("backCodeGen retry")
-          backendCodeGen(project, newAnalysisResult, inputFilesWithInlines, module, inlineCandidates,
-                         LiveEditCompilerLanguageSettings(languageVersionSettings))
+          backendCodeGen(project, newAnalysisResult, inputFilesWithInlines, module, inlineCandidates)
         }
       }
     }
