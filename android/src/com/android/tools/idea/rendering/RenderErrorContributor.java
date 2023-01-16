@@ -68,6 +68,7 @@ import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
@@ -600,28 +601,31 @@ public class RenderErrorContributor {
                myLinkManager.createRefreshRenderUrl()).newline();
   }
 
-  private void reportRtlNotEnabled(@NotNull RenderLogger logger) {
-    ApplicationManager.getApplication().runReadAction(() -> {
+  /**
+   * Tries to report an "RTL not enabled" error and returns whether this was successful.
+   */
+  private boolean reportRtlNotEnabled(@NotNull RenderLogger logger) {
+    return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
       Project project = logger.getProject();
       if (project == null || project.isDisposed()) {
-        return;
+        return false;
       }
 
       Module module = logger.getModule();
       if (module == null) {
-        return;
+        return false;
       }
 
       AndroidFacet facet = AndroidFacet.getInstance(module);
       Manifest manifest = facet != null ? Manifest.getMainManifest(facet) : null;
       Application application = manifest != null ? manifest.getApplication() : null;
       if (application == null) {
-        return;
+        return false;
       }
 
       final XmlTag applicationTag = application.getXmlTag();
       if (applicationTag == null) {
-        return;
+        return false;
       }
 
       HtmlBuilder builder = new HtmlBuilder();
@@ -639,30 +643,34 @@ public class RenderErrorContributor {
         .setSummary("RTL support requires android:supportsRtl=\"true\" in the manifest")
         .setHtmlContent(builder)
         .build();
+      return true;
     });
   }
 
-  private void reportTagResourceFormat(@NotNull RenderProblem message) {
+  /**
+   * Tries to report a resources format error and returns whether this was successful.
+   */
+  private boolean reportTagResourceFormat(@NotNull RenderProblem message) {
     Object clientData = message.getClientData();
     if (!(clientData instanceof String[])) {
-      return;
+      return false;
     }
     String[] strings = (String[])clientData;
     if (strings.length != 2) {
-      return;
+      return false;
     }
 
     RenderContext renderContext = myRenderContext;
     if (renderContext == null) {
-      return;
+      return false;
     }
     IAndroidTarget target = renderContext.getConfiguration().getRealTarget();
     if (target == null) {
-      return;
+      return false;
     }
     AndroidPlatform platform = renderContext.getPlatform();
     if (platform == null) {
-      return;
+      return false;
     }
     AndroidTargetData targetData = platform.getSdkData().getTargetData(target);
     AttributeDefinitions definitionLookup = targetData.getPublicAttrDefs(mySourceFile.getProject());
@@ -670,7 +678,7 @@ public class RenderErrorContributor {
     String currentValue = strings[1];
     AttributeDefinition definition = definitionLookup.getAttrDefByName(attributeName);
     if (definition == null) {
-      return;
+      return false;
     }
     Set<AttributeFormat> formats = definition.getFormats();
     if (formats.contains(AttributeFormat.FLAGS) || formats.contains(AttributeFormat.ENUM)) {
@@ -695,14 +703,16 @@ public class RenderErrorContributor {
           .setSummary("Incorrect resource value format")
           .setHtmlContent(builder)
           .build();
+        return true;
       }
     }
+    return false;
   }
 
   private void reportOtherProblems(@NotNull RenderLogger logger) {
     List<RenderProblem> messages = logger.getMessages();
 
-    if (messages == null || messages.isEmpty()) {
+    if (messages.isEmpty()) {
       return;
     }
 
@@ -716,20 +726,25 @@ public class RenderErrorContributor {
 
       if (tag != null) {
         switch (tag) {
-          case ILayoutLog.TAG_RESOURCES_FORMAT:
-            reportTagResourceFormat(message);
-            continue;
-          case ILayoutLog.TAG_RTL_NOT_ENABLED:
-            reportRtlNotEnabled(logger);
-            continue;
-          case ILayoutLog.TAG_RTL_NOT_SUPPORTED:
+          case ILayoutLog.TAG_RESOURCES_FORMAT -> {
+            if (reportTagResourceFormat(message)) {
+              continue;
+            }
+          }
+          case ILayoutLog.TAG_RTL_NOT_ENABLED -> {
+            if (reportRtlNotEnabled(logger)) {
+              continue;
+            }
+          }
+          case ILayoutLog.TAG_RTL_NOT_SUPPORTED -> {
             addIssue()
               .setSeverity(HighlightSeverity.ERROR)
               .setSummary("RTL support requires API level >= 17")
               .setHtmlContent(new HtmlBuilder().addHtml(message.getHtml()))
               .build();
             continue;
-          case ILayoutLog.TAG_THREAD_CREATION: {
+          }
+          case ILayoutLog.TAG_THREAD_CREATION -> {
             Throwable throwable = message.getThrowable();
             HtmlBuilder builder = new HtmlBuilder();
             reportThrowable(builder, throwable, false);
