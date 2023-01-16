@@ -19,6 +19,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.AnimationCard
 import com.android.tools.idea.compose.preview.animation.TestUtils
+import com.android.tools.idea.compose.preview.animation.TestUtils.assertBigger
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
 import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
@@ -66,9 +67,7 @@ class SingleStateTest {
       val toolbarComponents = card.findToolbar("AnimationCard").component.components
       assertEquals(3, toolbarComponents.size)
       // All components are visible
-      /* b/263894971
-            toolbarComponents.forEach { assertBigger(minimumSize, it.size) }
-      b/263894971 */
+      toolbarComponents.forEach { assertBigger(minimumSize, it.size) }
       // Default state.
       assertEquals("One", (toolbarComponents[2] as JPanel).findComboBox().text)
       assertEquals("One", state.getState(0))

@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.animation.actions
 
 import com.android.tools.idea.compose.preview.message
+import com.intellij.ide.ui.laf.darcula.ui.ComboBoxButtonUI
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -24,6 +25,7 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import javax.swing.JComponent
+import javax.swing.plaf.ComponentUI
 
 /** A comboBox action to select one state from the list of predefined states. */
 class EnumStateAction(private val callback: () -> Unit = {}) :
@@ -47,6 +49,18 @@ class EnumStateAction(private val callback: () -> Unit = {}) :
     super<ComboBoxAction>.createCustomComponent(presentation, place).apply {
       this.components.forEach { it.isFocusable = true }
     }
+
+  override fun createComboBoxButton(presentation: Presentation): ComboBoxButton {
+    return object : ComboBoxButton(presentation) {
+      private var componentUI: ComponentUI? = null
+
+      override fun updateUI() {
+        super.updateUI()
+        if (componentUI == null) componentUI = ComboBoxButtonUI.createUI(this)
+        setUI(componentUI)
+      }
+    }
+  }
 
   override fun createPopupActionGroup(button: JComponent?) =
     DefaultActionGroup(states.map { StateAction(it) })
