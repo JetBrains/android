@@ -47,8 +47,14 @@ internal fun <T> openProjectAndRunTestWithTestFixturesAvailable(
     val projectTestFixture = object : IdeaProjectTestFixture {
       override fun setUp() = Unit  // Invoked by JavaCodeInsightTestFixtureImpl.setUp()
       override fun tearDown() = Unit  // Invoked by JavaCodeInsightTestFixtureImpl.tearDown()
-      override fun getProject(): Project = currentProject ?: error("Unexpected: project must have been initialized by now")
-      override fun getModule(): Module? = currentModule ?: project.gradleModule(":app")?.getMainModule()
+      override fun getProject(): Project? = currentProject.let { currentProject ->
+        when {
+          currentProject == null -> error("Unexpected: project must have been initialized by now")
+          currentProject.isDisposed -> null
+          else -> currentProject
+        }
+      }
+      override fun getModule(): Module? = currentModule ?: project?.gradleModule(":app")?.getMainModule()
       override fun getTestRootDisposable(): Disposable = rootDisposable
     }
 
