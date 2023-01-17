@@ -17,7 +17,7 @@ package com.android.tools.idea.lang.proguardR8
 
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth
-import com.intellij.testFramework.TestRunnerUtil
+import com.intellij.testFramework.UITestUtil
 import com.intellij.testFramework.fixtures.CompletionAutoPopupTester
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ThrowableRunnable
@@ -29,7 +29,7 @@ class ProguardR8TypedHandlerTest : ProguardR8TestCase() {
   override fun runTestRunnable(testRunnable: ThrowableRunnable<Throwable>) = tester.runWithAutoPopupEnabled(testRunnable)
 
   override fun setUp() {
-    TestRunnerUtil.replaceIdeEventQueueSafely() // See UsefulTestCase#runBare which should be the stack frame above this one.
+    UITestUtil.replaceIdeEventQueueSafely() // See UsefulTestCase#runBare which should be the stack frame above this one.
     runInEdtAndWait { super.setUp() }
     tester = CompletionAutoPopupTester(myFixture)
   }

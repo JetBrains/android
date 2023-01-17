@@ -17,7 +17,7 @@ package org.jetbrains.android.dom
 
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.TestRunnerUtil
+import com.intellij.testFramework.UITestUtil
 import com.intellij.testFramework.fixtures.CompletionAutoPopupTester
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ThrowableRunnable
@@ -32,7 +32,7 @@ class AndroidXmlTypedHandlerTest : AndroidTestCase() {
   override fun providesCustomManifest(): Boolean = true
 
   override fun setUp() {
-    TestRunnerUtil.replaceIdeEventQueueSafely() // See UsefulTestCase#runBare which should be the stack frame above this one.
+    UITestUtil.replaceIdeEventQueueSafely() // See UsefulTestCase#runBare which should be the stack frame above this one.
     runInEdtAndWait { super.setUp() }
     tester = CompletionAutoPopupTester(myFixture)
 
