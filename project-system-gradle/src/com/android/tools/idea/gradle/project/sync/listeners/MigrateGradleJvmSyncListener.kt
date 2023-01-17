@@ -27,12 +27,12 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 
-private val LOG = Logger.getInstance(MigrateGradleJvmListener::class.java)
+private val LOG = Logger.getInstance(MigrateGradleJvmSyncListener::class.java)
 /**
  * This GradleSyncListener is responsible for migrate Gradle projects away of the hardcoded jdk naming
  * using platform convention: vendor + version i.e. jbr-17 or special macros defined on [ExternalSystemJdkUtil]
  */
-open class MigrateGradleJvmListener : GradleSyncListenerWithRoot {
+open class MigrateGradleJvmSyncListener : GradleSyncListenerWithRoot {
 
   override fun syncStarted(project: Project, rootProjectPath: @SystemIndependent String) {
     val projectRootSettings = GradleSettings.getInstance(project).getLinkedProjectSettings(rootProjectPath)
