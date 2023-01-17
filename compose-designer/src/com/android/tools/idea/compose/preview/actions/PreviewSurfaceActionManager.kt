@@ -55,9 +55,15 @@ internal class PreviewSurfaceActionManager(
   }
 
   override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup {
+    // Copy Image
     val actionGroup = DefaultActionGroup().apply { add(copyResultImageAction) }
 
     val sceneView = surface.sceneViewAtMousePosition ?: return actionGroup
+    // Zoom to Selection
+    (surface as? NlDesignSurface)?.let {
+      actionGroup.add(ZoomToSelectionAction(surface, sceneView))
+    }
+    // Jump to Definition
     ((surface as? NlDesignSurface)?.navigationHandler as? ComposePreviewNavigationHandler)?.let {
       actionGroup.add(JumpToDefinitionAction(surface, sceneManagerProvider, it, sceneView))
     }

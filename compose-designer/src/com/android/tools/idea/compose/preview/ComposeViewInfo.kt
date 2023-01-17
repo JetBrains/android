@@ -53,6 +53,11 @@ fun List<ComposeViewInfo>.findHitWithDepth(
 fun ComposeViewInfo.findDeepestHits(
   @AndroidCoordinate x: Int,
   @AndroidCoordinate y: Int
+): Collection<ComposeViewInfo> = listOf(this).findDeepestHits(x, y)
+
+fun List<ComposeViewInfo>.findDeepestHits(
+  @AndroidCoordinate x: Int,
+  @AndroidCoordinate y: Int
 ): Collection<ComposeViewInfo> =
   findHitWithDepth(x, y)
     .groupBy { it.first }
