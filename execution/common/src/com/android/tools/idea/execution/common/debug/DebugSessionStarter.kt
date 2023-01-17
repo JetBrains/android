@@ -43,7 +43,6 @@ import com.intellij.xdebugger.XDebuggerManager
 import com.intellij.xdebugger.impl.XDebugSessionImpl
 import icons.StudioIcons
 import kotlinx.coroutines.withContext
-import java.util.concurrent.TimeUnit
 
 object DebugSessionStarter {
 
@@ -69,8 +68,7 @@ object DebugSessionStarter {
 
     val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(environment.project, client,
                                                                                   androidDebuggerState,
-                                                                                  consoleView, destroyRunningProcess).blockingGet(1,
-                                                                                                                                  TimeUnit.MINUTES)!!
+                                                                                  consoleView)
     val session = withContext(uiThread) {
       indicator.text = "Attaching debugger"
       XDebuggerManager.getInstance(environment.project).startSession(environment, debugProcessStarter) as XDebugSessionImpl
@@ -78,6 +76,12 @@ object DebugSessionStarter {
 
     val debugProcessHandler = session.debugProcess.processHandler
     debugProcessHandler.startNotify()
+    debugProcessHandler.addProcessListener(object : ProcessAdapter() {
+      override fun processTerminated(event: ProcessEvent) {
+        destroyRunningProcess(device)
+        super.processTerminated(event)
+      }
+    })
     val executor = environment.executor
     AndroidSessionInfo.create(debugProcessHandler,
                               environment.runProfile as? RunConfiguration,
@@ -99,10 +103,11 @@ object DebugSessionStarter {
     consoleView: ConsoleView? = null,
     timeout: Long = 300
   ): XDebugSessionImpl {
-    val masterProcessHandler = AndroidProcessHandler(environment.project, masterProcessName)
+    val masterProcessHandler = AndroidProcessHandler(environment.project, masterProcessName,
+                                                     finishAndroidProcessCallback = destroyRunningProcess)
     masterProcessHandler.addTargetDevice(device)
     return attachReattachingDebuggerToStartedProcess(device, appId, masterProcessHandler, environment, androidDebugger,
-                                                     androidDebuggerState, destroyRunningProcess, indicator, consoleView, timeout)
+                                                     androidDebuggerState, indicator, consoleView, timeout)
   }
 
   /**
@@ -118,7 +123,6 @@ object DebugSessionStarter {
     environment: ExecutionEnvironment,
     androidDebugger: AndroidDebugger<S>,
     androidDebuggerState: S,
-    destroyRunningProcess: (IDevice) -> Unit,
     indicator: ProgressIndicator,
     consoleView: ConsoleView? = null,
     timeout: Long = 300
@@ -126,8 +130,7 @@ object DebugSessionStarter {
     val client = waitForClientReadyForDebug(device, listOf(appId), timeout, indicator)
     val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(environment.project, client,
                                                                                   androidDebuggerState,
-                                                                                  consoleView, destroyRunningProcess).blockingGet(1,
-                                                                                                                                  TimeUnit.MINUTES)!!
+                                                                                  consoleView)
     indicator.text = "Attaching debugger"
     val reattachingProcessHandler = ReattachingProcessHandler(masterProcessHandler)
 
@@ -182,8 +185,7 @@ object DebugSessionStarter {
   ): XDebugSession = runBlockingCancellable(indicator) {
     val sessionName = "${androidDebugger.displayName} (${client.clientData.pid})"
     try {
-      val starter = androidDebugger.getDebugProcessStarterForExistingProcess(project, client, androidDebuggerState).blockingGet(1,
-                                                                                                                                TimeUnit.MINUTES)!!
+      val starter = androidDebugger.getDebugProcessStarterForExistingProcess(project, client, androidDebuggerState)
 
       val session = withContext(uiThread) {
         XDebuggerManager.getInstance(project).startSessionAndShowTab(sessionName, StudioIcons.Common.ANDROID_HEAD, null, false, starter)

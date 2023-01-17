@@ -17,15 +17,13 @@ package com.android.tools.idea.execution.common.debug;
 
 import com.android.annotations.Nullable;
 import com.android.ddmlib.Client;
-import com.android.ddmlib.IDevice;
+import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.xdebugger.XDebugProcessStarter;
 import com.intellij.xdebugger.XDebugSession;
-import kotlin.Unit;
-import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.concurrency.Promise;
 
@@ -69,7 +67,7 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
   /**
    * Creates a new state object. Although this is called state, it contains mostly about configurations of
    * how you run your debugger. The created state will be associated with one of your
-   * {@link com.android.tools.idea.run.AndroidRunConfiguration} and properties will be persisted onto xml file.
+   * {@link org.jetbrains.debugger.DebuggableRunConfiguration} and properties will be persisted onto xml file.
    */
   @NotNull
   S createState();
@@ -99,13 +97,12 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
    */
   boolean shouldBeDefault();
 
-  Promise<XDebugProcessStarter> getDebugProcessStarterForExistingProcess(@NotNull Project project,
-                                                                         @NotNull Client client,
-                                                                         @Nullable S debugState);
+  XDebugProcessStarter getDebugProcessStarterForExistingProcess(@NotNull Project project,
+                                                                @NotNull Client client,
+                                                                @Nullable S debugState) throws ExecutionException;
 
-  Promise<XDebugProcessStarter> getDebugProcessStarterForNewProcess(@NotNull Project project,
-                                                                    @NotNull Client client,
-                                                                    @NotNull S state,
-                                                                    @Nullable ConsoleView consoleViewToReuse,
-                                                                    @NotNull Function1<? super IDevice, Unit> destroyRunningProcess);
+  XDebugProcessStarter getDebugProcessStarterForNewProcess(@NotNull Project project,
+                                                           @NotNull Client client,
+                                                           @NotNull S debugState,
+                                                           @Nullable ConsoleView consoleViewToReuse) throws ExecutionException;
 }

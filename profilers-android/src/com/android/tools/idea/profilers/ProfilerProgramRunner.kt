@@ -60,7 +60,7 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
   )
 
   override fun canRunWithMultipleDevices(executorId: String) = false
-  override fun getRunner(environment: ExecutionEnvironment, state: RunProfileState): (ProgressIndicator) -> Promise<RunContentDescriptor> {
+  override fun getRunner(environment: ExecutionEnvironment, state: RunProfileState): (ProgressIndicator) -> RunContentDescriptor {
     val executor = state as AndroidConfigurationExecutor
 
     if (!isProfilerExecutor(environment.executor.id)) {
@@ -196,7 +196,7 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
           // mode, query the ExecutorGroup by executor ID. If a registered setting is found, the executor is a profiler one.
           // See ProfileRunExecutorGroup for the registered settings.
           AbstractProfilerExecutorGroup.getInstance()?.getRegisteredSettings(executorId) != null) {
-        return true;
+        return true
       }
       // Legacy profiler executor, used by non-gradle build settings such as ASwB and APK Profiling.
       return ProfileRunExecutor.EXECUTOR_ID == executorId

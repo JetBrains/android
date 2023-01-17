@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
-import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.ApplicationTerminator
@@ -41,15 +40,13 @@ import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.util.Disposer
-import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.xdebugger.impl.XDebugSessionImpl
+import kotlinx.coroutines.async
+import kotlinx.coroutines.joinAll
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.concurrency.AsyncPromise
-import org.jetbrains.concurrency.Promise
-import org.jetbrains.concurrency.catchError
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CompletionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
@@ -72,9 +69,8 @@ abstract class AndroidConfigurationExecutorBase(
   protected val isDebug = environment.executor.isDebug
 
   @WorkerThread
-  override fun run(indicator: ProgressIndicator): Promise<RunContentDescriptor> {
+  override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
     RunStats.from(environment).beginLaunchTasks()
-    val promise = AsyncPromise<RunContentDescriptor>()
 
     val devices = getDevices(indicator, RunStats.from(environment))
     val console = createConsole()
@@ -83,6 +79,8 @@ abstract class AndroidConfigurationExecutorBase(
     val applicationInstaller = getApplicationDeployer(console)
 
     val onDevice = { device: IDevice ->
+      LOG.info("Launching on device ${device.name}")
+
       terminatePreviousAppInstance(device)
 
       val result = try {
@@ -97,33 +95,17 @@ abstract class AndroidConfigurationExecutorBase(
       processHandler.addTargetDevice(device)
     }
 
-    val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("AndroidConfigurationExecutorBase", 5)
+    devices.map { async { onDevice(it) } }.joinAll()
 
-    val futures = devices.map {
-      CompletableFuture.supplyAsync({ onDevice(it) }, executor)
-    }.toTypedArray()
+    RunStats.from(environment).endLaunchTasks()
 
-    CompletableFuture.allOf(*futures).handle { _, exception ->
-      if (exception != null) {
-        if (exception is CompletionException && exception.cause != null) {
-          promise.setError(exception.cause!!)
-        }
-        else {
-          promise.setError(exception)
-        }
-        return@handle
-      }
-      createRunContentDescriptor(processHandler, console, environment).processed(promise)
-      RunStats.from(environment).endLaunchTasks()
-    }
-
-    return promise
+    createRunContentDescriptor(processHandler, console, environment)
   }
 
   @WorkerThread
-  override fun debug(indicator: ProgressIndicator): Promise<RunContentDescriptor> {
+  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
     RunStats.from(environment).beginLaunchTasks()
-    val promise = AsyncPromise<RunContentDescriptor>()
+    AsyncPromise<RunContentDescriptor>()
 
     val devices = getDevices(indicator, RunStats.from(environment))
     if (devices.size > 1) {
@@ -139,35 +121,34 @@ abstract class AndroidConfigurationExecutorBase(
     val app = apkProvider.getApks(device).single()
     val deployResult = getApplicationDeployer(console).fullDeploy(device, app, appRunSettings.deployOptions, indicator)
 
-    executeOnPooledThread {
-      promise.catchError {
-        promise.setResult(startDebugSession(device, console, indicator).runContentDescriptor)
-      }
+    val runContentDescriptorDeferred = async {
+      startDebugSession(device, console, indicator).runContentDescriptor
     }
 
     launch(device, deployResult.app, console, true, indicator)
 
-    promise.onSuccess {
+    try {
+      val runContentDescriptor = runContentDescriptorDeferred.await()
       RunStats.from(environment).endLaunchTasks()
+      return@runBlockingCancellable runContentDescriptor
     }
-
-    promise.onError {
-      if (device.isOffline) return@onError
-      try {
-        getStopCallback(console, isDebug).invoke(device)
+    catch (e: ExecutionException) {
+      if (!device.isOffline) {
+        try {
+          getStopCallback(console, isDebug).invoke(device)
+        }
+        catch (e: Exception) {
+          LOG.warn(e)
+        }
+        try {
+          ApplicationTerminator(device, appId).killApp()
+        }
+        catch (e: Exception) {
+          LOG.warn(e)
+        }
       }
-      catch (e: Exception) {
-        LOG.warn(e)
-      }
-      try {
-        ApplicationTerminator(device, appId).killApp()
-      }
-      catch (e: Exception) {
-        LOG.warn(e)
-      }
+      throw e
     }
-
-    return promise
   }
 
   @Throws(ExecutionException::class)
@@ -200,7 +181,7 @@ abstract class AndroidConfigurationExecutorBase(
     return devices.onEach { LaunchUtils.initiateDismissKeyguard(it) }
   }
 
-  internal fun terminatePreviousAppInstance(device: IDevice) {
+  private fun terminatePreviousAppInstance(device: IDevice) {
     val terminator = ApplicationTerminator(device, appId)
     if (!terminator.killApp()) {
       throw ExecutionException("Could not terminate running app $appId")

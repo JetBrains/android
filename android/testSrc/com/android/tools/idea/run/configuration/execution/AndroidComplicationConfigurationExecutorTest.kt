@@ -41,7 +41,6 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.progress.EmptyProgressIndicator
-import com.intellij.util.ExceptionUtil
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.doReturn
@@ -139,9 +138,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     // Mock the binary xml extraction.
     doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
 
-    val runContentDescriptor = getRunContentDescriptorForTests {
-      executor.run(EmptyProgressIndicator()).blockingGet(10, TimeUnit.SECONDS)!!
-    }
+    val runContentDescriptor = getRunContentDescriptorForTests { executor.run(EmptyProgressIndicator()) }
 
     // Verify commands sent to device.
 
@@ -244,9 +241,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     // Mock the binary xml extraction.
     doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
 
-    val runContentDescriptor = getRunContentDescriptorForTests {
-      executor.debug(EmptyProgressIndicator()).blockingGet(10, TimeUnit.SECONDS)!!
-    }
+    val runContentDescriptor = getRunContentDescriptorForTests { executor.debug(EmptyProgressIndicator()) }
 
     // Stop configuration.
     runContentDescriptor.processHandler!!.destroyProcess()
@@ -336,9 +331,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     // Mock the binary xml extraction.
     doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
 
-    val runContentDescriptor = getRunContentDescriptorForTests {
-      executor.run(EmptyProgressIndicator()).blockingGet(10, TimeUnit.SECONDS)!!
-    }
+    val runContentDescriptor = getRunContentDescriptorForTests { executor.run(EmptyProgressIndicator()) }
 
     // Verify that a warning was raised in console.
     val consoleViewImpl = runContentDescriptor.executionConsole as ConsoleViewImpl
@@ -408,10 +401,9 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       )) // Mock app installation.
     doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
-    val e = assertFailsWith<Throwable> { executor.run(EmptyProgressIndicator()).blockingGet(10, TimeUnit.SECONDS) }.let {
-      ExceptionUtil.findCause(it, ExecutionException::class.java)
+    assertFailsWith<ExecutionException>("Error while launching complication, message: $failedResponse") {
+      executor.run(EmptyProgressIndicator())
     }
-    assertThat(e).hasMessageThat().contains("Error while launching complication, message: $failedResponse")
   }
 
   @Test

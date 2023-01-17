@@ -56,13 +56,11 @@ import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.xdebugger.impl.XDebugSessionImpl
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.concurrency.resolvedPromise
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import java.util.concurrent.TimeUnit
 import kotlin.test.fail
 
 private const val ORCHESTRATOR_APP_ID = "android.support.test.orchestrator"
@@ -102,7 +100,7 @@ class LaunchTaskRunnerTest {
       launchTaskProvider
     )
 
-    val runContentDescriptor = runner.run(EmptyProgressIndicator()).blockingGet(10, TimeUnit.SECONDS)!!
+    val runContentDescriptor = runner.run(EmptyProgressIndicator())
     val processHandler = runContentDescriptor.processHandler!!
 
 
@@ -133,7 +131,7 @@ class LaunchTaskRunnerTest {
       launchTaskProvider
     )
 
-    runner.debug(EmptyProgressIndicator()).blockingGet(10, TimeUnit.SECONDS)!!
+    runner.debug(EmptyProgressIndicator())
 
     verify(mockRunStats).endLaunchTasks()
   }
@@ -154,7 +152,7 @@ class LaunchTaskRunnerTest {
       launchTaskProvider
     )
 
-    val runContentDescriptor = runner.applyChanges(EmptyProgressIndicator()).blockingGet(10, TimeUnit.SECONDS)!!
+    val runContentDescriptor = runner.applyChanges(EmptyProgressIndicator())
     val processHandler = runContentDescriptor.processHandler
 
     assertThat(processHandler).isEqualTo(runningProcessHandler)
@@ -185,7 +183,7 @@ class LaunchTaskRunnerTest {
     )
 
     try {
-      runner.run(EmptyProgressIndicator()).blockingGet(10, TimeUnit.SECONDS)!!
+      runner.run(EmptyProgressIndicator())
       fail("Run should fail")
     }
     catch (_: ExecutionException) {
@@ -210,7 +208,7 @@ class LaunchTaskRunnerTest {
     )
 
     try {
-      runner.applyChanges(EmptyProgressIndicator()).blockingGet(10, TimeUnit.SECONDS)!!
+      runner.applyChanges(EmptyProgressIndicator())
       fail("Run should fail")
     }
     catch (_: ExecutionException) {
@@ -257,7 +255,7 @@ class LaunchTaskRunnerTest {
 
     run {
       executionOptions = TestExecutionOption.HOST
-      val runContentDescriptor = runner.run(EmptyProgressIndicator()).blockingGet(10, TimeUnit.SECONDS)!!
+      val runContentDescriptor = runner.run(EmptyProgressIndicator())
       assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo("applicationId")
       // TODO: 264666049
       with(runContentDescriptor.processHandler!!) {
@@ -269,7 +267,7 @@ class LaunchTaskRunnerTest {
 
     run {
       executionOptions = TestExecutionOption.ANDROID_TEST_ORCHESTRATOR
-      val runContentDescriptor = runner.run(EmptyProgressIndicator()).blockingGet(10, TimeUnit.SECONDS)!!
+      val runContentDescriptor = runner.run(EmptyProgressIndicator())
       assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(
         ORCHESTRATOR_APP_ID)
       // TODO: 264666049
@@ -282,7 +280,7 @@ class LaunchTaskRunnerTest {
 
     run {
       executionOptions = TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR
-      val runContentDescriptor = runner.run(EmptyProgressIndicator()).blockingGet(10, TimeUnit.SECONDS)!!
+      val runContentDescriptor = runner.run(EmptyProgressIndicator())
       assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(
         ANDROIDX_ORCHESTRATOR_APP_ID)
       // TODO: 264666049

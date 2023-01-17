@@ -23,18 +23,17 @@ import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
-import org.jetbrains.concurrency.Promise
 
 
 interface AndroidConfigurationExecutor {
   val configuration: RunConfiguration
   val deployTarget: DeployTarget
 
-  fun run(indicator: ProgressIndicator): Promise<RunContentDescriptor>
-  fun runAsInstantApp(indicator: ProgressIndicator): Promise<RunContentDescriptor>
-  fun debug(indicator: ProgressIndicator): Promise<RunContentDescriptor>
-  fun applyChanges(indicator: ProgressIndicator): Promise<RunContentDescriptor>
-  fun applyCodeChanges(indicator: ProgressIndicator): Promise<RunContentDescriptor>
+  fun run(indicator: ProgressIndicator): RunContentDescriptor
+  fun runAsInstantApp(indicator: ProgressIndicator): RunContentDescriptor
+  fun debug(indicator: ProgressIndicator): RunContentDescriptor
+  fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor
+  fun applyCodeChanges(indicator: ProgressIndicator): RunContentDescriptor
 }
 
 class AndroidConfigurationExecutorRunProfileState(executor: AndroidConfigurationExecutor) : AndroidConfigurationExecutor by executor, RunProfileState {

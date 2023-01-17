@@ -34,7 +34,6 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
-import org.jetbrains.concurrency.Promise
 
 //TODO(b/266232023): define a better way for running ComposePreviewRunConfiguration and get rid of this constant.
 const val composePreviewRunConfigurationId = "ComposePreviewRunConfiguration"
@@ -70,12 +69,12 @@ class DefaultStudioProgramRunner : AndroidConfigurationProgramRunner {
     composePreviewRunConfigurationId
   )
 
-  override fun getRunner(environment: ExecutionEnvironment, state: RunProfileState): (ProgressIndicator) -> Promise<RunContentDescriptor> {
+  override fun getRunner(environment: ExecutionEnvironment, state: RunProfileState): (ProgressIndicator) -> RunContentDescriptor {
     val executor = state as AndroidConfigurationExecutor
 
     val swapInfo = environment.getUserData(SwapInfo.SWAP_INFO_KEY)
 
-    val runner: (ProgressIndicator) -> Promise<RunContentDescriptor> =
+    val runner: (ProgressIndicator) -> RunContentDescriptor =
       if (swapInfo != null) {
         when (swapInfo.type) {
           SwapInfo.SwapType.APPLY_CHANGES -> executor::applyChanges

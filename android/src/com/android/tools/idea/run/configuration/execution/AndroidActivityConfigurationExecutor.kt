@@ -35,7 +35,6 @@ import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.xdebugger.impl.XDebugSessionImpl
-import org.jetbrains.concurrency.Promise
 
 class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment,
                                            deployTarget: DeployTarget,
@@ -59,15 +58,15 @@ class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment,
                                                               console)
   }
 
-  override fun runAsInstantApp(indicator: ProgressIndicator): Promise<RunContentDescriptor> {
+  override fun runAsInstantApp(indicator: ProgressIndicator): RunContentDescriptor {
     throw RuntimeException("Unsupported operation")
   }
 
-  override fun applyChanges(indicator: ProgressIndicator): Promise<RunContentDescriptor> {
+  override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor {
     throw RuntimeException("Unsupported operation")
   }
 
-  override fun applyCodeChanges(indicator: ProgressIndicator): Promise<RunContentDescriptor> {
+  override fun applyCodeChanges(indicator: ProgressIndicator): RunContentDescriptor {
     throw RuntimeException("Unsupported operation")
   }
 
