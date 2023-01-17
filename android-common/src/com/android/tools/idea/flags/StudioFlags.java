@@ -1557,14 +1557,14 @@ public final class StudioFlags {
   );
   // endregion GOOGLE_PLAY_SDK_INDEX
 
-  // region NEW_SEND_FEEDBACK_DIALOG
-  private static final FlagGroup NEW_SEND_FEEDBACK_DIALOG = new FlagGroup(FLAGS, "new.send.feedback", "New Send Feedback Dialog");
-  public static final Flag<Boolean> ENABLE_NEW_SEND_FEEDBACK_DIALOG = Flag.create(
-    NEW_SEND_FEEDBACK_DIALOG, "enable.new.send.feedback.dialog", "Enable new send feedback dialog",
+  // region NEW_COLLECT_LOGS_DIALOG
+  private static final FlagGroup NEW_COLLECT_LOGS_DIALOG = new FlagGroup(FLAGS, "new.collect.logs", "New Collect Logs Dialog");
+  public static final Flag<Boolean> ENABLE_NEW_COLLECT_LOGS_DIALOG = Flag.create(
+    NEW_COLLECT_LOGS_DIALOG, "enable.new.collect.logs.dialog", "Enable new collect logs dialog",
     "Enable the new send feedback dialog",
     false
   );
-  // endregion NEW_SEND_FEEDBACK_DIALOG
+  // endregion NEW_COLLECT_LOGS_DIALOG
 
   // region TargetSDKVersion Upgrade Assistant
   private static final FlagGroup TSDKVUA = new FlagGroup(FLAGS, "tsdkvua", "Android SDK Upgrade Assistant");

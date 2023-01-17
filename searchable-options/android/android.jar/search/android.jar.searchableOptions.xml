@@ -133,6 +133,16 @@
     <option name="profile" path="ActionManager" hit="Choose and profile configuration" />
     <option name="clean" path="ActionManager" hit="Clean Project" />
     <option name="project" path="ActionManager" hit="Clean Project" />
+    <option name="and" path="ActionManager" hit="Collect Logs and Diagnostic Data" />
+    <option name="collect" path="ActionManager" hit="Collect Logs and Diagnostic Data" />
+    <option name="data" path="ActionManager" hit="Collect Logs and Diagnostic Data" />
+    <option name="diagnostic" path="ActionManager" hit="Collect Logs and Diagnostic Data" />
+    <option name="logs" path="ActionManager" hit="Collect Logs and Diagnostic Data" />
+    <option name="and" path="ActionManager" hit="Collect logs and diagnostic data" />
+    <option name="collect" path="ActionManager" hit="Collect logs and diagnostic data" />
+    <option name="data" path="ActionManager" hit="Collect logs and diagnostic data" />
+    <option name="diagnostic" path="ActionManager" hit="Collect logs and diagnostic data" />
+    <option name="logs" path="ActionManager" hit="Collect logs and diagnostic data" />
     <option name="convert" path="ActionManager" hit="Convert to PNG..." />
     <option name="png" path="ActionManager" hit="Convert to PNG..." />
     <option name="to" path="ActionManager" hit="Convert to PNG..." />
