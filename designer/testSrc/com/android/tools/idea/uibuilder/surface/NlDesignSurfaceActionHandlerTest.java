@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.util.NlTreeDumper;
+import com.android.tools.idea.ui.resourcemanager.model.ResourceDataManagerKt;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
@@ -27,18 +30,18 @@ import com.android.tools.idea.uibuilder.util.MockCopyPasteManager;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.DataKey;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.testFramework.PlatformTestUtil;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.common.LayoutTestUtilities.createScreen;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotEquals;
 
@@ -47,20 +50,18 @@ public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
   private NlDesignSurface mySurface;
   private Disposable myDisposable;
   private SyncNlModel myModel;
-  private ScreenView myScreen;
   private NlComponent myButton;
   private NlComponent myTextView;
   private DesignSurfaceActionHandler mySurfaceActionHandler;
 
   private CopyPasteManager myCopyPasteManager;
 
-  private DataContext context = DataContext.EMPTY_CONTEXT;
+  private final DataContext context = DataContext.EMPTY_CONTEXT;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myModel = createModel();
-    myScreen = createScreen(myModel);
     // If using a lambda, it can be reused by the JVM and causing a Exception because the Disposable is already disposed.
     myDisposable = Disposer.newDisposable();
     mySurface = NlDesignSurface.builder(getProject(), myDisposable)
@@ -141,6 +142,31 @@ public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
     assertEquals(myModel.getComponents().get(0).getChild(1), myTextView);
     assertEquals(myModel.getComponents().get(0).getChild(2), mySurface.getSelectionModel().getSelection().get(0));
     assertNotEquals(myModel.getComponents().get(0).getChild(2), myTextView);
+  }
+
+  public void testPasteResourceUrl() {
+    Transferable content = new Transferable() {
+
+      @Override
+      public DataFlavor[] getTransferDataFlavors() {
+        return new DataFlavor[]{ResourceDataManagerKt.RESOURCE_URL_FLAVOR};
+      }
+
+      @Override
+      public boolean isDataFlavorSupported(DataFlavor flavor) {
+        return flavor == ResourceDataManagerKt.RESOURCE_URL_FLAVOR;
+      }
+
+      @NotNull
+      @Override
+      public Object getTransferData(DataFlavor flavor) {
+        return ResourceUrl.create("namespace", ResourceType.DRAWABLE, "name");
+      }
+    };
+    myCopyPasteManager.setContents(content);
+    mySurfaceActionHandler.performPaste(context);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    assertNotNull(findFirst("ImageView"));
   }
 
   @NotNull

@@ -196,16 +196,7 @@ public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutP
 
   @Nullable
   private DnDTransferItem getClipboardData() {
-    CopyPasteManager instance = CopyPasteManager.getInstance();
-    Transferable contents = instance.getContents();
-    if (contents == null) {
-      return null;
-    }
-    try {
-      return (DnDTransferItem)contents.getTransferData(getFlavor());
-    }
-    catch (UnsupportedFlavorException | IOException e) {
-      return null;
-    }
+    Transferable contents = myCopyPasteManager.getContents();
+    return contents != null ? DnDTransferItem.getTransferItem(contents, false) : null;
   }
 }
