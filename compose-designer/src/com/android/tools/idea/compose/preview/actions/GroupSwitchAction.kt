@@ -50,7 +50,7 @@ internal class GroupSwitchAction :
     presentation.isVisible = availableGroups.isNotEmpty()
     presentation.isEnabled =
       availableGroups.isNotEmpty() && !previewManagers.any { it.status().isRefreshing }
-    if (presentation.isEnabledAndVisible) {
+    if (presentation.isVisible) {
       presentation.text = previewManagers.map { it.groupFilter.displayName }.firstOrNull()
     }
   }
