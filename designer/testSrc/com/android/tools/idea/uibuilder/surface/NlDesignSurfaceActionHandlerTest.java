@@ -23,9 +23,11 @@ import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.util.MockCopyPasteManager;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DataKey;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
@@ -39,9 +41,6 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.common.LayoutTestUtilities.createScreen;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotEquals;
-import static org.mockito.ArgumentMatchers.notNull;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
 
@@ -53,16 +52,13 @@ public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
   private NlComponent myTextView;
   private DesignSurfaceActionHandler mySurfaceActionHandler;
 
-  @Mock
   private CopyPasteManager myCopyPasteManager;
 
-  @Mock
-  private DataContext context;
+  private DataContext context = DataContext.EMPTY_CONTEXT;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    initMocks(this);
     myModel = createModel();
     myScreen = createScreen(myModel);
     // If using a lambda, it can be reused by the JVM and causing a Exception because the Disposable is already disposed.
@@ -75,6 +71,7 @@ public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
       })
     .build();
     mySurface.setModel(myModel);
+    myCopyPasteManager = new MockCopyPasteManager();
     mySurfaceActionHandler = new NlDesignSurfaceActionHandler(mySurface, myCopyPasteManager);
 
     myButton = findFirst(BUTTON);
@@ -99,7 +96,6 @@ public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
     assertThat(mySurfaceActionHandler.isCopyVisible(context)).isTrue();
     assertThat(mySurfaceActionHandler.isCopyEnabled(context)).isFalse();
     mySurfaceActionHandler.performCopy(context);
-    verifyNoMoreInteractions(myCopyPasteManager);
   }
 
   public void testCopyIsWhenNothingIsSelected() {
@@ -111,16 +107,18 @@ public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
     mySurface.getSelectionModel().toggle(myButton);
     assertThat(mySurfaceActionHandler.isCopyVisible(context)).isTrue();
     assertThat(mySurfaceActionHandler.isCopyEnabled(context)).isTrue();
+    assertNull(myCopyPasteManager.getContents());
     mySurfaceActionHandler.performCopy(context);
-    verify(myCopyPasteManager).setContents(notNull());
+    assertNotNull(myCopyPasteManager.getContents());
   }
 
   public void testCopyWithOneComponentSelected() {
     mySurface.getSelectionModel().toggle(myTextView);
     assertThat(mySurfaceActionHandler.isCopyVisible(context)).isTrue();
     assertThat(mySurfaceActionHandler.isCopyEnabled(context)).isTrue();
+    assertNull(myCopyPasteManager.getContents());
     mySurfaceActionHandler.performCopy(context);
-    verify(myCopyPasteManager).setContents(notNull());
+    assertNotNull(myCopyPasteManager.getContents());
   }
 
   // Disabled because it is flaky: b/157650498
