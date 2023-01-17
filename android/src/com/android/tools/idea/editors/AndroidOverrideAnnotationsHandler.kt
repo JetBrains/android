@@ -18,21 +18,9 @@ package com.android.tools.idea.editors
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.codeInsight.generation.OverrideImplementsAnnotationsHandler
 import com.intellij.codeInsight.intention.AddAnnotationPsiFix
-import com.intellij.openapi.project.Project
-import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiModifierListOwner
-import com.intellij.psi.PsiNameValuePair
+import com.intellij.psi.*
 
 class AndroidOverrideAnnotationsHandler : OverrideImplementsAnnotationsHandler {
-  @Suppress("OverridingDeprecatedMember")
-  override fun getAnnotations(project: Project?): Array<String> {
-    // This method is only here because it's a required member (deprecated but no default provided so won't compile without)
-    assert(false)
-    return emptyArray()
-  }
-
   override fun getAnnotations(file: PsiFile): Array<String> {
     return arrayOf(
       "androidx.annotation.NonNull",
