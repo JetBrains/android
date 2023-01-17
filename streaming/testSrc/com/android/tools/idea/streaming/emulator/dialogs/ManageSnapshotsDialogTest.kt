@@ -273,6 +273,35 @@ class ManageSnapshotsDialogTest {
   }
 
   @Test
+  fun testQuickbootSnapshotIsNotLoadable() {
+    emulator.createSnapshot(QUICK_BOOT_SNAPSHOT_ID)
+
+    val dialog = showManageSnapshotsDialog()
+    val rootPane = dialog.rootPane
+    val ui = FakeUi(rootPane)
+    val table = ui.getComponent<TableView<SnapshotInfo>>()
+    val actionsPanel = ui.getComponent<CommonActionsPanel>()
+    val snapshotDetailsPanel = ui.getComponent<JEditorPane>()
+    // Wait for the snapshot list to be populated.
+    waitForCondition(4, TimeUnit.SECONDS) { table.items.isNotEmpty() }
+    // Check that there is only a QuickBoot snapshot.
+    assertThat(table.items).hasSize(1)
+    val quickBootSnapshot = table.items[0]
+    assertThat(quickBootSnapshot.isQuickBoot).isTrue()
+    assertThat(isUseToBoot(table, 0)).isFalse() // The QuickBoot snapshot is not used to boot.
+    assertThat(table.selectedObject).isEqualTo(quickBootSnapshot)
+    assertThat(findPreviewImagePanel(ui)?.isVisible).isTrue()
+    assertThat(findPreviewImagePanel(ui)?.image).isNotNull()
+    assertThat(snapshotDetailsPanel.isVisible).isTrue()
+    assertThat(snapshotDetailsPanel.text).contains("Quickboot (auto-saved)")
+    assertThat(snapshotDetailsPanel.text).contains("Created ")
+
+    assertThat(isPresentationEnabled(getLoadSnapshotAction(actionsPanel))).isFalse()
+    assertThat(isPresentationEnabled(getEditAction(actionsPanel))).isFalse()
+    assertThat(isPresentationEnabled(getRemoveAction(actionsPanel))).isFalse()
+  }
+
+  @Test
   fun testIncompatibleSnapshotsConfirmedDeletion() {
     assertThat(EmulatorSettings.getInstance().snapshotAutoDeletionPolicy).isEqualTo(SnapshotAutoDeletionPolicy.ASK_BEFORE_DELETING)
     emulator.createSnapshot("valid_snapshot")

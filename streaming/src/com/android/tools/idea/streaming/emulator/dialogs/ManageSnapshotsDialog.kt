@@ -34,6 +34,7 @@ import com.intellij.CommonBundle
 import com.intellij.execution.runners.ExecutionUtil.getLiveIndicator
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.actionSystem.ActionToolbarPosition
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
@@ -889,10 +890,16 @@ internal class ManageSnapshotsDialog(
 
   private inner class LoadSnapshotAction : AnAction("Load Snapshot", null, StudioIcons.Emulator.Snapshots.LOAD_SNAPSHOT) {
 
+    override fun getActionUpdateThread(): ActionUpdateThread {
+      return ActionUpdateThread.EDT
+    }
+
     override fun update(event: AnActionEvent) {
-      val enabled = snapshotTable.selectionModel.isSingleItemSelected &&
-          snapshotTable.selectedObject!!.isCreated && snapshotTable.selectedObject!!.isCompatible
-      event.presentation.isEnabled = enabled
+      val selectionModel = snapshotTable.selectionModel
+      val selectedObject = snapshotTable.selectedObject
+      // The Quickboot snapshot cannot be loaded because it uses file-based RAM that is being overwritten all the time.
+      event.presentation.isEnabled = selectionModel.isSingleItemSelected &&
+          !selectionModel.isSelectedIndex(QUICK_BOOT_SNAPSHOT_MODEL_ROW) && selectedObject!!.isCreated && selectedObject.isCompatible
     }
 
     override fun actionPerformed(event: AnActionEvent) {
