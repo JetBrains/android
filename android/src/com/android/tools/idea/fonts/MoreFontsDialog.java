@@ -123,7 +123,7 @@ public class MoreFontsDialog extends DialogWrapper {
     myFontList.setName("Font list");
     myFontDetailList.setMinimumSize(new Dimension(MIN_FONT_PREVIEW_WIDTH, MIN_FONT_PREVIEW_HEIGHT));
     myFontDetailList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    ProjectFonts projectFonts = showExistingFonts? new ProjectFonts(facet) : null;
+    ProjectFonts projectFonts = showExistingFonts? new ProjectFonts(myResourceRepository) : null;
     myModel = new FontListModel(projectFonts, showExistingFonts);
     myModel.setRepopulateListener(this::repopulated);
     myDetailModel = new DefaultListModel<>();

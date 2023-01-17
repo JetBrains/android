@@ -361,7 +361,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
             // this is a special case where we generate a synthetic font-family XML file that points
             // to the cached fonts downloaded by the DownloadableFontCacheService.
             if (myProjectFonts == null) {
-              myProjectFonts = new ProjectFonts(myFacet);
+              myProjectFonts = new ProjectFonts(ResourceRepositoryManager.getInstance(myFacet));
             }
 
             FontFamily family = myProjectFonts.getFont(resourceValue.getResourceUrl().toString());
