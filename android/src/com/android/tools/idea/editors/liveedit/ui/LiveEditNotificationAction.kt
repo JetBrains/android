@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.tools.adtui.compose.InformationPopup
 import com.android.tools.adtui.compose.InformationPopupImpl
 import com.android.tools.adtui.compose.IssueNotificationAction
+import com.android.tools.idea.actions.BrowserHelpAction
 import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
@@ -89,7 +90,8 @@ internal fun defaultCreateInformationPopup(
       status.description,
       listOfNotNull(ToggleLiveEditStatusAction()),
       listOfNotNull(
-        link
+        link,
+        AnActionLink("View Docs", BrowserHelpAction("Live Edit Docs", "https://developer.android.com/jetpack/compose/tooling/studio#iterative-code-dev"))
       )
     ).also { newPopup ->
       // Register the data provider of the popup to be the same as the one used in the toolbar.
