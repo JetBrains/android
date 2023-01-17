@@ -34,6 +34,7 @@ import com.intellij.CommonBundle
 import com.intellij.execution.runners.ExecutionUtil.getLiveIndicator
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.actionSystem.ActionToolbarPosition
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
@@ -49,7 +50,6 @@ import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.DimensionService
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.ui.AnActionButton
 import com.intellij.ui.BooleanTableCellEditor
 import com.intellij.ui.BooleanTableCellRenderer
 import com.intellij.ui.DoubleClickListener
@@ -887,15 +887,16 @@ internal class ManageSnapshotsDialog(
     }
   }
 
-  private inner class LoadSnapshotAction : AnActionButton("Load Snapshot", StudioIcons.Emulator.Snapshots.LOAD_SNAPSHOT) {
+  private inner class LoadSnapshotAction : AnAction("Load Snapshot", null, StudioIcons.Emulator.Snapshots.LOAD_SNAPSHOT) {
+
+    override fun update(event: AnActionEvent) {
+      val enabled = snapshotTable.selectionModel.isSingleItemSelected &&
+          snapshotTable.selectedObject!!.isCreated && snapshotTable.selectedObject!!.isCompatible
+      event.presentation.isEnabled = enabled
+    }
 
     override fun actionPerformed(event: AnActionEvent) {
       loadSnapshot()
-    }
-
-    override fun isEnabled(): Boolean {
-      return super.isEnabled() && snapshotTable.selectionModel.isSingleItemSelected &&
-             snapshotTable.selectedObject!!.isCreated && snapshotTable.selectedObject!!.isCompatible
     }
   }
 
