@@ -65,6 +65,7 @@ import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
@@ -125,7 +126,7 @@ internal class DeviceViewTest {
   private val agentRule = FakeScreenSharingAgentRule()
   private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = Executors.newCachedThreadPool())
   @get:Rule
-  val ruleChain = RuleChain(ClipboardSynchronizationDisablementRule(), androidExecutorsRule, agentRule, EdtRule())
+  val ruleChain = RuleChain(ApplicationRule(), ClipboardSynchronizationDisablementRule(), androidExecutorsRule, agentRule, EdtRule())
   private lateinit var device: FakeScreenSharingAgentRule.FakeDevice
   private lateinit var view: DeviceView
   private lateinit var fakeUi: FakeUi
@@ -513,7 +514,7 @@ internal class DeviceViewTest {
       fakeUi.layoutAndDispatchEvents()
       val expected = when {
         view.displayOrientationQuadrants % 2 == 0 -> SetMaxVideoResolutionMessage(270, 586)
-        SystemInfo.isMac -> SetMaxVideoResolutionMessage(234, 372)
+        SystemInfo.isMac && !isRunningInBazelTest() -> SetMaxVideoResolutionMessage(234, 372)
         else -> SetMaxVideoResolutionMessage(234, 400)
       }
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(expected)
@@ -649,6 +650,10 @@ internal class DeviceViewTest {
   private fun FakeUi.resizeRoot(width: Int, height: Int) {
     root.size = Dimension(width, height)
     layoutAndDispatchEvents()
+  }
+
+  private fun isRunningInBazelTest(): Boolean {
+    return System.getenv().containsKey("TEST_WORKSPACE")
   }
 }
 
