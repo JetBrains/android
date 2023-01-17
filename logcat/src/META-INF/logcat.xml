@@ -76,9 +76,7 @@
       <action id="Logcat.ToggleViewFormat"
               class="com.android.tools.idea.logcat.actions.ToggleViewFormatAction"
               text="Toggle Logcat Formatting"
-              description="Toggle between Standard and Compact view">
-        <keyboard-shortcut keymap="$default" first-keystroke="alt L" second-keystroke="alt F"/>
-      </action>
+              description="Toggle between Standard and Compact view"/>
     </group>
   </actions>
 
