@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import com.android.tools.idea.device.Resolution
 import com.android.tools.idea.grouplayout.GroupLayout.Companion.groupLayout
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.ui.ColoredListCellRenderer
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.scale.JBUIScale
+import java.awt.Component
 import javax.swing.GroupLayout
+import javax.swing.JList
 
 internal class DeviceAndApiPanel internal constructor() : JBPanel<DeviceAndApiPanel>(null) {
   init {
@@ -29,7 +34,7 @@ internal class DeviceAndApiPanel internal constructor() : JBPanel<DeviceAndApiPa
     val nameTextField = JBTextField()
 
     val deviceDefinitionLabel = JBLabel("Device definition")
-    val deviceDefinitionComboBox = ComboBox<Any>()
+    val deviceDefinitionComboBox = initDeviceDefinitionComboBox()
 
     val apiLevelLabel = JBLabel("API level")
     val apiLevelComboBox = ComboBox<Any>()
@@ -91,5 +96,23 @@ internal class DeviceAndApiPanel internal constructor() : JBPanel<DeviceAndApiPa
         }
       }
     }
+  }
+
+  private fun initDeviceDefinitionComboBox(): Component {
+    val comboBox = ComboBox(arrayOf(Definition(name = "Pixel 4", size = 5.8, resolution = Resolution(1080, 2340), density = 440)))
+
+    comboBox.renderer = object : ColoredListCellRenderer<Definition>() {
+      override fun customizeCellRenderer(list: JList<out Definition>,
+                                         definition: Definition,
+                                         index: Int,
+                                         selected: Boolean,
+                                         focused: Boolean) {
+        append(definition.name)
+        append(" ")
+        append("${definition.size}″, ${definition.resolution}, ${definition.density} dpi", SimpleTextAttributes.GRAY_ATTRIBUTES)
+      }
+    }
+
+    return comboBox
   }
 }
