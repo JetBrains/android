@@ -64,11 +64,66 @@ class BatteryDrainTrackRendererTest {
     assertThat(formatter.getFormattedString(100.0, 100.0, true)).isEqualTo("100")
   }
 
+  @Test
+  fun batteryCurrentDrainNegativeMinRangeValuesGivesCorrectRange() {
+    val batteryDrainTrackModel = TrackModel.newBuilder(
+      BatteryDrainTrackModel(NEGATIVE_MIN_DRAIN_COUNTERS, Range(), "ua"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
+    ).build()
+
+    val component = BatteryDrainTrackRenderer().render(batteryDrainTrackModel)
+    assertThat(component.componentCount).isEqualTo(2)
+    assertThat(component.components[0]).isInstanceOf(AxisComponent::class.java)
+    assertThat((component.components[0] as AxisComponent).model.range.min).isEqualTo(-1000.0)
+    assertThat((component.components[0] as AxisComponent).model.range.max).isEqualTo(1000.0)
+    assertThat((component.components[0] as AxisComponent).model.zero).isEqualTo(-1000.0)
+  }
+
+  @Test
+  fun batteryCurrentDrainNegativeMinAndMaxRangeValuesGivesCorrectRange() {
+    val batteryDrainTrackModel = TrackModel.newBuilder(
+      BatteryDrainTrackModel(NEGATIVE_MIN_AND_MAX_DRAIN_COUNTERS, Range(), "ua"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN,
+      "Battery Drain"
+    ).build()
+
+    val component = BatteryDrainTrackRenderer().render(batteryDrainTrackModel)
+    assertThat(component.componentCount).isEqualTo(2)
+    assertThat(component.components[0]).isInstanceOf(AxisComponent::class.java)
+    assertThat((component.components[0] as AxisComponent).model.range.min).isEqualTo(-1000.0)
+    assertThat((component.components[0] as AxisComponent).model.range.max).isEqualTo(1000.0)
+    assertThat((component.components[0] as AxisComponent).model.zero).isEqualTo(-1000.0)
+  }
+
+  @Test
+  fun batteryCurrentDrainPositiveRangeValuesGivesCorrectRange() {
+    val batteryDrainTrackModel = TrackModel.newBuilder(
+      BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "ua"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
+    ).build()
+
+    val component = BatteryDrainTrackRenderer().render(batteryDrainTrackModel)
+    assertThat(component.componentCount).isEqualTo(2)
+    assertThat(component.components[0]).isInstanceOf(AxisComponent::class.java)
+    assertThat((component.components[0] as AxisComponent).model.range.min).isEqualTo(0.0)
+    assertThat((component.components[0] as AxisComponent).model.range.max).isEqualTo(3000.0)
+    assertThat((component.components[0] as AxisComponent).model.zero).isEqualTo(0.0)
+  }
+
   companion object {
     private val BATTERY_DRAIN_COUNTERS = listOf(
       SeriesData(0L, 1000L),
       SeriesData(1000L, 2000L),
       SeriesData(2000L, 3000L)
+    )
+
+    private val NEGATIVE_MIN_DRAIN_COUNTERS = listOf(
+      SeriesData(0L, -500L),
+      SeriesData(1000L, 0L),
+      SeriesData(2000L, 1000L),
+    )
+
+    private val NEGATIVE_MIN_AND_MAX_DRAIN_COUNTERS = listOf(
+      SeriesData(0L, -1000L),
+      SeriesData(1000L, -500L),
+      SeriesData(2000L, -100L),
     )
   }
 }

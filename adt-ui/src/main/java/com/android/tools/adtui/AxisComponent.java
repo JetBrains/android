@@ -122,12 +122,15 @@ public final class AxisComponent extends AnimatedComponent {
 
   private boolean myHideTickAtMin;
 
-  public AxisComponent(@NotNull AxisComponentModel model, @NotNull AxisOrientation orientation) {
+  private boolean myHideNegativeValues;
+
+  public AxisComponent(@NotNull AxisComponentModel model, @NotNull AxisOrientation orientation, boolean hideNegativeValues) {
     myModel = model;
     myMajorMarkerPositions = new FloatArrayList();
     myMinorMarkerPositions = new FloatArrayList();
     myMarkerLabels = new ArrayList<>();
     myOrientation = orientation;
+    myHideNegativeValues = hideNegativeValues;
 
     switch (myOrientation) {
       case LEFT:
@@ -190,8 +193,20 @@ public final class AxisComponent extends AnimatedComponent {
     myMajorMarkerPositions.clear();
     myMinorMarkerPositions.clear();
 
-    double currentMinValueRelative = myModel.getRange().getMin() - myModel.getZero();
-    double currentMaxValueRelative = myModel.getRange().getMax() - myModel.getZero();
+    double currentMinValueRelative = myModel.getRange().getMin();
+    double currentMaxValueRelative = myModel.getRange().getMax();
+
+    // The models' 'zero' value is the lower bound of the data range.
+    // Thus, in the case where the lower bound of the range is negative, because
+    // we are subtracting, the calculation will increase the relative min and max
+    // values by the absolute value of the negative lower bound. This effectively
+    // hides any negative lower bound by turning it into a true zero, while increasing
+    // the max value the same amount.
+    if (myHideNegativeValues) {
+      currentMinValueRelative -= myModel.getZero();
+      currentMaxValueRelative -= myModel.getZero();
+    }
+
     double range = myModel.getRange().getLength();
     double labelRange = myModel.getDataRange();
 

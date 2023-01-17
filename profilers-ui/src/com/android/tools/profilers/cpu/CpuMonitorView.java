@@ -51,7 +51,7 @@ public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
 
     final JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
-    final AxisComponent leftAxis = new AxisComponent(getMonitor().getCpuUsageAxis(), AxisComponent.AxisOrientation.RIGHT);
+    final AxisComponent leftAxis = new AxisComponent(getMonitor().getCpuUsageAxis(), AxisComponent.AxisOrientation.RIGHT, true);
     leftAxis.setShowAxisLine(false);
     leftAxis.setShowMax(true);
     leftAxis.setOnlyShowUnitAtMax(false);

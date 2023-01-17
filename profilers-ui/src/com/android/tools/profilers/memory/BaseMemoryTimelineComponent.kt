@@ -259,7 +259,7 @@ private fun LineChart.configureStackedFilledLine(color: Color, series: RangedCon
   configure(series, LineConfig(color).setFilled(true).setStacked(true).setLegendIconType(LegendConfig.IconType.BOX))
 
 private fun makeAxis(model: AxisComponentModel, orientation: AxisComponent.AxisOrientation) =
-  AxisComponent(model, orientation).apply {
+  AxisComponent(model, orientation, true).apply {
     setShowAxisLine(false)
     setShowMax(true)
     setOnlyShowUnitAtMax(false)

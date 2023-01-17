@@ -135,7 +135,7 @@ public final class TimelineTable {
     AxisComponentModel model = new ResizingAxisComponentModel.Builder(range, new TimeAxisFormatter(1, 5, 1))
       .setGlobalRange(timeline.getDataRange()).build();
 
-    AxisComponent axis = new AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM);
+    AxisComponent axis = new AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM, true);
     axis.setShowAxisLine(false);
     axis.setMarkerColor(AXIS_MARKER_COLOR);
 

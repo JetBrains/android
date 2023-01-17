@@ -92,7 +92,7 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
     this.mTimeGlobalRangeUs = new Range(0, 0);
 
     mAxisModel = new ResizingAxisComponentModel.Builder(mTimeGlobalRangeUs, TimeAxisFormatter.DEFAULT).build();
-    this.mAxis = new AxisComponent(mAxisModel, AxisComponent.AxisOrientation.BOTTOM);
+    this.mAxis = new AxisComponent(mAxisModel, AxisComponent.AxisOrientation.BOTTOM, true);
 
     this.mTimeSelectionRangeUs = new Range(0, 0);
 

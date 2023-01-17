@@ -121,14 +121,14 @@ public class AxisLineChartVisualTest extends VisualTest {
     mTimeAxisModel =
       new ResizingAxisComponentModel.Builder(mTimeViewRangeUs, TimeAxisFormatter.DEFAULT).setGlobalRange(mTimeGlobalRangeUs).build();
 
-    mTimeAxis = new AxisComponent(mTimeAxisModel, AxisComponent.AxisOrientation.BOTTOM);
+    mTimeAxis = new AxisComponent(mTimeAxisModel, AxisComponent.AxisOrientation.BOTTOM, true);
     mTimeAxis.setMargins(AXIS_SIZE, AXIS_SIZE);
 
     // add axis guide to time axis
     mTimeAxisGuideModel = new ResizingAxisComponentModel.Builder(mTimeViewRangeUs, TimeAxisFormatter.DEFAULT_WITHOUT_MINOR_TICKS)
       .setGlobalRange(mTimeGlobalRangeUs).build();
 
-    mTimeAxisGuide = new AxisComponent(mTimeAxisGuideModel, AxisComponent.AxisOrientation.BOTTOM);
+    mTimeAxisGuide = new AxisComponent(mTimeAxisGuideModel, AxisComponent.AxisOrientation.BOTTOM, true);
     mTimeAxisGuide.setMargins(AXIS_SIZE, AXIS_SIZE);
     mTimeAxisGuide.setMarkerColor(Gray._100);
     mTimeAxisGuide.setShowAxisLine(false);
@@ -144,7 +144,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     Range yRange1Animatable = new Range(0, 100);
     mMemoryAxisModel1 =
       new ResizingAxisComponentModel.Builder(yRange1Animatable, MemoryAxisFormatter.DEFAULT).setLabel(SERIES1_LABEL).build();
-    mMemoryAxis1 = new AxisComponent(mMemoryAxisModel1, AxisComponent.AxisOrientation.LEFT);
+    mMemoryAxis1 = new AxisComponent(mMemoryAxisModel1, AxisComponent.AxisOrientation.LEFT, true);
     mMemoryAxis1.setShowMax(true);
     mMemoryAxis1.setOnlyShowUnitAtMax(true);
     mMemoryAxis1.setMargins(AXIS_SIZE, AXIS_SIZE);
@@ -158,7 +158,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     Range yRange2Animatable = new Range(0, 100);
     mMemoryAxisModel2 =
       new ClampedAxisComponentModel.Builder(yRange2Animatable, MemoryAxisFormatter.DEFAULT).setLabel(SERIES2_LABEL).build();
-    mMemoryAxis2 = new AxisComponent(mMemoryAxisModel2, AxisComponent.AxisOrientation.RIGHT);
+    mMemoryAxis2 = new AxisComponent(mMemoryAxisModel2, AxisComponent.AxisOrientation.RIGHT, true);
     mMemoryAxis2.setShowMax(true);
     mMemoryAxis2.setOnlyShowUnitAtMax(true);
     mMemoryAxis2.setMargins(AXIS_SIZE, AXIS_SIZE);

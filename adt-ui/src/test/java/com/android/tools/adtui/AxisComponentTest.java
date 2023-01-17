@@ -33,7 +33,7 @@ public class AxisComponentTest {
   public void testRangeMinAndMax() {
     AxisComponentModel model =
       new ResizingAxisComponentModel.Builder(new Range(10, 50), new MockAxisFormatter(1, 1, 1)).setGlobalRange(new Range(0, 100)).build();
-    AxisComponent component = new AxisComponent(model, AxisComponent.AxisOrientation.RIGHT);
+    AxisComponent component = new AxisComponent(model, AxisComponent.AxisOrientation.RIGHT, true);
     component.setShowMin(true);
     component.setShowMax(true);
     component.calculateMarkers(new Dimension(100, 100));
@@ -44,7 +44,7 @@ public class AxisComponentTest {
   @Test
   public void testSizeForHorizontalOrientation() {
     AxisComponentModel model = new ResizingAxisComponentModel.Builder(new Range(0, 100), new MockAxisFormatter(1, 1, 1)).build();
-    AxisComponent component = new AxisComponent(model, AxisComponent.AxisOrientation.RIGHT);
+    AxisComponent component = new AxisComponent(model, AxisComponent.AxisOrientation.RIGHT, true);
     component.setMarkerLengths(5, 5);
     Dimension dimension = component.getPreferredSize();
     assertTrue(dimension.getWidth() > dimension.getHeight());
@@ -53,7 +53,7 @@ public class AxisComponentTest {
   @Test
   public void testSizeForVerticalOrientation() {
     AxisComponentModel model = new ResizingAxisComponentModel.Builder(new Range(0, 100), new MockAxisFormatter(1, 1, 1)).build();
-    AxisComponent component = new AxisComponent(model, AxisComponent.AxisOrientation.TOP);
+    AxisComponent component = new AxisComponent(model, AxisComponent.AxisOrientation.TOP, true);
     component.setMarkerLengths(5, 5);
     Dimension dimension = component.getPreferredSize();
     assertFalse(dimension.getWidth() > dimension.getHeight());
@@ -64,7 +64,7 @@ public class AxisComponentTest {
     final int MAJOR_TICKS = 5;
     AxisComponentModel model = new ResizingAxisComponentModel.Builder(new Range(10, 50), new MockAxisFormatter(1, MAJOR_TICKS - 1, 1))
       .setGlobalRange(new Range(0, 100)).build();
-    AxisComponent component = new AxisComponent(model, AxisComponent.AxisOrientation.RIGHT);
+    AxisComponent component = new AxisComponent(model, AxisComponent.AxisOrientation.RIGHT, true);
     FontMetrics fontMetrics = component.getFontMetrics(AdtUiUtils.DEFAULT_FONT);
     component.calculateMarkers(new Dimension(100, (MAJOR_TICKS * (fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent()) * 3 + 1) / 2));
     assertTrue(component.getMarkerLabelDensity() >= REMOVE_MAJOR_TICK_DENSITY);
@@ -77,7 +77,7 @@ public class AxisComponentTest {
     final int MAJOR_TICKS = 5;
     AxisComponentModel model = new ResizingAxisComponentModel.Builder(new Range(10, 50), new MockAxisFormatter(1, MAJOR_TICKS - 1, 1))
       .setGlobalRange(new Range(0, 100)).build();
-    AxisComponent component = new AxisComponent(model, AxisComponent.AxisOrientation.RIGHT);
+    AxisComponent component = new AxisComponent(model, AxisComponent.AxisOrientation.RIGHT, true);
     component.setShowMin(true);
     component.setShowMax(true);
     // Call draw instead of calculateMarkers to check whether there are initial markers.
@@ -93,7 +93,7 @@ public class AxisComponentTest {
     AxisComponentModel model =
       new ResizingAxisComponentModel.Builder(new Range(10, 90), new MockAxisFormatter(1, MAJOR_TICKS - 1, 1))
         .setGlobalRange(new Range(0, 100)).setMarkerRange(new Range(0, 50)).build();
-    AxisComponent component = new AxisComponent(model, AxisComponent.AxisOrientation.TOP);
+    AxisComponent component = new AxisComponent(model, AxisComponent.AxisOrientation.TOP, true);
     component.setShowMin(true);
     component.setShowMax(true);
     component.calculateMarkers(new Dimension(100, 100));

@@ -70,7 +70,7 @@ public class EnergyMonitorView extends ProfilerMonitorView<EnergyMonitor> {
 
     final JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
-    final AxisComponent leftAxis = new AxisComponent(getMonitor().getAxis(), AxisComponent.AxisOrientation.RIGHT);
+    final AxisComponent leftAxis = new AxisComponent(getMonitor().getAxis(), AxisComponent.AxisOrientation.RIGHT, true);
     leftAxis.setShowAxisLine(false);
     leftAxis.setShowMax(false);
     leftAxis.setOnlyShowUnitAtMax(false);

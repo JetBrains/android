@@ -226,7 +226,7 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
     val model = ResizingAxisComponentModel.Builder(rebase(profilers.timeline.viewRange), TimeAxisFormatter.DEFAULT)
       .setGlobalRange(rebase(profilers.timeline.dataRange))
       .build()
-    val timeAxis = AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM).apply {
+    val timeAxis = AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM, true).apply {
       setShowAxisLine(false)
       minimumSize = Dimension(0, ProfilerLayout.TIME_AXIS_HEIGHT)
       preferredSize = Dimension(Int.MAX_VALUE, ProfilerLayout.TIME_AXIS_HEIGHT)

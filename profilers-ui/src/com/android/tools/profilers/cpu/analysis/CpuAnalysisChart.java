@@ -88,7 +88,7 @@ public class CpuAnalysisChart extends CpuAnalysisTab<CpuAnalysisChartModel<?>> {
     boolean hasAxisComponent = getModel().getDetailsType() == CaptureDetails.Type.FLAME_CHART;
     // For backwards compatibility adding the percentage AxisComponent here. This really should live in the CaptureDetails.Type.FLAME_CHART.
     if (hasAxisComponent) {
-      AxisComponent percentAxis = new AxisComponent(getModel().getAxisComponentModel(), AxisComponent.AxisOrientation.BOTTOM);
+      AxisComponent percentAxis = new AxisComponent(getModel().getAxisComponentModel(), AxisComponent.AxisOrientation.BOTTOM, true);
       percentAxis.setShowAxisLine(true);
       percentAxis.setMinimumSize(new Dimension(0, ProfilerLayout.TIME_AXIS_HEIGHT));
       add(percentAxis, new TabularLayout.Constraint(3, 0));
