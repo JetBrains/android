@@ -76,42 +76,43 @@ private val GROUP_BY_GROUP_ID_TRANSFORM:
 
 /** List of available layouts for the Compose Preview Surface. */
 internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
-  listOf(
-    SurfaceLayoutManagerOption(
-      message("vertical.layout"),
-      VerticalOnlyLayoutManager(
-        NlConstants.DEFAULT_SCREEN_OFFSET_X,
-        NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-        NlConstants.SCREEN_DELTA,
-        NlConstants.SCREEN_DELTA,
-        SingleDirectionLayoutManager.Alignment.CENTER
-      )
-    ),
-    SurfaceLayoutManagerOption(
-      message("grid.layout"),
-      GridSurfaceLayoutManager(
-        NlConstants.DEFAULT_SCREEN_OFFSET_X,
-        NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-        NlConstants.SCREEN_DELTA,
-        NlConstants.SCREEN_DELTA
+  if (!StudioFlags.COMPOSE_NEW_PREVIEW_LAYOUT.get()) {
+    listOf(
+      SurfaceLayoutManagerOption(
+        message("vertical.layout"),
+        VerticalOnlyLayoutManager(
+          NlConstants.DEFAULT_SCREEN_OFFSET_X,
+          NlConstants.DEFAULT_SCREEN_OFFSET_Y,
+          NlConstants.SCREEN_DELTA,
+          NlConstants.SCREEN_DELTA,
+          SingleDirectionLayoutManager.Alignment.CENTER
+        )
       ),
-      DesignSurface.SceneViewAlignment.LEFT
-    ),
-  ) +
-    if (!StudioFlags.COMPOSE_NEW_PREVIEW_LAYOUT.get()) emptyList()
-    else
-      listOf(
-        SurfaceLayoutManagerOption(
-          "Group List Layout (By Group Name)",
-          GroupedListSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
-          DesignSurface.SceneViewAlignment.LEFT
+      SurfaceLayoutManagerOption(
+        message("grid.layout"),
+        GridSurfaceLayoutManager(
+          NlConstants.DEFAULT_SCREEN_OFFSET_X,
+          NlConstants.DEFAULT_SCREEN_OFFSET_Y,
+          NlConstants.SCREEN_DELTA,
+          NlConstants.SCREEN_DELTA
         ),
-        SurfaceLayoutManagerOption(
-          "Group Grid Layout (By Group name)",
-          GroupedGridSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
-          DesignSurface.SceneViewAlignment.LEFT
-        ),
-      )
+        DesignSurface.SceneViewAlignment.LEFT
+      ),
+    )
+  } else {
+    listOf(
+      SurfaceLayoutManagerOption(
+        message("new.list.layout.title"),
+        GroupedListSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
+        DesignSurface.SceneViewAlignment.LEFT
+      ),
+      SurfaceLayoutManagerOption(
+        message("new.grid.layout.title"),
+        GroupedGridSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
+        DesignSurface.SceneViewAlignment.LEFT
+      ),
+    )
+  }
 
 /** Default layout manager selected in the preview. */
 internal val DEFAULT_PREVIEW_LAYOUT_MANAGER = PREVIEW_LAYOUT_MANAGER_OPTIONS.first().layoutManager
