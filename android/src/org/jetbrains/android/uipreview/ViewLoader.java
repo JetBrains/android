@@ -83,11 +83,11 @@ public class ViewLoader {
   @NotNull private IRenderLogger myLogger;
   @NotNull private final ClassLoader myClassLoader;
 
-  public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull AndroidFacet facet, @NotNull IRenderLogger logger,
+  public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull Module module, @NotNull IRenderLogger logger,
                     @Nullable Object credential,
                     @NotNull ClassLoader classLoader) {
     myLayoutLibrary = layoutLib;
-    myModule = facet.getModule();
+    myModule = module;
     myLogger = logger;
     myCredential = credential;
     myClassLoader = classLoader;

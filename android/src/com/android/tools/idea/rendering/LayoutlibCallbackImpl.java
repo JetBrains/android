@@ -210,7 +210,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myModule = module;
     myLogger = logger;
     myCredential = credential;
-    myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential, moduleClassLoader);
+    myClassLoader = new ViewLoader(myLayoutLib, module, logger, credential, moduleClassLoader);
     myActionBarHandler = actionBarHandler;
     myLayoutPullParserFactory = parserFactory;
     myHasLegacyAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7);
