@@ -12,7 +12,6 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
-        "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
     ],
 )
