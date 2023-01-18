@@ -35,7 +35,7 @@
                        displayType="BALLOON"
                        toolWindowId="Running Devices"
                        bundle="messages.AndroidBundle"
-                       key="android.emulator.notification.title"/>
+                       key="android.streaming.notification.title"/>
 
     <projectService serviceImplementation="com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel$MultiDisplayStateStorage" />
   </extensions>
