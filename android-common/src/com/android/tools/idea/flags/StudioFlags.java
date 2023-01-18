@@ -1416,6 +1416,13 @@ public final class StudioFlags {
     "Enable VirtualDeviceWatcher",
     "Enable VirtualDeviceWatcher to update the Virtual table based on disk changes",
     true);
+
+  public static final Flag<Boolean> UNIFIED_DEVICE_MANAGER_ENABLED = Flag.create(
+    DEVICE_MANAGER,
+    "unified.device.manager.enabled",
+    "Enable unified device manager",
+    "Enable new Device Manager UI with unified device list",
+    false);
   // endregion
 
   //region DDMLIB

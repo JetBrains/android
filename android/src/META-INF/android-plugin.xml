@@ -72,6 +72,7 @@
     <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="StudioIcons.Common.ANDROID_HEAD" popup="true">
       <separator/>
       <action id="Android.DeviceManager" class="com.android.tools.idea.devicemanager.DeviceManagerAction"/>
+      <action id="Android.DeviceManager2" class="com.android.tools.idea.devicemanagerv2.DeviceManager2Action"/>
       <separator/>
       <action id="ResourceExplorer.open"
               text="Resource Manager"
