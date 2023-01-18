@@ -36,7 +36,7 @@ class FakeEmulatorRule : TestRule {
   private val tempDirectory = TemporaryDirectoryRule()
   private val emulatorResource = object : ExternalResource() {
     override fun before() {
-      com.android.tools.idea.streaming.emulator.RuntimeConfigurationOverrider.overrideConfiguration(FakeEmulatorTestConfiguration())
+      RuntimeConfigurationOverrider.overrideConfiguration(FakeEmulatorTestConfiguration())
       val emulatorCatalog = RunningEmulatorCatalog.getInstance()
       val root = Files.createDirectories(tempDirectory.newPath())
       nullableRoot = root
@@ -55,7 +55,7 @@ class FakeEmulatorRule : TestRule {
       registrationDirectory = null
       val emulatorCatalog = RunningEmulatorCatalog.getInstance()
       emulatorCatalog.overrideRegistrationDirectory(null)
-      com.android.tools.idea.streaming.emulator.RuntimeConfigurationOverrider.clearOverride()
+      RuntimeConfigurationOverrider.clearOverride()
     }
   }
 
