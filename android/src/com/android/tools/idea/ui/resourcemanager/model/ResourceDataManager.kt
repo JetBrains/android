@@ -33,6 +33,9 @@ import com.intellij.usages.UsageView
 import org.jetbrains.android.facet.AndroidFacet
 import com.android.tools.idea.res.getItemPsiFile
 import com.android.tools.idea.res.getItemTag
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import java.awt.datatransfer.UnsupportedFlavorException
@@ -55,13 +58,18 @@ class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
   fun getData(dataId: String?, selectedAssets: List<Asset>): Any? {
     this.selectedItems = selectedAssets
     return when (dataId) {
-      LangDataKeys.PSI_ELEMENT.name -> assetsToSingleElement()
-      LangDataKeys.PSI_ELEMENT_ARRAY.name -> assetsToArrayPsiElements()
       PlatformDataKeys.COPY_PROVIDER.name -> this
-      UsageView.USAGE_TARGETS_KEY.name -> getUsageTargets(assetsToArrayPsiElements())
       RESOURCE_DESIGN_ASSETS_KEY.name -> selectedAssets.mapNotNull { it as? DesignAsset }.toTypedArray()
+      PlatformCoreDataKeys.BGT_DATA_PROVIDER.name -> DataProvider { getDataInBackground(it) }
       else -> null
     }
+  }
+
+  private fun getDataInBackground(dataId: String): Any? = when(dataId) {
+    LangDataKeys.PSI_ELEMENT.name -> assetsToSingleElement()
+    LangDataKeys.PSI_ELEMENT_ARRAY.name -> assetsToArrayPsiElements()
+    UsageView.USAGE_TARGETS_KEY.name -> getUsageTargets(assetsToArrayPsiElements())
+    else -> null
   }
 
   override fun performCopy(dataContext: DataContext) {

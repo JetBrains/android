@@ -26,6 +26,7 @@ import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.file.PsiDirectoryFactory
@@ -82,7 +83,10 @@ class ResourceExplorerToolbarViewModelTest {
     val resFolder = rule.fixture.copyDirectoryToProject("res/", "res")
     val drawableDir = resFolder.findChild("drawable")
     val psiDrawableDir = PsiDirectoryFactory.getInstance(rule.project).createDirectory(drawableDir!!)
-    runInEdtAndWait { assertThat((viewModel.getData(CommonDataKeys.PSI_ELEMENT.name) as PsiElement)).isEqualTo(psiDrawableDir) }
+    runInEdtAndWait {
+      val slowDataProvider = viewModel.getData(PlatformCoreDataKeys.BGT_DATA_PROVIDER.name) as DataProvider
+      assertThat((slowDataProvider.getData(CommonDataKeys.PSI_ELEMENT.name) as PsiElement)).isEqualTo(psiDrawableDir)
+    }
   }
 
   @Test
