@@ -77,6 +77,7 @@ private val systemPackageHashes = setOf(
 const val FLAG_SYSTEM_DEFINED = LayoutInspectorComposeProtocol.ComposableNode.Flags.SYSTEM_CREATED_VALUE
 const val FLAG_HAS_MERGED_SEMANTICS = LayoutInspectorComposeProtocol.ComposableNode.Flags.HAS_MERGED_SEMANTICS_VALUE
 const val FLAG_HAS_UNMERGED_SEMANTICS = LayoutInspectorComposeProtocol.ComposableNode.Flags.HAS_UNMERGED_SEMANTICS_VALUE
+const val FLAG_IS_INLINED = LayoutInspectorComposeProtocol.ComposableNode.Flags.INLINED_VALUE
 
 // Must match packageNameHash in androidx.ui.tooling.inspector.LayoutInspectorTree
 fun packageNameHash(packageName: String): Int =
@@ -185,6 +186,9 @@ class ComposeViewNode(
 
   override val hasUnmergedSemantics: Boolean
     get() = composeFlags.hasFlag(FLAG_HAS_UNMERGED_SEMANTICS)
+
+  override val isInlined: Boolean
+    get() = composeFlags.hasFlag(FLAG_IS_INLINED)
 
   override fun isSingleCall(treeSettings: TreeSettings): Boolean =
     treeSettings.composeAsCallstack && readAccess { (parent as? ComposeViewNode)?.children?.size == 1 && children.size == 1 }

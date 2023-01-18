@@ -95,7 +95,6 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   @VisibleForTesting
   val componentTreeModel: ComponentTreeModel
   private val interactions: TableVisibility
-  private val nodeType = InspectorViewNodeType()
   // synthetic node to hold the root of the tree.
   private var root: TreeViewNode = ViewNode("root").treeNode
   // synthetic node for computing new hierarchy.
@@ -111,6 +110,9 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   private val connectionListener = ::handleConnectionChange
   private var upAction: Action? = null
   private var downAction: Action? = null
+
+  @VisibleForTesting
+  val nodeType = InspectorViewNodeType()
 
   @VisibleForTesting
   val componentTreeSelectionModel: ComponentTreeSelectionModel
@@ -507,7 +509,8 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     override fun actionPerformed(event: ActionEvent) = action(event)
   }
 
-  private inner class InspectorViewNodeType : ViewNodeType<TreeViewNode>() {
+  @VisibleForTesting
+  inner class InspectorViewNodeType : ViewNodeType<TreeViewNode>() {
     var model: InspectorModel? = null
     override val clazz = TreeViewNode::class.java
 
@@ -515,7 +518,8 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
     override fun idOf(node: TreeViewNode) = node.view.viewId?.name
 
-    override fun textValueOf(node: TreeViewNode) = node.view.textValue.nullize()?.let { "\"$it\"" }
+    override fun textValueOf(node: TreeViewNode) =
+      if (node.view.isInlined) "(inline)" else node.view.textValue.nullize()?.let { "\"$it\"" }
 
     override fun iconOf(node: TreeViewNode): Icon =
       IconProvider.getIconForView(node.view.qualifiedName, node.view is ComposeViewNode)

@@ -40,6 +40,7 @@ import com.android.tools.idea.layoutinspector.compose
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.COMPOSE2
+import com.android.tools.idea.layoutinspector.model.COMPOSE3
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_MERGED_SEMANTICS
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_UNMERGED_SEMANTICS
@@ -153,6 +154,7 @@ class LayoutInspectorTreePanelTest {
           ViewString(11, "AppTheme")
           ViewString(12, "http://schemas.android.com/apk/res/myapp")
           ViewString(13, "style")
+          ViewString(14, "Hello World!")
 
           Root {
             id = ROOT
@@ -180,6 +182,7 @@ class LayoutInspectorTreePanelTest {
                   packageName = 5
                   className = 7
                   layoutResource = ViewResource(4, 12, 3)
+                  textValue = 14
                 }
               }
             }
@@ -199,16 +202,24 @@ class LayoutInspectorTreePanelTest {
         LayoutInspectorViewProtocol.StartFetchResponse.getDefaultInstance()).build()
     }
 
-    appInspectorRule.composeInspector.interceptWhen({ it.hasGetComposablesCommand() }) { _ ->
+    appInspectorRule.composeInspector.interceptWhen({ it.hasGetComposablesCommand() }) {
       LayoutInspectorComposeProtocol.Response.newBuilder().apply {
         getComposablesResponseBuilder.apply {
           ComposableString(1, "com.example")
           ComposableString(2, "File1.kt")
           ComposableString(3, "Button")
-          ComposableString(3, "Text")
+          ComposableString(4, "Text")
+          ComposableString(5, "Column")
 
           ComposableRoot {
             viewId = VIEW4
+            ComposableNode {
+              id = COMPOSE3
+              packageHash = 1
+              filename = 2
+              name = 5
+              flags = LayoutInspectorComposeProtocol.ComposableNode.Flags.INLINED_VALUE
+            }
             ComposableNode {
               id = COMPOSE1
               packageHash = 1
@@ -539,7 +550,7 @@ class LayoutInspectorTreePanelTest {
     UIUtil.dispatchAllInvocationEvents()
     TreeUtil.promiseExpandAll(jTree).blockingGet(5, TimeUnit.SECONDS)
     jTree.addSelectionRow(0)
-    assertThat(jTree.rowCount).isEqualTo(7)
+    assertThat(jTree.rowCount).isEqualTo(8)
     assertThat(jTree.leadSelectionRow).isEqualTo(0)
 
     val ui = FakeUi(jTree)
@@ -830,6 +841,19 @@ class LayoutInspectorTreePanelTest {
     inspector.currentClient.stats.save(data)
     assertThat(data.compose.maxRecompositionCount).isEqualTo(9)
     assertThat(data.compose.maxRecompositionSkips).isEqualTo(33)
+  }
+
+  @Test
+  fun testTextValueOfNodeType() {
+    val panel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val inspector = inspectorRule.inspector
+    val model = inspectorRule.inspectorModel
+    setToolContext(panel, inspector)
+    val nodeType = panel.nodeType
+    assertThat(nodeType.textValueOf(model[VIEW1]!!.treeNode)).isNull()
+    assertThat(nodeType.textValueOf(model[VIEW4]!!.treeNode)).isEqualTo("\"Hello World!\"")
+    assertThat(nodeType.textValueOf(model[COMPOSE1]!!.treeNode)).isNull()
+    assertThat(nodeType.textValueOf(model[COMPOSE3]!!.treeNode)).isEqualTo("(inline)")
   }
 
   private fun setToolContext(tree: LayoutInspectorTreePanel, inspector: LayoutInspector) {
