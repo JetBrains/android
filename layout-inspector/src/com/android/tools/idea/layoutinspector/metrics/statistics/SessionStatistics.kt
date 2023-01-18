@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.metrics.statistics
 import com.android.tools.idea.layoutinspector.LayoutInspectorOpenProjectsTracker
 import com.android.tools.idea.layoutinspector.model.RecompositionData
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
@@ -131,9 +132,10 @@ interface SessionStatistics {
 
 class SessionStatisticsImpl(
   clientType: ClientType,
-  areMultipleProjectsOpen: () -> Boolean = { LayoutInspectorOpenProjectsTracker.areMultipleProjectsOpen() }
+  areMultipleProjectsOpen: () -> Boolean = { LayoutInspectorOpenProjectsTracker.areMultipleProjectsOpen() },
+  isAutoConnectEnabled: () -> Boolean = { LayoutInspectorSettings.getInstance().autoConnectEnabled }
 ) : SessionStatistics {
-  private val attach = AttachStatistics(clientType, areMultipleProjectsOpen)
+  private val attach = AttachStatistics(clientType, areMultipleProjectsOpen, isAutoConnectEnabled)
   private val live = LiveModeStatistics()
   private val rotation = RotationStatistics()
   private val compose = ComposeStatistics()

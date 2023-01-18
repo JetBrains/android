@@ -37,7 +37,7 @@ class SessionStatisticsTest {
 
   @Test
   fun doNotSaveEmptyData() {
-    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT) { false }
+    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT, areMultipleProjectsOpen = { false }, isAutoConnectEnabled = { true })
     val data = DynamicLayoutInspectorSession.newBuilder()
     stats.frameReceived()
     stats.save(data)
@@ -51,6 +51,7 @@ class SessionStatisticsTest {
     assertThat(result.hasAttach()).isTrue() // except for attach data
     assertThat(result.attach.clientType).isEqualTo(APP_INSPECTION_CLIENT)
     assertThat(result.attach.multipleProjectsOpen).isFalse()
+    assertThat(result.attach.autoConnectEnabled).isTrue()
     assertThat(result.attach.debuggerAttached).isFalse()
     assertThat(result.attach.debuggerPausedDuringAttach).isFalse()
   }
@@ -64,7 +65,7 @@ class SessionStatisticsTest {
         }
       }
     }
-    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT) { true }
+    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT, areMultipleProjectsOpen = { true }, isAutoConnectEnabled = { true })
     val compose1 = model[COMPOSE1]
     stats.start()
     model.notifyModified(structuralChange = true)
@@ -98,6 +99,7 @@ class SessionStatisticsTest {
     assertThat(result.attach.clientType).isEqualTo(APP_INSPECTION_CLIENT)
     assertThat(result.attach.success).isTrue()
     assertThat(result.attach.multipleProjectsOpen).isTrue()
+    assertThat(result.attach.autoConnectEnabled).isTrue()
     assertThat(result.attach.debuggerAttached).isTrue()
     assertThat(result.attach.debuggerPausedDuringAttach).isFalse()
   }
@@ -105,7 +107,13 @@ class SessionStatisticsTest {
   @Test
   fun testHasMultipleProjectsIsUpdated() {
     var hasMultipleProjects = false
-    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT) { hasMultipleProjects }
+    var isAutoConnectEnabled = false
+    val stats = SessionStatisticsImpl(
+      APP_INSPECTION_CLIENT,
+      areMultipleProjectsOpen = { hasMultipleProjects },
+      isAutoConnectEnabled = { isAutoConnectEnabled }
+    )
+
 
     stats.start()
 
@@ -115,11 +123,13 @@ class SessionStatisticsTest {
     assertThat(result1.attach.multipleProjectsOpen).isFalse()
 
     hasMultipleProjects = true
+    isAutoConnectEnabled = true
     stats.start()
 
     val data2 = DynamicLayoutInspectorSession.newBuilder()
     stats.save(data2)
     val result2 = data2.build()
     assertThat(result2.attach.multipleProjectsOpen).isTrue()
+    assertThat(result2.attach.autoConnectEnabled).isTrue()
   }
 }
