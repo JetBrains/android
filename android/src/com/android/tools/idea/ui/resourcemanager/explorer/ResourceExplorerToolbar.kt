@@ -31,6 +31,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.CollectionComboBoxModel
@@ -354,7 +355,7 @@ private fun DefaultActionGroup.addOtherMenuTypeFilters(viewModel: ResourceExplor
 }
 
 private fun action(addAction: AnAction) =
-  ActionButton(addAction, addAction.templatePresentation, "", BUTTON_SIZE)
+  ActionButton(addAction, PresentationFactory().getPresentation(addAction), "", BUTTON_SIZE)
 
 private fun GroupLayout.SequentialGroup.addFixedSizeComponent(
   jComponent: JComponent,
