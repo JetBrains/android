@@ -530,7 +530,8 @@ class LintModelFactory : LintModelModuleLoader {
           assetsDirectories = provider.assetsDirectories,
           unitTestOnly = providerContainer.isUnitTest(),
           instrumentationTestOnly = providerContainer.isInstrumentationTest(),
-          debugOnly = debugOnly
+          debugOnly = debugOnly,
+          testFixture = providerContainer.isTestFixtures()
         )
     }
 
@@ -538,7 +539,8 @@ class LintModelFactory : LintModelModuleLoader {
       provider: IdeSourceProvider,
       unitTestOnly: Boolean = false,
       instrumentationTestOnly: Boolean = false,
-      debugOnly: Boolean = false
+      debugOnly: Boolean = false,
+      testFixturesOnly: Boolean = false
     ): LintModelSourceProvider {
         return DefaultLintModelSourceProvider(
           manifestFiles = listOf(provider.manifestFile),
@@ -547,7 +549,8 @@ class LintModelFactory : LintModelModuleLoader {
           assetsDirectories = provider.assetsDirectories,
           unitTestOnly = unitTestOnly,
           instrumentationTestOnly = instrumentationTestOnly,
-          debugOnly = debugOnly
+          debugOnly = debugOnly,
+          testFixture = testFixturesOnly
         )
     }
 
