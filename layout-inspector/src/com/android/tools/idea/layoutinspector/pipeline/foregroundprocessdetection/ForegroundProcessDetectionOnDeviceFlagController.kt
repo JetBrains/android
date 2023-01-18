@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection
 
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.transport.FailedToStartServerException
 import com.android.tools.idea.transport.TransportDeviceManager
@@ -47,9 +47,7 @@ class ForegroundProcessDetectionOnDeviceFlagController : TransportDeviceManager.
   override fun customizeDaemonConfig(configBuilder: Transport.DaemonConfig.Builder) {
     configBuilder
       .setLayoutInspectorConfig(
-        configBuilder.layoutInspectorConfigBuilder.setAutoconnectEnabled(
-          StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()
-        )
+        configBuilder.layoutInspectorConfigBuilder.setAutoconnectEnabled(LayoutInspectorSettings.getInstance().autoConnectEnabled)
       )
   }
 }

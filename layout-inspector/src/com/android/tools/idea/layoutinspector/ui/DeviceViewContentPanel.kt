@@ -19,7 +19,6 @@ import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.common.primaryPanelBackground
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
@@ -28,8 +27,9 @@ import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.getDrawNodeLabelHeight
 import com.android.tools.idea.layoutinspector.model.getEmphasizedBorderOutlineThickness
 import com.android.tools.idea.layoutinspector.model.getLabelFontSize
-import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.intellij.icons.AllIcons
@@ -145,7 +145,7 @@ class DeviceViewContentPanel(
 
       emptyText.appendLine("Deploy your app or ")
       @Suppress("DialogTitleCapitalization")
-      val text = if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()) {
+      val text = if (LayoutInspectorSettings.getInstance().autoConnectEnabled) {
         "select a device"
       }
       else {

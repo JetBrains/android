@@ -33,7 +33,6 @@ import com.android.tools.idea.appinspection.ide.ui.buildDeviceName
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
@@ -44,6 +43,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.matchToProcessDescriptor
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.snapshots.SnapshotAction
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
@@ -171,9 +171,7 @@ class DeviceViewPanel(
   }
 
   // TODO remove [selectedProcessAction] once the flag DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED is removed
-  private val targetSelectedAction: DropDownActionWithButton? = if (
-    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()
-  ) {
+  private val targetSelectedAction: DropDownActionWithButton? = if (LayoutInspectorSettings.getInstance().autoConnectEnabled) {
     if (selectDeviceAction == null) {
       null
     }

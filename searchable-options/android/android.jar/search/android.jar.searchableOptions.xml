@@ -1169,6 +1169,19 @@
     <option name="turn" hit="Turn off device display while mirroring" />
     <option name="while" hit="Turn off device display while mirroring" />
   </configurable>
+  <configurable id="layout.inspector.configurable" configurable_name="Layout Inspector">
+    <option name="a" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="android" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="auto" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="connect" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="enable" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="of" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="requires" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="restart" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="studio" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="inspector" hit="Layout Inspector" />
+    <option name="layout" hit="Layout Inspector" />
+  </configurable>
   <configurable id="com.android.tools.idea.logcat.settings.LogcatApplicationSettingsConfigurableProvider" configurable_name="Logcat">
     <option name="" hit=" KB" />
     <option name="kb" hit=" KB" />

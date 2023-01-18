@@ -34,6 +34,11 @@
     <projectService serviceImplementation="com.android.tools.idea.layoutinspector.ui.InspectorBannerService"/>
 
     <fileEditorProvider implementation="com.android.tools.idea.layoutinspector.snapshots.LayoutInspectorFileEditor$Provider"/>
+
+    <applicationConfigurable groupId="experimental" id="layout.inspector.configurable"
+                             provider="com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurableProvider"/>
+
+    <applicationService serviceImplementation="com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.run">
