@@ -174,14 +174,14 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
     }
 
     private fun canRunByProfiler(executorId: String): Boolean {
-      if (StudioFlags.PROFILEABLE_BUILDS.get()) {
-        // Profileable Builds support multiple profiling modes, wrapped in RegisteredSettings. To get the selected
-        // mode, query the ExecutorGroup by executor ID. If no registered setting is found, the executor is not a
-        // profiler one (e.g. Run).
-        // See ProfileRunExecutorGroup for the registered settings.
-        return AbstractProfilerExecutorGroup.getInstance()?.getRegisteredSettings(executorId) != null
+      if (StudioFlags.PROFILEABLE_BUILDS.get() &&
+          // Profileable Builds support multiple profiling modes, wrapped in RegisteredSettings. To get the selected
+          // mode, query the ExecutorGroup by executor ID. If a registered setting is found, the executor is a profiler one.
+          // See ProfileRunExecutorGroup for the registered settings.
+          AbstractProfilerExecutorGroup.getInstance()?.getRegisteredSettings(executorId) != null) {
+        return true;
       }
-      // Legacy profiler executor.
+      // Legacy profiler executor, used by non-gradle build settings such as ASwB and APK Profiling.
       return ProfileRunExecutor.EXECUTOR_ID == executorId
     }
 
