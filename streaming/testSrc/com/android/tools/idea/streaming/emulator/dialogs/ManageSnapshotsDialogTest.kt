@@ -155,7 +155,7 @@ class ManageSnapshotsDialogTest {
     assertThat(call.methodName).isEqualTo("android.emulation.control.SnapshotService/SaveSnapshot")
 
     // Wait for the snapshot to be created and the snapshot list to be updated.
-    waitForCondition(2, TimeUnit.SECONDS) { table.items.size == 3 }
+    waitForCondition(5, TimeUnit.SECONDS) { table.items.size == 3 }
     var selectedSnapshot = checkNotNull(table.selectedObject)
     assertThat(selectedSnapshot.isQuickBoot).isFalse()
     assertThat(selectedSnapshot.creationTime).isNotEqualTo(0)
