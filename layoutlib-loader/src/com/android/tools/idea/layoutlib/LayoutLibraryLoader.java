@@ -22,8 +22,6 @@ import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.utils.ILogger;
-import com.intellij.internal.statistic.analytics.StudioCrashDetails;
-import com.intellij.internal.statistic.analytics.StudioCrashDetection;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.util.SystemInfo;
@@ -35,7 +33,7 @@ import com.intellij.util.system.CpuArch;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collections;
-import java.util.List;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -108,30 +106,25 @@ public class LayoutLibraryLoader {
    * Loads and initializes layoutlib.
    */
   @NotNull
-  public static synchronized LayoutLibrary load(@NotNull IAndroidTarget target, @NotNull Map<String, Map<String, Integer>> enumMap)
+  public static synchronized LayoutLibrary load(
+    @NotNull IAndroidTarget target,
+    @NotNull Map<String, Map<String, Integer>> enumMap,
+    @NotNull Supplier<Boolean> hasExternalCrash)
     throws RenderingException {
     if (Bridge.hasNativeCrash()) {
       throw new RenderingException("Rendering disabled following a crash");
     }
     LayoutLibrary library = ourLibraryCache.get(target);
     if (library == null || library.isDisposed()) {
-      List<StudioCrashDetails> crashes = StudioCrashDetection.reapCrashDescriptions();
-      for (StudioCrashDetails crash : crashes) {
-        if (isCrashCausedByLayoutlib(crash)) {
-          Bridge.setNativeCrash(true);
-          throw new RenderingException("Rendering disabled following a crash");
-        }
+      if (hasExternalCrash.get()) {
+        Bridge.setNativeCrash(true);
+        throw new RenderingException("Rendering disabled following a crash");
       }
       library = loadImpl(target, enumMap);
       ourLibraryCache.put(target, library);
     }
 
     return library;
-  }
-
-  private static boolean isCrashCausedByLayoutlib(@NotNull StudioCrashDetails crash) {
-    return crash.isJvmCrash() &&
-           (crash.getErrorThread().contains("Layoutlib Render Thread") || crash.getErrorFrame().contains("libandroid_runtime"));
   }
 
   /**
