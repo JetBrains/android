@@ -26,11 +26,10 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.system.CpuArch;
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.function.Supplier;
@@ -54,8 +53,7 @@ public class LayoutLibraryLoader {
   private static LayoutLibrary loadImpl(@NotNull IAndroidTarget target, @NotNull Map<String, Map<String, Integer>> enumMap)
     throws RenderingException {
     final Path fontFolderPath = (target.getPath(IAndroidTarget.FONTS));
-    final VirtualFile fontFolder = LocalFileSystem.getInstance().findFileByNioFile(fontFolderPath);
-    if (fontFolder == null || !fontFolder.isDirectory()) {
+    if (!Files.exists(fontFolderPath) || !Files.isDirectory(fontFolderPath)) {
       throw new RenderingException(
         LayoutlibBundle.message("android.directory.cannot.be.found.error", fontFolderPath));
     }
@@ -82,7 +80,7 @@ public class LayoutLibraryLoader {
 
     LayoutLibrary library = LayoutLibraryProvider.EP_NAME.computeSafeIfAny(LayoutLibraryProvider::getLibrary);
     if (library == null ||
-        !library.init(buildPropMap != null ? buildPropMap : Collections.emptyMap(), new File(fontFolder.getPath()),
+        !library.init(buildPropMap != null ? buildPropMap : Collections.emptyMap(), fontFolderPath.toFile(),
                       getNativeLibraryPath(dataPath), dataPath + "/icu/icudt70l.dat", keyboardPaths, enumMap, layoutLog)) {
       throw new RenderingException(LayoutlibBundle.message("layoutlib.init.failed"));
     }
