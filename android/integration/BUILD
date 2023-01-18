@@ -96,7 +96,6 @@ iml_test(
         "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
     ],
     module = ":intellij.android.core.integration",
-    tags = ["manual"],  # ~40% flake rate due to b/245983885
     tags_linux = ["block-network"],
     tags_windows = [
         "block-network",
