@@ -145,7 +145,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   /** Directory name for the gradle build-cache. Exploded AARs will end up there when using build cache */
   public static final String BUILD_CACHE = "build-cache";
 
-  @NotNull private final AndroidFacet myFacet;
+  @NotNull private final ResourceRepositoryManager myResourceRepositoryManager;
   @NotNull private final Module myModule;
   @NotNull private final ResourceIdManager myIdManager;
   @NotNull final private LayoutLibrary myLayoutLib;
@@ -186,7 +186,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    * @param layoutLib  The layout library this callback is going to be invoked from
    * @param projectRes the {@link LocalResourceRepository} for the project.
    * @param module     the module
-   * @param facet      the facet
+   * @param resourceRepositoryManager the ResourceRepositoryManager
    * @param logger     the render logger
    * @param credential the sandbox credential
    * @param actionBarHandler An {@link ActionBarHandler} instance.
@@ -197,7 +197,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                                @NotNull LayoutLibrary layoutLib,
                                @NotNull LocalResourceRepository projectRes,
                                @NotNull Module module,
-                               @NotNull AndroidFacet facet,
+                               @NotNull ResourceRepositoryManager resourceRepositoryManager,
                                @NotNull IRenderLogger logger,
                                @Nullable Object credential,
                                @Nullable ActionBarHandler actionBarHandler,
@@ -206,7 +206,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myRenderTask = renderTask;
     myLayoutLib = layoutLib;
     myIdManager = ResourceIdManager.get(module);
-    myFacet = facet;
+    myResourceRepositoryManager = resourceRepositoryManager;
     myModule = module;
     myLogger = logger;
     myCredential = credential;
@@ -216,7 +216,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myHasLegacyAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7);
     myHasAndroidXAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
 
-    myNamespacing = ResourceRepositoryManager.getInstance(facet).getNamespacing();
+    myNamespacing = resourceRepositoryManager.getNamespacing();
     if (myNamespacing == Namespacing.DISABLED) {
       myImplicitNamespaces = ResourceNamespace.Resolver.TOOLS_ONLY;
     } else {
@@ -361,7 +361,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
             // this is a special case where we generate a synthetic font-family XML file that points
             // to the cached fonts downloaded by the DownloadableFontCacheService.
             if (myProjectFonts == null) {
-              myProjectFonts = new ProjectFonts(ResourceRepositoryManager.getInstance(myFacet));
+              myProjectFonts = new ProjectFonts(myResourceRepositoryManager);
             }
 
             FontFamily family = myProjectFonts.getFont(resourceValue.getResourceUrl().toString());

@@ -265,7 +265,16 @@ public class RenderTask {
     try {
       myLayoutlibCallback =
         new LayoutlibCallbackImpl(
-          this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler, parserFactory, myModuleClassLoader);
+          this,
+          myLayoutLib,
+          appResources,
+          module,
+          ResourceRepositoryManager.getInstance(facet),
+          myLogger,
+          myCredential,
+          actionBarHandler,
+          parserFactory,
+          myModuleClassLoader);
       if (ResourceIdManager.get(module).getFinalIdsUsed()) {
         myLayoutlibCallback.loadAndParseRClass();
       }
