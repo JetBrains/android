@@ -32,6 +32,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.lint.checks.FontDetector;
 import com.android.utils.XmlUtils;
 import com.intellij.core.CoreBundle;
@@ -178,7 +179,7 @@ public class FontFamilyCreator {
   private String createFontFamilyContent(@NotNull FontDetail font) {
     FontFamily family = font.getFamily();
     FontProvider provider = family.getProvider();
-    AndroidModuleInfo info = AndroidModuleInfo.getInstance(myFacet);
+    AndroidModuleInfo info = StudioAndroidModuleInfo.getInstance(myFacet);
     AndroidVersion minSdkVersion = info.getMinSdkVersion();
     if (minSdkVersion.getApiLevel() >= FontDetector.FUTURE_API_VERSION_WHERE_DOWNLOADABLE_FONTS_WORK_IN_FRAMEWORK) {
       return String.format(

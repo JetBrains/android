@@ -15,10 +15,9 @@
  */
 package org.jetbrains.android.dom.drawable;
 
-import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
@@ -55,7 +54,7 @@ public class AndroidDrawableDomUtil {
 
   @NotNull
   public static List<String> getPossibleRoots(@NotNull AndroidFacet facet, @NotNull ResourceFolderType folderType) {
-    AndroidVersion sdkVersion = AndroidModuleInfo.getInstance(facet).getBuildSdkVersion();
+    AndroidVersion sdkVersion = StudioAndroidModuleInfo.getInstance(facet).getBuildSdkVersion();
     List<String> result = new ArrayList<>(DRAWABLE_ROOTS_V1.length + DRAWABLE_ROOTS_V16.length
                                           + DRAWABLE_ROOTS_V21.length + 1); // Add 1 for adaptive icon tag
 

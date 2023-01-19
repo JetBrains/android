@@ -28,6 +28,7 @@ import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -202,7 +203,7 @@ public class VaryingConfiguration extends NestedConfiguration {
         IAndroidTarget mostRecent = manager.getHighestApiTarget();
         if (target.equals(mostRecent)) {
           // Find oldest supported
-          AndroidModuleInfo info = AndroidModuleInfo.getInstance(manager.getModule());
+          AndroidModuleInfo info = StudioAndroidModuleInfo.getInstance(manager.getModule());
           if (info != null) {
             int minSdkVersion = info.getMinSdkVersion().getFeatureLevel();
             for (IAndroidTarget t : targets) {

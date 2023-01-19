@@ -27,7 +27,7 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
@@ -81,19 +81,19 @@ public class ViewEditorImpl extends ViewEditor {
   @Nullable
   @Override
   public AndroidVersion getCompileSdkVersion() {
-    return AndroidModuleInfo.getInstance(myModel.getFacet()).getBuildSdkVersion();
+    return StudioAndroidModuleInfo.getInstance(myModel.getFacet()).getBuildSdkVersion();
   }
 
   @NotNull
   @Override
   public AndroidVersion getMinSdkVersion() {
-    return AndroidModuleInfo.getInstance(myModel.getFacet()).getMinSdkVersion();
+    return StudioAndroidModuleInfo.getInstance(myModel.getFacet()).getMinSdkVersion();
   }
 
   @NotNull
   @Override
   public AndroidVersion getTargetSdkVersion() {
-    return AndroidModuleInfo.getInstance(myModel.getFacet()).getTargetSdkVersion();
+    return StudioAndroidModuleInfo.getInstance(myModel.getFacet()).getTargetSdkVersion();
   }
 
   @NotNull

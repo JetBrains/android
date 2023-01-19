@@ -3,6 +3,7 @@ package org.jetbrains.android.inspections;
 
 import com.android.annotations.Nullable;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.intellij.pom.java.JavaFeature;
 import com.intellij.pom.java.LanguageFeatureProvider;
 import com.intellij.psi.PsiFile;
@@ -30,7 +31,7 @@ public class AndroidLanguageFeatureProvider implements LanguageFeatureProvider {
     if (file != null) {
       AndroidFacet facet = AndroidFacet.getInstance(file);
       if (facet != null && !facet.isDisposed()) {
-        AndroidModuleInfo info = AndroidModuleInfo.getInstance(facet);
+        AndroidModuleInfo info = StudioAndroidModuleInfo.getInstance(facet);
         return info.getMinSdkVersion().getApiLevel() >= minApiLevel;
       }
     }

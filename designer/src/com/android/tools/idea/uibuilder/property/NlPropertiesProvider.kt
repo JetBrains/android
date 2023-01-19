@@ -35,7 +35,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.lint.common.LintIdeClient
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.uibuilder.model.hasNlComponentInfo
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.uibuilder.property.support.TypeResolver
@@ -118,7 +118,7 @@ class NlPropertiesProvider(private val facet: AndroidFacet): PropertiesProvider 
                                     private val systemAttrDefs: AttributeDefinitions) {
     private val project = facet.module.project
     private val apiLookup = LintIdeClient.getApiLookup(project)
-    private val minApi = AndroidModuleInfo.getInstance(facet).minSdkVersion.featureLevel
+    private val minApi = StudioAndroidModuleInfo.getInstance(facet).minSdkVersion.featureLevel
     private val psiFacade = JavaPsiFacade.getInstance(project)
     private val classLookup = NlPsiLookup(facet)
     private val descriptorProvider = AndroidDomElementDescriptorProvider()

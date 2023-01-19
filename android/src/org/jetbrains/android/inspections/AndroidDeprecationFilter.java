@@ -18,7 +18,7 @@ package org.jetbrains.android.inspections;
 import com.android.sdklib.AndroidVersionUtils;
 import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.lint.common.LintIdeClient;
-import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.detector.api.ApiConstraint;
 import com.android.tools.lint.detector.api.ExtensionSdk;
@@ -95,7 +95,7 @@ public class AndroidDeprecationFilter extends AndroidDeprecationInspection.Depre
     if (deprecatedInVersions != ApiConstraint.UNKNOWN) {
       int deprecatedIn = deprecatedInVersions.min();
       AndroidFacet facet = AndroidFacet.getInstance(referenceElement);
-      if (facet != null && !facet.isDisposed() && AndroidModuleInfo.getInstance(facet).getMinSdkVersion().getApiLevel() < deprecatedIn) {
+      if (facet != null && !facet.isDisposed() && StudioAndroidModuleInfo.getInstance(facet).getMinSdkVersion().getApiLevel() < deprecatedIn) {
         return !(VersionChecks.isPrecededByVersionCheckExit(referenceElement, deprecatedIn) ||
                  VersionChecks.isWithinVersionCheckConditional(referenceElement, deprecatedIn));
       }

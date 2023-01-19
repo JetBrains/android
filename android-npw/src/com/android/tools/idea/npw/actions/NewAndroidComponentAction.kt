@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.actions
 import com.android.AndroidProjectTypes
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.npw.COMPOSE_MIN_AGP_VERSION
 import com.android.tools.idea.npw.hasComposeMinAgpVersion
 import com.android.tools.idea.npw.model.ProjectSyncInvoker.DefaultProjectSyncInvoker
@@ -86,7 +86,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
   @Suppress("DialogTitleCapitalization")
   override fun update(e: AnActionEvent) {
     val module = PlatformCoreDataKeys.MODULE.getData(e.dataContext) ?: return
-    val moduleInfo = AndroidModuleInfo.getInstance(module) ?: return
+    val moduleInfo = StudioAndroidModuleInfo.getInstance(module) ?: return
     val presentation = e.presentation
     presentation.isVisible = true
     // See also com.android.tools.idea.npw.template.ChooseActivityTypeStep#validateTemplate

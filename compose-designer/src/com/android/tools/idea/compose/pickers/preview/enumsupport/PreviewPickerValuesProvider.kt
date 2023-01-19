@@ -35,7 +35,7 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.DeviceGroup
 import com.android.tools.idea.configurations.groupDevices
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.property.panel.api.EnumValue
 import com.intellij.openapi.application.runReadAction
@@ -159,7 +159,7 @@ private fun createUiModeEnumProvider(module: Module): EnumValuesProvider =
 private fun createApiLevelEnumProvider(module: Module): EnumValuesProvider = {
   val configurationManager = ConfigurationManager.findExistingInstance(module)
   val minTargetSdk =
-    AndroidModuleInfo.getInstance(module)?.minSdkVersion?.apiLevel
+    StudioAndroidModuleInfo.getInstance(module)?.minSdkVersion?.apiLevel
       ?: AndroidVersion.VersionCodes.BASE
   configurationManager?.targets
     ?.filter { ConfigurationManager.isLayoutLibTarget(it) && it.version.apiLevel >= minTargetSdk }

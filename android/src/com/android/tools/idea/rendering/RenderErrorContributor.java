@@ -42,6 +42,7 @@ import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.psi.TagToClassMapper;
 import com.android.tools.idea.rendering.errors.ComposeRenderErrorContributor;
@@ -293,7 +294,7 @@ public class RenderErrorContributor {
       }
 
       // See whether we should offer match_parent instead of fill_parent
-      AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(module);
+      AndroidModuleInfo moduleInfo = StudioAndroidModuleInfo.getInstance(module);
       final String fill = moduleInfo == null
                           || moduleInfo.getBuildSdkVersion() == null
                           || moduleInfo.getBuildSdkVersion().getApiLevel() >= 8

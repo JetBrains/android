@@ -21,6 +21,7 @@ import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.rendering.webp.ConvertToWebpAction;
 import com.android.tools.lint.checks.IconDetector;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -59,7 +60,7 @@ public class AndroidLintConvertToWebpInspection extends AndroidLintInspectionBas
                           @NotNull AndroidQuickfixContexts.Context context) {
           AndroidFacet facet = AndroidFacet.getInstance(startElement);
           if (facet != null) {
-            AndroidModuleInfo info = AndroidModuleInfo.getInstance(facet);
+            AndroidModuleInfo info = StudioAndroidModuleInfo.getInstance(facet);
             int minSdkVersion = info.getMinSdkVersion().getApiLevel();
             List<VirtualFile> folders = ResourceFolderManager.getInstance(facet).getFolders();
             ConvertToWebpAction action = new ConvertToWebpAction();

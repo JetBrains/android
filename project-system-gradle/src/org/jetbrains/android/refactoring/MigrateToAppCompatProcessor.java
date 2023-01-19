@@ -20,6 +20,7 @@ import com.android.annotations.NonNull;
 import com.android.ide.common.gradle.Version;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.resources.ResourceType;
@@ -480,7 +481,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
       // as a dummy class by PsiMigration. This can lead to cases where the same class seems to be
       // fully qualified in java files that are generated instead of an import.
       for (Module module : computeModulesNeedingAppCompat()) {
-        AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(module);
+        AndroidModuleInfo moduleInfo = StudioAndroidModuleInfo.getInstance(module);
         if (moduleInfo == null) {
           continue;
         }
@@ -644,7 +645,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
     AndroidVersion highest = new AndroidVersion(21); // atleast 21
     for (Module module : modules) {
       dependsOnAndroidX |= DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
-      AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(module);
+      AndroidModuleInfo moduleInfo = StudioAndroidModuleInfo.getInstance(module);
       if (moduleInfo != null) {
         AndroidVersion current = moduleInfo.getBuildSdkVersion();
         if (current != null) {

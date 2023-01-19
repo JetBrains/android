@@ -41,16 +41,15 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 /**
- * Android information about a module, such as its application package, its minSdkVersion, and so on. This
- * is derived by querying the gradle model, or the manifest file if the model doesn't exist (not constructed, or
- * not a Gradle project).
+ * Studio specific implementation of {@link AndroidModuleInfo} This is derived by querying the gradle model, or the
+ * manifest file if the model doesn't exist (not constructed, or not a Gradle project).
  * <p>
  * Note that in some cases you may need to obtain information from the merged manifest file. In such a case,
- * either obtain it from {@link AndroidModuleInfo} if the information is also available in the gradle model
+ * either obtain it from {@link StudioAndroidModuleInfo} if the information is also available in the gradle model
  * (e.g. minSdk, targetSdk, packageName, etc), or use {@link MergedManifestManager#getSnapshot(Module)}.
  */
-public class AndroidModuleInfo extends AndroidFacetScopedService {
-  private static final Logger LOG = Logger.getInstance(AndroidModuleInfo.class);
+public class StudioAndroidModuleInfo extends AndroidFacetScopedService implements AndroidModuleInfo {
+  private static final Logger LOG = Logger.getInstance(StudioAndroidModuleInfo.class);
   @VisibleForTesting
   static final Key<AndroidModuleInfo> KEY = Key.create(AndroidModuleInfo.class.getName());
 
@@ -68,7 +67,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
       }
 
       if (androidModuleInfo == null) {
-        androidModuleInfo = new AndroidModuleInfo(facet);
+        androidModuleInfo = new StudioAndroidModuleInfo(facet);
       }
       facet.putUserData(KEY, androidModuleInfo);
     }
@@ -86,13 +85,14 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
     facet.putUserData(KEY, androidModuleInfo);
   }
 
-  private AndroidModuleInfo(@NotNull AndroidFacet facet) {
+  private StudioAndroidModuleInfo(@NotNull AndroidFacet facet) {
     super(facet);
   }
 
   /**
    * @return the minimum SDK version for current Android module.
    */
+  @Override
   public int getModuleMinApi() {
     return getMinSdkVersion().getApiLevel();
   }
@@ -101,8 +101,9 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
    * Obtains the applicationId name for the current variant, or if not initialized, from the primary manifest.
    * This method will return the applicationId from gradle, even if the manifest merger fails.
    */
+  @Override
   @Nullable
-  public String getPackage() {
+  public String getPackageName() {
     AndroidFacet facet = getFacet();
     AndroidModel androidModel = AndroidModel.get(facet);
     if (androidModel != null) {
@@ -133,6 +134,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
    * and compileSdkVersion are all coerced to the same preview platform value. This method
    * should be used by launch code for example or packaging code.
    */
+  @Override
   @NotNull
   public ListenableFuture<AndroidVersion> getRuntimeMinSdkVersion() {
     AndroidFacet facet = getFacet();
@@ -151,6 +153,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
     return getFromMergedManifest(facet, MergedManifestSnapshot::getMinSdkVersion);
   }
 
+  @Override
   @NotNull
   public AndroidVersion getMinSdkVersion() {
     AndroidFacet facet = getFacet();
@@ -173,6 +176,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
     return MergedManifestManager.getSnapshot(facet).getMinSdkVersion();
   }
 
+  @Override
   @NotNull
   public AndroidVersion getTargetSdkVersion() {
     AndroidFacet facet = getFacet();
@@ -200,6 +204,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
     return MergedManifestManager.getSnapshot(facet).getTargetSdkVersion();
   }
 
+  @Override
   @Nullable
   public AndroidVersion getBuildSdkVersion() {
     // TODO: Get this from the model! For now, we take advantage of the fact that

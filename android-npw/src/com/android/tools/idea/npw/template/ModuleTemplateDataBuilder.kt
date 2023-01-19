@@ -25,7 +25,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.hasKotlinFacet
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.npw.ThemeHelper
 import com.android.tools.idea.npw.model.isViewBindingSupported
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
@@ -114,7 +114,7 @@ class ModuleTemplateDataBuilder(
   fun setFacet(facet: AndroidFacet) {
     projectTemplateDataBuilder.setEssentials(facet.module.project)
 
-    val moduleInfo = AndroidModuleInfo.getInstance(facet)
+    val moduleInfo = StudioAndroidModuleInfo.getInstance(facet)
     val targetSdkVersion = moduleInfo.targetSdkVersion
     val buildSdkVersion = moduleInfo.buildSdkVersion ?: targetSdkVersion
     val minSdkVersion = moduleInfo.minSdkVersion

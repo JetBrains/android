@@ -17,7 +17,7 @@ package com.android.tools.idea.mlkit.importmodel;
 
 import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -97,7 +97,7 @@ public class ImportMlModelAction extends AnAction {
       return;
     }
 
-    if (AndroidModuleInfo.getInstance(androidFacet).getMinSdkVersion().getFeatureLevel() < MIN_SDK_VERSION) {
+    if (StudioAndroidModuleInfo.getInstance(androidFacet).getMinSdkVersion().getFeatureLevel() < MIN_SDK_VERSION) {
       presentation.setEnabled(false);
       presentation.setText(AndroidBundle.message("android.wizard.action.requires.minsdk", TITLE, MIN_SDK_VERSION));
       return;

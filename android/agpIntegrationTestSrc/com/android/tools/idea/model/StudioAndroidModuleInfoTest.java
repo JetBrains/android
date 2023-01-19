@@ -23,41 +23,41 @@ import static com.android.tools.idea.testing.TestProjectPaths.MODULE_INFO_MANIFE
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
-public class AndroidModuleInfoTest extends AndroidGradleTestCase {
+public class StudioAndroidModuleInfoTest extends AndroidGradleTestCase {
   public void testManifestOnly() throws Exception {
     loadProject(MODULE_INFO_MANIFEST_ONLY);
     assertNotNull(myAndroidFacet);
-    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(myAndroidFacet);
+    AndroidModuleInfo androidModuleInfo = StudioAndroidModuleInfo.getInstance(myAndroidFacet);
     assertEquals(1, androidModuleInfo.getMinSdkVersion().getApiLevel());
     assertEquals(18, androidModuleInfo.getTargetSdkVersion().getApiLevel());
-    assertEquals("com.example.unittest", androidModuleInfo.getPackage());
+    assertEquals("com.example.unittest", androidModuleInfo.getPackageName());
   }
 
   public void testGradleOnly() throws Exception {
     loadProject(MODULE_INFO_GRADLE_ONLY);
     assertNotNull(myAndroidFacet);
-    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(myAndroidFacet);
+    AndroidModuleInfo androidModuleInfo = StudioAndroidModuleInfo.getInstance(myAndroidFacet);
     assertEquals(17, androidModuleInfo.getMinSdkVersion().getApiLevel());
     assertEquals(CURRENT_COMPILE_VERSION, androidModuleInfo.getTargetSdkVersion().getApiLevel());
-    assertEquals("from.gradle", androidModuleInfo.getPackage());
+    assertEquals("from.gradle", androidModuleInfo.getPackageName());
   }
 
   public void testBoth() throws Exception {
     loadProject(MODULE_INFO_BOTH);
     assertNotNull(myAndroidFacet);
-    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(myAndroidFacet);
+    AndroidModuleInfo androidModuleInfo = StudioAndroidModuleInfo.getInstance(myAndroidFacet);
     assertEquals(17, androidModuleInfo.getMinSdkVersion().getApiLevel());
     assertEquals(CURRENT_COMPILE_VERSION, androidModuleInfo.getTargetSdkVersion().getApiLevel());
-        assertEquals("from.gradle", androidModuleInfo.getPackage());
+        assertEquals("from.gradle", androidModuleInfo.getPackageName());
   }
 
   public void testFlavors() throws Exception {
     loadProject(MODULE_INFO_FLAVORS);
     assertNotNull(myAndroidFacet);
 
-    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(myAndroidFacet);
+    AndroidModuleInfo androidModuleInfo = StudioAndroidModuleInfo.getInstance(myAndroidFacet);
     assertEquals(14, androidModuleInfo.getMinSdkVersion().getApiLevel());
     assertEquals(CURRENT_COMPILE_VERSION, androidModuleInfo.getTargetSdkVersion().getApiLevel());
-    assertEquals("com.example.free.debug", androidModuleInfo.getPackage());
+    assertEquals("com.example.free.debug", androidModuleInfo.getPackageName());
   }
 }

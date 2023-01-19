@@ -24,6 +24,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.ClientCellRenderer.ClientComparator;
 import com.android.tools.idea.ddms.DeviceRenderer.DeviceComboBoxRenderer;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.utils.CharSequences;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -248,9 +249,9 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   @Nullable
   private String getApplicationName() {
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(module);
+      AndroidModuleInfo moduleInfo = StudioAndroidModuleInfo.getInstance(module);
       if (moduleInfo != null) {
-        String pkg = moduleInfo.getPackage();
+        String pkg = moduleInfo.getPackageName();
         if (pkg != null) {
           return pkg;
         }

@@ -27,10 +27,10 @@ import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
-import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifestException;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
@@ -220,7 +220,7 @@ public class RenderService implements Disposable {
       module,
       new AssetRepositoryImpl(facet),
       ResourceRepositoryManager.getInstance(facet),
-      AndroidModuleInfo.getInstance(facet),
+      StudioAndroidModuleInfo.getInstance(facet),
       AndroidPlatform.getInstance(module),
       ResourceIdManager.get(module)
     );

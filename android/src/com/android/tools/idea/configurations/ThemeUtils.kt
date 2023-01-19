@@ -29,7 +29,7 @@ import com.android.tools.idea.editors.theme.ThemeResolver
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle
 import com.android.tools.idea.model.ActivityAttributesSnapshot
 import com.android.tools.idea.model.AndroidManifestIndex
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.model.queryActivitiesFromManifestIndex
@@ -244,7 +244,7 @@ fun Module.getDefaultTheme(renderingTarget: IAndroidTarget?, screenSize: ScreenS
   val facet = AndroidFacet.getInstance(this) ?: return SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Material.Light"
 
   // From manifest theme documentation: "If that attribute is also not set, the default system theme is used."
-  val targetSdk = AndroidModuleInfo.getInstance(facet).targetSdkVersion.apiLevel
+  val targetSdk = StudioAndroidModuleInfo.getInstance(facet).targetSdkVersion.apiLevel
 
   val renderingTargetSdk = renderingTarget?.version?.apiLevel ?: targetSdk
 

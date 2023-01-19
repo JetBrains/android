@@ -25,7 +25,7 @@ import com.android.support.parseMigrationFile
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -107,7 +107,7 @@ class MigrateToAndroidxHandler(var showWarningDialog: Boolean = true,
     // If we couldn't find the version from the model parser, try to get it
     // from the AndroidModuleInfo. This could happen if the version is coming
     // from a variable that the Gradle parser is not handling correctly
-    return modelVersion ?: AndroidModuleInfo.getInstance(first)?.buildSdkVersion
+    return modelVersion ?: StudioAndroidModuleInfo.getInstance(first)?.buildSdkVersion
   }
 
   private fun checkRefactoringPrerequisites(project: Project): Boolean {

@@ -28,7 +28,7 @@ import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.lint.AndroidLintBundle;
-import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.lint.checks.PermissionDetector;
 import com.android.tools.lint.checks.PermissionRequirement;
 import com.android.tools.lint.detector.api.LintFix;
@@ -207,7 +207,7 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
         // the MANAGE_ACCOUNTS permission is only needed pre Marshmallow. In that
         // case set a maxSdkVersion attribute on the uses-permission element.
         if (myMaxVersion != Integer.MAX_VALUE
-            && myMaxVersion >= AndroidModuleInfo.getInstance(myFacet).getMinSdkVersion().getApiLevel()) {
+            && myMaxVersion >= StudioAndroidModuleInfo.getInstance(myFacet).getMinSdkVersion().getApiLevel()) {
           permissionTag.setAttribute("maxSdkVersion", ANDROID_URI, Integer.toString(myMaxVersion));
         }
 
