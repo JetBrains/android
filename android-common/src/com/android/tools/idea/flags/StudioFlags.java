@@ -1355,7 +1355,7 @@ public final class StudioFlags {
     "virtual.device.watcher.enabled",
     "Enable VirtualDeviceWatcher",
     "Enable VirtualDeviceWatcher to update the Virtual table based on disk changes",
-    false);
+    true);
   // endregion
 
   //region DDMLIB
