@@ -22,4 +22,5 @@
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
   </component>
+  <component name="TestModuleProperties" production-module="intellij.android.dagger" />
 </module>
