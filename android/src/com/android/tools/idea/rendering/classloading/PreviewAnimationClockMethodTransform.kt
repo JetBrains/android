@@ -25,7 +25,7 @@ private const val COMPOSE_PREVIEW_ANIMATION_MANAGER = "com/android/tools/idea/co
  * [ClassVisitor] that intercepts calls to PreviewAnimationClock's notifySubscribe and notifyUnsubscribe and redirects them to corresponding
  * methods in ComposePreviewAnimationManager.
  */
-class PreviewAnimationClockMethodTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.ASM7, delegate), ClassVisitorUniqueIdProvider {
+class PreviewAnimationClockMethodTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
   private var isPreviewAnimationClockClass: Boolean = false
   override val uniqueId: String = PreviewAnimationClockMethodTransform::class.qualifiedName!!
 

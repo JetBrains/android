@@ -21,7 +21,7 @@ import com.google.common.hash.Hashing
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
 
-private object EmptyClassVisitor: ClassVisitor(Opcodes.ASM7)
+private object EmptyClassVisitor: ClassVisitor(Opcodes.ASM9)
 
 /**
  * Interface to be implemented by [ClassVisitor]s to ensure that the transformation applied is stable. If two [ClassVisitor]s return the

@@ -147,7 +147,7 @@ class LiveLiteralsTransform @JvmOverloads constructor(
 open class HasLiveLiteralsTransform @JvmOverloads constructor(
   delegate: ClassVisitor,
   private val fileInfoAnnotationName: String = FILE_INFO_ANNOTATION,
-  private val onLiveLiteralsFound: () -> Unit) : ClassVisitor(Opcodes.ASM7, delegate), ClassVisitorUniqueIdProvider {
+  private val onLiveLiteralsFound: () -> Unit) : ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
 
   override val uniqueId: String = "${HasLiveLiteralsTransform::class.qualifiedName!!},$fileInfoAnnotationName"
 

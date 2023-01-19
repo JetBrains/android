@@ -24,7 +24,7 @@ import org.jetbrains.org.objectweb.asm.Opcodes
  * In this method, there is a check that font files have a path that starts with res/.
  * This is not the case in Studio. This replaces the check with one that verifies that the path contains res/.
  */
-class ResourcesCompatTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.ASM7, delegate), ClassVisitorUniqueIdProvider {
+class ResourcesCompatTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
   private var isResourcesCompatClass: Boolean = false
   override val uniqueId: String = ResourcesCompatTransform::class.qualifiedName!!
 

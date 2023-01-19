@@ -34,7 +34,7 @@ class CooperativeInterruptTransform @JvmOverloads constructor(
   delegate: ClassVisitor,
   private val checkPercentage: Int = 1,
   private val shouldInstrument: (String, String) -> Boolean = { _, _ -> true }) :
-  ClassVisitor(Opcodes.ASM7, delegate), ClassVisitorUniqueIdProvider {
+  ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
   init {
     if (checkPercentage !in 1..100) throw IllegalArgumentException("checkPercentage must be in [1, 100]")
   }
