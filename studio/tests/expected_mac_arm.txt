@@ -2625,7 +2625,7 @@ Android Studio Preview.app/Contents/plugins/svn4idea/lib/sqlite.jar
 Android Studio Preview.app/Contents/plugins/svn4idea/lib/svn4idea.jar
 Android Studio Preview.app/Contents/plugins/tasks/lib/tasks-core.jar
 Android Studio Preview.app/Contents/plugins/terminal/.zshenv
-Android Studio Preview.app/Contents/plugins/terminal/fish/config.fish
+Android Studio Preview.app/Contents/plugins/terminal/fish/init.fish
 Android Studio Preview.app/Contents/plugins/terminal/jediterm-bash.in
 Android Studio Preview.app/Contents/plugins/terminal/lib/terminal.jar
 Android Studio Preview.app/Contents/plugins/test-recorder/lib/swt.jar
