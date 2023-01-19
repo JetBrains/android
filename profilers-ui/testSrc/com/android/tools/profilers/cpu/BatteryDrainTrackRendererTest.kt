@@ -43,7 +43,7 @@ class BatteryDrainTrackRendererTest {
       BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "foo.pct"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
     ).build()
     var formatter = percentBatteryDrainTrackModel.dataModel.axisComponentModel.formatter
-    assertThat(formatter.getFormattedString(100.0, 100.0, true)).isEqualTo("100 %")
+    assertThat(formatter.getFormattedString(100.0, 100.0, true)).isEqualTo("100%")
 
     val microAmpHoursBatteryDrainTrackModel = TrackModel.newBuilder(
       BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "foo.uah"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"

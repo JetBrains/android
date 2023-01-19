@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.RangedContinuousSeries
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.adtui.model.axis.AxisComponentModel
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel
+import com.android.tools.adtui.model.formatter.PercentAxisFormatter
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter
 import com.android.tools.profilers.cpu.LazyDataSeries
 import kotlin.math.abs
@@ -37,6 +38,7 @@ class BatteryDrainTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Rang
     val negValuePresent = minValue < 0 || maxValue < 0
 
     val axisFormatter = when (unit) {
+      "%" -> PercentAxisFormatter(1, 2)
       // If a negative value is present, we limit the number of major axis ticks to keep the label only the 0 axis label.
       "µa" -> if (negValuePresent) SingleUnitAxisFormatter(1, 2, 1, unit) else SingleUnitAxisFormatter(1, 5, 1, unit)
       else -> SingleUnitAxisFormatter(1, 2, 5, unit)
@@ -46,8 +48,7 @@ class BatteryDrainTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Rang
     val yRange = when (unit) {
       // We use the range of [-max, max] if there is a negative value present to coerce the 0 axis label (clarifies negative values).
       "µa" -> if (negValuePresent) Range(-absLargestValue, absLargestValue) else Range(0.0, maxValue.toDouble())
-      // The 1.1 multiplier allows some breathing room for the topmost y-axis label to not be cut off.
-      else -> Range(0.0, maxValue.toDouble() * 1.1)
+      else -> Range(0.0, maxValue.toDouble())
     }
 
     axisComponentModel = ResizingAxisComponentModel.Builder(yRange, axisFormatter).build()

@@ -28,7 +28,7 @@ class BatteryDrainTrackModelTest {
 
     assertThat(batteryDrainTrackModel.series.size).isEqualTo(1)
     assertThat(batteryDrainTrackModel.series[0].yRange.min).isEqualTo(0.0)
-    assertThat(batteryDrainTrackModel.series[0].yRange.max).isWithin(0.000001).of(3300.0)
+    assertThat(batteryDrainTrackModel.series[0].yRange.max).isEqualTo(3000.0)
   }
 
   companion object {
