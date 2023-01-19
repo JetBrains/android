@@ -604,13 +604,11 @@ studio_plugin(
 
 exports_files([
     "codesign/entitlements.xml",
-    "codesign/filelist",
 ])
 
 android_studio(
     name = "android-studio",
     codesign_entitlements = "codesign/entitlements.xml",
-    codesign_filelist = "codesign/filelist",
     files_linux = {
         "safemode/linux/studio_safe.sh": "bin/studio_safe.sh",
     },

@@ -566,19 +566,9 @@ def _zip_merger(ctx, zips, overrides, out):
         mnemonic = "zipmerger",
     )
 
-def _codesign(ctx, filelist_template, entitlements, prefix, out):
-    filelist = ctx.actions.declare_file(ctx.attr.name + ".codesign.filelist")
-    ctx.actions.expand_template(
-        template = filelist_template,
-        output = filelist,
-        substitutions = {
-            "%prefix%": prefix,
-        },
-    )
-
+def _codesign(ctx, entitlements, prefix, out):
     ctx.actions.declare_file(ctx.attr.name + ".codesign.zip")
     files = [
-        ("_codesign/filelist", filelist),
         ("_codesign/entitlements.xml", entitlements),
     ]
 
@@ -668,7 +658,7 @@ def _android_studio_os(ctx, platform, out):
 
     if platform == MAC or platform == MAC_ARM:
         codesign = ctx.actions.declare_file(ctx.attr.name + ".codesign.zip")
-        _codesign(ctx, ctx.file.codesign_filelist, ctx.file.codesign_entitlements, platform_prefix, codesign)
+        _codesign(ctx, ctx.file.codesign_entitlements, platform_prefix, codesign)
         zips += [("", codesign)]
 
     _zip_merger(ctx, zips, overrides, out)
@@ -719,7 +709,6 @@ def _android_studio_impl(ctx):
 _android_studio = rule(
     attrs = {
         "codesign_entitlements": attr.label(allow_single_file = True),
-        "codesign_filelist": attr.label(allow_single_file = True),
         "compress": attr.bool(),
         "files_linux": attr.label_keyed_string_dict(allow_files = True, default = {}),
         "files_mac": attr.label_keyed_string_dict(allow_files = True, default = {}),
