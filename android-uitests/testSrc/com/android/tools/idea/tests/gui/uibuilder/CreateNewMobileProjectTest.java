@@ -36,6 +36,8 @@ public class CreateNewMobileProjectTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
+  private static final String KOTLIN_FILE = "MainActivity.kt";
+
   /**
    * Verify creating a new project from default template.
    * <p>
@@ -59,6 +61,14 @@ public class CreateNewMobileProjectTest {
     IdeFrameFixture ideFrame = newProject("Test Application").withDefaultComposeActivity().create(guiTest);
     assertThat(ideFrame.getModuleNames()).containsExactly("Test_Application", "Test_Application.app", "Test_Application.app.main",
                                                           "Test_Application.app.unitTest", "Test_Application.app.androidTest");
+
+    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
+    assertThat(KOTLIN_FILE).isEqualTo(ideFrameFixture.getEditor().getCurrentFileName());
+    assertThat(ideFrameFixture.getEditor().getCurrentFileContents())
+      .contains("@Composable");
+
+    assertThat(guiTest.getProjectFileText("app/build.gradle"))
+      .contains("implementation 'androidx.compose.material3:material3'");
 
     // Make sure that the activity registration uses the relative syntax
     // (regression test for https://code.google.com/p/android/issues/detail?id=76716)
