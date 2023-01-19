@@ -1563,5 +1563,14 @@ public final class StudioFlags {
   public static final Flag<Boolean> TSDKVUA_FILTERS = Flag.create(TSDKVUA, "filters", "Enable relevance filtering", "Enable relevance filtering", false);
   // endregion TargetSDKVersion Upgrade Assistant
 
+  // region PROCESS_NAME_MONITOR
+  private static final FlagGroup PROCESS_NAME_MONITOR = new FlagGroup(FLAGS, "processnamemonitor", "Process Name Monitor");
+  public static final Flag<Boolean> ENABLE_PROCESS_NAME_POLLING = Flag.create(
+    PROCESS_NAME_MONITOR, "processnamemonitor.enable.process.name.polling", "Enable process name polling",
+    "Enable process name polling. Changing the value of this flag requires restarting Android Studio.",
+    false
+  );
+  // endregion NEW_SEND_FEEDBACK_DIALOG
+
   private StudioFlags() { }
 }

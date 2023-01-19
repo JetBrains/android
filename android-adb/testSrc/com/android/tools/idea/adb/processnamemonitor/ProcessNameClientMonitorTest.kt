@@ -18,6 +18,7 @@ package com.android.tools.idea.adb.processnamemonitor
 import com.android.adblib.DeviceSelector
 import com.android.adblib.testing.FakeAdbSession
 import com.android.ddmlib.IDevice
+import com.android.flags.junit.FlagRule
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
@@ -42,7 +43,7 @@ class ProcessNameClientMonitorTest {
   private val projectRule = ProjectRule()
 
   @get:Rule
-  val rule = RuleChain(projectRule)
+  val rule = RuleChain(projectRule, FlagRule(StudioFlags.ENABLE_PROCESS_NAME_POLLING))
 
   private val process1 = ProcessInfo(1, "package1", "process1")
   private val process2 = ProcessInfo(2, "package2", "process2")
@@ -176,6 +177,7 @@ class ProcessNameClientMonitorTest {
 
   @Test
   fun processNamesFromPs() = runBlockingTest {
+    StudioFlags.ENABLE_PROCESS_NAME_POLLING.override(true)
     FakeProcessNameMonitorFlows().use { flows ->
       processNameClientMonitor(flows = flows, device = device).use { monitor ->
         fakeAdbDeviceServices.configureShellCommand(
@@ -198,7 +200,31 @@ class ProcessNameClientMonitorTest {
   }
 
   @Test
+  fun processNamesFromPs_disabledByDefault() = runBlockingTest {
+    FakeProcessNameMonitorFlows().use { flows ->
+      processNameClientMonitor(flows = flows, device = device).use { monitor ->
+        fakeAdbDeviceServices.configureShellCommand(
+          DeviceSelector.fromSerialNumber(device.serialNumber),
+          PS_COMMAND,
+          """
+          2 process2-from-ps
+          3 process3-from-ps
+
+        """.trimIndent())
+
+        flows.sendClientEvents(device.serialNumber, clientsAddedEvent(process1))
+
+        advanceTimeBy(2000)
+        assertThat(monitor.getProcessNames(1)).isEqualTo(process1.names)
+        assertThat(monitor.getProcessNames(2)).isNull()
+        assertThat(monitor.getProcessNames(3)).isNull()
+      }
+    }
+  }
+
+  @Test
   fun processNamesFromPs_preferFromClient() = runBlockingTest {
+    StudioFlags.ENABLE_PROCESS_NAME_POLLING.override(true)
     FakeProcessNameMonitorFlows().use { flows ->
       processNameClientMonitor(flows = flows, device = device).use { monitor ->
         fakeAdbDeviceServices.configureShellCommand(
@@ -219,6 +245,7 @@ class ProcessNameClientMonitorTest {
 
   @Test
   fun processNamesFromPs_multipleRuns() = runBlockingTest {
+    StudioFlags.ENABLE_PROCESS_NAME_POLLING.override(true)
     FakeProcessNameMonitorFlows().use { flows ->
       processNameClientMonitor(flows = flows, device = device).use { monitor ->
 
