@@ -1238,6 +1238,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> COMPOSE_VIEW_FILTER = Flag.create(
+    COMPOSE, "view.filter",
+    "Support filter the previews in Compose",
+    "If enabled, the user can find the filter actions to filter the visible previews in compose preview",
+    false
+  );
+
   public static final Flag<Boolean> COMPOSE_CONSTRAINT_VISUALIZATION = Flag.create(
     COMPOSE, "constraint.visualization",
     "Enable ConstraintLayout visualization in Compose previews",

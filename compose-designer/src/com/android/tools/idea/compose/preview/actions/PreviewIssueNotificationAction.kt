@@ -27,6 +27,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
+import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.editors.shortcuts.asString
@@ -249,6 +250,13 @@ class PreviewIssueNotificationAction(
   override fun margins(): Insets {
     return JBUI.insets(3)
   }
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    if (StudioFlags.COMPOSE_VIEW_FILTER.get()) {
+      e.presentation.isVisible = !isPreviewFilterEnabled(e.dataContext)
+    }
+  }
 }
 
 /**
@@ -307,6 +315,11 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
 
     val project = e.project ?: return
     getStatusInfo(project, e.dataContext)?.let { e.presentation.isVisible = it.hasRefreshIcon }
+
+    if (StudioFlags.COMPOSE_VIEW_FILTER.get()) {
+      val manager = e.getData(DESIGN_SURFACE)?.let { COMPOSE_PREVIEW_MANAGER.getData(it) } ?: return
+      e.presentation.isVisible = !manager.isFilterEnabled
+    }
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String) =
@@ -329,6 +342,7 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
 class ComposeNotificationGroup(surface: DesignSurface<*>) :
   DefaultActionGroup(
     listOf(
+      ComposeHideFilterAction(surface),
       PreviewIssueNotificationAction(),
       ForceCompileAndRefreshActionForNotification.getInstance()
     )

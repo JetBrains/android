@@ -465,6 +465,10 @@ class SceneViewPeerPanel(val sceneView: SceneView,
       maxOf(sceneViewTopPanel.minimumSize.width, SCENE_VIEW_PEER_PANEL_MIN_WIDTH, centerPanelWidth),
       sceneViewBottomPanel.preferredSize.height + centerPanelHeight + sceneViewTopPanel.minimumSize.height + JBUI.scale(20))
   }
+
+  override fun isVisible(): Boolean {
+    return sceneView.isVisible
+  }
 }
 
 /**

@@ -22,6 +22,7 @@ import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.actions.SetColorBlindModeAction
 import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
+import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
@@ -62,11 +63,18 @@ class ComposeViewControlAction(
   override fun update(e: AnActionEvent) {
     super.update(e)
     e.presentation.isEnabled = !isAnyPreviewRefreshing(e.dataContext)
+    e.presentation.isVisible = !isPreviewFilterEnabled(e.dataContext)
   }
 
   @VisibleForTesting
   public override fun updateActions(context: DataContext): Boolean {
     removeAll()
+    if (StudioFlags.COMPOSE_VIEW_FILTER.get()) {
+      DESIGN_SURFACE.getData(context)?.let { surface ->
+        add(ComposeShowFilterAction(surface))
+        addSeparator()
+      }
+    }
     add(
       SwitchSurfaceLayoutManagerAction(
           layoutManagerSwitcher,

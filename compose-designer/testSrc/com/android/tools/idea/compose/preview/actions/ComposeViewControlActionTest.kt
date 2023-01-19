@@ -51,6 +51,7 @@ class ComposeViewControlActionTest {
 
   @Before
   fun setup() {
+    StudioFlags.COMPOSE_VIEW_FILTER.override(false)
     StudioFlags.COMPOSE_COLORBLIND_MODE.override(true)
     StudioFlags.COMPOSE_VIEW_INSPECTOR.override(true)
   }
@@ -59,6 +60,7 @@ class ComposeViewControlActionTest {
   fun tearDown() {
     StudioFlags.COMPOSE_VIEW_INSPECTOR.clearOverride()
     StudioFlags.COMPOSE_COLORBLIND_MODE.clearOverride()
+    StudioFlags.COMPOSE_VIEW_FILTER.clearOverride()
   }
 
   @Suppress("SpellCheckingInspection")

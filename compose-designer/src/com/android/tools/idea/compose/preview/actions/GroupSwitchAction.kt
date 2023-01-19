@@ -47,7 +47,9 @@ internal class GroupSwitchAction :
     val presentation = e.presentation
     val previewManagers = findComposePreviewManagersForContext(e.dataContext)
     val availableGroups = previewManagers.flatMap { it.availableGroups }.toSet()
-    presentation.isVisible = availableGroups.isNotEmpty()
+    presentation.isVisible =
+      availableGroups.isNotEmpty() && previewManagers.none { it.isFilterEnabled }
+
     presentation.isEnabled =
       availableGroups.isNotEmpty() && !previewManagers.any { it.status().isRefreshing }
     if (presentation.isVisible) {

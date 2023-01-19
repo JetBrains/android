@@ -130,6 +130,9 @@ interface ComposePreviewManager : Disposable {
   /** Flag to indicate the inspection tooltips is enabled. */
   var isInspectionTooltipEnabled: Boolean
 
+  /** Flag to indicate if the preview filter is enabled or not. */
+  var isFilterEnabled: Boolean
+
   /**
    * Starts the interactive preview focusing in the given [ComposePreviewElementInstance] [instance]
    * .

@@ -19,8 +19,11 @@ import com.android.flags.ifEnabled
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
+import com.android.tools.idea.compose.preview.actions.ComposeFilterShowHistoryAction
+import com.android.tools.idea.compose.preview.actions.ComposeFilterTextAction
 import com.android.tools.idea.compose.preview.actions.ComposeNotificationGroup
 import com.android.tools.idea.compose.preview.actions.ComposeViewControlAction
+import com.android.tools.idea.compose.preview.actions.ComposeViewSingleWordFilter
 import com.android.tools.idea.compose.preview.actions.GroupSwitchAction
 import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
 import com.android.tools.idea.compose.preview.actions.StopAnimationInspectorAction
@@ -61,6 +64,10 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
       listOfNotNull(
         StopInteractivePreviewAction(),
         StopAnimationInspectorAction(),
+        StudioFlags.COMPOSE_VIEW_FILTER.ifEnabled { ComposeFilterShowHistoryAction() },
+        StudioFlags.COMPOSE_VIEW_FILTER.ifEnabled {
+          ComposeFilterTextAction(ComposeViewSingleWordFilter(surface))
+        },
         GroupSwitchAction().visibleOnlyInComposeStaticPreview(),
         ComposeViewControlAction(
             layoutManagerSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher,
@@ -157,6 +164,11 @@ internal fun findComposePreviewManagersForContext(
 /** Returns whether any preview manager is currently refreshing. */
 internal fun isAnyPreviewRefreshing(context: DataContext) =
   findComposePreviewManagersForContext(context).any { it.status().isRefreshing }
+
+/** Returns whether the filter of preview is enabled. */
+internal fun isPreviewFilterEnabled(context: DataContext): Boolean {
+  return COMPOSE_PREVIEW_MANAGER.getData(context)?.isFilterEnabled ?: false
+}
 
 // We will default to split mode if there are @Preview annotations in the file or if the file
 // contains @Composable.
