@@ -25,9 +25,9 @@ import com.android.tools.deployer.model.component.Complication
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.run.ApkInfo
+import com.android.tools.idea.run.DefaultStudioProgramRunner
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
-import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
 import com.android.tools.idea.run.configuration.ComplicationSlot
 import com.android.tools.idea.run.configuration.ComplicationWatchFaceInfo
 import com.android.tools.idea.run.configuration.getComplicationSourceTypes
@@ -78,11 +78,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
   private val clearDebugAppAm = "clear-debug-app"
   private val clearDebugAppBroadcast = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'clear-debug-app'"
 
-  private val runner = object : AndroidConfigurationProgramRunner() {
-    override fun canRunWithMultipleDevices(executorId: String) = true
-    override val supportedConfigurationTypeIds: List<String>
-      get() = listOf(AndroidComplicationConfigurationType().id)
-  }
+  private val runner = DefaultStudioProgramRunner()
 
   @Test
   fun test() {

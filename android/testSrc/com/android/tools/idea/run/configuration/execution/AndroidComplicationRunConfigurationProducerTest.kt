@@ -31,10 +31,6 @@ class AndroidComplicationRunConfigurationProducerTest : AndroidTestCase() {
     myFixture.addWearDependenciesToProject()
   }
 
-  override fun tearDown() {
-    super.tearDown()
-  }
-
   @Test
   fun testSetupConfigurationFromContext() {
     val complicationFile = myFixture.addFileToProject(

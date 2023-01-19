@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors
@@ -34,14 +35,17 @@ import com.intellij.execution.PsiLocation
 import com.intellij.execution.RunManager
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.JavaPsiFacade
@@ -50,6 +54,7 @@ import com.intellij.psi.PsiIdentifier
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.runInEdtAndWait
+import org.jetbrains.concurrency.resolvedPromise
 import javax.swing.Icon
 
 fun RunConfiguration.executeMakeBeforeRunStepInTest(device: IDevice) =
@@ -85,6 +90,8 @@ fun RunConfiguration.executeMakeBeforeRunStepInTest(deviceFutures: DeviceFutures
       override fun getRunnerId(): String = "runner_id"
       override fun canRunWithMultipleDevices(executorId: String): Boolean = false
       override val supportedConfigurationTypeIds = emptyList<String>()
+      override fun getRunner(environment: ExecutionEnvironment, state: RunProfileState) =
+        { _: ProgressIndicator -> resolvedPromise(mock<RunContentDescriptor>()) }
     }
 
     val executionEnvironment = ExecutionEnvironment(

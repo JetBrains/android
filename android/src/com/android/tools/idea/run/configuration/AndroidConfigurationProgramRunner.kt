@@ -19,7 +19,6 @@ import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
-import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.stats.RunStats
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionTargetManager
@@ -27,8 +26,6 @@ import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.configurations.RunnerSettings
-import com.intellij.execution.executors.DefaultDebugExecutor
-import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.AsyncProgramRunner
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
@@ -64,6 +61,8 @@ abstract class AndroidConfigurationProgramRunner internal constructor(
 
   protected abstract fun canRunWithMultipleDevices(executorId: String): Boolean
   protected abstract val supportedConfigurationTypeIds: List<String>
+  protected abstract fun getRunner(environment: ExecutionEnvironment,
+                                   state: RunProfileState): (ProgressIndicator) -> Promise<RunContentDescriptor>
 
   override fun getRunnerId(): String = "AndroidConfigurationProgramRunner"
 
@@ -86,8 +85,6 @@ abstract class AndroidConfigurationProgramRunner internal constructor(
   public override fun execute(environment: ExecutionEnvironment, state: RunProfileState): Promise<RunContentDescriptor?> {
     val runProfile = environment.runProfile
 
-    val executor = state as AndroidConfigurationExecutor
-
     FileDocumentManager.getInstance().saveAllDocuments()
 
     val stats = RunStats.from(environment)
@@ -100,24 +97,7 @@ abstract class AndroidConfigurationProgramRunner internal constructor(
     ProgressManager.getInstance().run(object : Task.Backgroundable(environment.project, "Launching ${runProfile.name}") {
       override fun run(indicator: ProgressIndicator) {
 
-        val swapInfo = environment.getUserData(SwapInfo.SWAP_INFO_KEY)
-
-        val runner: (ProgressIndicator) -> Promise<RunContentDescriptor> =
-          if (swapInfo != null) {
-            when (swapInfo.type) {
-              SwapInfo.SwapType.APPLY_CHANGES -> executor::applyChanges
-              SwapInfo.SwapType.APPLY_CODE_CHANGES -> executor::applyCodeChanges
-            }
-          }
-          else {
-            when (environment.executor.id) {
-              DefaultRunExecutor.EXECUTOR_ID -> executor::run
-              DefaultDebugExecutor.EXECUTOR_ID -> executor::debug
-              else -> throw RuntimeException("Unsupported executor")
-            }
-          }
-
-        runner(indicator)
+        getRunner(environment, state)(indicator)
           .onSuccess {
             val processHandler = it.processHandler
                                  ?: throw RuntimeException("AndroidConfigurationExecutor returned RunContentDescriptor without process handler")
