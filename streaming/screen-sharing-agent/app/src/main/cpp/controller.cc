@@ -366,10 +366,13 @@ void Controller::StopClipboardSync() {
 void Controller::ProcessClipboardChange() {
   Log::D("Controller::ProcessClipboardChange");
   ClipboardManager* clipboard_manager = ClipboardManager::GetInstance(jni_);
+  Log::V("%s:%d", __FILE__, __LINE__);
   string text = clipboard_manager->GetText();
+  Log::V("%s:%d", __FILE__, __LINE__);
   if (text.empty() || text == last_clipboard_text_) {
     return;
   }
+  Log::V("%s:%d", __FILE__, __LINE__);
   int max_length = max_synced_clipboard_length_;
   if (text.size() > max_length * UTF8_MAX_BYTES_PER_CHARACTER || Utf8CharacterCount(text) > max_length) {
     return;
@@ -377,12 +380,14 @@ void Controller::ProcessClipboardChange() {
   last_clipboard_text_ = text;
 
   ClipboardChangedNotification message(std::move(text));
+  Log::V("%s:%d", __FILE__, __LINE__);
   try {
     message.Serialize(output_stream_);
     output_stream_.Flush();
   } catch (EndOfFile& e) {
     // The socket has been closed - ignore.
   }
+  Log::V("%s:%d", __FILE__, __LINE__);
 }
 
 void Controller::OnPrimaryClipChanged() {
