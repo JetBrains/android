@@ -41,9 +41,8 @@ import org.junit.runner.RunWith;
 public class VerifyNpwWearOSTemplatesTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
-  private List<String> expectedTemplates = List.of("No Activity", "Blank Activity", "Empty Compose Activity", "Watch Face");
-  private String defaultActivity = "Blank Activity";
-  private List<String> material3Templates = List.of("Empty Compose Activity (Material3)");
+  private List<String> expectedTemplates = List.of("No Activity", "Empty Wear App With Tile And Complication", "Empty Wear App");
+  private String defaultActivity = "Empty Wear App With Tile And Complication";
 
   private List<String> failedBuildTemplates = new ArrayList<String>();
   private List<String> dependencyMissingTemplates = new ArrayList<String>();

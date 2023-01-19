@@ -43,10 +43,9 @@ import org.junit.runner.RunWith;
 public class VerifyNpwPhoneAndTabletTemplatesTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(20, TimeUnit.MINUTES);
 
-  private List<String> expectedTemplates = List.of("No Activity", "Basic Activity", "Basic Activity (Material3)",
-                                                   "Bottom Navigation Activity", "Empty Compose Activity", "Empty Compose Activity (Material3)",
-                                                   "Empty Activity", "Google Wallet Activity", "Login Activity", "Navigation Drawer Activity",
-                                                   "Responsive Activity", "Settings Activity", "Game Activity (C++)", "Native C++");
+  private List<String> expectedTemplates = List.of("No Activity", "Empty Activity", "Basic Views Activity",
+                                                   "Bottom Navigation Views Activity", "Empty Views Activity", "Navigation Drawer Views Activity",
+                                                   "Responsive Views Activity", "Game Activity (C++)", "Native C++");
 
   private String defaultActivity = "Empty Activity";
   private List<String> material3Templates = List.of("Basic Activity (Material3)", "Empty Compose Activity (Material3)");

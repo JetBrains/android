@@ -42,8 +42,8 @@ import org.junit.runner.RunWith;
 public class VerifyNpwAndroidTVTemplatesTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
-  private List<String> expectedTemplates = List.of("No Activity", "Blank Activity");
-  private String defaultActivity = "Blank Activity";
+  private List<String> expectedTemplates = List.of("No Activity", "Blank Views Activity");
+  private String defaultActivity = "Blank Views Activity";
 
   private List<String> failedBuildTemplates = new ArrayList<String>();
   private List<String> dependencyMissingTemplates = new ArrayList<String>();
