@@ -237,7 +237,7 @@ private object CompileScopeImpl : CompileScope {
             return FacadeClassSourceShimForFragmentCompilation(psiSourceFile)
           }
         },
-        stubSettings = JvmIrCodegenFactory.StubSettings(shouldStubAndNotLinkUnboundSymbols = true),
+        ideCodegenSettings = JvmIrCodegenFactory.IdeCodegenSettings(shouldStubAndNotLinkUnboundSymbols = true),
       ))
     }
 
