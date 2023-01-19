@@ -74,8 +74,7 @@ class JfrTypingLatencyReports {
 }
 
 private class MyReportGenerator(private val maxReportLengthBytes: Int) : JfrReportGenerator(JfrTypingLatencyReports.REPORT_TYPE,
-                                                                                            EventFilter.CPU_SAMPLES, startOffsetMs = 0,
-                                                                                            endOffsetMs = 0) {
+                                                                                            EventFilter.CPU_SAMPLES) {
   var keystrokeCount: Int = -1
 
   private val callTreeAggregator = CallTreeAggregator(CallTreeAggregator.THREAD_FILTER_ALL)

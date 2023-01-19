@@ -13,206 +13,193 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.diagnostics.jfr;
+package com.android.tools.idea.diagnostics.jfr
 
-import com.android.tools.idea.diagnostics.jfr.reports.JfrFreezeReports;
-import com.android.tools.idea.diagnostics.jfr.reports.JfrManifestMergerReports;
-import com.android.tools.idea.diagnostics.jfr.reports.JfrTypingLatencyReports;
-import com.android.tools.idea.diagnostics.report.JfrBasedReport;
-import com.android.tools.idea.diagnostics.report.DiagnosticReport;
-import com.android.tools.idea.diagnostics.report.DiagnosticReportProperties;
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.serverflags.ServerFlagService;
-import com.intellij.concurrency.JobScheduler;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.ex.AnActionListener;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.LowMemoryWatcher;
-import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.messages.MessageBusConnection;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-import jdk.jfr.Event;
-import jdk.jfr.Recording;
-import jdk.jfr.consumer.RecordedEvent;
-import jdk.jfr.consumer.RecordingFile;
-import org.jetbrains.annotations.NotNull;
+import com.android.annotations.concurrency.GuardedBy
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.diagnostics.jfr.reports.JfrFreezeReports
+import com.android.tools.idea.diagnostics.jfr.reports.JfrManifestMergerReports
+import com.android.tools.idea.diagnostics.jfr.reports.JfrTypingLatencyReports
+import com.android.tools.idea.diagnostics.report.DiagnosticReport
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.serverflags.ServerFlagService
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionResult
+import com.intellij.openapi.actionSystem.ex.AnActionListener
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.util.LowMemoryWatcher
+import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.io.FileUtil
+import jdk.jfr.consumer.RecordingFile
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Path
+import java.time.Instant
+import java.util.IdentityHashMap
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.time.Duration.Companion.seconds
 
-public class RecordingManager {
+private const val JFR_SERVER_FLAG_NAME = "diagnostics/jfr"
+internal val JFR_RECORDING_DURATION = 30.seconds
 
-  private static final Logger LOG = Logger.getInstance(RecordingManager.class);
+typealias ReportCallback = (DiagnosticReport) -> Boolean
 
-  public static final int JFR_RECORDING_DURATION_SECONDS = 30;
-  private static final int MAX_CAPTURE_DURATION_SECONDS = 300;
-  private static final String JFR_SERVER_FLAG_NAME = "diagnostics/jfr";
+@Service
+class RecordingManager : Disposable {
+  private val logger: Logger = thisLogger()
+  private val initDone = AtomicBoolean()
+  private val mutex = Mutex()
+  @GuardedBy("mutex")
+  private val pendingCaptures: MutableList<JfrReportGenerator.Capture> = mutableListOf();
+  @GuardedBy("mutex")
+  private val recordings = RecordingBuffer()
+  private lateinit var reportCallback: ReportCallback
+  private lateinit var coroutineScope: CoroutineScope
+  private var lowMemoryWatcher: LowMemoryWatcher? = null
 
-  private static final List<JfrReportGenerator.Capture> pendingCaptures = new ArrayList<>();
-  private static Instant previousRecordingEnd = Instant.MIN;
+  private var previousRecordingEnd: Instant = Instant.MIN
 
-  private static final RecordingBuffer recordings = new RecordingBuffer();
-  private static final Object jfrLock = new Object();
-  private static LowMemoryWatcher lowMemoryWatcher;
-  private static Consumer<DiagnosticReport> reportCallback;
+  @JvmOverloads
+  fun init(
+    reportCallback: ReportCallback,
+    coroutineScope: CoroutineScope = AndroidCoroutineScope(this),
+  ) {
+    // We should fail loudly if anyone tries to init this a second time, but we don't know what that will do now, so just warn.
+    if (!initDone.compareAndSet(false, true)) {
+      logger.warn("Multiple init() calls attempted on RecordingManager!")
+      return
+    }
 
-  public static void init(Consumer<DiagnosticReport> callback) {
-    ServerFlagService serverFlagService = ServerFlagService.Companion.getInstance();
+    this.reportCallback = reportCallback
+    this.coroutineScope = coroutineScope
+
     // TODO(b/257594096): disabled on Mac due to crashes in the JVM during sampling
-    if (!SystemInfo.isMac && serverFlagService.getBoolean(JFR_SERVER_FLAG_NAME, false)) {
-      reportCallback = callback;
-      setupActionEvents();
-      setupLowMemoryEvents();
+    if (SystemInfo.isMac || !ServerFlagService.instance.getBoolean(JFR_SERVER_FLAG_NAME, false)) return
 
-      JobScheduler.getScheduler().scheduleWithFixedDelay(new Runnable() {
-        @Override
-        public void run() {
-          Instant recordingEnd = Instant.now();
-          synchronized (jfrLock) {
-            try {
-              Recording rec = recordings.swapBuffers();
-              if (rec != null) {
-                boolean hasActiveCaptures = false;
-                for (JfrReportGenerator.Capture c : pendingCaptures) {
-                  // don't need to check if the capture's end is before the start of the previous recording,
-                  // since it would have been deleted by the previous call to purgeCompletedCaptures.
-                  if (c.getStart().isBefore(previousRecordingEnd)) {
-                    hasActiveCaptures = true;
-                    break;
-                  }
-                }
-                if (hasActiveCaptures) {
-                  Path recPath = new File(FileUtil.getTempDirectory(), "recording.jfr").toPath();
-                  rec.dump(recPath);
-                  rec.close();
-                  readAndDispatchRecordingEvents(recPath);
-                  Files.deleteIfExists(recPath);
-                }
-              }
-            } catch (IOException e) {
-              LOG.warn(e);
+    setupActionEvents()
+    lowMemoryWatcher = LowMemoryWatcher.register { LowMemory().commit() }
+    scheduleRecording()
+    createReportManagers()
+  }
+
+  override fun dispose() { }
+
+  fun startCapture(capture: JfrReportGenerator.Capture) {
+    coroutineScope.launch {
+      mutex.withLock { pendingCaptures.add(capture) }
+    }
+  }
+
+  class DumpJfrAction: AnAction() {
+    override fun actionPerformed(e: AnActionEvent) {
+      getInstance().dumpJfrTo(File(PathManager.getLogPath()).toPath())
+    }
+  }
+
+  private fun dumpJfrTo(directory: Path): Path? = runBlocking(coroutineScope.coroutineContext) {
+    mutex.withLock { recordings.dumpJfrTo(directory) }
+  }
+
+  private fun createReportManagers() {
+    JfrFreezeReports.createFreezeReportManager()
+    if (StudioFlags.JFR_MANIFEST_MERGE_ENABLED.get()) JfrManifestMergerReports.createReportManager()
+    if (StudioFlags.JFR_TYPING_LATENCY_ENABLED.get()) JfrTypingLatencyReports.createReportManager(ServerFlagService.instance)
+  }
+
+  private fun setupActionEvents() {
+    ApplicationManager.getApplication().messageBus.connect(this).subscribe(AnActionListener.TOPIC, object : AnActionListener {
+      val jfrEventMap = IdentityHashMap<AnActionEvent, Action>()
+      override fun beforeActionPerformed(action: AnAction, event: AnActionEvent) {
+        jfrEventMap[event] = Action().apply {
+          actionId = ActionManager.getInstance().getId(action)
+          begin()
+        }
+      }
+
+      override fun afterActionPerformed(action: AnAction, event: AnActionEvent, result: AnActionResult) {
+        jfrEventMap.remove(event)?.commit()
+      }
+    })
+  }
+
+  private fun scheduleRecording() {
+    coroutineScope.launch {
+      try {
+        while (isActive) {
+          // If we are canceled, we need to record one last time before shutdown.
+          try {
+            delay(JFR_RECORDING_DURATION)
+          }
+          finally {
+            withContext(NonCancellable) {
+              doRecording()
             }
-            purgeCompletedCaptures();
-            previousRecordingEnd = recordingEnd;
           }
         }
-      }, 0, JFR_RECORDING_DURATION_SECONDS, TimeUnit.SECONDS);
-      createReportManagers(serverFlagService);
+      }
+      finally {
+        // One more time to get the last bit of data.
+        withContext(NonCancellable) {
+          doRecording()
+        }
+      }
     }
   }
 
-  private static void createReportManagers(ServerFlagService serverFlagService) {
-    JfrFreezeReports.Companion.createFreezeReportManager();
-
-    if (StudioFlags.JFR_MANIFEST_MERGE_ENABLED.get()) {
-      JfrManifestMergerReports.Companion.createReportManager();
-    }
-
-    if (StudioFlags.JFR_TYPING_LATENCY_ENABLED.get()) {
-      JfrTypingLatencyReports.Companion.createReportManager(serverFlagService);
+  private suspend fun doRecording() {
+    val recordingEnd = Instant.now()
+    mutex.withLock {
+      recordings.swapBuffers()?.let { recording ->
+        // Don't need to check if the capture's end is before the start of the previous recording,
+        // since it would have been deleted by the previous call to purgeCompletedCaptures.
+        if (pendingCaptures.any { it.start.isBefore(previousRecordingEnd) }) {
+          val recPath = File(FileUtil.getTempDirectory(), "recording.jfr").toPath()
+          try {
+            recording.dump(recPath)
+            recording.close()
+            readAndDispatchRecordingEventsLocked(recPath)
+            Files.deleteIfExists(recPath)
+          }
+          catch (e: IOException) {
+            logger.warn(e)
+          }
+        }
+      }
+      pendingCaptures.removeIf { it.completeAndGenerateReport(previousRecordingEnd, reportCallback) }
+      previousRecordingEnd = recordingEnd;
     }
   }
 
-  static void startCapture(JfrReportGenerator.Capture capture) {
-    synchronized (jfrLock) {
-      pendingCaptures.add(capture);
-    }
-  }
-
-  private static void readAndDispatchRecordingEvents(Path recPath) throws IOException {
-    try (RecordingFile recordingFile = new RecordingFile(recPath)) {
+  @GuardedBy("mutex")
+  private fun readAndDispatchRecordingEventsLocked(recPath: Path) {
+    RecordingFile(recPath).use { recordingFile ->
       while (recordingFile.hasMoreEvents()) {
-        RecordedEvent e = recordingFile.readEvent();
-        for (JfrReportGenerator.Capture capture : pendingCaptures) {
-          if (capture.containsInstant(e.getStartTime()) && capture.getGenerator().getEventFilter().accept(e)) {
-            capture.getGenerator().accept(e, capture);
-          }
-        }
+        val e = recordingFile.readEvent()
+        pendingCaptures.forEach { it.maybeAccept(e) }
       }
     }
   }
 
-  private static void purgeCompletedCaptures() {
-    for (int i = pendingCaptures.size() - 1; i >= 0; i--) {
-      JfrReportGenerator.Capture capture = pendingCaptures.get(i);
-      if (capture.getEnd() != null && capture.getEnd().isBefore(previousRecordingEnd)) {
-        JfrReportGenerator generator = capture.getGenerator();
-        generator.captureCompleted(capture);
-        if (generator.isFinished()) {
-          generateReport(generator);
-        }
-        pendingCaptures.remove(i);
-      }
-    }
-  }
-
-  private static void generateReport(JfrReportGenerator gen) {
-    try {
-      Map<String, String> report = gen.generateReport();
-      if (!report.isEmpty()) {
-        reportCallback.accept(new JfrBasedReport(gen.getReportType(), gen.generateReport(), new DiagnosticReportProperties()));
-      }
-    } catch (Exception e) {
-      LOG.warn(e);
-    }
-  }
-
-  private static void setupActionEvents() {
-    MessageBusConnection connection = ApplicationManager.getApplication().getMessageBus().connect();
-    IdentityHashMap<AnActionEvent, Event> jfrEventMap = new IdentityHashMap<>();
-    connection.subscribe(AnActionListener.TOPIC, new AnActionListener() {
-      @Override
-      public void beforeActionPerformed(@NotNull AnAction action,
-                                        @NotNull DataContext dataContext,
-                                        @NotNull AnActionEvent event) {
-        Action a = new Action();
-        a.actionId = ActionManager.getInstance().getId(action);
-        a.begin();
-        jfrEventMap.put(event, a);
-      }
-
-      @Override
-      public void afterActionPerformed(@NotNull AnAction action,
-                                       @NotNull DataContext dataContext,
-                                       @NotNull AnActionEvent event) {
-        Action a = (Action) jfrEventMap.get(event);
-        if (a != null) {
-          jfrEventMap.remove(event);
-          a.commit();
-        }
-      }
-    });
-  }
-
-  private static void setupLowMemoryEvents() {
-    lowMemoryWatcher = LowMemoryWatcher.register(() -> {
-      new LowMemory().commit();
-    });
-  }
-
-  public static Path dumpJfrTo(Path directory) {
-    synchronized (jfrLock) {
-      return recordings.dumpJfrTo(directory);
-    }
-  }
-
-  public static class DumpJfrAction extends AnAction {
-    @Override
-    public void actionPerformed(@NotNull AnActionEvent e) {
-      dumpJfrTo(new File(PathManager.getLogPath()).toPath());
-    }
+  companion object {
+    @JvmStatic
+    fun getInstance(): RecordingManager = service()
   }
 }

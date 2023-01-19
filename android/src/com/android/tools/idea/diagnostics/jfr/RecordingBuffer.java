@@ -17,6 +17,7 @@ package com.android.tools.idea.diagnostics.jfr;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
+import com.android.annotations.Nullable;
 import com.android.annotations.concurrency.Slow;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
@@ -58,6 +59,7 @@ public class RecordingBuffer {
   }
 
   @Slow
+  @Nullable
   public Path dumpJfrTo(Path directory) {
     if (recordings[latest] != null) {
       File dumpDir = null;

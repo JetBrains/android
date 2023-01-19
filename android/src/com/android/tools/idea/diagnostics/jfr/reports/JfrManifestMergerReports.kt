@@ -36,7 +36,7 @@ class JfrManifestMergerReports {
     const val REPORT_TYPE = "JFR-ManifestMerger"
 
     const val maxReportLengthBytes = 200_000
-    const val reportingThresholdMillis = 5_000 // 5 seconds
+    const val reportingThresholdMillis = 5_000L // 5 seconds
 
     private const val CALL_TREES_FIELD = "callTrees"
     val FIELDS = listOf(CALL_TREES_FIELD)
@@ -47,8 +47,7 @@ class JfrManifestMergerReports {
     }
   }
 
-  private class MyReportGenerator : JfrReportGenerator(REPORT_TYPE, EventFilter.CPU_SAMPLES, startOffsetMs = -reportingThresholdMillis,
-                                                       endOffsetMs = 0) {
+  private class MyReportGenerator : JfrReportGenerator(REPORT_TYPE, EventFilter.CPU_SAMPLES, startOffsetMs = -reportingThresholdMillis) {
     private val callTreeAggregator = CallTreeAggregator(CallTreeAggregator.THREAD_FILTER_ALL)
 
     override fun accept(e: RecordedEvent, c: Capture) {

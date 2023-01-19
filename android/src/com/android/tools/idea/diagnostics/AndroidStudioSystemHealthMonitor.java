@@ -465,7 +465,7 @@ public final class AndroidStudioSystemHealthMonitor {
     StudioCrashDetection.updateRecordedVersionNumber(ApplicationInfo.getInstance().getStrictVersion());
     startActivityMonitoring();
     trackCrashes(StudioCrashDetection.reapCrashDescriptions());
-    RecordingManager.init(this::tryAppendReportToDatabase);
+    RecordingManager.getInstance().init(this::tryAppendReportToDatabase);
 
     application.getMessageBus().connect(application).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
       @Override

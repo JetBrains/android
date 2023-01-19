@@ -18,19 +18,19 @@ package com.android.tools.idea.diagnostics.jfr
 import jdk.jfr.consumer.RecordedEvent
 
 interface EventFilter {
-  fun accept(event: RecordedEvent): Boolean
+  fun accepts(event: RecordedEvent): Boolean
 
   companion object {
     val SAMPLING_EVENT_NAMES = setOf("jdk.ExecutionSample", "jdk.NativeMethodSample")
 
     val CPU_SAMPLES = object: EventFilter {
-      override fun accept(event: RecordedEvent): Boolean {
+      override fun accepts(event: RecordedEvent): Boolean {
         return event.eventType.name in SAMPLING_EVENT_NAMES
       }
     }
 
     val ALL = object: EventFilter {
-      override fun accept(event: RecordedEvent) = true
+      override fun accepts(event: RecordedEvent) = true
     }
   }
 }

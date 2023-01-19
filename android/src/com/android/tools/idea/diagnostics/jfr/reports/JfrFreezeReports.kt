@@ -55,8 +55,10 @@ class JfrFreezeReports {
       }
   }
 
-  class JfrFreezeReportGenerator : JfrReportGenerator(REPORT_TYPE, EventFilter.CPU_SAMPLES,
-                                                      -Registry.intValue("performance.watcher.unresponsive.interval.ms", 0)) {
+  class JfrFreezeReportGenerator : JfrReportGenerator(
+    REPORT_TYPE,
+    EventFilter.CPU_SAMPLES,
+    -Registry.intValue("performance.watcher.unresponsive.interval.ms", 0).toLong()) {
     private val callTreeAggregator = CallTreeAggregator(CallTreeAggregator.THREAD_FILTER_ALL)
     var edtStackForCrash: String = EMPTY_ANR_STACKTRACE
 

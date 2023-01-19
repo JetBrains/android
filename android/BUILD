@@ -347,6 +347,7 @@ iml_module(
         "//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin[module, test]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-coverage[test]",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
     ],
 )
 
