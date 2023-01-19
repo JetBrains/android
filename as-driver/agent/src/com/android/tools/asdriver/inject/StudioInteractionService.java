@@ -261,7 +261,9 @@ public class StudioInteractionService {
       StringBuilder sb = new StringBuilder();
       int index = 1;
       for (Component component : componentsFound) {
-        sb.append(String.format("\t#%d: %s%n", index++, component));
+        // Some components override toString(), which means the class isn't guaranteed to show.
+        // Given that most searches for components rely on the class name, we explicitly print it.
+        sb.append(String.format("\t#%d: class: [%s] toString: %s%n", index++, component.getClass(), component));
       }
       throw new IllegalStateException(String.format("Found %s component(s) but expected exactly one:%n%s%n\tPlease construct more specific match criteria.",
                                                     numComponentsFound, sb));
