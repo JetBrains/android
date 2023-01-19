@@ -293,7 +293,6 @@
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.BuildFileProcessor"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleProjectSettingsFinder"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleLocalCache"/>
-    <applicationService serviceImplementation="com.android.tools.idea.gradle.util.PersistentSHA256Checksums"/>
     <applicationService serviceImplementation="com.android.tools.idea.res.AarResourceRepositoryCache"/>
     <applicationService serviceImplementation="com.android.tools.idea.run.DeploymentApplicationServiceImpl"
                         serviceInterface="com.android.tools.idea.run.DeploymentApplicationService"/>
