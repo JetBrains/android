@@ -23,6 +23,7 @@ import com.android.tools.idea.profilers.analytics.StudioFeatureTracker
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
+import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup
 import com.android.tools.idea.run.profiler.ProfilingMode
 import com.android.tools.idea.run.util.SwapInfo
@@ -35,6 +36,7 @@ import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.wm.ToolWindowManager
@@ -49,7 +51,7 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
   override fun getRunnerId() = "ProfilerProgramRunner"
 
   override fun canRun(executorId: String, profile: RunProfile): Boolean {
-    return super.canRun(executorId, profile) && canRunByProfiler(executorId)
+    return super.canRun(executorId, profile) && isProfilerExecutor(executorId)
   }
 
   override val supportedConfigurationTypeIds = listOf(
@@ -58,6 +60,21 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
   )
 
   override fun canRunWithMultipleDevices(executorId: String) = false
+  override fun getRunner(environment: ExecutionEnvironment, state: RunProfileState): (ProgressIndicator) -> Promise<RunContentDescriptor> {
+    val executor = state as AndroidConfigurationExecutor
+
+    if (!isProfilerExecutor(environment.executor.id)) {
+      throw RuntimeException("Not a profiler executor")
+    }
+
+    val swapInfo = environment.getUserData(SwapInfo.SWAP_INFO_KEY)
+
+    return when (swapInfo?.type) {
+      SwapInfo.SwapType.APPLY_CHANGES -> executor::applyChanges
+      SwapInfo.SwapType.APPLY_CODE_CHANGES -> executor::applyCodeChanges
+      else -> executor::run
+    }
+  }
 
   @Throws(ExecutionException::class)
   override fun execute(environment: ExecutionEnvironment, state: RunProfileState): Promise<RunContentDescriptor?> {
@@ -173,7 +190,7 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
       featureTracker.trackRunWithProfiling(metadataBuilder.build())
     }
 
-    private fun canRunByProfiler(executorId: String): Boolean {
+    private fun isProfilerExecutor(executorId: String): Boolean {
       if (StudioFlags.PROFILEABLE_BUILDS.get() &&
           // Profileable Builds support multiple profiling modes, wrapped in RegisteredSettings. To get the selected
           // mode, query the ExecutorGroup by executor ID. If a registered setting is found, the executor is a profiler one.

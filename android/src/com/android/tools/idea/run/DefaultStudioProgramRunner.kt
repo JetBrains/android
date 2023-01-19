@@ -21,13 +21,20 @@ import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
 import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
+import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
+import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.configurations.RunProfile
+import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
+import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.RunContentDescriptor
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
+import org.jetbrains.concurrency.Promise
 
 /**
  * [com.intellij.execution.runners.ProgramRunner] for the default [com.intellij.execution.Executor]
@@ -58,4 +65,26 @@ class DefaultStudioProgramRunner : AndroidConfigurationProgramRunner {
     AndroidWatchFaceConfigurationType().id,
     AndroidTileConfigurationType().id,
   )
+
+  override fun getRunner(environment: ExecutionEnvironment, state: RunProfileState): (ProgressIndicator) -> Promise<RunContentDescriptor> {
+    val executor = state as AndroidConfigurationExecutor
+
+    val swapInfo = environment.getUserData(SwapInfo.SWAP_INFO_KEY)
+
+    val runner: (ProgressIndicator) -> Promise<RunContentDescriptor> =
+      if (swapInfo != null) {
+        when (swapInfo.type) {
+          SwapInfo.SwapType.APPLY_CHANGES -> executor::applyChanges
+          SwapInfo.SwapType.APPLY_CODE_CHANGES -> executor::applyCodeChanges
+        }
+      }
+      else {
+        when (environment.executor.id) {
+          DefaultRunExecutor.EXECUTOR_ID -> executor::run
+          DefaultDebugExecutor.EXECUTOR_ID -> executor::debug
+          else -> throw RuntimeException("Unsupported executor")
+        }
+      }
+    return runner
+  }
 }

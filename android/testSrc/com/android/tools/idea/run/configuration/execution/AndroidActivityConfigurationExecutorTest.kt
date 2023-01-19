@@ -22,8 +22,8 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.run.AndroidRunConfigurationType
+import com.android.tools.idea.run.DefaultStudioProgramRunner
 import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch
-import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.Executor
 import com.intellij.execution.RunManager
@@ -43,10 +43,7 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
 
   private fun getExecutionEnvironment(executorInstance: Executor): ExecutionEnvironment {
     val configSettings = RunManager.getInstance(project).createConfiguration("run App", AndroidRunConfigurationType().factory)
-    return ExecutionEnvironment(executorInstance, object : AndroidConfigurationProgramRunner() {
-      override fun canRunWithMultipleDevices(executorId: String) = true
-      override val supportedConfigurationTypeIds = emptyList<String>()
-    }, configSettings, project)
+    return ExecutionEnvironment(executorInstance, DefaultStudioProgramRunner(), configSettings, project)
   }
 
   @Test

@@ -15,16 +15,21 @@
  */
 package com.android.tools.idea.run;
 
+import static org.jetbrains.concurrency.Promises.resolvedPromise;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner;
 import com.google.common.truth.Truth;
+import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.executors.DefaultDebugExecutor;
+import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.RunContentDescriptor;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.testFramework.ProjectRule;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -32,9 +37,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.Icon;
+import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.concurrency.Promise;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -94,7 +101,14 @@ public class AndroidConfigurationProgramRunnerTest {
         public @NotNull String getRunnerId() {
           return "Fake Runner";
         }
-    };
+
+        @NotNull
+        @Override
+        protected Function1<ProgressIndicator, Promise<RunContentDescriptor>> getRunner(@NotNull ExecutionEnvironment environment,
+                                                                                        @NotNull RunProfileState state) {
+          return (ProgressIndicator x) -> resolvedPromise(mock(RunContentDescriptor.class));
+        }
+      };
     target.setAvailableDeviceCount(2);
     assertFalse(runner.canRun(DefaultDebugExecutor.EXECUTOR_ID, runConfiguration));
   }
@@ -106,6 +120,13 @@ public class AndroidConfigurationProgramRunnerTest {
     FakeExecutionTarget target = new FakeExecutionTarget();
     AndroidConfigurationProgramRunner runner =
       new AndroidConfigurationProgramRunner(GradleSyncState::getInstance, (project, profileState) -> target) {
+        @NotNull
+        @Override
+        protected Function1<ProgressIndicator, Promise<RunContentDescriptor>> getRunner(@NotNull ExecutionEnvironment environment,
+                                                                                        @NotNull RunProfileState state) {
+          return (ProgressIndicator x) -> resolvedPromise(mock(RunContentDescriptor.class));
+        }
+
         @NotNull
         @Override
         protected List<String> getSupportedConfigurationTypeIds() {
