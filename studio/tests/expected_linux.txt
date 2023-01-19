@@ -1992,6 +1992,7 @@ android-studio/plugins/android/lib/android.jar
 android-studio/plugins/android/lib/artwork.jar
 android-studio/plugins/android/lib/asm-9.3.jar
 android-studio/plugins/android/lib/asm-analysis-9.3.jar
+android-studio/plugins/android/lib/asm-commons-9.3.jar
 android-studio/plugins/android/lib/asm-tree-9.3.jar
 android-studio/plugins/android/lib/auto-common-0.10.jar
 android-studio/plugins/android/lib/backgroundtask_inspector_java_proto.jar
