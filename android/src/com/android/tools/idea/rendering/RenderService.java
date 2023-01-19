@@ -184,8 +184,7 @@ public class RenderService implements Disposable {
   }
 
   @NotNull
-  public RenderLogger createLogger(@NotNull AndroidFacet facet) {
-    Module module = facet.getModule();
+  public RenderLogger createLogger(@NotNull Module module) {
     return new RenderLogger(module.getName(), module, myCredential);
   }
 
@@ -641,7 +640,7 @@ public class RenderService implements Disposable {
     @NotNull
     public CompletableFuture<RenderTask> build() {
       if (myLogger == null) {
-        withLogger(myService.createLogger(myFacet));
+        withLogger(myService.createLogger(myFacet.getModule()));
       }
 
       StackTraceCapture stackTraceCaptureElement = RenderTaskAllocationTrackerKt.captureAllocationStackTrace();

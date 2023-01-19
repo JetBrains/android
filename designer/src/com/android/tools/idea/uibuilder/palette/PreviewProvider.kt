@@ -152,7 +152,7 @@ class PreviewProvider(
     val module = configuration.module ?: return CompletableFuture.completedFuture(null)
     val facet = AndroidFacet.getInstance(module) ?: return CompletableFuture.completedFuture(null)
     val renderService = RenderService.getInstance(module.project)
-    val logger = renderService.createLogger(facet)
+    val logger = renderService.createLogger(module)
     return renderService.taskBuilder(facet, configuration)
       .withLogger(logger)
       .build()

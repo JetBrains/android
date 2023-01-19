@@ -79,14 +79,14 @@ public class ViewLoaderTest extends AndroidTestCase {
 
   public void testMissingClass() throws Exception {
     Project project = myModule.getProject();
-    RenderLogger logger = RenderService.getInstance(project).createLogger(myFacet);
+    RenderLogger logger = RenderService.getInstance(project).createLogger(myModule);
     ViewLoader viewLoader = new ViewLoader(myLayoutLib, myModule, logger, null, myClassLoader);
 
     assertNull(viewLoader.loadClass("broken.brokenclass", true));
     assertTrue(logger.hasErrors());
     assertThat(logger.getMissingClasses(), hasItem("broken.brokenclass"));
 
-    logger = RenderService.getInstance(project).createLogger(myFacet);
+    logger = RenderService.getInstance(project).createLogger(myModule);
     viewLoader = new ViewLoader(myLayoutLib, myModule, logger, null, myClassLoader);
 
     try {
@@ -96,14 +96,14 @@ public class ViewLoaderTest extends AndroidTestCase {
     catch (ClassNotFoundException ignored) {
     }
 
-    logger = RenderService.getInstance(project).createLogger(myFacet);
+    logger = RenderService.getInstance(project).createLogger(myModule);
     viewLoader = new ViewLoader(myLayoutLib, myModule, logger, null, myClassLoader);
     assertNull(viewLoader.loadClass("broken.brokenclass", false));
     assertFalse(logger.hasErrors());
   }
 
   public void testRClassLoad() throws ClassNotFoundException {
-    RenderLogger logger = RenderService.getInstance(myModule.getProject()).createLogger(myFacet);
+    RenderLogger logger = RenderService.getInstance(myModule.getProject()).createLogger(myModule);
     ViewLoader viewLoader = new ViewLoader(myLayoutLib, myModule, logger, null, myClassLoader);
     ResourceIdManager idManager = ResourceIdManager.get(myModule);
     assertNotNull(idManager);
