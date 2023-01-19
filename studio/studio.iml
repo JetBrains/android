@@ -28,12 +28,8 @@
     <orderEntry type="library" name="studio-plugin-copyright" level="project" />
     <orderEntry type="library" name="studio-plugin-java-coverage" level="project" />
     <orderEntry type="library" name="studio-plugin-editorconfig" level="project" />
-    <orderEntry type="library" name="studio-plugin-filePrediction" level="project" />
-    <orderEntry type="library" name="studio-plugin-git4idea" level="project" />
-    <orderEntry type="library" name="studio-plugin-github" level="project" />
     <orderEntry type="library" name="studio-plugin-gradle-java" level="project" />
     <orderEntry type="library" name="studio-plugin-Groovy" level="project" />
-    <orderEntry type="library" name="studio-plugin-hg4idea" level="project" />
     <orderEntry type="library" name="studio-plugin-toml" level="project" />
     <orderEntry type="library" name="studio-plugin-platform-langInjection" level="project" />
     <orderEntry type="library" name="studio-plugin-java-decompiler" level="project" />
@@ -44,23 +40,33 @@
     <orderEntry type="library" name="studio-plugin-maven-model" level="project" />
     <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
     <orderEntry type="library" name="studio-plugin-properties" level="project" />
-    <orderEntry type="library" name="studio-plugin-properties-resource-bundle-editor" level="project" />
     <orderEntry type="library" name="studio-plugin-repository-search" level="project" />
-    <orderEntry type="library" name="studio-plugin-settings-repository" level="project" />
     <orderEntry type="library" name="studio-plugin-sh" level="project" />
-    <orderEntry type="library" name="studio-plugin-stream-debugger" level="project" />
-    <orderEntry type="library" name="studio-plugin-svn4idea" level="project" />
     <orderEntry type="library" name="studio-plugin-tasks" level="project" />
     <orderEntry type="library" name="studio-plugin-terminal" level="project" />
     <orderEntry type="library" name="studio-plugin-testng" level="project" />
     <orderEntry type="library" name="studio-plugin-textmate" level="project" />
-    <orderEntry type="library" name="studio-plugin-vcs-changeReminder" level="project" />
     <orderEntry type="library" name="studio-plugin-yaml" level="project" />
     <orderEntry type="library" name="studio-plugin-c-clangd" level="project" />
     <orderEntry type="library" name="studio-plugin-c-plugin" level="project" />
     <orderEntry type="library" name="studio-plugin-cidr-base-plugin" level="project" />
     <orderEntry type="library" name="studio-plugin-cidr-debugger-plugin" level="project" />
     <orderEntry type="library" name="studio-plugin-completionMlRanking" level="project" />
-    <orderEntry type="library" name="studio-plugin-ml-models-local" level="project" />
+    <orderEntry type="library" name="studio-plugin-c-clangdBridge" level="project" />
+    <orderEntry type="library" name="studio-plugin-completionMlRankingModels" level="project" />
+    <orderEntry type="library" name="studio-plugin-dev" level="project" />
+    <orderEntry type="library" name="studio-plugin-devkit" level="project" />
+    <orderEntry type="library" name="studio-plugin-java-debugger-streams" level="project" />
+    <orderEntry type="library" name="studio-plugin-keymap-eclipse" level="project" />
+    <orderEntry type="library" name="studio-plugin-keymap-netbeans" level="project" />
+    <orderEntry type="library" name="studio-plugin-keymap-visualStudio" level="project" />
+    <orderEntry type="library" name="studio-plugin-markdown" level="project" />
+    <orderEntry type="library" name="studio-plugin-maven-server" level="project" />
+    <orderEntry type="library" name="studio-plugin-settingsSync" level="project" />
+    <orderEntry type="library" name="studio-plugin-vcs-git" level="project" />
+    <orderEntry type="library" name="studio-plugin-vcs-github" level="project" />
+    <orderEntry type="library" name="studio-plugin-vcs-hg" level="project" />
+    <orderEntry type="library" name="studio-plugin-vcs-svn" level="project" />
+    <orderEntry type="library" name="studio-plugin-webp" level="project" />
   </component>
 </module>
