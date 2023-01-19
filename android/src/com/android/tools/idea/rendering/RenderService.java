@@ -214,8 +214,7 @@ public class RenderService implements Disposable {
   }
 
   @Nullable
-  private static AndroidPlatform getPlatform(@NotNull final AndroidFacet facet, @Nullable RenderLogger logger) {
-    Module module = facet.getModule();
+  private static AndroidPlatform getPlatform(@NotNull final Module module, @Nullable RenderLogger logger) {
     AndroidPlatform platform = AndroidPlatform.getInstance(module);
     if (platform == null && logger != null) {
       RenderProblem.Html message = RenderProblem.create(ERROR);
@@ -646,7 +645,7 @@ public class RenderService implements Disposable {
       StackTraceCapture stackTraceCaptureElement = RenderTaskAllocationTrackerKt.captureAllocationStackTrace();
 
       return CompletableFuture.supplyAsync(() -> {
-        AndroidPlatform platform = getPlatform(myFacet, myLogger);
+        AndroidPlatform platform = getPlatform(myFacet.getModule(), myLogger);
         if (platform == null) {
           return null;
         }
