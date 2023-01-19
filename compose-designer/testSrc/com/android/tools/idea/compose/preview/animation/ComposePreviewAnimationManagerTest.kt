@@ -15,32 +15,23 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import androidx.compose.animation.tooling.ComposeAnimatedProperty
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
-import androidx.compose.animation.tooling.TransitionInfo
-import com.android.SdkConstants
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.compose.preview.animation.TestUtils.createComposeAnimation
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
 import com.android.tools.idea.compose.preview.animation.TestUtils.findLabel
 import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.compose.preview.animation.managers.AnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.UnsupportedAnimationManager
-import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE
 import com.android.tools.idea.rendering.classloading.NopClassLocator
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform
 import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader
 import com.android.tools.idea.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.idea.rendering.classloading.toClassTransform
-import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.NlModelBuilderUtil
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
@@ -50,7 +41,6 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.assertInstanceOf
-import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.util.containers.getIfSingle
 import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
@@ -59,36 +49,21 @@ import java.util.stream.Collectors
 import javax.swing.JComponent
 import javax.swing.JSlider
 import org.jetbrains.android.uipreview.createUrlClassLoader
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
-import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.mockito.Mockito
 
 @RunWith(Parameterized::class)
-class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
+class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : InspectorTests() {
 
-  lateinit var psiFilePointer: SmartPsiElementPointer<PsiFile>
-
-  enum class ClockType {
-    DEFAULT,
-    WITH_TRANSITIONS,
-    WITH_COORDINATION
-  }
-
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
-
-  private lateinit var parentDisposable: Disposable
-
-  private lateinit var surface: NlDesignSurface
+  private fun getClock() = clockType.getClock()
 
   private val animations =
     ComposeAnimationType.values().map { createComposeAnimation(it.toString(), type = it) }
@@ -102,45 +77,6 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
         arrayOf<Any>(ClockType.WITH_TRANSITIONS),
         arrayOf<Any>(ClockType.WITH_COORDINATION)
       )
-  }
-
-  private fun getClock(): TestClock =
-    when (clockType) {
-      ClockType.DEFAULT -> TestClock()
-      ClockType.WITH_TRANSITIONS -> TestClockWithTransitions()
-      ClockType.WITH_COORDINATION -> TestClockWithCoordination()
-    }
-
-  @Before
-  fun setUp() {
-    parentDisposable = projectRule.fixture.testRootDisposable
-    val model = runInEdtAndGet {
-      NlModelBuilderUtil.model(
-          projectRule,
-          "layout",
-          "layout.xml",
-          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)
-        )
-        .build()
-    }
-    surface = NlDesignSurface.builder(projectRule.project, parentDisposable).build()
-    surface.addModelWithoutRender(model)
-    COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE.override(true)
-
-    val psiFile =
-      projectRule.fixture.addFileToProject(
-        "src/main/Test.kt",
-        """
-      fun main() {}
-    """.trimIndent()
-      )
-    invokeAndWaitIfNeeded { psiFilePointer = SmartPointerManager.createPointer(psiFile) }
-  }
-
-  @After
-  fun tearDown() {
-    ComposePreviewAnimationManager.closeCurrentInspector()
-    COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE.clearOverride()
   }
 
   @Test
@@ -287,14 +223,14 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
   fun comboBoxesDisplayComposeAnimationStates() {
     val inspector = createAndOpenInspector()
 
-    val animationStates = setOf("State1", "State2", "State3")
+    val animationStates = setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3)
 
     val transitionAnimation =
       object : ComposeAnimation {
         override val animationObject =
           object {
             @Suppress("unused") // Method is called via reflection.
-            fun getCurrentState() = "State1"
+            fun getCurrentState() = AnimationState.State1
           }
         override val type = ComposeAnimationType.TRANSITION_ANIMATION
         override val states = animationStates
@@ -356,10 +292,11 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
         override val animationObject =
           object {
             @Suppress("unused") // Method is called via reflection.
-            fun getCurrentState() = "State1"
+            fun getCurrentState() = AnimationState.State1
           }
         override val type = ComposeAnimationType.TRANSITION_ANIMATION
-        override val states = setOf("State1", "State2", "State3")
+        override val states =
+          setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3)
       }
 
     invokeAndWaitIfNeeded {
@@ -394,10 +331,11 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
         override val animationObject =
           object {
             @Suppress("unused") // Method is called via reflection.
-            fun getCurrentState() = "State1"
+            fun getCurrentState() = AnimationState.State1
           }
         override val type = ComposeAnimationType.TRANSITION_ANIMATION
-        override val states = setOf("State1", "State2", "State3")
+        override val states =
+          setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3)
       }
 
     invokeAndWaitIfNeeded {
@@ -455,10 +393,11 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
         override val animationObject =
           object {
             @Suppress("unused") // Method is called via reflection.
-            fun getCurrentState() = "State1"
+            fun getCurrentState() = AnimationState.State1
           }
         override val type = ComposeAnimationType.TRANSITION_ANIMATION
-        override val states = setOf("State1", "State2", "State3")
+        override val states =
+          setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3)
       }
 
     ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
@@ -752,17 +691,6 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
     } catch (ignored: NullPointerException) {}
   }
 
-  private fun createAndOpenInspector(): AnimationPreview {
-    assertFalse(ComposePreviewAnimationManager.isInspectorOpen())
-    ComposePreviewAnimationManager.createAnimationInspectorPanel(
-      surface,
-      parentDisposable,
-      psiFilePointer
-    ) {}
-    assertTrue(ComposePreviewAnimationManager.isInspectorOpen())
-    return ComposePreviewAnimationManager.currentInspector!!
-  }
-
   private fun AnimationPreview.tabCount() = invokeAndWaitIfNeeded { animationsCount() }
 
   private fun AnimationPreview.getAnimationTitleAt(index: Int): String = invokeAndWaitIfNeeded {
@@ -777,67 +705,5 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
 
   private fun AnimationPreview.animationPreviewCardsCount() = invokeAndWaitIfNeeded {
     coordinationTab.cards.size
-  }
-
-  /** [TestClock] with available [setClockTimes] method. */
-  private class TestClockWithCoordination : TestClockWithTransitions() {
-    fun setClockTimes(clockTimeMillis: Map<ComposeAnimation, Long>) {}
-  }
-
-  /** [TestClock] with available [getTransitions] method. */
-  private open class TestClockWithTransitions : TestClock() {
-    fun getTransitions(animation: Any, clockTimeMsStep: Long) =
-      listOf(
-        TransitionInfo(
-          "Int",
-          "specType",
-          startTimeMillis = 0,
-          endTimeMillis = 100,
-          values = mapOf(0L to 1, 50L to 2, 100L to 3)
-        ),
-        TransitionInfo(
-          "IntSnap",
-          "Snap",
-          startTimeMillis = 0,
-          endTimeMillis = 0,
-          values = mapOf(0L to 100)
-        ),
-        TransitionInfo(
-          "Float",
-          "specType",
-          startTimeMillis = 100,
-          endTimeMillis = 200,
-          values = mapOf(100L to 1f, 150L to 0f, 200L to 2f)
-        ),
-        TransitionInfo(
-          "Double",
-          "specType",
-          startTimeMillis = 0,
-          endTimeMillis = 100,
-          values = mapOf(0L to 1.0, 50L to 10.0, 100L to 2.0)
-        )
-      )
-  }
-
-  /**
-   * Fake class with methods matching PreviewAnimationClock method signatures, so the code doesn't
-   * break when the test tries to call them via reflection.
-   */
-  private open class TestClock {
-    fun getAnimatedProperties(animation: Any) =
-      listOf<ComposeAnimatedProperty>(
-        ComposeAnimatedProperty("Int", 1),
-        ComposeAnimatedProperty("IntSnap", 1),
-        ComposeAnimatedProperty("Float", 1f),
-        ComposeAnimatedProperty("Double", 1.0)
-      )
-
-    fun getMaxDuration() = 1000L
-    fun getMaxDurationPerIteration() = 1000L
-    fun updateAnimationStates() {}
-    fun updateSeekableAnimation(animation: Any, fromState: Any, toState: Any) {}
-    fun setClockTime(time: Long) {}
-    fun updateAnimatedVisibilityState(animation: Any, state: Any) {}
-    fun `getAnimatedVisibilityState-xga21d`(animation: Any) = "Enter"
   }
 }

@@ -36,10 +36,8 @@ import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
 import com.android.tools.idea.run.activity.launch.DefaultActivityLaunch;
 import com.android.tools.idea.run.activity.launch.NoLaunch;
 import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch;
-import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner;
 import com.android.tools.idea.run.configuration.execution.AndroidActivityConfigurationExecutor;
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor;
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorRunProfileState;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.ApplicationRunParameters;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
@@ -58,7 +56,6 @@ import com.intellij.execution.RunnerIconProvider;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RefactoringListenerProvider;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
@@ -443,14 +440,6 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
       }
     };
     return new AndroidActivityConfigurationExecutor(environment, getDeployTarget(), settings, getApplicationIdProvider(), getApkProvider());
-  }
-
-  @Override
-  public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
-    if (AndroidConfigurationProgramRunner.Companion.getUseNewExecutionForActivities()) {
-      return new AndroidConfigurationExecutorRunProfileState(getExecutor(env));
-    }
-    return super.getState(executor, env);
   }
 
   @Nullable

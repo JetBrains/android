@@ -19,7 +19,9 @@ import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.HtmlLinksHandler
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.DownloadsInfoPageModel
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.setEmptyState
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.ScrollPaneFactory.createScrollPane
 import com.intellij.ui.table.TableView
@@ -27,11 +29,13 @@ import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import javax.swing.JPanel
 import javax.swing.ListSelectionModel
+import javax.swing.table.DefaultTableModel
 
 class DownloadsInfoPageView(
   val pageModel: DownloadsInfoPageModel,
-  val actionHandlers: ViewActionHandlers
-) : BuildAnalyzerDataPageView {
+  val actionHandlers: ViewActionHandlers,
+  val disposable: Disposable,
+  ) : BuildAnalyzerDataPageView {
 
   val resultsTable = TableView(pageModel.repositoriesTableModel).apply {
     setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION)
@@ -49,6 +53,12 @@ class DownloadsInfoPageView(
     setShowGrid(false)
     tableHeader.reorderingAllowed = false
     setEmptyState("Select repositories on the left to read request details")
+  }
+
+  init {
+    Disposer.register(disposable) {
+      pageModel.recreateTableModels()
+    }
   }
 
   override val component: JPanel = JPanel().apply {

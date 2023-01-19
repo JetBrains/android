@@ -77,7 +77,7 @@ public class HeapSet extends ClassifierSet {
   // Filter child ClassSets based on current selected filter string
   // If filterChanged is false, we only update modified classifierSets
   private void applyFilter(boolean filterChanged) {
-    applyFilter(myFilter, false, filterChanged);
+    applyFilter(myFilter, filterChanged);
   }
 
   @NotNull

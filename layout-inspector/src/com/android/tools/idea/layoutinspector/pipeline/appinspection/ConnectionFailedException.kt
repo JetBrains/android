@@ -31,8 +31,6 @@ import com.android.tools.idea.layoutinspector.pipeline.info
 import com.android.tools.idea.transport.TransportNonExistingFileException
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.util.io.HttpRequests
-import java.net.UnknownHostException
 
 const val GMAVEN_HOSTNAME = "maven.google.com"
 

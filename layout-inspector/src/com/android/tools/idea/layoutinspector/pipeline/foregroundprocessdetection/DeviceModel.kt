@@ -21,7 +21,6 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.CopyOnWriteArraySet
 
 /**

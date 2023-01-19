@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors
 
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Command
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse

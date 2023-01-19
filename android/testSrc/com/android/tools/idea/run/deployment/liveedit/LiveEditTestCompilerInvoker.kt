@@ -22,24 +22,22 @@ import junit.framework.Assert
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
-internal fun compile(file: PsiFile?, functionName: String, useInliner: Boolean = false) :
-  List<LiveEditCompilerOutput> {
-  return compile(file!!, findFunction(file, functionName), useInliner)
-}
+internal fun compile(file: PsiFile?, functionName: String, useInliner: Boolean = false) =
+  compile(file!!, findFunction(file, functionName), useInliner)
 
-internal fun compile(file: PsiFile, function: KtNamedFunction, useInliner: Boolean = false) :
-  List<LiveEditCompilerOutput> {
+internal fun compile(file: PsiFile, function: KtNamedFunction, useInliner: Boolean = false) =
+  compile(listOf(LiveEditCompilerInput(file, function)), useInliner)
+
+internal fun compile(inputs: List<LiveEditCompilerInput>, useInliner: Boolean = false) : LiveEditCompilerOutput {
   LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis = useInliner
   LiveEditAdvancedConfiguration.getInstance().usePartialRecompose = true
-  val output = mutableListOf<LiveEditCompilerOutput>()
 
   // The real Live Edit / Fast Preview has a retry system should the compilation got cancelled.
   // We are going to use a simplified version of that here and continue to try until
   // compilation succeeds.
-  var finished = false
-  while (!finished) {
-    finished = LiveEditCompiler(file.project).compile(
-      listOf(LiveEditCompilerInput(file, function)), output)
+  var output: LiveEditCompilerOutput? = null
+  while (output == null) {
+    output = LiveEditCompiler(inputs.first().file.project).compile(inputs).get()
   }
   return output
 }
@@ -51,9 +49,4 @@ internal fun findFunction(file: PsiFile?, name: String): KtNamedFunction {
   return runReadAction {
     file!!.collectDescendantsOfType<KtNamedFunction>().first { it.name?.contains(name) ?: false }
   }
-}
-
-internal fun List<LiveEditCompilerOutput>.singleOutput() : LiveEditCompilerOutput{
-  Assert.assertEquals(1, this.size)
-  return this[0]
 }

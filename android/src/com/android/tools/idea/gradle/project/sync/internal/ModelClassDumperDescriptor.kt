@@ -23,6 +23,7 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaGetter
 
 /**
@@ -51,12 +52,13 @@ class ModelClassDumperDescriptor(klass: KClass<Any>) {
 
   private val allProperties = klass.memberProperties
 
-  private val allNamedProperties: List<Property> = allProperties.mapNotNull {
+  private val allNamedProperties: List<Property> = allProperties.mapNotNull { property ->
     when {
-      // TODO(b/232112062): KotlinGradleModelImpl::partialCacheAware throws "not yet implemented" exception.
-      it.name == "partialCacheAware" -> null
-      it.visibility == KVisibility.PUBLIC -> Property(it.name, it::get)
-      it.visibility != KVisibility.PUBLIC -> allFunctions[it.name]?.let { function -> Property(it.name, fun(v: Any) = function.call(v)) }
+      property.visibility == KVisibility.PUBLIC ->
+        Property(property.name, property.apply { isAccessible = true }::get)
+      property.visibility != KVisibility.PUBLIC -> allFunctions[property.name]?.let { function ->
+        Property(property.name, function.apply { isAccessible = true }::call)
+      }
       else -> null
     }
   }

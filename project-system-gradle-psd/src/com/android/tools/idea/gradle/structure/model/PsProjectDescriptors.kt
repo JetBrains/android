@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.model.helpers.androidGradlePluginVersionValues
-import com.android.tools.idea.gradle.structure.model.helpers.gradleVersionValues
+import com.android.tools.idea.gradle.structure.model.helpers.versionValues
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.DslText
@@ -122,7 +122,7 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
 
           override fun format(value: String): String = value
 
-          override fun getKnownValues(): ListenableFuture<KnownValues<String>> = gradleVersionValues()
+          override fun getKnownValues(): ListenableFuture<KnownValues<String>> = versionValues()
         }
 
       override val description: String = "Gradle Version"

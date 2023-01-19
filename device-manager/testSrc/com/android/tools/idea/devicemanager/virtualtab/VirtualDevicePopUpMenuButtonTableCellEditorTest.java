@@ -25,6 +25,7 @@ import com.android.tools.idea.devicemanager.DeviceTables;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.PopUpMenuButtonTableCellEditor;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import java.util.List;
 import javax.swing.AbstractButton;
 import javax.swing.JComponent;
@@ -38,7 +39,7 @@ import org.mockito.Mockito;
 @RunWith(JUnit4.class)
 public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
   private final PopUpMenuButtonTableCellEditor myEditor =
-    new VirtualDevicePopUpMenuButtonTableCellEditor(Mockito.mock(VirtualDevicePanel.class));
+    new VirtualDevicePopUpMenuButtonTableCellEditor(Mockito.mock(VirtualDevicePanel.class), Mockito.mock(WearPairingManager.class));
 
   @Test
   public void newColdBootNowItem() {

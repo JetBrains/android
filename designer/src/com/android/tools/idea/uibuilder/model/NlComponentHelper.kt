@@ -255,6 +255,10 @@ fun NlComponent.isGroup(): Boolean {
   if (isOrHasSuperclass(CLASS_VIEWGROUP)) {
     return true
   }
+  val handler = viewHandler
+  if (handler is ViewGroupHandler && !handler.holdsReferences()) {
+    return true
+  }
 
   return when (tagName) {
     PreferenceTags.PREFERENCE_CATEGORY,
@@ -361,6 +365,12 @@ fun NlComponent.getMostSpecificClass(classNames: Set<String>): String? {
  */
 val NlComponent.viewHandler: ViewHandler?
   get() = if (!model.project.isDisposed) ViewHandlerManager.get(model.project).getHandler(this) else null
+
+/**
+ * Return the [ViewGroupHandler] for the current [NlComponent] or <code>null</code> if
+ */
+val NlComponent.viewGroupHandler: ViewGroupHandler?
+  get() = viewHandler as? ViewGroupHandler
 
 /**
  * Return the [ViewGroupHandler] for the nearest layout starting with the current [NlComponent].

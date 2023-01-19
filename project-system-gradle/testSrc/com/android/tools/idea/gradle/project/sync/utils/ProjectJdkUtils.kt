@@ -56,13 +56,13 @@ object ProjectJdkUtils {
     text = ProjectIdeaConfigFilesUtils.buildMiscXmlConfig(jdkName)
   )
 
-  fun getGradleRootJdkNameInMemory(project: Project, gradleRootPath: String = ""): String? {
+  fun getGradleRootJdkNameInMemory(project: Project, gradleRootPath: String): String? {
     val linkedProjectPath = File(project.basePath.orEmpty()).resolve(gradleRootPath).absolutePath
     val settings = GradleSettings.getInstance(project).getLinkedProjectSettings(linkedProjectPath)
     return settings?.gradleJvm
   }
 
-  fun getGradleRootJdkNameFromIdeaGradleXmlFile(projectRoot: File, gradleRootPath: String = ""): String? {
+  fun getGradleRootJdkNameFromIdeaGradleXmlFile(projectRoot: File, gradleRootPath: String): String? {
     val gradleXml = projectRoot.resolve(PROJECT_IDEA_GRADLE_XML_PATH)
     val gradleXmlRootElement = JpsLoaderBase.tryLoadRootElement(gradleXml.toPath())
     val gradleSettings = JDomSerializationUtil.findComponent(gradleXmlRootElement, "GradleSettings")

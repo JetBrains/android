@@ -78,12 +78,18 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
   private val clearDebugAppAm = "clear-debug-app"
   private val clearDebugAppBroadcast = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'clear-debug-app'"
 
+  private val runner = object : AndroidConfigurationProgramRunner() {
+    override fun canRunWithMultipleDevices(executorId: String) = true
+    override val supportedConfigurationTypeIds: List<String>
+      get() = listOf(AndroidComplicationConfigurationType().id)
+  }
+
   @Test
   fun test() {
     val configSettings = RunManager.getInstance(project).createConfiguration(
       "run complication", AndroidComplicationConfigurationType().configurationFactories.single())
     // Use run executor
-    val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), AndroidConfigurationProgramRunner(), configSettings,
+    val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), runner, configSettings,
                                    project)
 
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
@@ -175,7 +181,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       "run complication", AndroidComplicationConfigurationType().configurationFactories.single())
 
     // Use DefaultDebugExecutor executor.
-    val env = ExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance(), AndroidConfigurationProgramRunner(), configSettings,
+    val env = ExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance(), runner, configSettings,
                                    project)
 
     val processTerminatedLatch = CountDownLatch(1)
@@ -282,8 +288,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val configSettings = RunManager.getInstance(project).createConfiguration(
       "run complication", AndroidComplicationConfigurationType().configurationFactories.single())
     // Use run executor
-    val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), AndroidConfigurationProgramRunner(), configSettings,
-                                   project)
+    val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), runner, configSettings, project)
 
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
     val receivedAmCommands = ArrayList<String>()
@@ -359,10 +364,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val configSettings = RunManager.getInstance(project).createConfiguration(
       "run complication", AndroidComplicationConfigurationType().configurationFactories.single())
     // Use run executor
-    val env = Mockito.spy(ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(),
-                                               AndroidConfigurationProgramRunner(),
-                                               configSettings,
-                                               project))
+    val env = Mockito.spy(ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), runner, configSettings, project))
     val failedResponse = "Component not found."
 
     val deviceState = fakeAdbRule.connectAndWaitForDevice()

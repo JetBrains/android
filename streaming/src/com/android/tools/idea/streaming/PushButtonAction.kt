@@ -45,8 +45,24 @@ interface PushButtonAction : CustomComponentAction {
    */
   fun buttonReleased(event: AnActionEvent)
 
+  /**
+   * Called when the action is invoked by a keyboard shortcut.
+   */
+  fun buttonPressedAndReleased(event: AnActionEvent)
+
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
     return MyActionButton(this, presentation, place, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
+  }
+
+  /**
+   * Implementations of this interface must call this method from their `actionPerformed` methods.
+   */
+  fun actionPerformedImpl(event: AnActionEvent) {
+    val inputEvent = event.inputEvent as? KeyEvent ?: return
+    if (inputEvent.keyCode != KeyEvent.VK_SPACE) {
+      // The action was triggered by a keyboard shortcut.
+      buttonPressedAndReleased(event)
+    }
   }
 
   private class MyActionButton(

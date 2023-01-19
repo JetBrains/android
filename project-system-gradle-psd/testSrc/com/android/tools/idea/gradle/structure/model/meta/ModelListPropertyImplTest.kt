@@ -22,12 +22,14 @@ import com.android.tools.idea.gradle.structure.PsdGradleFileModelTestCase
 import com.android.tools.idea.gradle.structure.MODEL_LIST_PROPERTY_IMPL_PROPERTY_VALUES
 import com.android.tools.idea.gradle.structure.MODEL_LIST_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY
 import com.android.tools.idea.gradle.structure.MODEL_LIST_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY_EXPECTED
+import com.android.tools.idea.gradle.structure.MODEL_MAP_PROPERTY_IMPL_PROPERTY_VALUES
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.helpers.parseInt
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import com.intellij.testFramework.RunsInEdt
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assume
 import org.junit.Test
 
 @RunsInEdt
@@ -146,8 +148,8 @@ class ModelListPropertyImplTest : PsdGradleFileModelTestCase() {
     list.deleteItem(0)
     assertThat(list.isModified, equalTo(true))
     var editableValues = list.getEditableValues()
-    assertThat(editableValues[0].isModified, equalTo(true))   // Items after are modified due to their index changing
-    assertThat(editableValues[3].isModified, equalTo(true))
+    assertThat(editableValues[0].isModified, equalTo(false))
+    assertThat(editableValues[3].isModified, equalTo(false))
     editableValues[0].testSetReference("propC")
     editableValues[1].testSetInterpolatedString("${'$'}{propC}rd")
     editableValues[2].testSetValue("D")
@@ -189,14 +191,20 @@ class ModelListPropertyImplTest : PsdGradleFileModelTestCase() {
 
     list.deleteItem(2)
     var editableValues = list.getEditableValues()
-    assertThat(editableValues[0].isModified, equalTo(false))  // Deleting an item from the list does not make items before modified
-    assertThat(editableValues[3].isModified, equalTo(true))   // Items after are modified due to their index changing
+
+    //elements before and after deleted one are not modified
+    assertThat(editableValues[0].isModified, equalTo(false))
+    assertThat(editableValues[3].isModified, equalTo(false))
+
     editableValues[1].testSetInterpolatedString("${'$'}{propC}rd")
+    assertThat(editableValues[1].isModified, equalTo(true))
     editableValues[2].testSetValue("D")
-    editableValues[3].testSetValue("E")
+    assertThat(editableValues[2].isModified, equalTo(true))
 
     list.addItem(0).testSetValue("ZZ")
-    assertThat(editableValues[0].isModified, equalTo(true))  // Items after are modified due to their index changing
+    editableValues = list.getEditableValues()
+    assertThat(editableValues[0].isModified, equalTo(true))
+    assertThat(editableValues[4].isModified, equalTo(false)) //last element is still not modified
 
     fun verify(ext: ExtModel) {
       editableValues =
@@ -211,7 +219,7 @@ class ModelListPropertyImplTest : PsdGradleFileModelTestCase() {
       assertThat(prop1.testValue(), equalTo("1"))
       assertThat(prop3rd.testValue(), equalTo("3rd"))
       assertThat(propD.testValue(), equalTo("D"))
-      assertThat(propE.testValue(), equalTo("E"))
+      assertThat(propE.testValue(), equalTo("2nd"))
     }
 
     verify(extModel)
@@ -243,6 +251,15 @@ class ModelListPropertyImplTest : PsdGradleFileModelTestCase() {
 
     applyChangesAndReparse(buildModelInstance)
     verifyFileContents(buildFile, MODEL_LIST_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY_EXPECTED)
+  }
+
+  @Test
+  fun testEditListInitAsLambda() {
+    Assume.assumeTrue("Can init map with lambda in kotlin only", isKotlinScript)
+    writeToBuildFile(MODEL_LIST_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY)
+    val extModel = gradleBuildModel.ext()
+    val propList = extModel.findProperty("propList2").wrap(::parseString, ResolvedPropertyModel::asString)
+    assertThat(propList.getEditableValues().size, equalTo(0)) // do not parse kotlin lambda initializer for now
   }
 
 }

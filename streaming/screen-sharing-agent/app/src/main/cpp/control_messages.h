@@ -18,6 +18,7 @@
 
 #include <inttypes.h>
 
+#include <map>
 #include <memory>
 #include <vector>
 #include <android/input.h>
@@ -51,10 +52,11 @@ protected:
 class MotionEventMessage : ControlMessage {
 public:
   struct Pointer {
-    Pointer(int32_t x, int32_t y, int32_t pointer_id)
+    Pointer(int32_t x, int32_t y, int32_t pointer_id, std::map<int32_t, float> axis_values)
         : x(x),
           y(y),
-          pointer_id(pointer_id) {
+          pointer_id(pointer_id),
+          axis_values(axis_values) {
     }
     Pointer() = default;
 
@@ -64,6 +66,8 @@ public:
     int32_t y;
     // The ID of the touch that stays the same when the touch point moves.
     int32_t pointer_id;
+    // Values for the various axes of the pointer (e.g. scroll wheel, joystick, etc).
+    std::map<int32_t, float> axis_values;
   };
 
   // Pointers are expected to be ordered according to their ids.

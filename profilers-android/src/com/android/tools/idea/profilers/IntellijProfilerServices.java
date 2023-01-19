@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers;
 import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.idea.codenavigation.IntelliJNavSource;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.perfetto.traceprocessor.TraceProcessorServiceImpl;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
@@ -390,8 +391,8 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     }
 
     @Override
-    public boolean isSystemTracePowerTracksEnabled() {
-      return StudioFlags.PROFILER_SYSTRACE_POWER_TRACKS.get();
+    public PowerProfilerDisplayMode getSystemTracePowerProfilerDisplayMode() {
+      return StudioFlags.PROFILER_SYSTEM_TRACE_POWER_PROFILER_DISPLAY_MODE.get();
     }
 
     @Override

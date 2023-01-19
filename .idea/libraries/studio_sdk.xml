@@ -12,7 +12,7 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/forms_rt.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/groovy.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/idea_rt.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/intellij-coverage-agent-1.0.681.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/intellij-coverage-agent-1.0.682.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/intellij-test-discovery.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/jps-model.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/junit.jar!/" />
@@ -39,8 +39,6 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/plugins/java/lib/jshell-frontend.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/plugins/java/lib/jshell-protocol.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/plugins/java/lib/sa-jdwp.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/dbus-java-3.2.1.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/java-utils-1.0.6.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

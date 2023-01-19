@@ -141,7 +141,7 @@
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
     <listener class="com.android.tools.idea.gradle.project.sync.listeners.StateChangeNotification"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
-    <listener class="com.android.tools.idea.gradle.project.sync.listeners.MigrateGradleJvmListener"
+    <listener class="com.android.tools.idea.gradle.project.sync.listeners.MigrateGradleJvmSyncListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
   </projectListeners>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">

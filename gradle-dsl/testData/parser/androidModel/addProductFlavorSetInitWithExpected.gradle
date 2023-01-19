@@ -1,0 +1,10 @@
+android {
+  productFlavors {
+    dependent {
+      applicationIdSuffix = ".dependent"
+    }
+    demo {
+      initWith dependent
+    }
+  }
+}

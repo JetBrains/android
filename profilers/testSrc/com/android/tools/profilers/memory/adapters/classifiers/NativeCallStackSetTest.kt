@@ -86,7 +86,49 @@ class NativeCallStackSetTest {
     assertThat(classifier.allClassifierSets).containsExactly(leafSet, callStackSet)
     assertThat(classifier.filteredClassifierSets).containsExactlyElementsIn(classifier.allClassifierSets)
     val filter = Filter("Exclude Test")
-    leafSet.applyFilter(filter, false, true)
+    leafSet.applyFilter(filter, true)
     assertThat(classifier.filteredClassifierSets).containsExactly(callStackSet)
+  }
+
+  @Test
+  fun applyFilter_doesntMatchTopLevel() {
+    val classifier = NativeCallStackSet.createDefaultClassifier()
+    // Leaf instance 1
+    val leafInstance1 = Mockito.mock(InstanceObject::class.java)
+    whenever(leafInstance1.callStackDepth).thenReturn(0)
+    whenever(leafInstance1.allocationCallStack).thenReturn(null)
+    whenever(leafInstance1.instanceCount).thenReturn(1)
+    whenever(leafInstance1.classEntry).thenReturn(
+      ClassDb.ClassEntry(0, 0, "Test Leaf 1"))
+    val leafSet1 = classifier.getClassifierSet(leafInstance1, true)!!
+    assertThat(leafSet1.addDeltaInstanceObject(leafInstance1)).isTrue()
+    // Leaf instance 2
+    val leafInstance2 = Mockito.mock(InstanceObject::class.java)
+    whenever(leafInstance2.callStackDepth).thenReturn(0)
+    whenever(leafInstance2.allocationCallStack).thenReturn(null)
+    whenever(leafInstance2.instanceCount).thenReturn(1)
+    whenever(leafInstance2.classEntry).thenReturn(
+      ClassDb.ClassEntry(0, 0, "Test Leaf 2"))
+    val leafSet2 = classifier.getClassifierSet(leafInstance2, true)!!
+    assertThat(leafSet2.addDeltaInstanceObject(leafInstance2)).isTrue()
+    // Callstack instance.
+    val allocationStack = Memory.AllocationStack.newBuilder()
+      .setFullStack(Memory.AllocationStack.StackFrameWrapper.newBuilder()
+                      .addFrames(Memory.AllocationStack.StackFrame.newBuilder()
+                                   .setMethodName("Test Root")))
+      .build()
+    val callStackInstance = Mockito.mock(InstanceObject::class.java)
+    whenever(callStackInstance.callStackDepth).thenReturn(1)
+    whenever(callStackInstance.allocationCallStack).thenReturn(allocationStack)
+    val callStackSet = classifier.getClassifierSet(callStackInstance, true)!!
+    assertThat(callStackSet.addDeltaInstanceObject(leafInstance1)).isTrue()
+    assertThat(callStackSet.addDeltaInstanceObject(leafInstance2)).isTrue()
+
+    callStackSet.applyFilter(Filter("Test"), true)
+
+    assertThat(callStackSet.isMatched).isFalse()
+    assertThat(callStackSet.childrenClassifierSets.size).isEqualTo(2)
+    assertThat(callStackSet.childrenClassifierSets[0].isMatched).isTrue()
+    assertThat(callStackSet.childrenClassifierSets[1].isMatched).isTrue()
   }
 }

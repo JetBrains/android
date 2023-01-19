@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.AndroidDevice;
 import org.jetbrains.annotations.NotNull;
 
 final class Tasks {
-  private Tasks() {}
+  private Tasks() {
+  }
 
-  @WorkerThread
   static @NotNull Device.Type getTypeFromAndroidDevice(@NotNull AndroidDevice device) {
     if (device.supportsFeature(IDevice.HardwareFeature.WATCH)) {
       return Device.Type.WEAR;

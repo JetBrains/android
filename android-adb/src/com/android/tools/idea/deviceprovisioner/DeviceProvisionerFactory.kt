@@ -20,6 +20,7 @@ import com.android.sdklib.deviceprovisioner.PhysicalDeviceProvisionerPlugin
 import com.android.tools.idea.concurrency.coroutineScope
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.CoroutineScope
 
 /**
  * Extension point for factories of [DeviceProvisionerPlugin]. The factory is necessary to allow
@@ -31,14 +32,24 @@ interface DeviceProvisionerFactory {
     val EP_NAME: ExtensionPointName<DeviceProvisionerFactory> =
       ExtensionPointName.create("com.android.tools.idea.deviceProvisioner")
 
-    fun createProvisioners(project: Project): List<DeviceProvisionerPlugin> =
-      EP_NAME.extensionList.map { it.create(project) }
+    fun createProvisioners(
+      coroutineScope: CoroutineScope,
+      project: Project
+    ): List<DeviceProvisionerPlugin> =
+      EP_NAME.extensionList.map { it.create(coroutineScope, project) }
   }
 
-  fun create(project: Project): DeviceProvisionerPlugin
+  /**
+   * Create a [DeviceProvisionerPlugin].
+   *
+   * @param coroutineScope the [CoroutineScope] of the [DeviceProvisioner]. The plugin should use
+   * this scope or inherit from it.
+   * @param project the IntelliJ project
+   */
+  fun create(coroutineScope: CoroutineScope, project: Project): DeviceProvisionerPlugin
 }
 
 class PhysicalDeviceProvisionerFactory : DeviceProvisionerFactory {
-  override fun create(project: Project): DeviceProvisionerPlugin =
-    PhysicalDeviceProvisionerPlugin(project.coroutineScope)
+  override fun create(coroutineScope: CoroutineScope, project: Project): DeviceProvisionerPlugin =
+    PhysicalDeviceProvisionerPlugin(coroutineScope)
 }

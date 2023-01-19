@@ -1,0 +1,15 @@
+android {
+  buildTypes {
+    foo {
+      debuggable true
+      minifyEnabled true
+      buildConfigField "abcd", "efgh", "ijkl"
+      applicationIdSuffix ".foo"
+    }
+    bar {
+      initWith foo
+      debuggable false
+      applicationIdSuffix ".bar"
+    }
+  }
+}

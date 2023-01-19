@@ -23,8 +23,11 @@ import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
+import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManagerKt;
 import java.awt.Dimension;
+import java.awt.Point;
 import java.util.Collection;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -44,7 +47,7 @@ public class NlDesignSurfacePositionableContentLayoutManager extends Positionabl
   @Override
   public void layoutContainer(@NotNull Collection<? extends PositionableContent> content, @NotNull Dimension availableSize) {
     availableSize = myDesignSurface.getExtentSize();
-    myLayoutManager.layout(content, availableSize.width, availableSize.height, myDesignSurface.isCanvasResizing());
+    SurfaceLayoutManagerKt.layout(myLayoutManager, content, availableSize.width, availableSize.height, myDesignSurface.isCanvasResizing());
   }
 
   @NotNull
@@ -76,5 +79,14 @@ public class NlDesignSurfacePositionableContentLayoutManager extends Positionabl
     myDesignSurface.setSceneViewAlignment(sceneViewAlignment);
     myDesignSurface.setScrollPosition(0, 0);
     myDesignSurface.revalidateScrollArea();
+  }
+
+
+  @NotNull
+  @Override
+  public Map<PositionableContent, Point> getMeasuredPositionableContentPosition(@NotNull Collection<? extends PositionableContent> content,
+                                                                                int availableWidth,
+                                                                                int availableHeight) {
+    return myLayoutManager.measure(content, availableWidth, availableHeight, myDesignSurface.isCanvasResizing());
   }
 }

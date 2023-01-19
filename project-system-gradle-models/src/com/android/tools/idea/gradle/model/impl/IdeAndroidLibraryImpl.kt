@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.model.impl
 
-import com.android.tools.idea.gradle.model.IdeAndroidLibrary
+import com.android.tools.idea.gradle.model.IdeUnresolvedAndroidLibrary
 import com.google.common.annotations.VisibleForTesting
 import java.io.File
 import java.io.Serializable
@@ -42,7 +42,7 @@ data class IdeAndroidLibraryImpl(
   private val _publicResources: String,
   private val _artifact: String?,
   private val _symbolFile: String
-) : IdeAndroidLibrary, Serializable {
+) : IdeUnresolvedAndroidLibrary, Serializable {
 
   // Used for serialization by the IDE.
   @VisibleForTesting

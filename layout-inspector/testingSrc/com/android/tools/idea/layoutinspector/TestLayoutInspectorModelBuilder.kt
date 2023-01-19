@@ -35,7 +35,6 @@ import com.android.tools.idea.layoutinspector.util.TestStringTable
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestAndroidModel
 import com.intellij.facet.ProjectFacetManager
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Rectangle
@@ -264,9 +263,9 @@ class InspectorModelDescriptor(val project: Project, private val scheduler: Sche
       }
     }
     model.update(newWindow, listOf(windowRoot.drawId), 0)
-    if (ModuleManager.getInstance(project) != null) {
-      val facet = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).singleOrNull() ?: error("AndroidFacet required")
-      AndroidModel.set(facet, TestAndroidModel("com.example"))
+    if (project.isOpen) {
+      val facet = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).singleOrNull()
+      facet?.let { AndroidModel.set(facet, TestAndroidModel("com.example")) }
       val strings = TestStringTable()
       val config = ConfigurationParamsBuilder(strings)
       model.resourceLookup.updateConfiguration(

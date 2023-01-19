@@ -31,9 +31,8 @@ import com.android.tools.idea.transport.faketransport.commands.EndSession;
 import com.android.tools.idea.transport.faketransport.commands.HeapDump;
 import com.android.tools.idea.transport.faketransport.commands.MemoryAllocSampling;
 import com.android.tools.idea.transport.faketransport.commands.MemoryAllocTracking;
-import com.android.tools.idea.transport.faketransport.commands.MemoryNativeSampling;
-import com.android.tools.idea.transport.faketransport.commands.StartCpuTrace;
-import com.android.tools.idea.transport.faketransport.commands.StopCpuTrace;
+import com.android.tools.idea.transport.faketransport.commands.StartTrace;
+import com.android.tools.idea.transport.faketransport.commands.StopTrace;
 import com.android.tools.profiler.proto.Commands.Command;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
@@ -144,14 +143,11 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     setCommandHandler(Command.CommandType.BEGIN_SESSION, new BeginSession(myTimer));
     setCommandHandler(Command.CommandType.END_SESSION, new EndSession(myTimer));
     setCommandHandler(Command.CommandType.DISCOVER_PROFILEABLE, new DiscoverProfileable(myTimer));
-    setCommandHandler(Command.CommandType.START_TRACE, new StartCpuTrace(myTimer));
-    setCommandHandler(Command.CommandType.STOP_TRACE, new StopCpuTrace(myTimer));
+    setCommandHandler(Command.CommandType.START_TRACE, new StartTrace(myTimer));
+    setCommandHandler(Command.CommandType.STOP_TRACE, new StopTrace(myTimer));
     MemoryAllocTracking allocTrackingHandler = new MemoryAllocTracking(myTimer);
     setCommandHandler(Command.CommandType.START_ALLOC_TRACKING, allocTrackingHandler);
     setCommandHandler(Command.CommandType.STOP_ALLOC_TRACKING, allocTrackingHandler);
-    MemoryNativeSampling nativeSampling = new MemoryNativeSampling(myTimer);
-    setCommandHandler(Command.CommandType.START_NATIVE_HEAP_SAMPLE, nativeSampling);
-    setCommandHandler(Command.CommandType.STOP_NATIVE_HEAP_SAMPLE, nativeSampling);
     setCommandHandler(Command.CommandType.MEMORY_ALLOC_SAMPLING, new MemoryAllocSampling(myTimer));
     setCommandHandler(Command.CommandType.HEAP_DUMP, new HeapDump(myTimer));
   }

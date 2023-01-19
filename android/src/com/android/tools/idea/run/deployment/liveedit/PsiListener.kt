@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import com.android.annotations.Trace
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiTreeChangeEvent
@@ -33,8 +34,15 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
  */
 data class EditEvent(val file: PsiFile,
                      val origin: KtElement,
-                     val parentGroup: List<KtFunction>) {
-  constructor(file: PsiFile, origin: KtElement) : this(file, origin, emptyList())
+                     val parentGroup: List<KtFunction> = emptyList(),
+                     var unsupportedPsiEvents: ArrayList<UnsupportedPsiEvent> = ArrayList()) {
+
+  constructor(file: PsiFile,
+              origin: KtElement,
+              parentGroup: List<KtFunction> = emptyList(),
+              unsupportedPsiEvent: UnsupportedPsiEvent) : this(file, origin, parentGroup) {
+              unsupportedPsiEvents.add(unsupportedPsiEvent)
+  }
 }
 
 class PsiListener(val onPsiChanged: (EditEvent) -> Unit) : PsiTreeChangeListener {
@@ -51,7 +59,7 @@ class PsiListener(val onPsiChanged: (EditEvent) -> Unit) : PsiTreeChangeListener
   override fun beforeChildrenChange(event: PsiTreeChangeEvent) = handleChangeEvent(event)
   override fun beforePropertyChange(event: PsiTreeChangeEvent) = handleChangeEvent(event)
 
-  @com.android.annotations.Trace
+  @Trace
   private fun handleChangeEvent(psiEvent: PsiTreeChangeEvent) {
     // THIS CODE IS EXTREMELY FRAGILE AT THE MOMENT.
     // According to the PSI listener doc, there is no guarantee what events we get.
@@ -73,16 +81,28 @@ class PsiListener(val onPsiChanged: (EditEvent) -> Unit) : PsiTreeChangeListener
     while (parent != null) {
       if (parent is KtNamedFunction || parent is KtClass) {
         val event = EditEvent(file, parent as KtElement)
-        handleEventIfValid(event)
+        handleEvent(event)
         break;
       }
 
       if (parent is KtFunction) {
         val event = EditEvent(file, parent, getGroupParents(parent))
-        handleEventIfValid(event)
+        handleEvent(event)
         break;
       }
       parent = parent.parent
+    }
+
+    // Add the special events. They will not trigger a compilation. Instead they will put Live Edit in various error states.
+    if (isImportChanges(psiEvent.parent)) {
+      val event = EditEvent(file, psiEvent.parent as KtElement, unsupportedPsiEvent = UnsupportedPsiEvent.IMPORT_DIRECTIVES)
+      event.unsupportedPsiEvents.add(UnsupportedPsiEvent.IMPORT_DIRECTIVES)
+      handleEvent(event)
+    }
+
+    if (isClassFieldChanges(psiEvent.parent)) {
+      val event = EditEvent(file, psiEvent.parent as KtElement, unsupportedPsiEvent = UnsupportedPsiEvent.FIELD_CHANGES)
+      handleEvent(event)
     }
 
     // This is a workaround to experiment with partial recomposition. Right now any simple edit would create multiple
@@ -91,11 +111,11 @@ class PsiListener(val onPsiChanged: (EditEvent) -> Unit) : PsiTreeChangeListener
     if (!LiveEditAdvancedConfiguration.getInstance().usePartialRecompose) {
       // If there's no Kotlin construct to use as a parent for this event, use the KtFile itself as the parent.
       val event = EditEvent(file, file)
-      handleEventIfValid(event)
+      handleEvent(event)
     }
   }
 
-  private fun handleEventIfValid(event: EditEvent) {
+  private fun handleEvent(event: EditEvent) {
     // Drop any invalid events.
     // As mention in other parts of the code. The type of PSI event sent are really unpredictable. Intermediate events
     // sometimes contains event origins that is not valid or no longer exist in any file. In automatic mode this might not be a big
@@ -103,6 +123,10 @@ class PsiListener(val onPsiChanged: (EditEvent) -> Unit) : PsiTreeChangeListener
     // invocation to crash.
     if (!event.origin.isValid || event.origin.containingFile == null) {
       return
+    }
+
+    if (isConstructor(event.origin)) {
+      event.unsupportedPsiEvents.add(UnsupportedPsiEvent.CONSTRUCTORS)
     }
 
     onPsiChanged(event)

@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.GradleVersion
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.sdklib.SdkVersionInfo
+import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.model.AndroidModel
@@ -153,34 +154,34 @@ data class GradleModuleSystemIntegrationTest(
         ) { project, expect ->
           val module = project.gradleModule(":app")?.getModuleSystem() ?: error(":app module not found")
           expect
-            .that(module.getResolvedDependency("com.google.guava:guava:+".gradleCoordinate, MAIN)?.version)
-            .isEqualTo("19.0".gradleVersion)
+            .that(module.getResolvedDependency("com.google.guava:guava:+".gradleCoordinate, MAIN)?.lowerBoundVersion)
+            .isEqualTo("19.0".version)
           expect
-            .that(module.getResolvedDependency("junit:junit:+".gradleCoordinate, MAIN)?.version)
+            .that(module.getResolvedDependency("junit:junit:+".gradleCoordinate, MAIN)?.lowerBoundVersion)
             .isNull()
           expect
-            .that(module.getResolvedDependency("com.android.support.test.espresso:espresso-core:+".gradleCoordinate, MAIN)?.version)
-            .isNull()
-
-          expect
-            .that(module.getResolvedDependency("com.google.guava:guava:+".gradleCoordinate, UNIT_TEST)?.version)
-            .isEqualTo("19.0".gradleVersion)
-          expect
-            .that(module.getResolvedDependency("junit:junit:+".gradleCoordinate, UNIT_TEST)?.version)
-            .isEqualTo("4.12".gradleVersion)
-          expect
-            .that(module.getResolvedDependency("com.android.support.test.espresso:espresso-core:+".gradleCoordinate, UNIT_TEST)?.version)
+            .that(module.getResolvedDependency("com.android.support.test.espresso:espresso-core:+".gradleCoordinate, MAIN)?.lowerBoundVersion)
             .isNull()
 
           expect
-            .that(module.getResolvedDependency("com.google.guava:guava:+".gradleCoordinate, ANDROID_TEST)?.version)
-            .isEqualTo("19.0".gradleVersion)
+            .that(module.getResolvedDependency("com.google.guava:guava:+".gradleCoordinate, UNIT_TEST)?.lowerBoundVersion)
+            .isEqualTo("19.0".version)
           expect
-            .that(module.getResolvedDependency("junit:junit:+".gradleCoordinate, ANDROID_TEST)?.version)
-            .isEqualTo("4.12".gradleVersion)
+            .that(module.getResolvedDependency("junit:junit:+".gradleCoordinate, UNIT_TEST)?.lowerBoundVersion)
+            .isEqualTo("4.12".version)
           expect
-            .that(module.getResolvedDependency("com.android.support.test.espresso:espresso-core:+".gradleCoordinate, ANDROID_TEST)?.version)
-            .isEqualTo("3.0.2".gradleVersion)
+            .that(module.getResolvedDependency("com.android.support.test.espresso:espresso-core:+".gradleCoordinate, UNIT_TEST)?.lowerBoundVersion)
+            .isNull()
+
+          expect
+            .that(module.getResolvedDependency("com.google.guava:guava:+".gradleCoordinate, ANDROID_TEST)?.lowerBoundVersion)
+            .isEqualTo("19.0".version)
+          expect
+            .that(module.getResolvedDependency("junit:junit:+".gradleCoordinate, ANDROID_TEST)?.lowerBoundVersion)
+            .isEqualTo("4.12".version)
+          expect
+            .that(module.getResolvedDependency("com.android.support.test.espresso:espresso-core:+".gradleCoordinate, ANDROID_TEST)?.lowerBoundVersion)
+            .isEqualTo("3.0.2".version)
         },
       )
   }
@@ -192,13 +193,11 @@ data class GradleModuleSystemIntegrationTest(
   override fun runTest(root: File, project: Project, expect: Expect) {
     body(project, expect)
   }
-
-  override fun runTest(root: File, project: Project) = error("Another variant is overriden")
 }
 
 private val String.gradleCoordinate
   get() =
     GradleCoordinate.parseCoordinateString(this) ?: error("Invalid gradle coordinate: $this")
 
-private val String.gradleVersion get() = GradleVersion.parse(this)
+private val String.version get() = Version.parse(this)
 

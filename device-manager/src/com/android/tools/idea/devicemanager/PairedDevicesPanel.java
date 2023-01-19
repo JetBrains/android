@@ -63,8 +63,7 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
   }
 
   @UiThread
-  @VisibleForTesting
-  PairedDevicesPanel(@NotNull Key key, @NotNull Disposable parent, @Nullable Project project, @NotNull WearPairingManager manager) {
+  public PairedDevicesPanel(@NotNull Key key, @NotNull Disposable parent, @Nullable Project project, @NotNull WearPairingManager manager) {
     super(null);
 
     myKey = key;
@@ -127,7 +126,7 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
 
   @UiThread
   private void initTable() {
-    myTable = new PairingTable(myKey, myProject);
+    myTable = new PairingTable(myKey, myProject, myManager);
 
     myTable.getSelectionModel().addListSelectionListener(event -> {
       if (event.getValueIsAdjusting()) {
@@ -226,12 +225,14 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
     myTable.getModel().setPairings(pairings);
   }
 
+  @NotNull
   @VisibleForTesting
-  @NotNull AbstractButton getRemoveButton() {
+  AbstractButton getRemoveButton() {
     return myRemoveButton;
   }
 
-  @NotNull JTable getTable() {
+  @NotNull
+  JTable getTable() {
     return myTable;
   }
 }

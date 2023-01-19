@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.logcat.testing
 
+import com.android.adblib.testingutils.FakeAdbServerProvider
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
+import com.android.fakeadbserver.DeviceState.HostConnectionType.USB
 
 /**
  * Convenience method for attaching multiple [TestDevice] in one call

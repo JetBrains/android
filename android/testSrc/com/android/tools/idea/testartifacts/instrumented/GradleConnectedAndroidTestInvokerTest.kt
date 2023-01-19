@@ -24,6 +24,7 @@ import com.android.testutils.MockitoKt.argThat
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.task.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE
 import com.android.tools.idea.run.ConsolePrinter
@@ -581,6 +582,38 @@ class GradleConnectedAndroidTestInvokerTest {
       nullable(String::class.java),
       any()
     )
+  }
+
+  @Test
+  fun `test device api level when injection is disabled`() {
+    StudioFlags.API_OPTIMIZATION_ENABLE.override(false)
+    val mockDevice = mock <com.android.tools.idea.run.AndroidDevice>()
+    whenever(mockDevice.version).thenReturn(AndroidVersion(30))
+    whenever(mockDevice.density).thenReturn(Density.XXHIGH.dpiValue)
+    whenever(mockDevice.abis).thenReturn(listOf(Abi.X86, Abi.X86_64))
+    whenever(mockExecutionEnvironment.getCopyableUserData(eq(DeviceFutures.KEY))).thenReturn(DeviceFutures(listOf(mockDevice)))
+
+    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
+
+    gradleConnectedTestInvoker.schedule(
+      projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
+      waitForDebugger = true, testPackageName = "", testClassName = "", testMethodName = "",
+      testRegex = "", mockDevices[0], RetentionConfiguration(), extraInstrumentationOptions = "")
+
+    verify(mockGradleTaskManager).executeTasks(
+      any(),
+      anyList(),
+      anyString(),
+      argThat {
+        it?.run {
+          !arguments.contains("-Pandroid.injected.build.api=30") &&
+          arguments.contains("-Pandroid.injected.build.abi=x86,x86_64")
+        } ?: false
+      },
+      nullable(String::class.java),
+      any()
+    )
+    StudioFlags.API_OPTIMIZATION_ENABLE.clearOverride()
   }
 
   @Test

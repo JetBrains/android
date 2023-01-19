@@ -35,3 +35,6 @@ Access to unresolved class gnu\.trove\.TObjectByteHashMap
 
 // commit 8d8be187
 Abstract method org.jetbrains.uast.generate.UastCodeGenerationPlugin.*
+
+// commit 3cb299cc
+Package 'org\.assertj' is not found

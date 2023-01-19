@@ -33,12 +33,14 @@ import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.streaming.emulator.actions.findManageSnapshotDialog
 import com.google.common.truth.Truth.assertThat
 import com.intellij.diagnostic.ThreadDumper
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.AnActionButton
@@ -49,7 +51,6 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import org.junit.rules.Timeout
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
@@ -57,6 +58,7 @@ import java.util.concurrent.TimeoutException
 import javax.swing.Icon
 import javax.swing.JButton
 import javax.swing.JCheckBox
+import javax.swing.JComponent
 import javax.swing.JEditorPane
 import javax.swing.JLabel
 import javax.swing.JLayeredPane
@@ -73,7 +75,7 @@ class ManageSnapshotsDialogTest {
   private val timeoutRule = Timeout.builder().withTimeout(60, TimeUnit.SECONDS).withLookingForStuckThread(true).build()
 
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(timeoutRule).around(emulatorViewRule).around(EdtRule())
+  val ruleChain = RuleChain(timeoutRule, emulatorViewRule, EdtRule())
 
   @get:Rule
   val portableUiFontRule = PortableUiFontRule()
@@ -139,8 +141,8 @@ class ManageSnapshotsDialogTest {
     assertThat(snapshotDetailsPanel.text).contains("Not created yet")
 
     assertThat(isPresentationEnabled(getLoadSnapshotAction(actionsPanel))).isFalse()
-    assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.EDIT))).isFalse()
-    assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))).isFalse()
+    assertThat(isPresentationEnabled(getEditAction(actionsPanel))).isFalse()
+    assertThat(isPresentationEnabled(getRemoveAction(actionsPanel))).isFalse()
 
     val coldBootCheckBox = ui.getComponent<JCheckBox> { it.text.contains("cold boot") }
     assertThat(coldBootCheckBox.isSelected).isTrue()
@@ -153,7 +155,7 @@ class ManageSnapshotsDialogTest {
     assertThat(call.methodName).isEqualTo("android.emulation.control.SnapshotService/SaveSnapshot")
 
     // Wait for the snapshot to be created and the snapshot list to be updated.
-    waitForCondition(2, TimeUnit.SECONDS) { table.items.size == 3 }
+    waitForCondition(5, TimeUnit.SECONDS) { table.items.size == 3 }
     var selectedSnapshot = checkNotNull(table.selectedObject)
     assertThat(selectedSnapshot.isQuickBoot).isFalse()
     assertThat(selectedSnapshot.creationTime).isNotEqualTo(0)
@@ -169,8 +171,8 @@ class ManageSnapshotsDialogTest {
     assertThat(snapshotDetailsPanel.isVisible).isTrue()
 
     assertThat(isPresentationEnabled(getLoadSnapshotAction(actionsPanel))).isTrue()
-    assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.EDIT))).isTrue()
-    assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))).isTrue()
+    assertThat(isPresentationEnabled(getEditAction(actionsPanel))).isTrue()
+    assertThat(isPresentationEnabled(getRemoveAction(actionsPanel))).isTrue()
 
     // Rename the newly created snapshot, add a description and assign it to be used to boot.
     val firstSnapshotName = "First Snapshot"
@@ -207,30 +209,30 @@ class ManageSnapshotsDialogTest {
     assertThat(snapshotDetailsPanel.isVisible).isFalse()
 
     assertThat(isPresentationEnabled(getLoadSnapshotAction(actionsPanel))).isFalse()
-    assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.EDIT))).isFalse()
-    assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))).isTrue()
+    assertThat(isPresentationEnabled(getEditAction(actionsPanel))).isFalse()
+    assertThat(isPresentationEnabled(getRemoveAction(actionsPanel))).isTrue()
 
     // Remove the two selected snapshots.
-    performAction(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))
+    performAction(getRemoveAction(actionsPanel))
 
     assertThat(table.items.size).isEqualTo(3)
     assertThat(table.selectedRowCount).isEqualTo(1)
     selectedSnapshot = checkNotNull(table.selectedObject)
     assertThat(selectedSnapshot.snapshotId).isEqualTo(incompatibleSnapshotId)
     assertThat(isPresentationEnabled(getLoadSnapshotAction(actionsPanel))).isFalse()
-    assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.EDIT))).isFalse()
-    assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))).isTrue()
+    assertThat(isPresentationEnabled(getEditAction(actionsPanel))).isFalse()
+    assertThat(isPresentationEnabled(getRemoveAction(actionsPanel))).isTrue()
 
     // Remove the incompatible snapshot.
-    performAction(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))
+    performAction(getRemoveAction(actionsPanel))
 
     assertThat(table.items.size).isEqualTo(2)
     assertThat(table.selectedRowCount).isEqualTo(1)
     selectedSnapshot = checkNotNull(table.selectedObject)
     assertThat(selectedSnapshot.displayName).isEqualTo(firstSnapshotName)
     assertThat(isPresentationEnabled(getLoadSnapshotAction(actionsPanel))).isTrue()
-    assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.EDIT))).isTrue()
-    assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))).isTrue()
+    assertThat(isPresentationEnabled(getEditAction(actionsPanel))).isTrue()
+    assertThat(isPresentationEnabled(getRemoveAction(actionsPanel))).isTrue()
 
     // Load the selected snapshot.
     emulator.clearGrpcCallLog()
@@ -268,6 +270,35 @@ class ManageSnapshotsDialogTest {
     assertThat(closeButton.text).isEqualTo("Close")
     ui.clickOn(closeButton)
     assertThat(dialog.isShowing).isFalse()
+  }
+
+  @Test
+  fun testQuickbootSnapshotIsNotLoadable() {
+    emulator.createSnapshot(QUICK_BOOT_SNAPSHOT_ID)
+
+    val dialog = showManageSnapshotsDialog()
+    val rootPane = dialog.rootPane
+    val ui = FakeUi(rootPane)
+    val table = ui.getComponent<TableView<SnapshotInfo>>()
+    val actionsPanel = ui.getComponent<CommonActionsPanel>()
+    val snapshotDetailsPanel = ui.getComponent<JEditorPane>()
+    // Wait for the snapshot list to be populated.
+    waitForCondition(4, TimeUnit.SECONDS) { table.items.isNotEmpty() }
+    // Check that there is only a QuickBoot snapshot.
+    assertThat(table.items).hasSize(1)
+    val quickBootSnapshot = table.items[0]
+    assertThat(quickBootSnapshot.isQuickBoot).isTrue()
+    assertThat(isUseToBoot(table, 0)).isFalse() // The QuickBoot snapshot is not used to boot.
+    assertThat(table.selectedObject).isEqualTo(quickBootSnapshot)
+    assertThat(findPreviewImagePanel(ui)?.isVisible).isTrue()
+    assertThat(findPreviewImagePanel(ui)?.image).isNotNull()
+    assertThat(snapshotDetailsPanel.isVisible).isTrue()
+    assertThat(snapshotDetailsPanel.text).contains("Quickboot (auto-saved)")
+    assertThat(snapshotDetailsPanel.text).contains("Created ")
+
+    assertThat(isPresentationEnabled(getLoadSnapshotAction(actionsPanel))).isFalse()
+    assertThat(isPresentationEnabled(getEditAction(actionsPanel))).isFalse()
+    assertThat(isPresentationEnabled(getRemoveAction(actionsPanel))).isFalse()
   }
 
   @Test
@@ -395,7 +426,11 @@ class ManageSnapshotsDialogTest {
 
   private fun findSelectionStateLabel(ui: FakeUi) = ui.findComponent<JLabel> { it.name == "selectionStateLabel" }
 
-  private fun getLoadSnapshotAction(actionsPanel: CommonActionsPanel) = actionsPanel.toolbar.actions[0] as AnActionButton
+  private fun getLoadSnapshotAction(actionsPanel: CommonActionsPanel) = actionsPanel.toolbar.actions[0]
+
+  private fun getEditAction(actionsPanel: CommonActionsPanel) = actionsPanel.getAnAction(CommonActionsPanel.Buttons.EDIT)!!
+
+  private fun getRemoveAction(actionsPanel: CommonActionsPanel) = actionsPanel.getAnAction(CommonActionsPanel.Buttons.REMOVE)!!
 
   private fun isUseToBoot(tableView: TableView<SnapshotInfo>, row: Int): Boolean {
     val cellRenderer = tableView.getCellRenderer(row, USE_TO_BOOT_COLUMN_INDEX)
@@ -410,7 +445,7 @@ class ManageSnapshotsDialogTest {
 
   @Suppress("SameParameterValue")
   private fun editSnapshot(actionsPanel: CommonActionsPanel, name: String?, description: String?, useToBoot: Boolean?) {
-    val editAction = actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.EDIT)
+    val editAction = getEditAction(actionsPanel)
     createModalDialogAndInteractWithIt({ performAction(editAction) }) { dialog ->
       val rootPane = dialog.rootPane
       val ui = FakeUi(rootPane)
@@ -434,25 +469,39 @@ class ManageSnapshotsDialogTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 
-  private fun performAction(action: AnActionButton) {
+  private fun performAction(action: AnAction) {
     assertThat(isPresentationEnabled(action)).isTrue()
     action.actionPerformed(TestActionEvent(action))
   }
 
-  private fun isPresentationEnabled(action: AnActionButton): Boolean {
-    val contextComponent = action.contextComponent
-    try {
-      action.contextComponent = object : JLayeredPane() {
+  private fun isPresentationEnabled(action: AnAction): Boolean {
+    if (action is AnActionButton) {
+      val contextComponent = object : JLayeredPane() {
         override fun isShowing(): Boolean {
           return true
         }
       }
+      return action.withContextComponent(contextComponent) {
+        val event = TestActionEvent(action)
+        action.update(event)
+        event.presentation.isEnabled
+      }
+    }
+    else {
       val event = TestActionEvent(action)
       action.update(event)
       return event.presentation.isEnabled
     }
+  }
+
+  private fun AnActionButton.withContextComponent(component: JComponent, function: () -> Boolean): Boolean {
+    val savedContextComponent = contextComponent
+    try {
+      contextComponent = component
+      return function()
+    }
     finally {
-      action.contextComponent = contextComponent
+      contextComponent = savedContextComponent
     }
   }
 

@@ -659,26 +659,20 @@ MODULE                        : project.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl)
-                                buildId                       : <ROOT>
-                                lintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                                projectPath                   : :lib
-                                sourceSet                     : MAIN
-                                variant                       : debug
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl)
-                                buildId                       : <ROOT>
-                                lintJar                       : <ROOT>/otherlib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                                projectPath                   : :otherlib
-                                sourceSet                     : MAIN
-                                variant                       : debug
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::lib@debug (IdeModuleLibraryImpl)
+                        buildId                       : <ROOT>
+                        lintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                        projectPath                   : :lib
+                        sourceSet                     : MAIN
+                        variant                       : debug
+                    - compileClasspath            : <ROOT>::otherlib@debug (IdeModuleLibraryImpl)
+                        buildId                       : <ROOT>
+                        lintJar                       : <ROOT>/otherlib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                        projectPath                   : :otherlib
+                        sourceSet                     : MAIN
+                        variant                       : debug
+                    - runtimeClasspath            : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
                 ApplicationId                 : testData.namespaces
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -703,24 +697,16 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl)
-                                buildId                       : <ROOT>
-                                projectPath                   : :app
-                                sourceSet                     : MAIN
-                                variant                       : debug
-                        - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::app@debug (IdeModuleLibraryImpl)
+                        buildId                       : <ROOT>
+                        projectPath                   : :app
+                        sourceSet                     : MAIN
+                        variant                       : debug
+                    - compileClasspath            : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                 ApplicationId                 : testData.namespaces.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -742,20 +728,12 @@ MODULE                        : project.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : project.app.androidTest
@@ -1039,12 +1017,8 @@ MODULE                        : project.lib
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -1064,16 +1038,10 @@ MODULE                        : project.lib
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
                 ApplicationId                 : com.example.lib.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1095,16 +1063,10 @@ MODULE                        : project.lib
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :lib (DefaultExternalProject) (*seen*)
 MODULE                        : project.lib.androidTest
@@ -1388,8 +1350,6 @@ MODULE                        : project.otherlib
                 GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/otherlib/build/intermediates/javac/debug/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                    runtimeClasspath              : IdeDependenciesImpl
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -1409,12 +1369,8 @@ MODULE                        : project.otherlib
                 ClassesFolder                 : <ROOT>/otherlib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/otherlib/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
                 ApplicationId                 : com.example.otherlib.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1436,12 +1392,8 @@ MODULE                        : project.otherlib
                 GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/ap_generated_sources/debugUnitTest/out [-]
                 ClassesFolder                 : <ROOT>/otherlib/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :otherlib (DefaultExternalProject) (*seen*)
 MODULE                        : project.otherlib.androidTest

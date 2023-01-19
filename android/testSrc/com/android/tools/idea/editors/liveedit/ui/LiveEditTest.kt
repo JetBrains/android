@@ -17,10 +17,8 @@ package com.android.tools.idea.editors.liveedit.ui
 
 import com.android.ddmlib.IDevice
 import com.android.testutils.MockitoKt
-import com.android.tools.idea.editors.literals.EditState
 import com.android.tools.idea.editors.literals.LiveEditService
-import com.android.tools.idea.editors.literals.LiveEditService.Companion.DISABLED_STATUS
-import com.android.tools.idea.editors.literals.LiveEditService.Companion.UP_TO_DATE_STATUS
+import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataContext
@@ -49,7 +47,7 @@ class LiveEditTest {
   //@Test
   //fun testInitialState() {
   //  `when`(project.getService(LiveEditService::class.java)).thenReturn(service)
-  //  `when`(service.editStatus(device)).thenReturn(DISABLED_STATUS)
+  //  `when`(service.editStatus(device)).thenReturn(LiveEditStatus.Disabled)
   //
   //  val action = LiveEditAction(null)
   //  LiveEditAction.registerProject(project, object: LiveEditAction.DeviceGetter {
@@ -73,17 +71,17 @@ class LiveEditTest {
   //fun testUpdateIcon() {
   //  val action = LiveEditAction(null)
   //  val indicator = action.createCustomComponent(presentation, RUNNING_DEVICES_TOOL_WINDOW_ID) as ActionButtonWithText
-  //  presentation.putClientProperty(LiveEditAction.LIVE_EDIT_STATUS, LiveEditService.Companion.UP_TO_DATE_STATUS)
+  //  presentation.putClientProperty(LiveEditAction.LIVE_EDIT_STATUS, LiveEditStatus.UpToDate)
   //  indicator.updateIcon()
-  //  assertThat(indicator.icon).isEqualTo(LiveEditAction.getIconForState(EditState.UP_TO_DATE))
+  //  assertThat(indicator.icon).isEqualTo(LiveEditStatus.UpToDate.icon)
   //}
   //
   //@Test
   //fun testUpdateEditStatus() {
   //  `when`(project.getService(LiveEditService::class.java)).thenReturn(service)
-  //  `when`(service.editStatus(device)).thenReturn(UP_TO_DATE_STATUS)
+  //  `when`(service.editStatus(device)).thenReturn(LiveEditStatus.UpToDate)
   //  val action = LiveEditAction(null)
-  //  presentation.putClientProperty(LiveEditAction.LIVE_EDIT_STATUS, LiveEditService.Companion.UP_TO_DATE_STATUS)
+  //  presentation.putClientProperty(LiveEditAction.LIVE_EDIT_STATUS, LiveEditStatus.UpToDate)
   //  LiveEditAction.registerProject(project, object: LiveEditAction.DeviceGetter {
   //    override fun serial(dataContext: DataContext): String {
   //      return "serial"
@@ -98,7 +96,7 @@ class LiveEditTest {
   //    }
   //  })
   //  action.update(project, presentation, DataContext.EMPTY_CONTEXT)
-  //  assertThat(presentation.icon).isEqualTo(LiveEditAction.getIconForState(EditState.UP_TO_DATE))
+  //  assertThat(presentation.icon).isEqualTo(LiveEditStatus.UpToDate.icon)
   //  assertThat(presentation.isEnabledAndVisible).isTrue()
   //}
 }

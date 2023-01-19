@@ -20,19 +20,16 @@ import com.android.tools.idea.execution.common.debug.AndroidDebugger
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerContext
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter
-import com.android.tools.idea.execution.common.debug.utils.showError
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
-import com.intellij.execution.ExecutionException
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.xdebugger.impl.XDebugSessionImpl
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
@@ -65,20 +62,6 @@ class DefaultConnectDebuggerTask<S : AndroidDebuggerState>(
       destroyRunningProcess = { d -> d.forceStop(applicationId) },
       androidTestResultListener,
       timeoutSeconds.toLong())
-      .onSuccess { session ->
-        oldProcessHandler.detachProcess()
-        session.showSessionTab()
-      }
-      .onError {
-        if (it is ExecutionException) {
-          showError(environment.project, it, environment.runProfile.name)
-        }
-        else {
-          if (it !is ProcessCanceledException) {
-            Logger.getInstance(this::class.java).error(it)
-          }
-        }
-      }
   }
 }
 

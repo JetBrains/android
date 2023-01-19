@@ -53,18 +53,17 @@ private fun IdeSourceProvider.processAll(
   forTest: Boolean = false,
   processor: (String, ExternalSystemSourceType?) -> Unit
 ) {
-  val allResources = resourcesDirectories + resDirectories + assetsDirectories + mlModelsDirectories + baselineProfileDirectories
-  allResources.forEach {
+  val allResources = resourcesDirectories + resDirectories + assetsDirectories + mlModelsDirectories + baselineProfileDirectories +
+                    customSourceDirectories.map { it.directory }
+  allResources.distinctBy { it.absolutePath }.forEach {
     processor(it.absolutePath, if (forTest) TEST_RESOURCE else RESOURCE)
   }
-  customSourceDirectories.forEach {
-    processor(it.directory.absolutePath, if (forTest) TEST_RESOURCE else RESOURCE)
-  }
+
   processor(manifestFile.absolutePath, null)
 
   val allSources = aidlDirectories + javaDirectories + kotlinDirectories + renderscriptDirectories + shadersDirectories
 
-  allSources.forEach {
+  allSources.distinctBy { it.absolutePath }.forEach {
     processor(it.absolutePath, if (forTest) TEST else SOURCE)
   }
 }

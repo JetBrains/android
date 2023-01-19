@@ -23,6 +23,7 @@ import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorTransportError
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
@@ -45,11 +46,14 @@ class TransportErrorListenerTest {
   @get:Rule
   val projectRule = ProjectRule()
 
+  @get:Rule
+  val disposableRule = DisposableRule()
+
   @Test
   fun testErrorShowsBanner() {
     val bannerService = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
     val mockMetrics = mock<LayoutInspectorMetrics>()
-    val transportErrorListener = TransportErrorListener(projectRule.project, mockMetrics)
+    val transportErrorListener = TransportErrorListener(projectRule.project, mockMetrics, disposableRule.disposable)
 
     transportErrorListener.onStartTransportDaemonServerFail(device1, mock())
 

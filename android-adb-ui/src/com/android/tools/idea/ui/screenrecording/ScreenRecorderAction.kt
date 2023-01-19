@@ -94,7 +94,7 @@ class ScreenRecorderAction : DumbAwareAction(
     val adbSession: AdbSession = AdbLibService.getSession(project)
     val manager: AvdManager? = getVirtualDeviceManager()
     val serialNumber = params.serialNumber
-    val avdName = params.avdName
+    val avdName = params.avdId
     val emulatorRecordingFile =
         if (manager != null && useEmulatorRecording && avdName != null) getTemporaryVideoPathForVirtualDevice(avdName, manager) else null
     recordingInProgress.add(serialNumber)
@@ -126,7 +126,7 @@ class ScreenRecorderAction : DumbAwareAction(
             adbSession)
         }
         val timeLimit = if (timeLimitSec > 0) timeLimitSec else MAX_RECORDING_DURATION_MINUTES_LEGACY * 60
-        ScreenRecorder(project, recodingProvider).recordScreen(timeLimit)
+        ScreenRecorder(project, recodingProvider, params.deviceName).recordScreen(timeLimit)
       }
       finally {
         if (options.showTouches != showTouchEnabled) {
@@ -224,9 +224,10 @@ class ScreenRecorderAction : DumbAwareAction(
   }
 
   data class Parameters(
+    val deviceName: String,
     val serialNumber: String,
     val apiLevel: Int,
-    val avdName: String?,
+    val avdId: String?,
     val recordingLifetimeDisposable: Disposable,
   )
 }

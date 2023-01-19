@@ -19,7 +19,7 @@ import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.navigation.findComponentHits
 import com.android.tools.idea.compose.preview.navigation.findNavigatableComponentHit
-import com.android.tools.idea.compose.preview.navigation.parseViewInfo
+import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.intellij.openapi.application.ReadAction
@@ -81,7 +81,7 @@ class PreviewNavigationTest {
 
           // Click the Button by clicking (0, bounds.bottom / 4)
           // We aim for somewhere inside the button (hence the /4) and not the border since
-	  // different environments (Bazel vs Local) might have slightly different targets.
+          // different environments (Bazel vs Local) might have slightly different targets.
           // The hits will be, in that other: Button > Column > MaterialTheme
           assertEquals(
             """

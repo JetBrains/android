@@ -48,12 +48,12 @@ class AdbDeviceFileSystem(
   override val scope: CoroutineScope = device.scope + SupervisorJob(device.scope.coroutineContext.job)
 
   private val myEdtExecutor = FutureCallbackExecutor(edtExecutor)
-  val capabilities = AdbDeviceCapabilities(scope + dispatcher, deviceHandle.state.properties.title(), this.device)
-  val adbFileListing = AdbFileListing(this.device, capabilities, dispatcher)
-  val adbFileOperations = AdbFileOperations(this.device, capabilities, dispatcher)
-  val adbFileTransfer = AdbFileTransfer(this.device, adbFileOperations, myEdtExecutor, dispatcher)
+  val capabilities = AdbDeviceCapabilities(scope + dispatcher, deviceHandle.state.properties.title, device)
+  val adbFileListing = AdbFileListing(device, capabilities, dispatcher)
+  val adbFileOperations = AdbFileOperations(device, capabilities, dispatcher)
+  val adbFileTransfer = AdbFileTransfer(device, adbFileOperations, myEdtExecutor, dispatcher)
 
-  override val name = deviceHandle.state.properties.title()
+  override val name = deviceHandle.state.properties.title
 
   override val deviceSerialNumber: String
     get() = device.serialNumber

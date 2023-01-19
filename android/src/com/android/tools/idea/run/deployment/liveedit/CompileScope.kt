@@ -55,6 +55,17 @@ import org.jetbrains.kotlin.types.isPrimitiveNumberUntil
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
+/**
+ * IR Phases to disable.
+ * Because of b/265119058 we disable constant inlining to avoid the R class ids being inlined in the Live Edit
+ * compilations. If inlined, the Live Editor compiler will pick up the values from the light `ModuleRClass` class.
+ * Disabling this two phases will avoid them being inlined.
+ */
+private val disabledIrPhases = setOf(
+  "Const1",
+  "Const2"
+)
+
 private fun handleCompilerErrors(e: Throwable) {
   // These should be rethrown as per the javadoc for ProcessCanceledException. This allows the
   // internal IDE code for handling read/write actions to function as expected.
@@ -228,9 +239,16 @@ private object CompileScopeImpl : CompileScope {
                                                          compilerConfiguration);
 
     if (useComposeIR) {
+      val phaseConfig = PhaseConfig(org.jetbrains.kotlin.backend.jvm.jvmPhases)
+      phaseConfig
+        .enabled
+        .filter { disabledIrPhases.contains(it.name) }
+        .forEach {
+          phaseConfig.switch(it, false)
+        }
       generationStateBuilder.codegenFactory(JvmIrCodegenFactory(
         compilerConfiguration,
-        PhaseConfig(org.jetbrains.kotlin.backend.jvm.jvmPhases),
+        phaseConfig,
         jvmGeneratorExtensions = object : JvmGeneratorExtensionsImpl(compilerConfiguration) {
           override fun getContainerSource(descriptor: DeclarationDescriptor): DeserializedContainerSource? {
             val psiSourceFile =

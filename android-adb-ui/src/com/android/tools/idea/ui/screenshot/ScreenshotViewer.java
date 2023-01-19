@@ -41,8 +41,6 @@ import com.intellij.openapi.fileChooser.FileSaverDialog;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager;
 import com.intellij.openapi.ide.CopyPasteManager;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -53,7 +51,6 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.openapi.wm.IdeFocusManager;
-import com.intellij.psi.PsiDocumentManager;
 import com.intellij.ui.JBColor;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import java.awt.BorderLayout;
@@ -92,7 +89,6 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import org.intellij.images.editor.ImageDocument;
 import org.intellij.images.editor.ImageFileEditor;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -369,7 +365,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     processScreenshot(0);
   }
 
-  private void processScreenshot(int rotateByQuadrants) {
+  private void processScreenshot(int rotationQuadrants) {
     FramingOption framingOption = null;
     Color backgroundColor = null;
     if (myScreenshotPostprocessor != null) {
@@ -379,78 +375,26 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       }
     }
 
-    new ImageProcessorTask(myProject, mySourceImageRef.get(), rotateByQuadrants,
-                           myScreenshotPostprocessor, framingOption,
-                           myBackingFile, backgroundColor) {
-      @Override
-      public void onSuccess() {
-        mySourceImageRef.set(getRotatedImage());
-        myDisplayedImageRef.set(getProcessedImage());
-        updateEditorImage();
-      }
-    }.queue();
-  }
+    ScreenshotImage rotatedImage = mySourceImageRef.get().rotated(rotationQuadrants);
 
-  private static class ImageProcessorTask extends Task.Backgroundable {
-    private final @NotNull ScreenshotImage mySrcImage;
-    private final int myRotationQuadrants;
-    private final @Nullable ScreenshotPostprocessor myScreenshotPostprocessor;
-    private final @Nullable FramingOption myFramingOption;
-    private final @Nullable VirtualFile myDestinationFile;
-    private final @Nullable Color myBackgroundColor;
+    BufferedImage processedImage = myScreenshotPostprocessor == null ?
+        rotatedImage.getImage() : myScreenshotPostprocessor.addFrame(rotatedImage, framingOption, backgroundColor);
 
-    private ScreenshotImage myRotatedImage;
-    private BufferedImage myProcessedImage;
-
-    public ImageProcessorTask(@NotNull Project project,
-                              @NotNull ScreenshotImage srcImage,
-                              int rotateByQuadrants,
-                              @Nullable ScreenshotPostprocessor screenshotPostprocessor,
-                              @Nullable FramingOption framingOption,
-                              @Nullable VirtualFile writeToFile,
-                              @Nullable Color backgroundColor) {
-      super(project, AndroidAdbUiBundle.message("screenshot.dialog.image.processor.task.title"), false);
-
-      mySrcImage = srcImage;
-      myRotationQuadrants = rotateByQuadrants;
-      myScreenshotPostprocessor = screenshotPostprocessor;
-      myFramingOption = framingOption;
-      myDestinationFile = writeToFile;
-      myBackgroundColor = backgroundColor;
-    }
-
-    @Override
-    public void run(@NotNull ProgressIndicator indicator) {
-      myRotatedImage = mySrcImage.rotated(myRotationQuadrants);
-
-      if (myScreenshotPostprocessor == null) {
-        myProcessedImage = myRotatedImage.getImage();
-      }
-      else {
-        myProcessedImage = myScreenshotPostprocessor.addFrame(myRotatedImage, myFramingOption, myBackgroundColor);
-      }
-
-      // Update the backing file, this is necessary for operations that read the backing file from the editor,
-      // such as: Right click image -> Open in external editor
-      if (myDestinationFile != null) {
-        Path file = VfsUtilCore.virtualToIoFile(myDestinationFile).toPath();
+    // Update the backing file, this is necessary for operations that read the backing file from the editor,
+    // such as: Right click image -> Open in external editor
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      Path file = VfsUtilCore.virtualToIoFile(myBackingFile).toPath();
         try {
-          writePng(myProcessedImage, file);
-          myDestinationFile.refresh(false, false);
+          writePng(processedImage, file);
+          myBackingFile.refresh(false, false);
         }
         catch (IOException e) {
           logger().error("Unexpected error while writing to " + file, e);
         }
-      }
-    }
-
-    protected BufferedImage getProcessedImage() {
-      return myProcessedImage;
-    }
-
-    protected ScreenshotImage getRotatedImage() {
-      return myRotatedImage;
-    }
+      });
+    mySourceImageRef.set(rotatedImage);
+    myDisplayedImageRef.set(processedImage);
+    updateEditorImage();
   }
 
   @VisibleForTesting
@@ -464,8 +408,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   }
 
   private @NotNull FileEditorProvider getImageFileEditorProvider() {
-    FileEditorProvider[] providers = FileEditorProviderManager.getInstance().getProviders(myProject, myBackingFile);
-    assert providers.length > 0;
+    List<FileEditorProvider> providers = FileEditorProviderManager.getInstance().getProviderList(myProject, myBackingFile);
+    assert !providers.isEmpty();
 
     // Note: In case there are multiple providers for image files, we'd prefer to get the bundled
     // image editor, but we don't have access to any of its implementation details, so we rely
@@ -476,7 +420,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       }
     }
 
-    return providers[0];
+    return providers.get(0);
   }
 
   @Override

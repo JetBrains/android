@@ -225,7 +225,7 @@ class NavDesignSurfaceZoomControlsTest {
 
     ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomInitial"), fakeUi.render(), 0.1, 1)
 
-    val zoomActionsToolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place == zoomActionPlace }!!
+    val zoomActionsToolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place.contains(zoomActionPlace) }!!
     val zoomInAction = zoomActionsToolbar.actions
       .filterIsInstance<ZoomInAction>()
       .single()

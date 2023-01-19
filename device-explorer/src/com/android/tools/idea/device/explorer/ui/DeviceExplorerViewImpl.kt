@@ -129,7 +129,7 @@ class DeviceExplorerViewImpl(project: Project, private val model: DeviceExplorer
   private fun showNoDeviceScreen() {
     panel.showMessageLayer(
       "Connect a device via USB cable or run an Android Virtual Device",
-      AndroidIcons.DeviceExplorer.DevicesLineup,
+      AndroidIcons.Explorer.DevicesLineup,
       false
     )
   }

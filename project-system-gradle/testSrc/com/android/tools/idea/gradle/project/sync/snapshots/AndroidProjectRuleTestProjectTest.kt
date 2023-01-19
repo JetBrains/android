@@ -41,6 +41,19 @@ class AndroidProjectRuleTestProjectTest {
         )
       )
     val appAndroidTestModule = projectRule.project.gradleModule(":app")!!.getAndroidTestModule()!!
+  }
+
+  @Test
+  fun testSync2() {
+    assertThat(projectRule.module.getGradleProjectPath())
+      .isEqualTo(
+        GradleSourceSetProjectPath(
+          PathUtil.toSystemIndependentName(projectRule.testHelpers.projectRoot.path),
+          ":app",
+          sourceSet = IdeModuleWellKnownSourceSet.MAIN
+        )
+      )
+    val appAndroidTestModule = projectRule.project.gradleModule(":app")!!.getAndroidTestModule()!!
     projectRule.testHelpers.selectModule(appAndroidTestModule)
     assertThat(projectRule.module).isEqualTo(appAndroidTestModule)
   }

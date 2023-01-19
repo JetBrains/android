@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import static icons.StudioIcons.Common.ERROR_DECORATOR;
-
-import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidDevice;
@@ -26,6 +23,8 @@ import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchableAndroidDevice;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
@@ -38,7 +37,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.Future;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -127,27 +125,34 @@ final class VirtualDevice extends Device {
       return this;
     }
 
-    @NotNull Builder setNameKey(@Nullable VirtualDeviceName nameKey) {
+    @NotNull
+    Builder setNameKey(@Nullable VirtualDeviceName nameKey) {
       myNameKey = nameKey;
       return this;
     }
 
-    @NotNull Builder addSnapshot(@NotNull Snapshot snapshot) {
+    @NotNull
+    @VisibleForTesting
+    Builder addSnapshot(@NotNull Snapshot snapshot) {
       mySnapshots.add(snapshot);
       return this;
     }
 
-    @NotNull Builder addAllSnapshots(@NotNull Collection<Snapshot> snapshots) {
+    @NotNull
+    Builder addAllSnapshots(@NotNull Collection<Snapshot> snapshots) {
       mySnapshots.addAll(snapshots);
       return this;
     }
 
-    @NotNull Builder setSelectDeviceSnapshotComboBoxSnapshotsEnabled(@SuppressWarnings("SameParameterValue") boolean selectDeviceSnapshotComboBoxSnapshotsEnabled) {
+    @NotNull
+    @VisibleForTesting
+    Builder setSelectDeviceSnapshotComboBoxSnapshotsEnabled(boolean selectDeviceSnapshotComboBoxSnapshotsEnabled) {
       mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
       return this;
     }
 
-    @NotNull Builder setType(@NotNull Type type) {
+    @NotNull
+    Builder setType(@NotNull Type type) {
       myType = type;
       return this;
     }
@@ -167,7 +172,8 @@ final class VirtualDevice extends Device {
     mySelectDeviceSnapshotComboBoxSnapshotsEnabled = builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
   }
 
-  @NotNull Optional<VirtualDeviceName> getNameKey() {
+  @NotNull
+  Optional<VirtualDeviceName> getNameKey() {
     return Optional.ofNullable(myNameKey);
   }
 
@@ -186,35 +192,21 @@ final class VirtualDevice extends Device {
   @NotNull
   @Override
   Icon getIcon() {
-    Icon deviceIcon;
-    switch (getType()) {
-      case TV:
-        deviceIcon = ourTvIcon;
-        break;
-      case WEAR:
-        deviceIcon = ourWearIcon;
-        break;
-      case PHONE:
-        deviceIcon = ourPhoneIcon;
-        break;
-      default:
-        throw new IllegalStateException("Unexpected device type: " + getType());
-    }
+    var icon = switch (getType()) {
+      case PHONE -> ourPhoneIcon;
+      case WEAR -> ourWearIcon;
+      case TV -> ourTvIcon;
+    };
 
     if (isConnected()) {
-      deviceIcon = ExecutionUtil.getLiveIndicator(deviceIcon);
+      icon = ExecutionUtil.getLiveIndicator(icon);
     }
 
-    switch (getLaunchCompatibility().getState()) {
-      case ERROR:
-        return new LayeredIcon(deviceIcon, ERROR_DECORATOR);
-      case WARNING:
-        return new LayeredIcon(deviceIcon, AllIcons.General.WarningDecorator);
-      case OK:
-        return deviceIcon;
-      default:
-        throw new IllegalStateException("Unexpected device state: " + getLaunchCompatibility().getState());
-    }
+    return switch (getLaunchCompatibility().getState()) {
+      case OK -> icon;
+      case WARNING -> new LayeredIcon(icon, AllIcons.General.WarningDecorator);
+      case ERROR -> new LayeredIcon(icon, StudioIcons.Common.ERROR_DECORATOR);
+    };
   }
 
   @Override
@@ -222,13 +214,15 @@ final class VirtualDevice extends Device {
     return getConnectionTime() != null;
   }
 
+  @NotNull
   @Override
-  @NotNull Collection<Snapshot> getSnapshots() {
+  Collection<Snapshot> getSnapshots() {
     return mySnapshots;
   }
 
+  @NotNull
   @Override
-  @NotNull Target getDefaultTarget() {
+  Target getDefaultTarget() {
     if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled) {
       return new QuickBootTarget(getKey());
     }
@@ -240,8 +234,9 @@ final class VirtualDevice extends Device {
     return new QuickBootTarget(getKey());
   }
 
+  @NotNull
   @Override
-  @NotNull Collection<Target> getTargets() {
+  Collection<Target> getTargets() {
     if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled) {
       return Collections.singletonList(new QuickBootTarget(getKey()));
     }
@@ -270,26 +265,24 @@ final class VirtualDevice extends Device {
 
   @NotNull
   @Override
-  Future<AndroidVersion> getAndroidVersion() {
+  ListenableFuture<AndroidVersion> getAndroidVersionAsync() {
     Object androidDevice = getAndroidDevice();
 
     if (androidDevice instanceof LaunchableAndroidDevice) {
       return Futures.immediateFuture(((LaunchableAndroidDevice)androidDevice).getAvdInfo().getAndroidVersion());
     }
 
-    IDevice ddmlibDevice = getDdmlibDevice();
-    assert ddmlibDevice != null;
+    var service = DeploymentApplicationService.getInstance();
 
-    return DeploymentApplicationService.getInstance().getVersion(ddmlibDevice);
+    // noinspection UnstableApiUsage
+    return Futures.transformAsync(getDdmlibDeviceAsync(), service::getVersion, MoreExecutors.directExecutor());
   }
 
   @Override
   public boolean equals(@Nullable Object object) {
-    if (!(object instanceof VirtualDevice)) {
+    if (!(object instanceof VirtualDevice device)) {
       return false;
     }
-
-    VirtualDevice device = (VirtualDevice)object;
 
     return getName().equals(device.getName()) &&
            getType().equals(device.getType()) &&

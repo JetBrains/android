@@ -22,6 +22,7 @@ import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -184,9 +185,9 @@ private class BoolValueWarningsFilterToggleAction(
   override fun isSelected(filter: WarningsFilter): Boolean = valueGetter(filter)
 }
 
-fun warningsFilterActions(model: WarningsDataPageModel, actionHandlers: ViewActionHandlers): ActionGroup {
+fun warningsFilterActions(model: WarningsDataPageModel, actionHandlers: ViewActionHandlers, disposable: Disposable): ActionGroup {
   return FilterComponentAction(
-    subscribeToModelUpdates = { r: Runnable -> model.addModelUpdatedListener { r.run() } },
+    subscribeToModelUpdates = { r: Runnable -> model.addModelUpdatedListener(disposable) { r.run() } },
     getModelUIText = { model.filter.toUiText() }
   ).apply {
     addAction(object : AnAction("Reset filters to default") {
@@ -223,11 +224,11 @@ fun warningsFilterActions(model: WarningsDataPageModel, actionHandlers: ViewActi
   }
 }
 
-fun warningsFilterComponent(model: WarningsDataPageModel, actionHandlers: ViewActionHandlers): Component {
+fun warningsFilterComponent(model: WarningsDataPageModel, actionHandlers: ViewActionHandlers, disposable: Disposable): Component {
   return JPanel().apply {
     add(FilterCustomComponent(
-      warningsFilterActions(model, actionHandlers),
-      subscribeToModelUpdates = { r: Runnable -> model.addModelUpdatedListener { r.run() } },
+      warningsFilterActions(model, actionHandlers, disposable),
+      subscribeToModelUpdates = { r: Runnable -> model.addModelUpdatedListener(disposable) { r.run() } },
       getModelUIText = { model.filter.toUiText() }
     ))
   }
@@ -358,11 +359,11 @@ fun tasksFilterActions(model: TasksDataPageModel, actionHandlers: ViewActionHand
     add(TasksWithoutWarningsFilterToggleAction("Show tasks without warnings", model, actionHandlers))
   }
 
-fun tasksFilterComponent(model: TasksDataPageModel, actionHandlers: ViewActionHandlers): Component =
+fun tasksFilterComponent(model: TasksDataPageModel, actionHandlers: ViewActionHandlers, disposable: Disposable): Component =
   JPanel().apply {
     add(FilterCustomComponent(
       tasksFilterActions(model, actionHandlers),
-      subscribeToModelUpdates = { r: Runnable -> model.addModelUpdatedListener { r.run() } },
+      subscribeToModelUpdates = { r: Runnable -> model.addModelUpdatedListener(disposable) { r.run() } },
       getModelUIText = { model.filter.toUiText() }
     ))
   }

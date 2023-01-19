@@ -60,7 +60,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :app
         CONENT_ENTRY                  : file://<TEMP>/app
             EXCLUDE_FOLDER                : file://<TEMP>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<TEMP>/app/build [-]
@@ -434,7 +433,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :lib
         CONENT_ENTRY                  : file://<TEMP>/lib
             EXCLUDE_FOLDER                : file://<TEMP>/lib/.gradle [-]
             EXCLUDE_FOLDER                : file://<TEMP>/lib/build [-]

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.repositories.search
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.StubGoogleMavenRepository
 import org.hamcrest.CoreMatchers
 import org.junit.Assert
@@ -79,16 +79,16 @@ class GoogleRepositoryBaseTest {
   )
 
   private val testSupportVersionSet = setOf(
-    GradleVersion.parse("25.3.1"),
-    GradleVersion.parse("26.0.0-beta1")
+    Version.parse("25.3.1"),
+    Version.parse("26.0.0-beta1")
   )
 
   private val testArchVersionSet = setOf(
-    GradleVersion.parse("1.0.0-alpha1"),
-    GradleVersion.parse("1.0.0-beta1"),
-    GradleVersion.parse("1.0.0"),
-    GradleVersion.parse("1.1.0"),
-    GradleVersion.parse("1.1.1")
+    Version.parse("1.0.0-alpha1"),
+    Version.parse("1.0.0-beta1"),
+    Version.parse("1.0.0"),
+    Version.parse("1.1.0"),
+    Version.parse("1.1.1")
   )
 
   private val SUPPORT_COMPAT = FoundArtifact(

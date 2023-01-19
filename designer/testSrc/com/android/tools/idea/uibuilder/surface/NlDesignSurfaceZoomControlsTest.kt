@@ -141,7 +141,7 @@ class NlDesignSurfaceZoomControlsTest {
 
   @Test
   fun testNlDesignSurfaceZoom() {
-    val zoomActionsToolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place == zoomActionPlace }!!
+    val zoomActionsToolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place.contains(zoomActionPlace) }!!
     val zoomInAction = zoomActionsToolbar.actions
       .filterIsInstance<ZoomInAction>()
       .single()
@@ -185,7 +185,7 @@ class NlDesignSurfaceZoomControlsTest {
 
   @Test
   fun testZoomControlsKeyboardInteractions() {
-    val zoomActionsToolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place == zoomActionPlace }!!
+    val zoomActionsToolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place.contains(zoomActionPlace) }!!
     val zoomInAction = zoomActionsToolbar.actions
       .filterIsInstance<ZoomInAction>()
       .single()

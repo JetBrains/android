@@ -18,11 +18,16 @@ package com.android.tools.idea.designer
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidStudio
 import com.android.tools.asdriver.tests.AndroidSystem
+import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Path
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.concurrent.TimeUnit
 
 /** Ensures that Layout Editor Preview works for an XML file. */
@@ -33,7 +38,7 @@ class LayoutEditorPreviewTest {
 
   @get:Rule
   var watcher = MemoryDashboardNameProviderWatcher()
-
+  
   private fun AndroidStudio.waitForSuccessfulRender(xmlName: String) {
     system.installation.ideaLog
       .waitForMatchingLine(
@@ -47,10 +52,12 @@ class LayoutEditorPreviewTest {
     waitForSuccessfulRender(path.fileName.toString())
   }
 
-  @Test
-  fun layoutEditorPreviewBasicTest() {
+  private lateinit var project: AndroidProject
+
+  @Before
+  fun setup() {
     // Create a new android project, and set a fixed distribution
-    val project = AndroidProject("tools/adt/idea/designer/testData/projects/simpleApplication")
+    project = AndroidProject("tools/adt/idea/designer/testData/projects/simpleApplication")
     project.setDistribution("tools/external/gradle/gradle-7.3.3-bin.zip")
 
     // Enable additional logging
@@ -60,8 +67,13 @@ class LayoutEditorPreviewTest {
 
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/designer/layout_preview_deps.manifest"))
-    system.runAdb { adb ->
-      system.runEmulator { emulator ->
+  }
+
+  @Test
+  fun layoutEditorPreviewBasicTest() {
+    system.runAdb {
+      system.runEmulator {emulator ->
+        emulator.waitForBoot()
         system.runStudio(project, watcher.dashboardName) { studio ->
           studio.waitForSync()
           studio.waitForIndex()
@@ -81,7 +93,8 @@ class LayoutEditorPreviewTest {
           studio.executeAction("Run")
           system.installation.ideaLog.waitForMatchingLine(
             ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for launched app: google\\.simpleapplication",
-            60, TimeUnit.SECONDS)
+            60, TimeUnit.SECONDS
+          )
         }
       }
     }

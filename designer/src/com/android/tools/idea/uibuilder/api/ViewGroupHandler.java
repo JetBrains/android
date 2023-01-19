@@ -257,6 +257,19 @@ public class ViewGroupHandler extends ViewHandler {
   }
 
   /**
+   * Returns the children of the given component
+   *
+   * @param component NlComponent or NlComponentReference
+   * @return the children of the component (may be a mix of NlComponent and NlComponentReference instances)
+   */
+  public List<?> getComponentTreeChildren(@NotNull Object component) {
+    if (component instanceof NlComponent) {
+      return ((NlComponent)component).getChildren();
+    }
+    return ImmutableList.of();
+  }
+
+  /**
    * Returns true if this handler needs an accessory panel
    * @return
    */
@@ -283,6 +296,27 @@ public class ViewGroupHandler extends ViewHandler {
   @Override
   public List<Placeholder> getPlaceholders(@NotNull SceneComponent component, @NotNull List<SceneComponent> draggedComponents) {
     return ImmutableList.of(new ViewGroupPlaceholder(component));
+  }
+
+  /**
+   * Return true if the component holds references which can be manipulated with {@link #addReferences} and {@link #removeReference}
+   */
+  public boolean holdsReferences() {
+    return false;
+  }
+
+  /**
+   * Delete the reference in the component
+   */
+  public void removeReference(@NotNull NlComponent component, @NotNull String id) {
+  }
+
+  /**
+   * Add references [ids] to the [component].
+   *
+   * Add the references before the [before] reference, or at the end of the references list if null or not found.
+   */
+  public void addReferences(@NotNull NlComponent component, @NotNull List<String> ids, @Nullable String before) {
   }
 
   public interface AccessoryPanelVisibility {

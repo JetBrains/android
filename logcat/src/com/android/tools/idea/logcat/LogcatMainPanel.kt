@@ -124,7 +124,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -634,7 +633,7 @@ internal class LogcatMainPanel @TestOnly constructor(
       LOGCAT_PRESENTER_ACTION.name -> this
       ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name -> device?.let { DeviceArtScreenshotOptions(it.serialNumber, it.sdk, it.model) }
       ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name -> device?.let {
-        ScreenRecorderAction.Parameters(it.serialNumber, it.sdk, if (it.isEmulator) it.deviceId else null, this)
+        ScreenRecorderAction.Parameters(it.name, it.serialNumber, it.sdk, if (it.isEmulator) it.deviceId else null, this)
       }
 
       EDITOR.name -> editor

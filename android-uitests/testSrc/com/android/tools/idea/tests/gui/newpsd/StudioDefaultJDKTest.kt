@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectGradleSetting
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectIdeSdksLocationConfigurable
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.Rule
 import org.junit.Test
@@ -69,7 +70,7 @@ class StudioDefaultJDKTest {
           // As the Android Studio is using the default JDK from the intellij,
           // unable to verify if the embedded JDK is used as the default JDK in studio.
           // Instead, verifying only if the Embedded JDK option is available in studio.
-          assertContains(gradleJDKComboBox().contents(), "Android Studio java home")
+          assertContains(gradleJDKComboBox().contents(), ExternalSystemJdkUtil.JAVA_HOME)
           clickCancel()
         }
       }

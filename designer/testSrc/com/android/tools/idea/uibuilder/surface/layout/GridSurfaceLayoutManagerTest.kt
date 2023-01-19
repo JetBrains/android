@@ -16,9 +16,10 @@
 package com.android.tools.idea.uibuilder.surface.layout
 
 import com.android.tools.idea.common.surface.layout.TestPositionableContent
+import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.graphics.NlConstants
+import com.intellij.util.ui.JBInsets
 import org.junit.Test
-import java.awt.Insets
 import kotlin.test.assertEquals
 
 class GridSurfaceLayoutManagerTest {
@@ -104,5 +105,30 @@ class GridSurfaceLayoutManagerTest {
       assertEquals(0.15, gridSurfaceLayoutManager.getFitIntoScale(content, 400, 900), tolerance)
       assertEquals(0.25, gridSurfaceLayoutManager.getFitIntoScale(content, 900, 900), tolerance)
     }
+  }
+
+
+  @Test
+  fun testZoomToFitValueIsIndependentOfContentScale() {
+    val manager = GridSurfaceLayoutManager(0, 0, 0, 0)
+
+    val contents = List(4) {
+      TestPositionableContent(0, 0, 100, 100, 1.0) { scale ->
+        val value = (10 * scale).toInt()
+        JBInsets(value, value, value, value)
+      }
+    }
+
+    val width = 1000
+    val height = 1000
+
+    val zoomToFitScale1 = manager.getFitIntoScale(contents, width, height)
+    contents.forEach { it.scale = 0.5 }
+    val zoomToFitScale2 = manager.getFitIntoScale(contents, width, height)
+    contents.forEach { it.scale = 0.25 }
+    val zoomToFitScale3 = manager.getFitIntoScale(contents, width, height)
+
+    LayoutTestCase.assertEquals(zoomToFitScale1, zoomToFitScale2)
+    LayoutTestCase.assertEquals(zoomToFitScale1, zoomToFitScale3)
   }
 }

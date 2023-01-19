@@ -82,10 +82,15 @@ private const val NEW_METADATA_CONTENT =
   "      \"version\": 2,\n" +
   "      \"unsupported_families\": [],\n" +
   "      \"categories\": [],\n" +
-  "      \"tags\": []\n" +
+  "      \"tags\": [\n" +
+  "        \"plaît\",\n" +
+  "        \"respond\",\n" +
+  "        \"répondez\"\n" +
+  "      ]\n" +
   "    }\n" +
   "  ]\n" +
   "}"
+
 private const val OLD_VD = "old" // For this test, it doesn't matter if it's a valid Vector Drawable file
 private const val NEW_VD = "new"
 

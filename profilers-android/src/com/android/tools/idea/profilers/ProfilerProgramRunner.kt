@@ -20,12 +20,13 @@ import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker
-import com.android.tools.idea.run.AndroidRunConfigurationBase
+import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.DeviceFutures
-import com.android.tools.idea.run.StudioProgramRunner
+import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup
 import com.android.tools.idea.run.profiler.ProfilingMode
 import com.android.tools.idea.run.util.SwapInfo
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
 import com.google.wireless.android.sdk.stats.RunWithProfilingMetadata
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.RunnerAndConfigurationSettings
@@ -44,14 +45,17 @@ import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-class ProfilerProgramRunner : StudioProgramRunner() {
+class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
   override fun getRunnerId() = "ProfilerProgramRunner"
 
   override fun canRun(executorId: String, profile: RunProfile): Boolean {
-    // Super class canRun checks if profile is AndroidRunConfigurationBase.
-    return super.canRun(executorId, profile) &&
-           canRunByProfiler(executorId, profile as AndroidRunConfigurationBase)
+    return super.canRun(executorId, profile) && canRunByProfiler(executorId)
   }
+
+  override val supportedConfigurationTypeIds = listOf(
+    AndroidRunConfigurationType().id,
+    AndroidTestRunConfigurationType().id
+  )
 
   override fun canRunWithMultipleDevices(executorId: String) = false
 
@@ -169,19 +173,16 @@ class ProfilerProgramRunner : StudioProgramRunner() {
       featureTracker.trackRunWithProfiling(metadataBuilder.build())
     }
 
-    private fun canRunByProfiler(executorId: String, androidRunConfig: AndroidRunConfigurationBase): Boolean {
-      if (androidRunConfig.isProfilable) {
-        if (StudioFlags.PROFILEABLE_BUILDS.get()) {
-          // Profileable Builds support multiple profiling modes, wrapped in RegisteredSettings. To get the selected
-          // mode, query the ExecutorGroup by executor ID. If no registered setting is found, the executor is not a
-          // profiler one (e.g. Run).
-          // See ProfileRunExecutorGroup for the registered settings.
-          return AbstractProfilerExecutorGroup.getInstance()?.getRegisteredSettings(executorId) != null
-        }
-        // Legacy profiler executor.
-        return ProfileRunExecutor.EXECUTOR_ID == executorId
+    private fun canRunByProfiler(executorId: String): Boolean {
+      if (StudioFlags.PROFILEABLE_BUILDS.get()) {
+        // Profileable Builds support multiple profiling modes, wrapped in RegisteredSettings. To get the selected
+        // mode, query the ExecutorGroup by executor ID. If no registered setting is found, the executor is not a
+        // profiler one (e.g. Run).
+        // See ProfileRunExecutorGroup for the registered settings.
+        return AbstractProfilerExecutorGroup.getInstance()?.getRegisteredSettings(executorId) != null
       }
-      return false
+      // Legacy profiler executor.
+      return ProfileRunExecutor.EXECUTOR_ID == executorId
     }
 
     private fun isAgpVersionSupported(project: Project): Boolean {

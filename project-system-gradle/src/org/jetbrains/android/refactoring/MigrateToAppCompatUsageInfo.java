@@ -662,8 +662,8 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
         return defaultVersion;
       }
 
-      return coordinate.getVersion() != null ?
-             getHighestVersion(coordinate.getVersion().toString(), defaultVersion) :
+      return coordinate.getLowerBoundVersion() != null ?
+             getHighestVersion(coordinate.getLowerBoundVersion().toString(), defaultVersion) :
              defaultVersion;
     }
 

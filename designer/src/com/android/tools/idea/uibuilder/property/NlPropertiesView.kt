@@ -53,9 +53,7 @@ class NlPropertiesView(model : NlPropertiesModel) : PropertiesView<NlPropertyIte
     tab.builders.add(DeclaredAttributesInspectorBuilder(model, enumSupportProvider))
     tab.builders.add(LayoutInspectorBuilder(model.facet.module.project, editorProvider))
     tab.builders.add(FavoritesInspectorBuilder(model, enumSupportProvider))
-    if (StudioFlags.NELE_TRANSFORM_PANEL.get()) {
-      tab.builders.add(TransformsAttributesInspectorBuilder(model, enumSupportProvider))
-    }
+    tab.builders.add(TransformsAttributesInspectorBuilder(model, enumSupportProvider))
     tab.builders.add(CommonAttributesInspectorBuilder(model.project, editorProvider))
     tab.builders.add(AllAttributesInspectorBuilder(model, controlTypeProvider, editorProvider))
   }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import static com.android.tools.idea.flags.StudioFlags.NELE_LAYOUT_SCANNER_IN_EDITOR;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA;
@@ -63,7 +62,6 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
@@ -73,6 +71,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.DumbService;
@@ -89,10 +88,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -389,6 +390,12 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
    */
   private boolean myNeedsKeepSameViewportCenter = false;
 
+  @NotNull
+  private final Function<ChangeEvent, Void> defaultViewportChangeHandler;
+
+  @NotNull
+  private Function<ChangeEvent, Void> myViewportChangeHandler;
+
   private boolean myIsRenderingSynchronously = false;
   private boolean myIsAnimationScrubbing = false;
   private float myRotateSurfaceDegree = Float.NaN;
@@ -444,11 +451,11 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     myMinScale = minScale;
     myMaxScale = maxScale;
 
-    getViewport().addChangeListener(e -> {
+    defaultViewportChangeHandler = e -> {
       if (!myNeedsKeepSameViewportCenter) {
         // We only change the viewport position when viewport is changed by scaling.
         // For example, we don't want to change the position when user resize the window.
-        return;
+        return null;
       }
       // Reset the flag so it won't update the center point if the following change is caused by window resizing.
       myNeedsKeepSameViewportCenter = false;
@@ -460,7 +467,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
       // We calculate the new viewport position to achieve above behavior.
       if (myLayoutManager instanceof GridSurfaceLayoutManager) {
         // Grid surface layout manager layouts the preview depending on the screen size. There is no particular trace point for zooming.
-        return;
+        return null;
       }
       DesignSurfaceViewport port = getViewport();
       Dimension newViewportSize = port.getViewSize();
@@ -468,12 +475,12 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
           newViewportSize.width == 0 ||
           newViewportSize.height == 0 ||
           newViewportSize.equals(myCurrentViewportSize)) {
-        return;
+        return null;
       }
       if (myCurrentViewportSize == null) {
         // Do nothing. The view position should be default value (usually it is (0, 0))
         myCurrentViewportSize = newViewportSize;
-        return;
+        return null;
       }
 
       int zoomCenterX = myZoomCenter.x;
@@ -499,12 +506,12 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
       myCurrentViewportSize = newViewportSize;
 
       port.setViewPosition(new Point(newViewPositionX, newViewPositionY));
-    });
+      return null;
+    };
+    myViewportChangeHandler = defaultViewportChangeHandler;
+    getViewport().addChangeListener(e -> myViewportChangeHandler.apply(e));
 
-    if (NELE_LAYOUT_SCANNER_IN_EDITOR.get()) {
-      myScannerControl = new NlLayoutScanner(this);
-    }
-
+    myScannerControl = new NlLayoutScanner(this);
     myDelegateDataProvider = delegateDataProvider;
   }
 
@@ -757,7 +764,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
         if (results.isEmpty()) {
           return;
         }
-        if (NELE_LAYOUT_SCANNER_IN_EDITOR.get() && myScannerControl != null) {
+        if (myScannerControl != null) {
           for (Map.Entry<LayoutlibSceneManager, RenderResult> entry : results.entrySet()) {
             LayoutlibSceneManager manager = entry.getKey();
             if (manager.getLayoutScannerConfig().isIntegrateWithDefaultIssuePanel()) {
@@ -934,6 +941,68 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     }
     myNeedsKeepSameViewportCenter = super.setScale(scale, x, y);
     return myNeedsKeepSameViewportCenter;
+  }
+
+  /**
+   * Zoom (in or out) and move the scroll position to ensure that the given rectangle is fully
+   * visible and centered.
+   * When zooming, the sceneViews may move around, and so the rectangle's coordinates should be
+   * relative to the sceneView.
+   * The given rectangle should be a subsection of the given sceneView.
+   * @param sceneView the {@link SceneView} that contains the given rectangle
+   * @param rectangle the rectangle that should be visible, with its coordinates relative to the
+   *  sceneView, and with its currentsize (before zooming).
+   */
+  public final void zoomAndCenter(@NotNull SceneView sceneView,
+                                  @NotNull @SwingCoordinate Rectangle rectangle) {
+    if (myScrollPane == null) {
+      Logger
+        .getInstance(NlDesignSurface.class)
+        .warn("The scroll pane is null, cannot zoom and center.");
+      return;
+    }
+    // Calculate the scaleChangeNeeded so that after zooming,
+    // the given rectangle with a given offset fits tight in the scroll panel.
+    Dimension offset = getScrollToVisibleOffset();
+    Dimension availableSize = getExtentSize();
+    Dimension curSize = new Dimension(rectangle.width, rectangle.height);
+    // Make sure both dimensions fit, and at least one of them is as tight
+    // as possible (respecting the offset).
+    double scaleChangeNeeded = Math.min(
+      (availableSize.getWidth() - 2*offset.width) / curSize.getWidth(),
+      (availableSize.getHeight() - 2*offset.height) / curSize.getHeight()
+    );
+    // Adjust the scale change to keep the new scale between the lower and upper bounds.
+    double curScale = getScale();
+    double boundedNewScale = getBoundedScale(curScale * scaleChangeNeeded);
+    scaleChangeNeeded = boundedNewScale/curScale;
+    // The rectangle size and its coordinates relative to the sceneView have
+    // changed due to the scale change.
+    rectangle.setRect(rectangle.x * scaleChangeNeeded, rectangle.y * scaleChangeNeeded,
+                      rectangle.width * scaleChangeNeeded, rectangle.height * scaleChangeNeeded);
+
+    myViewportChangeHandler = new Function<>() {
+      final private AtomicBoolean alreadyTriggered = new AtomicBoolean(false);
+
+      @Override
+      public Void apply(ChangeEvent event) {
+        if (!alreadyTriggered.getAndSet(true)) {
+          scrollToCenter(sceneView, rectangle);
+          // Change the handler back to the default one
+          myNeedsKeepSameViewportCenter = false;
+          myViewportChangeHandler = defaultViewportChangeHandler;
+        }
+        return null;
+      }
+    };
+
+    if (!setScale(boundedNewScale)) {
+      // If scale hasn't changed, then just scroll to center and change the
+      // handler back to the default one
+      scrollToCenter(sceneView, rectangle);
+      myNeedsKeepSameViewportCenter = false;
+      myViewportChangeHandler = defaultViewportChangeHandler;
+    }
   }
 
   @Override

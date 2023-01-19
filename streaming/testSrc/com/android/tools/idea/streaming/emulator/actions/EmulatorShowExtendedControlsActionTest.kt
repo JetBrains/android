@@ -24,12 +24,12 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.LafManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import java.util.concurrent.TimeUnit
 import javax.swing.UIManager
 
@@ -40,7 +40,7 @@ import javax.swing.UIManager
 class EmulatorShowExtendedControlsActionTest {
   private val emulatorViewRule = EmulatorViewRule()
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(emulatorViewRule).around(EdtRule())
+  val ruleChain = RuleChain(emulatorViewRule, EdtRule())
 
   @Before
   fun setUp() {

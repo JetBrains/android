@@ -24,6 +24,7 @@ import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.ModuleModelBuilder
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
+import com.android.tools.idea.testing.openProjectAndRunTestWithTestFixturesAvailable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
@@ -54,6 +55,13 @@ interface LightGradleSyncTestProject : TestProjectDefinition {
         updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions,
         body: PreparedTestProject.Context.(Project) -> T
       ): T {
+        return openProjectAndRunTestWithTestFixturesAvailable(
+          openProjectImplementation = ::openProject,
+          testBody = body
+        )
+      }
+
+      private fun <T> openProject(body: (project: Project, projectRoot: File) -> T): T {
         val options = createTestOpenProjectOptions(true)
         if (ApplicationManager.getApplication().isDispatchThread) {
           PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
@@ -62,23 +70,15 @@ interface LightGradleSyncTestProject : TestProjectDefinition {
           ProjectManagerEx.getInstanceEx()
             .openProject(
               Path.of(integrationTestEnvironment.getBaseTestPath(), name).parent.resolve(name),
-              options.copy(beforeInit = {
-                it.putUserData(
-                  GradleSyncExecutor.ALWAYS_SKIP_SYNC, true
-                )
-              })
+              options.copy(beforeInit = { it.putUserData(GradleSyncExecutor.ALWAYS_SKIP_SYNC, true) })
             )
             ?: error("Failed to open a test project")
-        try {
+        return try {
           invokeAndWaitIfNeeded {
             setupTestProjectFromAndroidModel(project, preparedProject.root, *modelBuilders.toTypedArray())
           }
-          val context = object: PreparedTestProject.Context {
-            override val project: Project = project
-          }
-          return body(context, project)
-        }
-        finally {
+          body(project, preparedProject.root)
+        } finally {
           runInEdtAndWait {
             ProjectManagerEx.getInstanceEx().forceCloseProject(project)
           }

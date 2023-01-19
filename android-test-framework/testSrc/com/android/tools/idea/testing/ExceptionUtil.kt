@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.testing
 
+import com.intellij.testFramework.fixtures.IdeaTestFixture
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.containers.ConcurrentList
 import com.intellij.util.containers.ContainerUtil
 import org.junit.runners.model.MultipleFailureException
@@ -32,18 +34,29 @@ Runs [body], captures & suppresses any exceptions thrown from nested `runCatchin
 an aggregate exception in the end. Exceptions thrown directly from the [body] are not suppressed, however they are still aggregated with
 any previously suppressed exceptions.
  */
-inline fun <T> aggregateAndThrowIfAny(body: AggregateAndThrowIfAnyContext.() -> T) {
-  val exceptions: ConcurrentList<Throwable> = ContainerUtil.createConcurrentList()
+inline fun <T> aggregateAndThrowIfAny(body: AggregateAndThrowIfAnyContext.() -> T): T {
+  val exceptions: MutableList<Throwable> = ContainerUtil.createConcurrentList()
   val context = object : AggregateAndThrowIfAnyContext {
     override fun recordResult(result: Result<*>) {
       result.exceptionOrNull()?.let(exceptions::add)
     }
   }
-  context.runCatchingAndRecord { body(context) }
+  val result = context.runCatchingAndRecord { body(context) }
 
   when {
     exceptions.isEmpty() -> Unit
     exceptions.size == 1 -> throw exceptions.single()
     else -> throw MultipleFailureException(exceptions)
+  }
+
+  return result.getOrThrow() // No exceptions are expected here since they must have already been thrown above.
+}
+
+inline fun <T> AggregateAndThrowIfAnyContext.usingIdeaTestFixture(fixture: IdeaTestFixture, body: () -> T): T {
+  runInEdtAndWait { fixture.setUp() }
+  try {
+    return body()
+  } finally {
+    runInEdtAndWait { runCatchingAndRecord { fixture.tearDown() } }
   }
 }

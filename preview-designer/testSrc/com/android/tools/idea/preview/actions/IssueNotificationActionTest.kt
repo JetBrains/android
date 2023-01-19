@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.preview.actions
 
-import com.android.tools.adtui.InformationPopup
+import com.android.tools.adtui.compose.InformationPopup
+import com.android.tools.adtui.compose.IssueNotificationAction
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.Alarm

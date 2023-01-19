@@ -63,7 +63,6 @@ import javax.swing.plaf.metal.MetalLookAndFeel
 import javax.swing.plaf.metal.MetalTheme
 import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 
-
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData/ui"
 private const val DIFF_THRESHOLD = 0.01
 
@@ -72,10 +71,11 @@ class ResolutionElementEditorTest {
   private val projectRule = AndroidProjectRule.withSdk()
 
   @get:Rule
-  val lafRuleChain = RuleChain.outerRule(IntelliJLafRule()).around(PortableUiFontRule())!!
-
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule()).around(IconLoaderRule())!!
+  val ruleChain = RuleChain.outerRule(projectRule)
+    .around(IntelliJLafRule())
+    .around(PortableUiFontRule())
+    .around(EdtRule())
+    .around(IconLoaderRule())!!
 
   @Test
   fun testPaintClosed() {

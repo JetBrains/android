@@ -64,6 +64,7 @@ import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.codeInsight.template.emmet.generators.LoremGenerator;
@@ -216,8 +217,9 @@ public class LayoutPullParsers {
         renderTask.setTransparentBackground();
         renderTask.setDecorations(false);
         renderTask.setRenderingMode(V_SCROLL);
-        return createFontFamilyParser(file, (fontName) -> facet != null
-                                                          ? (new ProjectFonts(facet)).getFont(fontName)
+        ResourceRepositoryManager manager = facet != null ? ResourceRepositoryManager.getInstance(facet) : null;
+        return createFontFamilyParser(file, (fontName) -> manager != null
+                                                          ? (new ProjectFonts(manager)).getFont(fontName)
                                                           : null);
       default:
         // Should have been prevented by isSupported(PsiFile)

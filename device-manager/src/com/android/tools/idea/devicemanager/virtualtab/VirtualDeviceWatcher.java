@@ -26,12 +26,15 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationActivationListener;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.util.Alarm;
 import com.intellij.util.Alarm.ThreadToUse;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Optional;
+import java.util.function.Supplier;
 import javax.swing.event.EventListenerList;
 import org.jetbrains.android.AndroidPluginDisposable;
 import org.jetbrains.annotations.NotNull;
@@ -44,21 +47,22 @@ import org.jetbrains.annotations.VisibleForTesting;
  */
 @Service
 public final class VirtualDeviceWatcher implements ApplicationActivationListener {
-  private final @NotNull AvdManager myAvdManager;
-  private final @NotNull EventListenerList myListeners;
+  @NotNull
+  private final Supplier<Optional<AvdManager>> myGetAvdManager;
 
+  private final @NotNull EventListenerList myListeners;
   private final @NotNull Alarm myAlarm;
 
   @UiThread
   @SuppressWarnings("unused")
-  private VirtualDeviceWatcher() throws AndroidLocationsException {
-    this(getAvdManagerInstance());
+  private VirtualDeviceWatcher() {
+    this(VirtualDeviceWatcher::getAvdManager);
   }
 
   @UiThread
   @VisibleForTesting
-  VirtualDeviceWatcher(@NotNull AvdManager avdManager) {
-    myAvdManager = avdManager;
+  VirtualDeviceWatcher(@NotNull Supplier<Optional<AvdManager>> getAvdManager) {
+    myGetAvdManager = getAvdManager;
     myListeners = new EventListenerList();
     myAlarm = new Alarm(ThreadToUse.POOLED_THREAD, AndroidPluginDisposable.Companion.getApplicationInstance());
 
@@ -72,12 +76,19 @@ public final class VirtualDeviceWatcher implements ApplicationActivationListener
     myAlarm.addRequest(this::snapshotAvds, Duration.ofSeconds(1).toMillis());
   }
 
-  @UiThread
-  private static @NotNull AvdManager getAvdManagerInstance() throws AndroidLocationsException {
-    AvdManager manager = IdeAvdManagers.INSTANCE.getAvdManager(AndroidSdks.getInstance().tryToChooseSdkHandler());
-    assert manager != null;
-
-    return manager;
+  /**
+   * Called by the alarm thread
+   */
+  @WorkerThread
+  @NotNull
+  private static Optional<AvdManager> getAvdManager() {
+    try {
+      return Optional.ofNullable(IdeAvdManagers.INSTANCE.getAvdManager(AndroidSdks.getInstance().tryToChooseSdkHandler()));
+    }
+    catch (AndroidLocationsException exception) {
+      Logger.getInstance(VirtualDeviceWatcher.class).warn("Unable to get AvdManager for VirtualDeviceWatcher", exception);
+      return Optional.empty();
+    }
   }
 
   @UiThread
@@ -96,7 +107,7 @@ public final class VirtualDeviceWatcher implements ApplicationActivationListener
   }
 
   /**
-   * Called by an application pool thread
+   * Called by the alarm thread
    */
   @WorkerThread
   private void snapshotAvds() {
@@ -106,21 +117,32 @@ public final class VirtualDeviceWatcher implements ApplicationActivationListener
       return;
     }
 
-    Iterable<AvdInfo> avds = getCurrentAvds();
+    myGetAvdManager.get()
+      .flatMap(VirtualDeviceWatcher::getAllAvds)
+      .ifPresent(avds -> fireVirtualDevicesChanged(application, avds));
+  }
+
+  /**
+   * Called by the alarm thread
+   */
+  @WorkerThread
+  private void fireVirtualDevicesChanged(@NotNull Application application, @NotNull Iterable<AvdInfo> avds) {
     application.invokeLater(() -> fireVirtualDevicesChanged(avds));
   }
 
   /**
-   * Called by an application pool thread
+   * Called by the alarm thread
    */
   @WorkerThread
-  private @NotNull Iterable<AvdInfo> getCurrentAvds() {
+  @NotNull
+  private static Optional<Iterable<AvdInfo>> getAllAvds(@NotNull AvdManager manager) {
     try {
-      myAvdManager.reloadAvds();
-      return new ArrayList<>(Arrays.asList(myAvdManager.getAllAvds()));
+      manager.reloadAvds();
+      return Optional.of(new ArrayList<>(Arrays.asList(manager.getAllAvds())));
     }
-    catch (AndroidLocationsException e) {
-      throw new RuntimeException(e);
+    catch (AndroidLocationsException exception) {
+      Logger.getInstance(VirtualDeviceWatcher.class).warn("Unable to reload AvdManager", exception);
+      return Optional.empty();
     }
   }
 

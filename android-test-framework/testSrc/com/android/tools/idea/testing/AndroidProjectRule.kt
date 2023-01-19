@@ -54,11 +54,11 @@ import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTempDirTestFixture
-import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
 import org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen
 import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
+import org.jetbrains.android.UndisposedAndroidObjectsCheckerRule.Companion.checkUndisposedAndroidRelatedObjects
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
@@ -400,7 +400,7 @@ class TestEnvironmentRuleImpl(
     userHome?.let { System.setProperty("user.home", it) } ?: System.clearProperty("user.home")
     mockitoCleaner.cleanupAndTearDown()
     runInEdtAndWait { Disposer.dispose(flagsDisposable) }
-    AndroidTestBase.checkUndisposedAndroidRelatedObjects()
+    checkUndisposedAndroidRelatedObjects()
   }
 }
 

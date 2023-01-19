@@ -40,4 +40,14 @@ class PowerRailTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Range) 
   init {
     add(powerRailCounterSeries)
   }
+
+  companion object {
+    // There are some naming discrepancies perfetto has between recorded
+    // power rail data names and the displayable name. For those
+    // exceptions we do a quick translation.
+    val powerRailDisplayNameMappings = mapOf(
+      "power.S10M_VDD_TPU_uws" to "power.rails.tpu",
+      "power.VSYS_PWR_DISPLAY_uws" to "power.rails.display"
+    )
+  }
 }

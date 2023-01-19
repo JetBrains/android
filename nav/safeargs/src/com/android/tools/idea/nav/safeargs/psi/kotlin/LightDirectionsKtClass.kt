@@ -16,7 +16,7 @@
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.nav.safeargs.index.NavActionData
 import com.android.tools.idea.nav.safeargs.index.NavArgumentData
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
@@ -99,7 +99,7 @@ import org.jetbrains.kotlin.utils.Printer
  * ```
  */
 class LightDirectionsKtClass(
-  private val navigationVersion: GradleVersion,
+  private val navigationVersion: Version,
   name: Name,
   private val destination: NavDestinationData,
   private val navResourceData: NavXmlData,
@@ -113,6 +113,8 @@ class LightDirectionsKtClass(
   private val scope = storageManager.createLazyValue { DirectionsClassScope() }
 
   override fun getUnsubstitutedMemberScope(): MemberScope = scope()
+  override fun getUnsubstitutedMemberScope(kotlinTypeRefiner: KotlinTypeRefiner): MemberScope = unsubstitutedMemberScope
+
   override fun getConstructors(): Collection<ClassConstructorDescriptor> = emptyList()
   override fun getUnsubstitutedPrimaryConstructor(): ClassConstructorDescriptor? = null
   override fun getCompanionObjectDescriptor() = _companionObject()

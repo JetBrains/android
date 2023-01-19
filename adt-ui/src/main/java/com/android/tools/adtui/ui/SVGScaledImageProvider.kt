@@ -46,7 +46,7 @@ class SVGScaledImageProvider(private val url: URL, private val image: Image?) : 
       if (icon is IconLoader.CachedImageIcon) {
         return create(icon)
       }
-      throw IllegalArgumentException("Icon should be an instance of CachedImageIcon")
+      throw IllegalArgumentException("Icon should be an instance of CachedImageIcon. Got "+icon.javaClass.simpleName)
     }
 
     @JvmStatic

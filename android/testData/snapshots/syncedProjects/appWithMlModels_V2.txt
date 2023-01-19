@@ -37,8 +37,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.iml [-]
@@ -65,7 +63,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
@@ -119,8 +116,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -273,8 +269,6 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.app.main
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
@@ -323,7 +317,6 @@ PROJECT                       : project
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.main.iml [-]
@@ -461,7 +454,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -592,9 +584,6 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
-            -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
-            -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources

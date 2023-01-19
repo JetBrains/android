@@ -569,7 +569,7 @@ class AppInspectionInspectorClientTest {
 
     val error = CompletableDeferred<String>()
     inspectorRule.launcher.addClientChangedListener { client ->
-      client.registerErrorCallback { error.complete(it) }
+      client.registerErrorCallback { message, _ -> error.complete(message!!) }
     }
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     assertThat(error.await()).isEqualTo(startFetchError)
@@ -1264,16 +1264,14 @@ class AppInspectionInspectorClientWithFailingClientTest {
   }
 
   @Test
-  fun errorShownOnNoAgentWithApi29() {
+  fun errorShownOnStartRequest() {
     throwOnState = AttachErrorState.START_REQUEST_SENT
     inspectorRule.attachDevice(MODERN_DEVICE)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     val notifications = InspectorBannerService.getInstance(inspectorRule.project)!!.notifications
-    assertThat(notifications).hasSize(2)
-    assertThat(notifications[0].message).isEqualTo("expected")
-    assertThat(notifications[1].message).isEqualTo(
-      "Unable to detect a live inspection service. To enable live inspections, restart the device.")
+    assertThat(notifications).hasSize(1)
+    assertThat(notifications[0].message).isEqualTo("Unknown error")
     assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
     val usages = usageTrackerRule.testTracker.usages
       .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
@@ -1287,16 +1285,14 @@ class AppInspectionInspectorClientWithFailingClientTest {
   }
 
   @Test
-  fun errorLoggedOnException() {
+  fun errorThrownOnAttachSuccess() {
     throwOnState = AttachErrorState.ATTACH_SUCCESS
     inspectorRule.attachDevice(MODERN_DEVICE)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     val notifications = InspectorBannerService.getInstance(inspectorRule.project)!!.notifications
-    assertThat(notifications).hasSize(2)
-    assertThat(notifications[0].message).isEqualTo("expected")
-    assertThat(notifications[1].message).isEqualTo(
-      "Unable to detect a live inspection service. To enable live inspections, restart the device.")
+    assertThat(notifications).hasSize(1)
+    assertThat(notifications[0].message).isEqualTo("Unknown error")
     assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
     val usages = usageTrackerRule.testTracker.usages
       .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }

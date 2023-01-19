@@ -5,10 +5,7 @@ load("//tools/adt/idea/studio:studio.bzl", "studio_data")
 iml_module(
     name = "intellij.android.artwork",
     # do not sort: must match IML order
-    srcs = [
-        "src",
-        "gen",
-    ],
+    srcs = ["gen"],
     iml_files = ["intellij.android.artwork.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     # do not sort: must match IML order

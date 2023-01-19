@@ -40,12 +40,12 @@ public class ProcessNameReaderTest extends LightIdeaTestCase {
 
   public void testHasGlobalProcess_HasNoManifest() {
     mockManifest(null);
-    assertFalse(ProcessNameReader.INSTANCE.hasGlobalProcess(myFacet, "processname"));
+    assertDoesntContain(ProcessNameReader.INSTANCE.readGlobalProcessNames(myFacet), "processname");
   }
 
   public void testHasGlobalProcess_HasNoXml() {
     mockManifest(createFile(SdkConstants.FN_ANDROID_MANIFEST_XML, "").getVirtualFile());
-    assertFalse(ProcessNameReader.INSTANCE.hasGlobalProcess(myFacet, "processname"));
+    assertDoesntContain(ProcessNameReader.INSTANCE.readGlobalProcessNames(myFacet), "processname");
   }
 
   public void testHasGlobalProcess() {
@@ -83,9 +83,9 @@ public class ProcessNameReaderTest extends LightIdeaTestCase {
       "\n");
     mockManifest(manifest.getVirtualFile());
 
-    assertTrue(ProcessNameReader.INSTANCE.hasGlobalProcess(myFacet, "com.example.globalprocess"));
-    assertFalse(ProcessNameReader.INSTANCE.hasGlobalProcess(myFacet, "com.example.anotherprocess"));
-    assertFalse(ProcessNameReader.INSTANCE.hasGlobalProcess(myFacet, ":localprocess"));
+    assertContainsElements(ProcessNameReader.INSTANCE.readGlobalProcessNames(myFacet), "com.example.globalprocess");
+    assertDoesntContain(ProcessNameReader.INSTANCE.readGlobalProcessNames(myFacet), "com.example.anotherprocess");
+    assertDoesntContain(ProcessNameReader.INSTANCE.readGlobalProcessNames(myFacet), ":localprocess");
   }
 
   private void mockManifest(@Nullable VirtualFile manifestFile) {

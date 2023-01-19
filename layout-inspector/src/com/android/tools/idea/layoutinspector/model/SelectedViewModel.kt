@@ -17,8 +17,6 @@ package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.property.panel.api.SelectedComponentModel
-import icons.StudioIcons
-import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
 import javax.swing.Icon
 
 private const val UNNAMED_COMPONENT = "<unnamed>"

@@ -1,5 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
+load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
 
 config_setting(
     name = "windows",
@@ -122,6 +123,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
+        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
     ],
 )
 
@@ -213,7 +215,7 @@ layout_inspector_view_data = select({
     "//prebuilts/studio/sdk:emulator",
     "//prebuilts/studio/sdk:platform-tools",
     "//tools/adt/idea/layout-inspector/integration/testData:emptyApplication",
-    "//tools/base/build-system:gradle-distrib-7.5",
+    INTEGRATION_TEST_GRADLE_VERSION,
     "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
 ]
 

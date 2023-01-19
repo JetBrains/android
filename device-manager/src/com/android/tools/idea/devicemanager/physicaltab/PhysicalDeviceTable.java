@@ -55,12 +55,12 @@ import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
 
 public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
-  PhysicalDeviceTable(@NotNull PhysicalDevicePanel panel) {
-    this(panel, new PhysicalDeviceTableModel(), WearPairingManager.getInstance());
+  PhysicalDeviceTable(@NotNull PhysicalDevicePanel panel, @NotNull WearPairingManager manager) {
+    this(panel, manager, new PhysicalDeviceTableModel());
   }
 
   @VisibleForTesting
-  PhysicalDeviceTable(@NotNull PhysicalDevicePanel panel, @NotNull PhysicalDeviceTableModel model, @NotNull WearPairingManager manager) {
+  PhysicalDeviceTable(@NotNull PhysicalDevicePanel panel, @NotNull WearPairingManager manager, @NotNull PhysicalDeviceTableModel model) {
     super(model, PhysicalDevice.class);
 
     Project project = panel.getProject();

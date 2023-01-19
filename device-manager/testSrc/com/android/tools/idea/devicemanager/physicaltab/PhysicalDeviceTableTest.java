@@ -36,8 +36,8 @@ public final class PhysicalDeviceTableTest {
     Mockito.when(panel.getProject()).thenReturn(Mockito.mock(Project.class));
 
     myTable = new PhysicalDeviceTable(panel,
-                                      new PhysicalDeviceTableModel(List.of(TestPhysicalDevices.GOOGLE_PIXEL_3)),
-                                      Mockito.mock(WearPairingManager.class));
+                                      Mockito.mock(WearPairingManager.class),
+                                      new PhysicalDeviceTableModel(List.of(TestPhysicalDevices.GOOGLE_PIXEL_3)));
   }
 
   @Test

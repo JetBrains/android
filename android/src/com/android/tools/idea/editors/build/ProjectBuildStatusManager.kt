@@ -66,10 +66,10 @@ private enum class ProjectBuildStatus {
 /** The project status */
 sealed class ProjectStatus {
   /** The project is indexing or not synced yet */
-  object NotReady: ProjectStatus()
+  object NotReady : ProjectStatus()
 
   /** The project needs to be built */
-  object NeedsBuild: ProjectStatus()
+  object NeedsBuild : ProjectStatus()
 
   /**
    * The project is compiled but one or more files are out of date.
@@ -84,13 +84,14 @@ sealed class ProjectStatus {
   sealed class OutOfDate private constructor(
     val isCodeOutOfDate: Boolean,
     val areResourcesOutOfDate: Boolean
-  ): ProjectStatus() {
-    object Code: OutOfDate(true, false)
-    object Resources: OutOfDate(false, true)
-    object CodeAndResources: OutOfDate(true, true)
+  ) : ProjectStatus() {
+    object Code : OutOfDate(true, false)
+    object Resources : OutOfDate(false, true)
+    object CodeAndResources : OutOfDate(true, true)
   }
+
   /** The project is compiled and up to date */
-  object Ready: ProjectStatus()
+  object Ready : ProjectStatus()
 }
 
 private val LOG = Logger.getInstance(ProjectStatus::class.java)
@@ -164,11 +165,12 @@ private object NopPsiFileChangeDetector : PsiFileChangeDetector {
   override fun clearMarks(file: PsiFile?) {}
 }
 
-private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
-                                            psiFile: PsiFile,
-                                            private val psiFilter: PsiFileSnapshotFilter = NopPsiFileSnapshotFilter,
-                                            scope: CoroutineScope,
-                                            private val onReady: (ProjectStatus) -> Unit) : ProjectBuildStatusManager, ProjectBuildStatusManagerForTests {
+private class ProjectBuildStatusManagerImpl(
+  parentDisposable: Disposable,
+  psiFile: PsiFile,
+  private val psiFilter: PsiFileSnapshotFilter = NopPsiFileSnapshotFilter,
+  scope: CoroutineScope,
+  private val onReady: (ProjectStatus) -> Unit) : ProjectBuildStatusManager, ProjectBuildStatusManagerForTests {
   private val editorFilePtr: SmartPsiElementPointer<PsiFile> = runReadAction {
     SmartPointerManager.getInstance(psiFile.project).createSmartPsiElementPointer(psiFile)
   }
@@ -187,6 +189,7 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
         psiFileChangeDetector
 
   private val projectBuildStatusLock = ReentrantReadWriteLock()
+
   @GuardedBy("projectBuildStatusLock")
   private var projectBuildStatus: ProjectBuildStatus = ProjectBuildStatus.NotReady
     set(value) {
@@ -218,6 +221,7 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
           isCodeOutOfDate -> ProjectStatus.OutOfDate.Code
           else -> ProjectStatus.OutOfDate.Resources
         }
+
         else -> ProjectStatus.Ready
       }.also {
         LOG.debug("status $it")
@@ -293,10 +297,11 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
     LOG.debug("setup notification change listener")
     runReadAction { psiFile.module?.androidFacet }?.let { facet ->
       val resourceNotificationManager = ResourceNotificationManager.getInstance(project)
-      if (Disposer.tryRegister(parentDisposable) {
+      val isDisposerRegistered = Disposer.tryRegister(parentDisposable) {
         LOG.debug("ResourceNotificationManager.removeListener")
         resourceNotificationManager.removeListener(resourceChangeListener, facet, null, null)
-      }) {
+      }
+      if (isDisposerRegistered) {
         ResourceNotificationManager.getInstance(project).addListener(
           resourceChangeListener,
           facet,
@@ -329,27 +334,33 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
     })
 
     if (FastPreviewManager.getInstance(project).isAvailable) {
-      FastPreviewManager.getInstance(project).addListener(parentDisposable,
-                                                          object : FastPreviewManager.Companion.FastPreviewManagerListener {
-                                                            var lastCompilationResult: CompilationResult = CompilationResult.Success
+      FastPreviewManager.getInstance(project)
+        .addListener(
+          parentDisposable,
+          object : FastPreviewManager.Companion.FastPreviewManagerListener {
+            var lastCompilationResult: CompilationResult = CompilationResult.Success
 
-                                                            override fun onCompilationStarted(files: Collection<PsiFile>) {}
+            override fun onCompilationStarted(files: Collection<PsiFile>) {}
 
-                                                            override fun onCompilationComplete(result: CompilationResult,
-                                                                                               files: Collection<PsiFile>) {
-                                                              val file = editorFile ?: return
-                                                              lastCompilationResult = result
-                                                              if (result == CompilationResult.Success && files.any {
-                                                                  it.isEquivalentTo(file)
-                                                                }) onSuccessfulBuild()
-                                                            }
+            override fun onCompilationComplete(
+              result: CompilationResult,
+              files: Collection<PsiFile>
+            ) {
+              val file = editorFile ?: return
+              lastCompilationResult = result
+              val isAllFileCompiledWithSuccess = (result == CompilationResult.Success) && (files.any { it.isEquivalentTo(file) })
+              if (isAllFileCompiledWithSuccess) {
+                onSuccessfulBuild()
+              }
+            }
 
-                                                            override fun onFastPreviewStatusChanged(isFastPreviewEnabled: Boolean) {
-                                                              // When Fast Preview is disabled, the fileChangeDetector will be restored. This will automatically mark the file as out of date.
-                                                              // This check, verifies if the last fast build was successful and, only in that case, will mark the file as being up to date.
-                                                              if (!isFastPreviewEnabled && lastCompilationResult == CompilationResult.Success) onSuccessfulBuild()
-                                                            }
-                                                          })
+            override fun onFastPreviewStatusChanged(isFastPreviewEnabled: Boolean) {
+              // When Fast Preview is disabled, the fileChangeDetector will be restored. This will automatically mark the file as out of date.
+              // This check, verifies if the last fast build was successful and, only in that case, will mark the file as being up to date.
+              if (!isFastPreviewEnabled && lastCompilationResult == CompilationResult.Success) onSuccessfulBuild()
+            }
+          }
+        )
     }
   }
 

@@ -145,14 +145,14 @@ class AdbDeviceFileSystemTest {
     UniqueFileNameGenerator.setInstanceOverride(null)
   }
 
-   @Test
-   fun test_FileSystem_Has_DeviceName() {
+  @Test
+  fun test_FileSystem_Has_DeviceName() {
     // Prepare
     TestDevices.NEXUS_7_API23.addCommands(shellCommands)
 
     // Act/Assert
-    assertThat(myFileSystem.name).isEqualTo(deviceHandle.state.properties.title())
-   }
+    assertThat(myFileSystem.name).isEqualTo(deviceHandle.state.properties.title)
+  }
 
   @Test
   fun test_FileSystem_Exposes_DeviceState() {

@@ -36,6 +36,7 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerInput
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerOutput
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.replaceText
+import com.android.tools.idea.util.toIoFile
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
@@ -52,6 +53,10 @@ import com.intellij.psi.PsiManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import java.io.File
+import java.io.PrintWriter
+import java.io.StringWriter
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
@@ -62,6 +67,9 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
+import org.jetbrains.org.objectweb.asm.ClassReader
+import org.jetbrains.org.objectweb.asm.ClassWriter
+import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -145,6 +153,51 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     runBlocking {
       val (result, _) = fastPreviewManager.compileRequest(psiMainFile, module)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
+    }
+  }
+
+  @Test
+  fun testFastPreviewDoesNotInlineRIds() {
+    // Force the use of final resource ids
+    File(projectRule.project.guessProjectDir()!!.toIoFile(), "gradle.properties")
+      .appendText("android.nonFinalResIds=false")
+    projectRule.requestSyncAndWait()
+
+    val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
+    typeAndSaveDocument("Text(stringResource(R.string.greeting))\n")
+    runBlocking {
+      val (result, outputPath) = fastPreviewManager.compileRequest(psiMainFile, module)
+      assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
+
+      // Decompile the generated Preview code
+      val decompiledOutput =
+        withContext(diskIoThread) {
+          File(outputPath).toPath().toFileNameSet().joinToString("\n") {
+            try {
+              val reader =
+                ClassReader(
+                  Files.readAllBytes(Paths.get(outputPath, "google/simpleapplication/$it"))
+                )
+              val outputTrace = StringWriter()
+              val classOutputWriter =
+                TraceClassVisitor(ClassWriter(ClassWriter.COMPUTE_MAXS), PrintWriter(outputTrace))
+              reader.accept(classOutputWriter, 0)
+              outputTrace.toString()
+            } catch (t: Throwable) {
+              ""
+            }
+          }
+        }
+
+      val containsStaticFinalAccess =
+        decompiledOutput.lines().any {
+          it.contains("GETSTATIC google/simpleapplication/R\$string.greeting : I")
+        }
+
+      assertTrue(
+        "Fast Preview should not inline R values when compiling",
+        containsStaticFinalAccess
+      )
     }
   }
 
@@ -239,7 +292,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
       startCountDownLatch.await()
       while (compile) {
         LiveEditCompiler(projectRule.project)
-          .compile(listOf(LiveEditCompilerInput(psiMainFile, function)), output)
+          .compile(listOf(LiveEditCompilerInput(psiMainFile, function)))
         deviceCompilations.incrementAndGet()
       }
     }

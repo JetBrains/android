@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.nav.safeargs.module
 
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.ide.common.repository.GradleVersion
 import com.android.resources.ResourceType
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.index.NavXmlData
@@ -111,7 +111,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
 
   private fun createDirectionsPackages(
     moduleDescriptor: ModuleDescriptor,
-    navigationVersion: GradleVersion,
+    navigationVersion: Version,
     entry: NavEntryKt,
     sourceElement: SourceElement,
     modulePackage: String,
@@ -161,7 +161,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
 
   private fun createArgsPackages(
     moduleDescriptor: ModuleDescriptor,
-    navigationVersion: GradleVersion,
+    navigationVersion: Version,
     entry: NavEntryKt,
     sourceElement: SourceElement,
     modulePackage: String,

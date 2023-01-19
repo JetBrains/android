@@ -44,10 +44,12 @@ class ComposeViewControlActionTest {
   @Before
   fun setup() {
     StudioFlags.COMPOSE_COLORBLIND_MODE.override(true)
+    StudioFlags.COMPOSE_VIEW_INSPECTOR.override(true)
   }
 
   @After
   fun tearDown() {
+    StudioFlags.COMPOSE_VIEW_INSPECTOR.clearOverride()
     StudioFlags.COMPOSE_COLORBLIND_MODE.clearOverride()
   }
 
@@ -82,6 +84,8 @@ class ComposeViewControlActionTest {
     Zoom In
     Zoom Out
     Zoom to 100%
+    ------------------------------------------------------
+    Show Inspection Tooltips
     ------------------------------------------------------
     Color Blind Modes
         Protanopes

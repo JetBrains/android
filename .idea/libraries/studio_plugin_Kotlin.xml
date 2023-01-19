@@ -8,6 +8,7 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlin-plugin.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinc.allopen-compiler-plugin.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinc.android-extensions-compiler-plugin.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinc.assignment-compiler-plugin.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinc.kotlin-compiler-common.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinc.kotlin-compiler-fe10.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinc.kotlin-compiler-ir.jar!/" />

@@ -30,7 +30,6 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import java.nio.file.FileSystems;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -59,40 +58,29 @@ final class AsyncDevicesGetter implements Disposable {
   private final Worker<Collection<VirtualDevice>> myVirtualDevicesWorker;
 
   @NotNull
-  private final Worker<List<ConnectedDevice>> myConnectedDevicesWorker;
+  private final Worker<Collection<ConnectedDevice>> myConnectedDevicesWorker;
 
   private final @NotNull AndroidDebugBridge myBridge;
 
   @NotNull
   private final KeyToConnectionTimeMap myMap;
 
-  @NotNull
-  private final Function<ConnectedDevice, String> myGetName;
-
   @Nullable
   private LaunchCompatibilityChecker myChecker;
 
   @SuppressWarnings("unused")
   private AsyncDevicesGetter(@NotNull Project project) {
-    myProject = project;
-    myVirtualDevicesWorker = new Worker<>();
-    myConnectedDevicesWorker = new Worker<>();
-    myBridge = new DdmlibAndroidDebugBridge(project);
-    myMap = new KeyToConnectionTimeMap();
-    myGetName = new NameGetter(this);
+    this(project, new KeyToConnectionTimeMap());
   }
 
   @NonInjectable
   @VisibleForTesting
-  AsyncDevicesGetter(@NotNull Project project,
-                     @NotNull KeyToConnectionTimeMap map,
-                     @NotNull Function<ConnectedDevice, String> getName) {
+  AsyncDevicesGetter(@NotNull Project project, @NotNull KeyToConnectionTimeMap map) {
     myProject = project;
     myVirtualDevicesWorker = new Worker<>();
     myConnectedDevicesWorker = new Worker<>();
     myBridge = new DdmlibAndroidDebugBridge(project);
     myMap = map;
-    myGetName = getName;
   }
 
   @Override
@@ -120,9 +108,9 @@ final class AsyncDevicesGetter implements Disposable {
       .build();
 
     Optional<Collection<VirtualDevice>> virtualDevices = myVirtualDevicesWorker.perform(virtualDevicesTask);
-    Optional<List<ConnectedDevice>> connectedDevices = myConnectedDevicesWorker.perform(new ConnectedDevicesTask(myBridge, myChecker));
+    var connectedDevices = myConnectedDevicesWorker.perform(new ConnectedDevicesTask(myBridge, myChecker));
 
-    if (!virtualDevices.isPresent() || !connectedDevices.isPresent()) {
+    if (virtualDevices.isEmpty() || connectedDevices.isEmpty()) {
       return Optional.empty();
     }
 
@@ -166,8 +154,8 @@ final class AsyncDevicesGetter implements Disposable {
       .map(device -> VirtualDevice.newConnectedDevice(device, myMap, findFirst(virtualDevices, device.getKey()).orElse(null)));
   }
 
-  private static @NotNull Optional<VirtualDevice> findFirst(@NotNull Collection<VirtualDevice> devices,
-                                                                     @NotNull Key key) {
+  @NotNull
+  private static Optional<VirtualDevice> findFirst(@NotNull Collection<VirtualDevice> devices, @NotNull Key key) {
     return devices.stream()
       .filter(device -> device.getKey().equals(key) || device.getNameKey().orElseThrow(AssertionError::new).equals(key))
       .findFirst();
@@ -177,7 +165,7 @@ final class AsyncDevicesGetter implements Disposable {
   private Stream<PhysicalDevice> physicalDeviceStream(@NotNull Collection<ConnectedDevice> connectedDevices) {
     return connectedDevices.stream()
       .filter(ConnectedDevice::isPhysicalDevice)
-      .map(device -> PhysicalDevice.newDevice(device, myGetName, myMap));
+      .map(device -> PhysicalDevice.newDevice(device, myMap));
   }
 
   @NotNull

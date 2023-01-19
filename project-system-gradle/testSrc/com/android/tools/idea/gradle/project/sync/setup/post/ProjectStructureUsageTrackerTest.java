@@ -112,6 +112,8 @@ public class ProjectStructureUsageTrackerTest {
                                           .setFlavorCount(0)
                                           .setFlavorDimension(0)
                                           .setSigningConfigCount(1))
+                     .setModuleCount(3)
+                     .setLibCount(82)
                      .setAppId(AnonymizerUtil.anonymizeUtf8("com.example.projectwithappandlib.app"))
                      .build(), usage.getStudioEvent().getGradleBuildDetails());
     });
@@ -150,6 +152,8 @@ public class ProjectStructureUsageTrackerTest {
                                           .setFlavorDimension(0)
                                           .setSigningConfigCount(1)
                                           .setRequiredHardware("android.hardware.type.watch"))
+                     .setModuleCount(1)
+                     .setLibCount(0)
                      .setAppId(appId)
                      .build(), usage.getStudioEvent().getGradleBuildDetails());
     });

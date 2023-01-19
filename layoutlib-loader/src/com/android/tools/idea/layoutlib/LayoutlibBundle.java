@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.layoutlib;
 
-import com.intellij.CommonBundle;
+import java.text.MessageFormat;
+import java.util.Locale;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.PropertyKey;
@@ -45,6 +46,13 @@ public final class LayoutlibBundle {
   }
 
   public static String message(@NotNull @PropertyKey(resourceBundle = BUNDLE_NAME) String key, @NotNull Object... params) {
-    return CommonBundle.message(getBundle(), key, params);
+    return readFromBundleAndFormat(getBundle(), key, params);
+  }
+
+  private static String readFromBundleAndFormat(@NotNull ResourceBundle bundle, @NotNull String key, @NotNull Object... params) {
+    String rawValue = bundle.getString(key);
+    Locale locale = bundle.getLocale();
+    MessageFormat format = new MessageFormat(rawValue, locale);
+    return format.format(params);
   }
 }

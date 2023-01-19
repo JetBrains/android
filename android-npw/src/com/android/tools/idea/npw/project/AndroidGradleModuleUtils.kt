@@ -34,6 +34,7 @@ import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
+import org.jetbrains.kotlin.idea.compiler.configuration.KotlinPluginLayout
 import java.io.File
 import java.io.IOException
 
@@ -91,6 +92,17 @@ fun determineAgpVersion(project: Project, isNewProject: Boolean): AgpVersion {
   // Use slow method
   val androidPluginInfo = AndroidPluginInfo.findFromBuildFiles(project)
   return androidPluginInfo?.pluginVersion ?: defaultAgpVersion
+}
+
+/** Find the most appropriate Kotlin plugin version for the specified project. */
+@Slow
+fun determineKotlinVersion(project: Project, isNewProject: Boolean): String {
+  // See IdeaKotlinVersionProviderService.getKotlinVersionFromCompiler().
+  val defaultKotlinVersion = KotlinPluginLayout.standaloneCompilerVersion.artifactVersion
+  if (isNewProject) return defaultKotlinVersion
+
+  val versionInUse = project.basePath?.let { GradleProjectSystemUtil.getKotlinVersionInUse(project, it) }
+  return versionInUse ?: defaultKotlinVersion
 }
 
 /** Call detector to check whether Version Catalogs are in use.  Is (very occasionally) slow if cached value has been invalidated. */

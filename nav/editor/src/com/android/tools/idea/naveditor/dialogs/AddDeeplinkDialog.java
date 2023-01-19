@@ -19,7 +19,7 @@ import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_AUTO_VERIFY;
 import static com.android.SdkConstants.TAG_DEEP_LINK;
 
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.gradle.Version;
 import com.android.tools.adtui.stdui.CommonTextField;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
@@ -69,7 +69,7 @@ public class AddDeeplinkDialog extends DialogWrapper {
   private final BindingsManager myBindings = new BindingsManager();
   private final boolean myIsExtended;
 
-  private static final GradleVersion EXTENDED_VERSION = GradleVersion.parse("2.3.0-alpha06");
+  private static final Version EXTENDED_VERSION = Version.Companion.parse("2.3.0-alpha06");
 
   public AddDeeplinkDialog(@Nullable NlComponent existing, @NotNull NlComponent parent) {
     super(false);
@@ -211,7 +211,7 @@ public class AddDeeplinkDialog extends DialogWrapper {
   }
 
   private static boolean isExtended(@NotNull NlComponent parent) {
-    GradleVersion version = NlDependencyManager
+    Version version = NlDependencyManager
       .getInstance().getModuleDependencyVersion(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON, parent.getModel().getFacet());
 
     if (version == null) {

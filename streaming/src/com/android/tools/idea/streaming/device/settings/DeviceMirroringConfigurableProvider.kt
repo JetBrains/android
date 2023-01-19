@@ -23,5 +23,5 @@ import com.intellij.openapi.options.ConfigurableProvider
  */
 class DeviceMirroringConfigurableProvider : ConfigurableProvider() {
 
-  override fun createConfigurable(): Configurable = DeviceMirroringSettingsUi()
+  override fun createConfigurable(): Configurable = DeviceMirroringSettingsPage()
 }

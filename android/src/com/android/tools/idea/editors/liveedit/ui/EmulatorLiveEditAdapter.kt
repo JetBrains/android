@@ -32,7 +32,7 @@ import kotlin.streams.toList
 /**
  * Maps device serial numbers to IDevice.
  */
-class EmulatorLiveEditAdapter(val project: Project): LiveEditAction.DeviceGetter {
+class EmulatorLiveEditAdapter(val project: Project): DeviceGetter {
   private var cachedDeviceFutures = ConcurrentHashMap<String, ListenableFuture<IDevice?>>()
 
   fun register(serial: String) {

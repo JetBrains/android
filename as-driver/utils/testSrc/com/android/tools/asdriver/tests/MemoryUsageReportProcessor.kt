@@ -15,9 +15,13 @@
  */
 package com.android.tools.asdriver.tests
 
+import com.android.tools.perflogger.Analyzer
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
+import com.android.tools.perflogger.WindowDeviationAnalyzer
 import io.ktor.util.date.getTimeMillis
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.concurrent.TimeUnit
 
 /**
@@ -31,6 +35,13 @@ class MemoryUsageReportProcessor {
       .setDescription("How long it took to collect memory report for different tests.")
       .build()
 
+    private val analyzer = WindowDeviationAnalyzer.Builder()
+      .setMetricAggregate(Analyzer.MetricAggregate.MEDIAN)
+      .setRunInfoQueryLimit(50)
+      .addMedianTolerance(WindowDeviationAnalyzer.MedianToleranceParams.Builder()
+                            .setConstTerm(5000000.0).build()) // const_term is 5mb
+      .build();
+
     /**
      * @param memoryDashboardName a string that uniquely specifies the integration test. Will be used for perfgate reporting.
      * Memory usage data will be written to a dashboard name as [memoryDashboardName].
@@ -41,7 +52,8 @@ class MemoryUsageReportProcessor {
       memoryDashboardName: String?
     ) {
       val testDisplayNameNoWhitespaces = memoryDashboardName!!.replace(' ', '_')
-      println("Collecting memory statistics. This could take 15-30 seconds")
+      val dateFormat = SimpleDateFormat("HH:mm:ss z")
+      println("Collecting memory statistics. Started at ${dateFormat.format(Date())}. This could take 15-30 seconds")
       studio.executeAction("IntegrationTestCollectMemoryUsageStatisticsAction")
       var m = installation.memoryReportFile.waitForMatchingLine("Total used memory: (\\d+) bytes/(\\d+) objects",
                                                                 "Memory usage report collection failed: .*", 60,
@@ -54,12 +66,14 @@ class MemoryUsageReportProcessor {
         .setDescription("Memory usage by Android Studio components during the `$memoryDashboardName` test execution.")
         .build()
       var metric = Metric("total_used_memory")
+      metric.setAnalyzers(benchmark, setOf(analyzer))
       metric.addSamples(benchmark, Metric.MetricSample(timeStamp, totalObjectsSize))
       metric.commit()
       m = installation.memoryReportFile.waitForMatchingLine("Total shared memory: (\\d+) bytes/(\\d+) objects", 60,
                                                             TimeUnit.SECONDS)
       val sharedObjectsSize = m.group(1).toLong()
       metric = Metric("total_shared_objects_size")
+      metric.setAnalyzers(benchmark, setOf(analyzer))
       metric.addSamples(benchmark, Metric.MetricSample(timeStamp, sharedObjectsSize))
       metric.commit()
 
@@ -80,6 +94,7 @@ class MemoryUsageReportProcessor {
                                                               TimeUnit.SECONDS)
         val categoryOwnedSize = m.group(1).toLong()
         metric = Metric(categoryLabel + "_category_owned_objects_size")
+        metric.setAnalyzers(benchmark, setOf(analyzer))
         metric.addSamples(benchmark, Metric.MetricSample(timeStamp, categoryOwnedSize))
         metric.commit()
       }
@@ -93,6 +108,7 @@ class MemoryUsageReportProcessor {
                                                               TimeUnit.SECONDS)
         val componentOwnedSize = m.group(1).toLong()
         metric = Metric(componentLabel + "_component_owned_objects_size")
+        metric.setAnalyzers(benchmark, setOf(analyzer))
         metric.addSamples(benchmark, Metric.MetricSample(timeStamp, componentOwnedSize))
         metric.commit()
       }
@@ -100,9 +116,9 @@ class MemoryUsageReportProcessor {
     }
 
     fun collectMemoryUsageStatistics(studio: AndroidStudio,
-                                             installation: AndroidStudioInstallation,
-                                             watcher: MemoryDashboardNameProviderWatcher,
-                                             testLabel: String) {
+                                     installation: AndroidStudioInstallation,
+                                     watcher: MemoryDashboardNameProviderWatcher,
+                                     testLabel: String) {
       collectMemoryUsageStatistics(studio, installation, "${watcher.dashboardName}_$testLabel");
     }
   }

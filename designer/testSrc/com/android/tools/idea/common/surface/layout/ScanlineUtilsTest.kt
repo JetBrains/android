@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.surface.layout
 
-import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.getScaledContentSize
 import com.intellij.util.ui.JBInsets
@@ -29,8 +28,8 @@ class TestPositionableContent(override var x: Int = 0,
                               override var y: Int = 0,
                               val width: Int,
                               val height: Int,
-                              override val scale: Double = 1.0,
-                              override val margin: Insets = JBInsets.emptyInsets()) : PositionableContent {
+                              override var scale: Double = 1.0,
+                              private val marginFunc: (Double) -> Insets = { JBInsets.emptyInsets() }) : PositionableContent {
 
   private val dimension = Dimension(width, height)
 
@@ -42,6 +41,8 @@ class TestPositionableContent(override var x: Int = 0,
     this.x = x
     this.y = y
   }
+
+  override fun getMargin(scale: Double): Insets = marginFunc(scale)
 
   override fun getContentSize(dimension: Dimension?): Dimension = Dimension(this.dimension)
 }

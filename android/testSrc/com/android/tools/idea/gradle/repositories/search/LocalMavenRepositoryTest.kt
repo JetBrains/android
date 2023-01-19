@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.repositories.search
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.util.PathUtil
 import org.hamcrest.CoreMatchers.equalTo
@@ -29,20 +29,20 @@ import java.util.concurrent.TimeUnit
 class LocalMavenRepositoryTest {
 
   private val testVersionSet = setOf(
-    GradleVersion.parse("0.6.1"),
-    GradleVersion.parse("1.0"),
-    GradleVersion.parse("0.6"),
-    GradleVersion.parse("0.9.1"),
-    GradleVersion.parse("0.6.1-alpha"),
-    GradleVersion.parse("1.0-alpha"),
-    GradleVersion.parse("0.5")
+    Version.parse("0.6.1"),
+    Version.parse("1.0"),
+    Version.parse("0.6"),
+    Version.parse("0.9.1"),
+    Version.parse("0.6.1-alpha"),
+    Version.parse("1.0-alpha"),
+    Version.parse("0.5")
   )
 
   private val LIB1 = FoundArtifact(repositoryName = "Test", groupId = "com.example.libs", name = "lib1", unsortedVersions = testVersionSet)
   private val LIB2 = FoundArtifact(repositoryName = "Test", groupId = "com.example.libs", name = "lib2", unsortedVersions = testVersionSet)
   private val JLIB3 = FoundArtifact(repositoryName = "Test", groupId = "com.example.jlib", name = "lib3", unsortedVersions = testVersionSet)
   private val JLIB4 = FoundArtifact(repositoryName = "Test", groupId = "com.example.jlib", name = "lib4",
-                                    unsortedVersions = testVersionSet + GradleVersion.parse("1.1-alpha"))
+                                    unsortedVersions = testVersionSet + Version.parse("1.1-alpha"))
 
   private lateinit var repositoryDir: File
   private lateinit var repository: ArtifactRepository

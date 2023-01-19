@@ -17,12 +17,14 @@ package com.android.tools.idea.streaming.device
 
 import com.android.testutils.TestUtils.getBinPath
 import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.asdriver.tests.Adb
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.device.DeviceView.Companion.ANDROID_SCROLL_ADJUSTMENT_FACTOR
 import com.android.tools.tests.IdeaTestSuiteBase
 import com.android.utils.executeWithRetries
 import com.google.common.truth.Truth.assertThat
@@ -255,6 +257,72 @@ class ScreenSharingAgentTest {
     }
   }
 
+  @Test
+  fun scrollEvents_vertical() {
+    // Wait for at least one frame to be sure that the device's display rectangle is set.
+    waitFrames(1)
+    assertThat(deviceView.displayRectangle).isNotNull()
+
+    // Before beginning the actual test, we will scroll at this point until we register a response from the app.
+    val firstScroll = Point(90, 90)
+    runEventLogger {
+      adb.logcat {
+        // Ensure that motion events can be received by the app. We don't really care if this first point takes a few tries.
+        executeWithRetries<InterruptedException>(LONG_DEVICE_OPERATION_TIMEOUT) {
+          fakeUi.mouse.wheel(firstScroll.x, firstScroll.y, -1)  // Vertical scrolling on Android is backward
+          PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+          waitForLog(firstScroll.scrollLog(v = ANDROID_SCROLL_ADJUSTMENT_FACTOR), INPUT_TIMEOUT)
+        }
+
+        // Now that we know motion events can be received by the app, conduct the real test.
+        for (x in 50..150 step 10) {
+          for (y in 150..250 step 10) {
+            val rotation = (((x + y) / 10) % 10 + 1).let { if (it % 2 == 0) it / 2 else (it + 1) / -2 }
+            fakeUi.mouse.wheel(x, y, rotation)
+            PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+            // On Android, scrolling vertically is upside-down compared to Java.
+            waitForLog(Point(x, y).scrollLog(v = -rotation * ANDROID_SCROLL_ADJUSTMENT_FACTOR), INPUT_TIMEOUT)
+          }
+        }
+      }
+    }
+  }
+
+  @Test
+  fun scrollEvents_horizontal() {
+    // Wait for at least one frame to be sure that the device's display rectangle is set.
+    waitFrames(1)
+    assertThat(deviceView.displayRectangle).isNotNull()
+
+    // Before beginning the actual test, we will touch this point until we register a response from the app.
+    val firstScroll = Point(90, 90)
+    runEventLogger {
+      adb.logcat {
+        // Ensure that motion events can be received by the app. We don't really care if this first point takes a few tries.
+        executeWithRetries<InterruptedException>(LONG_DEVICE_OPERATION_TIMEOUT) {
+          fakeUi.mouse.wheel(firstScroll.x, firstScroll.y, -1)  // Vertical scrolling on Android is backward
+          PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+          waitForLog(firstScroll.scrollLog(v = ANDROID_SCROLL_ADJUSTMENT_FACTOR), INPUT_TIMEOUT)
+        }
+
+        // Now that we know motion events can be received by the app, conduct the real test.
+        for (x in 50..150 step 10) {
+          for (y in 150..250 step 10) {
+            val rotation = (((x + y) / 10) % 10 + 1).let { if (it % 2 == 0) it / 2 else (it + 1) / -2 }
+            // Java fakes horizontal scrolling by saying the shift key is down
+            fakeUi.keyboard.press(FakeKeyboard.Key.SHIFT)
+            fakeUi.mouse.wheel(x, y, rotation)
+            fakeUi.keyboard.release(FakeKeyboard.Key.SHIFT)
+            PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+            waitForLog(Point(x, y).scrollLog(h = rotation * ANDROID_SCROLL_ADJUSTMENT_FACTOR), INPUT_TIMEOUT)
+          }
+        }
+      }
+    }
+  }
+
   private fun runEventLogger(block: () -> Unit) {
     try {
       adb.runCommand("shell", START_COMMAND, emulator = emulator) {
@@ -394,10 +462,12 @@ class ScreenSharingAgentTest {
     private fun Int.downUp(): List<String> = listOf(".*: KEY DOWN: $this", ".*: KEY UP: $this")
 
     private fun Point.clickLogs(): List<String> = listOf(pressLog(), releaseLog())
-    private fun Point.pressLog(): String = logForAction("ACTION_DOWN")
-    private fun Point.releaseLog(): String = logForAction("ACTION_UP")
-    private fun Point.dragToLog(): String = logForAction("ACTION_MOVE")
-    private fun Point.logForAction(action: String): String = ".*: TOUCH EVENT: $action $coordinates"
+    private fun Point.pressLog(): String = logForTouchEventAction("ACTION_DOWN")
+    private fun Point.releaseLog(): String = logForTouchEventAction("ACTION_UP")
+    private fun Point.dragToLog(): String = logForTouchEventAction("ACTION_MOVE")
+    private fun Point.logForTouchEventAction(action: String): String = ".*: TOUCH EVENT: $action $coordinates"
+    private fun Point.scrollLog(v: Float = 0.0f, h: Float = 0.0f): String = ".*: MOTION EVENT: ACTION_SCROLL $coordinates v=$v h=$h"
+
 
     private val Point.coordinates: String
       get() {

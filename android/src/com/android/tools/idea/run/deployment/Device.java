@@ -25,8 +25,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -129,7 +127,7 @@ public abstract class Device {
   }
 
   @NotNull
-  abstract Future<AndroidVersion> getAndroidVersion();
+  abstract ListenableFuture<AndroidVersion> getAndroidVersionAsync();
 
   final @NotNull ListenableFuture<Boolean> isRunningAsync(@NotNull String appPackage) {
     if (!isConnected()) {
@@ -161,33 +159,14 @@ public abstract class Device {
     return device.getLaunchedDevice();
   }
 
-  /**
-   * @deprecated Use {@link #getDdmlibDeviceAsync}
-   */
-  @Deprecated(forRemoval = true)
-  @Nullable
-  final IDevice getDdmlibDevice() {
-    AndroidDevice device = getAndroidDevice();
-
-    if (!device.isRunning()) {
-      return null;
-    }
-
-    try {
-      return device.getLaunchedDevice().get();
-    }
-    catch (InterruptedException | ExecutionException exception) {
-      throw new AssertionError(exception);
-    }
-  }
-
   @NotNull
   @Override
   public final String toString() {
     return myName;
   }
 
-  @NotNull Type getType() {
+  @NotNull
+  final Type getType() {
     return myType;
   }
 

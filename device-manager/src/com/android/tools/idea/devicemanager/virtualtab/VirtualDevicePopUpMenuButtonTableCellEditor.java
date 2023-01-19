@@ -26,6 +26,7 @@ import com.android.tools.idea.devicemanager.DevicePanel;
 import com.android.tools.idea.devicemanager.MenuItems;
 import com.android.tools.idea.devicemanager.PopUpMenuButtonTableCellEditor;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
@@ -46,8 +47,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonTableCellEditor {
-  VirtualDevicePopUpMenuButtonTableCellEditor(@NotNull DevicePanel panel) {
-    super(panel);
+  VirtualDevicePopUpMenuButtonTableCellEditor(@NotNull DevicePanel panel, @NotNull WearPairingManager manager) {
+    super(panel, manager);
   }
 
   @NotNull VirtualDevicePanel getPanel() {
@@ -101,14 +102,12 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
     }
 
     switch (myDevice.getType()) {
-      case PHONE:
-      case WEAR_OS:
+      case PHONE, WEAR_OS -> {
         items.add(newPairDeviceItem());
         newViewPairedDevicesItem(EventKind.VIRTUAL_UNPAIR_DEVICE_ACTION).ifPresent(items::add);
-        break;
-
-      default:
-        break;
+      }
+      default -> {
+      }
     }
   }
 

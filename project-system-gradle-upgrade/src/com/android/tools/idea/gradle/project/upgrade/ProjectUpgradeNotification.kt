@@ -27,6 +27,18 @@ val AGP_UPGRADE_NOTIFICATION_GROUP = NotificationGroup("Android Gradle Upgrade N
 abstract class ProjectUpgradeNotification(title: String, content: String, type: NotificationType)
   : Notification(AGP_UPGRADE_NOTIFICATION_GROUP.displayId, title, content, type) {
     init {
+      addAction(object : AnAction("Start AGP Upgrade Assistant") {
+        override fun actionPerformed(e: AnActionEvent) {
+          this@ProjectUpgradeNotification.expire()
+          e.project?.let { performRecommendedPluginUpgrade(it) }
+        }
+      })
+      addAction(object : AnAction("Remind me tomorrow") {
+        override fun actionPerformed(e: AnActionEvent) {
+          this@ProjectUpgradeNotification.expire()
+          e.project?.let { RecommendedUpgradeReminder(it).updateLastTimestamp() }
+        }
+      })
       addAction(object : AnAction("Don't ask for this project") {
         override fun actionPerformed(e: AnActionEvent) {
           this@ProjectUpgradeNotification.expire()
@@ -37,18 +49,6 @@ abstract class ProjectUpgradeNotification(title: String, content: String, type: 
         override fun actionPerformed(e: AnActionEvent) {
           this@ProjectUpgradeNotification.expire()
           e.project?.let { RecommendedUpgradeReminder(it).doNotAskForApplication = true }
-        }
-      })
-      addAction(object : AnAction("Remind me tomorrow") {
-        override fun actionPerformed(e: AnActionEvent) {
-          this@ProjectUpgradeNotification.expire()
-          e.project?.let { RecommendedUpgradeReminder(it).updateLastTimestamp() }
-        }
-      })
-      addAction(object : AnAction("Start AGP Upgrade Assistant") {
-        override fun actionPerformed(e: AnActionEvent) {
-          this@ProjectUpgradeNotification.expire()
-          e.project?.let { performRecommendedPluginUpgrade(it) }
         }
       })
     }

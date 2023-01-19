@@ -255,11 +255,17 @@ class EmulatorToolWindowPanel(
       EMULATOR_CONTROLLER_KEY.name -> emulator
       EMULATOR_VIEW_KEY.name, ZOOMABLE_KEY.name -> primaryEmulatorView
       NUMBER_OF_DISPLAYS.name -> displayPanels.size
-      ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name -> primaryEmulatorView?.let {
-        if (emulator.connectionState == ConnectionState.CONNECTED)
-          ScreenRecorderAction.Parameters(id.serialNumber, emulator.emulatorConfig.api, emulatorId.avdId, it) else null
-      }
+      ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name -> getScreenRecorderParameters()
       else -> super.getData(dataId)
+    }
+  }
+
+  private fun getScreenRecorderParameters(): ScreenRecorderAction.Parameters? {
+    return if (emulator.connectionState == ConnectionState.CONNECTED) {
+      ScreenRecorderAction.Parameters(emulatorId.avdName, id.serialNumber, emulator.emulatorConfig.api, emulatorId.avdId, emulator)
+    }
+    else {
+      null
     }
   }
 

@@ -68,10 +68,10 @@ private constructor(
      * Animation values - mapping of the animation time in milliseconds to a value of animation for
      * this property - a [ComposeUnit.Unit<*>].
      */
-    private val units: MutableMap<Int, ComposeUnit.Unit<*>> = mutableMapOf()
+    private val units: MutableMap<Int, ComposeUnit.NumberUnit<*>> = mutableMapOf()
     private var _startTimeMs: Int? = null
     private var _endTimeMs: Int? = null
-    fun add(ms: Int, property: ComposeUnit.Unit<*>): Builder {
+    fun add(ms: Int, property: ComposeUnit.NumberUnit<*>): Builder {
       units[ms] = property
       return this
     }

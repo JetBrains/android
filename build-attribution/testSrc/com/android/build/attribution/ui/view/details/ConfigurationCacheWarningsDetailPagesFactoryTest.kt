@@ -27,7 +27,7 @@ import com.android.build.attribution.ui.model.ConfigurationCachingRootNodeDescri
 import com.android.build.attribution.ui.model.ConfigurationCachingWarningNodeDescriptor
 import com.android.build.attribution.ui.model.WarningsDataPageModel
 import com.android.build.attribution.ui.view.ViewActionHandlers
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.adtui.TreeWalker
 import com.google.common.truth.Truth
@@ -86,18 +86,18 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
       name = "Compatible Plugin A",
       pluginClasses = listOf(pluginA.idName),
       pluginArtifact = GradlePluginsData.DependencyCoordinates("my.org", "pluginA-jar"),
-      configurationCachingCompatibleFrom = GradleVersion.parse("0.2.0")
+      configurationCachingCompatibleFrom = Version.parse("0.2.0")
     )
     val compatiblePluginB = GradlePluginsData.PluginInfo(
       name = "Compatible Plugin B",
       pluginClasses = listOf(pluginB.idName),
       pluginArtifact = GradlePluginsData.DependencyCoordinates("my.org", "pluginB-jar"),
-      configurationCachingCompatibleFrom = GradleVersion.parse("1.2.0")
+      configurationCachingCompatibleFrom = Version.parse("1.2.0")
     )
     val nodeDescriptor = ConfigurationCachingRootNodeDescriptor(
       IncompatiblePluginsDetected(emptyList(), listOf(
-        IncompatiblePluginWarning(pluginA, GradleVersion.parse("0.1.0"), compatiblePluginA),
-        IncompatiblePluginWarning(pluginB, GradleVersion.parse("1.1.0"), compatiblePluginB)
+        IncompatiblePluginWarning(pluginA, Version.parse("0.1.0"), compatiblePluginA),
+        IncompatiblePluginWarning(pluginB, Version.parse("1.1.0"), compatiblePluginB)
       )),
       TimeWithPercentage(100, 1000)
     )
@@ -127,8 +127,8 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
     )
     val nodeDescriptor = ConfigurationCachingRootNodeDescriptor(
       IncompatiblePluginsDetected(listOf(
-        IncompatiblePluginWarning(pluginA, GradleVersion.parse("0.1.0"), incompatiblePluginA),
-        IncompatiblePluginWarning(pluginB, GradleVersion.parse("1.1.0"), incompatiblePluginB)
+        IncompatiblePluginWarning(pluginA, Version.parse("0.1.0"), incompatiblePluginA),
+        IncompatiblePluginWarning(pluginB, Version.parse("1.1.0"), incompatiblePluginB)
       ), emptyList()),
       TimeWithPercentage(100, 1000)
     )
@@ -150,7 +150,7 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
       name = "Compatible Plugin",
       pluginClasses = listOf(pluginA.idName),
       pluginArtifact = GradlePluginsData.DependencyCoordinates("my.org", "pluginA-jar"),
-      configurationCachingCompatibleFrom = GradleVersion.parse("0.2.0")
+      configurationCachingCompatibleFrom = Version.parse("0.2.0")
     )
     val incompatiblePluginB = GradlePluginsData.PluginInfo(
       name = "Incompatible Plugin",
@@ -159,9 +159,9 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
     )
     val nodeDescriptor = ConfigurationCachingRootNodeDescriptor(
       IncompatiblePluginsDetected(listOf(
-        IncompatiblePluginWarning(pluginA, GradleVersion.parse("0.1.0"), compatiblePluginA)
+        IncompatiblePluginWarning(pluginA, Version.parse("0.1.0"), compatiblePluginA)
       ), listOf(
-        IncompatiblePluginWarning(pluginB, GradleVersion.parse("1.1.0"), incompatiblePluginB)
+        IncompatiblePluginWarning(pluginB, Version.parse("1.1.0"), incompatiblePluginB)
       )),
       TimeWithPercentage(100, 1000)
     )
@@ -233,10 +233,10 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
       name = "Compatible Plugin",
       pluginClasses = listOf(pluginA.idName),
       pluginArtifact = GradlePluginsData.DependencyCoordinates("my.org", "pluginA-jar"),
-      configurationCachingCompatibleFrom = GradleVersion.parse("0.2.0")
+      configurationCachingCompatibleFrom = Version.parse("0.2.0")
     )
     val nodeDescriptor = ConfigurationCachingWarningNodeDescriptor(
-      IncompatiblePluginWarning(pluginA, GradleVersion.parse("0.1.0"), compatiblePluginA),
+      IncompatiblePluginWarning(pluginA, Version.parse("0.1.0"), compatiblePluginA),
       TimeWithPercentage(100, 1000)
     )
     val page = factory.createDetailsPage(nodeDescriptor)
@@ -261,7 +261,7 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
       pluginArtifact = GradlePluginsData.DependencyCoordinates("my.org", "pluginA-jar"),
     )
     val nodeDescriptor = ConfigurationCachingWarningNodeDescriptor(
-      IncompatiblePluginWarning(pluginA, GradleVersion.parse("0.1.0"), incompatiblePluginA),
+      IncompatiblePluginWarning(pluginA, Version.parse("0.1.0"), incompatiblePluginA),
       TimeWithPercentage(100, 1000)
     )
     val page = factory.createDetailsPage(nodeDescriptor)

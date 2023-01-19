@@ -627,7 +627,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiersEx) {
       presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.CYCLE_CHAIN_SPREAD);
-      boolean show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 2, 0, 0, 2);
+      boolean show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "2.0.0-beta02");
       presentation.setLabel("Convert to MotionLayout");
       presentation.setVisible(show);
     }
@@ -1048,7 +1048,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                    @InputEventMask int modifiersEx) {
       boolean show = true;
       if (myType == VERTICAL_BARRIER || myType == HORIZONTAL_BARRIER) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 0);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "1.0");
         if (show) {
           int barriers = 0;
           int other = 0;
@@ -1069,16 +1069,16 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         }
       }
       if (myType == GROUP) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 0);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "1.0");
       }
       if (myType == CONSTRAINT_SET) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 9);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "1.9");
       }
       if (myType == LAYER) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 9);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "1.9");
       }
       if (myType == FLOW) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 9);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "1.9");
       }
 
       presentation.setVisible(show);

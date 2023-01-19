@@ -229,19 +229,7 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
     }
     add(topPanel, BorderLayout.NORTH)
     add(treePanel, BorderLayout.WEST)
-    add(detailsPanel, BorderLayout.CENTER)
-
-    fun updateLoadingState(uiState: UpgradeAssistantWindowModel.UIState) {
-      setLoadingText(uiState.loadingText)
-      if (uiState.showLoadingState) {
-        startLoading()
-      }
-      else {
-        stopLoading()
-        upgradeLabel.text = model.current.upgradeLabelText()
-        contentManager.getContent(this)?.displayName = model.current.contentDisplayName()
-      }
-    }
+    add(ScrollPaneFactory.createScrollPane(detailsPanel, SideBorder.NONE), BorderLayout.CENTER)
 
     myListeners.listenAndFire(model.uiState) { uiState ->
       setLoadingText(uiState.loadingText)

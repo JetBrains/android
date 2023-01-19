@@ -49,13 +49,13 @@ object ComposeRenderErrorContributor {
 
   /**
    * Returns true if the [Throwable] represents a failure to instantiate a Preview Composable with `PreviewParameterProvider`. This will
-   * detect the case where the parameter type dose not match the `PreviewParameterProvider`.
+   * detect the case where the parameter type does not match the `PreviewParameterProvider`.
    */
   private fun isPreviewParameterMismatchThrowable(throwable: Throwable?): Boolean {
     return throwable is IllegalArgumentException &&
            throwable.message == "argument type mismatch" &&
            (throwable.stackTrace.drop(5)
-             .firstOrNull()?.methodName?.startsWith("invokeComposableViaReflection") ?: false)
+             .firstOrNull()?.methodName?.startsWith("invokeComposable") ?: false)
   }
 
   /**

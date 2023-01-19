@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.emulator
 
 import com.android.annotations.concurrency.AnyThread
+import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.emulator.control.AudioPacket
 import com.android.emulator.control.ClipData
@@ -116,6 +117,9 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       ch.notifyWhenStateChanged(state, this)
     }
   }
+  private val keyboardEventQueue = ArrayDeque<Pair<KeyboardEvent, StreamObserver<Empty>>>()
+  @GuardedBy("keyboardEventQueue")
+  private var keyboardEventInFlight = false
 
   var emulatorConfig: EmulatorConfiguration
     get() {
@@ -327,7 +331,43 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("sendKey(${shortDebugString(keyboardEvent)})")
     }
-    emulatorControllerStub.sendKey(keyboardEvent, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSendKeyMethod()))
+    // Non-streaming gRPC calls don't guarantee in-order delivery. To make sure that the keyboard
+    // events don't arrive out of order, we don't issue a new sendKey call until the previous one
+    // is completed.
+    synchronized(keyboardEventQueue) {
+      if (keyboardEventInFlight) {
+        keyboardEventQueue.add(Pair(keyboardEvent, streamObserver))
+        return
+      }
+      keyboardEventInFlight = true
+    }
+
+    doSendKeyboardEvent(keyboardEvent, streamObserver)
+  }
+
+  private fun doSendKeyboardEvent(keyboardEvent: KeyboardEvent, streamObserver: StreamObserver<Empty>) {
+    val observer = object : DelegatingStreamObserver<KeyboardEvent, Empty>(streamObserver, EmulatorControllerGrpc.getSendKeyMethod()) {
+      override fun onCompleted() {
+        try {
+          super.onCompleted()
+        }
+        finally {
+          sendQueuedKeyboardEventIfAny()
+        }
+      }
+    }
+
+    emulatorControllerStub.sendKey(keyboardEvent, observer)
+  }
+
+  private fun sendQueuedKeyboardEventIfAny() {
+    val item: Pair<KeyboardEvent, StreamObserver<Empty>>
+    synchronized(keyboardEventQueue) {
+      keyboardEventInFlight = false
+      item = keyboardEventQueue.removeFirstOrNull() ?: return
+      keyboardEventInFlight = true
+    }
+    doSendKeyboardEvent(item.first, item.second)
   }
 
   /**
@@ -401,7 +441,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    * Streams a series of screenshots.
    *
    * **Note**: The value returned by the [Image.getImage] method of the response object cannot be used
-   * outside of the [StreamObserver.onNext] method because it is backed by a mutable reusable byte array.
+   * outside the [StreamObserver.onNext] method because it is backed by a mutable reusable byte array.
    */
   fun streamScreenshot(imageFormat: ImageFormat, streamObserver: StreamObserver<Image>): Cancelable {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
@@ -409,7 +449,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     }
     val call = emulatorControllerStub.channel.newCall(streamScreenshotMethod, emulatorControllerStub.callOptions)
     ClientCalls.asyncServerStreamingCall(call, imageFormat, DelegatingStreamObserver(streamObserver, streamScreenshotMethod))
-    return CancelableClientCall(call);
+    return CancelableClientCall(call)
   }
 
   /**
@@ -658,9 +698,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   inner class CancelableClientCall(private val call: ClientCall<*, *>) : Cancelable {
 
     override fun cancel() {
-      if (connectionState == ConnectionState.CONNECTED) {
-        call.cancel("Canceled by consumer", null)
-      }
+      call.cancel("Canceled by consumer", null)
     }
   }
 

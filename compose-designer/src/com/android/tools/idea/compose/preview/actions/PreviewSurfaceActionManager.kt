@@ -21,8 +21,10 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.preview.actions.createStatusIcon
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.Separator
@@ -34,16 +36,16 @@ import javax.swing.JComponent
 internal class PreviewSurfaceActionManager(
   private val surface: DesignSurface<LayoutlibSceneManager>
 ) : ActionManager<DesignSurface<LayoutlibSceneManager>>(surface) {
+
+  private val sceneManagerProvider: () -> LayoutlibSceneManager? = {
+    // Copy the model of the current selected object (if any)
+    surface.selectionModel.primary?.model?.let { surface.getSceneManager(it) }
+      ?: surface.sceneViewAtMousePosition?.sceneManager as? LayoutlibSceneManager
+  }
+
   private val copyResultImageAction =
     CopyResultImageAction(
-      {
-        // Copy the model of the current selected object (if any)
-        surface.selectionModel.primary?.model?.let {
-          return@CopyResultImageAction surface.getSceneManager(it)
-        }
-
-        surface.sceneViewAtMousePosition?.sceneManager as? LayoutlibSceneManager
-      },
+      sceneManagerProvider,
       message("copy.result.image.action.title"),
       message("copy.result.image.action.done.text")
     )
@@ -52,8 +54,21 @@ internal class PreviewSurfaceActionManager(
     registerAction(copyResultImageAction, IdeActions.ACTION_COPY, component)
   }
 
-  override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup =
-    DefaultActionGroup().apply { add(copyResultImageAction) }
+  override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup {
+    // Copy Image
+    val actionGroup = DefaultActionGroup().apply { add(copyResultImageAction) }
+
+    val sceneView = surface.sceneViewAtMousePosition ?: return actionGroup
+    // Zoom to Selection
+    (surface as? NlDesignSurface)?.let {
+      actionGroup.add(ZoomToSelectionAction(surface, sceneView))
+    }
+    // Jump to Definition
+    ((surface as? NlDesignSurface)?.navigationHandler as? ComposePreviewNavigationHandler)?.let {
+      actionGroup.add(JumpToDefinitionAction(surface, sceneManagerProvider, it, sceneView))
+    }
+    return actionGroup
+  }
 
   override fun getToolbarActions(selection: MutableList<NlComponent>): DefaultActionGroup =
     DefaultActionGroup()

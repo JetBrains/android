@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.RenderSession
-import com.android.tools.idea.compose.preview.navigation.parseViewInfo
+import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.compose.preview.renderer.createRenderTaskFuture
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance

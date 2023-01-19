@@ -41,7 +41,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :aarWrapperLib
         CONENT_ENTRY                  : file://<PROJECT>/aarWrapperLib
             EXCLUDE_FOLDER                : file://<PROJECT>/aarWrapperLib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/aarWrapperLib/build
@@ -65,8 +64,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/NonStandardSourceSetDependencies.app.iml [-]
@@ -93,7 +90,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
@@ -147,8 +143,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -295,7 +290,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/NonStandardSourceSetDependencies.app.main.iml [-]
@@ -429,7 +423,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -576,7 +569,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :common
         CONENT_ENTRY                  : file://<PROJECT>/common
             EXCLUDE_FOLDER                : file://<PROJECT>/common/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/common/build
@@ -629,7 +621,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -version
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :common
@@ -708,7 +700,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -version
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :common
@@ -737,7 +729,17 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
             Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.commonMain
+            Scope                         : Test
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.jvmMain
             Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -942,7 +944,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :desktop
         CONENT_ENTRY                  : file://<PROJECT>/desktop
             EXCLUDE_FOLDER                : file://<PROJECT>/desktop/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/desktop/build [-]
@@ -1133,8 +1134,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/feature-a
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/feature-a/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/feature-a/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/feature-a/NonStandardSourceSetDependencies.feature-a.iml [-]
@@ -1161,7 +1160,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :feature-a
         CONENT_ENTRY                  : file://<PROJECT>/feature-a
             EXCLUDE_FOLDER                : file://<PROJECT>/feature-a/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/feature-a/build [-]
@@ -1207,8 +1205,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/feature-a
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/feature-a/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/feature-a/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/feature-a/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -1389,7 +1386,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/feature-a/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/feature-a/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/feature-a/NonStandardSourceSetDependencies.feature-a.main.iml [-]
@@ -1537,7 +1533,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/feature-a
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/feature-a/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/feature-a/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -1714,8 +1709,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/feature-b
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/feature-b/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/feature-b/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/feature-b/NonStandardSourceSetDependencies.feature-b.iml [-]
@@ -1742,7 +1735,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :feature-b
         CONENT_ENTRY                  : file://<PROJECT>/feature-b
             EXCLUDE_FOLDER                : file://<PROJECT>/feature-b/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/feature-b/build [-]
@@ -1788,8 +1780,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/feature-b
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/feature-b/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/feature-b/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/feature-b/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -1965,7 +1956,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -version
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :feature-b
@@ -2042,7 +2033,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -version
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :feature-b
@@ -2070,6 +2061,14 @@ PROJECT                       : NonStandardSourceSetDependencies
             HomePath                      :  [-]
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.commonMain
             Scope                         : Test
@@ -2104,7 +2103,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/feature-b/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/feature-b/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/feature-b/NonStandardSourceSetDependencies.feature-b.main.iml [-]
@@ -2253,7 +2251,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/feature-b
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/feature-b/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/feature-b/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -2424,7 +2421,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :jarWrapperLib
         CONENT_ENTRY                  : file://<PROJECT>/jarWrapperLib
             EXCLUDE_FOLDER                : file://<PROJECT>/jarWrapperLib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/jarWrapperLib/build
@@ -2452,7 +2448,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :javaLibrary
         CONENT_ENTRY                  : file://<PROJECT>/javaLibrary
             EXCLUDE_FOLDER                : file://<PROJECT>/javaLibrary/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/javaLibrary/build
@@ -2739,7 +2734,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :kmp-java
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java
             EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/build [-]
@@ -2767,7 +2761,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :kmp-java:sample
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample
             EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/sample/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/sample/build [-]
@@ -2803,8 +2796,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/kmp-java/sample-test
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample-test/NonStandardSourceSetDependencies.kmp-java.sample-test.iml [-]
@@ -2831,7 +2822,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :kmp-java:sample-test
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test
             EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/sample-test/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/sample-test/build [-]
@@ -2877,8 +2867,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/kmp-java/sample-test
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -2973,7 +2962,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample-test/NonStandardSourceSetDependencies.kmp-java.sample-test.main.iml [-]
@@ -3067,7 +3055,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/kmp-java/sample-test
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -3175,7 +3162,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -version
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :kmp-java:sample
@@ -3254,7 +3241,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -version
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :kmp-java:sample
@@ -3283,7 +3270,17 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
             Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.kmp-java.sample.commonMain
+            Scope                         : Test
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.kmp-java.sample.jvmMain
             Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -3557,8 +3554,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/lib/NonStandardSourceSetDependencies.lib.iml [-]
@@ -3585,7 +3580,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :lib
         CONENT_ENTRY                  : file://<PROJECT>/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/build
@@ -3631,8 +3625,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -3791,7 +3784,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/lib/NonStandardSourceSetDependencies.lib.main.iml [-]
@@ -3912,7 +3904,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true

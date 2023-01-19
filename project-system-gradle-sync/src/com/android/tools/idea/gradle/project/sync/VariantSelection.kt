@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
+import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 
 internal sealed class SyncVariantResultCore(
@@ -61,7 +61,7 @@ internal class SyncVariantResultFailure(
 internal fun SyncVariantResultCoreSuccess.getModuleDependencyConfigurations(
   selectedVariants: SelectedVariants,
   androidModulesById: Map<String, AndroidModule>,
-  libraryResolver: (LibraryReference) -> IdeLibrary
+  libraryResolver: (LibraryReference) -> IdeUnresolvedLibrary
 ): List<ModuleConfiguration> {
   val selectedVariantDetails = selectedVariants.selectedVariants[moduleConfiguration.id]?.details
 
@@ -90,7 +90,7 @@ internal fun SyncVariantResultCoreSuccess.getModuleDependencyConfigurations(
     return ModuleConfiguration(dependencyModuleId, newSelectedVariantDetails.name, abiToPropagate)
   }
 
-  fun generateDirectModuleDependencies(libraryResolver: (LibraryReference) -> IdeLibrary): List<ModuleConfiguration> {
+  fun generateDirectModuleDependencies(libraryResolver: (LibraryReference) -> IdeUnresolvedLibrary): List<ModuleConfiguration> {
     return (ideVariant.mainArtifact.compileClasspathCore.dependencies
       + ideVariant.unitTestArtifact?.compileClasspathCore?.dependencies.orEmpty()
       + ideVariant.androidTestArtifact?.compileClasspathCore?.dependencies.orEmpty()

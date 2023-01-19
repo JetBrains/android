@@ -35,5 +35,5 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     api 'com.test.composite2:composite2:1.0'
-    api 'com.test.composite3:lib:1.0'
+    implementation 'com.test.composite3:lib:1.0'
 }

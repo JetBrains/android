@@ -37,6 +37,8 @@ PointerHelper::PointerHelper(Jni jni)
 
   pointer_coords_class_ = jni_.GetClass("android/view/MotionEvent$PointerCoords");
   pointer_coords_ctor_ = pointer_coords_class_.GetConstructorId("()V");
+  pointer_coords_set_axis_value_method_ = pointer_coords_class_.GetMethodId("setAxisValue", "(IF)V");
+  pointer_coords_clear_method_ = pointer_coords_class_.GetMethodId("clear", "()V");
   x_field_ = pointer_coords_class_.GetFieldId("x", "F");
   y_field_ = pointer_coords_class_.GetFieldId("y", "F");
   pressure_field_ = pointer_coords_class_.GetFieldId("pressure", "F");
@@ -86,6 +88,14 @@ void PointerHelper::SetPointerCoords(const JObject& pointer_coords, float x, flo
 
 void PointerHelper::SetPointerPressure(const JObject& pointer_coords, float pressure) {
   pointer_coords.SetFloatField(pressure_field_, pressure);
+}
+
+void PointerHelper::SetAxisValue(const JObject& pointer_coords, int32_t axis, float value) {
+  pointer_coords.CallVoidMethod(jni_, pointer_coords_set_axis_value_method_, axis, value);
+}
+
+void PointerHelper::ClearPointerCoords(const JObject& pointer_coords) {
+  pointer_coords.CallVoidMethod(jni_, pointer_coords_clear_method_);
 }
 
 }  // namespace screensharing

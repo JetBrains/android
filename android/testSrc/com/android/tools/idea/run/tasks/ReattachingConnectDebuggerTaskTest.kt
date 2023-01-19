@@ -115,7 +115,9 @@ class ReattachingConnectDebuggerTaskTest {
       firstStartDebugLatch.countDown()
     }
 
-    reattachingDebuggerTask.perform(device, APP_ID, executionEnvironment, androidProcessHandler)
+    reattachingDebuggerTask.perform(device, APP_ID, executionEnvironment, androidProcessHandler).then {
+      it.showSessionTab()
+    }
 
     if (!firstStartDebugLatch.await(20, TimeUnit.SECONDS)) {
       Assert.fail("First session tab wasn't open")

@@ -34,6 +34,8 @@ import com.intellij.CommonBundle
 import com.intellij.execution.runners.ExecutionUtil.getLiveIndicator
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.actionSystem.ActionToolbarPosition
+import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
@@ -49,7 +51,6 @@ import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.DimensionService
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.ui.AnActionButton
 import com.intellij.ui.BooleanTableCellEditor
 import com.intellij.ui.BooleanTableCellRenderer
 import com.intellij.ui.DoubleClickListener
@@ -887,15 +888,22 @@ internal class ManageSnapshotsDialog(
     }
   }
 
-  private inner class LoadSnapshotAction : AnActionButton("Load Snapshot", StudioIcons.Emulator.Snapshots.LOAD_SNAPSHOT) {
+  private inner class LoadSnapshotAction : AnAction("Load Snapshot", null, StudioIcons.Emulator.Snapshots.LOAD_SNAPSHOT) {
+
+    override fun getActionUpdateThread(): ActionUpdateThread {
+      return ActionUpdateThread.EDT
+    }
+
+    override fun update(event: AnActionEvent) {
+      val selectionModel = snapshotTable.selectionModel
+      val selectedObject = snapshotTable.selectedObject
+      // The Quickboot snapshot cannot be loaded because it uses file-based RAM that is being overwritten all the time.
+      event.presentation.isEnabled = selectionModel.isSingleItemSelected &&
+          !selectionModel.isSelectedIndex(QUICK_BOOT_SNAPSHOT_MODEL_ROW) && selectedObject!!.isCreated && selectedObject.isCompatible
+    }
 
     override fun actionPerformed(event: AnActionEvent) {
       loadSnapshot()
-    }
-
-    override fun isEnabled(): Boolean {
-      return super.isEnabled() && snapshotTable.selectionModel.isSingleItemSelected &&
-             snapshotTable.selectedObject!!.isCreated && snapshotTable.selectedObject!!.isCompatible
     }
   }
 

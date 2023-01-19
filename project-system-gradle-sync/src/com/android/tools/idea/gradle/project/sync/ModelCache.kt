@@ -33,7 +33,7 @@ import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.LegacyApplicationIdModel
 import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.android.tools.idea.gradle.model.IdeLibrary
+import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
@@ -56,7 +56,7 @@ import java.io.File
 import java.util.concurrent.locks.ReentrantLock
 
 interface ModelCache {
-  val libraryResolver: (LibraryReference) -> IdeLibrary
+  val libraryLookup: (LibraryReference) -> IdeUnresolvedLibrary
   fun createLibraryTable(): IdeUnresolvedLibraryTableImpl
 
   interface V1 : ModelCache {

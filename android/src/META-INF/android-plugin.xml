@@ -389,7 +389,6 @@
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType"/>
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidTileConfigurationType"/>
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType"/>
-    <programRunner implementation="com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner"/>
     <programRunner implementation="com.android.tools.idea.run.DefaultStudioProgramRunner" order="first"/>
     <facetType implementation="org.jetbrains.android.facet.AndroidFacetType"/>
     <facetType implementation="com.android.tools.idea.facet.AndroidArtifactFacetType"/>

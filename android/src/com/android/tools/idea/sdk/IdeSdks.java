@@ -616,9 +616,7 @@ public class IdeSdks {
   }
 
   /**
-   * Get JDK path based on the value of JAVA_HOME environment variable. If this variable is not defined or does not correspond to a valid
-   * JDK folder then look into java.home system property. This method will try to get the JAVA_HOME using the current environment,
-   * otherwise will use the system property
+   * Get JDK path from the JAVA_HOME environment variable if defined, otherwise try to obtain it from the java.home system property
    *
    * @return null if no JDK can be found, or the path where the JDK is located.
    */

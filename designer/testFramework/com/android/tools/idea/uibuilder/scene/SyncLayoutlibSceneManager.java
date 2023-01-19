@@ -30,11 +30,9 @@ import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
-import com.intellij.util.ui.UIUtil;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,6 +48,7 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
 
   private final Map<Object, Map<ResourceReference, ResourceValue>> myDefaultProperties;
   private boolean myIgnoreRenderRequests;
+  private boolean myIgnoreModelUpdateRequests;
 
   public SyncLayoutlibSceneManager(@NotNull DesignSurface<LayoutlibSceneManager> surface, @NotNull NlModel model) {
     super(
@@ -86,6 +85,14 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
     return result;
   }
 
+  public boolean getIgnoreModelUpdateRequests() {
+    return myIgnoreModelUpdateRequests;
+  }
+
+  public void setIgnoreModelUpdateRequests(boolean ignoreModelUpdateRequests) {
+    myIgnoreModelUpdateRequests = ignoreModelUpdateRequests;
+  }
+
   @NotNull
   @Override
   protected CompletableFuture<RenderResult> renderAsync(@Nullable LayoutEditorRenderResult.Trigger trigger) {
@@ -116,6 +123,9 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   @NotNull
   @Override
   public CompletableFuture<Void> updateModelAsync() {
+    if (myIgnoreModelUpdateRequests) {
+      return CompletableFuture.completedFuture(null);
+    }
     return waitForFutureWithoutBlockingUiThread(super.updateModelAsync());
   }
 

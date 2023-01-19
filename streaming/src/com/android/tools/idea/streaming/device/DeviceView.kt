@@ -31,6 +31,7 @@ import com.android.tools.idea.streaming.device.DeviceClient.AgentTerminationList
 import com.android.tools.idea.streaming.location
 import com.android.tools.idea.streaming.rotatedByQuadrants
 import com.android.tools.idea.streaming.scaled
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
@@ -66,6 +67,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.ui.UIUtil
+import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap
 import kotlinx.coroutines.launch
 import java.awt.Component
 import java.awt.Dimension
@@ -96,9 +98,11 @@ import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
+import java.awt.event.MouseWheelEvent
 import java.awt.geom.AffineTransform
 import java.util.concurrent.CancellationException
 import javax.swing.KeyStroke
+import kotlin.math.absoluteValue
 import kotlin.math.min
 
 /**
@@ -200,6 +204,7 @@ internal class DeviceView(
     val mouseListener = MyMouseListener()
     addMouseListener(mouseListener)
     addMouseMotionListener(mouseListener)
+    addMouseWheelListener(mouseListener)
 
     addKeyListener(MyKeyListener())
 
@@ -412,12 +417,12 @@ internal class DeviceView(
     }
   }
 
-  private fun sendMotionEvent(p: Point, action: Int) {
+  private fun sendMotionEvent(p: Point, action: Int, axisValues: Int2FloatOpenHashMap? = null) {
     val displayCoordinates = toDeviceDisplayCoordinates(p) ?: return
 
     if (displayCoordinates in deviceDisplaySize) {
       // Within the bounds of the device display.
-      sendMotionEventDisplayCoordinates(displayCoordinates, action)
+      sendMotionEventDisplayCoordinates(displayCoordinates, action, axisValues)
     }
     else if (action == MotionEventMessage.ACTION_MOVE) {
       // Crossed the device display boundary while dragging.
@@ -428,7 +433,7 @@ internal class DeviceView(
     }
   }
 
-  private fun sendMotionEventDisplayCoordinates(p: Point, action: Int) {
+  private fun sendMotionEventDisplayCoordinates(p: Point, action: Int, axisValues: Int2FloatOpenHashMap? = null) {
     if (!isConnected) {
       return
     }
@@ -436,14 +441,14 @@ internal class DeviceView(
       action == MotionEventMessage.ACTION_POINTER_DOWN || action == MotionEventMessage.ACTION_POINTER_UP ->
           MotionEventMessage(originalAndMirroredPointer(p),action or (1 shl MotionEventMessage.ACTION_POINTER_INDEX_SHIFT), displayId)
       multiTouchMode -> MotionEventMessage(originalAndMirroredPointer(p), action, displayId)
-      else -> MotionEventMessage(originalPointer(p), action, displayId)
+      else -> MotionEventMessage(originalPointer(p, axisValues), action, displayId)
     }
 
     deviceController?.sendControlMessage(message)
   }
 
-  private fun originalPointer(p: Point): List<MotionEventMessage.Pointer> {
-    return listOf(MotionEventMessage.Pointer(p.x, p.y, 0))
+  private fun originalPointer(p: Point, axisValues: Int2FloatOpenHashMap?): List<MotionEventMessage.Pointer> {
+    return listOf(MotionEventMessage.Pointer(p.x, p.y, 0, axisValues))
   }
 
   private fun originalAndMirroredPointer(p: Point): List<MotionEventMessage.Pointer> {
@@ -633,7 +638,6 @@ internal class DeviceView(
   }
 
   private inner class MyMouseListener : MouseAdapter() {
-
     override fun mousePressed(event: MouseEvent) {
       requestFocusInWindow()
       if (isInsideDisplay(event) && event.button == BUTTON1) {
@@ -677,6 +681,31 @@ internal class DeviceView(
       updateMultiTouchMode(event)
     }
 
+    override fun mouseWheelMoved(event: MouseWheelEvent) {
+      if (!isInsideDisplay(event)) return
+      // Java fakes shift being held down for horizontal scrolling.
+      val axis = if (event.isShiftDown) MotionEventMessage.AXIS_HSCROLL else MotionEventMessage.AXIS_VSCROLL
+      // Android scroll direction is reversed, but only vertically.
+      val direction = if ((axis == MotionEventMessage.AXIS_VSCROLL) xor (event.preciseWheelRotation > 0)) 1 else -1
+      // Behavior is undefined if we send a value outside [-1.0,1.0], so if we wind up with more than that, send it
+      // as multiple sequential MotionEvents.
+      // See https://developer.android.com/reference/android/view/MotionEvent#AXIS_HSCROLL and
+      // https://developer.android.com/reference/android/view/MotionEvent#AXIS_VSCROLL
+      var remainingRotation = event.getNormalizedScrollAmount()
+      while (remainingRotation > 0) {
+        val scrollAmount = remainingRotation.coerceAtMost(1.0f) * direction
+        val axisValues = Int2FloatOpenHashMap(1)
+        axisValues.put(axis, scrollAmount)
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_SCROLL, axisValues)
+        remainingRotation -= 1
+      }
+    }
+
+    private fun MouseWheelEvent.getNormalizedScrollAmount(): Float {
+      if (scrollType != MouseWheelEvent.WHEEL_UNIT_SCROLL) return 1.0f
+      return (preciseWheelRotation * scrollAmount).absoluteValue.toFloat() * ANDROID_SCROLL_ADJUSTMENT_FACTOR
+    }
+
     private fun updateMultiTouchMode(event: MouseEvent) {
       val oldMultiTouchMode = multiTouchMode
       multiTouchMode = isInsideDisplay(event) && (event.modifiersEx and CTRL_DOWN_MASK) != 0
@@ -684,5 +713,12 @@ internal class DeviceView(
         repaint() // If multi-touch mode changed above, the repaint method was already called.
       }
     }
+  }
+
+  companion object {
+    // This is how much we want to adjust the mouse scroll for Android. This number was chosen by
+    // trying different numbers until scrolling felt usable.
+    @VisibleForTesting
+    internal const val ANDROID_SCROLL_ADJUSTMENT_FACTOR = 0.125f
   }
 }

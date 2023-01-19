@@ -7,7 +7,7 @@
     ]]>
   </description>
   <category>Android</category>
-  <version>2022.3.1 Canary 1</version>
+  <version>2022.3.1 Canary 2</version>
   <vendor>JetBrains, Google</vendor>
   <depends>com.intellij.platform.images</depends>
   <depends>com.intellij.modules.java</depends>
@@ -51,7 +51,6 @@
   <xi:include href="/META-INF/intellij.android.device.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/logcat.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/intellij.android.device-file-explorer-toolwindow.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/intellij.android.device-monitor-toolwindow.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/intellij.android.device-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-npw.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-templates.xml" xpointer="xpointer(/idea-plugin/*)"/>

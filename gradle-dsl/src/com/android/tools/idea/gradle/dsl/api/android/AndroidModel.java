@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import org.jetbrains.annotations.Nullable;
 
 public interface AndroidModel extends GradleBlockModel {
   @NotNull
@@ -46,6 +47,9 @@ public interface AndroidModel extends GradleBlockModel {
 
   @NotNull
   BuildTypeModel addBuildType(@NotNull String buildType);
+
+  @NotNull
+  BuildTypeModel addBuildType(@NotNull String buildType, @NotNull BuildTypeModel initWith);
 
   void removeBuildType(@NotNull String buildType);
 
@@ -111,6 +115,9 @@ public interface AndroidModel extends GradleBlockModel {
 
   @NotNull
   ProductFlavorModel addProductFlavor(@NotNull String flavor);
+
+  @NotNull
+  ProductFlavorModel addProductFlavor(@NotNull String flavor, @NotNull ProductFlavorModel initWith);
 
   void removeProductFlavor(@NotNull String flavor);
 

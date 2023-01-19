@@ -143,11 +143,29 @@ class ResourceImportDialog(
       return
     }
     window.addWindowListener(object : WindowAdapter() {
+      // Check to avoid opening twice the asset manager when windowActivated is called twice
+      // to fix b/254689088
+      private var isWindowActive = false
+
+      // Sometimes windowActivated is triggered twice from the window listener.
+      // It seems a race condition issue from java.awt.Window
+      // when the synchronized addWindowListener is called.
       override fun windowActivated(e: WindowEvent?) {
-        dialogViewModel.importMoreAssetIfEmpty(this@ResourceImportDialog::addAssets)
-        // Remove the listener after the first call, otherwise it will be displayed
+        super.windowActivated(e)
+        if(!isWindowActive) {
+          isWindowActive = true
+          dialogViewModel.importMoreAssetIfEmpty { resourceSet, designAssets ->
+            this@ResourceImportDialog.addAssets(resourceSet, designAssets)
+          }
+        }
+      }
+
+      override fun windowClosed(e: WindowEvent?) {
+        // Remove the listener when the window is closed otherwise it will be displayed
         // each time the dialog has the focus.
         e?.window?.removeWindowListener(this)
+        isWindowActive = false
+        super.windowClosed(e)
       }
     })
   }
@@ -181,8 +199,10 @@ class ResourceImportDialog(
    * If a [DesignAssetSetView] already exists for [designAssetSet], merge the [newDesignAssets]
    * within this view, otherwise create a new [DesignAssetSetView].
    */
-  private fun addAssets(designAssetSet: ResourceAssetSet,
-                        newDesignAssets: List<DesignAsset>) {
+  private fun addAssets(
+    designAssetSet: ResourceAssetSet,
+    newDesignAssets: List<DesignAsset>
+  ) {
     val existingView = assetSetToView[designAssetSet]
     if (existingView != null) {
       newDesignAssets.forEach(existingView::addAssetView)
@@ -245,9 +265,11 @@ class ResourceImportDialog(
         .revalidate()
     }
 
-    val itemNumberLabel = JBLabel(dialogViewModel.getItemNumberString(assetSet),
-                                  UIUtil.ComponentStyle.SMALL,
-                                  UIUtil.FontColor.BRIGHTER)
+    val itemNumberLabel = JBLabel(
+      dialogViewModel.getItemNumberString(assetSet),
+      UIUtil.ComponentStyle.SMALL,
+      UIUtil.FontColor.BRIGHTER
+    )
 
     val fileViewContainer = JPanel(VerticalFlowLayout(true, false)).apply {
       assetSet.designAssets.forEach { asset ->

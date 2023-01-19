@@ -23,6 +23,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.idea.concurrency.AndroidExecutors
@@ -33,6 +34,7 @@ import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
+import com.android.tools.idea.streaming.device.DeviceView.Companion.ANDROID_SCROLL_ADJUSTMENT_FACTOR
 import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.executeDeviceAction
 import com.android.tools.idea.testing.AndroidExecutorsRule
@@ -63,12 +65,14 @@ import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ConcurrencyUtil
+import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -122,7 +126,7 @@ internal class DeviceViewTest {
   private val agentRule = FakeScreenSharingAgentRule()
   private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = Executors.newCachedThreadPool())
   @get:Rule
-  val ruleChain = RuleChain(agentRule, ClipboardSynchronizationDisablementRule(), androidExecutorsRule, EdtRule())
+  val ruleChain = RuleChain(ApplicationRule(), ClipboardSynchronizationDisablementRule(), androidExecutorsRule, agentRule, EdtRule())
   private lateinit var device: FakeScreenSharingAgentRule.FakeDevice
   private lateinit var view: DeviceView
   private lateinit var fakeUi: FakeUi
@@ -208,6 +212,27 @@ internal class DeviceViewTest {
       fakeUi.mouse.release()
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
           MotionEventMessage(listOf(expectedCoordinates[i * 2 + 1]), MotionEventMessage.ACTION_UP, 0))
+
+      fakeUi.mouse.wheel(60, 55, -1)  // Vertical scrolling is backward on Android
+      val verticalAxisValues = Int2FloatOpenHashMap(1).apply {
+        put(MotionEventMessage.AXIS_VSCROLL, ANDROID_SCROLL_ADJUSTMENT_FACTOR)
+      }
+      val verticalScrollPointer = expectedCoordinates[i * 2 + 1].copy(axisValues = verticalAxisValues)
+      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+        MotionEventMessage(listOf(verticalScrollPointer), MotionEventMessage.ACTION_SCROLL, 0)
+      )
+
+      // Java fakes horizontal scrolling by pretending shift was held down during the scroll.
+      fakeUi.keyboard.press(FakeKeyboard.Key.SHIFT)
+      fakeUi.mouse.wheel(60, 55, 1)
+      fakeUi.keyboard.release(FakeKeyboard.Key.SHIFT)
+      val horizontalAxisValues = Int2FloatOpenHashMap(1).apply {
+        put(MotionEventMessage.AXIS_HSCROLL, ANDROID_SCROLL_ADJUSTMENT_FACTOR)
+      }
+      val horizontalScrollPointer = expectedCoordinates[i * 2 + 1].copy(axisValues = horizontalAxisValues)
+      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+        MotionEventMessage(listOf(horizontalScrollPointer), MotionEventMessage.ACTION_SCROLL, 0)
+      )
 
       executeDeviceAction("android.device.rotate.left", view, project)
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetDeviceOrientationMessage((i + 1) % 4))
@@ -489,7 +514,7 @@ internal class DeviceViewTest {
       fakeUi.layoutAndDispatchEvents()
       val expected = when {
         view.displayOrientationQuadrants % 2 == 0 -> SetMaxVideoResolutionMessage(270, 586)
-        SystemInfo.isMac -> SetMaxVideoResolutionMessage(234, 372)
+        SystemInfo.isMac && !isRunningInBazelTest() -> SetMaxVideoResolutionMessage(234, 372)
         else -> SetMaxVideoResolutionMessage(234, 400)
       }
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(expected)
@@ -625,6 +650,10 @@ internal class DeviceViewTest {
   private fun FakeUi.resizeRoot(width: Int, height: Int) {
     root.size = Dimension(width, height)
     layoutAndDispatchEvents()
+  }
+
+  private fun isRunningInBazelTest(): Boolean {
+    return System.getenv().containsKey("TEST_WORKSPACE")
   }
 }
 

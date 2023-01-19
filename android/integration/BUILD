@@ -1,5 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
+load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
 
 # managed by go/iml_to_build
 iml_module(
@@ -32,7 +33,7 @@ open_project_data = select({
 }) + [
     ":minapp",
     ":openproject_deps",
-    "//tools/base/build-system:gradle-distrib-7.5",
+    INTEGRATION_TEST_GRADLE_VERSION,
 ]
 
 iml_test(
@@ -91,11 +92,10 @@ iml_test(
         "//prebuilts/studio/sdk:build-tools/30.0.3",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
-        "//tools/base/build-system:gradle-distrib-7.5",
+        INTEGRATION_TEST_GRADLE_VERSION,
         "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
     ],
     module = ":intellij.android.core.integration",
-    tags = ["manual"],  # ~40% flake rate due to b/245983885
     tags_linux = ["block-network"],
     tags_windows = [
         "block-network",
@@ -230,7 +230,7 @@ build_and_run_test_data = select({
     "//prebuilts/studio/sdk:build-tools/30.0.3",
     "//prebuilts/studio/sdk:emulator",
     "//prebuilts/studio/sdk:platform-tools",
-    "//tools/base/build-system:gradle-distrib-7.5",
+    INTEGRATION_TEST_GRADLE_VERSION,
     "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
 ]
 
@@ -341,7 +341,7 @@ iml_test(
         ":buildproject_deps",
         ":minapp",
         "//prebuilts/studio/sdk:build-tools/30.0.3",
-        "//tools/base/build-system:gradle-distrib-7.5",
+        INTEGRATION_TEST_GRADLE_VERSION,
     ],
     module = ":intellij.android.core.integration",
     tags_linux = ["block-network"],
@@ -394,6 +394,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.0-Beta",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.0-Beta",
     ],
+    visibility = ["//visibility:public"],
 )
 
 maven_repository(
@@ -422,6 +423,7 @@ maven_repository(
 filegroup(
     name = "minapp",
     srcs = glob(["testData/minapp/**"]),
+    visibility = ["//visibility:public"],
 )
 
 filegroup(

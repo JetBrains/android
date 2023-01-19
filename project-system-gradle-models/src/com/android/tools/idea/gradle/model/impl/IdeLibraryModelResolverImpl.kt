@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
 import com.android.tools.idea.gradle.model.IdeUnknownDependency
 import com.android.tools.idea.gradle.model.IdeUnknownLibrary
+import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedModuleLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import org.jetbrains.annotations.VisibleForTesting
@@ -35,18 +36,21 @@ import java.io.Serializable
 class IdeLibraryModelResolverImpl @VisibleForTesting constructor(
   private val libraryTable: (LibraryReference) -> Sequence<IdeLibrary>
 ) : IdeLibraryModelResolver {
+  @Deprecated("IdeDependency and subclasses will be removed", ReplaceWith("this.resolve(unresolved)"))
   override fun resolveAndroidLibrary(unresolved: IdeDependencyCore): Sequence<IdeAndroidLibraryDependency> {
     return libraryTable(unresolved.target)
       .filterIsInstance<IdeAndroidLibrary>()
       .map { IdeAndroidLibraryDependencyImpl(it) }
   }
 
+  @Deprecated("IdeDependency and subclasses will be removed", ReplaceWith("this.resolve(unresolved)"))
   override fun resolveJavaLibrary(unresolved: IdeDependencyCore): Sequence<IdeJavaLibraryDependency> {
     return libraryTable(unresolved.target)
       .filterIsInstance<IdeJavaLibrary>()
       .map { IdeJavaLibraryDependencyImpl(it) }
   }
 
+  @Deprecated("IdeDependency and subclasses will be removed", ReplaceWith("this.resolve(unresolved)"))
   override fun resolveModule(unresolved: IdeDependencyCore): Sequence<IdeModuleDependency> {
     return libraryTable(unresolved.target)
       .mapNotNull {
@@ -60,10 +64,15 @@ class IdeLibraryModelResolverImpl @VisibleForTesting constructor(
       .map(::IdeModuleDependencyImpl)
   }
 
+  @Deprecated("IdeDependency and subclasses will be removed", ReplaceWith("this.resolve(unresolved)"))
   override fun resolveUnknownLibrary(unresolved: IdeDependencyCore): Sequence<IdeUnknownDependency> {
     return libraryTable(unresolved.target)
       .filterIsInstance<IdeUnknownLibrary>()
       .map { IdeUnknownDependencyImpl(it) }
+  }
+
+  override fun resolve(unresolved: IdeDependencyCore): Sequence<IdeLibrary> {
+    return libraryTable(unresolved.target)
   }
 
   companion object {
@@ -75,7 +84,7 @@ class IdeLibraryModelResolverImpl @VisibleForTesting constructor(
 }
 
 interface IdeUnresolvedLibraryTable {
-  val libraries: List<IdeLibrary>
+  val libraries: List<IdeUnresolvedLibrary>
 }
 
 interface IdeResolvedLibraryTable {
@@ -83,7 +92,7 @@ interface IdeResolvedLibraryTable {
 }
 
 data class IdeUnresolvedLibraryTableImpl(
-  override val libraries: List<IdeLibrary>
+  override val libraries: List<IdeUnresolvedLibrary>
 ) : IdeUnresolvedLibraryTable, Serializable
 
 data class IdeResolvedLibraryTableImpl(

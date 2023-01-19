@@ -90,7 +90,7 @@ interface InspectorClient: Disposable {
   /**
    * Register a handler that is triggered when this client encounters an error message
    */
-  fun registerErrorCallback(callback: (String) -> Unit)
+  fun registerErrorCallback(callback: (String?, Throwable?) -> Unit)
 
   /**
    * Register a handler that is triggered when this client receives an event containing the changed
@@ -240,7 +240,7 @@ object DisconnectedClient : InspectorClient {
   override fun disconnect() {}
 
   override fun registerStateCallback(callback: (InspectorClient.State) -> Unit) = Unit
-  override fun registerErrorCallback(callback: (String) -> Unit) = Unit
+  override fun registerErrorCallback(callback: (String?, Throwable?) -> Unit) = Unit
   override fun registerRootsEventCallback(callback: (List<*>) -> Unit) = Unit
   override fun registerTreeEventCallback(callback: (Any) -> Unit) = Unit
   override fun registerConnectionTimeoutCallback(callback: (AttachErrorState) -> Unit) = Unit
@@ -295,6 +295,7 @@ private object DisconnectedSessionStatistics : SessionStatistics {
   override fun attachError(errorState: AttachErrorState?, errorCode: AttachErrorCode) {}
   override fun composeAttachError(errorCode: AttachErrorCode) {}
   override fun frameReceived() {}
+  override fun debuggerInUse(isPaused: Boolean) {}
 
   override var currentModeIsLive: Boolean = false
   override var currentMode3D: Boolean = false

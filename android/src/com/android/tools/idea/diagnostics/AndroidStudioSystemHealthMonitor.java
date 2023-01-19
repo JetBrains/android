@@ -699,7 +699,7 @@ public final class AndroidStudioSystemHealthMonitor {
 
   private void warnIfOpenJDK() {
     if (StringUtil.containsIgnoreCase(System.getProperty("java.vm.name", ""), "OpenJDK") &&
-        !SystemInfo.isJetBrainsJvm && !SystemInfo.isStudioJvm) {
+        !SystemInfo.isJetBrainsJvm) {
       showNotification("unsupported.jvm.openjdk.message", null);
     }
   }

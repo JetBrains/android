@@ -19,7 +19,6 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.profiler.proto.Commands

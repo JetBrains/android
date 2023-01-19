@@ -51,6 +51,8 @@ class SessionStatisticsTest {
     assertThat(result.hasAttach()).isTrue() // except for attach data
     assertThat(result.attach.clientType).isEqualTo(APP_INSPECTION_CLIENT)
     assertThat(result.attach.multipleProjectsOpen).isFalse()
+    assertThat(result.attach.debuggerAttached).isFalse()
+    assertThat(result.attach.debuggerPausedDuringAttach).isFalse()
   }
 
   @Test
@@ -74,6 +76,7 @@ class SessionStatisticsTest {
     stats.frameReceived()
     stats.gotoSourceFromDoubleClick()
     stats.selectionMadeFromComponentTree(compose1)
+    stats.debuggerInUse(false)
 
     val data = DynamicLayoutInspectorSession.newBuilder()
     stats.save(data)
@@ -95,6 +98,8 @@ class SessionStatisticsTest {
     assertThat(result.attach.clientType).isEqualTo(APP_INSPECTION_CLIENT)
     assertThat(result.attach.success).isTrue()
     assertThat(result.attach.multipleProjectsOpen).isTrue()
+    assertThat(result.attach.debuggerAttached).isTrue()
+    assertThat(result.attach.debuggerPausedDuringAttach).isFalse()
   }
 
   @Test

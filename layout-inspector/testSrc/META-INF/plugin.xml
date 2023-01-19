@@ -21,5 +21,6 @@
   <xi:include href="/META-INF/android-adb.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/pipeline.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/project-system-gradle-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/layout-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

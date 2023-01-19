@@ -192,14 +192,20 @@ class LegacyCpuTraceCommandHandlerTest {
       pid = testPid
       type = Commands.Command.CommandType.START_TRACE
       commandId = testCommandId
-      startTrace = Trace.StartTrace.newBuilder().setConfiguration(TRACE_CONFIG).build()
+      startTrace = Trace.StartTrace.newBuilder()
+        .setProfilerType(Trace.ProfilerType.CPU)
+        .setConfiguration(TRACE_CONFIG)
+        .build()
     }.build()
 
     fun buildStopCommand(testPid: Int, testCommandId: Int): Commands.Command = Commands.Command.newBuilder().apply {
       pid = testPid
       type = Commands.Command.CommandType.STOP_TRACE
       commandId = testCommandId
-      stopTrace = Trace.StopTrace.newBuilder().setConfiguration(TRACE_CONFIG).build()
+      stopTrace = Trace.StopTrace.newBuilder()
+        .setProfilerType(Trace.ProfilerType.CPU)
+        .setConfiguration(TRACE_CONFIG)
+        .build()
     }.build()
   }
 }

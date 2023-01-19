@@ -16,9 +16,9 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.adtui.actions.DropDownAction
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.Presentation
 import icons.StudioIcons
 
 
@@ -46,19 +46,15 @@ class ConfigurationSetMenuAction(private val listener: ConfigurationSetListener,
   override fun displayTextInToolbar() = true
 
   override fun update(e: AnActionEvent) {
-    updatePresentation(e.presentation)
+    e.presentation.text = currentConfigurationSet.name
   }
 
-  private fun updatePresentation(presentation: Presentation) {
-    presentation.text = currentConfigurationSet.name
-  }
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   private fun selectConfigurationSet(newSet: ConfigurationSet) {
     if (newSet !== currentConfigurationSet) {
       currentConfigurationSet = newSet
-      updatePresentation(templatePresentation)
       listener.onSelectedConfigurationSetChanged(newSet)
-      getChildren(null).mapNotNull { it as? SetConfigurationSetAction }.forEach { it.updatePresentation() }
     }
   }
 
@@ -71,8 +67,10 @@ class ConfigurationSetMenuAction(private val listener: ConfigurationSetListener,
       selectConfigurationSet(configurationSet)
     }
 
-    fun updatePresentation() {
-      templatePresentation.icon = if (currentConfigurationSet === configurationSet) StudioIcons.Common.CHECKED else null
+    override fun update(e: AnActionEvent) {
+      e.presentation.icon = if (currentConfigurationSet.id === configurationSet.id) StudioIcons.Common.CHECKED else null
     }
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
   }
 }

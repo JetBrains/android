@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeApiVersion
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeBaseConfig
 import com.android.tools.idea.gradle.model.IdeBasicVariant
@@ -33,6 +34,8 @@ import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeJavaCompileOptions
 import com.android.tools.idea.gradle.model.IdeLintOptions
 import com.android.tools.idea.gradle.model.IdeModelSyncFile
+import com.android.tools.idea.gradle.model.IdeModuleLibrary
+import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
 import com.android.tools.idea.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
 import com.android.tools.idea.gradle.model.IdeSigningConfig
@@ -40,6 +43,8 @@ import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant
+import com.android.tools.idea.gradle.model.IdeUnknownLibrary
+import com.android.tools.idea.gradle.model.IdeUnresolvedModuleLibrary
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.gradle.model.IdeViewBindingOptions
@@ -179,18 +184,6 @@ private val jbModelDumpers = listOf(
     )
   },
   SpecializedDumper(property = CommonCompilerArguments::pluginOptions) {
-  },
-  SpecializedDumper(property = IdeDependencies::androidLibraries) {
-    prop(propertyName, it.asUnordered())
-  },
-  SpecializedDumper(property = IdeDependencies::javaLibraries) {
-    prop(propertyName, it.asUnordered())
-  },
-  SpecializedDumper(property = IdeDependencies::moduleDependencies) {
-    prop(propertyName, it.asUnordered())
-  },
-  SpecializedDumper(property = IdeDependencies::unknownDependencies) {
-    prop(propertyName, it.asUnordered())
   },
   SpecializedDumper(property = KotlinMPPGradleModel::kotlinNativeHome) {
     // Do nothing as it is a machine specific path to `~/.konan` directory, where `~` is the true user home path rather than the one used
@@ -391,8 +384,8 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       }
       head("Dependencies")
       nest {
-        modelDumper.dumpModel(this@with, "compileClasspath", ideBaseArtifact.compileClasspath)
-        modelDumper.dumpModel(this@with, "runtimeClasspath", ideBaseArtifact.runtimeClasspath)
+        modelDumper.dumpModel(this@with, "compileClasspath", ideBaseArtifact.compileClasspath.libraries.asUnordered())
+        modelDumper.dumpModel(this@with, "runtimeClasspath", ideBaseArtifact.runtimeClasspath.libraries)
       }
       val runtimeNames =
         (ideBaseArtifact.runtimeClasspath.androidLibraries + ideBaseArtifact.runtimeClasspath.javaLibraries).map { it.target.name }.toSet()

@@ -17,11 +17,11 @@ package com.android.tools.idea.compose.gradle.renderer
 
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.navigation.PreviewNavigationTest
+import com.android.tools.idea.compose.preview.ComposeViewInfo
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
-import com.android.tools.idea.compose.preview.navigation.ComposeViewInfo
-import com.android.tools.idea.compose.preview.navigation.parseViewInfo
 import com.android.tools.idea.compose.preview.navigation.remapInline
+import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.intellij.openapi.application.ReadAction

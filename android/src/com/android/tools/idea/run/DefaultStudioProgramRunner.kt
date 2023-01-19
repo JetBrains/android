@@ -17,6 +17,11 @@ package com.android.tools.idea.run
 
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
+import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
+import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
+import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.configurations.RunProfile
@@ -28,7 +33,7 @@ import com.intellij.openapi.project.Project
  * [com.intellij.execution.runners.ProgramRunner] for the default [com.intellij.execution.Executor]
  * [com.intellij.openapi.actionSystem.AnAction], such as [DefaultRunExecutor] and [DefaultDebugExecutor].
  */
-class DefaultStudioProgramRunner : StudioProgramRunner {
+class DefaultStudioProgramRunner : AndroidConfigurationProgramRunner {
   constructor()
 
   @VisibleForTesting
@@ -45,4 +50,12 @@ class DefaultStudioProgramRunner : StudioProgramRunner {
   override fun canRunWithMultipleDevices(executorId: String): Boolean {
     return DefaultRunExecutor.EXECUTOR_ID == executorId
   }
+
+  override val supportedConfigurationTypeIds = listOf(
+    AndroidRunConfigurationType().id,
+    AndroidTestRunConfigurationType().id,
+    AndroidComplicationConfigurationType().id,
+    AndroidWatchFaceConfigurationType().id,
+    AndroidTileConfigurationType().id,
+  )
 }

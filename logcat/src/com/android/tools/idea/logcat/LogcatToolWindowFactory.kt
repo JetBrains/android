@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat
 
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
+import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.isAndroidEnvironment
@@ -86,7 +87,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
       val name = if (applicationId == null) deviceInfo.id else "$applicationId (${deviceInfo.id})"
 
       val device = runCatching {
-        DeviceFactory(toolWindow.project).createDevice(deviceInfo.serialNumber)
+        DeviceFactory(AdbLibService.getSession(toolWindow.project).deviceServices).createDevice(deviceInfo.serialNumber)
       }.getOrDefault(deviceInfo.toOfflineDevice())
       withContext(uiThread) {
         insideShowLogcatListener = true

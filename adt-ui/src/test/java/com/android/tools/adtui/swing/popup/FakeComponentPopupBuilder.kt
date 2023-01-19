@@ -88,6 +88,8 @@ open class FakeComponentPopupBuilder(
 
   override fun setAdText(text: String?, textAlignment: Int) = this
 
+  override fun setAdvertiser(advertiser: JComponent?) = this
+
   override fun setRequestFocusCondition(project: Project, condition: Condition<in Project>) = this
 
   override fun setLocateByContent(byContent: Boolean) = this

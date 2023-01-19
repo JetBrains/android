@@ -34,6 +34,7 @@ import java.awt.Component
 import java.awt.Dimension
 import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
+import javax.swing.JComponent
 import javax.swing.KeyStroke
 
 open class FakeComponentPopupBuilder : ComponentPopupBuilder {
@@ -73,6 +74,8 @@ open class FakeComponentPopupBuilder : ComponentPopupBuilder {
   override fun setAdText(text: String?) = this
 
   override fun setAdText(text: String?, textAlignment: Int) = this
+
+  override fun setAdvertiser(advertiser: JComponent?) = this
 
   override fun setRequestFocusCondition(project: Project, condition: Condition<in Project>) = this
 

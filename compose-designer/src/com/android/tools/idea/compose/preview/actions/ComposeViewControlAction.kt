@@ -63,6 +63,8 @@ class ComposeViewControlAction(
     add(WrappedZoomAction(ZoomOutAction.getInstance(), context))
     add(WrappedZoomAction(ZoomActualAction.getInstance(), context, "Zoom to 100%"))
     // TODO(263038548): Implement Zoom-to-selection when preview is selectable.
+    addSeparator()
+    add(ShowInspectionTooltipsAction(context))
     if (StudioFlags.COMPOSE_COLORBLIND_MODE.get()) {
       (context.getData(DESIGN_SURFACE) as? NlDesignSurface)?.let { surface ->
         addSeparator()

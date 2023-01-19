@@ -98,7 +98,7 @@ class ComposeProximityWeigherTest {
       """.trimIndent()
     )
 
-    val action = myFixture.getIntentionAction("Import")!!
+    val action = myFixture.getIntentionAction("Import class 'Modifier'")!!
     runInEdt {
       action.invoke(myFixture.project, myFixture.editor, psiFile)
     }
@@ -170,7 +170,7 @@ class ComposeProximityWeigherTest {
       """.trimIndent()
     )
 
-    val action = myFixture.getIntentionAction("Import")!!
+    val action = myFixture.getIntentionAction("Import class 'Color'")!!
     runInEdt {
       action.invoke(myFixture.project, myFixture.editor, psiFile)
     }

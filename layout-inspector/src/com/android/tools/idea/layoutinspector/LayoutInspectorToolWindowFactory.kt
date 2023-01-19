@@ -110,7 +110,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     val content = contentManager.factory.createContent(contentPanel, "", true)
     contentManager.addContent(content)
 
-    TransportErrorListener(project, LayoutInspectorMetrics)
+    TransportErrorListener(project, LayoutInspectorMetrics, toolWindow.disposable)
 
     workbench.showLoading("Initializing ADB")
     AndroidExecutors.getInstance().workerThreadExecutor.execute {

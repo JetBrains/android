@@ -37,8 +37,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/app/TestCompositeLib1.app.iml [-]
@@ -65,7 +63,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/app/build [-]
@@ -119,8 +116,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -309,9 +305,6 @@ PROJECT                       : project
         ORDER_ENTRY                   : compositeNest.main
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debugUnitTest/classes
-            -                             : file://<PROJECT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugUnitTest
-            -                             : jar://<PROJECT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
             -                             : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debugAndroidTest/classes
             -                             : file://<PROJECT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugAndroidTest
             -                             : jar://<PROJECT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
@@ -361,7 +354,6 @@ PROJECT                       : project
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/app/TestCompositeLib1.app.main.iml [-]
@@ -552,7 +544,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -740,10 +731,6 @@ PROJECT                       : project
             -                             : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debugUnitTest/classes
             -                             : file://<PROJECT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugUnitTest
             -                             : jar://<PROJECT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
-            -                             : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debugAndroidTest/classes
-            -                             : file://<PROJECT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugAndroidTest
-            -                             : jar://<PROJECT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
-            -                             : file://<PROJECT>/TestCompositeLib1/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources
@@ -789,8 +776,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/lib/TestCompositeLib1.lib.iml [-]
@@ -817,7 +802,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :lib
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/lib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/lib/build [-]
@@ -863,8 +847,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -1045,9 +1028,6 @@ PROJECT                       : project
         ORDER_ENTRY                   : composite4.main
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debugUnitTest/classes
-            -                             : file://<PROJECT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugUnitTest
-            -                             : jar://<PROJECT>/TestCompositeLib1/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar!/
             -                             : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debugAndroidTest/classes
             -                             : file://<PROJECT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugAndroidTest
             -                             : jar://<PROJECT>/TestCompositeLib1/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
@@ -1089,7 +1069,6 @@ PROJECT                       : project
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/lib/TestCompositeLib1.lib.main.iml [-]
@@ -1268,7 +1247,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -1448,10 +1426,6 @@ PROJECT                       : project
             -                             : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debugUnitTest/classes
             -                             : file://<PROJECT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugUnitTest
             -                             : jar://<PROJECT>/TestCompositeLib1/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar!/
-            -                             : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debugAndroidTest/classes
-            -                             : file://<PROJECT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugAndroidTest
-            -                             : jar://<PROJECT>/TestCompositeLib1/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
-            -                             : file://<PROJECT>/TestCompositeLib1/lib/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources
@@ -1513,8 +1487,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/app/TestCompositeLib3.app.iml [-]
@@ -1541,7 +1513,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/app/build [-]
@@ -1595,8 +1566,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -1781,9 +1751,6 @@ PROJECT                       : project
         ORDER_ENTRY                   : composite4.main
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debugUnitTest/classes
-            -                             : file://<PROJECT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugUnitTest
-            -                             : jar://<PROJECT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
             -                             : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debugAndroidTest/classes
             -                             : file://<PROJECT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugAndroidTest
             -                             : jar://<PROJECT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
@@ -1833,7 +1800,6 @@ PROJECT                       : project
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/app/TestCompositeLib3.app.main.iml [-]
@@ -2022,7 +1988,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -2206,10 +2171,6 @@ PROJECT                       : project
             -                             : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debugUnitTest/classes
             -                             : file://<PROJECT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugUnitTest
             -                             : jar://<PROJECT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
-            -                             : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debugAndroidTest/classes
-            -                             : file://<PROJECT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugAndroidTest
-            -                             : jar://<PROJECT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
-            -                             : file://<PROJECT>/TestCompositeLib3/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources
@@ -2255,8 +2216,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/lib/TestCompositeLib3.lib.iml [-]
@@ -2283,7 +2242,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :lib
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/lib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/lib/build [-]
@@ -2329,8 +2287,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -2451,8 +2408,6 @@ PROJECT                       : project
         ORDER_ENTRY                   : composite4.main
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debugUnitTest/classes
-            -                             : jar://<PROJECT>/TestCompositeLib3/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar!/
             -                             : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debugAndroidTest/classes
             -                             : jar://<PROJECT>/TestCompositeLib3/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
             -                             : file://<PROJECT>/TestCompositeLib3/lib/build/generated/res/resValues/androidTest/debug
@@ -2493,7 +2448,6 @@ PROJECT                       : project
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/lib/TestCompositeLib3.lib.main.iml [-]
@@ -2618,7 +2572,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -2737,9 +2690,6 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debugUnitTest/classes
             -                             : jar://<PROJECT>/TestCompositeLib3/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar!/
-            -                             : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debugAndroidTest/classes
-            -                             : jar://<PROJECT>/TestCompositeLib3/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
-            -                             : file://<PROJECT>/TestCompositeLib3/lib/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
@@ -2781,7 +2731,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/build
@@ -2899,7 +2848,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib2
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib2/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib2/build
@@ -3017,7 +2965,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib4
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib4/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib4/build
@@ -3135,7 +3082,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/build
@@ -3272,8 +3218,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.iml [-]
@@ -3300,7 +3244,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
@@ -3354,8 +3297,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -3533,8 +3475,6 @@ PROJECT                       : project
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib1.lib.main
             Scope                         : Test
-        ORDER_ENTRY                   : TestCompositeLib3.lib.main
-            Scope                         : Test
         ORDER_ENTRY                   : composite2.main
             Scope                         : Test
         ORDER_ENTRY                   : composite4.main
@@ -3546,9 +3486,6 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.lib.main
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes
-            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugUnitTest
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugAndroidTest
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
@@ -3598,7 +3535,6 @@ PROJECT                       : project
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.main.iml [-]
@@ -3736,7 +3672,6 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         ORDER_ENTRY                   : TestCompositeLib1.lib.main
-        ORDER_ENTRY                   : TestCompositeLib3.lib.main
         ORDER_ENTRY                   : composite2.main
         ORDER_ENTRY                   : composite4.main
         ORDER_ENTRY                   : compositeNest.main
@@ -3790,7 +3725,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -3964,8 +3898,6 @@ PROJECT                       : project
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib1.lib.main
             Scope                         : Test
-        ORDER_ENTRY                   : TestCompositeLib3.lib.main
-            Scope                         : Test
         ORDER_ENTRY                   : composite2.main
             Scope                         : Test
         ORDER_ENTRY                   : composite4.main
@@ -3980,10 +3912,6 @@ PROJECT                       : project
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugUnitTest
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
-            -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes
-            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugAndroidTest
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
-            -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -4029,8 +3957,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/lib/project.lib.iml [-]
@@ -4057,7 +3983,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :lib
         CONENT_ENTRY                  : file://<PROJECT>/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/build [-]
@@ -4103,8 +4028,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -4279,9 +4203,6 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.lib.main
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes
-            -                             : file://<PROJECT>/lib/build/tmp/kotlin-classes/debugUnitTest
-            -                             : jar://<PROJECT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar!/
             -                             : file://<PROJECT>/lib/build/intermediates/javac/debugAndroidTest/classes
             -                             : file://<PROJECT>/lib/build/tmp/kotlin-classes/debugAndroidTest
             -                             : jar://<PROJECT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
@@ -4323,7 +4244,6 @@ PROJECT                       : project
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/lib/project.lib.main.iml [-]
@@ -4499,7 +4419,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -4673,10 +4592,6 @@ PROJECT                       : project
             -                             : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes
             -                             : file://<PROJECT>/lib/build/tmp/kotlin-classes/debugUnitTest
             -                             : jar://<PROJECT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar!/
-            -                             : file://<PROJECT>/lib/build/intermediates/javac/debugAndroidTest/classes
-            -                             : file://<PROJECT>/lib/build/tmp/kotlin-classes/debugAndroidTest
-            -                             : jar://<PROJECT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
-            -                             : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources

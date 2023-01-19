@@ -21,8 +21,6 @@ import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisti
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
 import com.android.tools.idea.util.ListenerCollection
-import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.openapi.Disposable
@@ -61,7 +59,7 @@ abstract class AbstractInspectorClient(
     }
 
   private val stateCallbacks = ListenerCollection.createWithDirectExecutor<(InspectorClient.State) -> Unit>()
-  private val errorCallbacks = ListenerCollection.createWithDirectExecutor<(String) -> Unit>()
+  private val errorCallbacks = ListenerCollection.createWithDirectExecutor<(String?, Throwable?) -> Unit>()
   private val rootsEventCallbacks = ListenerCollection.createWithDirectExecutor<(List<*>) -> Unit>()
   private val treeEventCallbacks = ListenerCollection.createWithDirectExecutor<(Any) -> Unit>()
   private val attachStateListeners = ListenerCollection.createWithDirectExecutor<(DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit>()
@@ -77,7 +75,7 @@ abstract class AbstractInspectorClient(
     stateCallbacks.add(callback)
   }
 
-  final override fun registerErrorCallback(callback: (String) -> Unit) {
+  final override fun registerErrorCallback(callback: (String?, Throwable?) -> Unit) {
     errorCallbacks.add(callback)
   }
 
@@ -103,8 +101,8 @@ abstract class AbstractInspectorClient(
   /**
    * Fire relevant callbacks registered with [registerErrorCallback], if present
    */
-  protected fun fireError(error: String) {
-    errorCallbacks.forEach { callback -> callback(error) }
+  protected fun fireError(error: String?, ex: Throwable?) {
+    errorCallbacks.forEach { callback -> callback(error, ex) }
   }
 
   protected fun fireRootsEvent(roots: List<*>) {

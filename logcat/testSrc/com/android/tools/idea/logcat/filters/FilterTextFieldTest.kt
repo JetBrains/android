@@ -464,6 +464,11 @@ class FilterTextFieldTest {
   ) =
     FilterTextField(project, logcatPresenter, filterParser, initialText, androidProjectDetector).apply {
       addNotify()  // Creates editor
+      Disposer.register(disposableRule.disposable) {
+        runInEdtAndWait {
+          removeNotify()
+        }
+      }
       size = Dimension(100, 100) // Allows FakeUi mouse clicks
     }
 

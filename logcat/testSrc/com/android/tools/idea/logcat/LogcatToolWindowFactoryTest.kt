@@ -15,28 +15,25 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.adblib.DeviceSelector
-import com.android.adblib.DeviceState
-import com.android.adblib.testing.FakeAdbSession
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
-import com.android.tools.idea.adblib.AdbLibService
-import com.android.tools.idea.adblib.testing.TestAdbLibService
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
+import com.android.tools.idea.logcat.devices.Device
+import com.android.tools.idea.logcat.devices.DeviceComboBoxDeviceTrackerFactory
+import com.android.tools.idea.logcat.devices.FakeDeviceComboBoxDeviceTracker
 import com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.LogcatColorSettingsPage
 import com.android.tools.idea.logcat.messages.TagFormat
 import com.android.tools.idea.logcat.service.LogcatService
-import com.android.tools.idea.logcat.testing.TestDevice
-import com.android.tools.idea.logcat.testing.setupCommandsForDevice
 import com.android.tools.idea.run.ShowLogcatListener
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.PhysicalDeviceInfo
+import com.android.tools.idea.testing.ProjectServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -65,14 +62,19 @@ class LogcatToolWindowFactoryTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
 
+  private val deviceTracker = FakeDeviceComboBoxDeviceTracker()
+
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule(), disposableRule)
+  val rule = RuleChain(
+    projectRule,
+    ProjectServiceRule(projectRule, DeviceComboBoxDeviceTrackerFactory::class.java, DeviceComboBoxDeviceTrackerFactory { deviceTracker }),
+    EdtRule(),
+    disposableRule)
 
   private val project get() = projectRule.project
   private val disposable get() = disposableRule.disposable
   private val settings = LogcatExperimentalSettings()
   private val mockProcessNameMonitor = mock<ProcessNameMonitor>()
-  private val fakeAdbSession = FakeAdbSession()
   private val fakeLogcatService = FakeLogcatService()
 
   @Before
@@ -186,9 +188,7 @@ class LogcatToolWindowFactoryTest {
   fun showLogcat_opensLogcatPanel() {
     val toolWindow = MockToolWindow(project)
     logcatToolWindowFactory().init(toolWindow)
-    val device = TestDevice("device1", DeviceState.ONLINE, "11", 30, "manufacturer1", "model1")
-    fakeAdbSession.deviceServices.setupCommandsForDevice(device)
-    fakeAdbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber("device1"), "logcat -v long -v epoch", "")
+    deviceTracker.addDevices(Device.createPhysical("device1", true, "11", 30, "Google", "Pixel"))
 
     project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(
       PhysicalDeviceInfo("device1", "11", 30, "Google", "Pixel"),
@@ -208,10 +208,8 @@ class LogcatToolWindowFactoryTest {
 
   private fun logcatToolWindowFactory(
     processNameMonitor: ProcessNameMonitor = mockProcessNameMonitor,
-    adbSession: FakeAdbSession = fakeAdbSession,
   ): LogcatToolWindowFactory {
     project.registerOrReplaceServiceInstance(ProcessNameMonitor::class.java, processNameMonitor, disposable)
-    project.registerOrReplaceServiceInstance(AdbLibService::class.java, TestAdbLibService(adbSession), disposable)
     return LogcatToolWindowFactory()
   }
 }

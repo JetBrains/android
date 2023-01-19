@@ -51,6 +51,7 @@ import com.android.tools.idea.layoutinspector.properties.PropertyType.COLOR
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.namespacing
+import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.res.ResourceNamespaceContext
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.StateList
@@ -93,7 +94,7 @@ import javax.swing.Icon
  */
 fun findFacetFromPackage(project: Project, packageName: String): AndroidFacet? {
   return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).firstOrNull {
-    AndroidModel.get(it)?.allApplicationIds?.contains(packageName) ?: false
+    it.module.isMainModule() && AndroidModel.get(it)?.allApplicationIds?.contains(packageName) ?: false
   }
 }
 

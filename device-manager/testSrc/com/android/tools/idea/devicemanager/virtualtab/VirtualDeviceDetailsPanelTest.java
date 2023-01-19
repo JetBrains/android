@@ -26,6 +26,7 @@ import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.InfoSection;
 import com.android.tools.idea.devicemanager.StorageDevice;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceDetailsPanel.SummarySection;
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import java.nio.file.Paths;
@@ -41,6 +42,7 @@ import org.mockito.Mockito;
 @RunWith(JUnit4.class)
 public final class VirtualDeviceDetailsPanelTest {
   private final @NotNull AvdInfo myAvd = Mockito.mock(AvdInfo.class);
+  private final @NotNull WearPairingManager myManager = Mockito.mock(WearPairingManager.class);
 
   @Test
   public void initSummarySection() throws Exception {
@@ -66,7 +68,8 @@ public final class VirtualDeviceDetailsPanelTest {
     // Act
     VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(virtualDevice,
                                                                     builder,
-                                                                    section -> newSummarySectionCallback(section, latch));
+                                                                    section -> newSummarySectionCallback(section, latch),
+                                                                    myManager);
 
     // Assert
     CountDownLatchAssert.await(latch);
@@ -80,8 +83,8 @@ public final class VirtualDeviceDetailsPanelTest {
     assertEquals("5,333 MB", section.myAvailableStorageLabel.getText());
   }
 
-  private static @NotNull FutureCallback<Device> newSummarySectionCallback(@NotNull SummarySection section,
-                                                                                    @NotNull CountDownLatch latch) {
+  @NotNull
+  private static FutureCallback<Device> newSummarySectionCallback(@NotNull SummarySection section, @NotNull CountDownLatch latch) {
     return new CountDownLatchFutureCallback<>(VirtualDeviceDetailsPanel.newSummarySectionCallback(section), latch);
   }
 
@@ -99,7 +102,8 @@ public final class VirtualDeviceDetailsPanelTest {
     // Act
     VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(virtualDevice,
                                                                     builder,
-                                                                    VirtualDeviceDetailsPanel::newSummarySectionCallback);
+                                                                    VirtualDeviceDetailsPanel::newSummarySectionCallback,
+                                                                    myManager);
 
     // Assert
     assert panel.getSummarySection().myErrorLabel != null;
@@ -121,7 +125,8 @@ public final class VirtualDeviceDetailsPanelTest {
     // Act
     VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(virtualDevice,
                                                                     builder,
-                                                                    VirtualDeviceDetailsPanel::newSummarySectionCallback);
+                                                                    VirtualDeviceDetailsPanel::newSummarySectionCallback,
+                                                                    myManager);
 
     // Assert
     InfoSection section = panel.getPropertiesSection();

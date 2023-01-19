@@ -81,7 +81,7 @@ class WarningsPageView(
     layout = HorizontalLayout(10)
 
     add(groupingCheckBox)
-    add(warningsFilterComponent(model, actionHandlers))
+    add(warningsFilterComponent(model, actionHandlers, disposable))
   }
 
   val tree = Tree(DefaultTreeModel(model.treeRoot)).apply {
@@ -160,7 +160,7 @@ class WarningsPageView(
 
   init {
     updateViewFromModel(true)
-    model.addModelUpdatedListener(this::updateViewFromModel)
+    model.addModelUpdatedListener(disposable, this::updateViewFromModel)
   }
 
   private fun updateViewFromModel(treeStructureChanged: Boolean) {

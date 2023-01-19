@@ -60,7 +60,8 @@ open class GradleFileModelTestCase {
   protected lateinit var buildFile: VirtualFile
   protected lateinit var settingsFile: VirtualFile
   protected lateinit var testDataPath: String
-  private val isGroovy: Boolean get() = languageName == GROOVY_LANGUAGE
+  protected val isGroovy: Boolean get() = languageName == GROOVY_LANGUAGE
+  protected val isKotlinScript: Boolean get() = languageName == KOTLIN_LANGUAGE
   protected val buildFileName: String get() = if (isGroovy) SdkConstants.FN_BUILD_GRADLE else SdkConstants.FN_BUILD_GRADLE_KTS
   protected val settingsFileName: String get() = if (isGroovy) SdkConstants.FN_SETTINGS_GRADLE else SdkConstants.FN_SETTINGS_GRADLE_KTS
   protected val gradleBuildModel: GradleBuildModel

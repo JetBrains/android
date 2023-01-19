@@ -32,7 +32,10 @@ import com.android.build.attribution.ui.view.chart.ChartValueProvider
 import com.android.build.attribution.ui.warningsCountString
 import com.android.buildanalyzer.common.TaskCategory
 import com.android.buildanalyzer.common.TaskCategoryIssue
+import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.awt.Color
 import java.lang.IllegalArgumentException
@@ -83,7 +86,7 @@ interface TasksDataPageModel {
   fun selectPageById(tasksPageId: TasksPageId)
 
   /** Install the listener that will be called on model state changes. */
-  fun addModelUpdatedListener(listener: (treeStructureChanged: Boolean) -> Unit)
+  fun addModelUpdatedListener(disposable: Disposable, listener: (treeStructureChanged: Boolean) -> Unit)
   fun getNodeDescriptorById(pageId: TasksPageId): TasksTreePresentableNodeDescriptor?
 
   enum class Grouping(
@@ -112,6 +115,8 @@ class TasksDataPageModelImpl(
 ) : TasksDataPageModel {
 
   private val modelUpdatedListeners: MutableList<((treeStructureChanged: Boolean) -> Unit)> = CopyOnWriteArrayList()
+  @VisibleForTesting
+  val listenersCount: Int get() = modelUpdatedListeners.size
 
   override val selectedGrouping: TasksDataPageModel.Grouping
     get() = selectedPageId.grouping
@@ -201,8 +206,9 @@ class TasksDataPageModelImpl(
     notifyModelChanges()
   }
 
-  override fun addModelUpdatedListener(listener: (Boolean) -> Unit) {
+  override fun addModelUpdatedListener(disposable: Disposable, listener: (Boolean) -> Unit) {
     modelUpdatedListeners.add(listener)
+    Disposer.register(disposable) { modelUpdatedListeners.remove(listener) }
   }
 
   override fun getNodeDescriptorById(pageId: TasksPageId): TasksTreePresentableNodeDescriptor? =

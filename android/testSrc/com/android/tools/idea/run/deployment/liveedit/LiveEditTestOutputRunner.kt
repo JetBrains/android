@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import com.jetbrains.rd.util.first
 import java.net.URL
 import java.net.URLClassLoader
 
@@ -23,13 +24,13 @@ import java.net.URLClassLoader
  *
  * Support classes will also be loaded in the SAME classloader.
  */
-internal fun loadClass(output: LiveEditCompilerOutput, target : String = output.className) : Class<*> {
+internal fun loadClass(output: LiveEditCompilerOutput, target : String = output.classes.first().component1()) : Class<*> {
   // We use a temp classloader so we can have the same class name across different classes without conflict.
   val tempLoader = object : URLClassLoader(arrayOf(URL("jar:file:$composeRuntimePath!/"))) {
     override fun findClass(name: String): Class<*>? {
-      return if (name == output.className) {
+      return if (output.classes.containsKey(name)) {
         // load it from the target
-        defineClass(name, output.classData, 0, output.classData.size)
+        defineClass(name, output.classes[name], 0, output.classes[name]!!.size)
       } else if (output.supportClasses.containsKey(name)) {
         // try to see if it is one of the support classes
         defineClass(name, output.supportClasses[name], 0, output.supportClasses[name]!!.size)

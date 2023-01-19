@@ -25,7 +25,7 @@ import com.android.tools.idea.transport.TransportService;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.idea.transport.faketransport.TransportServiceTestImpl;
-import com.android.tools.idea.transport.faketransport.commands.StopCpuTrace;
+import com.android.tools.idea.transport.faketransport.commands.StopTrace;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Trace;
@@ -86,7 +86,7 @@ public final class CpuProfilerTest {
     myCpuProfiler = new CpuProfiler(myProfilers);
 
     myCpuProfiler.stopProfiling(FAKE_SESSION);
-    StopCpuTrace stopCpuTrace = (StopCpuTrace)myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_TRACE);
+    StopTrace stopCpuTrace = (StopTrace)myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_TRACE);
     assertThat(stopCpuTrace.getLastTraceInfo()).isEqualTo(Trace.TraceInfo.getDefaultInstance());
 
     myTransportService.addEventToStream(

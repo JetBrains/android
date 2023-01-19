@@ -244,10 +244,15 @@ public class PropertyUtil {
                                         (GradlePropertiesDslElement)parent;
 
     if (holder instanceof GradleDslExpressionList) {
+      // get all elements that are loaded from file
+      List<GradleDslElement> originalElements = holder.getOriginalElements();
+      // get all effective elements (with new and without deleted)
       List<GradleDslElement> elements = holder.getAllPropertyElements();
-      List<GradleDslElement> originalElement = holder.getOriginalElements();
       int index = elements.indexOf(element);
-      return index >= 0 && index < originalElement.size() ? originalElement.get(index) : null;
+      // return original element unless it's new
+      // if new - return same position original element as it can be deleted and same value be added.
+      return (originalElements.contains(element)) ? element :
+             (index >= 0 && originalElements.size() > index) ? originalElements.get(index) : null;
     }
     else {
       return holder.getOriginalElementForNameAndType(element.getName(), element.getElementType());

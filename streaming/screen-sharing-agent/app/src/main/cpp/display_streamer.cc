@@ -54,13 +54,15 @@ namespace {
 
 constexpr int MAX_SUBSEQUENT_ERRORS = 10;
 constexpr double MIN_VIDEO_RESOLUTION = 128;
-constexpr int COLOR_FormatSurface = 0x7F000789;  // See android.media.MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
+constexpr int COLOR_FormatSurface = 0x7F000789;  // See android.media.MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface.
 constexpr int BIT_RATE = 8000000;
 constexpr int BIT_RATE_REDUCED = 1000000;
 constexpr int I_FRAME_INTERVAL_SECONDS = 10;
 constexpr int REPEAT_FRAME_DELAY_MILLIS = 100;
 constexpr int CHANNEL_HEADER_LENGTH = 20;
 constexpr char const* AMEDIACODEC_KEY_REQUEST_SYNC_FRAME = "request-sync";  // Introduced in API 31.
+constexpr char const* AMEDIAFORMAT_KEY_COLOR_STANDARD = "color-standard";  // Introduced in API 28.
+constexpr int COLOR_STANDARD_BT601_NTSC = 4;  // See android.media.MediaFormat.COLOR_STANDARD_BT601_NTSC.
 
 struct CodecOutputBuffer {
   explicit CodecOutputBuffer(AMediaCodec* codec)
@@ -121,14 +123,18 @@ bool IsCodecResolutionLessThanDisplayResolution(Size codec_resolution, Size disp
   return max(codec_resolution.width, codec_resolution.height) < max(display_resolution.width, display_resolution.height);
 }
 
-AMediaFormat* CreateMediaFormat(const char* mime_type) {
+AMediaFormat* CreateMediaFormat(const string& mime_type) {
   AMediaFormat* media_format = AMediaFormat_new();
-  AMediaFormat_setString(media_format, AMEDIAFORMAT_KEY_MIME, mime_type);
+  AMediaFormat_setString(media_format, AMEDIAFORMAT_KEY_MIME, mime_type.c_str());
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_COLOR_FORMAT, COLOR_FormatSurface);
   // Does not affect the actual frame rate, but must be present.
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_FRAME_RATE, 60);
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_I_FRAME_INTERVAL, I_FRAME_INTERVAL_SECONDS);
   AMediaFormat_setInt64(media_format, AMEDIAFORMAT_KEY_REPEAT_PREVIOUS_FRAME_AFTER, REPEAT_FRAME_DELAY_MILLIS * 1000);
+  if (mime_type == "video/x-vnd.on2.vp8") {
+    // Workaround for b/247802881.
+    AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_COLOR_STANDARD, COLOR_STANDARD_BT601_NTSC);
+  }
   return media_format;
 }
 
@@ -271,7 +277,7 @@ void DisplayStreamer::Run() {
 
   Log::D("Using %s video encoder with %dx%d max resolution",
          codec_info_->name.c_str(), codec_info_->max_resolution.width, codec_info_->max_resolution.height);
-  AMediaFormat* media_format = CreateMediaFormat(codec_info_->mime_type.c_str());
+  AMediaFormat* media_format = CreateMediaFormat(codec_info_->mime_type);
 
   WindowManager::WatchRotation(jni, &display_rotation_watcher_);
   DisplayManager::RegisterDisplayListener(jni, this);

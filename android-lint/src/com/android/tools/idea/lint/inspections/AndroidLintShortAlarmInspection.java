@@ -21,6 +21,6 @@ import com.android.tools.lint.checks.AlarmDetector;
 
 public class AndroidLintShortAlarmInspection extends AndroidLintInspectionBase {
   public AndroidLintShortAlarmInspection() {
-    super(AndroidLintBundle.message("android.lint.inspections.short.alarm"), AlarmDetector.ISSUE);
+    super(AndroidLintBundle.message("android.lint.inspections.short.alarm"), AlarmDetector.SHORT_ALARM);
   }
 }

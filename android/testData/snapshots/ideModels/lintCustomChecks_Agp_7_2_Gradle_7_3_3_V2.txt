@@ -979,17 +979,13 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl)
-                                buildId                       : <ROOT>
-                                lintJar                       : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                                projectPath                   : :library
-                                sourceSet                     : MAIN
-                                variant                       : debug
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::library@debug (IdeModuleLibraryImpl)
+                        buildId                       : <ROOT>
+                        lintJar                       : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                        projectPath                   : :library
+                        sourceSet                     : MAIN
+                        variant                       : debug
+                    - runtimeClasspath            : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
                 ApplicationId                 : com.example.app
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1020,16 +1016,12 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl)
-                                buildId                       : <ROOT>
-                                projectPath                   : :app
-                                sourceSet                     : MAIN
-                                variant                       : debug
-                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
+                    - compileClasspath            : <ROOT>::app@debug (IdeModuleLibraryImpl)
+                        buildId                       : <ROOT>
+                        projectPath                   : :app
+                        sourceSet                     : MAIN
+                        variant                       : debug
+                    - compileClasspath            : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
                 ApplicationId                 : com.example.app.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1052,16 +1044,10 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : project.app.androidTest
@@ -1325,8 +1311,6 @@ MODULE                        : project.library
                 ClassesFolder                 : <ROOT>/library/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/library/build/intermediates/javac/debug/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                    runtimeClasspath              : IdeDependenciesImpl
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -1350,12 +1334,8 @@ MODULE                        : project.library
                 ClassesFolder                 : <ROOT>/library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/library/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
                 ApplicationId                 : com.example.library.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1378,12 +1358,8 @@ MODULE                        : project.library
                 ClassesFolder                 : <ROOT>/library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/library/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :library (DefaultExternalProject) (*seen*)
 MODULE                        : project.library-remote
@@ -1644,8 +1620,6 @@ MODULE                        : project.library-remote
                 ClassesFolder                 : <ROOT>/library-remote/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/library-remote/build/intermediates/javac/debug/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                    runtimeClasspath              : IdeDependenciesImpl
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -1669,17 +1643,13 @@ MODULE                        : project.library-remote
                 ClassesFolder                 : <ROOT>/library-remote/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/library-remote/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library-remote@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library-remote@debug (IdeModuleLibraryImpl)
-                                buildId                       : <ROOT>
-                                lintJar                       : <ROOT>/library-remote/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                                projectPath                   : :library-remote
-                                sourceSet                     : MAIN
-                                variant                       : debug
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library-remote@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library-remote@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::library-remote@debug (IdeModuleLibraryImpl)
+                        buildId                       : <ROOT>
+                        lintJar                       : <ROOT>/library-remote/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                        projectPath                   : :library-remote
+                        sourceSet                     : MAIN
+                        variant                       : debug
+                    - runtimeClasspath            : <ROOT>::library-remote@debug (IdeModuleLibraryImpl) (*seen*)
                 ApplicationId                 : com.example.library.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1702,12 +1672,8 @@ MODULE                        : project.library-remote
                 ClassesFolder                 : <ROOT>/library-remote/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/library-remote/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library-remote@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library-remote@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library-remote@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library-remote@debug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::library-remote@debug (IdeModuleLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::library-remote@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :library-remote (DefaultExternalProject) (*seen*)
 MODULE                        : project.library-remote.androidTest

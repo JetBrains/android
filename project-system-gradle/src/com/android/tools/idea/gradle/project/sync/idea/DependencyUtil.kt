@@ -20,21 +20,17 @@ import com.android.SdkConstants.ANNOTATIONS_LIB_ARTIFACT
 import com.android.SdkConstants.DOT_JAR
 import com.android.SdkConstants.FD_RES
 import com.android.SdkConstants.FN_ANNOTATIONS_ZIP
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
-import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
-import com.android.tools.idea.gradle.model.IdeArtifactDependency
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
-import com.android.tools.idea.gradle.model.IdeDependency
-import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
-import com.android.tools.idea.gradle.model.IdeModuleDependency
+import com.android.tools.idea.gradle.model.IdeJavaLibrary
+import com.android.tools.idea.gradle.model.IdeLibrary
+import com.android.tools.idea.gradle.model.IdeModuleLibrary
+import com.android.tools.idea.gradle.model.IdeUnknownLibrary
 import com.android.tools.idea.gradle.model.IdeVariant
-import com.android.tools.idea.gradle.model.buildId
-import com.android.tools.idea.gradle.model.projectPath
-import com.android.tools.idea.gradle.model.sourceSet
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.intellij.openapi.diagnostic.Logger
@@ -51,7 +47,6 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.DependencyScope
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
@@ -82,8 +77,8 @@ data class AdditionalArtifactsPaths(val sources: SourcesPath, val javadoc: Javad
  *
  *
  */
-fun computeModuleIdForLibraryTarget(
-  library: IdeModuleDependency
+fun computeModuleIdForLibrary(
+  library: IdeModuleLibrary
 ): GradleSourceSetProjectPath {
   val libraryBuildId = toSystemIndependentName(library.buildId)
   return GradleSourceSetProjectPath(libraryBuildId, library.projectPath, library.sourceSet)
@@ -98,7 +93,7 @@ private class AndroidDependenciesSetupContext(
   private val processedModuleDependencies: MutableMap<GradleProjectPath, ModuleDependencyData>
 ) {
 
-  private abstract inner class WorkItem<D : IdeDependency<*>, T> {
+  private abstract inner class WorkItem<D : IdeLibrary, T> {
     abstract fun isAlreadyProcessed(): Boolean
     protected abstract fun setupTargetData(): T
     protected abstract fun createDependencyData(targetData: T, scope: DependencyScope)
@@ -109,8 +104,8 @@ private class AndroidDependenciesSetupContext(
     }
   }
 
-  private abstract inner class LibraryWorkItem<D : IdeArtifactDependency<*>>(protected val library: D) : WorkItem<D, LibraryData>() {
-    protected val libraryName = library.target.name
+  private abstract inner class LibraryWorkItem<D : IdeArtifactLibrary>(protected val library: D) : WorkItem<D, LibraryData>() {
+    protected val libraryName = library.name
 
     final override fun isAlreadyProcessed(): Boolean = processedLibraries.containsKey(libraryName)
 
@@ -124,35 +119,34 @@ private class AndroidDependenciesSetupContext(
     }
   }
 
-  private inner class JavaLibraryWorkItem(library: IdeJavaLibraryDependency) : LibraryWorkItem<IdeJavaLibraryDependency>(library) {
+  private inner class JavaLibraryWorkItem(library: IdeJavaLibrary) : LibraryWorkItem<IdeJavaLibrary>(library) {
     override fun setupTargetData(): LibraryData {
       val libraryData = LibraryData(GradleConstants.SYSTEM_ID, libraryName, false)
-      ArtifactDependencySpec.create(library.target.artifactAddress)?.also {
+      ArtifactDependencySpec.create(library.artifactAddress)?.also {
         libraryData.setGroup(it.group)
         libraryData.artifactId = it.name
         libraryData.version = it.version
       }
 
-      libraryData.addPath(BINARY, library.target.artifact.absolutePath)
+      libraryData.addPath(BINARY, library.artifact.absolutePath)
       setupSourcesAndJavaDocsFrom(libraryData, libraryName)
       return libraryData
     }
   }
 
-  private inner class AndroidLibraryWorkItem(library: IdeAndroidLibraryDependency) : LibraryWorkItem<IdeAndroidLibraryDependency>(library) {
+  private inner class AndroidLibraryWorkItem(library: IdeAndroidLibrary) : LibraryWorkItem<IdeAndroidLibrary>(library) {
     override fun setupTargetData(): LibraryData {
       val libraryData = LibraryData(GradleConstants.SYSTEM_ID, libraryName, false)
-      val target = library.target
-      target.compileJarFiles.filter { it.exists() }.forEach { compileJar ->
+      library.compileJarFiles.filter { it.exists() }.forEach { compileJar ->
         libraryData.addPath(BINARY, compileJar.path)
       }
-      if (target.resFolder.exists()) {
-        libraryData.addPath(BINARY, target.resFolder.path)
+      if (library.resFolder.exists()) {
+        libraryData.addPath(BINARY, library.resFolder.path)
       }
-      if (target.manifest.exists()) {
-        libraryData.addPath(BINARY, target.manifest.path)
+      if (library.manifest.exists()) {
+        libraryData.addPath(BINARY, library.manifest.path)
       }
-      setupAnnotationsFrom(libraryData, libraryName, target)
+      setupAnnotationsFrom(libraryData, libraryName, library)
       setupSourcesAndJavaDocsFrom(libraryData, libraryName)
       return libraryData
     }
@@ -160,31 +154,30 @@ private class AndroidDependenciesSetupContext(
 
   private inner class ModuleLibraryWorkItem(
     val targetModuleGradlePath: GradleProjectPath,
-    val targetData: ModuleData
-  ) : WorkItem<IdeModuleDependency, Unit>() {
+    val target: ModuleData
+  ) : WorkItem<IdeModuleLibrary, Unit>() {
     override fun isAlreadyProcessed(): Boolean = processedModuleDependencies.containsKey(targetModuleGradlePath)
 
     override fun setupTargetData() {
       // Module has been already set up.
     }
 
-    override fun createDependencyData(target: Unit, scope: DependencyScope) {
-      // Skip if the dependency is a dependency on itself, this can be produced by Gradle when the a module
+    override fun createDependencyData(targetData: Unit, scope: DependencyScope) {
+      // Skip if the dependency is a dependency on itself, this used to be produced by Gradle when a module
       // dependency on the module in a different scope ie test code depending on the production code.
-      // In IDEA this dependency is implicit.
-      // TODO(rework-14): Do we need this special case, is it handled by IDEAs data service.
-      // See https://issuetracker.google.com/issues/68016998.
-      if (targetData == moduleDataNode.data) return
-      val moduleDependencyData = ModuleDependencyData(moduleDataNode.data, targetData)
+      // With module per source set this case should no longer happen, however we never want to set up a self-dependency
+      // as the intellij platform can't handle it, so we retain this check.
+      if (target == moduleDataNode.data) return
+      val moduleDependencyData = ModuleDependencyData(moduleDataNode.data, target)
       moduleDependencyData.scope = scope
       moduleDependencyData.isExported = false
       processedModuleDependencies[targetModuleGradlePath] = moduleDependencyData
     }
   }
 
-  private fun createModuleLibraryWorkItem(library: IdeModuleDependency): ModuleLibraryWorkItem? {
+  private fun createModuleLibraryWorkItem(library: IdeModuleLibrary): ModuleLibraryWorkItem? {
     if (library.projectPath.isEmpty()) return null
-    val targetModuleGradlePath = computeModuleIdForLibraryTarget(library)
+    val targetModuleGradlePath = computeModuleIdForLibrary(library)
     val targetData = gradleProjectPathToModuleData(targetModuleGradlePath)
     if (targetData == null) {
       if (IdeInfo.getInstance().isAndroidStudio) {
@@ -198,12 +191,14 @@ private class AndroidDependenciesSetupContext(
   fun setupForArtifact(artifact: IdeBaseArtifact, scope: DependencyScope) {
     val dependencies = artifact.compileClasspath
 
-    // TODO(rework-12): Sort out the order of dependencies.
-    (dependencies.javaLibraries.map(::JavaLibraryWorkItem) +
-     dependencies.androidLibraries.map(::AndroidLibraryWorkItem) +
-     dependencies.moduleDependencies.mapNotNull(::createModuleLibraryWorkItem)
-    )
-      .forEach { workItem ->
+    dependencies.libraries.mapNotNull {
+      when (it) {
+        is IdeAndroidLibrary -> AndroidLibraryWorkItem(it)
+        is IdeJavaLibrary -> JavaLibraryWorkItem(it)
+        is IdeModuleLibrary -> createModuleLibraryWorkItem(it)
+        is IdeUnknownLibrary -> null // we do not process this type
+      }
+    }.forEach { workItem ->
         if (workItem.isAlreadyProcessed()) return@forEach
         workItem.setup(scope)
       }
@@ -252,8 +247,7 @@ private class AndroidDependenciesSetupContext(
 fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
   gradleProjectPathToModuleData: (GradleSourceSetProjectPath) -> ModuleData?,
   additionalArtifactsMapper: (ArtifactId) -> AdditionalArtifactsPaths?,
-  variant: IdeVariant,
-  project: Project?
+  variant: IdeVariant
 ) {
   // The DataNode tree should have a ProjectData node as a parent of the ModuleData node. We don't throw an
   // exception here as other intellij plugins can manipulate the tree, we do not want to break an import
@@ -316,5 +310,5 @@ fun DataNode<ModuleData>.findSourceSetDataForArtifact(ideBaseArtifact: IdeBaseAr
   } ?: throw ExternalSystemException("Missing GradleSourceSetData data for artifact!")
 }
 
-internal fun IdeModuleDependency.getGradleProjectPath(): GradleProjectPath =
+internal fun IdeModuleLibrary.getGradleProjectPath(): GradleProjectPath =
   GradleSourceSetProjectPath(toSystemIndependentName(buildId), projectPath, sourceSet)

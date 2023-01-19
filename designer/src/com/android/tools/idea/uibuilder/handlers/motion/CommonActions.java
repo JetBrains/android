@@ -1002,7 +1002,7 @@ public class CommonActions {
                                    @InputEventMask int modifiersEx) {
       boolean show = true;
       if (myType == VERTICAL_BARRIER || myType == HORIZONTAL_BARRIER) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 0);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "1.0");
         if (show) {
           int barriers = 0;
           int other = 0;
@@ -1023,13 +1023,13 @@ public class CommonActions {
         }
       }
       if (myType == GROUP) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 0);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "1.0");
       }
       if (myType == CONSTRAINT_SET) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 9);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "1.9");
       }
       if (myType == LAYER) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 9);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "1.9");
       }
 
       presentation.setVisible(show);

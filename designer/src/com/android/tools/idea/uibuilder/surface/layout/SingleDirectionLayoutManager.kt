@@ -16,9 +16,9 @@
 package com.android.tools.idea.uibuilder.surface.layout
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.SurfaceScale
 import java.awt.Dimension
+import java.awt.Point
 import kotlin.math.max
 
 /**
@@ -110,7 +110,7 @@ open class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalP
 
     val vertical = isVertical(content, availableWidth, availableHeight)
     // We reserve the spaces for margins and paddings when calculate the zoom-to-fit scale. So there is always enough spaces for them.
-    val margins = content.map { it.margin }
+    val margins = content.map { it.getMargin(1.0) }
     val reducedAvailableWidth: Int
     val reducedAvailableHeight: Int
     if (vertical) {
@@ -144,12 +144,12 @@ open class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalP
     return minOf( reducedAvailableWidth.toDouble() / listWidth, reducedAvailableHeight.toDouble() / listHeight)
   }
 
-  override fun layout(content: Collection<PositionableContent>,
-                      @SwingCoordinate availableWidth: Int,
-                      @SwingCoordinate availableHeight: Int,
-                      keepPreviousPadding: Boolean) {
+  override fun measure(content: Collection<PositionableContent>,
+                       availableWidth: Int,
+                       availableHeight: Int,
+                       keepPreviousPadding: Boolean): Map<PositionableContent, Point> {
     if (content.isEmpty()) {
-      return
+      return emptyMap()
     }
 
     val vertical = isVertical(content, availableWidth, availableHeight)
@@ -169,6 +169,8 @@ open class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalP
       previousVerticalPadding = startY
     }
 
+    val positionMap = mutableMapOf<PositionableContent, Point>()
+
     if (vertical) {
       var nextY = startY
       for (sceneView in content) {
@@ -178,7 +180,7 @@ open class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalP
           Alignment.END -> availableWidth - sceneView.scaledContentSize.width
           Alignment.CENTER -> (availableWidth - sceneView.scaledContentSize.width) / 2
         })
-        sceneView.setLocation(xPosition, nextY)
+        positionMap[sceneView] = Point(xPosition, nextY)
         nextY += sceneView.scaledContentSize.height + sceneView.margin.bottom + verticalViewDelta
       }
     }
@@ -191,10 +193,11 @@ open class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalP
           Alignment.END -> availableHeight - (sceneView.scaledContentSize.height + sceneView.margin.vertical)
           Alignment.CENTER -> availableHeight / 2 - (sceneView.scaledContentSize.height + sceneView.margin.vertical) / 2
         })
-        sceneView.setLocation(nextX, yPosition)
+        positionMap[sceneView] = Point(nextX, yPosition)
         nextX += sceneView.scaledContentSize.width + horizontalViewDelta
       }
     }
+    return positionMap
   }
 }
 

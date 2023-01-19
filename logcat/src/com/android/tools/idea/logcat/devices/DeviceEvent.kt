@@ -21,5 +21,4 @@ package com.android.tools.idea.logcat.devices
 internal sealed class DeviceEvent {
   data class Added(val device: Device) : DeviceEvent()
   data class StateChanged(val device: Device) : DeviceEvent()
-  data class TrackingReset(val e: Throwable) : DeviceEvent()
 }

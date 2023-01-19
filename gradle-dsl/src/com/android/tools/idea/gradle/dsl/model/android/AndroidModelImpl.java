@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import static com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement.AAPT_OPTIONS;
-import static com.android.tools.idea.gradle.dsl.parser.android.AndroidResourcesDslElement.ANDROID_RESOURCES;
 import static com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement.ADB_OPTIONS;
+import static com.android.tools.idea.gradle.dsl.parser.android.AndroidResourcesDslElement.ANDROID_RESOURCES;
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildFeaturesDslElement.BUILD_FEATURES;
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement.BUILD_TYPE;
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES;
@@ -49,6 +49,7 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyTy
 
 import com.android.tools.idea.gradle.dsl.api.ExternalNativeBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AaptOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.AdbOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidResourcesModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildFeaturesModel;
@@ -71,7 +72,7 @@ import com.android.tools.idea.gradle.dsl.api.android.SplitsModel;
 import com.android.tools.idea.gradle.dsl.api.android.TestCoverageModel;
 import com.android.tools.idea.gradle.dsl.api.android.TestOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.ViewBindingModel;
-import com.android.tools.idea.gradle.dsl.api.android.AdbOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
@@ -107,12 +108,14 @@ import com.android.tools.idea.gradle.dsl.parser.android.TestCoverageDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class AndroidModelImpl extends GradleDslBlockModel implements AndroidModel {
   @NonNls public static final ModelPropertyDescription AIDL_PACKAGED_LIST = new ModelPropertyDescription("mAidlPackagedList", MUTABLE_LIST);
@@ -187,7 +190,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
     return getModelForProperty(NDK_VERSION);
   }
 
-    @NotNull
+  @NotNull
   @Override
   public List<BuildTypeModel> buildTypes() {
     BuildTypesDslElement buildTypes = myDslElement.ensurePropertyElement(BUILD_TYPES);
@@ -197,9 +200,24 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @NotNull
   @Override
   public BuildTypeModel addBuildType(@NotNull String buildType) {
+    return addBuildType(buildType, null);
+  }
+
+  @NotNull
+  @Override
+  public BuildTypeModel addBuildType(@NotNull String buildType, @Nullable BuildTypeModel initWith) {
     BuildTypesDslElement buildTypes = myDslElement.ensurePropertyElement(BUILD_TYPES);
     BuildTypeDslElement buildTypeElement = buildTypes.ensureNamedPropertyElement(BUILD_TYPE, GradleNameElement.create(buildType));
-    return new BuildTypeModelImpl(buildTypeElement);
+
+    BuildTypeModelImpl newBuildType = new BuildTypeModelImpl(buildTypeElement);
+    if (initWith != null) {
+      newBuildType.initWith().setValue(new ReferenceTo(initWith, newBuildType));
+
+      if (initWith.getRawElement() != null && initWith.getRawPropertyHolder() instanceof GradlePropertiesDslElement) {
+        buildTypeElement.mergePropertiesFrom((GradlePropertiesDslElement)initWith.getRawElement());
+      }
+    }
+    return newBuildType;
   }
 
   @Override
@@ -340,9 +358,24 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public ProductFlavorModel addProductFlavor(@NotNull String flavor) {
+    return addProductFlavor(flavor, null);
+  }
+
+  @NotNull
+  @Override
+  public ProductFlavorModel addProductFlavor(@NotNull String flavor, @Nullable ProductFlavorModel initWith) {
     ProductFlavorsDslElement productFlavors = myDslElement.ensurePropertyElement(PRODUCT_FLAVORS);
     ProductFlavorDslElement flavorElement = productFlavors.ensureNamedPropertyElement(PRODUCT_FLAVOR, GradleNameElement.create(flavor));
-    return new ProductFlavorModelImpl(flavorElement);
+
+    ProductFlavorModelImpl newProductFlavor = new ProductFlavorModelImpl(flavorElement);
+    if (initWith != null) {
+      newProductFlavor.initWith().setValue(new ReferenceTo(initWith, newProductFlavor));
+
+      if (initWith.getRawElement() != null && initWith.getRawPropertyHolder() instanceof GradlePropertiesDslElement) {
+        flavorElement.mergePropertiesFrom((GradlePropertiesDslElement)initWith.getRawElement());
+      }
+    }
+    return newProductFlavor;
   }
 
   @Override

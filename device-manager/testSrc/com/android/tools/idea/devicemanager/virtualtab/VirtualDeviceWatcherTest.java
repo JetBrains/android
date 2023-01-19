@@ -21,6 +21,7 @@ import com.android.tools.idea.devicemanager.CountDownLatchAssert;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.testFramework.ApplicationRule;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
@@ -46,7 +47,7 @@ public final class VirtualDeviceWatcherTest {
     VirtualDeviceWatcherListener listener = Mockito.mock(VirtualDeviceWatcherListener.class);
     CountDownLatch latch = new CountDownLatch(1);
 
-    VirtualDeviceWatcher watcher = new VirtualDeviceWatcher(manager);
+    VirtualDeviceWatcher watcher = new VirtualDeviceWatcher(() -> Optional.of(manager));
     watcher.addVirtualDeviceWatcherListener(new CountDownLatchVirtualDeviceWatcherListener(listener, latch));
 
     IdeFrame frame = Mockito.mock(IdeFrame.class);

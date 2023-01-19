@@ -17,8 +17,10 @@ package com.android.tools.idea.gradle.model
 
 import java.io.Serializable
 
+@Deprecated("all subclasses and usages will be removed, work with IdeLibrary and subclasses instead")
 sealed interface IdeDependency<T>
 
+@Deprecated("all subclasses and usages will be removed, work with IdeLibrary and subclasses instead")
 sealed interface IdeArtifactDependency<T : IdeArtifactLibrary> : IdeDependency<T> {
   val target: T
 }
@@ -27,22 +29,32 @@ interface IdeDependencyCore {
   val target: LibraryReference
 }
 
+@Deprecated("all subclasses and usages will be removed, work with IdeLibrary and subclasses instead")
 interface IdeAndroidLibraryDependency : IdeArtifactDependency<IdeAndroidLibrary>
+
+@Deprecated("all subclasses and usages will be removed, work with IdeLibrary and subclasses instead")
 interface IdeJavaLibraryDependency : IdeArtifactDependency<IdeJavaLibrary>
 
 data class LibraryReference(val libraryIndex: Int) : Serializable
 
 interface IdeLibraryModelResolver {
+  @Deprecated("IdeDependency and subclasses will be removed", ReplaceWith("this.resolve(unresolved)"))
   fun resolveAndroidLibrary(unresolved: IdeDependencyCore): Sequence<IdeAndroidLibraryDependency>
+  @Deprecated("IdeDependency and subclasses will be removed", ReplaceWith("this.resolve(unresolved)"))
   fun resolveJavaLibrary(unresolved: IdeDependencyCore): Sequence<IdeJavaLibraryDependency>
+  @Deprecated("IdeDependency and subclasses will be removed", ReplaceWith("this.resolve(unresolved)"))
   fun resolveModule(unresolved: IdeDependencyCore): Sequence<IdeModuleDependency>
+  @Deprecated("IdeDependency and subclasses will be removed", ReplaceWith("this.resolve(unresolved)"))
   fun resolveUnknownLibrary(unresolved: IdeDependencyCore): Sequence<IdeUnknownDependency>
+  fun resolve(unresolved: IdeDependencyCore) : Sequence<IdeLibrary>
 }
 
+@Deprecated("all subclasses and usages will be removed, work with IdeLibrary and subclasses instead")
 interface IdeModuleDependency : IdeDependency<IdeModuleLibrary> {
   val target: IdeModuleLibrary
 }
 
+@Deprecated("all subclasses and usages will be removed, work with IdeLibrary and subclasses instead")
 interface IdeUnknownDependency: IdeDependency<IdeUnknownLibrary> {
   val target: IdeUnknownLibrary
 }

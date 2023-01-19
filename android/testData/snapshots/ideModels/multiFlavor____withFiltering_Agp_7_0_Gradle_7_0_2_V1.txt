@@ -794,8 +794,6 @@ MODULE                        : MultiFlavor.app
                     JniLibsDirectories            : <ROOT>/app/src/firstAbcSecondAbc/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/firstAbcSecondAbc/shaders [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                    runtimeClasspath              : IdeDependenciesImpl
                 ApplicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -848,16 +846,12 @@ MODULE                        : MultiFlavor.app
                     JniLibsDirectories            : <ROOT>/app/src/androidTestFirstAbcSecondAbc/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTestFirstAbcSecondAbc/shaders [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::app@firstAbcSecondAbcDebug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@firstAbcSecondAbcDebug (IdeModuleLibraryImpl)
-                                buildId                       : <ROOT>
-                                projectPath                   : :app
-                                sourceSet                     : MAIN
-                                variant                       : firstAbcSecondAbcDebug
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::app@firstAbcSecondAbcDebug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@firstAbcSecondAbcDebug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::app@firstAbcSecondAbcDebug (IdeModuleLibraryImpl)
+                        buildId                       : <ROOT>
+                        projectPath                   : :app
+                        sourceSet                     : MAIN
+                        variant                       : firstAbcSecondAbcDebug
+                    - runtimeClasspath            : <ROOT>::app@firstAbcSecondAbcDebug (IdeModuleLibraryImpl) (*seen*)
                 ApplicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -906,24 +900,16 @@ MODULE                        : MultiFlavor.app
                     JniLibsDirectories            : <ROOT>/app/src/testFirstAbcSecondAbc/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testFirstAbcSecondAbc/shaders [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - javaLibraries               : junit:junit:4.12 (IdeJavaLibraryDependencyImpl)
-                            target                        : junit:junit:4.12 (IdeJavaLibraryImpl)
-                                artifact                      : <M2>/junit/junit/4.12/junit-4.12.jar
-                                artifactAddress               : junit:junit:4.12@jar
-                        - javaLibraries               : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl)
-                                artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                                artifactAddress               : org.hamcrest:hamcrest-core:1.3@jar
-                        - moduleDependencies          : <ROOT>::app@firstAbcSecondAbcDebug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@firstAbcSecondAbcDebug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - javaLibraries               : junit:junit:4.12 (IdeJavaLibraryDependencyImpl)
-                            target                        : junit:junit:4.12 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::app@firstAbcSecondAbcDebug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@firstAbcSecondAbcDebug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : <ROOT>::app@firstAbcSecondAbcDebug (IdeModuleLibraryImpl) (*seen*)
+                    - compileClasspath            : junit:junit:4.12 (IdeJavaLibraryImpl)
+                        artifact                      : <M2>/junit/junit/4.12/junit-4.12.jar
+                        artifactAddress               : junit:junit:4.12@jar
+                    - compileClasspath            : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl)
+                        artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
+                        artifactAddress               : org.hamcrest:hamcrest-core:1.3@jar
+                    - runtimeClasspath            : junit:junit:4.12 (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl) (*seen*)
+                    - runtimeClasspath            : <ROOT>::app@firstAbcSecondAbcDebug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : MultiFlavor.app.androidTest

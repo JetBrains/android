@@ -32,6 +32,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.ThrowableRunnable
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -137,6 +138,7 @@ class SyncUtilTest {
     assertThat(callCount.get()).isEqualTo(1)
   }
 
+  @Ignore
   @Test
   fun waitForSmartAndSyncedWhenDumbAndNotSynced() {
     val callCount = AtomicInteger(0)

@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.model
 
 import com.android.AndroidXConstants
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.common.model.NlDependencyManager
 import com.android.tools.idea.common.model.NlModel
@@ -63,6 +64,6 @@ open class NlDependencyManagerTest : LayoutTestCase() {
   fun testGetModuleDependencyVersion() {
     projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFacet.module, GradleVersion(1, 1))
     TestCase.assertEquals(NlDependencyManager.getInstance().getModuleDependencyVersion(GoogleMavenArtifactId.APP_COMPAT_V7, model.facet),
-                          GradleVersion(1, 1))
+                          Version.parse("1.1"))
   }
 }

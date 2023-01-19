@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
 import com.android.tools.idea.gradle.project.sync.GradleModuleSystemIntegrationTest
+import com.android.tools.idea.gradle.project.sync.HighlightProjectTestDef
 import com.android.tools.idea.navigator.AndroidProjectViewSnapshotComparisonTestDef
 import com.android.tools.idea.navigator.SourceProvidersTestDef
 import com.android.tools.idea.projectsystem.gradle.GradleModuleHierarchyProviderTest
@@ -58,6 +59,7 @@ abstract class SyncedProjectTest(
         GradleSyncLoggedEventsTestDef.tests +
         GradleModuleHierarchyProviderTest.tests +
         GradleModuleSystemIntegrationTest.tests +
+        HighlightProjectTestDef.tests +
         selfChecks()
       ).groupBy { it.testProject }
   }

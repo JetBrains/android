@@ -42,13 +42,13 @@ class ColorPickerState(tracker: ComposeAnimationEventTracker, callback: () -> Un
   }
 
   override fun setStartState(state: Any?) {
-    (ComposeUnit.parseValue(state) as? ComposeUnit.Color).let { setStates(it, it) }
+    (ComposeUnit.parseStateUnit(state) as? ComposeUnit.Color).let { setStates(it, it) }
   }
 
   override fun updateStates(states: Set<Any>) {
     setStates(
-      states.firstOrNull().let { ComposeUnit.parseValue(it) as? ComposeUnit.Color },
-      states.lastOrNull().let { ComposeUnit.parseValue(it) as? ComposeUnit.Color }
+      states.firstOrNull().let { ComposeUnit.parseStateUnit(it) as? ComposeUnit.Color },
+      states.lastOrNull().let { ComposeUnit.parseStateUnit(it) as? ComposeUnit.Color }
     )
   }
 

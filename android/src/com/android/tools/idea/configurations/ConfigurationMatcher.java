@@ -47,7 +47,6 @@ import com.android.resources.UiMode;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.android.tools.idea.io.BufferingFileWrapper;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -204,20 +203,6 @@ public class ConfigurationMatcher {
       }
     }
     return type;
-  }
-
-  @Nullable
-  public static VirtualFile getVirtualFile(@NotNull IAbstractFile file) {
-    if (file instanceof VirtualFileWrapper) {
-      return ((VirtualFileWrapper)file).getFile();
-    } else if (file instanceof BufferingFileWrapper) {
-      BufferingFileWrapper wrapper = (BufferingFileWrapper)file;
-      File ioFile = wrapper.getFile();
-      return LocalFileSystem.getInstance().findFileByIoFile(ioFile);
-    } else {
-      LOG.warn("Unexpected type of match file: " + file.getClass().getName());
-    }
-    return null;
   }
 
   /**

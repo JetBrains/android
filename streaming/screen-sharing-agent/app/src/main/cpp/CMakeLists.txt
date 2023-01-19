@@ -7,7 +7,7 @@ project("screensharing")
 
 set(${CMAKE_C_FLAGS}, "${CMAKE_C_FLAGS}")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -Wall")
 
 add_library(
         screen-sharing-agent

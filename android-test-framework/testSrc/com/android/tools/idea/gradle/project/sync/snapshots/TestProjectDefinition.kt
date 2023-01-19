@@ -16,13 +16,17 @@
 package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.SdkConstants
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.IntegrationTestEnvironment
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.ThrowableConsumer
 import com.intellij.util.ThrowableConvertor
 import java.io.File
+import java.time.Clock
 
 /**
  * A test project definition that can be used in integration tests involving projects set up by Gradle.
@@ -62,6 +66,9 @@ interface TestProjectDefinition {
 interface PreparedTestProject {
   interface Context {
     val project: Project
+    val projectRoot: File
+    val fixture: JavaCodeInsightTestFixture
+    fun selectModule(module: Module)
   }
 
   fun <T> open(
@@ -94,6 +101,32 @@ interface PreparedTestProject {
     @JvmStatic
     fun <T> openPreparedTestProject(preparedProject: PreparedTestProject, body: ThrowableConvertor<Project, T, Exception>) {
       preparedProject.open(body = body)
+    }
+
+    @JvmStatic
+    fun <T> IntegrationTestEnvironment.openTestProject(testProject: TestProjectDefinition, body: Context.(Project) -> T) {
+      // Since this method can be called multiple times and there is no reliable way to delete project directories on Windows and, moreover,
+      // we do not want intelliJ's external system caches to be reused we need to name projects uniquely. However, we also want to have
+      // a stable IDE project name, so we place them in a uniquely named parent directory.
+      val preparedProject = prepareTestProject(testProject, name = "${Clock.systemUTC().millis()}/p")
+      preparedProject.open(body = body)
+    }
+
+    @JvmStatic
+    fun IntegrationTestEnvironment.openTestProject(testProject: TestProjectDefinition, body: ThrowableConsumer<Project, Exception>) {
+      openTestProject(testProject) {
+        body.consume(it)
+      }
+    }
+
+    @JvmStatic
+    fun <T> IntegrationTestEnvironment.openTestProject(
+      testProject: TestProjectDefinition,
+      body: ThrowableConvertor<Project, T, Exception>
+    ) {
+      return openTestProject(testProject) {
+        body.convert(it)
+      }
     }
   }
 }

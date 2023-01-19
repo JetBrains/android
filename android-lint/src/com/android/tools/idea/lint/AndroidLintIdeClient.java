@@ -20,8 +20,8 @@ import static com.android.ide.common.repository.GoogleMavenRepository.MAVEN_GOOG
 import static com.android.tools.lint.checks.GooglePlaySdkIndex.GOOGLE_PLAY_SDK_INDEX_KEY;
 
 import com.android.annotations.NonNull;
+import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
@@ -106,8 +106,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
 
   @Nullable
   @Override
-  public GradleVersion getHighestKnownVersion(@NonNull GradleCoordinate coordinate,
-                                              @Nullable Predicate<GradleVersion> filter) {
+  public Version getHighestKnownVersion(@NonNull GradleCoordinate coordinate, @Nullable Predicate<Version> filter) {
     AndroidSdkHandler sdkHandler = getSdk();
     if (sdkHandler == null) {
       return null;
@@ -117,7 +116,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
     if (sdkPackage != null) {
       GradleCoordinate found = SdkMavenRepository.getCoordinateFromSdkPath(sdkPackage.getPath());
       if (found != null) {
-        return found.getVersion();
+        return found.getLowerBoundVersion();
       }
     }
 

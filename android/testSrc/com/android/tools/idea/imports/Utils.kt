@@ -17,6 +17,7 @@ package com.android.tools.idea.imports
 
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -36,12 +37,34 @@ internal fun performWithoutSync(projectRule: AndroidGradleProjectRule, action: A
   action.perform(projectRule.project, projectRule.fixture.editor, element, false)
 }
 
+internal fun PreparedTestProject.Context.performWithoutSync(action: AndroidMavenImportIntentionAction, element: PsiElement) {
+  action.perform(project, fixture.editor, element, false)
+}
+
 internal fun performAndWaitForSyncEnd(
   projectRule: AndroidGradleProjectRule,
   invoke: () -> Unit,
 ) {
   val publishedResult = SettableFuture.create<ProjectSystemSyncManager.SyncResult>()
   val project = projectRule.project
+  project.messageBus
+    .connect(project)
+    .subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
+      override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
+        publishedResult.set(result)
+      }
+    })
+
+  invoke()
+
+  val results = publishedResult.get(10, TimeUnit.SECONDS)
+  assertThat(results).named("Second sync result").isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS)
+}
+
+internal fun PreparedTestProject.Context.performAndWaitForSyncEnd(
+  invoke: () -> Unit,
+) {
+  val publishedResult = SettableFuture.create<ProjectSystemSyncManager.SyncResult>()
   project.messageBus
     .connect(project)
     .subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {

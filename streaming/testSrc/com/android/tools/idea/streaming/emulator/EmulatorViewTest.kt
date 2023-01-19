@@ -27,6 +27,7 @@ import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeMouse
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessRootPaneContainer
+import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
@@ -43,6 +44,7 @@ import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerComponentInstance
 import com.intellij.testFramework.replaceService
@@ -51,7 +53,6 @@ import com.intellij.util.ui.UIUtil
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.Mockito.atLeast
@@ -83,7 +84,7 @@ import javax.swing.JScrollPane
 class EmulatorViewTest {
   private val emulatorViewRule = EmulatorViewRule()
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(emulatorViewRule).around(EdtRule())
+  val ruleChain = RuleChain(IconLoaderRule(), emulatorViewRule, EdtRule())
   private val filesOpened = mutableListOf<VirtualFile>()
 
   private val testRootDisposable
@@ -558,7 +559,7 @@ class EmulatorViewTest {
     val focusManager = FakeKeyboardFocusManager(testRootDisposable)
     focusManager.focusOwner = view
     emulator.virtualSceneCameraActive = true
-    waitForCondition(2, TimeUnit.SECONDS) {
+    waitForCondition(200, TimeUnit.SECONDS) {
       ui.findComponent<EditorNotificationPanel>() != null
     }
 

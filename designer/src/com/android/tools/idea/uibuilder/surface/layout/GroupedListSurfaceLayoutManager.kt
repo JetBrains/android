@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.surface.layout
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.surface.SurfaceScale
 import java.awt.Dimension
+import java.awt.Point
 import kotlin.math.max
 
 /**
@@ -55,7 +56,7 @@ class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
     }
     // We reserve the spaces for margins paddings when calculate the zoom-to-fit scale. So there is always enough spaces for them.
 
-    val margins = content.map { it.margin }
+    val margins = content.map { it.getMargin(1.0) }
     // Reserve the canvas and frame paddings, so the scaled content must be able to fit into the area.
     val reducedAvailableWidth = availableWidth - 2 * previewFramePaddingProvider(1.0) - margins.sumOf { it.horizontal }
     val reducedAvailableHeight =
@@ -93,10 +94,12 @@ class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
     var totalRequiredHeight = canvasTopPadding
 
     for (view in verticalList) {
+      val scale = view.scaleFunc()
+      val margin = view.getMargin(scale)
       val viewSize = view.sizeFunc()
-      val framePadding = previewFramePaddingProvider(scaleFunc(view))
-      val viewWidth = framePadding + viewSize.width + view.margin.horizontal + framePadding
-      val requiredHeight = framePadding + viewSize.height + view.margin.vertical + framePadding
+      val framePadding = previewFramePaddingProvider(scale)
+      val viewWidth = framePadding + viewSize.width + margin.horizontal + framePadding
+      val requiredHeight = framePadding + viewSize.height + margin.vertical + framePadding
 
       requiredWidth = maxOf(requiredWidth, viewWidth)
       totalRequiredHeight += requiredHeight
@@ -106,13 +109,13 @@ class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
     return dim
   }
 
-  override fun layout(content: Collection<PositionableContent>,
-                      @SwingCoordinate availableWidth: Int,
-                      @SwingCoordinate availableHeight: Int,
-                      keepPreviousPadding: Boolean) {
+  override fun measure(content: Collection<PositionableContent>,
+                       availableWidth: Int,
+                       availableHeight: Int,
+                       keepPreviousPadding: Boolean): Map<PositionableContent, Point> {
     val verticalList = transform(content).flatten()
     if (verticalList.isEmpty()) {
-      return
+      return emptyMap()
     }
 
     val widthMap =
@@ -130,6 +133,9 @@ class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
     val centerX: Int = maxOf(maxWidth, availableWidth) / 2
 
     val totalHeight = heightMap.values.sum()
+
+    val positionMap = mutableMapOf<PositionableContent, Point>()
+
     // centralizes the contents when total height is smaller than window height.
     val startY: Int = if (totalHeight + canvasTopPadding > availableHeight) canvasTopPadding else (availableHeight - totalHeight) / 2
 
@@ -138,18 +144,19 @@ class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
       val width = widthMap[view]!!
       val locationX = centerX - (width / 2)
       val framePadding = previewFramePaddingProvider(view.scale)
-      setContentPosition(view, locationX + framePadding, nextY + framePadding)
+      positionMap.setContentPosition(view, locationX + framePadding, nextY + framePadding)
       nextY += heightMap[view]!!
     }
 
-    content.filterNot { it.isVisible }.forEach { setContentPosition(it, -1, -1) }
+    content.filterNot { it.isVisible }.forEach { positionMap.setContentPosition(it, -1, -1) }
+    return positionMap
   }
 
-  private fun setContentPosition(content: PositionableContent, x: Int, y: Int) {
+  private fun MutableMap<PositionableContent, Point>.setContentPosition(content: PositionableContent, x: Int, y: Int) {
     // The new compose layout consider the toolbar size as the anchor of location.
     val margin = content.margin
     val shiftedX = x + margin.left
     val shiftedY = y + margin.top
-    content.setLocation(shiftedX, shiftedY)
+    put(content, Point(shiftedX, shiftedY))
   }
 }

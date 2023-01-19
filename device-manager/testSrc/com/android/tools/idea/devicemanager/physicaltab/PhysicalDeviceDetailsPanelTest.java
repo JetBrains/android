@@ -40,6 +40,7 @@ import org.mockito.Mockito;
 @RunWith(JUnit4.class)
 public final class PhysicalDeviceDetailsPanelTest {
   private final @NotNull AsyncDetailsBuilder myBuilder = Mockito.mock(AsyncDetailsBuilder.class);
+  private final @NotNull WearPairingManager myManager = Mockito.mock(WearPairingManager.class);
 
   @Test
   public void summarySectionCallbackOnSuccess() throws InterruptedException {
@@ -60,8 +61,8 @@ public final class PhysicalDeviceDetailsPanelTest {
     // Act
     PhysicalDeviceDetailsPanel panel = new PhysicalDeviceDetailsPanel(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3,
                                                                       myBuilder,
-                                                                      section -> newSummarySectionCallback(section, latch),
-                                                                      WearPairingManager.getInstance());
+                                                                      myManager,
+                                                                      section -> newSummarySectionCallback(section, latch));
 
     // Assert
     CountDownLatchAssert.await(latch);
@@ -74,8 +75,8 @@ public final class PhysicalDeviceDetailsPanelTest {
     assertEquals("arm64-v8a, armeabi-v7a, armeabi", section.myAbiListLabel.getText());
   }
 
-  private static @NotNull FutureCallback<PhysicalDevice> newSummarySectionCallback(@NotNull SummarySection section,
-                                                                                            @NotNull CountDownLatch latch) {
+  @NotNull
+  private static FutureCallback<PhysicalDevice> newSummarySectionCallback(@NotNull SummarySection section, @NotNull CountDownLatch latch) {
     return new CountDownLatchFutureCallback<>(PhysicalDeviceDetailsPanel.newSummarySectionCallback(section), latch);
   }
 
@@ -85,7 +86,7 @@ public final class PhysicalDeviceDetailsPanelTest {
     Mockito.when(myBuilder.buildAsync()).thenReturn(Futures.immediateFuture(TestPhysicalDevices.GOOGLE_PIXEL_3));
 
     // Act
-    DetailsPanel detailsPanel = new PhysicalDeviceDetailsPanel(TestPhysicalDevices.GOOGLE_PIXEL_3, myBuilder);
+    DetailsPanel detailsPanel = new PhysicalDeviceDetailsPanel(TestPhysicalDevices.GOOGLE_PIXEL_3, myBuilder, myManager);
 
     // Assert
     Container sectionPanel = detailsPanel.getInfoSectionPanel();

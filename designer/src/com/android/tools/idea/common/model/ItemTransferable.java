@@ -31,6 +31,11 @@ public class ItemTransferable implements Transferable {
     myItem = item;
   }
 
+  @NotNull
+  public ItemTransferable merge(@NotNull ItemTransferable other) {
+    return new ItemTransferable(myItem.merge(other.myItem));
+  }
+
   @Override
   public DataFlavor[] getTransferDataFlavors() {
     return new DataFlavor[]{DESIGNER_FLAVOR};

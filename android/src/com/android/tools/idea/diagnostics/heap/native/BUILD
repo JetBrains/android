@@ -41,13 +41,13 @@ cc_library(
         "-O2",
         "-shared",
     ] + select({
-        "//tools/base/bazel:darwin": [
+        "@platforms//os:macos": [
             "-Iprebuilts/studio/jdk/mac/Contents/Home/include",
         ],
-        "//tools/base/bazel:windows": [
+        "@platforms//os:windows": [
             "-Iprebuilts/studio/jdk/win64/include",
         ],
-        "//conditions:default": [
+        "@platforms//os:linux": [
             "-Iprebuilts/studio/jdk/linux/include",
             "-Iprebuilts/studio/jdk/linux/include/linux",
         ],
@@ -66,6 +66,7 @@ cc_binary(
         "no_mac",
         "no_windows",
     ],
+    target_compatible_with = ["@platforms//os:linux"],
     visibility = ["//visibility:public"],
     deps = [
         ":jni_object_tagger",
@@ -80,6 +81,7 @@ cc_binary(
         "no_linux",
         "no_windows",
     ],
+    target_compatible_with = ["@platforms//os:macos"],
     visibility = ["//visibility:public"],
     deps = [
         ":jni_object_tagger",
@@ -94,6 +96,7 @@ cc_binary(
         "no_linux",
         "no_mac",
     ],
+    target_compatible_with = ["@platforms//os:windows"],
     visibility = ["//visibility:public"],
     deps = [
         ":jni_object_tagger",

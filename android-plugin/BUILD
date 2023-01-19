@@ -51,7 +51,6 @@ iml_module(
         "//tools/adt/idea/logcat:intellij.android.logcat[module]",
         "//tools/adt/idea/device-explorer:intellij.android.device-explorer[module]",
         "//tools/adt/idea/device-file-explorer-toolwindow:intellij.android.device-file-explorer-toolwindow[module]",
-        "//tools/adt/idea/device-monitor-toolwindow:intellij.android.device-monitor-toolwindow[module]",
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[module]",
         "//tools/adt/idea/android-templates:intellij.android.templates[module]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",

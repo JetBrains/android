@@ -66,6 +66,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
@@ -205,7 +206,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   /**
    * {@link JScrollPane} contained in this surface when zooming is enabled.
    */
-  @Nullable private final JScrollPane myScrollPane;
+  @Nullable protected final JScrollPane myScrollPane;
   /**
    * Component that wraps the displayed content. If this is a scrollable surface, that will be the Scroll Pane.
    * Otherwise, it will be the ScreenViewPanel container.
@@ -1095,6 +1096,38 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   public abstract void scrollToCenter(@NotNull List<NlComponent> list);
 
   /**
+   * Given a rectangle relative to a sceneView, find its absolute coordinates and then scroll to
+   * center such rectangle. See {@link #scrollToCenter(Rectangle)}
+   * @param sceneView the {@link SceneView} that contains the given rectangle.
+   * @param rectangle the rectangle that should be visible, with its coordinates relative to the sceneView.
+   */
+  protected void scrollToCenter(@NotNull SceneView sceneView, @NotNull @SwingCoordinate Rectangle rectangle) {
+    Dimension availableSpace = getExtentSize();
+    Rectangle sceneViewRectangle =
+      mySceneViewPanel.findMeasuredSceneViewRectangle(sceneView,
+                                                      getPositionableContent(),
+                                                      availableSpace);
+    if (sceneViewRectangle != null) {
+      Point topLeftCorner = new Point(sceneViewRectangle.x + rectangle.x,
+                                      sceneViewRectangle.y + rectangle.y);
+      scrollToCenter(new Rectangle(topLeftCorner, rectangle.getSize()));
+    }
+  }
+
+  /**
+   * Move the scroll position to make the given rectangle visible and centered.
+   * If the given rectangle is too big for the available space, it will be centered anyway and
+   * some of its borders will probably not be visible at the new scroll position.
+   * @param rectangle the rectangle that should be centered.
+   */
+  protected void scrollToCenter(@NotNull @SwingCoordinate Rectangle rectangle) {
+    Dimension availableSpace = getExtentSize();
+    int extraW = availableSpace.width - rectangle.width;
+    int extraH = availableSpace.height - rectangle.height;
+    setScrollPosition(rectangle.x - (extraW + 1) / 2, rectangle.y - (extraH + 1) / 2);
+  }
+
+  /**
    * Ensures that the given model is visible in the surface by scrolling to it if needed.
    * If the {@link SceneView} is partially visible and {@code forceScroll} is set to {@code false}, no scroll will happen.
    */
@@ -1176,6 +1209,10 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     return setScale(scale, -1, -1);
   }
 
+  @SurfaceScale protected double getBoundedScale(@SurfaceScale double scale) {
+    return Math.min(Math.max(scale, getMinScale()), getMaxScale());
+  }
+
   /**
    * <p>
    * Set the scale factor used to multiply the content size and try to
@@ -1195,7 +1232,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
    */
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   public boolean setScale(@SurfaceScale double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
-    @SurfaceScale final double newScale = Math.min(Math.max(scale, getMinScale()), getMaxScale());
+    @SurfaceScale final double newScale = getBoundedScale(scale);
     if (isScaleSame(myScale, newScale)) {
       return false;
     }
@@ -1452,7 +1489,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       return null;
     }
 
-    SwingUtilities.convertPointFromScreen(mouseLocation, this);
+    SwingUtilities.convertPointFromScreen(mouseLocation, mySceneViewPanel);
     return getSceneViewAt(mouseLocation.x, mouseLocation.y);
   }
 
@@ -1789,7 +1826,26 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       return new Point(Coordinates.getSwingXDip(view, sceneComponent.getCenterX()),
                        Coordinates.getSwingYDip(view, sceneComponent.getCenterY()));
     }
-    else if (CommonDataKeys.PSI_ELEMENT.is(dataId)) {
+    else if (PlatformCoreDataKeys.BGT_DATA_PROVIDER.is(dataId)) {
+      return (DataProvider)this::getSlowData;
+    }
+    else {
+      NlModel model = getModel();
+      if (PlatformCoreDataKeys.MODULE.is(dataId) && model != null) {
+        return model.getModule();
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * The data which should be obtained from the background thread.
+   * @see PlatformCoreDataKeys#BGT_DATA_PROVIDER
+   */
+  @Nullable
+  private Object getSlowData(@NotNull String dataId) {
+    if (CommonDataKeys.PSI_ELEMENT.is(dataId)) {
       SceneView view = getFocusedSceneView();
       if (view != null) {
         SelectionModel selectionModel = view.getSelectionModel();
@@ -1811,13 +1867,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
         return list.toArray(XmlTag.EMPTY);
       }
     }
-    else {
-      NlModel model = getModel();
-      if (PlatformCoreDataKeys.MODULE.is(dataId) && model != null) {
-        return model.getModule();
-      }
-    }
-
     return null;
   }
 

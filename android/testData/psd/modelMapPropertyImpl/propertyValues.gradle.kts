@@ -4,4 +4,5 @@ val propC by extra("3")
 val propRef by extra(propB)
 val propInterpolated by extra("${propB}nd")
 val propMap by extra(mapOf("one" to "1", "B" to propB, "propC1" to propC, "propRef1" to propRef, "interpolated" to propInterpolated))
+val propMap2 by extra{mapOf("one" to "1")}
 val propMapRef by extra(propMap)

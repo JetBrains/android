@@ -21,6 +21,7 @@ import com.android.flags.FlagOverrides;
 import com.android.flags.Flags;
 import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
+import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.android.tools.idea.util.StudioPathManager;
 import com.intellij.openapi.application.Application;
@@ -155,10 +156,14 @@ public final class StudioFlags {
     "Allow users to build apps as profileable with a supported Gradle plugin version (>7.3.0)",
     true);
 
-  public static final Flag<Boolean> PROFILER_SYSTRACE_POWER_TRACKS = Flag.create(
-    PROFILER, "power.tracks", "Enable power tracks in system trace UI",
-    "Shows power data track groups in the system trace.",
-    false);
+  public static final Flag<PowerProfilerDisplayMode> PROFILER_SYSTEM_TRACE_POWER_PROFILER_DISPLAY_MODE = Flag.create(
+    PROFILER, "power.tracks", "Set display mode of power rails and battery counters in system trace UI",
+    "Allows users to customize whether the power rail and battery counter tracks are shown in the system trace UI, " +
+    "and if shown, which type of graph displays the tracks. " +
+    "When set to HIDE, hides power and battery data track groups in the system trace. " +
+    "When set to MINMAX, shows the power rail tracks in a min-max view and keep the battery counter rails in a zero-based view. " +
+    "When set to DELTA, shows the power rail tracks in a delta view and keeps the battery counter rails in a zero-based view.",
+    PowerProfilerDisplayMode.HIDE);
 
   // TODO(b/211154220): Pending user's feedback, either completely remove the keyboard event functionality in
   // Event Timeline or find a proper way to support it for Android S and newer.
@@ -248,23 +253,6 @@ public final class StudioFlags {
     "Log in the IDEA log the messages coming from Java and native code of Layoutlib Native.",
     false);
 
-  private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
-
-  public static final Flag<Boolean> NELE_CONSTRAINT_LAYOUT_ASSISTANT = Flag.create(
-    ASSISTANT, "layout.editor.help.constraintlayout", "Display Help for Constraint Layout",
-    "If enabled, the assistant panel will display helpful guide on using Constraint Layout.",
-    true);
-
-  public static final Flag<Boolean> NELE_MOTION_LAYOUT_ASSISTANT = Flag.create(
-    ASSISTANT, "layout.editor.help.motionlayout", "Display Help for Motion Layout",
-    "If enabled, the assistant panel will display helpful guide on using Motion Layout.",
-    true);
-
-  public static final Flag<Boolean> NELE_NAV_EDITOR_ASSISTANT = Flag.create(
-    ASSISTANT, "layout.editor.help.naveditor", "Display Help for Navigation Editor",
-    "If enabled, the assistant panel will display helpful guide on using the Navigation Editor.",
-    true);
-
   public static final Flag<Boolean> NELE_DRAG_PLACEHOLDER = Flag.create(
     NELE, "drag.placeholder", "Dragging widgets with Placeholders",
     "New architecture for dragging widgets in Layout Editor",
@@ -285,21 +273,11 @@ public final class StudioFlags {
     "Enable new source code editor with preview(s) coming as a substitute to Compose and Custom View editors.",
     true);
 
-  public static final Flag<Boolean> NELE_TOGGLE_TOOLS_ATTRIBUTES_IN_PREVIEW = Flag.create(
-    NELE, "toggle.tools.attributes.preview", "New Toggle for Tools namespaces attributes",
-    "Enable the new toggle in the Layout Editor. Allows toggling tools attributes in the Layout preview.",
-    true);
-
   public static final Flag<Boolean> NELE_SHOW_RECYCLER_VIEW_SETUP_WIZARD = Flag.create(
     NELE, "recyclerview.setup.wizard", "Show setup wizard for recycler view",
     "When you right click recycler view in layout editor, you can now see \"Generate Adapter\" " +
     "that takes you through setup wizard",
     false);
-
-  public static final Flag<Boolean> NELE_LAYOUT_SCANNER_IN_EDITOR = Flag.create(
-    NELE, "toggle.layout.editor.validator.a11y", "Toggle layout validator for layout editor.",
-    "When the model changes, layout editor will run the series of layout validations and update lint output",
-    true);
 
   public static final Flag<Boolean> NELE_LAYOUT_SCANNER_ADD_INCLUDE = Flag.create(
     NELE, "toggle.layout.editor.validator.a11y.include", "Toggle whether to show included layout or not.",
@@ -329,16 +307,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_USE_CUSTOM_TRAFFIC_LIGHTS_FOR_RESOURCES = Flag.create(
     NELE, "use.custom.traffic.lights.for.resources", "Base traffic lights on the errors from the shared issue panel",
     "Use errors from the current file and qualifiers tab in the traffic light rendering for resource files.",
-    true);
-
-  public static final Flag<Boolean> NELE_TRANSFORM_PANEL = Flag.create(
-    NELE, "toggle.layout.editor.transform.panel", "Toggle transform panel in layout editor and motion editor.",
-    "Enable the new transform panel in the layout editor and motion editor",
-    true);
-
-  public static final Flag<Boolean> NELE_TRANSITION_PANEL = Flag.create(
-    NELE, "toggle.layout.editor.transition.panel", "Toggle transition panel in motion editor.",
-    "Enable the new transition panel in the motion editor",
     true);
 
   public static final Flag<Boolean> NELE_ON_SWIPE_PANEL = Flag.create(
@@ -390,6 +358,11 @@ public final class StudioFlags {
     NELE, "dp.sized.preview", "Use dp size instead of px size for previews",
     "If enabled, the size of previews will be proportional to screen dp size instead of screen px size.",
     true);
+
+  public static final Flag<Boolean> NELE_NEW_COMPONENT_TREE = Flag.create(
+    NELE, "use.component.tree.builder", "Use the Component Tree builder",
+    "If enabled, use the Component Tree builder for the Nele component tree",
+    false);
   //endregion
 
   //region Navigation Editor
@@ -581,7 +554,7 @@ public final class StudioFlags {
     "Use adblib to track device processes (Client)",
     "Use adblib instead of ddmlib to track processes (Client) on devices and handle debug sessions. " +
     "Note: Changing the value of this flag requires restarting Android Studio.",
-    true);
+    false);
 
   public static final Flag<Boolean> JDWP_TRACER = Flag.create(
     RUNDEBUG,
@@ -697,6 +670,14 @@ public final class StudioFlags {
 
   //region Gradle Project System
   private static final FlagGroup GRADLE_IDE = new FlagGroup(FLAGS, "gradle.ide", "Gradle Project System");
+
+  public static final Flag<Boolean> API_OPTIMIZATION_ENABLE = Flag.create(
+    GRADLE_IDE, "build.injection.device.api.enabled",
+    "Enable injection of device api level optimization from IDE",
+    "Enable injection of device api level optimization from IDE",
+    true
+  );
+
   public static final Flag<Boolean> FIX_ANDROID_RUN_CONFIGURATIONS_ENABLED = Flag.create(
     GRADLE_IDE, "gradle.run.configuration.fix.enabled",
     "Check Android Run Configurations contains the \"Gradle-aware Make\" task and fix them",
@@ -1205,6 +1186,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> COMPOSE_VIEW_INSPECTOR = Flag.create(
+    COMPOSE, "view.inspector",
+    "Show the switch of view inspection tool in Compose",
+    "If enabled, the user can toggle the mouse inspection tool in the dropdown menu of Compose Preview. The tools is disabled by default",
+    true
+  );
+
   public static final Flag<Boolean> COMPOSE_CONSTRAINT_VISUALIZATION = Flag.create(
     COMPOSE, "constraint.visualization",
     "Enable ConstraintLayout visualization in Compose previews",
@@ -1266,7 +1254,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_NEW_PREVIEW_LAYOUT = Flag.create(
     COMPOSE, "new.preview.layout", "Enable the new layout options of Compose Preview",
     "If enabled, the options of new layout designs of compose preview will be shown in Compose Preview",
-    false);
+    true);
 
   public static final Flag<Boolean> COMPOSE_PROJECT_USES_COMPOSE_OVERRIDE = Flag.create(
     COMPOSE, "project.uses.compose.override", "Forces the Compose project detection",

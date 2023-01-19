@@ -22,17 +22,20 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Toggleable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.CompatibilityRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public class TargetMenuAction extends DropDownAction {
   // We don't show ancient rendering targets, they're pretty broken
@@ -107,7 +110,8 @@ public class TargetMenuAction extends DropDownAction {
     return -1;
   }
 
-  private void addCompatibilityTargets(@NotNull DefaultActionGroup group) {
+  @NotNull
+  private List<SetTargetAction> getCompatibilitySetTargetActions() {
     Configuration configuration = myRenderContext.getConfiguration();
     assert configuration != null;
 
@@ -115,22 +119,29 @@ public class TargetMenuAction extends DropDownAction {
     IAndroidTarget highestTarget = configuration.getConfigurationManager().getHighestApiTarget();
     assert highestTarget != null;
 
+    List<SetTargetAction> actions = new ArrayList<>();
+
     int highestApiLevel = highestTarget.getVersion().getFeatureLevel();
     int minApi = Math.max(getMinSdkVersion(), SHOW_FROM_API_LEVEL);
     for (int apiLevel = highestApiLevel; apiLevel >= minApi; apiLevel--) {
       IAndroidTarget target = new CompatibilityRenderTarget(highestTarget, apiLevel, null);
       boolean isSelected = currentTarget != null && target.getVersion().equals(currentTarget.getVersion());
-      group.add(new SetTargetAction(myRenderContext, target.getVersionName(), target, isSelected));
+      actions.add(new SetTargetAction(myRenderContext, target.getVersionName(), target, isSelected));
     }
+
+    return deduplicateSetTargetAction(actions);
   }
 
-  private void addRealTargets(@NotNull DefaultActionGroup group) {
+  @NotNull
+  private List<SetTargetAction> getRealSetTargetActions() {
 
     Configuration configuration = myRenderContext.getConfiguration();
     assert configuration != null;
 
     IAndroidTarget current = configuration.getTarget();
     IAndroidTarget[] targets = configuration.getConfigurationManager().getTargets();
+
+    List<SetTargetAction> actions = new ArrayList<>();
 
     boolean haveRecent = false;
     int minSdk = getMinSdkVersion();
@@ -156,8 +167,32 @@ public class TargetMenuAction extends DropDownAction {
 
       String title = getRenderingTargetLabel(target, true);
       boolean select = current != null && target.getVersion().equals(current.getVersion());
-      group.add(new SetTargetAction(myRenderContext, title, target, select));
+      actions.add(new SetTargetAction(myRenderContext, title, target, select));
     }
+
+    return deduplicateSetTargetAction(actions);
+  }
+
+  @NotNull
+  private List<SetTargetAction> deduplicateSetTargetAction(@NotNull List<SetTargetAction> targetActions) {
+    LinkedHashMap<String, SetTargetAction> titleToActionMap = new LinkedHashMap<>();
+
+    for (SetTargetAction targetAction : targetActions) {
+      String title = targetAction.myTitle;
+      if (titleToActionMap.containsKey(title)) {
+        SetTargetAction oldAction = titleToActionMap.get(title);
+        int oldRevision = oldAction.myTarget.getRevision();
+        int newRevision = targetAction.myTarget.getRevision();
+        // Choose the last revision one.
+        if (newRevision > oldRevision) {
+          titleToActionMap.replace(title, targetAction);
+        }
+      }
+      else {
+        titleToActionMap.put(title, targetAction);
+      }
+    }
+    return titleToActionMap.values().stream().toList();
   }
 
   @Override
@@ -171,12 +206,14 @@ public class TargetMenuAction extends DropDownAction {
     add(new TogglePickBestAction(configuration.getConfigurationManager()));
     addSeparator();
 
+    List<SetTargetAction> actions;
     if (myUseCompatibilityTarget && configuration.getConfigurationManager().getHighestApiTarget() != null) {
-      addCompatibilityTargets(this);
+      actions = getCompatibilitySetTargetActions();
     }
     else {
-      addRealTargets(this);
+      actions = getRealSetTargetActions();
     }
+    addAll(actions);
 
     return true;
   }
@@ -257,13 +294,17 @@ public class TargetMenuAction extends DropDownAction {
     }
   }
 
-  private static class SetTargetAction extends ConfigurationAction {
-    private final IAndroidTarget myTarget;
+  @VisibleForTesting
+  static class SetTargetAction extends ConfigurationAction {
+    @VisibleForTesting
+    final IAndroidTarget myTarget;
+    private final String myTitle;
 
     public SetTargetAction(@NotNull ConfigurationHolder renderContext, @NotNull final String title,
                            @NotNull final IAndroidTarget target, final boolean select) {
       super(renderContext, title);
       myTarget = target;
+      myTitle = title;
       getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, select);
     }
 

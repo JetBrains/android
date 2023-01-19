@@ -140,8 +140,8 @@ internal class DeviceToolWindowPanel(
       ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name ->
           primaryDeviceView?.let { if (it.isConnected) DeviceScreenshotOptions(deviceSerialNumber, deviceConfig, it) else null }
       ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name ->
-          primaryDeviceView?.let {
-            ScreenRecorderAction.Parameters(deviceSerialNumber, deviceConfig.apiLevel, deviceConfig.avdName, it)
+          deviceClient.deviceController?.let {
+            ScreenRecorderAction.Parameters(deviceClient.deviceName, deviceSerialNumber, deviceConfig.apiLevel, deviceConfig.avdName, it)
           }
       else -> super.getData(dataId)
     }

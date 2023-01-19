@@ -33,6 +33,8 @@ class LiveEditUpdateException(val error: Error, val details: String = "", val so
     UNABLE_TO_INLINE("Unable to inline function", "%", true),
     UNABLE_TO_LOCATE_COMPOSE_GROUP("Unable to locate Compose Invalid Group", "%", false),
     UNSUPPORTED_BUILD_SRC_CHANGE("buildSrc/ sources not supported", "%", false),
+    UNSUPPORTED_SRC_CHANGE_RECOVERABLE("Unsupported change", "%", true),
+    UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE("Unsupported change", "%", false),
     UNSUPPORTED_TEST_SRC_CHANGE("Test sources not supported", "%", false),
 
     INTERNAL_ERROR("Internal Error", "%", false),
@@ -54,6 +56,12 @@ class LiveEditUpdateException(val error: Error, val details: String = "", val so
 
     fun internalError(details: String, cause: Throwable? = null) =
       LiveEditUpdateException(Error.INTERNAL_ERROR, details, null, cause)
+
+    fun unsupportedUnrecoverableSourceModification(type: String, file: PsiFile) =
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE, type, file, null)
+
+    fun unsupportedRecoverableSourceModification(type: String, file: PsiFile) =
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_RECOVERABLE, type, file, null)
 
     fun unsupportedBuildSrcChange(name: String) =
       LiveEditUpdateException(Error.UNSUPPORTED_BUILD_SRC_CHANGE, name, null, null)

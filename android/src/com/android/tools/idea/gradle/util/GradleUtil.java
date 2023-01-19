@@ -40,8 +40,8 @@ import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.BUNDLED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
+import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
@@ -629,7 +629,7 @@ public final class GradleUtil {
         }
       }
 
-      GradleVersion version = coordinates.getVersion();
+      Version version = coordinates.getLowerBoundVersion();
       if (version != null && !"unspecified".equals(version.toString())) {
         name += ":" + version;
       }

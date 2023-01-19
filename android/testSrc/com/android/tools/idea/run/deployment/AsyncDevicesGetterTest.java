@@ -24,13 +24,11 @@ import com.android.tools.idea.run.AndroidRunConfigurationModule;
 import com.android.tools.idea.run.deployment.Device.Type;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.execution.RunnerAndConfigurationSettings;
-import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.openapi.module.Module;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +41,6 @@ public final class AsyncDevicesGetterTest {
   @Rule
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
 
-  private Function<ConnectedDevice, String> myGetName;
   private AsyncDevicesGetter myGetter;
 
   @Before
@@ -51,10 +48,7 @@ public final class AsyncDevicesGetterTest {
     Clock clock = Mockito.mock(Clock.class);
     Mockito.when(clock.instant()).thenReturn(Instant.parse("2018-11-28T01:15:27.000Z"));
 
-    // noinspection unchecked
-    myGetName = Mockito.mock(Function.class);
-
-    myGetter = new AsyncDevicesGetter(myRule.getProject(), new KeyToConnectionTimeMap(clock), myGetName);
+    myGetter = new AsyncDevicesGetter(myRule.getProject(), new KeyToConnectionTimeMap(clock));
   }
 
   @Test
@@ -81,13 +75,11 @@ public final class AsyncDevicesGetterTest {
     AndroidDevice googlePixel3AndroidDevice = Mockito.mock(AndroidDevice.class);
 
     ConnectedDevice googlePixel3ConnectedDevice = new ConnectedDevice.Builder()
-      .setName("Physical Device")
+      .setName("Google Pixel 3")
       .setType(Type.PHONE)
       .setKey(new SerialNumber("86UX00F4R"))
       .setAndroidDevice(googlePixel3AndroidDevice)
       .build();
-
-    Mockito.when(myGetName.apply(googlePixel3ConnectedDevice)).thenReturn("Google Pixel 3");
 
     AndroidDevice pixel3ApiQAndroidDevice = Mockito.mock(AndroidDevice.class);
     Mockito.when(pixel3ApiQAndroidDevice.isVirtual()).thenReturn(true);

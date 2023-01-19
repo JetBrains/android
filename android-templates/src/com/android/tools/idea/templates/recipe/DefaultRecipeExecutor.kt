@@ -200,7 +200,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
                                               ?: return
 
       val pluginCoordinate =  "$plugin:$plugin.gradle.plugin:$revision"
-      val resolvedVersion = resolveDependency(repositoryUrlManager, pluginCoordinate, minRev).version?.toString() ?: revision
+      val resolvedVersion = resolveDependency(repositoryUrlManager, pluginCoordinate, minRev).lowerBoundVersion?.toString() ?: revision
       val targetPluginModel = pluginsBlockToModify.plugins().firstOrNull { it.name().toString() == plugin }
 
       if (targetPluginModel == null) {

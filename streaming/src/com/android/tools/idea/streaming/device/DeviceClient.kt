@@ -33,7 +33,9 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.project.modules
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.IncorrectOperationException
 import com.intellij.util.containers.ContainerUtil.createLockFreeCopyOnWriteList
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -43,7 +45,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import java.awt.Dimension
 import java.io.EOFException
 import java.io.IOException
@@ -79,24 +80,24 @@ internal class DeviceClient(
   private val project: Project
 ) : Disposable {
 
-  private val coroutineScope = AndroidCoroutineScope(this)
-  private lateinit var controlChannel: SuspendingSocketChannel
-  private lateinit var videoChannel: SuspendingSocketChannel
+  val deviceName: String = deviceConfig.deviceName ?: deviceSerialNumber
   @Volatile
   var videoDecoder: VideoDecoder? = null
     private set
   @Volatile
   var deviceController: DeviceController? = null
     private set
-  private val connectionState = AtomicReference<CompletableDeferred<Unit>>()
-  private var videoStreamActive = AtomicBoolean()
   internal var startTime = 0L // Time when startAgentAndConnect was called.
   internal var pushEndTime = 0L // Time when the agent push completed.
   internal var startAgentTime = 0L // Time when the command to start the agent was issued.
   internal var channelConnectedTime = 0L // Time when the channels were connected.
+  private val coroutineScope = AndroidCoroutineScope(this)
+  private lateinit var controlChannel: SuspendingSocketChannel
+  private lateinit var videoChannel: SuspendingSocketChannel
+  private val connectionState = AtomicReference<CompletableDeferred<Unit>>()
+  private var videoStreamActive = AtomicBoolean()
   private val logger = thisLogger()
   private val agentTerminationListeners = createLockFreeCopyOnWriteList<AgentTerminationListener>()
-  val deviceName: String = deviceConfig.deviceName ?: deviceSerialNumber
 
   init {
     Disposer.register(disposableParent, this)
@@ -163,7 +164,12 @@ internal class DeviceClient(
         // Port forwarding can be removed since the already established connections will continue to work without it.
       }
     }
-    deviceController = DeviceController(this, controlChannel)
+    try {
+      deviceController = DeviceController(this, controlChannel)
+    }
+    catch (e: IncorrectOperationException) {
+      return // Already disposed.
+    }
     videoDecoder = VideoDecoder(videoChannel, coroutineScope, maxVideoSize).apply { start() }
     videoStreamActive.set(startVideoStream)
   }
@@ -260,7 +266,7 @@ internal class DeviceClient(
       if (projectDir != null && projectDir.endsWith(SCREEN_SHARING_AGENT_SOURCE_PATH)) {
         // Development environment for the screen sharing agent.
         // Use the agent built by running "Build > Make Project" in Studio.
-        val facet = project.allModules().firstNotNullOfOrNull { AndroidFacet.getInstance(it) }
+        val facet = project.modules.firstNotNullOfOrNull { AndroidFacet.getInstance(it) }
         val buildVariant = facet?.properties?.SELECTED_BUILD_VARIANT ?: "debug"
         soFile = projectDir.resolve(
           "app/build/intermediates/stripped_native_libs/$buildVariant/out/lib/$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")

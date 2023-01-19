@@ -32,7 +32,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.gradleModule
-import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.requestSyncAndWait
 import com.android.tools.idea.testing.saveAndDump

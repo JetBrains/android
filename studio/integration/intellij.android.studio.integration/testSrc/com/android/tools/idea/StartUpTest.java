@@ -70,6 +70,7 @@ public class StartUpTest {
         "com.intellij.dev",
         "Configuration Script",
         "Copyright",
+        "Core of CIDR Test Framework",
         "Design Tools",
         "Eclipse Keymap",
         "EditorConfig",
@@ -107,7 +108,6 @@ public class StartUpTest {
         "NetBeans Keymap",
         "Plugin DevKit",
         "Properties",
-        "Settings Repository",
         "Settings Sync",
         "Shell Script",
         "Smali Support",
@@ -125,6 +125,10 @@ public class StartUpTest {
 
       if (SystemUtils.IS_OS_LINUX) {
         expectedPlugins.add("Emoji Picker");
+      }
+
+      if (SystemUtils.IS_OS_WINDOWS) {
+        expectedPlugins.add("Windows 10 Light Theme");
       }
 
       assertThat(plugins).asList().containsExactlyElementsIn(expectedPlugins);

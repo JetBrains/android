@@ -60,9 +60,9 @@ public class ProjectFonts {
   private final Map<String, QueryParser.ParseResult> myParseResults;
   private final List<String> myDefinitions;
 
-  public ProjectFonts(@NotNull AndroidFacet facet) {
+  public ProjectFonts(@NotNull ResourceRepositoryManager resourceRepositoryManager) {
     myService = DownloadableFontCacheService.getInstance();
-    myResourceRepository = ResourceRepositoryManager.getInstance(facet);
+    myResourceRepository = resourceRepositoryManager;
     myProjectFonts = new TreeMap<>();
     myParseResults = new HashMap<>();
     myDefinitions = new ArrayList<>();

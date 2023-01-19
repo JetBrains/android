@@ -18,7 +18,6 @@ package com.android.tools.idea.run.ui;
 import static com.android.tools.idea.run.tasks.AbstractDeployTask.MIN_API_VERSION;
 import static com.android.tools.idea.run.util.SwapInfo.SWAP_INFO_KEY;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.deployable.Deployable;
 import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.android.tools.idea.run.deployable.SwappableProcessHandler;
@@ -52,7 +51,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -220,7 +218,8 @@ public abstract class BaseAction extends AnAction {
         }
       }
 
-      Future<AndroidVersion> versionFuture = deployable.getVersion();
+      var versionFuture = deployable.getVersionAsync();
+
       if (!versionFuture.isDone()) {
         // Don't stall the EDT - if the Future isn't ready, just return false.
         return new DisableMessage(DisableMessage.DisableMode.DISABLED, "unknown device API level", "its API level is currently unknown");

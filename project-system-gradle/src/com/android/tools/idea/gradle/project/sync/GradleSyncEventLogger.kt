@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.SdkConstants
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeArtifactDependency
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
@@ -70,10 +70,10 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
     kind: AndroidStudioEvent.EventKind
   ): AndroidStudioEvent.Builder {
     fun generateKotlinSupport(): KotlinSupport.Builder {
-      var kotlinVersion: GradleVersion? = null
-      var ktxVersion: GradleVersion? = null
+      var kotlinVersion: Version? = null
+      var ktxVersion: Version? = null
 
-      val ordering = Ordering.natural<GradleVersion>().nullsFirst<GradleVersion>()
+      val ordering = Ordering.natural<Version>().nullsFirst<Version>()
 
       ModuleManager.getInstance(project).modules.mapNotNull { module -> GradleAndroidModel.get(module) }.forEach { model ->
         val dependencies = model.selectedMainCompileDependencies
@@ -134,9 +134,9 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
   }
 }
 
-private fun Collection<IdeArtifactDependency<*>>.findVersion(artifact: String): GradleVersion? {
+private fun Collection<IdeArtifactDependency<*>>.findVersion(artifact: String): Version? {
   val library = firstOrNull { library -> library.target.artifactAddress.startsWith(artifact) } ?: return null
-  return GradleCoordinate.parseCoordinateString(library.target.artifactAddress)?.version
+  return GradleCoordinate.parseCoordinateString(library.target.artifactAddress)?.lowerBoundVersion
 }
 
 private fun GradleSyncStats.Builder.updateUserRequestedParallelSyncMode(project: Project, rootProjectPath: @SystemIndependent String) {

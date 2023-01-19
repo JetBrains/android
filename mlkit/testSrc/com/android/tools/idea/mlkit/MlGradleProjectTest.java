@@ -15,19 +15,19 @@
  */
 package com.android.tools.idea.mlkit;
 
+import static com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProjectKt.testProjectTemplateFromPath;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.testing.AndroidGradleProjectRule;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import org.junit.After;
@@ -38,16 +38,13 @@ import org.junit.Test;
 public class MlGradleProjectTest {
 
   @Rule
-  public final AndroidGradleProjectRule myProjectRule = new AndroidGradleProjectRule();
-
-  @Rule
-  public final EdtRule myEdtRule = new EdtRule();
+  public final AndroidProjectRule.Typed<JavaCodeInsightTestFixture, AndroidProjectRule.TestProjectTestHelpers> myProjectRule =
+    AndroidProjectRule.testProject(
+      testProjectTemplateFromPath(TestDataPaths.PROJECT_WITH_TWO_LIB_MODULES_BUT_ONLY_ONE_ENABLED, TestDataPaths.TEST_DATA_ROOT));
 
   @Before
   public void setUp() {
     StudioFlags.ML_MODEL_BINDING.override(true);
-    myProjectRule.getFixture().setTestDataPath(TestDataPaths.TEST_DATA_ROOT);
-    myProjectRule.load(TestDataPaths.PROJECT_WITH_TWO_LIB_MODULES_BUT_ONLY_ONE_ENABLED);
   }
 
   @After
@@ -76,7 +73,7 @@ public class MlGradleProjectTest {
     assertTrue(TestModuleUtil.hasModule(project, "lib_on"));
     assertTrue(TestModuleUtil.hasModule(project, "lib_off"));
 
-    JavaCodeInsightTestFixture fixture = ((JavaCodeInsightTestFixture)myProjectRule.getFixture());
+    JavaCodeInsightTestFixture fixture = myProjectRule.getFixture();
     GlobalSearchScope appScope = fixture.findClass("com.mlmodelbinding.MyActivity").getResolveScope();
     GlobalSearchScope libOnScope = fixture.findClass("lib.withbinding.Sample").getResolveScope();
     GlobalSearchScope libOffScope = fixture.findClass("lib.nobinding.Sample").getResolveScope();

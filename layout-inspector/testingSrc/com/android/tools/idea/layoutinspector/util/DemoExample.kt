@@ -24,8 +24,6 @@ import com.android.resources.ResourceType
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.layoutinspector.InspectorModelDescriptor
 import com.android.tools.idea.layoutinspector.InspectorViewDescriptor
-import com.android.tools.idea.layoutinspector.model
-import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 
 const val DECOR_VIEW = "com.android.internal.policy.DecorView"

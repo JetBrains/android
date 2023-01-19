@@ -35,7 +35,7 @@
                        displayType="BALLOON"
                        toolWindowId="Running Devices"
                        bundle="messages.AndroidBundle"
-                       key="android.emulator.notification.title"/>
+                       key="android.streaming.notification.title"/>
 
     <projectService serviceImplementation="com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel$MultiDisplayStateStorage" />
   </extensions>
@@ -117,7 +117,7 @@
               icon="StudioIcons.Common.VIDEO_CAPTURE" text="Record Screen" description="Record a video of the device display"/>
     </group>
     <group id="StreamingToolbarSecondary">
-      <action id="android.emulator.liveedit.status" class="com.android.tools.idea.editors.liveedit.ui.LiveEditAction"/>
+      <action id="android.emulator.liveedit.status" class="com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup"/>
     </group>
     <action internal="true" id="Android.Streaming.Benchmark" icon="StudioIcons.Shell.Menu.PROFILER"
             class="com.android.tools.idea.streaming.benchmark.StreamingBenchmarkAction" text="Benchmark Streaming Device"

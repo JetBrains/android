@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,115 +15,177 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import static com.android.tools.idea.run.deployment.Tasks.getTypeFromAndroidDevice;
-
+import com.android.ddmlib.AvdData;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.ConnectedAndroidDevice;
+import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.concurrency.EdtExecutorService;
 import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.Executor;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class ConnectedDevicesTask implements AsyncSupplier<List<ConnectedDevice>> {
-  @NotNull
-  private final AndroidDebugBridge myAndroidDebugBridge;
-
-  @Nullable
-  private final LaunchCompatibilityChecker myChecker;
+// TODO Add the thread annotations
+final class ConnectedDevicesTask implements AsyncSupplier<Collection<ConnectedDevice>> {
+  private final @NotNull AndroidDebugBridge myAndroidDebugBridge;
+  private final @Nullable LaunchCompatibilityChecker myLaunchCompatibilityChecker;
 
   @NotNull
-  private final Executor myExecutor;
+  private final Function<IDevice, AndroidDevice> myNewConnectedAndroidDevice;
 
-  @NotNull
-  private final Function<IDevice, AndroidDevice> myAndroidDeviceFactory;
-
-  ConnectedDevicesTask(@NotNull AndroidDebugBridge androidDebugBridge, @Nullable LaunchCompatibilityChecker checker) {
-    this(androidDebugBridge, checker, AppExecutorUtil.getAppExecutorService(), device -> new ConnectedAndroidDevice(device));
+  ConnectedDevicesTask(@NotNull AndroidDebugBridge androidDebugBridge, @Nullable LaunchCompatibilityChecker launchCompatibilityChecker) {
+    this(androidDebugBridge, launchCompatibilityChecker, ConnectedAndroidDevice::new);
   }
 
   @VisibleForTesting
   ConnectedDevicesTask(@NotNull AndroidDebugBridge androidDebugBridge,
-                       @Nullable LaunchCompatibilityChecker checker,
-                       @NotNull Executor executor,
-                       @NotNull Function<IDevice, AndroidDevice> androidDeviceFactory) {
+                       @Nullable LaunchCompatibilityChecker launchCompatibilityChecker,
+                       @NotNull Function<IDevice, AndroidDevice> newConnectedAndroidDevice) {
     myAndroidDebugBridge = androidDebugBridge;
-    myChecker = checker;
-    myExecutor = executor;
-    myAndroidDeviceFactory = androidDeviceFactory;
+    myLaunchCompatibilityChecker = launchCompatibilityChecker;
+    myNewConnectedAndroidDevice = newConnectedAndroidDevice;
   }
 
   @NotNull
   @Override
-  public ListenableFuture<List<ConnectedDevice>> get() {
+  public ListenableFuture<Collection<ConnectedDevice>> get() {
     // noinspection UnstableApiUsage
-    return Futures.transform(myAndroidDebugBridge.getConnectedDevices(), this::newConnectedDevices, myExecutor);
-  }
-
-  private @NotNull List<ConnectedDevice> newConnectedDevices(@NotNull Collection<IDevice> devices) {
-    return devices.stream()
-      .filter(IDevice::isOnline)
-      .map(this::newConnectedDevice)
-      .collect(Collectors.toList());
-  }
-
-  private @NotNull ConnectedDevice newConnectedDevice(@NotNull IDevice ddmlibDevice) {
-    AndroidDevice androidDevice = myAndroidDeviceFactory.apply(ddmlibDevice);
-
-    ConnectedDevice.Builder builder = new ConnectedDevice.Builder()
-      .setName(composeDeviceName(ddmlibDevice))
-      .setKey(newKey(ddmlibDevice))
-      .setAndroidDevice(androidDevice)
-      .setType(getTypeFromAndroidDevice(androidDevice));
-
-    if (myChecker == null) {
-      return builder.build();
-    }
-
-    return builder
-      .setLaunchCompatibility(myChecker.validate(androidDevice))
-      .build();
+    return Futures.transformAsync(myAndroidDebugBridge.getConnectedDevices(), this::toList, EdtExecutorService.getInstance());
   }
 
   @NotNull
-  private static String composeDeviceName(@NotNull IDevice ddmlibDevice) {
-    if (ddmlibDevice.isEmulator()) {
-      String avdName = ddmlibDevice.getAvdName();
-      // The AVD name "<build>" is produced in case of a custom system image.
-      if (avdName != null && !avdName.equals("<build>")) {
-        return avdName;
-      }
-    }
-    return ddmlibDevice.getSerialNumber();
+  private ListenableFuture<Collection<ConnectedDevice>> toList(@NotNull Collection<IDevice> devices) {
+    var futures = devices.stream()
+      .filter(IDevice::isOnline)
+      .map(this::buildAsync)
+      .toList();
+
+    // noinspection UnstableApiUsage
+    return Futures.transform(Futures.successfulAsList(futures), ConnectedDevicesTask::filterNonNull, EdtExecutorService.getInstance());
   }
 
-  private static @NotNull Key newKey(@NotNull IDevice device) {
-    if (!device.isEmulator()) {
-      return new SerialNumber(device.getSerialNumber());
+  @NotNull
+  private ListenableFuture<ConnectedDevice> buildAsync(@NotNull IDevice device) {
+    var androidDevice = myNewConnectedAndroidDevice.apply(device);
+
+    var nameFuture = getNameAsync(device);
+    var keyFuture = getKeyAsync(device);
+    var compatibilityFuture = getLaunchCompatibilityAsync(androidDevice);
+
+    // noinspection UnstableApiUsage
+    return Futures.whenAllComplete(nameFuture, keyFuture, compatibilityFuture)
+      .call(() -> build(androidDevice, nameFuture, keyFuture, compatibilityFuture), EdtExecutorService.getInstance());
+  }
+
+  private static @NotNull ListenableFuture<String> getNameAsync(@NotNull IDevice device) {
+    var executor = EdtExecutorService.getInstance();
+
+    if (device.isEmulator()) {
+      // noinspection UnstableApiUsage
+      return Futures.transform(device.getAvdData(), d -> getName(d, device.getSerialNumber()), executor);
     }
 
-    String path = device.getAvdPath();
+    var modelFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MODEL);
+    var manufacturerFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER);
+
+    // noinspection UnstableApiUsage
+    return Futures.whenAllComplete(modelFuture, manufacturerFuture)
+      .call(() -> DeviceNameProperties.getName(Futures.getDone(modelFuture), Futures.getDone(manufacturerFuture)), executor);
+  }
+
+  @NotNull
+  private static String getName(@Nullable AvdData device, @NotNull String serialNumber) {
+    if (device == null) {
+      return serialNumber;
+    }
+
+    var name = device.getName();
+
+    if (name == null) {
+      return serialNumber;
+    }
+
+    if (name.equals("<build>")) {
+      return serialNumber;
+    }
+
+    return name;
+  }
+
+  private static @NotNull ListenableFuture<Key> getKeyAsync(@NotNull IDevice device) {
+    var serialNumber = device.getSerialNumber();
+
+    if (!device.isEmulator()) {
+      return Futures.immediateFuture(new SerialNumber(serialNumber));
+    }
+
+    // noinspection UnstableApiUsage
+    return Futures.transform(device.getAvdData(), d -> getKey(d, serialNumber), EdtExecutorService.getInstance());
+  }
+
+  @NotNull
+  private static Key getKey(@Nullable AvdData device, @NotNull String serialNumber) {
+    if (device == null) {
+      return new SerialNumber(serialNumber);
+    }
+
+    var path = device.getPath();
 
     if (path != null) {
       return new VirtualDevicePath(path);
     }
 
-    String name = device.getAvdName();
+    var name = device.getName();
 
-    if (name != null && !name.equals("<build>")) {
-      return new VirtualDeviceName(name);
+    if (name == null) {
+      return new SerialNumber(serialNumber);
     }
 
-    // Either the virtual device name is null or the developer built their own system image. Neither names will work as virtual device keys.
-    // Fall back to the serial number.
-    return new SerialNumber(device.getSerialNumber());
+    if (name.equals("<build>")) {
+      return new SerialNumber(serialNumber);
+    }
+
+    return new VirtualDeviceName(name);
+  }
+
+  @NotNull
+  private ListenableFuture<Optional<LaunchCompatibility>> getLaunchCompatibilityAsync(@NotNull AndroidDevice device) {
+    if (myLaunchCompatibilityChecker == null) {
+      return Futures.immediateFuture(Optional.empty());
+    }
+
+    return Futures.submit(() -> Optional.of(myLaunchCompatibilityChecker.validate(device)), AppExecutorUtil.getAppExecutorService());
+  }
+
+  @NotNull
+  private static ConnectedDevice build(@NotNull AndroidDevice device,
+                                       @NotNull Future<String> nameFuture,
+                                       @NotNull Future<Key> keyFuture,
+                                       @NotNull Future<Optional<LaunchCompatibility>> compatibilityFuture) throws ExecutionException {
+    var builder = new ConnectedDevice.Builder()
+      .setName(Futures.getDone(nameFuture))
+      .setKey(Futures.getDone(keyFuture))
+      .setAndroidDevice(device)
+      .setType(Tasks.getTypeFromAndroidDevice(device));
+
+    Futures.getDone(compatibilityFuture).ifPresent(builder::setLaunchCompatibility);
+    return builder.build();
+  }
+
+  private static @NotNull Collection<ConnectedDevice> filterNonNull(@NotNull Collection<ConnectedDevice> devices) {
+    return devices.stream()
+      .filter(Objects::nonNull)
+      .toList();
   }
 }

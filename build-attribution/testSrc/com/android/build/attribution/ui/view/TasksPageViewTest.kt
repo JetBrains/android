@@ -27,6 +27,7 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.HyperlinkLabel
@@ -42,6 +43,9 @@ import java.awt.Dimension
 class TasksPageViewTest {
   @get:Rule
   val applicationRule: ApplicationRule = ApplicationRule()
+
+  @get:Rule
+  var disposableRule = DisposableRule()
 
   @get:Rule
   val edtRule = EdtRule()
@@ -62,7 +66,7 @@ class TasksPageViewTest {
 
   @Before
   fun setUp() {
-    view = TasksPageView(model, mockHandlers).apply {
+    view = TasksPageView(model, mockHandlers, disposableRule.disposable).apply {
       component.size = Dimension(600, 200)
     }
   }
@@ -88,7 +92,7 @@ class TasksPageViewTest {
   @RunsInEdt
   fun testModelUpdatedWithoutTaskCategoryInfo() {
     val model = TasksDataPageModelImpl(MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryInfo = false))
-    view = TasksPageView(model, mockHandlers).apply {
+    view = TasksPageView(model, mockHandlers, disposableRule.disposable).apply {
       component.size = Dimension(600, 200)
     }
     // Act - update model by opening Plugin page
@@ -108,7 +112,7 @@ class TasksPageViewTest {
   @RunsInEdt
   fun testModelUpdatedWithTaskCategoryInfo() {
     val model = TasksDataPageModelImpl(MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryInfo = true))
-    view = TasksPageView(model, mockHandlers).apply {
+    view = TasksPageView(model, mockHandlers, disposableRule.disposable).apply {
       component.size = Dimension(600, 200)
     }
 
@@ -171,7 +175,7 @@ class TasksPageViewTest {
   fun testEmptyState() {
     val data = MockUiData(tasksList = emptyList())
     val model = TasksDataPageModelImpl(data)
-    view = TasksPageView(model, mockHandlers).apply {
+    view = TasksPageView(model, mockHandlers, disposableRule.disposable).apply {
       component.size = Dimension(600, 200)
     }
 

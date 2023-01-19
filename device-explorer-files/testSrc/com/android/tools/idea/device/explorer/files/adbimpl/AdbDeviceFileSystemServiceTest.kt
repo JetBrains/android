@@ -52,7 +52,7 @@ class AdbDeviceFileSystemServiceTest {
     ))
 
   val provisioner = DeviceProvisioner.create(session, emptyList())
-  val plugin = FakeAdbDeviceProvisionerPlugin(fakeAdb)
+  val plugin = FakeAdbDeviceProvisionerPlugin(session.scope, fakeAdb)
   val service = AdbDeviceFileSystemService(DeviceProvisioner.create(session, listOf(plugin)))
 
   /**
@@ -84,7 +84,7 @@ class AdbDeviceFileSystemServiceTest {
     }
 
     val state = deviceHandle.state
-    assertThat(state.properties.title()).isEqualTo("Google Pixel 6")
+    assertThat(state.properties.title).isEqualTo("Google Pixel 6")
     assertThat(state).isInstanceOf(Connected::class.java)
 
     // Deactivate the device; it goes away

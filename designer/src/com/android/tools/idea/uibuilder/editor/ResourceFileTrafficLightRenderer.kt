@@ -45,7 +45,7 @@ private val SEVERITY_TO_ICON = mapOf(
  * Custom [TrafficLightRenderer] to be used by resource files.
  * It shows the number of errors, warnings... displayed in the Design Tools tab of the error panel if there are Visual Lint issues.
  */
-class ResourceFileTrafficLightRender(val file: PsiFile, val editor: Editor) : TrafficLightRenderer(file.project, editor.document) {
+class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) : TrafficLightRenderer(file.project, editor.document) {
   private val severities = severityRegistrar.allSeverities
   private val errorCountArray = IntArray(severities.size)
 
@@ -54,7 +54,7 @@ class ResourceFileTrafficLightRender(val file: PsiFile, val editor: Editor) : Tr
     messageBusConnection.subscribe(IssueProviderListener.TOPIC, IssueProviderListener { _, _ ->
       ApplicationManager.getApplication().invokeLater {
         if (!project.isDisposed) {
-          ErrorStripeUpdateManager.getInstance(project).repaintErrorStripePanel(editor)
+          ErrorStripeUpdateManager.getInstance(project).repaintErrorStripePanel(editor, file)
         }
       }
     })

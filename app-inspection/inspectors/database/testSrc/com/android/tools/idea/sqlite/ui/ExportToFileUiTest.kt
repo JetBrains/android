@@ -42,6 +42,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPopupMenu
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.replaceService
@@ -143,7 +144,7 @@ class ExportToFileUiTest : LightPlatformTestCase() {
     expectedParams: ExportDialogParams
   ) {
     // Set up an ActionManager capturing pop-up menus
-    val currentActionManager = ApplicationManager.getApplication().getService(ActionManager::class.java)
+    val currentActionManager = ApplicationManager.getApplication().getService(ActionManager::class.java) as ActionManagerEx
     val testActionManager = object : OpenActionManager(currentActionManager) {
       val popUpMenuActionGroupList = mutableListOf<ActionGroup>()
       override fun createActionPopupMenu(place: String, group: ActionGroup): ActionPopupMenu {

@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.device
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128InputStream.StreamFormatException
 import com.android.utils.Base128OutputStream
+import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap
 import kotlin.text.Charsets.UTF_8
 
 // Classes in this file have to be kept in sync with tools/adt/idea/streaming/screen-sharing-agent/app/src/main/cpp/control_messages.h.
@@ -91,6 +92,7 @@ internal data class MotionEventMessage(
     const val TYPE = 1
 
     // Constants from android.view.MotionEvent.
+    // - Actions
     const val ACTION_DOWN = 0
     const val ACTION_UP = 1
     const val ACTION_MOVE = 2
@@ -98,6 +100,13 @@ internal data class MotionEventMessage(
     const val ACTION_OUTSIDE = 4
     const val ACTION_POINTER_DOWN = 5
     const val ACTION_POINTER_UP = 6
+    const val ACTION_SCROLL = 8
+
+    // - Axes
+    const val AXIS_VSCROLL = 9
+    const val AXIS_HSCROLL = 10
+
+    // - Other
     const val ACTION_MASK = 0xff
     const val ACTION_POINTER_INDEX_MASK = 0xff00
     const val ACTION_POINTER_INDEX_SHIFT = 8
@@ -117,20 +126,38 @@ internal data class MotionEventMessage(
       val x = stream.readInt()
       val y = stream.readInt()
       val pointerId = stream.readInt()
-      return Pointer(x, y, pointerId)
+      var axisValues: Int2FloatOpenHashMap? = null
+      val numAxisValues = stream.readInt()
+      if (numAxisValues > 0) {
+        axisValues = Int2FloatOpenHashMap(numAxisValues)
+        repeat(numAxisValues) {
+          axisValues.put(stream.readInt(), stream.readFloat())
+        }
+      }
+      return Pointer(x, y, pointerId, axisValues)
     }
   }
 
-  data class Pointer(val x: Int, val y: Int, val pointerId: Int) {
+  data class Pointer(val x: Int, val y: Int, val pointerId: Int, val axisValues: Int2FloatOpenHashMap? = null) {
 
     fun serialize(stream: Base128OutputStream) {
       stream.writeInt(x)
       stream.writeInt(y)
       stream.writeInt(pointerId)
+      stream.writeInt(axisValues?.size ?: 0)
+      if (axisValues != null) {
+        val iterator = axisValues.int2FloatEntrySet().fastIterator()
+        while (iterator.hasNext()) {
+          val entry = iterator.next()
+          stream.writeInt(entry.intKey)
+          stream.writeFloat(entry.floatValue)
+        }
+      }
     }
 
     override fun toString(): String {
-      return "Pointer(x=$x, y=$y, pointerId=$pointerId)"
+      if (axisValues == null) return "Pointer(x=$x, y=$y, pointerId=$pointerId)"
+      return "Pointer(x=$x, y=$y, pointerId=$pointerId, axisValues=$axisValues)"
     }
   }
 }

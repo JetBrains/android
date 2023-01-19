@@ -100,8 +100,8 @@ import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuid
 
 import com.android.AndroidXConstants;
 import com.android.SdkConstants;
+import com.android.ide.common.gradle.Version;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
@@ -936,64 +936,13 @@ public final class ConstraintComponentUtilities {
   }
 
 
-  public static boolean isConstraintModelGreaterThan(@NotNull ViewEditor editor,
-                                                     int major,
-                                                     int... version) {
+  public static boolean isConstraintModelGreaterThan(@NotNull ViewEditor editor, String version) {
     GoogleMavenArtifactId artifact = GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT;
-    GradleVersion v = NlDependencyManager.getInstance().getModuleDependencyVersion(artifact, editor.getModel().getFacet());
-    return (versionGreaterThan(v, major,
-                               (version.length > 0) ? version[0] : -1,
-                               (version.length > 1) ? version[1] : -1,
-                               (version.length > 2) ? version[2] : -1,
-                               (version.length > 3) ? version[3] : -1 ));
+    Version v = NlDependencyManager.getInstance().getModuleDependencyVersion(artifact, editor.getModel().getFacet());
+    if (v == null) return true;
+    return v.compareTo(Version.Companion.parse(version)) > 0;
   }
 
-  /**
-   * Are we past a version used to implement a conditional change for other releases
-   * results when alpha and beta both > 0 is undefined
-   *
-   * @param v
-   * @param major
-   * @param minor
-   * @param micro
-   * @param beta  version of beta to check 0 if not a version of beta
-   * @param alpha version of alpha to check 0 if not a version of alpha
-   * @return
-   */
-  private static boolean versionGreaterThan(GradleVersion v, int major, int minor, int micro, int beta, int alpha) {
-    if (v == null) { // if you could not get the version assume it is the latest
-      return true;
-    }
-    if (v.getMajor() != major) {
-      return v.getMajor() > major;
-    }
-    if (v.getMinor() != minor) {
-      return (v.getMinor() > minor);
-    }
-    if (micro == -1) { // minor version needed to be bigger
-      return false;
-    }
-    if (v.getMicro() != micro) {
-      return (v.getMicro() > micro);
-    }
-    if (alpha > 0) {
-      if ("alpha".equals(v.getPreviewType())) {
-        return (v.getPreview() > alpha);
-      }
-      else { // expecting alpha but out of beta
-        return true;
-      }
-    }
-    if (beta > 0) {
-      if ("beta".equals(v.getPreviewType())) {
-        return (v.getPreview() > beta);
-      }
-      else { // expecting beta but out of beta
-        return true;
-      }
-    }
-    return false;
-  }
   /////////////////////////////////////////////////////////////////////////////
   // Utility methods for Scout
   /////////////////////////////////////////////////////////////////////////////

@@ -373,9 +373,7 @@ private fun ProjectDumper.dump(facet: Facet<*>) {
   }
 }
 
-private fun ProjectDumper.dump(gradleFacetConfiguration: GradleFacetConfiguration) {
-  prop("GradlePath") { gradleFacetConfiguration.GRADLE_PROJECT_PATH }
-}
+private fun ProjectDumper.dump(gradleFacetConfiguration: GradleFacetConfiguration) = Unit
 
 private fun ProjectDumper.dump(androidFacetConfiguration: AndroidFacetConfiguration) {
   with(androidFacetConfiguration.state ?: return) {

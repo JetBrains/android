@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.surface.layout
 
 import com.android.tools.idea.common.surface.layout.TestPositionableContent
+import com.android.tools.idea.uibuilder.LayoutTestCase
+import com.intellij.util.ui.JBInsets
 import junit.framework.Assert.assertEquals
 import org.junit.Test
 import java.awt.Dimension
@@ -418,5 +420,31 @@ class GroupedListSurfaceLayoutManagerTest {
       val scale = manager.getFitIntoScale(contents, 100, 1000)
       assertEquals(0.8, scale)
     }
+  }
+
+  @Test
+  fun testZoomToFitValueIsIndependentOfContentScale() {
+    val manager = GroupedListSurfaceLayoutManager(0, { (it * 20).toInt() }) { contents ->
+      listOf(contents.toList())
+    }
+
+    val contents = List(4) {
+      TestPositionableContent(0, 0, 100, 100, 1.0) { scale ->
+        val value = (10 * scale).toInt()
+        JBInsets(value, value, value, value)
+      }
+    }
+
+    val width = 1000
+    val height = 1000
+
+    val zoomToFitScale1 = manager.getFitIntoScale(contents, width, height)
+    contents.forEach { it.scale = 0.5 }
+    val zoomToFitScale2 = manager.getFitIntoScale(contents, width, height)
+    contents.forEach { it.scale = 0.25 }
+    val zoomToFitScale3 = manager.getFitIntoScale(contents, width, height)
+
+    LayoutTestCase.assertEquals(zoomToFitScale1, zoomToFitScale2)
+    LayoutTestCase.assertEquals(zoomToFitScale1, zoomToFitScale3)
   }
 }

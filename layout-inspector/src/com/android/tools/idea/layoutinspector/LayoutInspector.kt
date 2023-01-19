@@ -21,6 +21,9 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.pipeline.InspectorConnectionError
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.ConnectionFailedException
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.logUnexpectedError
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.google.common.annotations.VisibleForTesting
@@ -30,6 +33,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.Messages
+import kotlinx.coroutines.CancellationException
 import java.awt.Component
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicLong
@@ -154,14 +158,34 @@ class LayoutInspector private constructor(
     }
   }
 
-  private fun logError(error: String) {
-    Logger.getInstance(LayoutInspector::class.java.canonicalName).warn(error)
-    InspectorBannerService.getInstance(layoutInspectorModel.project)?.addNotification(error)
+  private fun logError(error: String?, throwable: Throwable?) {
+    val message = when {
+      throwable is ConnectionFailedException -> {
+        Logger.getInstance(LayoutInspector::class.java).warn(error)
+        throwable.message
+      }
+      throwable is CancellationException -> {
+        // Do not alert the user. This can happen in normal circumstances e.g. b/264667192
+        Logger.getInstance(LayoutInspector::class.java).warn(throwable)
+        return
+      }
+      throwable != null -> {
+        logUnexpectedError(InspectorConnectionError(throwable))
+        "Unknown error"
+      }
+      !error.isNullOrEmpty() -> {
+        logUnexpectedError(InspectorConnectionError(error))
+        error
+      }
+      else -> return
+    }
+    if (message != null) {
+      InspectorBannerService.getInstance(layoutInspectorModel.project)?.addNotification(message)
 
-    @Suppress("ConstantConditionIf")
-    if (SHOW_ERROR_MESSAGES_IN_DIALOG) {
-      ApplicationManager.getApplication().invokeLater {
-        Messages.showErrorDialog(layoutInspectorModel.project, error, "Inspector Error")
+      if (SHOW_ERROR_MESSAGES_IN_DIALOG) {
+        ApplicationManager.getApplication().invokeLater {
+          Messages.showErrorDialog(layoutInspectorModel.project, message, "Inspector Error")
+        }
       }
     }
   }

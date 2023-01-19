@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model.android;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.MAP_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.REFERENCE_TO_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.CUSTOM;
@@ -1372,6 +1373,37 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testReadInitWith() throws IOException {
+    writeToBuildFile(TestFile.OVERRIDE_WITH_INIT_WITH);
+
+    List<BuildTypeModel> buildTypeModels = getGradleBuildModel().android().buildTypes();
+    assertThat(buildTypeModels.size(), equalTo(4)); // 2 default + 2 custom
+
+    BuildTypeModel fooBuildType = buildTypeModels.get(2);
+    BuildTypeModel barBuildType = buildTypeModels.get(3);
+
+    assertThat(fooBuildType.name(), equalTo("foo"));
+    assertThat(barBuildType.name(), equalTo("bar"));
+
+    verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl")), fooBuildType.buildConfigFields());
+    assertThat(fooBuildType.minifyEnabled().toBoolean(), equalTo(true));
+    assertThat(fooBuildType.debuggable().toBoolean(), equalTo(true));
+
+    // Check if initWith is applied
+    assertThat(barBuildType, instanceOf(BuildTypeModelImpl.class)); // We need to cast it, because initWith() is not part of the interface
+    assertThat(((BuildTypeModelImpl)barBuildType).initWith().getRawValue(REFERENCE_TO_TYPE), equalTo(new ReferenceTo(fooBuildType)));
+
+    verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl")), barBuildType.buildConfigFields());
+    assertThat(barBuildType.minifyEnabled().toBoolean(), equalTo(true));
+    // Check if debuggable was overwritten back to false
+    assertThat(barBuildType.debuggable().toBoolean(), equalTo(false));
+
+    // Check that target buildType is not affected
+    assertThat(fooBuildType.applicationIdSuffix().valueAsString(), equalTo(".foo"));
+    assertThat(barBuildType.applicationIdSuffix().valueAsString(), equalTo(".bar"));
+  }
+
+  @Test
   public void testReadSigningConfig() throws Exception {
     writeToBuildFile(TestFile.READ_SIGNING_CONFIG);
 
@@ -1379,7 +1411,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     BuildTypeModel buildType = getXyzBuildType(buildModel);
     verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myConfig", CUSTOM, REGULAR, 1);
     assertThat(buildType.signingConfig().getRawValue(STRING_TYPE),
-               isGroovy()?equalTo("signingConfigs.myConfig"):equalTo("signingConfigs.getByName(\"myConfig\")"));
+               isGroovy() ? equalTo("signingConfigs.myConfig") : equalTo("signingConfigs.getByName(\"myConfig\")"));
     SigningConfigModel signingConfigModel = buildType.signingConfig().toSigningConfig();
     assertThat(signingConfigModel.name(), equalTo("myConfig"));
   }
@@ -1469,8 +1501,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     signingConfigPropertyModel = buildTypeModel.signingConfig();
     verifyPropertyModel(signingConfigPropertyModel, STRING_TYPE, "myConfig", CUSTOM, REGULAR, 1);
-    assertThat(signingConfigPropertyModel.getRawValue(STRING_TYPE), 
-               isGroovy()?equalTo("signingConfigs.myConfig"):equalTo("signingConfigs.getByName(\"myConfig\")"));
+    assertThat(signingConfigPropertyModel.getRawValue(STRING_TYPE),
+               isGroovy() ? equalTo("signingConfigs.myConfig") : equalTo("signingConfigs.getByName(\"myConfig\")"));
     assertThat(signingConfigPropertyModel.toSigningConfig().name(), equalTo("myConfig"));
   }
 
@@ -1658,6 +1690,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     REMOVE_AND_APPLY_GET_BY_NAME_BUILD_TYPE_EXPECTED("removeAndApplyGetByNameBuildTypeExpected"),
     REMOVE_AND_APPLY_MAP_ELEMENTS("removeAndApplyMapElements"),
     REMOVE_AND_APPLY_MAP_ELEMENTS_EXPECTED("removeAndApplyMapElementsExpected"),
+    OVERRIDE_WITH_INIT_WITH("overrideWithInitWith"),
     READ_SIGNING_CONFIG("readSigningConfig"),
     SET_SIGNING_CONFIG("setSigningConfig"),
     SET_SIGNING_CONFIG_EXPECTED("setSigningConfigExpected"),

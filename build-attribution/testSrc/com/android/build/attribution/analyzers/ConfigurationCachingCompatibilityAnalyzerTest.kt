@@ -24,7 +24,7 @@ import com.android.build.attribution.data.GradlePluginsData
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.getSuccessfulResult
 import com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildFlowRunner
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
 import com.android.testutils.VirtualTimeScheduler
 import com.android.testutils.junit4.OldAgpTest
@@ -155,7 +155,7 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     (result as IncompatiblePluginsDetected).upgradePluginWarnings.let { warnings ->
       assertThat(warnings).isEqualTo(listOf(IncompatiblePluginWarning(
         plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"),
-        currentVersion = GradleVersion.parse("1.3.72"),
+        currentVersion = Version.parse("1.3.72"),
         pluginInfo = kotlinPluginInfo()
       )))
     }
@@ -188,7 +188,7 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     (result as IncompatiblePluginsDetected).upgradePluginWarnings.let { warnings ->
       assertThat(warnings).isEqualTo(listOf(IncompatiblePluginWarning(
         plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"),
-        currentVersion = GradleVersion.parse("1.3.72"),
+        currentVersion = Version.parse("1.3.72"),
         pluginInfo = kotlinPluginInfo()
       )))
     }
@@ -210,7 +210,7 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     (result as IncompatiblePluginsDetected).upgradePluginWarnings.let { warnings ->
       assertThat(warnings).isEqualTo(listOf(IncompatiblePluginWarning(
         plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"),
-        currentVersion = GradleVersion.parse("1.3.72"),
+        currentVersion = Version.parse("1.3.72"),
         pluginInfo = kotlinPluginInfo()
       )))
     }
@@ -232,7 +232,7 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
       assertThat(warnings).isEqualTo(listOf(IncompatiblePluginWarning(
         //TODO (mlazeba): discuss in sync:in this case we report the name by which it was applied. Is it correct?
         plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"),
-        currentVersion = GradleVersion.parse("1.3.72"),
+        currentVersion = Version.parse("1.3.72"),
         pluginInfo = kotlinPluginInfo()
       )))
     }

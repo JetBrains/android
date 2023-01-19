@@ -33,7 +33,7 @@ class InternedModelsTest {
 
   private val internedModels = InternedModels(File(BUILD_ROOT))
 
-  private fun LibraryReference.resolve(): IdeArtifactLibrary = internedModels.resolve(this) as IdeArtifactLibrary
+  private fun LibraryReference.lookup(): IdeArtifactLibrary = internedModels.lookup(this) as IdeArtifactLibrary
 
   @Test
   fun `intern string`() {
@@ -51,7 +51,7 @@ class InternedModelsTest {
     val artifact = "$libRoot/artifactFile"
     val unnamed = ideAndroidLibrary(libRoot, "com.example:lib:1.0", artifact)
 
-    val named = internedModels.getOrCreate(unnamed).resolve()
+    val named = internedModels.getOrCreate(unnamed).lookup()
 
     assertTrue(named == unnamed.copy(name = "com.example:lib:1.0"))
   }
@@ -69,7 +69,7 @@ class InternedModelsTest {
     assertTrue(unnamed !== unnamedCopy)
     assertTrue(unnamed == unnamedCopy)
     assertTrue(namedRef == namedCopyRef)
-    assertTrue(namedRef.resolve() === namedCopyRef.resolve())
+    assertTrue(namedRef.lookup() === namedCopyRef.lookup())
   }
 
   @Test
@@ -81,7 +81,7 @@ class InternedModelsTest {
       artifact = File("$libRoot/artifactFile"),
     )
 
-    val named = internedModels.getOrCreate(unnamed).resolve()
+    val named = internedModels.getOrCreate(unnamed).lookup()
 
     assertTrue(named == unnamed.copy(name = "com.example:lib:1.0"))
   }
@@ -102,7 +102,7 @@ class InternedModelsTest {
     assertTrue(unnamed !== unnamedCopy)
     assertTrue(unnamed == unnamedCopy)
     assertTrue(namedRef == namedCopyRef)
-    assertTrue(namedRef.resolve() === namedCopyRef.resolve())
+    assertTrue(namedRef.lookup() === namedCopyRef.lookup())
   }
 
   @Test
@@ -157,8 +157,8 @@ class InternedModelsTest {
       ideAndroidLibrary(libRoot, "com.example:lib:1.0", artifact)
     }
 
-    val named1 = internedModels.getOrCreate(unnamed1).resolve()
-    val named2 = internedModels.getOrCreate(unnamed2).resolve()
+    val named1 = internedModels.getOrCreate(unnamed1).lookup()
+    val named2 = internedModels.getOrCreate(unnamed2).lookup()
 
     assertTrue(unnamed1.artifactAddress == unnamed2.artifactAddress)
     assertTrue(named1.artifactAddress == named2.artifactAddress)
@@ -175,7 +175,7 @@ class InternedModelsTest {
       ideAndroidLibrary(libRoot, "${ModelCache.LOCAL_AARS}:$artifact", artifact)
     }
 
-    val named = internedModels.getOrCreate(unnamed).resolve()
+    val named = internedModels.getOrCreate(unnamed).lookup()
 
     assertTrue(named.artifactAddress == unnamed.artifactAddress)
     assertEquals("./app/libs/artifactFile", named.name)

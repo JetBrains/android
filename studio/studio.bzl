@@ -932,9 +932,10 @@ def _intellij_platform_impl(ctx):
     base_linux, plugins_linux = _intellij_platform_impl_os(ctx, LINUX, ctx.attr.studio_data)
     base_win, plugins_win = _intellij_platform_impl_os(ctx, WIN, ctx.attr.studio_data)
     base_mac, plugins_mac = _intellij_platform_impl_os(ctx, MAC, ctx.attr.studio_data)
+    base_mac_arm, plugins_mac_arm = _intellij_platform_impl_os(ctx, MAC_ARM, ctx.attr.studio_data)
 
     runfiles = ctx.runfiles(files = ctx.files.data)
-    files = depset([base_linux, base_mac, base_win])
+    files = depset([base_linux, base_mac, base_mac_arm, base_win])
     return struct(
         providers = [
             DefaultInfo(files = files, runfiles = runfiles),
@@ -944,7 +945,7 @@ def _intellij_platform_impl(ctx):
             files = depset([]),
             files_linux = depset([base_linux]),
             files_mac = depset([base_mac]),
-            files_mac_arm = depset([base_mac]),
+            files_mac_arm = depset([base_mac_arm]),
             files_win = depset([base_win]),
             mappings = {},
         ),
@@ -952,7 +953,7 @@ def _intellij_platform_impl(ctx):
             files = depset([]),
             files_linux = depset(plugins_linux),
             files_mac = depset(plugins_mac),
-            files_mac_arm = depset(plugins_mac),
+            files_mac_arm = depset(plugins_mac_arm),
             files_win = depset(plugins_win),
             mappings = {},
         ),
@@ -990,6 +991,7 @@ def intellij_platform(
         jars = select({
             "//tools/base/bazel:windows": [src + "/windows/android-studio" + jar for jar in spec.jars + spec.jars_windows],
             "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents" + jar for jar in spec.jars + spec.jars_darwin],
+            "//tools/base/bazel:darwin_arm64": [src + "/darwin_aarch64/android-studio/Contents" + jar for jar in spec.jars + spec.jars_darwin_aarch64],
             "//conditions:default": [src + "/linux/android-studio" + jar for jar in spec.jars + spec.jars_linux],
         }),
     )
@@ -1013,6 +1015,10 @@ def intellij_platform(
                 include = [src + "/darwin/android-studio/**"],
                 exclude = [src + "/darwin/android-studio/Contents/plugins/textmate/lib/bundles/**"],
             ),
+            "//tools/base/bazel:darwin_arm64": native.glob(
+                include = [src + "/darwin_aarch64/android-studio/**"],
+                exclude = [src + "/darwin_aarch64/android-studio/Contents/plugins/textmate/lib/bundles/**"],
+            ),
             "//conditions:default": native.glob(
                 include = [src + "/linux/android-studio/**"],
                 exclude = [src + "/linux/android-studio/plugins/textmate/lib/bundles/**"],
@@ -1026,6 +1032,7 @@ def intellij_platform(
         jars = select({
             "//tools/base/bazel:windows": [src + "/windows/android-studio/lib/resources.jar"],
             "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/lib/resources.jar"],
+            "//tools/base/bazel:darwin_arm64": [src + "/darwin_aarch64/android-studio/Contents/lib/resources.jar"],
             "//conditions:default": [src + "/linux/android-studio/lib/resources.jar"],
         }),
         visibility = ["//visibility:public"],
@@ -1037,6 +1044,7 @@ def intellij_platform(
         srcs = select({
             "//tools/base/bazel:windows": [src + "/windows/android-studio/build.txt"],
             "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/Resources/build.txt"],
+            "//tools/base/bazel:darwin_arm64": [src + "/darwin_aarch64/android-studio/Contents/Resources/build.txt"],
             "//conditions:default": [src + "/linux/android-studio/build.txt"],
         }),
         visibility = ["//visibility:public"],
@@ -1054,10 +1062,12 @@ def intellij_platform(
         name = name + ".data",
         files_linux = native.glob([src + "/linux/**"]),
         files_mac = native.glob([src + "/darwin/**"]),
+        files_mac_arm = native.glob([src + "/darwin_aarch64/**"]),
         files_win = native.glob([src + "/windows/**"]),
         mappings = {
             "prebuilts/studio/intellij-sdk/%s/linux/android-studio/" % src: "",
             "prebuilts/studio/intellij-sdk/%s/darwin/android-studio/" % src: "",
+            "prebuilts/studio/intellij-sdk/%s/darwin_aarch64/android-studio/" % src: "",
             "prebuilts/studio/intellij-sdk/%s/windows/android-studio/" % src: "",
         },
     )
@@ -1083,6 +1093,8 @@ def _gen_plugin_jars_import_target(name, src, spec, plugin, jars):
     jars_windows = [src + "/windows/android-studio/plugins/" + plugin + "/lib/" + jar for jar in jars + add_windows]
     add_darwin = spec.plugin_jars_darwin[plugin] if plugin in spec.plugin_jars_darwin else []
     jars_darwin = [src + "/darwin/android-studio/Contents/plugins/" + plugin + "/lib/" + jar for jar in jars + add_darwin]
+    add_darwin_aarch64 = spec.plugin_jars_darwin_aarch64[plugin] if plugin in spec.plugin_jars_darwin_aarch64 else []
+    jars_darwin_aarch64 = [src + "/darwin_aarch64/android-studio/Contents/plugins/" + plugin + "/lib/" + jar for jar in jars + add_darwin_aarch64]
     add_linux = spec.plugin_jars_linux[plugin] if plugin in spec.plugin_jars_linux else []
     jars_linux = [src + "/linux/android-studio/plugins/" + plugin + "/lib/" + jar for jar in jars + add_linux]
 
@@ -1091,6 +1103,7 @@ def _gen_plugin_jars_import_target(name, src, spec, plugin, jars):
         jars = select({
             "//tools/base/bazel:windows": jars_windows,
             "//tools/base/bazel:darwin": jars_darwin,
+            "//tools/base/bazel:darwin_arm64": jars_darwin_aarch64,
             "//conditions:default": jars_linux,
         }),
     )

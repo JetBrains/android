@@ -17,20 +17,20 @@ package com.android.tools.idea.lang.databinding.gradle
 
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.gradle.project.sync.snapshots.testProjectTemplateFromPath
 import com.android.tools.idea.lang.databinding.LangDataBindingTestData.PROJECT_WITH_DATA_BINDING_ANDROID_X
 import com.android.tools.idea.lang.databinding.LangDataBindingTestData.PROJECT_WITH_DATA_BINDING_SUPPORT
 import com.android.tools.idea.lang.databinding.getTestDataPath
-import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.buildAndWait
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.ui.UIUtil
 import org.junit.Assert
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -48,13 +48,17 @@ class DataBindingCrossModuleTest(private val mode: DataBindingMode) {
     fun modes() = listOf(DataBindingMode.SUPPORT, DataBindingMode.ANDROIDX)
   }
 
-  /**
-   * AndroidGradleProjectRule is needed for importing LiveData and ObservableField
-   */
-  private val projectRule = AndroidGradleProjectRule()
-
   @get:Rule
-  val ruleChain = org.junit.rules.RuleChain.outerRule(projectRule).around(EdtRule())!!
+  val projectRule =
+    AndroidProjectRule.testProject(
+      testProjectTemplateFromPath(
+        path = when (mode) {
+          DataBindingMode.SUPPORT -> PROJECT_WITH_DATA_BINDING_SUPPORT
+          else -> PROJECT_WITH_DATA_BINDING_ANDROID_X
+        },
+        testDataPath = getTestDataPath()
+      )
+    )
 
   /**
    * Expose the underlying project rule fixture directly.
@@ -67,20 +71,13 @@ class DataBindingCrossModuleTest(private val mode: DataBindingMode) {
    * to type.
    */
   private val fixture: JavaCodeInsightTestFixture
-    get() = projectRule.fixture as JavaCodeInsightTestFixture
-
-  @Before
-  fun setUp() {
-    fixture.testDataPath = getTestDataPath()
-    projectRule.load(when (mode) {
-                       DataBindingMode.SUPPORT -> PROJECT_WITH_DATA_BINDING_SUPPORT
-                       else -> PROJECT_WITH_DATA_BINDING_ANDROID_X
-                     })
-  }
+    get() = projectRule.fixture
 
   @Test
   fun dbReferencesIncludedLayoutBindingFromLibModule() {
-    val assembleDebug = projectRule.invokeTasks("assembleDebug")
+    val assembleDebug = projectRule.project.buildAndWait {
+      it.assemble(TestCompileType.NONE)
+    }
     assertThat(assembleDebug.isBuildSuccessful).isTrue()
     val syncState = GradleSyncState.getInstance(projectRule.project)
     assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()

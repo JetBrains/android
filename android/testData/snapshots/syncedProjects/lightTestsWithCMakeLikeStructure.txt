@@ -37,7 +37,6 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :
         FACET                         : Native-Android-Gradle
             TypeId                        : native-android-gradle
             ExternalSource                : GRADLE

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui
 
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel
 import com.android.tools.idea.gradle.structure.ARTIFACT_REPOSITORY_SEARCH_FORM_KT_PREPARE_ARTIFACT_VERSION_CHOICES
 import com.android.tools.idea.gradle.structure.PsdGradleFileModelTestCase
@@ -37,7 +37,7 @@ import org.junit.Test
 class ArtifactRepositorySearchFormKtTest : PsdGradleFileModelTestCase() {
 
   private val foundArtifact = FoundArtifact(
-    "repository", "org.example.group.id", "artifact-name", listOf(GradleVersion(1, 0), GradleVersion(1, 1), GradleVersion(2, 0)))
+    "repository", "org.example.group.id", "artifact-name", listOf(Version.parse("1.0"), Version.parse("1.1"), Version.parse("2.0")))
 
   private val notExactQuery = ArtifactSearchQuery("group", "name", "9.99", gradleCoordinates = null)
   private val exactMatchingQuery =
@@ -50,15 +50,15 @@ class ArtifactRepositorySearchFormKtTest : PsdGradleFileModelTestCase() {
   @Test
   fun testVersionToLibrary() {
     assertThat(
-      versionToLibrary(foundArtifact, ParsedValue.Set.Parsed(GradleVersion(1, 0), DslText.Literal)),
+      versionToLibrary(foundArtifact, ParsedValue.Set.Parsed(Version.parse("1.0"), DslText.Literal)),
       equalTo("org.example.group.id:artifact-name:1.0".asParsed()))
     // The actual list of versions does not matter.
     assertThat(
-      versionToLibrary(foundArtifact, ParsedValue.Set.Parsed(GradleVersion(1, 1, 1), DslText.Literal)),
+      versionToLibrary(foundArtifact, ParsedValue.Set.Parsed(Version.parse("1.1.1"), DslText.Literal)),
       equalTo("org.example.group.id:artifact-name:1.1.1".asParsed()))
     // References.
     assertThat<ParsedValue<String>>(
-      versionToLibrary(foundArtifact, ParsedValue.Set.Parsed(GradleVersion(1, 0), DslText.Reference("artifactVer"))),
+      versionToLibrary(foundArtifact, ParsedValue.Set.Parsed(Version.parse("1.0"), DslText.Reference("artifactVer"))),
       equalTo(ParsedValue.Set.Parsed(
         "org.example.group.id:artifact-name:1.0",
         DslText.InterpolatedString("org.example.group.id:artifact-name:\${artifactVer}"))))
@@ -80,25 +80,25 @@ class ArtifactRepositorySearchFormKtTest : PsdGradleFileModelTestCase() {
     }
     val choices = prepareArtifactVersionChoices(notExactQuery, foundArtifact, variables)
     assertThat(choices, equalTo(listOf(
-      GradleVersion(2, 0).asParsed().annotated(),
-      (GradleVersion(2, 0) asVariable "ver20").annotated(),
-      GradleVersion(1, 1).asParsed().annotated(),
-      (GradleVersion(1, 1) asVariable "inTheMap.itemVer11").annotated(),
-      GradleVersion(1, 0).asParsed().annotated(),
-      (GradleVersion(1, 0) asVariable "inTheMap.itemVer10").annotated(),
-      (GradleVersion(1, 0) asVariable "ver10").annotated()
+      Version.parse("2.0").asParsed().annotated(),
+      (Version.parse("2.0") asVariable "ver20").annotated(),
+      Version.parse("1.1").asParsed().annotated(),
+      (Version.parse("1.1") asVariable "inTheMap.itemVer11").annotated(),
+      Version.parse("1.0").asParsed().annotated(),
+      (Version.parse("1.0") asVariable "inTheMap.itemVer10").annotated(),
+      (Version.parse("1.0") asVariable "ver10").annotated()
     )))
 
     val choicesWithNotFound = prepareArtifactVersionChoices(exactMatchingQuery, foundArtifact, variables)
     assertThat(choicesWithNotFound, equalTo(listOf(
-      GradleVersion(9, 99).asParsed().annotateWithError("not found"),
-      GradleVersion(2, 0).asParsed().annotated(),
-      (GradleVersion(2, 0) asVariable "ver20").annotated(),
-      GradleVersion(1, 1).asParsed().annotated(),
-      (GradleVersion(1, 1) asVariable "inTheMap.itemVer11").annotated(),
-      GradleVersion(1, 0).asParsed().annotated(),
-      (GradleVersion(1, 0) asVariable "inTheMap.itemVer10").annotated(),
-      (GradleVersion(1, 0) asVariable "ver10").annotated()
+      Version.parse("9.99").asParsed().annotateWithError("not found"),
+      Version.parse("2.0").asParsed().annotated(),
+      (Version.parse("2.0") asVariable "ver20").annotated(),
+      Version.parse("1.1").asParsed().annotated(),
+      (Version.parse("1.1") asVariable "inTheMap.itemVer11").annotated(),
+      Version.parse("1.0").asParsed().annotated(),
+      (Version.parse("1.0") asVariable "inTheMap.itemVer10").annotated(),
+      (Version.parse("1.0") asVariable "ver10").annotated()
     )))
   }
 

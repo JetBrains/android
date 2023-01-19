@@ -25,6 +25,6 @@ class LiveEditActionProvider : InspectionWidgetActionProvider {
   override fun createAction(editor: Editor): AnAction? {
     val project: Project? = editor.project
     val file = FileDocumentManager.getInstance().getFile(editor.document)
-    return if (project == null || project.isDefault || file == null || !file.exists()) null else LiveEditAction(editor)
+    return if (project == null || project.isDefault || file == null || !file.exists()) null else LiveEditNotificationGroup()
   }
 }

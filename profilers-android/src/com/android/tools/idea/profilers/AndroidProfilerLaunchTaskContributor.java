@@ -228,9 +228,10 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
     Commands.Command sampleCommand = Commands.Command.newBuilder()
       .setStreamId(profilerDevice.getDeviceId())
-      .setType(Commands.Command.CommandType.START_NATIVE_HEAP_SAMPLE)
-      .setStartNativeSample(Memory.StartNativeSample.newBuilder()
-                              .setConfiguration(configuration))
+      .setType(Commands.Command.CommandType.START_TRACE)
+      .setStartTrace(Trace.StartTrace.newBuilder()
+                       .setProfilerType(Trace.ProfilerType.MEMORY)
+                       .setConfiguration(configuration))
       .build();
     Transport.ExecuteResponse response =
       client.getTransportClient().execute(Transport.ExecuteRequest.newBuilder().setCommand(sampleCommand).build());
@@ -291,7 +292,10 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
         Commands.Command startCommand = Commands.Command.newBuilder()
           .setStreamId(profilerDevice.getDeviceId())
           .setType(Commands.Command.CommandType.START_TRACE)
-          .setStartTrace(Trace.StartTrace.newBuilder().setConfiguration(configuration).build())
+          .setStartTrace(Trace.StartTrace.newBuilder()
+                           .setProfilerType(Trace.ProfilerType.CPU)
+                           .setConfiguration(configuration)
+                           .build())
           .build();
         // TODO handle async error statuses.
         // TODO(b/150503095)

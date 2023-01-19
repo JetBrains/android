@@ -21,14 +21,17 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.IntegrationTestEnvironment
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
+import com.android.tools.idea.testing.ResolvedAgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.resolve
 import com.android.tools.idea.testing.switchVariant
+import com.android.tools.idea.testing.openProjectAndRunTestWithTestFixturesAvailable
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.ProjectJdkTable
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.io.exists
@@ -88,7 +91,7 @@ interface TemplateBasedTestProject : TestProjectDefinition {
    *
    * It is usually used to configure Studio flags and similar settings.
    */
-  val setup: () -> () -> Unit get() =  { {} }
+  val setup: () -> () -> Unit get() = { {} }
 
 
   /**
@@ -118,7 +121,7 @@ interface TemplateBasedTestProject : TestProjectDefinition {
   /**
    * For compatibility with existing tests.
    */
-  val projectName: String  get() = "${template.removePrefix("projects/")}$pathToOpen${if (testName == null) "" else " - $testName"}"
+  val projectName: String get() = "${template.removePrefix("projects/")}$pathToOpen${if (testName == null) "" else " - $testName"}"
 
   /**
    * Returns the root directory of the source test project in the test data directory.
@@ -156,48 +159,73 @@ interface TemplateBasedTestProject : TestProjectDefinition {
     }
     patch(agpVersion, root)
 
-    return object : PreparedTestProject {
-      override val root: File = root
-      override fun <T> open(
-        updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions,
-        body: PreparedTestProject.Context.(Project) -> T
-      ): T {
-        val jdkOverride = maybeCreateJdkOverride(resolvedAgpVersion.jdkVersion)
-        try {
-          val tearDown = setup()
-          try {
-            val options = updateOptions(defaultOpenPreparedProjectOptions().copy(overrideProjectJdk = jdkOverride))
-            return integrationTestEnvironment.openPreparedProject(
-              name = "$name$pathToOpen",
-              options = options
-            ) { project ->
-              invokeAndWaitIfNeeded {
-                AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
-              }
-              switchVariant?.let { switchVariant ->
-                switchVariant(project, switchVariant.gradlePath, switchVariant.variant)
-                invokeAndWaitIfNeeded {
-                  AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
-                }
-                verifyOpened?.invoke(project) // Second time.
-              }
-              val context = object: PreparedTestProject.Context {
-                override val project: Project = project
-              }
-              body(context, project)
-            }
-          } finally {
-            tearDown()
+    return PreparedTemplateBasedTestProject(this, root, resolvedAgpVersion, integrationTestEnvironment, name)
+  }
+}
+
+private class PreparedTemplateBasedTestProject(
+  private val templateBasedTestProject: TemplateBasedTestProject,
+  override val root: File,
+  private val resolvedAgpVersion: ResolvedAgpVersionSoftwareEnvironment,
+  private val integrationTestEnvironment: IntegrationTestEnvironment,
+  private val name: String
+) : PreparedTestProject {
+  override fun <T> open(
+    updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions,
+    body: PreparedTestProject.Context.(Project) -> T
+  ): T {
+    return openProjectAndRunTestWithTestFixturesAvailable(
+      openProjectImplementation = { openProject(updateOptions, body = it)},
+      testBody = body
+    )
+  }
+
+  private fun <T> openProject(
+    updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions,
+    body: (project: Project, projectRoot: File) -> T
+  ) = maybeWithJdkOverride { jdkOverride ->
+    templateBasedTestProject.usingTestProjectSetup {
+      val options =
+        updateOptions(templateBasedTestProject.defaultOpenPreparedProjectOptions().copy(overrideProjectJdk = jdkOverride))
+      integrationTestEnvironment.openPreparedProject(
+        name = "$name${templateBasedTestProject.pathToOpen}",
+        options = options
+      ) { project ->
+        invokeAndWaitIfNeeded {
+          AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+        }
+        templateBasedTestProject.switchVariant?.let { switchVariant ->
+          switchVariant(project, switchVariant.gradlePath, switchVariant.variant)
+          invokeAndWaitIfNeeded {
+            AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
           }
-        } finally {
-          jdkOverride?.let {
-            runWriteActionAndWait {
-              ProjectJdkTable.getInstance().removeJdk(it)
-            }
-          }
+          templateBasedTestProject.verifyOpened?.invoke(project) // Second time.
+        }
+        body(project, root)
+      }
+    }
+  }
+
+  private inline fun <T> maybeWithJdkOverride(body: (Sdk?) -> T): T {
+    val jdkOverride = maybeCreateJdkOverride(resolvedAgpVersion.jdkVersion)
+    try {
+      return body(jdkOverride)
+    } finally {
+      jdkOverride?.let {
+        runWriteActionAndWait {
+          ProjectJdkTable.getInstance().removeJdk(it)
         }
       }
     }
+  }
+}
+
+private inline fun <T> TemplateBasedTestProject.usingTestProjectSetup(body: () -> T): T {
+  val tearDown = setup()
+  try {
+    return body()
+  } finally {
+    tearDown()
   }
 }
 
@@ -300,4 +328,33 @@ private fun TemplateBasedTestProject.defaultOpenPreparedProjectOptions(): OpenPr
       val verifyOpened = verifyOpened
       if (verifyOpened != null) it.copy(verifyOpened = verifyOpened) else it
     }
+}
+
+fun testProjectTemplateFromAbsolutePath(path: String): TemplateBasedTestProject {
+  return object: TemplateBasedTestProject{
+    override val name: String
+      get() = File(path).name
+    override val template: String
+      get() = error("unexpected")
+
+    override fun getTestDataDirectoryWorkspaceRelativePath(): String = error("unexpected")
+
+    override fun getAdditionalRepos(): Collection<File> = emptyList()
+
+    override val templateAbsolutePath: File
+      get() = File(path)
+  }
+}
+
+fun testProjectTemplateFromPath(path: String, testDataPath: String): TemplateBasedTestProject {
+  return object: TemplateBasedTestProject{
+    override val name: String
+      get() = File(path).name
+    override val template: String
+      get() = path
+
+    override fun getTestDataDirectoryWorkspaceRelativePath(): String = testDataPath
+
+    override fun getAdditionalRepos(): Collection<File> = emptyList()
+  }
 }

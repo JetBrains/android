@@ -61,7 +61,6 @@ PROJECT                       : reference
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :androidlibrary
         CONENT_ENTRY                  : file://<PROJECT>/androidlibrary
             EXCLUDE_FOLDER                : file://<PROJECT>/androidlibrary/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/androidlibrary/build [-]
@@ -164,6 +163,9 @@ PROJECT                       : reference
             Scope                         : Test
         ORDER_ENTRY                   : reference.javalib.main
             Scope                         : Test
+        Classes
+            -                             : file://<PROJECT>/androidlibrary/build/intermediates/javac/debugAndroidTest/classes
+            -                             : file://<PROJECT>/androidlibrary/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
@@ -342,6 +344,8 @@ PROJECT                       : reference
             Scope                         : Test
         ORDER_ENTRY                   : reference.javalib.main
             Scope                         : Test
+        Classes
+            -                             : file://<PROJECT>/androidlibrary/build/intermediates/javac/debugUnitTest/classes
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
@@ -405,7 +409,6 @@ PROJECT                       : reference
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
@@ -516,6 +519,9 @@ PROJECT                       : reference
             Scope                         : Test
         ORDER_ENTRY                   : reference.app.main
             Scope                         : Test
+        Classes
+            -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes
+            -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
@@ -614,6 +620,9 @@ PROJECT                       : reference
             VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : reference.androidlibrary.main
+        Classes
+            -                             : file://<PROJECT>/app/build/intermediates/javac/debug/classes
+            -                             : file://<PROJECT>/app/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
@@ -710,6 +719,8 @@ PROJECT                       : reference
             Scope                         : Test
         ORDER_ENTRY                   : reference.app.main
             Scope                         : Test
+        Classes
+            -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
@@ -757,7 +768,6 @@ PROJECT                       : reference
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :javalib
         CONENT_ENTRY                  : file://<PROJECT>/javalib
             EXCLUDE_FOLDER                : file://<PROJECT>/javalib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/javalib/build [-]

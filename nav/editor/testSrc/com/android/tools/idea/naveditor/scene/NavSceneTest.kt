@@ -905,9 +905,10 @@ class NavSceneTest {
 
     val sceneManager = scene.sceneManager as NavSceneManager
 
+    val expectedEmptyNavSceneClick = Point2D.Float(130f, 258f)
     assertThat(sceneManager.isEmpty).isTrue()
     verifyScene(model.surface) { inOrder, g ->
-      verifyDrawEmptyDesigner(inOrder, g, Point2D.Float(130f, 251f))
+      verifyDrawEmptyDesigner(inOrder, g, expectedEmptyNavSceneClick)
     }
 
     root?.fragment("fragment1")
@@ -926,7 +927,7 @@ class NavSceneTest {
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
 
     verifyScene(model.surface) { inOrder, g ->
-      verifyDrawEmptyDesigner(inOrder, g, Point2D.Float(130f, 251f))
+      verifyDrawEmptyDesigner(inOrder, g, expectedEmptyNavSceneClick)
     }
     assertThat(sceneManager.isEmpty).isTrue()
   }

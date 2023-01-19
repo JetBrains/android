@@ -69,13 +69,17 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
   }
 
   VirtualDeviceDetailsPanel(@NotNull VirtualDevice device, @Nullable Project project) {
-    this(device, new AsyncVirtualDeviceDetailsBuilder(project, device), VirtualDeviceDetailsPanel::newSummarySectionCallback);
+    this(device,
+         new AsyncVirtualDeviceDetailsBuilder(project, device),
+         VirtualDeviceDetailsPanel::newSummarySectionCallback,
+         WearPairingManager.getInstance());
   }
 
   @VisibleForTesting
   VirtualDeviceDetailsPanel(@NotNull VirtualDevice device,
                             @NotNull AsyncVirtualDeviceDetailsBuilder builder,
-                            @NotNull Function<SummarySection, FutureCallback<Device>> newSummarySectionCallback) {
+                            @NotNull Function<SummarySection, FutureCallback<Device>> newSummarySectionCallback,
+                            @NotNull WearPairingManager manager) {
     super(device.getName());
 
     myDevice = device;
@@ -85,7 +89,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     initScreenDiagram();
     initPropertiesSection();
 
-    InfoSection.newPairedDeviceSection(device, WearPairingManager.getInstance()).ifPresent(myInfoSections::add);
+    InfoSection.newPairedDeviceSection(device, manager).ifPresent(myInfoSections::add);
 
     if (myPropertiesSection != null) {
       myInfoSections.add(myPropertiesSection);
@@ -174,14 +178,16 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     myPropertiesSection.setLayout();
   }
 
+  @NotNull
   @VisibleForTesting
-  @NotNull SummarySection getSummarySection() {
+  SummarySection getSummarySection() {
     assert mySummarySection != null;
     return (SummarySection)mySummarySection;
   }
 
+  @NotNull
   @VisibleForTesting
-  @NotNull InfoSection getPropertiesSection() {
+  InfoSection getPropertiesSection() {
     assert myPropertiesSection != null;
     return myPropertiesSection;
   }

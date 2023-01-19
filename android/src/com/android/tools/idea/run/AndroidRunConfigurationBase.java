@@ -16,6 +16,7 @@ import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorRunProfileState;
 import com.android.tools.idea.run.editor.DeployTarget;
 import com.android.tools.idea.run.editor.DeployTargetContext;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
@@ -313,6 +314,13 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (applicationIdProvider == null) {
       throw new RuntimeException("Cannot get ApplicationIdProvider");
     }
+    String packageName;
+    try {
+      packageName = applicationIdProvider.getPackageName();
+    }
+    catch (ApkProvisionException e) {
+      throw new ExecutionException(e);
+    }
 
     LaunchOptions.Builder launchOptions = getLaunchOptions().setDebug(isDebugging);
 
@@ -321,8 +329,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     LaunchTasksProvider launchTasksProvider =
       createLaunchTasksProvider(env, facet, applicationIdProvider, apkProvider, launchOptions.build());
 
-    return new AndroidRunState(env, getName(), module, applicationIdProvider,
-                               getConsoleProvider(deviceFutures.getDevices().size() > 1), deployTarget, launchTasksProvider);
+    ConsoleProvider consoleProvider = getConsoleProvider(deviceFutures.getDevices().size() > 1);
+    LaunchTaskRunner runner = new LaunchTaskRunner(consoleProvider, applicationIdProvider, env, deployTarget, launchTasksProvider);
+    return new AndroidConfigurationExecutorRunProfileState(runner);
   }
 
   /**
@@ -394,14 +403,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                                             @NotNull ApkProvider apkProvider,
                                                             @NotNull ConsolePrinter consolePrinter,
                                                             @NotNull IDevice device);
-
-  /**
-   * @return true iff this configuration can run while out of sync with the build system.
-   */
-  public boolean canRunWithoutSync() {
-    return false;
-  }
-
   public void updateExtraRunStats(RunStats runStats) {
 
   }
@@ -458,12 +459,5 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @NotNull
   public ProfilerState getProfilerState() {
     return myProfilerState;
-  }
-
-  /**
-   * Returns whether this configuration can run in Android Profiler.
-   */
-  public boolean isProfilable() {
-    return true;
   }
 }

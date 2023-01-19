@@ -64,7 +64,11 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
   private fun getExecutionEnvironment(executorInstance: Executor): ExecutionEnvironment {
     val configSettings = RunManager.getInstance(project).createConfiguration(
       "run Tile", AndroidTileConfigurationType().configurationFactories.single())
-    return ExecutionEnvironment(executorInstance, AndroidConfigurationProgramRunner(), configSettings, project)
+    return ExecutionEnvironment(executorInstance, object : AndroidConfigurationProgramRunner() {
+      override fun canRunWithMultipleDevices(executorId: String) = true
+      override val supportedConfigurationTypeIds: List<String>
+        get() = listOf(AndroidTileConfigurationType().id)
+    }, configSettings, project)
   }
 
   @Test

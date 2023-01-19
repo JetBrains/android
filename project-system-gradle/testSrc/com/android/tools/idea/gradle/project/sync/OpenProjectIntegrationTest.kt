@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProje
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testing.AndroidGradleTests.addJdk8ToTableButUseCurrent
@@ -37,6 +38,7 @@ import com.intellij.execution.RunManagerEx
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ModuleRootManagerEx
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.RunsInEdt
@@ -65,6 +67,27 @@ class OpenProjectIntegrationTest {
   fun testReopenProject() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     val before = preparedProject.open { project -> project.saveAndDump() }
+    val after = preparedProject.open { project ->
+      verifySyncSkipped(project, projectRule.testRootDisposable)
+      project.saveAndDump()
+    }
+    assertThat(after).isEqualTo(before)
+  }
+
+  @Test
+  @org.junit.Ignore("b/265121768")
+  fun testReopenProject_withCustomEntry() {
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
+    val before = preparedProject.open { project ->
+      runWriteAction {
+        val appMainModule = project.gradleModule(":app")!!.getMainModule()
+        val modifieableModule = ModuleRootManagerEx.getInstanceEx(appMainModule).modifiableModel
+        val abc = appMainModule.fileUnderGradleRoot("src")!!.createChildDirectory("test", "abc")
+        modifieableModule.addContentEntry(abc)
+        modifieableModule.commit()
+      }
+      project.saveAndDump()
+    }
     val after = preparedProject.open { project ->
       verifySyncSkipped(project, projectRule.testRootDisposable)
       project.saveAndDump()

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.helpers
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.repositories.search.FoundArtifact
@@ -72,8 +72,8 @@ class PropertyKnownValuesKtTest {
   fun testToVersionValueDescriptors() {
     val searchResults =
       listOf(
-        SearchResult(listOf(FoundArtifact("rep1", "group", "name", listOf(GradleVersion.parse("1.0"), GradleVersion.parse("1.1"))))),
-        SearchResult(listOf(FoundArtifact("rep2", "group", "name", listOf(GradleVersion.parse("1.0"), GradleVersion.parse("0.9"))))),
+        SearchResult(listOf(FoundArtifact("rep1", "group", "name", listOf(Version.parse("1.0"), Version.parse("1.1"))))),
+        SearchResult(listOf(FoundArtifact("rep2", "group", "name", listOf(Version.parse("1.0"), Version.parse("0.9"))))),
         SearchResult(listOf(), listOf(Exception("1"), Exception("2")))
       ).combine()
 
@@ -87,13 +87,13 @@ class PropertyKnownValuesKtTest {
   fun testToVersionValueDescriptorsWithMinimum() {
     val searchResults =
       listOf(
-        SearchResult(listOf(FoundArtifact("rep1", "group", "name", listOf(GradleVersion.parse("1.0"), GradleVersion.parse("1.1"))))),
-        SearchResult(listOf(FoundArtifact("rep2", "group", "name", listOf(GradleVersion.parse("1.0"), GradleVersion.parse("0.9"))))),
+        SearchResult(listOf(FoundArtifact("rep1", "group", "name", listOf(Version.parse("1.0"), Version.parse("1.1"))))),
+        SearchResult(listOf(FoundArtifact("rep2", "group", "name", listOf(Version.parse("1.0"), Version.parse("0.9"))))),
         SearchResult(listOf(), listOf(Exception("1"), Exception("2")))
       ).combine()
 
     assertThat(
-      searchResults.toVersionValueDescriptors { it >= GradleVersion(1, 0) },
+      searchResults.toVersionValueDescriptors { it >= Version.parse("1.0") },
       IsEqual.equalTo(
         listOf(ValueDescriptor("1.1"), ValueDescriptor("1.0"))))
   }

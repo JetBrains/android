@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeDependencies
+import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.getGradleProjectPath
 import com.android.tools.idea.gradle.util.DynamicAppUtils
@@ -177,8 +178,7 @@ class GradleModuleSystem(
 
   override fun getAndroidTestDirectResourceModuleDependencies(): List<Module> {
     val dependencies = GradleAndroidModel.get(this.module)?.selectedAndroidTestCompileDependencies
-    return dependencies?.moduleDependencies
-      // TODO(b/149203281): Rework. This doesn't work with composite build projects and it is extremely slow.
+    return dependencies?.libraries?.filterIsInstance<IdeModuleLibrary>()
       ?.mapNotNull { it.getGradleProjectPath().resolveIn(this.module.project) }
       ?.toList()
       ?: emptyList()
@@ -304,7 +304,7 @@ class GradleModuleSystem(
   override fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>)
     : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> =
     //TODO: Change the API to return a ListenableFuture instead of calling get with a timeout here...
-    dependencyCompatibility.analyzeDependencyCompatibility(dependenciesToAdd).get(20, TimeUnit.SECONDS)
+    dependencyCompatibility.analyzeDependencyCompatibility(dependenciesToAdd).get(30, TimeUnit.SECONDS)
 
   override fun getManifestOverrides(): ManifestOverrides {
     val facet = AndroidFacet.getInstance(module)

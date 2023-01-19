@@ -37,8 +37,6 @@ PROJECT                       : kotlinMultiPlatform
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/kotlinMultiPlatform.app.iml [-]
@@ -65,7 +63,6 @@ PROJECT                       : kotlinMultiPlatform
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
@@ -119,8 +116,7 @@ PROJECT                       : kotlinMultiPlatform
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -283,9 +279,6 @@ PROJECT                       : kotlinMultiPlatform
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes
-            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugUnitTest
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugAndroidTest
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
@@ -335,7 +328,6 @@ PROJECT                       : kotlinMultiPlatform
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/kotlinMultiPlatform.app.main.iml [-]
@@ -495,7 +487,6 @@ PROJECT                       : kotlinMultiPlatform
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -651,10 +642,6 @@ PROJECT                       : kotlinMultiPlatform
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugUnitTest
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
-            -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes
-            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugAndroidTest
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
-            -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -700,8 +687,6 @@ PROJECT                       : kotlinMultiPlatform
         LinkedProjectPath             : <PROJECT>/module2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/module2/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/module2/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.iml [-]
@@ -728,7 +713,6 @@ PROJECT                       : kotlinMultiPlatform
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :module2
         CONENT_ENTRY                  : file://<PROJECT>/module2
             EXCLUDE_FOLDER                : file://<PROJECT>/module2/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/module2/build [-]
@@ -774,8 +758,7 @@ PROJECT                       : kotlinMultiPlatform
         LinkedProjectPath             : <PROJECT>/module2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/module2/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/module2/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/module2/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -906,7 +889,7 @@ PROJECT                       : kotlinMultiPlatform
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/module2/build/intermediates/javac/debugUnitTest/classes
+            -                             : file://<PROJECT>/module2/build/intermediates/javac/debugAndroidTest/classes
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :module2:createMockableJar, :module2:generateDebugAndroidTestSources, :module2:generateDebugSources
@@ -961,7 +944,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -version
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -1039,7 +1022,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -version
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -1275,7 +1258,6 @@ PROJECT                       : kotlinMultiPlatform
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/module2/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/module2/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.main.iml [-]
@@ -1422,7 +1404,6 @@ PROJECT                       : kotlinMultiPlatform
         LinkedProjectPath             : <PROJECT>/module2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/module2/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/module2/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true

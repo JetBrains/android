@@ -26,11 +26,9 @@ import com.android.tools.idea.testingutils.FakeAdbServiceRule
 import com.google.common.truth.Truth
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.TemporaryDirectory
-import org.hamcrest.CoreMatchers.`is`
-import org.hamcrest.Matchers.hasProperty
+import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.ExpectedException
 import org.junit.rules.RuleChain
 import java.nio.file.Files
 import java.nio.file.attribute.FileTime
@@ -42,10 +40,6 @@ class SyncTest {
   private val fakeAdbRule = FakeAdbRule()
   private val fakeAdbServiceRule = FakeAdbServiceRule({ projectRule.project }, fakeAdbRule)
   private val tempDirectory = TemporaryDirectory()
-
-  @JvmField
-  @Rule
-  val exceptionRule: ExpectedException = ExpectedException.none()
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(fakeAdbRule).around(fakeAdbServiceRule).around(tempDirectory)!!
@@ -79,13 +73,10 @@ class SyncTest {
       }
     }
 
-    // Act
-    exceptionRule.expect(SyncException::class.java)
-    exceptionRule.expect(hasProperty<SyncException.SyncError>("errorCode", `is`(SyncException.SyncError.CANCELED)))
-    pushFile(device, localFilePath.toString(), "/foo/bar.bin", monitor)
-
-    // Assert
-    Truth.assert_().fail() // should not be reached
+    val exception = Assert.assertThrows(SyncException::class.java) {
+      pushFile(device, localFilePath.toString(), "/foo/bar.bin", monitor)
+    }
+    Truth.assertThat(exception.errorCode).isEqualTo(SyncException.SyncError.CANCELED)
   }
 
   @Test
@@ -118,13 +109,10 @@ class SyncTest {
       }
     }
 
-    // Act
-    exceptionRule.expect(SyncException::class.java)
-    exceptionRule.expect(hasProperty<SyncException.SyncError>("errorCode", `is`(SyncException.SyncError.CANCELED)))
-    pullFile(device, fileState.path, localFilePath.toString(), monitor)
-
-    // Assert
-    Truth.assert_().fail() // should not be reached
+    val exception = Assert.assertThrows(SyncException::class.java) {
+      pullFile(device, fileState.path, localFilePath.toString(), monitor)
+    }
+    Truth.assertThat(exception.errorCode).isEqualTo(SyncException.SyncError.CANCELED)
   }
 
   private fun prepareSingleDeviceSingleFile(): Pair<IDevice, DeviceFileState> {

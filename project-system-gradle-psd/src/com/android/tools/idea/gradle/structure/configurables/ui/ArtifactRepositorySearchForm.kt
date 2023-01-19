@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
+import com.android.ide.common.gradle.Version
 import com.google.common.annotations.VisibleForTesting
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.helpers.parseGradleVersion
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
@@ -132,7 +132,7 @@ class ArtifactRepositorySearchForm(
 
   private fun getQuery() = myArtifactQueryTextField.text.parseArtifactSearchQuery()
 
-  private fun notifyVersionSelectionChanged(version: ParsedValue<GradleVersion>) {
+  private fun notifyVersionSelectionChanged(version: ParsedValue<Version>) {
     val selectedLibrary = selectedArtifact?.let { selectedArtifact ->
       when (version) {
         ParsedValue.NotSet -> ParsedValue.NotSet
@@ -159,7 +159,7 @@ class ArtifactRepositorySearchForm(
         when {
           searchQuery.gradleCoordinates != null -> listOf(
             FoundArtifact("(none)", searchQuery.gradleCoordinates.groupId.orEmpty(), searchQuery.gradleCoordinates.artifactId.orEmpty(),
-                          searchQuery.gradleCoordinates.version!!))
+                          searchQuery.gradleCoordinates.lowerBoundVersion!!))
           else -> listOf()
         }
       }
@@ -228,15 +228,15 @@ fun prepareArtifactVersionChoices(
   searchQuery: ArtifactSearchQuery,
   artifact: FoundArtifact,
   variablesScope: PsVariablesScope
-): List<Annotated<ParsedValue.Set.Parsed<GradleVersion>>> {
-  val versionPropertyContext = object : ModelPropertyContext<GradleVersion> {
-    override fun parse(value: String): Annotated<ParsedValue<GradleVersion>> = parseGradleVersion(value)
-    override fun format(value: GradleVersion): String = value.toString()
+): List<Annotated<ParsedValue.Set.Parsed<Version>>> {
+  val versionPropertyContext = object : ModelPropertyContext<Version> {
+    override fun parse(value: String): Annotated<ParsedValue<Version>> = parseGradleVersion(value)
+    override fun format(value: Version): String = value.toString()
 
-    override fun getKnownValues(): ListenableFuture<KnownValues<GradleVersion>> =
-      Futures.immediateFuture(object : KnownValues<GradleVersion> {
-        override val literals: List<ValueDescriptor<GradleVersion>> = artifact.versions.map { ValueDescriptor(it) }
-        override fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<GradleVersion>>): Boolean =
+    override fun getKnownValues(): ListenableFuture<KnownValues<Version>> =
+      Futures.immediateFuture(object : KnownValues<Version> {
+        override val literals: List<ValueDescriptor<Version>> = artifact.versions.map { ValueDescriptor(it) }
+        override fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<Version>>): Boolean =
           throw UnsupportedOperationException()
       })
   }
@@ -246,12 +246,11 @@ fun prepareArtifactVersionChoices(
     ?.takeIf {
       it.artifactId == artifact.name &&
       it.groupId == artifact.groupId &&
-      it.version != null &&
-      !artifact.versions.contains(it.version!!)
+      !artifact.versions.contains(it.lowerBoundVersion)
     }
 
   val versions =
-    listOfNotNull(missingVersion?.let { ParsedValue.Set.Parsed(it.version!!, DslText.Literal).annotateWithError("not found") }) +
+    listOfNotNull(missingVersion?.let { ParsedValue.Set.Parsed(it.lowerBoundVersion!!, DslText.Literal).annotateWithError("not found") }) +
     artifact.versions.map { ParsedValue.Set.Parsed(it, DslText.Literal).annotated() }
 
   val suitableVariables =
@@ -266,7 +265,7 @@ fun prepareArtifactVersionChoices(
 @VisibleForTesting
 fun versionToLibrary(
   artifact: FoundArtifact,
-  version: ParsedValue.Set.Parsed<GradleVersion>
+  version: ParsedValue.Set.Parsed<Version>
 ): ParsedValue<String> {
   val artifactGroupId = artifact.groupId
   val artifactName = artifact.name

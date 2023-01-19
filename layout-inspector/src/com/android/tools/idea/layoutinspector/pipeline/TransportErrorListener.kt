@@ -27,7 +27,7 @@ import com.android.tools.profiler.proto.Agent
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorTransportError
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 
 /**
@@ -35,7 +35,8 @@ import com.intellij.openapi.project.Project
  */
 class TransportErrorListener(
   private val project: Project,
-  private val layoutInspectorMetrics: LayoutInspectorMetrics
+  private val layoutInspectorMetrics: LayoutInspectorMetrics,
+  private val disposable: Disposable
   ) : TransportDeviceManager.TransportDeviceManagerListener {
   val errorMessage = LayoutInspectorBundle.message("two.versions.of.studio.running")
 
@@ -54,7 +55,7 @@ class TransportErrorListener(
     }
 
   init {
-    project.messageBus.connect().subscribe(TransportDeviceManager.TOPIC, this)
+    project.messageBus.connect(disposable).subscribe(TransportDeviceManager.TOPIC, this)
   }
 
   override fun onPreTransportDaemonStart(device: Common.Device) {

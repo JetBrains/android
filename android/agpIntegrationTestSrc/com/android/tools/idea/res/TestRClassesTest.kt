@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.findAppModule
@@ -229,6 +230,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
     )
 
     myFixture.configureFromExistingVirtualFile(androidTest)
+    AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
     myFixture.checkHighlighting()
 
     myFixture.completeBasic()

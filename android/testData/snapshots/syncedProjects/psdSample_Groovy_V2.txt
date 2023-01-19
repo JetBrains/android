@@ -37,8 +37,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/basicBarDebug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/basicBarDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.iml [-]
@@ -65,7 +63,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
@@ -119,8 +116,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/basicBarDebug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/basicBarDebugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/basicBarDebugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -350,7 +346,6 @@ PROJECT                       : project
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/basicBarDebug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/basicBarDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.main.iml [-]
@@ -524,7 +519,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/basicBarDebug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/basicBarDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -721,8 +715,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/dyn_feature
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/dyn_feature/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/dyn_feature/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/project.dyn_feature.iml [-]
@@ -749,7 +741,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :dyn_feature
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature
             EXCLUDE_FOLDER                : file://<PROJECT>/dyn_feature/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/dyn_feature/build [-]
@@ -799,8 +790,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/dyn_feature
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/dyn_feature/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/dyn_feature/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/dyn_feature/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -899,7 +889,6 @@ PROJECT                       : project
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/dyn_feature/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/dyn_feature/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/project.dyn_feature.main.iml [-]
@@ -993,7 +982,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/dyn_feature
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/dyn_feature/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/dyn_feature/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -1092,7 +1080,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :jav
         CONENT_ENTRY                  : file://<PROJECT>/jav
             EXCLUDE_FOLDER                : file://<PROJECT>/jav/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/jav/build [-]
@@ -1203,8 +1190,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/lib/project.lib.iml [-]
@@ -1231,7 +1216,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :lib
         CONENT_ENTRY                  : file://<PROJECT>/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/build [-]
@@ -1277,8 +1261,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -1435,7 +1418,6 @@ PROJECT                       : project
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/lib/project.lib.main.iml [-]
@@ -1560,7 +1542,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -1713,8 +1694,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested1/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested1/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested1/project.nested1.iml [-]
@@ -1741,7 +1720,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :nested1
         CONENT_ENTRY                  : file://<PROJECT>/nested1
             EXCLUDE_FOLDER                : file://<PROJECT>/nested1/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/nested1/build [-]
@@ -1787,8 +1765,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested1/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested1/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/nested1/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -1883,8 +1860,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested1/deep
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested1/deep/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested1/deep/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/project.nested1.deep.iml [-]
@@ -1911,7 +1886,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :nested1:deep
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep
             EXCLUDE_FOLDER                : file://<PROJECT>/nested1/deep/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/nested1/deep/build [-]
@@ -1957,8 +1931,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested1/deep
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested1/deep/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested1/deep/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/nested1/deep/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -2053,7 +2026,6 @@ PROJECT                       : project
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/nested1/deep/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested1/deep/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/project.nested1.deep.main.iml [-]
@@ -2143,7 +2115,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested1/deep
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested1/deep/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/nested1/deep/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -2234,7 +2205,6 @@ PROJECT                       : project
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/nested1/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested1/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested1/project.nested1.main.iml [-]
@@ -2324,7 +2294,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested1/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/nested1/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -2415,8 +2384,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested2/build/intermediates/javac/basicDebug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested2/build/intermediates/javac/basicDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/project.nested2.iml [-]
@@ -2443,7 +2410,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :nested2
         CONENT_ENTRY                  : file://<PROJECT>/nested2
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/build [-]
@@ -2489,8 +2455,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested2/build/intermediates/javac/basicDebug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested2/build/intermediates/javac/basicDebugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/nested2/build/intermediates/javac/basicDebugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -2602,8 +2567,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested2/deep
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested2/deep/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested2/deep/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/project.nested2.deep.iml [-]
@@ -2630,7 +2593,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :nested2:deep
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/deep/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/deep/build [-]
@@ -2676,8 +2638,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested2/deep
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested2/deep/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested2/deep/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/nested2/deep/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -2772,7 +2733,6 @@ PROJECT                       : project
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/nested2/deep/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested2/deep/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/project.nested2.deep.main.iml [-]
@@ -2862,7 +2822,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested2/deep
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested2/deep/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/nested2/deep/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -2953,7 +2912,6 @@ PROJECT                       : project
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/nested2/build/intermediates/javac/basicDebug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested2/build/intermediates/javac/basicDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/project.nested2.main.iml [-]
@@ -3065,7 +3023,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :nested2:trans
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/trans/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/trans/build [-]
@@ -3089,8 +3046,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested2/trans/deep2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested2/trans/deep2/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested2/trans/deep2/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/project.nested2.trans.deep2.iml [-]
@@ -3117,7 +3072,6 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :nested2:trans:deep2
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/trans/deep2/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/trans/deep2/build [-]
@@ -3163,8 +3117,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested2/trans/deep2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested2/trans/deep2/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested2/trans/deep2/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/nested2/trans/deep2/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -3259,7 +3212,6 @@ PROJECT                       : project
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/nested2/trans/deep2/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/nested2/trans/deep2/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/project.nested2.trans.deep2.main.iml [-]
@@ -3349,7 +3301,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested2/trans/deep2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested2/trans/deep2/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/nested2/trans/deep2/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -3439,7 +3390,6 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/nested2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/nested2/build/intermediates/javac/basicDebug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/nested2/build/intermediates/javac/basicDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true

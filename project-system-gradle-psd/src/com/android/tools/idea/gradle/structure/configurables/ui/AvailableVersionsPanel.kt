@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.renderTo
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
@@ -30,8 +30,8 @@ import javax.swing.JTable
 import javax.swing.ListSelectionModel.SINGLE_SELECTION
 import javax.swing.table.TableCellRenderer
 
-internal class AvailableVersionsPanel(notifyVersionSelectionChanged: Consumer<ParsedValue<GradleVersion>>) : JPanel(BorderLayout()) {
-  private val versionsTable: TableView<Annotated<ParsedValue<GradleVersion>>> = TableView()
+internal class AvailableVersionsPanel(notifyVersionSelectionChanged: Consumer<ParsedValue<Version>>) : JPanel(BorderLayout()) {
+  private val versionsTable: TableView<Annotated<ParsedValue<Version>>> = TableView()
 
   init {
     versionsTable.setShowGrid(false)
@@ -42,13 +42,13 @@ internal class AvailableVersionsPanel(notifyVersionSelectionChanged: Consumer<Pa
       }
       override fun customizeCellRenderer(table: JTable, value: Any?, selected: Boolean, hasFocus: Boolean, row: Int, column: Int) {
         @Suppress("UNCHECKED_CAST")
-        (value as Annotated<ParsedValue<GradleVersion>>?)?.renderTo(this.toRenderer(), { toString() }, mapOf())
+        (value as Annotated<ParsedValue<Version>>?)?.renderTo(this.toRenderer(), { toString() }, mapOf())
       }
     }
     versionsTable.listTableModel.columnInfos = arrayOf(
-      object : ColumnInfo<Annotated<ParsedValue<GradleVersion>>, Annotated<ParsedValue<GradleVersion>>>("Versions") {
-        override fun valueOf(version: Annotated<ParsedValue<GradleVersion>>): Annotated<ParsedValue<GradleVersion>> = version
-        override fun getRenderer(item: Annotated<ParsedValue<GradleVersion>>?): TableCellRenderer? = cellRenderer
+      object : ColumnInfo<Annotated<ParsedValue<Version>>, Annotated<ParsedValue<Version>>>("Versions") {
+        override fun valueOf(version: Annotated<ParsedValue<Version>>): Annotated<ParsedValue<Version>> = version
+        override fun getRenderer(item: Annotated<ParsedValue<Version>>?): TableCellRenderer? = cellRenderer
       })
 
     versionsTable.selectionModel.addListSelectionListener {
@@ -59,7 +59,7 @@ internal class AvailableVersionsPanel(notifyVersionSelectionChanged: Consumer<Pa
     add(scrollPane, BorderLayout.CENTER)
   }
 
-  fun setVersions(versions: List<Annotated<ParsedValue<GradleVersion>>>) {
+  fun setVersions(versions: List<Annotated<ParsedValue<Version>>>) {
     versionsTable.listTableModel.items = versions
     if (versions.isNotEmpty()) {
       versionsTable.selectionModel.setSelectionInterval(0, 0)

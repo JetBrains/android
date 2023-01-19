@@ -67,23 +67,24 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
 
   @VisibleForTesting
   interface NewInfoSectionCallback<S> {
-    @NotNull FutureCallback<PhysicalDevice> apply(@NotNull S section);
+    @NotNull
+    FutureCallback<PhysicalDevice> apply(@NotNull S section);
   }
 
   PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device, @Nullable Project project) {
-    this(device, new AsyncDetailsBuilder(project, device));
+    this(device, new AsyncDetailsBuilder(project, device), WearPairingManager.getInstance());
   }
 
   @VisibleForTesting
-  PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device, @NotNull AsyncDetailsBuilder builder) {
-    this(device, builder, PhysicalDeviceDetailsPanel::newSummarySectionCallback, WearPairingManager.getInstance());
+  PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device, @NotNull AsyncDetailsBuilder builder, @NotNull WearPairingManager manager) {
+    this(device, builder, manager, PhysicalDeviceDetailsPanel::newSummarySectionCallback);
   }
 
   @VisibleForTesting
   PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device,
                              @NotNull AsyncDetailsBuilder builder,
-                             @NotNull NewInfoSectionCallback<SummarySection> newSummarySectionCallback,
-                             @NotNull WearPairingManager manager) {
+                             @NotNull WearPairingManager manager,
+                             @NotNull NewInfoSectionCallback<SummarySection> newSummarySectionCallback) {
     super(device.getName());
     myOnline = device.isOnline();
 
@@ -95,7 +96,7 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
       InfoSection.newPairedDeviceSection(device, manager).ifPresent(myInfoSections::add);
 
       if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get() && device.getType().equals(DeviceType.PHONE)) {
-        myPairedDevicesPanel = new PairedDevicesPanel(device.getKey(), this, builder.getProject());
+        myPairedDevicesPanel = new PairedDevicesPanel(device.getKey(), this, builder.getProject(), manager);
       }
     }
 
@@ -161,8 +162,9 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
     myInfoSectionPanel.setLayout(layout);
   }
 
+  @NotNull
   @VisibleForTesting
-  @NotNull SummarySection getSummarySection() {
+  SummarySection getSummarySection() {
     assert mySummarySection != null;
     return (SummarySection)mySummarySection;
   }

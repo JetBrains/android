@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant.conflict
 
-import com.android.tools.idea.gradle.model.IdeModuleDependency
-import com.android.tools.idea.gradle.model.variant
+import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.getGradleProjectPath
 import com.android.tools.idea.gradle.variant.view.BuildVariantView
@@ -85,7 +84,7 @@ class ConflictSet private constructor(
           .asSequence()
           .flatMap { module ->
             GradleAndroidModel.get(module)
-              ?.getModuleDependencies()
+              ?.getModuleLibraries()
               .orEmpty()
               .mapNotNull {
                 val targetVariant = it.variant?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
@@ -116,13 +115,13 @@ class ConflictSet private constructor(
       conflict.addAffectedModule(affected, expectedVariant)
     }
 
-    private fun GradleAndroidModel.getModuleDependencies(): Sequence<IdeModuleDependency> {
+    private fun GradleAndroidModel.getModuleLibraries(): Sequence<IdeModuleLibrary> {
       val variant = selectedVariant
-      val allModuleDependencies = variant.mainArtifact.compileClasspath.moduleDependencies.asSequence() +
-                                  variant.androidTestArtifact?.compileClasspath?.moduleDependencies?.asSequence().orEmpty() +
-                                  variant.testFixturesArtifact?.compileClasspath?.moduleDependencies?.asSequence().orEmpty() +
-                                  variant.unitTestArtifact?.compileClasspath?.moduleDependencies?.asSequence().orEmpty()
-      return allModuleDependencies.distinct()
+      val allModuleLibraries = variant.mainArtifact.compileClasspath.libraries.asSequence() +
+                               variant.androidTestArtifact?.compileClasspath?.libraries?.asSequence().orEmpty() +
+                               variant.testFixturesArtifact?.compileClasspath?.libraries?.asSequence().orEmpty() +
+                               variant.unitTestArtifact?.compileClasspath?.libraries?.asSequence().orEmpty()
+      return allModuleLibraries.filterIsInstance<IdeModuleLibrary>().distinct()
     }
   }
 }

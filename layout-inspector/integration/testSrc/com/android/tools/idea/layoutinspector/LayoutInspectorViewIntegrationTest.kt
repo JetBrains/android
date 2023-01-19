@@ -31,7 +31,6 @@ class LayoutInspectorViewIntegrationTest {
   @Test
   fun testEmptyApplication() {
     val project = AndroidProject("tools/adt/idea/layout-inspector/integration/testData/projects/emptyApplication")
-    project.setDistribution("tools/external/gradle/gradle-7.5-bin.zip")
 
     system.installation.addVmOption(
       join(listOf(

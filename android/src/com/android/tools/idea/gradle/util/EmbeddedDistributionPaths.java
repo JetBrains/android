@@ -27,6 +27,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.util.system.CpuArch;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -204,6 +205,9 @@ public class EmbeddedDistributionPaths {
     }
     else if (SystemInfo.isLinux) {
       jdkRootPath = jdkRootPath.resolve("linux");
+    }
+    else if (SystemInfo.isMac && CpuArch.isArm64()) {
+      jdkRootPath = jdkRootPath.resolve("mac-arm64");
     }
     else if (SystemInfo.isMac) {
       jdkRootPath = jdkRootPath.resolve("mac");

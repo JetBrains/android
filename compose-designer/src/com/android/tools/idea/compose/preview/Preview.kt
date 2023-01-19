@@ -541,6 +541,8 @@ class ComposePreviewRepresentation(
   override val previewedFile: PsiFile?
     get() = psiFilePointer.element
 
+  override var isInspectionTooltipEnabled: Boolean = false
+
   private val dataProvider = DataProvider {
     when (it) {
       COMPOSE_PREVIEW_MANAGER.name -> this@ComposePreviewRepresentation
@@ -574,9 +576,11 @@ class ComposePreviewRepresentation(
   }
 
   private val staticPreviewInteractionHandler =
-    NavigatingInteractionHandler(composeWorkBench.mainSurface).also {
-      delegateInteractionHandler.delegate = it
-    }
+    ComposeNavigationInteractionHandler(
+        composeWorkBench.mainSurface,
+        NavigatingInteractionHandler(composeWorkBench.mainSurface)
+      )
+      .also { delegateInteractionHandler.delegate = it }
   private val interactiveInteractionHandler =
     LayoutlibInteractionHandler(composeWorkBench.mainSurface)
 

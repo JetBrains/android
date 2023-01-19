@@ -79,6 +79,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
@@ -335,8 +336,15 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
 
     AtomicBoolean didAdd = new AtomicBoolean(false);
     ApplicationManager.getApplication().invokeAndWait(
-      () -> didAdd.set(DependencyManagementUtil.addDependenciesWithUiConfirmation(
-        facet.getModule(), dependencies, true, false).isEmpty()));
+      () -> {
+        try {
+          didAdd.set(DependencyManagementUtil.addDependenciesWithUiConfirmation(
+            facet.getModule(), dependencies, true, false).isEmpty());
+        } catch(Throwable t) {
+          Logger.getInstance(NavDesignSurface.class).warn("Failed to add dependencies", t);
+          didAdd.set(false);
+        }
+      });
     return didAdd.get();
   }
 

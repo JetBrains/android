@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.repositories.search
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.PSDEvent.PSDRepositoryUsage.PSDRepository.PROJECT_STRUCTURE_DIALOG_REPOSITORY_MAVEN_CENTRAL
 import com.intellij.openapi.util.JDOMUtil.load
@@ -80,7 +80,7 @@ object MavenCentralRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPO
         ?.getChildren("doc")
         ?.mapNotNull { docElement ->
           val id = docElement.findStringAttribute("id")
-          val latestVersion = docElement.findStringAttribute("latestVersion")?.let { GradleVersion.tryParse(it) }
+          val latestVersion = docElement.findStringAttribute("latestVersion")?.let { Version.parse(it) }
           if (id.isNullOrEmpty() || latestVersion == null) return@mapNotNull null
           id.split(':').takeIf { it.size == 2 }?.let { FoundArtifact(MavenCentralRepository.name, it[0], it[1], latestVersion) }
         }
