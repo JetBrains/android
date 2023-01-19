@@ -102,6 +102,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.CompatibilityRenderTarget;
 import org.jetbrains.android.uipreview.ClassLoaderPreloaderKt;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
@@ -197,7 +198,6 @@ public class RenderTask {
    * @param onNewModuleClassLoader
    */
   RenderTask(@NotNull AndroidFacet facet,
-             @NotNull RenderService renderService,
              @NotNull Configuration configuration,
              @NotNull RenderLogger logger,
              @NotNull LayoutLibrary layoutLib,
@@ -283,7 +283,7 @@ public class RenderTask {
       myContext = new RenderContext(module,
                                     configuration,
                                     moduleInfo,
-                                    renderService.getPlatform(facet));
+                                    AndroidPlatform.getInstance(module));
       myMinDownscalingFactor = minDownscalingFactor;
       myDefaultQuality = quality;
       // Some devices need more memory to avoid the blur when rendering. These are special cases.

@@ -209,11 +209,6 @@ public class RenderService implements Disposable {
   }
 
   @Nullable
-  public AndroidPlatform getPlatform(@NotNull AndroidFacet facet) {
-    return AndroidPlatform.getInstance(facet.getModule());
-  }
-
-  @Nullable
   private static AndroidPlatform getPlatform(@NotNull final Module module, @Nullable RenderLogger logger) {
     AndroidPlatform platform = AndroidPlatform.getInstance(module);
     if (platform == null && logger != null) {
@@ -689,7 +684,7 @@ public class RenderService implements Disposable {
 
         try {
           RenderTask task =
-            new RenderTask(myFacet, myService, myConfiguration, myLogger, layoutLib,
+            new RenderTask(myFacet, myConfiguration, myLogger, layoutLib,
                            device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, myManifestProvider,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
