@@ -34,7 +34,6 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener.FILE_EDITOR_MAN
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
@@ -395,14 +394,16 @@ class LiveLiteralsService private constructor(private val project: Project,
 
   private suspend fun newFileSnapshotForDocument(file: PsiFile, document: Document): LiteralReferenceSnapshot = withContext(workerThread) {
     try {
-      val fileSnapshot = literalsManager.findLiterals(file)
-
-      if (fileSnapshot.all.isNotEmpty()) {
-        document.putCachedDocumentSnapshot(fileSnapshot)
-        return@withContext fileSnapshot
+      when(val result = literalsManager.findLiterals(file)) {
+        is LiteralsManager.FindResult.Snapshot -> {
+          if (result.snapshot.all.isNotEmpty()) {
+            document.putCachedDocumentSnapshot(result.snapshot)
+            return@withContext result.snapshot
+          }
+        }
+        is LiteralsManager.FindResult.NotInSmartMode -> log.debug("Not in smart mode")
+        is LiteralsManager.FindResult.NotSupported -> log.debug("File not supported")
       }
-    } catch (e: IndexNotReadyException) {
-      log.debug("newFileSnapshotForDocument failed", e)
     } catch (_: ProcessCanceledException) {
       // After 222.2889.14 the visitor can throw ProcessCanceledException instead of IndexNotReadyException if in dumb mode.
       log.debug("newFileSnapshotForDocument failed with ProcessCanceledException")
