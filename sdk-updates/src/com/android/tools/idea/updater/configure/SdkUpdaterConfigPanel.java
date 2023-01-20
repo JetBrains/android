@@ -32,7 +32,6 @@ import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.adapters.AdapterProperty;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
@@ -59,11 +58,9 @@ import com.google.common.collect.TreeMultimap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
-import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -92,13 +89,11 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -116,9 +111,6 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -252,10 +244,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
     myDownloader = downloader;
     mySettings = settings;
 
-    Collection<File> sdkLocations = getSdkLocations();
-    if (!sdkLocations.isEmpty()) {
-      mySelectedSdkLocation.set(sdkLocations.stream().findFirst());
-    }
+    mySelectedSdkLocation.set(getSdkLocation());
     mySelectedSdkLocation.addListener(() -> ApplicationManager.getApplication().invokeLater(this::reset));
 
     ((CardLayout)mySdkLocationPanel.getLayout()).show(mySdkLocationPanel, "SingleSdk");
@@ -302,41 +291,8 @@ public class SdkUpdaterConfigPanel implements Disposable {
     return mySelectedSdkLocation.get().orElse(null);
   }
 
-  @NotNull
-  private static Collection<File> getSdkLocations() {
-    File androidHome = IdeSdks.getInstance().getAndroidSdkPath();
-    if (androidHome != null) {
-      return ImmutableList.of(androidHome);
-    }
-
-    Set<File> locations = new HashSet<>();
-    // We don't check Projects.isGradleProject(project) because it may return false if the last sync failed, even if it is a
-    // Gradle project.
-    for (Project project : ProjectManager.getInstance().getOpenProjects()) {
-      try {
-        LocalProperties localProperties = new LocalProperties(project);
-        File androidSdkPath = localProperties.getAndroidSdkPath();
-        if (androidSdkPath != null) {
-          locations.add(androidSdkPath);
-          continue;
-        }
-      }
-      catch (IOException ignored) {
-        Logger.getInstance(SdkUpdaterConfigPanel.class)
-          .info("Unable to read local.properties file from project: " + project.getName(), ignored);
-      }
-
-      List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
-
-      for (AndroidFacet facet : facets) {
-        AndroidPlatform androidPlatform = AndroidPlatform.getInstance(facet.getModule());
-        AndroidSdkData sdkData = androidPlatform == null ? null : androidPlatform.getSdkData();
-        if (sdkData != null) {
-          locations.add(sdkData.getLocationFile());
-        }
-      }
-    }
-    return locations;
+  private static Optional<File> getSdkLocation() {
+    return Optional.ofNullable(IdeSdks.getInstance().getAndroidSdkPath());
   }
 
   private void setUpSingleSdkChooser() {
@@ -694,16 +650,10 @@ public class SdkUpdaterConfigPanel implements Disposable {
    */
   public void reset() {
     refresh(true);
-    Collection<File> sdkLocations = getSdkLocations();
-    if (sdkLocations.size() == 1) {
-      mySdkLocationTextField.setText(sdkLocations.iterator().next().getPath());
-    }
-    if (sdkLocations.isEmpty()) {
-      myCleanupDiskLink.setEnabled(false);
-    }
-    else {
-      myCleanupDiskLink.setEnabled(true);
-    }
+    Optional<File> sdkLocation = getSdkLocation();
+    sdkLocation.ifPresent(file -> mySdkLocationTextField.setText(file.getPath()));
+    myCleanupDiskLink.setEnabled(sdkLocation.isPresent());
+
     myPlatformComponentsPanel.reset();
     myToolComponentsPanel.reset();
     myUpdateSitesPanel.reset();
