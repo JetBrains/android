@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.runconfiguration
 
+import com.android.tools.idea.run.composePreviewRunConfigurationId
 import com.intellij.compiler.options.CompileStepBeforeRun
 import com.intellij.execution.BeforeRunTask
 import com.intellij.execution.configurations.SimpleConfigurationType
@@ -26,7 +27,7 @@ import icons.StudioIcons
 /** A type for run configurations that launch Compose Previews to a device/emulator. */
 class ComposePreviewRunConfigurationType :
   SimpleConfigurationType(
-    "ComposePreviewRunConfiguration",
+    composePreviewRunConfigurationId,
     "Compose Preview",
     "Compose Preview Run Configuration Type",
     NotNullLazyValue.createValue { StudioIcons.Compose.Toolbar.RUN_CONFIGURATION }

@@ -36,6 +36,9 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import org.jetbrains.concurrency.Promise
 
+//TODO(b/266232023): define a better way for running ComposePreviewRunConfiguration and get rid of this constant.
+const val composePreviewRunConfigurationId = "ComposePreviewRunConfiguration"
+
 /**
  * [com.intellij.execution.runners.ProgramRunner] for the default [com.intellij.execution.Executor]
  * [com.intellij.openapi.actionSystem.AnAction], such as [DefaultRunExecutor] and [DefaultDebugExecutor].
@@ -64,6 +67,7 @@ class DefaultStudioProgramRunner : AndroidConfigurationProgramRunner {
     AndroidComplicationConfigurationType().id,
     AndroidWatchFaceConfigurationType().id,
     AndroidTileConfigurationType().id,
+    composePreviewRunConfigurationId
   )
 
   override fun getRunner(environment: ExecutionEnvironment, state: RunProfileState): (ProgressIndicator) -> Promise<RunContentDescriptor> {
