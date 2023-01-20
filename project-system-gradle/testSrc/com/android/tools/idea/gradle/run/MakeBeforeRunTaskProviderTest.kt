@@ -106,7 +106,8 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
       profilerProperties = null,
       alwaysDeployApkFromBundle = false,
       deployAsInstant = false,
-      disabledDynamicFeatureModuleNames = emptySet()
+      disabledDynamicFeatureModuleNames = emptySet(),
+      supportsPrivacySandbox = false,
     )
   }
 

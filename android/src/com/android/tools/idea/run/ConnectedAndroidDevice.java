@@ -110,6 +110,11 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
     return myDevice.supportsFeature(feature);
   }
 
+  @Override
+  public boolean getSupportsPrivacySandbox() throws InterruptedException {
+    return myDevice.services().containsKey("sdk_sandbox");
+  }
+
   @NotNull
   @Override
   public String getName() {

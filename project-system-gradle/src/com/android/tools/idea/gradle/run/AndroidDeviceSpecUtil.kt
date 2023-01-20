@@ -16,6 +16,7 @@
 @file:JvmName("AndroidDeviceSpecUtil")
 package com.android.tools.idea.gradle.run
 
+import com.android.ddmlib.IDevice
 import com.android.ide.common.util.getLanguages
 import com.android.resources.Density
 import com.android.sdklib.AndroidVersion
@@ -45,10 +46,12 @@ data class AndroidDeviceSpecImpl @JvmOverloads constructor (
   override val minVersion: AndroidVersion?,
   override val density: Density? = null,
   override val abis: List<String> = emptyList(),
+  val supportsPrivacySandboxSdkProvider: () -> Boolean = { false },
   override val deviceSerials: List<String> = emptyList(),
   val languagesProvider: () -> List<String> = { emptyList() }
 ) : AndroidDeviceSpec {
-  override val languages: List<String> by lazy { languagesProvider() }
+  override val supportsPrivacySandbox: Boolean get() = supportsPrivacySandboxSdkProvider()
+  override val languages: List<String> get() = languagesProvider()
 }
 
 const val DEVICE_SPEC_TIMEOUT_SECONDS = 10L
@@ -102,7 +105,19 @@ fun createSpec(
   }
 
   val deviceSerials = devices.map { it.serial }
-  return AndroidDeviceSpecImpl(version, minVersion, density, abis, deviceSerials, languagesProvider = { combineDeviceLanguages(devices, timeout, unit) })
+  val allDevicesSupportPrivacySandbox =  devices.all { it.supportsPrivacySandbox }
+  if (allDevicesSupportPrivacySandbox) {
+    log.info("Creating spec for privacy sandbox enabled device.")
+  } else {
+    log.info("Creating spec for device without privacy sandbox support.")
+  }
+
+  return AndroidDeviceSpecImpl(
+    version, minVersion, density, abis,
+    supportsPrivacySandboxSdkProvider = { allDevicesSupportPrivacySandbox },
+    languagesProvider = { combineDeviceLanguages(devices, timeout, unit) },
+    deviceSerials = deviceSerials
+  )
 }
 
 /**
@@ -177,6 +192,13 @@ private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer) {
       }
       writer.endArray()
     }
+    if (supportsPrivacySandbox) {
+      writer.name("sdk_runtime")
+        .beginObject()
+        .name("supported")
+        .value(supportsPrivacySandbox)
+        .endObject()
+    }
     if (writeLanguages) {
       if (!languages.isEmpty()) {
         writer.name("supported_locales")
@@ -191,6 +213,16 @@ private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer) {
   }
 }
 
+fun IDevice.createSpec(): AndroidDeviceSpec {
+  return AndroidDeviceSpecImpl(
+    version,
+    version,
+    Density.getEnum(density),
+    abis,
+    supportsPrivacySandboxSdkProvider =  { services().containsKey("sdk_sandbox") },
+    languagesProvider = { getLanguages(Duration.ofSeconds(DEVICE_SPEC_TIMEOUT_SECONDS)).sorted() }
+  )
+}
 
 private val log: Logger
   get() = Logger.getInstance(AndroidDeviceSpec::class.java)

@@ -1,13 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 8.0.0-dev">
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/gradle/run/AndroidDeviceSpecUtil.kt"
-            line="51"/>
-    </issue>
+<issues format="5" by="lint 8.2.0-dev">
 
     <issue
         id="AvoidByLazy"
@@ -54,7 +46,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/gradle/variant/view/BuildVariantView.java"
-            line="133"/>
+            line="127"/>
     </issue>
 
     <issue
@@ -62,7 +54,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/gradle/variant/view/BuildVariantView.java"
-            line="262"/>
+            line="256"/>
     </issue>
 
     <issue
@@ -70,7 +62,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/gradle/variant/view/BuildVariantView.java"
-            line="315"/>
+            line="309"/>
     </issue>
 
     <issue
@@ -78,7 +70,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/gradle/variant/view/BuildVariantView.java"
-            line="403"/>
+            line="397"/>
     </issue>
 
 </issues>
