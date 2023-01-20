@@ -25,6 +25,7 @@ import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.devices.DeviceComboBoxDeviceTrackerFactory
+import com.android.tools.idea.logcat.devices.DeviceFinder
 import com.android.tools.idea.logcat.devices.FakeDeviceComboBoxDeviceTracker
 import com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage
 import com.android.tools.idea.logcat.messages.FormattingOptions
@@ -188,7 +189,9 @@ class LogcatToolWindowFactoryTest {
   fun showLogcat_opensLogcatPanel() {
     val toolWindow = MockToolWindow(project)
     logcatToolWindowFactory().init(toolWindow)
-    deviceTracker.addDevices(Device.createPhysical("device1", true, "11", 30, "Google", "Pixel"))
+    val device = Device.createPhysical("device1", true, "11", 30, "Google", "Pixel")
+    project.replaceService(DeviceFinder::class.java, DeviceFinder { device }, disposable)
+    deviceTracker.addDevices(device)
 
     project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(
       PhysicalDeviceInfo("device1", "11", 30, "Google", "Pixel"),

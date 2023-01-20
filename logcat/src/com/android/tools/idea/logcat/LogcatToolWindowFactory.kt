@@ -17,7 +17,6 @@ package com.android.tools.idea.logcat
 
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
-import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.isAndroidEnvironment
@@ -25,7 +24,7 @@ import com.android.tools.idea.logcat.LogcatExperimentalSettings.Companion.getIns
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Custom
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Preset
 import com.android.tools.idea.logcat.devices.Device
-import com.android.tools.idea.logcat.devices.DeviceFactory
+import com.android.tools.idea.logcat.devices.DeviceFinder
 import com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage
 import com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions
 import com.android.tools.idea.logcat.messages.LogcatColorSettingsPage
@@ -37,6 +36,7 @@ import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.EmulatorDeviceInfo
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.PhysicalDeviceInfo
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.components.service
 import com.intellij.openapi.options.colors.ColorSettingsPages
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
@@ -85,10 +85,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
 
     AndroidCoroutineScope(toolWindow.disposable).launch {
       val name = if (applicationId == null) deviceInfo.id else "$applicationId (${deviceInfo.id})"
-
-      val device = runCatching {
-        DeviceFactory(AdbLibService.getSession(toolWindow.project).deviceServices).createDevice(deviceInfo.serialNumber)
-      }.getOrDefault(deviceInfo.toOfflineDevice())
+      val device = toolWindow.project.service<DeviceFinder>().findDevice(deviceInfo.serialNumber) ?: deviceInfo.toOfflineDevice()
       withContext(uiThread) {
         insideShowLogcatListener = true
         try {
