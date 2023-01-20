@@ -270,6 +270,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.folding.AndroidFoldingSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.instantapp.InstantAppSdks" />
     <applicationService serviceImplementation="com.android.tools.idea.sdk.IdeSdks"/>
+    <applicationService serviceImplementation="com.android.tools.idea.sdk.AndroidSdkPathStore"/>
     <applicationService serviceImplementation="com.android.tools.idea.sdk.AndroidSdks"/>
     <applicationService serviceImplementation="com.android.tools.idea.sdk.Jdks"/>
     <applicationService serviceImplementation="com.android.tools.idea.project.AndroidRunConfigurations"/>

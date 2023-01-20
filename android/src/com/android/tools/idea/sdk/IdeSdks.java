@@ -160,7 +160,8 @@ public class IdeSdks {
    */
   @Nullable
   public File getAndroidSdkPath() {
-    Path sdkPath = AndroidSdkPathStore.getInstance().getAndroidSdkPath();
+    String path = AndroidSdkPathStore.getInstance().getAndroidSdkPath();
+    Path sdkPath = path != null ? Paths.get(path) : null;
     if (sdkPath != null) {
       File candidate = sdkPath.toFile();
       if (isValidAndroidSdkPath(candidate)) {
@@ -418,7 +419,7 @@ public class IdeSdks {
       ApplicationManager.getApplication().assertWriteAccessAllowed();
 
       // Store default sdk path for the application as well in order to be able to re-use it for other ide projects if necessary.
-      AndroidSdkPathStore.getInstance().setAndroidSdkPath(path.toPath());
+      AndroidSdkPathStore.getInstance().setAndroidSdkPath(path.getAbsolutePath());
 
       // Since removing SDKs is *not* asynchronous, we force an update of the SDK Manager.
       // If we don't force this update, AndroidSdks will still use the old SDK until all SDKs are properly deleted.
