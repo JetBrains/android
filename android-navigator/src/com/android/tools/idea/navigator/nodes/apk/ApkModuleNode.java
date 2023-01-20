@@ -33,8 +33,6 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
@@ -87,22 +85,9 @@ public class ApkModuleNode extends ProjectViewModuleNode {
     myDexFiles = new ArrayList<>();
 
     if (apkRootFile != null) {
-      // Refresh the root so that it can find the most recent contents of the directory. This
-      // identifies any added/removed .dex files to the directory via APK reload.
-      ApplicationManager.getApplication().invokeLater(() ->
-        WriteAction.run(() ->
-          apkRootFile.refresh(false, true)
-        )
-      );
       Pattern dexFilePattern = Pattern.compile(REGEX_APK_CLASSES_DEX);
       for (VirtualFile child : apkRootFile.getChildren()) {
         if (dexFilePattern.matcher(child.getName()).matches()) {
-          // We refresh dex files in case any changes to it were not picked up.
-          ApplicationManager.getApplication().invokeLater(() ->
-            WriteAction.run(() ->
-              child.refresh(false, false)
-            )
-          );
           myDexFiles.add(child);
         }
       }
