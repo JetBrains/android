@@ -2,6 +2,18 @@ CompositeBuildMap             : IdeCompositeBuildMapImpl
     - builds                      : <ROOT> (IdeBuildImpl)
         buildName                     : :
     gradleSupportsDirectTaskInvocation      : true
+LIBRARY_TABLE
+    - library                     : junit:junit:4.12 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/junit/junit/4.12/junit-4.12.jar
+        artifactAddress               : junit:junit:4.12@jar
+    - library                     : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
+        artifactAddress               : org.hamcrest:hamcrest-core:1.3@jar
+    - library                     : <ROOT>::app@firstAbcSecondAbcDebug (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        projectPath                   : :app
+        sourceSet                     : MAIN
+        variant                       : firstAbcSecondAbcDebug
 MODULE                        : MultiFlavor
     externalProject               : MultiFlavor (DefaultExternalProject)
         name                          : MultiFlavor
@@ -794,6 +806,8 @@ MODULE                        : MultiFlavor.app
                     JniLibsDirectories            : <ROOT>/app/src/firstAbcSecondAbc/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/firstAbcSecondAbc/shaders [-]
                 Dependencies
+                    compileClasspath
+                    runtimeClasspath
                 ApplicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -846,12 +860,10 @@ MODULE                        : MultiFlavor.app
                     JniLibsDirectories            : <ROOT>/app/src/androidTestFirstAbcSecondAbc/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTestFirstAbcSecondAbc/shaders [-]
                 Dependencies
-                    - compileClasspath            : <ROOT>::app@firstAbcSecondAbcDebug (IdeModuleLibraryImpl)
-                        buildId                       : <ROOT>
-                        projectPath                   : :app
-                        sourceSet                     : MAIN
-                        variant                       : firstAbcSecondAbcDebug
-                    - runtimeClasspath            : <ROOT>::app@firstAbcSecondAbcDebug (IdeModuleLibraryImpl) (*seen*)
+                    compileClasspath
+                        library                       : <ROOT>-:app-MAIN
+                    runtimeClasspath
+                        library                       : <ROOT>-:app-MAIN
                 ApplicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -900,16 +912,14 @@ MODULE                        : MultiFlavor.app
                     JniLibsDirectories            : <ROOT>/app/src/testFirstAbcSecondAbc/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testFirstAbcSecondAbc/shaders [-]
                 Dependencies
-                    - compileClasspath            : <ROOT>::app@firstAbcSecondAbcDebug (IdeModuleLibraryImpl) (*seen*)
-                    - compileClasspath            : junit:junit:4.12 (IdeJavaLibraryImpl)
-                        artifact                      : <M2>/junit/junit/4.12/junit-4.12.jar
-                        artifactAddress               : junit:junit:4.12@jar
-                    - compileClasspath            : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl)
-                        artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                        artifactAddress               : org.hamcrest:hamcrest-core:1.3@jar
-                    - runtimeClasspath            : junit:junit:4.12 (IdeJavaLibraryImpl) (*seen*)
-                    - runtimeClasspath            : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl) (*seen*)
-                    - runtimeClasspath            : <ROOT>::app@firstAbcSecondAbcDebug (IdeModuleLibraryImpl) (*seen*)
+                    compileClasspath
+                        library                       : junit:junit:4.12@jar
+                        library                       : org.hamcrest:hamcrest-core:1.3@jar
+                        library                       : <ROOT>-:app-MAIN
+                    runtimeClasspath
+                        library                       : junit:junit:4.12@jar
+                        library                       : org.hamcrest:hamcrest-core:1.3@jar
+                        library                       : <ROOT>-:app-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : MultiFlavor.app.androidTest
