@@ -157,17 +157,19 @@ class LayoutInspectorRule(
 
   private var runningThreadCount = AtomicInteger(0)
 
+  private val asyncLauncherThreads = mutableListOf<Thread>()
+
   private val launcherExecutor = Executor { runnable ->
     if (launchSynchronously) {
       runnable.run()
     }
     else {
-      Thread {
+      asyncLauncherThreads.add(Thread {
         runningThreadCount.incrementAndGet()
         runnable.run()
         runningThreadCount.decrementAndGet()
         asyncLaunchLatch.countDown()
-      }.start()
+      }.apply { start() })
     }
   }
 
@@ -281,6 +283,15 @@ class LayoutInspectorRule(
     // Disconnect the active client explicitly and block until it's done, since otherwise this
     // might happen on a background thread after the test framework is done tearing down.
     launcher.disconnectActiveClient(10, TimeUnit.SECONDS)
+
+    launchSynchronously = true // Do not start more threads, since that would cause ConcurrentModificationException below
+    asyncLauncherThreads.forEach {
+      it.join(1000) // Wait for the thread to finish
+      if (it.isAlive) {
+        it.interrupt() // Force the thread to finish
+        it.join()
+      }
+    }
   }
 
   private fun after() {
