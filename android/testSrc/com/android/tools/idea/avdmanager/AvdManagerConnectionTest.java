@@ -336,7 +336,9 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       fail();
     }
     catch (ExecutionException expected) {
-      assertTrue(expected.getCause().getMessage().contains("No emulator installed"));
+      if (!expected.getCause().getMessage().contains("No emulator installed")) {
+        throw new RuntimeException(expected.getCause());
+      }
     }
   }
 
