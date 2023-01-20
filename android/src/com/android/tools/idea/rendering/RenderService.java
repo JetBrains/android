@@ -28,6 +28,7 @@ import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifestException;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
@@ -39,6 +40,8 @@ import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
+import com.android.tools.idea.res.AssetRepositoryImpl;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -684,7 +687,8 @@ public class RenderService implements Disposable {
 
         try {
           RenderTask task =
-            new RenderTask(myFacet, myConfiguration, myLogger, layoutLib,
+            new RenderTask(module, myConfiguration, new AssetRepositoryImpl(myFacet), ResourceRepositoryManager.getInstance(myFacet),
+                           AndroidModuleInfo.getInstance(myFacet), myLogger, layoutLib,
                            device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, myManifestProvider,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
