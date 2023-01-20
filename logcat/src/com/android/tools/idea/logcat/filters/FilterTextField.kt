@@ -467,8 +467,8 @@ internal class FilterTextField(
     }
 
     private fun getFavoriteTooltip(item: Item) = when (item.isFavorite) {
-      true -> LogcatBundle.message("logcat.filter.tag.favorite.tooltip")
-      false -> LogcatBundle.message("logcat.filter.untag.favorite.tooltip")
+      true -> LogcatBundle.message("logcat.filter.untag.favorite.tooltip")
+      false -> LogcatBundle.message("logcat.filter.tag.favorite.tooltip")
     }
 
     /**
