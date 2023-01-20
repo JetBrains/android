@@ -18,6 +18,7 @@ package com.android.tools.idea.adddevicedialog
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.sdklib.SdkVersionInfo
+import com.android.sdklib.devices.Abi
 import com.android.tools.idea.device.Resolution
 import com.android.tools.idea.grouplayout.GroupLayout.Companion.groupLayout
 import com.intellij.openapi.ui.ComboBox
@@ -46,7 +47,7 @@ internal class DeviceAndApiPanel internal constructor() : JBPanel<DeviceAndApiPa
     val servicesComboBox = ComboBox(arrayOf(Service.ANDROID_OPEN_SOURCE))
 
     val abiLabel = JBLabel("ABI")
-    val abiComboBox = ComboBox<Any>()
+    val abiComboBox = ComboBox(arrayOf(Abi.ARM64_V8A))
 
     val max = JBUIScale.scale(Short.MAX_VALUE.toInt())
 
