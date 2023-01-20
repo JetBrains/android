@@ -17,7 +17,8 @@ package com.android.tools.idea.gradle.model
 
 interface IdeDependenciesCore {
   /**
-   * Returns the dependencies, both direct and transitive.
+   * Returns the dependencies, both direct and transitive. This is the classpath of the containing artifact and as such the
+   * order of these dependencies is relevant and should be kept as provided by Gradle.
    */
-  val dependencies: Collection<IdeDependencyCore>
+  val dependencies: List<IdeDependencyCore>
 }

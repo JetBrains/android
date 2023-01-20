@@ -607,6 +607,7 @@ MODULE                        : project.app
                     compileClasspath
                         library                       : __wrapped_aars__::library-debug:unspecified@aar
                         library                       : <ROOT>-:app-MAIN
+                            dependency                    : __wrapped_aars__::library-debug:unspecified@aar
                     runtimeClasspath
                 ProvidedDependencies
                     - provided                    : __wrapped_aars__::library-debug:unspecified@aar
@@ -635,9 +636,11 @@ MODULE                        : project.app
                     compileClasspath
                         library                       : __wrapped_aars__::library-debug:unspecified@aar
                         library                       : <ROOT>-:app-MAIN
+                            dependency                    : __wrapped_aars__::library-debug:unspecified@aar
                     runtimeClasspath
                         library                       : __wrapped_aars__::library-debug:unspecified@aar
                         library                       : <ROOT>-:app-MAIN
+                            dependency                    : __wrapped_aars__::library-debug:unspecified@aar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : project.app.androidTest

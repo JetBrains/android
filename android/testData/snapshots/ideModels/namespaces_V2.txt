@@ -628,6 +628,7 @@ MODULE                        : project.app
                         library                       : <ROOT>-:otherlib-MAIN
                     runtimeClasspath
                         library                       : <ROOT>-:lib-MAIN
+                            dependency                    : <ROOT>-:otherlib-MAIN
                         library                       : <ROOT>-:otherlib-MAIN
                 ApplicationId                 : testData.namespaces
                 SigningConfigName             : debug
@@ -684,7 +685,10 @@ MODULE                        : project.app
                         library                       : <ROOT>-:otherlib-MAIN
                     runtimeClasspath
                         library                       : <ROOT>-:app-MAIN
+                            dependency                    : <ROOT>-:lib-MAIN
+                            dependency                    : <ROOT>-:otherlib-MAIN
                         library                       : <ROOT>-:lib-MAIN
+                            dependency                    : <ROOT>-:otherlib-MAIN
                         library                       : <ROOT>-:otherlib-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
@@ -971,6 +975,7 @@ MODULE                        : project.lib
                         library                       : <ROOT>-:otherlib-MAIN
                     runtimeClasspath
                         library                       : <ROOT>-:lib-MAIN
+                            dependency                    : <ROOT>-:otherlib-MAIN
                         library                       : <ROOT>-:otherlib-MAIN
                 ApplicationId                 : com.example.lib.test
                 SigningConfigName             : debug
@@ -998,6 +1003,7 @@ MODULE                        : project.lib
                         library                       : <ROOT>-:otherlib-MAIN
                     runtimeClasspath
                         library                       : <ROOT>-:lib-MAIN
+                            dependency                    : <ROOT>-:otherlib-MAIN
                         library                       : <ROOT>-:otherlib-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :lib (DefaultExternalProject) (*seen*)

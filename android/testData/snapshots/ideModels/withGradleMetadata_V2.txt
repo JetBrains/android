@@ -412,22 +412,42 @@ MODULE                        : withGradleMetadata.app
                 Dependencies
                     compileClasspath
                         library                       : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2@jar
+                            dependency                    : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains:annotations:13.0@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains:annotations:13.0@jar
                         library                       : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
+                            dependency                    : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2@jar
                     runtimeClasspath
                         library                       : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2@jar
+                            dependency                    : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-runtime, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains:annotations:13.0@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains:annotations:13.0@jar
                         library                       : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-runtime, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
+                            dependency                    : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2@jar
                 ApplicationId                 : come.example.with.gradle.metadata
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -457,14 +477,24 @@ MODULE                        : withGradleMetadata.app
                 Dependencies
                     compileClasspath
                         library                       : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2@jar
+                            dependency                    : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains:annotations:13.0@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains:annotations:13.0@jar
                         library                       : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         library                       : <ROOT>-:app-MAIN
                         library                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
+                            dependency                    : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2@jar
                     runtimeClasspath
                 ProvidedDependencies
                     - provided                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
@@ -498,24 +528,45 @@ MODULE                        : withGradleMetadata.app
                 Dependencies
                     compileClasspath
                         library                       : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2@jar
+                            dependency                    : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains:annotations:13.0@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains:annotations:13.0@jar
                         library                       : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         library                       : <ROOT>-:app-MAIN
                         library                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
+                            dependency                    : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2@jar
                     runtimeClasspath
                         library                       : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2@jar
+                            dependency                    : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-runtime, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains:annotations:13.0@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains:annotations:13.0@jar
                         library                       : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         library                       : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                            dependency                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         library                       : <ROOT>-:app-MAIN
+                            dependency                    : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2@jar
                         library                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-runtime, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
+                            dependency                    : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2@jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : withGradleMetadata.app.androidTest

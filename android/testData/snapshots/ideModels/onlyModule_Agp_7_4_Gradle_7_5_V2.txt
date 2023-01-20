@@ -1227,10 +1227,12 @@ MODULE                        : project.app
                 Dependencies
                     compileClasspath
                         library                       : junit:junit:4.12@jar
+                            dependency                    : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : <ROOT>-:app-MAIN
                     runtimeClasspath
                         library                       : junit:junit:4.12@jar
+                            dependency                    : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : <ROOT>-:app-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
@@ -1403,90 +1405,290 @@ MODULE                        : project.benchmark
                 Dependencies
                     compileClasspath
                         library                       : com.android.support:appcompat-v7:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:collections:28.0.0@jar
+                            dependency                    : com.android.support:cursoradapter:28.0.0@aar
+                            dependency                    : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:support-fragment:28.0.0@aar
+                            dependency                    : com.android.support:support-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:animated-vector-drawable:28.0.0@aar
                         library                       : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:collections:28.0.0@jar
+                            dependency                    : android.arch.lifecycle:runtime:1.1.1@aar
+                            dependency                    : com.android.support:versionedparcelable:28.0.0@aar
                         library                       : android.arch.lifecycle:runtime:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:common:1.1.1@jar
+                            dependency                    : android.arch.core:common:1.1.1@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:versionedparcelable:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:collections:28.0.0@jar
                         library                       : com.android.support:cursoradapter:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:documentfile:28.0.0@aar
+                            dependency                    : com.android.support:loader:28.0.0@aar
+                            dependency                    : com.android.support:localbroadcastmanager:28.0.0@aar
+                            dependency                    : com.android.support:print:28.0.0@aar
                         library                       : com.android.support:documentfile:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:loader:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : android.arch.lifecycle:livedata:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:viewmodel:1.1.1@aar
                         library                       : android.arch.lifecycle:livedata:1.1.1@aar
+                            dependency                    : android.arch.core:runtime:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            dependency                    : android.arch.core:common:1.1.1@jar
                         library                       : android.arch.core:runtime:1.1.1@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : android.arch.core:common:1.1.1@jar
                         library                       : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:common:1.1.1@jar
+                            dependency                    : android.arch.core:common:1.1.1@jar
+                            dependency                    : android.arch.core:runtime:1.1.1@aar
                         library                       : android.arch.lifecycle:viewmodel:1.1.1@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:localbroadcastmanager:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:print:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:support-fragment:28.0.0@aar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:support-core-ui:28.0.0@aar
+                            dependency                    : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:loader:28.0.0@aar
+                            dependency                    : android.arch.lifecycle:viewmodel:1.1.1@aar
                         library                       : com.android.support:support-core-ui:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
+                            dependency                    : com.android.support:viewpager:28.0.0@aar
+                            dependency                    : com.android.support:coordinatorlayout:28.0.0@aar
+                            dependency                    : com.android.support:drawerlayout:28.0.0@aar
+                            dependency                    : com.android.support:slidingpanelayout:28.0.0@aar
+                            dependency                    : com.android.support:interpolator:28.0.0@aar
+                            dependency                    : com.android.support:swiperefreshlayout:28.0.0@aar
+                            dependency                    : com.android.support:asynclayoutinflater:28.0.0@aar
+                            dependency                    : com.android.support:cursoradapter:28.0.0@aar
                         library                       : com.android.support:customview:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
                         library                       : com.android.support:viewpager:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:coordinatorlayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:drawerlayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:slidingpanelayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:interpolator:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:swiperefreshlayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:interpolator:28.0.0@aar
                         library                       : com.android.support:asynclayoutinflater:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
                         library                       : com.android.support:support-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
                         library                       : com.android.support:animated-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:support-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:support-core-ui:28.0.0@aar
                         library                       : com.android.support.test.espresso:espresso-core:3.0.2@aar
+                            dependency                    : com.android.support.test:runner:1.0.2@aar
+                            dependency                    : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
+                            dependency                    : com.squareup:javawriter:2.1.1@jar
+                            dependency                    : javax.inject:javax.inject:1@jar
+                            dependency                    : org.hamcrest:hamcrest-library:1.3@jar
+                            dependency                    : org.hamcrest:hamcrest-integration:1.3@jar
+                            dependency                    : com.google.code.findbugs:jsr305:2.0.1@jar
                         library                       : com.android.support.test:runner:1.0.2@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support.test:monitor:1.0.2@aar
+                            dependency                    : junit:junit:4.12@jar
+                            dependency                    : net.sf.kxml:kxml2:2.3.0@jar
                         library                       : com.android.support.test:monitor:1.0.2@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
                         library                       : junit:junit:4.12@jar
+                            dependency                    : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:collections:28.0.0@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : android.arch.lifecycle:common:1.1.1@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : android.arch.core:common:1.1.1@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : net.sf.kxml:kxml2:2.3.0@jar
                         library                       : com.squareup:javawriter:2.1.1@jar
                         library                       : javax.inject:javax.inject:1@jar
                         library                       : org.hamcrest:hamcrest-library:1.3@jar
+                            dependency                    : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : org.hamcrest:hamcrest-integration:1.3@jar
+                            dependency                    : org.hamcrest:hamcrest-library:1.3@jar
                         library                       : com.google.code.findbugs:jsr305:2.0.1@jar
                         library                       : <ROOT>-:app-MAIN
                     runtimeClasspath
                         library                       : com.android.support:appcompat-v7:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:collections:28.0.0@jar
+                            dependency                    : com.android.support:cursoradapter:28.0.0@aar
+                            dependency                    : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:support-fragment:28.0.0@aar
+                            dependency                    : com.android.support:support-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:animated-vector-drawable:28.0.0@aar
                         library                       : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:collections:28.0.0@jar
+                            dependency                    : android.arch.lifecycle:runtime:1.1.1@aar
+                            dependency                    : com.android.support:versionedparcelable:28.0.0@aar
                         library                       : android.arch.lifecycle:runtime:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:common:1.1.1@jar
+                            dependency                    : android.arch.core:common:1.1.1@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:versionedparcelable:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:collections:28.0.0@jar
                         library                       : com.android.support:cursoradapter:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:documentfile:28.0.0@aar
+                            dependency                    : com.android.support:loader:28.0.0@aar
+                            dependency                    : com.android.support:localbroadcastmanager:28.0.0@aar
+                            dependency                    : com.android.support:print:28.0.0@aar
                         library                       : com.android.support:documentfile:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:loader:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : android.arch.lifecycle:livedata:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:viewmodel:1.1.1@aar
                         library                       : android.arch.lifecycle:livedata:1.1.1@aar
+                            dependency                    : android.arch.core:runtime:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            dependency                    : android.arch.core:common:1.1.1@jar
                         library                       : android.arch.core:runtime:1.1.1@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : android.arch.core:common:1.1.1@jar
                         library                       : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:common:1.1.1@jar
+                            dependency                    : android.arch.core:common:1.1.1@jar
+                            dependency                    : android.arch.core:runtime:1.1.1@aar
                         library                       : android.arch.lifecycle:viewmodel:1.1.1@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:localbroadcastmanager:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:print:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:support-fragment:28.0.0@aar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:support-core-ui:28.0.0@aar
+                            dependency                    : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:loader:28.0.0@aar
+                            dependency                    : android.arch.lifecycle:viewmodel:1.1.1@aar
                         library                       : com.android.support:support-core-ui:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
+                            dependency                    : com.android.support:viewpager:28.0.0@aar
+                            dependency                    : com.android.support:coordinatorlayout:28.0.0@aar
+                            dependency                    : com.android.support:drawerlayout:28.0.0@aar
+                            dependency                    : com.android.support:slidingpanelayout:28.0.0@aar
+                            dependency                    : com.android.support:interpolator:28.0.0@aar
+                            dependency                    : com.android.support:swiperefreshlayout:28.0.0@aar
+                            dependency                    : com.android.support:asynclayoutinflater:28.0.0@aar
+                            dependency                    : com.android.support:cursoradapter:28.0.0@aar
                         library                       : com.android.support:customview:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
                         library                       : com.android.support:viewpager:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:coordinatorlayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:drawerlayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:slidingpanelayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:interpolator:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:swiperefreshlayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:interpolator:28.0.0@aar
                         library                       : com.android.support:asynclayoutinflater:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
                         library                       : com.android.support:support-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
                         library                       : com.android.support:animated-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:support-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:support-core-ui:28.0.0@aar
                         library                       : com.android.support.test.espresso:espresso-core:3.0.2@aar
+                            dependency                    : com.android.support.test:runner:1.0.2@aar
+                            dependency                    : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
+                            dependency                    : com.squareup:javawriter:2.1.1@jar
+                            dependency                    : javax.inject:javax.inject:1@jar
+                            dependency                    : org.hamcrest:hamcrest-library:1.3@jar
+                            dependency                    : org.hamcrest:hamcrest-integration:1.3@jar
+                            dependency                    : com.google.code.findbugs:jsr305:2.0.1@jar
                         library                       : com.android.support.test:runner:1.0.2@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support.test:monitor:1.0.2@aar
+                            dependency                    : junit:junit:4.12@jar
+                            dependency                    : net.sf.kxml:kxml2:2.3.0@jar
                         library                       : com.android.support.test:monitor:1.0.2@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
                         library                       : junit:junit:4.12@jar
+                            dependency                    : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:collections:28.0.0@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : android.arch.lifecycle:common:1.1.1@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : android.arch.core:common:1.1.1@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : net.sf.kxml:kxml2:2.3.0@jar
                         library                       : com.squareup:javawriter:2.1.1@jar
                         library                       : javax.inject:javax.inject:1@jar
                         library                       : org.hamcrest:hamcrest-library:1.3@jar
+                            dependency                    : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : org.hamcrest:hamcrest-integration:1.3@jar
+                            dependency                    : org.hamcrest:hamcrest-library:1.3@jar
                         library                       : com.google.code.findbugs:jsr305:2.0.1@jar
                 ApplicationId                 : com.example.android.benchmark
                 SigningConfigName             : debug
@@ -1667,90 +1869,290 @@ MODULE                        : project.test
                 Dependencies
                     compileClasspath
                         library                       : com.android.support:appcompat-v7:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:collections:28.0.0@jar
+                            dependency                    : com.android.support:cursoradapter:28.0.0@aar
+                            dependency                    : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:support-fragment:28.0.0@aar
+                            dependency                    : com.android.support:support-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:animated-vector-drawable:28.0.0@aar
                         library                       : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:collections:28.0.0@jar
+                            dependency                    : android.arch.lifecycle:runtime:1.1.1@aar
+                            dependency                    : com.android.support:versionedparcelable:28.0.0@aar
                         library                       : android.arch.lifecycle:runtime:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:common:1.1.1@jar
+                            dependency                    : android.arch.core:common:1.1.1@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:versionedparcelable:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:collections:28.0.0@jar
                         library                       : com.android.support:cursoradapter:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:documentfile:28.0.0@aar
+                            dependency                    : com.android.support:loader:28.0.0@aar
+                            dependency                    : com.android.support:localbroadcastmanager:28.0.0@aar
+                            dependency                    : com.android.support:print:28.0.0@aar
                         library                       : com.android.support:documentfile:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:loader:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : android.arch.lifecycle:livedata:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:viewmodel:1.1.1@aar
                         library                       : android.arch.lifecycle:livedata:1.1.1@aar
+                            dependency                    : android.arch.core:runtime:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            dependency                    : android.arch.core:common:1.1.1@jar
                         library                       : android.arch.core:runtime:1.1.1@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : android.arch.core:common:1.1.1@jar
                         library                       : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:common:1.1.1@jar
+                            dependency                    : android.arch.core:common:1.1.1@jar
+                            dependency                    : android.arch.core:runtime:1.1.1@aar
                         library                       : android.arch.lifecycle:viewmodel:1.1.1@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:localbroadcastmanager:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:print:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:support-fragment:28.0.0@aar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:support-core-ui:28.0.0@aar
+                            dependency                    : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:loader:28.0.0@aar
+                            dependency                    : android.arch.lifecycle:viewmodel:1.1.1@aar
                         library                       : com.android.support:support-core-ui:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
+                            dependency                    : com.android.support:viewpager:28.0.0@aar
+                            dependency                    : com.android.support:coordinatorlayout:28.0.0@aar
+                            dependency                    : com.android.support:drawerlayout:28.0.0@aar
+                            dependency                    : com.android.support:slidingpanelayout:28.0.0@aar
+                            dependency                    : com.android.support:interpolator:28.0.0@aar
+                            dependency                    : com.android.support:swiperefreshlayout:28.0.0@aar
+                            dependency                    : com.android.support:asynclayoutinflater:28.0.0@aar
+                            dependency                    : com.android.support:cursoradapter:28.0.0@aar
                         library                       : com.android.support:customview:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
                         library                       : com.android.support:viewpager:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:coordinatorlayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:drawerlayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:slidingpanelayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:interpolator:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:swiperefreshlayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:interpolator:28.0.0@aar
                         library                       : com.android.support:asynclayoutinflater:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
                         library                       : com.android.support:support-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
                         library                       : com.android.support:animated-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:support-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:support-core-ui:28.0.0@aar
                         library                       : com.android.support.test.espresso:espresso-core:3.0.2@aar
+                            dependency                    : com.android.support.test:runner:1.0.2@aar
+                            dependency                    : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
+                            dependency                    : com.squareup:javawriter:2.1.1@jar
+                            dependency                    : javax.inject:javax.inject:1@jar
+                            dependency                    : org.hamcrest:hamcrest-library:1.3@jar
+                            dependency                    : org.hamcrest:hamcrest-integration:1.3@jar
+                            dependency                    : com.google.code.findbugs:jsr305:2.0.1@jar
                         library                       : com.android.support.test:runner:1.0.2@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support.test:monitor:1.0.2@aar
+                            dependency                    : junit:junit:4.12@jar
+                            dependency                    : net.sf.kxml:kxml2:2.3.0@jar
                         library                       : com.android.support.test:monitor:1.0.2@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
                         library                       : junit:junit:4.12@jar
+                            dependency                    : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:collections:28.0.0@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : android.arch.lifecycle:common:1.1.1@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : android.arch.core:common:1.1.1@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : net.sf.kxml:kxml2:2.3.0@jar
                         library                       : com.squareup:javawriter:2.1.1@jar
                         library                       : javax.inject:javax.inject:1@jar
                         library                       : org.hamcrest:hamcrest-library:1.3@jar
+                            dependency                    : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : org.hamcrest:hamcrest-integration:1.3@jar
+                            dependency                    : org.hamcrest:hamcrest-library:1.3@jar
                         library                       : com.google.code.findbugs:jsr305:2.0.1@jar
                         library                       : <ROOT>-:app-MAIN
                     runtimeClasspath
                         library                       : com.android.support:appcompat-v7:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:collections:28.0.0@jar
+                            dependency                    : com.android.support:cursoradapter:28.0.0@aar
+                            dependency                    : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:support-fragment:28.0.0@aar
+                            dependency                    : com.android.support:support-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:animated-vector-drawable:28.0.0@aar
                         library                       : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:collections:28.0.0@jar
+                            dependency                    : android.arch.lifecycle:runtime:1.1.1@aar
+                            dependency                    : com.android.support:versionedparcelable:28.0.0@aar
                         library                       : android.arch.lifecycle:runtime:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:common:1.1.1@jar
+                            dependency                    : android.arch.core:common:1.1.1@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:versionedparcelable:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:collections:28.0.0@jar
                         library                       : com.android.support:cursoradapter:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:documentfile:28.0.0@aar
+                            dependency                    : com.android.support:loader:28.0.0@aar
+                            dependency                    : com.android.support:localbroadcastmanager:28.0.0@aar
+                            dependency                    : com.android.support:print:28.0.0@aar
                         library                       : com.android.support:documentfile:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:loader:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : android.arch.lifecycle:livedata:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:viewmodel:1.1.1@aar
                         library                       : android.arch.lifecycle:livedata:1.1.1@aar
+                            dependency                    : android.arch.core:runtime:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            dependency                    : android.arch.core:common:1.1.1@jar
                         library                       : android.arch.core:runtime:1.1.1@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : android.arch.core:common:1.1.1@jar
                         library                       : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:common:1.1.1@jar
+                            dependency                    : android.arch.core:common:1.1.1@jar
+                            dependency                    : android.arch.core:runtime:1.1.1@aar
                         library                       : android.arch.lifecycle:viewmodel:1.1.1@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:localbroadcastmanager:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:print:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:support-fragment:28.0.0@aar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:support-core-ui:28.0.0@aar
+                            dependency                    : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:loader:28.0.0@aar
+                            dependency                    : android.arch.lifecycle:viewmodel:1.1.1@aar
                         library                       : com.android.support:support-core-ui:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
+                            dependency                    : com.android.support:viewpager:28.0.0@aar
+                            dependency                    : com.android.support:coordinatorlayout:28.0.0@aar
+                            dependency                    : com.android.support:drawerlayout:28.0.0@aar
+                            dependency                    : com.android.support:slidingpanelayout:28.0.0@aar
+                            dependency                    : com.android.support:interpolator:28.0.0@aar
+                            dependency                    : com.android.support:swiperefreshlayout:28.0.0@aar
+                            dependency                    : com.android.support:asynclayoutinflater:28.0.0@aar
+                            dependency                    : com.android.support:cursoradapter:28.0.0@aar
                         library                       : com.android.support:customview:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
                         library                       : com.android.support:viewpager:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:coordinatorlayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:drawerlayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:slidingpanelayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:interpolator:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:swiperefreshlayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:interpolator:28.0.0@aar
                         library                       : com.android.support:asynclayoutinflater:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
                         library                       : com.android.support:support-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
                         library                       : com.android.support:animated-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:support-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:support-core-ui:28.0.0@aar
                         library                       : com.android.support.test.espresso:espresso-core:3.0.2@aar
+                            dependency                    : com.android.support.test:runner:1.0.2@aar
+                            dependency                    : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
+                            dependency                    : com.squareup:javawriter:2.1.1@jar
+                            dependency                    : javax.inject:javax.inject:1@jar
+                            dependency                    : org.hamcrest:hamcrest-library:1.3@jar
+                            dependency                    : org.hamcrest:hamcrest-integration:1.3@jar
+                            dependency                    : com.google.code.findbugs:jsr305:2.0.1@jar
                         library                       : com.android.support.test:runner:1.0.2@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support.test:monitor:1.0.2@aar
+                            dependency                    : junit:junit:4.12@jar
+                            dependency                    : net.sf.kxml:kxml2:2.3.0@jar
                         library                       : com.android.support.test:monitor:1.0.2@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
                         library                       : junit:junit:4.12@jar
+                            dependency                    : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:collections:28.0.0@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : android.arch.lifecycle:common:1.1.1@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : android.arch.core:common:1.1.1@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : net.sf.kxml:kxml2:2.3.0@jar
                         library                       : com.squareup:javawriter:2.1.1@jar
                         library                       : javax.inject:javax.inject:1@jar
                         library                       : org.hamcrest:hamcrest-library:1.3@jar
+                            dependency                    : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : org.hamcrest:hamcrest-integration:1.3@jar
+                            dependency                    : org.hamcrest:hamcrest-library:1.3@jar
                         library                       : com.google.code.findbugs:jsr305:2.0.1@jar
                 ApplicationId                 : com.example.android.app.testmodule
                 SigningConfigName             : debug
@@ -1930,90 +2332,290 @@ MODULE                        : project.test2
                 Dependencies
                     compileClasspath
                         library                       : com.android.support:appcompat-v7:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:collections:28.0.0@jar
+                            dependency                    : com.android.support:cursoradapter:28.0.0@aar
+                            dependency                    : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:support-fragment:28.0.0@aar
+                            dependency                    : com.android.support:support-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:animated-vector-drawable:28.0.0@aar
                         library                       : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:collections:28.0.0@jar
+                            dependency                    : android.arch.lifecycle:runtime:1.1.1@aar
+                            dependency                    : com.android.support:versionedparcelable:28.0.0@aar
                         library                       : android.arch.lifecycle:runtime:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:common:1.1.1@jar
+                            dependency                    : android.arch.core:common:1.1.1@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:versionedparcelable:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:collections:28.0.0@jar
                         library                       : com.android.support:cursoradapter:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:documentfile:28.0.0@aar
+                            dependency                    : com.android.support:loader:28.0.0@aar
+                            dependency                    : com.android.support:localbroadcastmanager:28.0.0@aar
+                            dependency                    : com.android.support:print:28.0.0@aar
                         library                       : com.android.support:documentfile:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:loader:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : android.arch.lifecycle:livedata:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:viewmodel:1.1.1@aar
                         library                       : android.arch.lifecycle:livedata:1.1.1@aar
+                            dependency                    : android.arch.core:runtime:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            dependency                    : android.arch.core:common:1.1.1@jar
                         library                       : android.arch.core:runtime:1.1.1@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : android.arch.core:common:1.1.1@jar
                         library                       : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:common:1.1.1@jar
+                            dependency                    : android.arch.core:common:1.1.1@jar
+                            dependency                    : android.arch.core:runtime:1.1.1@aar
                         library                       : android.arch.lifecycle:viewmodel:1.1.1@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:localbroadcastmanager:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:print:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:support-fragment:28.0.0@aar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:support-core-ui:28.0.0@aar
+                            dependency                    : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:loader:28.0.0@aar
+                            dependency                    : android.arch.lifecycle:viewmodel:1.1.1@aar
                         library                       : com.android.support:support-core-ui:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
+                            dependency                    : com.android.support:viewpager:28.0.0@aar
+                            dependency                    : com.android.support:coordinatorlayout:28.0.0@aar
+                            dependency                    : com.android.support:drawerlayout:28.0.0@aar
+                            dependency                    : com.android.support:slidingpanelayout:28.0.0@aar
+                            dependency                    : com.android.support:interpolator:28.0.0@aar
+                            dependency                    : com.android.support:swiperefreshlayout:28.0.0@aar
+                            dependency                    : com.android.support:asynclayoutinflater:28.0.0@aar
+                            dependency                    : com.android.support:cursoradapter:28.0.0@aar
                         library                       : com.android.support:customview:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
                         library                       : com.android.support:viewpager:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:coordinatorlayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:drawerlayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:slidingpanelayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:interpolator:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:swiperefreshlayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:interpolator:28.0.0@aar
                         library                       : com.android.support:asynclayoutinflater:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
                         library                       : com.android.support:support-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
                         library                       : com.android.support:animated-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:support-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:support-core-ui:28.0.0@aar
                         library                       : com.android.support.test.espresso:espresso-core:3.0.2@aar
+                            dependency                    : com.android.support.test:runner:1.0.2@aar
+                            dependency                    : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
+                            dependency                    : com.squareup:javawriter:2.1.1@jar
+                            dependency                    : javax.inject:javax.inject:1@jar
+                            dependency                    : org.hamcrest:hamcrest-library:1.3@jar
+                            dependency                    : org.hamcrest:hamcrest-integration:1.3@jar
+                            dependency                    : com.google.code.findbugs:jsr305:2.0.1@jar
                         library                       : com.android.support.test:runner:1.0.2@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support.test:monitor:1.0.2@aar
+                            dependency                    : junit:junit:4.12@jar
+                            dependency                    : net.sf.kxml:kxml2:2.3.0@jar
                         library                       : com.android.support.test:monitor:1.0.2@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
                         library                       : junit:junit:4.12@jar
+                            dependency                    : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:collections:28.0.0@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : android.arch.lifecycle:common:1.1.1@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : android.arch.core:common:1.1.1@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : net.sf.kxml:kxml2:2.3.0@jar
                         library                       : com.squareup:javawriter:2.1.1@jar
                         library                       : javax.inject:javax.inject:1@jar
                         library                       : org.hamcrest:hamcrest-library:1.3@jar
+                            dependency                    : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : org.hamcrest:hamcrest-integration:1.3@jar
+                            dependency                    : org.hamcrest:hamcrest-library:1.3@jar
                         library                       : com.google.code.findbugs:jsr305:2.0.1@jar
                         library                       : <ROOT>-:app-MAIN
                     runtimeClasspath
                         library                       : com.android.support:appcompat-v7:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:collections:28.0.0@jar
+                            dependency                    : com.android.support:cursoradapter:28.0.0@aar
+                            dependency                    : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:support-fragment:28.0.0@aar
+                            dependency                    : com.android.support:support-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:animated-vector-drawable:28.0.0@aar
                         library                       : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:collections:28.0.0@jar
+                            dependency                    : android.arch.lifecycle:runtime:1.1.1@aar
+                            dependency                    : com.android.support:versionedparcelable:28.0.0@aar
                         library                       : android.arch.lifecycle:runtime:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:common:1.1.1@jar
+                            dependency                    : android.arch.core:common:1.1.1@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:versionedparcelable:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:collections:28.0.0@jar
                         library                       : com.android.support:cursoradapter:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:documentfile:28.0.0@aar
+                            dependency                    : com.android.support:loader:28.0.0@aar
+                            dependency                    : com.android.support:localbroadcastmanager:28.0.0@aar
+                            dependency                    : com.android.support:print:28.0.0@aar
                         library                       : com.android.support:documentfile:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:loader:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : android.arch.lifecycle:livedata:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:viewmodel:1.1.1@aar
                         library                       : android.arch.lifecycle:livedata:1.1.1@aar
+                            dependency                    : android.arch.core:runtime:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            dependency                    : android.arch.core:common:1.1.1@jar
                         library                       : android.arch.core:runtime:1.1.1@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : android.arch.core:common:1.1.1@jar
                         library                       : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            dependency                    : android.arch.lifecycle:common:1.1.1@jar
+                            dependency                    : android.arch.core:common:1.1.1@jar
+                            dependency                    : android.arch.core:runtime:1.1.1@aar
                         library                       : android.arch.lifecycle:viewmodel:1.1.1@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:localbroadcastmanager:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:print:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:support-fragment:28.0.0@aar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:support-core-ui:28.0.0@aar
+                            dependency                    : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:loader:28.0.0@aar
+                            dependency                    : android.arch.lifecycle:viewmodel:1.1.1@aar
                         library                       : com.android.support:support-core-ui:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:support-core-utils:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
+                            dependency                    : com.android.support:viewpager:28.0.0@aar
+                            dependency                    : com.android.support:coordinatorlayout:28.0.0@aar
+                            dependency                    : com.android.support:drawerlayout:28.0.0@aar
+                            dependency                    : com.android.support:slidingpanelayout:28.0.0@aar
+                            dependency                    : com.android.support:interpolator:28.0.0@aar
+                            dependency                    : com.android.support:swiperefreshlayout:28.0.0@aar
+                            dependency                    : com.android.support:asynclayoutinflater:28.0.0@aar
+                            dependency                    : com.android.support:cursoradapter:28.0.0@aar
                         library                       : com.android.support:customview:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
                         library                       : com.android.support:viewpager:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:coordinatorlayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:drawerlayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:slidingpanelayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:customview:28.0.0@aar
                         library                       : com.android.support:interpolator:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:swiperefreshlayout:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
+                            dependency                    : com.android.support:interpolator:28.0.0@aar
                         library                       : com.android.support:asynclayoutinflater:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
                         library                       : com.android.support:support-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support:support-compat:28.0.0@aar
                         library                       : com.android.support:animated-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:support-vector-drawable:28.0.0@aar
+                            dependency                    : com.android.support:support-core-ui:28.0.0@aar
                         library                       : com.android.support.test.espresso:espresso-core:3.0.2@aar
+                            dependency                    : com.android.support.test:runner:1.0.2@aar
+                            dependency                    : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
+                            dependency                    : com.squareup:javawriter:2.1.1@jar
+                            dependency                    : javax.inject:javax.inject:1@jar
+                            dependency                    : org.hamcrest:hamcrest-library:1.3@jar
+                            dependency                    : org.hamcrest:hamcrest-integration:1.3@jar
+                            dependency                    : com.google.code.findbugs:jsr305:2.0.1@jar
                         library                       : com.android.support.test:runner:1.0.2@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
+                            dependency                    : com.android.support.test:monitor:1.0.2@aar
+                            dependency                    : junit:junit:4.12@jar
+                            dependency                    : net.sf.kxml:kxml2:2.3.0@jar
                         library                       : com.android.support.test:monitor:1.0.2@aar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
                         library                       : junit:junit:4.12@jar
+                            dependency                    : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : com.android.support:support-annotations:28.0.0@jar
                         library                       : com.android.support:collections:28.0.0@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : android.arch.lifecycle:common:1.1.1@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : android.arch.core:common:1.1.1@jar
+                            dependency                    : com.android.support:support-annotations:28.0.0@jar
                         library                       : net.sf.kxml:kxml2:2.3.0@jar
                         library                       : com.squareup:javawriter:2.1.1@jar
                         library                       : javax.inject:javax.inject:1@jar
                         library                       : org.hamcrest:hamcrest-library:1.3@jar
+                            dependency                    : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : org.hamcrest:hamcrest-integration:1.3@jar
+                            dependency                    : org.hamcrest:hamcrest-library:1.3@jar
                         library                       : com.google.code.findbugs:jsr305:2.0.1@jar
                 ApplicationId                 : com.example.android.test2
                 SigningConfigName             : debug

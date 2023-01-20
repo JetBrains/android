@@ -1073,6 +1073,7 @@ MODULE                        : project.app
                         library                       : <ROOT>-:library-MAIN
                     runtimeClasspath
                         library                       : <ROOT>-:app-MAIN
+                            dependency                    : <ROOT>-:library-MAIN
                         library                       : <ROOT>-:library-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)

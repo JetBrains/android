@@ -403,7 +403,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
   fun makeDependency(
     libraryReference: LibraryReference,
     isProvided: Boolean
-  ) = IdeDependencyCoreAndIsProvided(IdeDependencyCoreImpl(libraryReference), isProvided)
+  ) = IdeDependencyCoreAndIsProvided(IdeDependencyCoreImpl(libraryReference, null), isProvided)
 
   fun libraryFrom(androidLibrary: AndroidLibrary): IdeDependencyCoreAndIsProvided {
     // If the dependency is a sub-module that wraps local aar, it should be considered as external dependency, i.e. type LIBRARY_ANDROID.
@@ -650,7 +650,9 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
 
           val runtimeDependenciesRecoveredFromRuntimeOnlyClasses =
             (existingLibrariesReferredToByRuntimeOnlyClasses + librariesRecoveredFromRuntimeOnlyClasses)
-              .map(::IdeDependencyCoreImpl)
+              .map {
+                IdeDependencyCoreImpl(it, null)
+              }
 
           return IdeDependenciesCoreImpl(regularRuntimeNotProvidedLibraryDependencies + runtimeDependenciesRecoveredFromRuntimeOnlyClasses)
         }

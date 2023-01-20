@@ -25,12 +25,12 @@ import com.android.tools.idea.gradle.model.IdeUnknownDependency
 import java.io.Serializable
 
 data class IdeDependenciesCoreImpl(
-  override val dependencies: Collection<IdeDependencyCoreImpl>
+  override val dependencies: List<IdeDependencyCoreImpl>
 ) : IdeDependenciesCore, Serializable
 
 data class IdeDependenciesImpl(
   private val classpath: IdeDependenciesCore,
-  private val resolver: IdeLibraryModelResolver
+  override val resolver: IdeLibraryModelResolver
 ) : IdeDependencies {
   @Deprecated("does not respect classpath order", ReplaceWith("this.libraries"))
   override val androidLibraries: Collection<IdeAndroidLibraryDependency> =
@@ -45,13 +45,20 @@ data class IdeDependenciesImpl(
   override val unknownDependencies: Collection<IdeUnknownDependency> =
     classpath.dependencies.flatMap(resolver::resolveUnknownLibrary)
   override val libraries = classpath.dependencies.flatMap { resolver.resolve(it) }
+  override val unresolvedDependencies = classpath.dependencies
 }
 
 fun throwingIdeDependencies(): IdeDependenciesCoreImpl {
-  return IdeDependenciesCoreImpl(object : Collection<IdeDependencyCoreImpl> {
+  return IdeDependenciesCoreImpl(object : List<IdeDependencyCoreImpl> {
     override val size: Int get() = unexpected()
+    override fun get(index: Int): IdeDependencyCoreImpl = unexpected()
+    override fun indexOf(element: IdeDependencyCoreImpl): Int = unexpected()
     override fun isEmpty(): Boolean = unexpected()
     override fun iterator(): Iterator<IdeDependencyCoreImpl> = unexpected()
+    override fun listIterator(): ListIterator<IdeDependencyCoreImpl> = unexpected()
+    override fun listIterator(index: Int): ListIterator<IdeDependencyCoreImpl> = unexpected()
+    override fun subList(fromIndex: Int, toIndex: Int): List<IdeDependencyCoreImpl> = unexpected()
+    override fun lastIndexOf(element: IdeDependencyCoreImpl): Int = unexpected()
     override fun containsAll(elements: Collection<IdeDependencyCoreImpl>): Boolean = unexpected()
     override fun contains(element: IdeDependencyCoreImpl): Boolean = unexpected()
 

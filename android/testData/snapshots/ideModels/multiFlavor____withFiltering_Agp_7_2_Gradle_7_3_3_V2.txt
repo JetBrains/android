@@ -865,10 +865,12 @@ MODULE                        : MultiFlavor.app
                 Dependencies
                     compileClasspath
                         library                       : junit:junit:4.12@jar
+                            dependency                    : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : <ROOT>-:app-MAIN
                     runtimeClasspath
                         library                       : junit:junit:4.12@jar
+                            dependency                    : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : org.hamcrest:hamcrest-core:1.3@jar
                         library                       : <ROOT>-:app-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar

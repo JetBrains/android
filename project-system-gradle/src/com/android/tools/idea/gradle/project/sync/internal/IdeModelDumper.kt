@@ -397,8 +397,18 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
 
       head(property)
       nest {
-        ideDependencies.libraries.forEach { library ->
-          prop("library") { library.toDisplayString() }
+        ideDependencies.unresolvedDependencies.forEach { dependency ->
+          ideDependencies.resolver.resolve(dependency).forEach {
+            prop("library") { it.toDisplayString() }
+          }
+          nest {
+            // All the dependencies are included in unresolvedDependencies so we only need to dump the first level of children
+            dependency.dependencies?.map { ideDependencies.unresolvedDependencies[it] }?.forEach { nestedDependency ->
+              ideDependencies.resolver.resolve(nestedDependency).forEach { lib ->
+                prop("dependency") { lib.toDisplayString() }
+              }
+            }
+          }
         }
       }
     }
