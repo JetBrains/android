@@ -43,7 +43,7 @@ internal class DeviceAndApiPanel internal constructor() : JBPanel<DeviceAndApiPa
     val apiLevelComboBox = initApiLevelComboBox()
 
     val servicesLabel = JBLabel("Services")
-    val servicesComboBox = ComboBox<Any>()
+    val servicesComboBox = ComboBox(arrayOf(Service.ANDROID_OPEN_SOURCE))
 
     val abiLabel = JBLabel("ABI")
     val abiComboBox = ComboBox<Any>()
