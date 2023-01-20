@@ -54,6 +54,7 @@ import org.jetbrains.plugins.gradle.service.project.open.setupGradleSettings
 import org.jetbrains.plugins.gradle.settings.GradleDefaultProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
+import org.jetbrains.plugins.gradle.util.setupGradleJvm
 import java.io.File
 import java.io.IOException
 import java.nio.file.Path
@@ -201,6 +202,7 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
         }
       }
       val projectSettings = GradleDefaultProjectSettings.createProjectSettings(externalProjectPath)
+      setupGradleJvm(newProject, projectSettings, projectSettings.resolveGradleVersion())
       // Set gradleJvm to USE_PROJECT_JDK since this setting is only available in the PSD for Android Studio and use default jdk
       projectSettings.gradleJvm = ExternalSystemJdkUtil.USE_PROJECT_JDK
       ExternalSystemApiUtil.getSettings(newProject, GradleConstants.SYSTEM_ID).linkProject(projectSettings)
