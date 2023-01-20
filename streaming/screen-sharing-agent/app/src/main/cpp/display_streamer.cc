@@ -82,13 +82,9 @@ struct CodecOutputBuffer {
   [[nodiscard]] bool Deque(int64_t timeout_us) {
     index = AMediaCodec_dequeueOutputBuffer(codec, &info, timeout_us);
     if (index < 0) {
-      if (++consequent_error_count >= MAX_SUBSEQUENT_ERRORS) {
-        Log::Fatal("AMediaCodec_dequeueOutputBuffer returned %ld, terminating due to too many errors", static_cast<long>(index));
-      }
-      Log::D("AMediaCodec_dequeueOutputBuffer returned %ld", static_cast<long>(index));
+      Log::W("AMediaCodec_dequeueOutputBuffer returned %ld", static_cast<long>(index));
       return false;
     }
-    consequent_error_count = 0;
     if (Log::IsEnabled(Log::Level::VERBOSE)) {
       Log::V("CodecOutputBuffer::Deque: index:%ld offset:%d size:%d flags:0x%x, presentationTimeUs:%" PRId64,
              static_cast<long>(index), info.offset, info.size, info.flags, info.presentationTimeUs);
@@ -114,10 +110,7 @@ struct CodecOutputBuffer {
   AMediaCodecBufferInfo info;
   uint8_t* buffer;
   size_t size;
-  static int consequent_error_count;
 };
-
-int CodecOutputBuffer::consequent_error_count = 0;
 
 bool IsCodecResolutionLessThanDisplayResolution(Size codec_resolution, Size display_resolution) {
   return max(codec_resolution.width, codec_resolution.height) < max(display_resolution.width, display_resolution.height);
@@ -138,7 +131,7 @@ AMediaFormat* CreateMediaFormat(const string& mime_type) {
   return media_format;
 }
 
-CodecInfo* SelectCodec(const string& mime_type) {
+CodecInfo* SelectVideoEncoder(const string& mime_type) {
   Jni jni = Jvm::GetJni();
   JClass clazz = jni.GetClass("com/android/tools/screensharing/CodecInfo");
   jmethodID method = clazz.GetStaticMethodId("selectVideoEncoderForType",
@@ -154,6 +147,18 @@ CodecInfo* SelectCodec(const string& mime_type) {
   int width_alignment = codec_info.GetIntField(clazz.GetFieldId("widthAlignment", "I"));
   int height_alignment = codec_info.GetIntField(clazz.GetFieldId("heightAlignment", "I"));
   return new CodecInfo(mime_type, codec_name, Size(max_width, max_height), Size(width_alignment, height_alignment));
+}
+
+string GetVideoEncoderDetails(const string& codec_name, const string& mime_type, int32_t width, int32_t height) {
+  Jni jni = Jvm::GetJni();
+  JClass clazz = jni.GetClass("com/android/tools/screensharing/CodecInfo");
+  jmethodID method = clazz.GetStaticMethodId("getVideoEncoderDetails", "(Ljava/lang/String;Ljava/lang/String;II)Ljava/lang/String;");
+  return clazz.CallStaticObjectMethod(method, JString(jni, codec_name).ref(), JString(jni, mime_type).ref(), width, height).ToString();
+}
+
+[[noreturn]] void FatalVideoEncoderError(const char* error_message, const string& codec_name, const string& mime_type,
+                                         int32_t width, int32_t height) {
+  Log::Fatal("%s:\n%s", error_message, GetVideoEncoderDetails(codec_name, mime_type, width, height).c_str());
 }
 
 void WriteChannelHeader(const string& codec_name, int socket_fd) {
@@ -224,7 +229,7 @@ DisplayStreamer::DisplayStreamer(int32_t display_id, string codec_name, Size max
       video_orientation_(initial_video_orientation) {
   assert(socket_fd > 0);
   string mime_type = (codec_name_.compare(0, 2, "vp") == 0 ? "video/x-vnd.on2." : "video/") + codec_name_;
-  codec_info_ = SelectCodec(mime_type);
+  codec_info_ = SelectVideoEncoder(mime_type);
   WriteChannelHeader(codec_name_, socket_fd_);
 }
 
@@ -285,6 +290,7 @@ void DisplayStreamer::Run() {
   VideoPacketHeader packet_header = {.frame_number = 1};
 
   bool end_of_stream = false;
+  consequent_deque_error_count_ = 0;
   while (!streamer_stopped_ && !end_of_stream && !Agent::IsShuttingDown()) {
     AMediaCodec* codec = AMediaCodec_createCodecByName(codec_info_->name.c_str());
     if (codec == nullptr) {
@@ -353,8 +359,13 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPa
   while (!end_of_stream && IsCodecRunning()) {
     CodecOutputBuffer codec_buffer(codec);
     if (!codec_buffer.Deque(-1)) {
+      if (++consequent_deque_error_count_ >= MAX_SUBSEQUENT_ERRORS) {
+        FatalVideoEncoderError("Too many video encoder errors", codec_info_->name, codec_info_->mime_type,
+                               packet_header->display_width, packet_header->display_height);
+      }
       continue;
     }
+    consequent_deque_error_count_ = 0;
     end_of_stream = codec_buffer.IsEndOfStream();
     if (!IsCodecRunning()) {
       return false;
@@ -456,7 +467,7 @@ void DisplayStreamer::StopCodecUnlocked() {
     Log::D("DisplayStreamer::StopCodecUnlocked: stopping codec");
     AMediaCodec_stop(running_codec_);
     running_codec_ = nullptr;
-    CodecOutputBuffer::consequent_error_count = 0;
+    consequent_deque_error_count_ = 0;
   }
 }
 
