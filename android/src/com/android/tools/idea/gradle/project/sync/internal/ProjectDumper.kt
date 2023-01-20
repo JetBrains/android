@@ -276,8 +276,8 @@ class ProjectDumper(
       this.replace(it.value, "<VERSION>")
     } ?: this
 
-  fun String.replaceJavaVersion(): String = replace(Regex("(jbr|corretto)-(11|1\\.8)"), "<JAVA_VERSION>")
-  fun String.replaceJdkVersion(): String = replace(Regex("(JetBrains Runtime|Amazon Corretto) version (1\\.8\\.0_[0-9]+|11\\.0\\.[0-9]+)"), "<JDK_VERSION>")
+  fun String.replaceJavaVersion(): String = replace(Regex("(jbr|corretto)-(17|11|1\\.8)"), "<JAVA_VERSION>")
+  fun String.replaceJdkVersion(): String = replace(Regex("(JetBrains Runtime|Amazon Corretto) version (1\\.8\\.0_[0-9]+|11\\.0\\.[0-9]+|17\\.0\\.[0-9]+)"), "<JDK_VERSION>")
     .replace(KotlinCompilerVersion.VERSION, "<KOTLIN_SDK_VERSION>")
   fun String.replaceMatchingVersion(version: String?): String =
     if (version != null) this.replace("-$version", "-<VERSION>") else this
