@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.lint
 
-import com.android.testutils.TestUtils
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.lint.inspections.AndroidLintInlinedApiInspection
 import com.android.tools.idea.lint.inspections.AndroidLintNewApiInspection
 import com.android.tools.idea.lint.inspections.AndroidLintParcelCreatorInspection
 import com.android.tools.idea.lint.inspections.AndroidLintSdCardPathInspection
+import com.android.tools.lint.checks.infrastructure.TestLintResult
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -85,14 +85,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     myFixture.launchAction(action)
 
     val fixed = file.text
-    val diff = TestUtils.getDiff(original, fixed, 1).trimTrailing()
+    val diff = TestLintResult.getDiff(original, fixed, 1)
     assertThat(diff.trim()).isEqualTo(expectedDiff.trimIndent())
-  }
-
-  // getDiff currently introduces trailing spaces when showing surrounding lines and those
-  // lines are blank. This is a workaround until the utility is fixed.
-  private fun String.trimTrailing(): String {
-    return this.split("\n").joinToString("\n") { it.trimEnd() }
   }
 
   @Language("kt")
@@ -169,10 +163,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       @@ -1 +1
       + import android.os.Parcel
         import android.os.Parcelable
-      @@ -3 +4
 
       - class NoImplementation : Parcelable
-      @@ -4 +4
       + class NoImplementation() : Parcelable {
       +     constructor(parcel: Parcel) : this() {
       +     }
@@ -264,8 +256,6 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
             + import android.os.Build
             + import android.support.annotation.RequiresApi
 
-            @@ -3 +5
-
             + @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
               fun withDefaultParameter(vector: VectorDrawable = VectorDrawable()) {
             """,
@@ -289,8 +279,6 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
           import android.graphics.drawable.VectorDrawable
         + import android.os.Build
         + import android.support.annotation.RequiresApi
-
-        @@ -3 +5
 
         + @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
           class MyVectorDrawable : VectorDrawable() {
@@ -320,7 +308,6 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       + import android.os.Build
       + import android.support.annotation.RequiresApi
 
-      @@ -4 +6
         class VectorDrawableProvider {
       +     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
             fun getVectorDrawable(): VectorDrawable {
@@ -345,8 +332,6 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       + import android.os.Build
       + import android.support.annotation.RequiresApi
       +
-        class Test {
-      @@ -2 +5
         class Test {
       +     @RequiresApi(Build.VERSION_CODES.KITKAT)
             fun foo(): Int {
@@ -374,7 +359,6 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       + import android.os.Build
       + import android.support.annotation.RequiresApi
 
-      @@ -4 +6
         class VectorDrawableProvider {
       +     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
             fun getVectorDrawable(): VectorDrawable {
@@ -401,7 +385,6 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       + import android.os.Build
       + import android.support.annotation.RequiresApi
 
-      @@ -4 +6
         class VectorDrawableProvider {
       +     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
             val VECTOR_DRAWABLE = VectorDrawable()
@@ -426,7 +409,6 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       + import android.os.Build
       + import android.support.annotation.RequiresApi
 
-      @@ -4 +6
         val top: Int
       +     @RequiresApi(Build.VERSION_CODES.M)
             get() = Activity().checkSelfPermission(READ_CONTACTS)
@@ -527,7 +509,6 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       expectedDiff = """
         @@ -1 +1
         - class SdCard(val path: String = "/sdcard")
-        @@ -2 +1
         + import android.annotation.SuppressLint
         +
         + class SdCard(@SuppressLint("SdCardPath") val path: String = "/sdcard")
@@ -575,7 +556,6 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       + import android.annotation.SuppressLint
       +
         fun foo(l: Any) = l
-      @@ -3 +5
 
       + @SuppressLint("SdCardPath")
         fun bar() {
@@ -598,7 +578,6 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       + import android.annotation.SuppressLint
       +
         fun foo(l: Any) = l
-      @@ -3 +5
 
       + @SuppressLint("SdCardPath")
         val bar = foo() { "/sdcard" }
@@ -616,7 +595,6 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       expectedDiff = """
       @@ -1 +1
       - fun foo(path: String = "/sdcard") = path
-      @@ -2 +1
       + import android.annotation.SuppressLint
       +
       + fun foo(@SuppressLint("SdCardPath") path: String = "/sdcard") = path
@@ -698,11 +676,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       @@ -1 +1
       + import android.annotation.TargetApi
         import android.graphics.drawable.VectorDrawable
-      @@ -2 +3
-        import android.graphics.drawable.VectorDrawable
       + import android.os.Build
 
-      @@ -4 +6
         class VectorDrawableProvider {
       +     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
             companion object {
@@ -724,11 +699,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       @@ -1 +1
       + import android.annotation.TargetApi
         import android.graphics.drawable.VectorDrawable
-      @@ -2 +3
-        import android.graphics.drawable.VectorDrawable
       + import android.os.Build
-
-      @@ -3 +5
 
       + @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         fun withDefaultParameter(vector: VectorDrawable = VectorDrawable()) {
@@ -751,11 +722,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       @@ -1 +1
       + import android.annotation.TargetApi
         import android.graphics.drawable.VectorDrawable
-      @@ -2 +3
-        import android.graphics.drawable.VectorDrawable
       + import android.os.Build
-
-      @@ -3 +5
 
       + @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         class MyVectorDrawable : VectorDrawable() {
@@ -782,11 +749,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       @@ -1 +1
       + import android.annotation.TargetApi
         import android.graphics.drawable.VectorDrawable
-      @@ -2 +3
-        import android.graphics.drawable.VectorDrawable
       + import android.os.Build
 
-      @@ -4 +6
         class VectorDrawableProvider {
       +     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
             fun getVectorDrawable(): VectorDrawable {
@@ -811,8 +775,6 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       + import android.os.Build
       +
         class Test {
-      @@ -2 +5
-        class Test {
       +     @TargetApi(Build.VERSION_CODES.KITKAT)
             fun foo(): Int {
       """
@@ -836,11 +798,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       @@ -1 +1
       + import android.annotation.TargetApi
         import android.graphics.drawable.VectorDrawable
-      @@ -2 +3
-        import android.graphics.drawable.VectorDrawable
       + import android.os.Build
 
-      @@ -4 +6
         class VectorDrawableProvider {
       +     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
             fun getVectorDrawable(): VectorDrawable {
@@ -864,11 +823,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       @@ -1 +1
       + import android.annotation.TargetApi
         import android.graphics.drawable.VectorDrawable
-      @@ -2 +3
-        import android.graphics.drawable.VectorDrawable
       + import android.os.Build
-
-      @@ -3 +5
 
       + @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         class VectorDrawableProvider {
@@ -892,11 +847,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       @@ -1 +1
       + import android.annotation.TargetApi
         import android.graphics.drawable.VectorDrawable
-      @@ -2 +3
-        import android.graphics.drawable.VectorDrawable
       + import android.os.Build
-
-      @@ -3 +5
 
       + @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         class VectorDrawableProvider {
@@ -924,8 +875,6 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       expectedDiff = """
       @@ -1 +1
       + import android.annotation.TargetApi
-        import android.graphics.drawable.VectorDrawable
-      @@ -2 +3
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
 
@@ -1019,7 +968,6 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
 
-      @@ -4 +5
         class VectorDrawableProvider {
       -     fun getVectorDrawable(): VectorDrawable = VectorDrawable()
       +     fun getVectorDrawable(): VectorDrawable = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -1080,10 +1028,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
 
-      @@ -4 +5
         val v: VectorDrawable
       -     get() = VectorDrawable()
-      @@ -5 +5
       +     get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       +         VectorDrawable()
       +     } else {
@@ -1176,7 +1122,6 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       + import android.os.Build
       +
         class Test {
-      @@ -3 +5
             fun foo(): Int {
       -         return android.R.attr.windowTranslucentStatus
       +         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
