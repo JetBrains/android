@@ -31,7 +31,7 @@ import javax.swing.JComponent
 
 @UiThread
 class DeviceMonitorControllerImpl(
-  project: Project,
+  private val project: Project,
   private val model: DeviceMonitorModel,
   private val view: DeviceMonitorView,
   private val deviceService: DeviceService
@@ -103,6 +103,12 @@ class DeviceMonitorControllerImpl(
     override fun forceStopNodesInvoked(nodes: List<ProcessTreeNode>) {
       uiThreadScope.launch {
         model.forceStopNodesInvoked(nodes)
+      }
+    }
+
+    override fun debugNodes(nodes: List<ProcessTreeNode>) {
+      uiThreadScope.launch {
+        model.debugNodesInvoked(project, nodes)
       }
     }
   }

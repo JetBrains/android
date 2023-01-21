@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.device.explorer.monitor
 
+import com.android.ddmlib.ClientData
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.ClientState
 import com.android.fakeadbserver.DeviceState
@@ -22,11 +23,14 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutures
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorControllerImpl.Companion.getProjectController
+import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDevice
 import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService
 import com.android.tools.idea.device.explorer.monitor.mocks.MockDeviceMonitorView
 import com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.execution.RunManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.delay
@@ -58,7 +62,11 @@ class DeviceMonitorControllerImplTest {
   @Before
   fun setup() {
     service = AdbDeviceService(project)
-    processService = DeviceProcessService()
+    processService = DeviceProcessService { _, client, _ ->
+      client.clientData.debuggerConnectionStatus = ClientData.DebuggerStatus.ATTACHED
+      // Add new client to trigger device update
+      addClient(testDevice1, 10)
+    }
     model = DeviceMonitorModel(processService)
     mockView = MockDeviceMonitorView(model)
     mockView.setup()
@@ -66,12 +74,13 @@ class DeviceMonitorControllerImplTest {
   }
 
   @After
-  fun cleanup() {
+  fun tearDown() {
     Disposer.dispose(service)
+    adb.disconnectDevice(testDevice1.deviceId)
   }
 
   @Test
-  fun testIfControllerIsSetAsProjectKey() = runBlocking(AndroidDispatchers.uiThread) {
+  fun ifControllerIsSetAsProjectKey() = runBlocking(AndroidDispatchers.uiThread) {
     // Prepare Act
     val controller = createController()
 
@@ -80,7 +89,7 @@ class DeviceMonitorControllerImplTest {
   }
 
   @Test
-  fun testStartingController() = runBlocking(AndroidDispatchers.uiThread) {
+  fun startingController() = runBlocking(AndroidDispatchers.uiThread) {
     // Prepare
     val controller = createController()
 
@@ -94,7 +103,7 @@ class DeviceMonitorControllerImplTest {
   }
 
   @Test
-  fun testConnectingSecondDevice() = runBlocking(AndroidDispatchers.uiThread) {
+  fun connectingSecondDevice() = runBlocking(AndroidDispatchers.uiThread) {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -111,7 +120,7 @@ class DeviceMonitorControllerImplTest {
   }
 
   @Test
-  fun testRemovingDevice() = runBlocking(AndroidDispatchers.uiThread) {
+  fun removingDevice() = runBlocking(AndroidDispatchers.uiThread) {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -128,7 +137,7 @@ class DeviceMonitorControllerImplTest {
   }
 
   @Test
-  fun testKillProcesses() = runBlocking(AndroidDispatchers.uiThread) {
+  fun killProcesses() = runBlocking(AndroidDispatchers.uiThread) {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -159,7 +168,36 @@ class DeviceMonitorControllerImplTest {
   }
 
   @Test
-  fun testChangeInDeviceSelection() = runBlocking(AndroidDispatchers.uiThread) {
+  fun attachDebuggerToProcesses() = runBlocking(AndroidDispatchers.uiThread) {
+    // Prepare
+    val controller = createController()
+    controller.setup()
+    waitForCondition { service.getIDeviceFromSerialNumber(testDevice1.deviceId) != null }
+    controller.setActiveConnectedDevice(testDevice1.deviceId)
+    checkMockViewInitialState()
+    val clientState = addClient(testDevice1, 5)
+    val treeModel = pumpEventsAndWaitForFutures(mockView.mockModelListener.deviceTreeModelChangeTracker.consumeMany(3)).last()
+    val rootEntry = checkNotNull(DeviceTreeNode.fromNode(treeModel?.root))
+    assertThat(rootEntry.childCount).isEqualTo(1)
+    val config = RunManager.getInstance(project).createConfiguration("debugAllInDeviceMonitorTest", AndroidTestRunConfigurationType.getInstance().factory)
+    RunManager.getInstance(project).addConfiguration(config)
+    RunManager.getInstance(project).selectedConfiguration = config
+
+    // Act
+    val processList = getListOfChildNodes(rootEntry)
+    val debugClient = processList[0] as ProcessInfoTreeNode
+    val debugProcessList = listOf(debugClient)
+    mockView.debugNodes(debugProcessList)
+
+    // Assert
+    val updatedTreeModel = pumpEventsAndWaitForFuture(mockView.mockModelListener.deviceTreeModelChangeTracker.consume())
+    val updatedRootEntry = checkNotNull(DeviceTreeNode.fromNode(updatedTreeModel?.root))
+    assertThat(updatedRootEntry.childCount).isEqualTo(2)
+    assertChildNodesIsAttachToDebugger(updatedRootEntry, clientState.processName)
+  }
+
+  @Test
+  fun changeInDeviceSelection() = runBlocking(AndroidDispatchers.uiThread) {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -210,6 +248,12 @@ class DeviceMonitorControllerImplTest {
     for (child in children) {
       assertThat((child as ProcessInfoTreeNode).processInfo.pid).isNotEqualTo(pid)
     }
+  }
+
+  private fun assertChildNodesIsAttachToDebugger(rootNode: DeviceTreeNode, applicationName: String) {
+    val device = rootNode.device as? AdbDevice
+    val client = device?.device?.getClient(applicationName)
+    assertThat(client?.clientData?.debuggerConnectionStatus).isEqualTo(ClientData.DebuggerStatus.ATTACHED)
   }
 
   private suspend fun waitForCondition(condition: () -> Boolean) {

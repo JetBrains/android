@@ -22,4 +22,5 @@ interface DeviceMonitorActionsListener {
   fun refreshNodes(treeNodes: List<ProcessTreeNode>)
   fun killNodes(treeNodes: List<ProcessTreeNode>)
   fun forceStopNodes(treeNodes: List<ProcessTreeNode>)
+  fun debugNodes(treeNodes: List<ProcessTreeNode>)
 }

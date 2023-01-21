@@ -21,15 +21,29 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDevice
+import com.android.tools.idea.execution.common.debug.AndroidDebugger
+import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
+import com.android.tools.idea.run.AndroidRunConfigurationBase
+import com.intellij.execution.RunManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
+import com.intellij.serviceContainer.NonInjectable
+import com.intellij.util.concurrency.AppExecutorUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import org.jetbrains.android.actions.AndroidConnectDebuggerAction
 
 @UiThread
-class DeviceProcessService {
+class DeviceProcessService @NonInjectable constructor(private val connectDebuggerAction: (debugger: AndroidDebugger<AndroidDebuggerState>, client: Client, config: AndroidRunConfigurationBase) -> Unit) {
+
+  @Suppress("unused")
+  constructor(project: Project) : this({ debugger, client, config ->
+    AppExecutorUtil.getAppExecutorService().execute {
+      AndroidConnectDebuggerAction.closeOldSessionAndRun(project, debugger, client, config)
+    }
+  })
   /**
    * The [CoroutineDispatcher] used for asynchronous work that **cannot** happen on the EDT thread.
    */
@@ -83,7 +97,7 @@ class DeviceProcessService {
   suspend fun killProcess(process: ProcessInfo, device: IDevice) {
     ApplicationManager.getApplication().assertIsDispatchThread()
 
-    if(process.device.serialNumber == device.serialNumber) {
+    if (process.device.serialNumber == device.serialNumber) {
       // Run this in a worker thread in case the device/adb is not responsive
       withContext(workerThreadDispatcher) {
         device.kill(process.processName)
@@ -99,10 +113,26 @@ class DeviceProcessService {
   suspend fun forceStopProcess(process: ProcessInfo, device: IDevice) {
     ApplicationManager.getApplication().assertIsDispatchThread()
 
-    if(process.device.serialNumber == device.serialNumber) {
+    if (process.device.serialNumber == device.serialNumber) {
       // Run this in a worker thread in case the device/adb is not responsive
       withContext(workerThreadDispatcher) {
         device.forceStop(process.processName)
+      }
+    }
+  }
+
+  suspend fun debugProcess(project: Project, process: ProcessInfo, device: IDevice) {
+    ApplicationManager.getApplication().assertIsDispatchThread()
+
+    if (process.device.serialNumber == device.serialNumber) {
+      withContext(workerThreadDispatcher) {
+        val client = device.getClient(process.processName)
+        val config = RunManager.getInstance(project).selectedConfiguration?.configuration as? AndroidRunConfigurationBase
+        val debugger = config?.androidDebuggerContext?.androidDebugger
+
+        if (client != null && config != null && debugger != null) {
+          connectDebuggerAction.invoke(debugger, client, config)
+        }
       }
     }
   }
