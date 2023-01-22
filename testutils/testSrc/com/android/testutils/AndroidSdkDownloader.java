@@ -13,10 +13,10 @@ public final class AndroidSdkDownloader {
   private static final String ANDROID_SDK_VERSION = "30.2.0.0";
 
   public static Path downloadSdk(BuildDependenciesCommunityRoot communityRoot) {
-    Path androidSdkRoot = communityRoot.getCommunityRoot().resolve("build/dependencies/build/android-sdk");
+    Path androidSdkRoot = communityRoot.communityRoot.resolve("build/dependencies/build/android-sdk");
 
     //noinspection SpellCheckingInspection
-    BuildDependenciesDownloader.extractFile(
+    BuildDependenciesDownloader.INSTANCE.extractFile(
       downloadAndroidSdk(communityRoot),
       androidSdkRoot.resolve("prebuilts/studio/sdk"),
       communityRoot
