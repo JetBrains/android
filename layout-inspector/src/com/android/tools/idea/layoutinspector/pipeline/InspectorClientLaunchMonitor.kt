@@ -54,10 +54,12 @@ class InspectorClientLaunchMonitor(
   @TestOnly private val executorService: ScheduledExecutorService = AppExecutorUtil.getAppScheduledExecutorService()
 ) {
   private var lastUpdate: Long = 0L
-  private var currentProgress = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
   private var timeoutFuture: ScheduledFuture<*>? = null
   private var debuggerFuture:  ScheduledFuture<*>? = null
   private val clientLock = Any()
+
+  var currentProgress = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
+    private set
 
   // This is to make sure we never schedule a timeout check after the monitor is stopped.
   // Note: a stop() call could happen while updateProgress is being executed (on different threads).

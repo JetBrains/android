@@ -36,6 +36,7 @@ import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.ListenerCollection
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -108,6 +109,7 @@ class LegacyClientTest {
     }
     waitForCondition(5, TimeUnit.SECONDS) { inspectorRule.inspectorClient is LegacyClient }
     val client = inspectorRule.inspectorClient as LegacyClient
+    waitForCondition(5, TimeUnit.SECONDS) { client.launchMonitor.currentProgress == AttachErrorState.ADB_PING }
     waitForCondition(5, TimeUnit.SECONDS) { client.launchMonitor.timeoutHandlerScheduled }
     assertThat(client.reloadAllWindows()).isFalse()
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
