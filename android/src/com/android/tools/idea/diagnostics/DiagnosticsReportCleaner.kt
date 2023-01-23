@@ -46,12 +46,20 @@ class DiagnosticsReportCleaner : StartupActivity.Background {
 
   companion object {
     fun cleanupFiles(path: Path) {
+      if (!Files.isDirectory(path)) {
+        return
+      }
+
       for (child in Files.list(path).filter { shouldDeleteFile(it) }) {
         Files.delete(child)
       }
     }
 
     fun cleanupDirectories(path: Path, regexes: Array<Regex>) {
+      if (!Files.isDirectory(path)) {
+        return
+      }
+
       for (directory in Files.list(path).filter { shouldDeleteDirectory(it, regexes) }) {
         directory.toFile().deleteRecursively()
       }

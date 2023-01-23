@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.diagnostics
 
-import com.android.utils.FileUtils
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.createFile
@@ -68,5 +67,19 @@ class DiagnosticsReportCleanerTest : TestCase() {
     DiagnosticsReportCleaner.cleanupDirectories(testDirectoryPath, arrayOf(Regex("^reportDir.*")))
     Truth.assertThat(newReportDir.exists())
     Truth.assertThat(otherDir.exists())
+  }
+
+  fun `test DiagnosticsReportCleanerTest handles missing directories`() {
+    val missingDir = testDirectoryPath.resolve("missingDir")
+    DiagnosticsReportCleaner.cleanupFiles(missingDir)
+    DiagnosticsReportCleaner.cleanupDirectories(missingDir, arrayOf(Regex("^reportDir.*")))
+  }
+
+  fun `test DiagnosticsReportCleanerTest handles files instead of directories`() {
+    val reportFile = testDirectoryPath.resolve("report.txt")
+    reportFile.createFile()
+
+    DiagnosticsReportCleaner.cleanupFiles(reportFile)
+    DiagnosticsReportCleaner.cleanupDirectories(reportFile, arrayOf(Regex("^reportDir.*")))
   }
 }
