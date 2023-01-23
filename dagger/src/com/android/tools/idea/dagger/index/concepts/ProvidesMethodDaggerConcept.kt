@@ -19,6 +19,10 @@ import com.android.tools.idea.dagger.index.IndexValue
 import com.android.tools.idea.dagger.index.concepts.DaggerAttributes.MODULE
 import com.android.tools.idea.dagger.index.concepts.DaggerAttributes.PROVIDES
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexMethodWrapper
+import org.jetbrains.kotlin.idea.core.util.readString
+import org.jetbrains.kotlin.idea.core.util.writeString
+import java.io.DataInput
+import java.io.DataOutput
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
@@ -39,6 +43,7 @@ import org.jetbrains.annotations.VisibleForTesting
  */
 object ProvidesMethodDaggerConcept : DaggerConcept {
   override val indexers = DaggerConceptIndexers(methodIndexers = listOf(ProvidesMethodIndexer))
+  override val indexValueReaders = listOf(ProvidesMethodIndexValue.Reader, ProvidesMethodParameterIndexValue.Reader)
 }
 
 private object ProvidesMethodIndexer : DaggerConceptIndexer<DaggerIndexMethodWrapper> {
@@ -65,9 +70,30 @@ private object ProvidesMethodIndexer : DaggerConceptIndexer<DaggerIndexMethodWra
 }
 
 @VisibleForTesting
-internal data class ProvidesMethodIndexValue(val classFqName: String, val methodSimpleName: String) : IndexValue(DataType.PROVIDES_METHOD)
+internal data class ProvidesMethodIndexValue(val classFqName: String, val methodSimpleName: String) : IndexValue(DataType.PROVIDES_METHOD) {
+  override fun save(output: DataOutput) {
+    output.writeString(classFqName)
+    output.writeString(methodSimpleName)
+  }
+
+  object Reader : IndexValue.Reader {
+    override val supportedType = DataType.PROVIDES_METHOD
+    override fun read(input: DataInput) = ProvidesMethodIndexValue(input.readString(), input.readString())
+  }
+}
 
 @VisibleForTesting
 internal data class ProvidesMethodParameterIndexValue(val classFqName: String,
-                                                      val methodSimpleName: String,
-                                                      val parameterName: String) : IndexValue(DataType.PROVIDES_METHOD_PARAMETER)
+                                                     val methodSimpleName: String,
+                                                     val parameterName: String) : IndexValue(DataType.PROVIDES_METHOD_PARAMETER) {
+  override fun save(output: DataOutput) {
+    output.writeString(classFqName)
+    output.writeString(methodSimpleName)
+    output.writeString(parameterName)
+  }
+
+  object Reader : IndexValue.Reader {
+    override val supportedType = DataType.PROVIDES_METHOD_PARAMETER
+    override fun read(input: DataInput) = ProvidesMethodParameterIndexValue(input.readString(), input.readString(), input.readString())
+  }
+}

@@ -154,4 +154,16 @@ class InjectedConstructorDaggerConceptTest {
 
     assertThat(entries).isEmpty()
   }
+
+  @Test
+  fun injectedConstructorIndexValue_serialization() {
+    val indexValue = InjectedConstructorIndexValue("a")
+    assertThat(serializeAndDeserializeIndexValue(indexValue)).isEqualTo(indexValue)
+  }
+
+  @Test
+  fun injectedConstructorParameterIndexValue_serialization() {
+    val indexValue = InjectedConstructorParameterIndexValue("a", "b")
+    assertThat(serializeAndDeserializeIndexValue(indexValue)).isEqualTo(indexValue)
+  }
 }

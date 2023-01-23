@@ -18,6 +18,10 @@ package com.android.tools.idea.dagger.index.concepts
 import com.android.tools.idea.dagger.index.IndexValue
 import com.android.tools.idea.dagger.index.concepts.DaggerAttributes.INJECT
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexMethodWrapper
+import org.jetbrains.kotlin.idea.core.util.readString
+import org.jetbrains.kotlin.idea.core.util.writeString
+import java.io.DataInput
+import java.io.DataOutput
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
@@ -37,6 +41,7 @@ import org.jetbrains.annotations.VisibleForTesting
  */
 object InjectedConstructorDaggerConcept : DaggerConcept {
   override val indexers = DaggerConceptIndexers(methodIndexers = listOf(InjectedConstructorIndexer))
+  override val indexValueReaders = listOf(InjectedConstructorIndexValue.Reader, InjectedConstructorParameterIndexValue.Reader)
 }
 
 private object InjectedConstructorIndexer : DaggerConceptIndexer<DaggerIndexMethodWrapper> {
@@ -56,8 +61,27 @@ private object InjectedConstructorIndexer : DaggerConceptIndexer<DaggerIndexMeth
 }
 
 @VisibleForTesting
-internal data class InjectedConstructorIndexValue(val classFqName: String) : IndexValue(DataType.INJECTED_CONSTRUCTOR)
+internal data class InjectedConstructorIndexValue(val classFqName: String) : IndexValue(DataType.INJECTED_CONSTRUCTOR) {
+  override fun save(output: DataOutput) {
+    output.writeString(classFqName)
+  }
+
+  object Reader : IndexValue.Reader {
+    override val supportedType = DataType.INJECTED_CONSTRUCTOR
+    override fun read(input: DataInput) = InjectedConstructorIndexValue(input.readString())
+  }
+}
 
 @VisibleForTesting
 internal data class InjectedConstructorParameterIndexValue(val classFqName: String, val parameterName: String) : IndexValue(
-  DataType.INJECTED_CONSTRUCTOR_PARAMETER)
+  DataType.INJECTED_CONSTRUCTOR_PARAMETER) {
+  override fun save(output: DataOutput) {
+    output.writeString(classFqName)
+    output.writeString(parameterName)
+  }
+
+  object Reader : IndexValue.Reader {
+    override val supportedType = DataType.INJECTED_CONSTRUCTOR_PARAMETER
+    override fun read(input: DataInput) = InjectedConstructorParameterIndexValue(input.readString(), input.readString())
+  }
+}

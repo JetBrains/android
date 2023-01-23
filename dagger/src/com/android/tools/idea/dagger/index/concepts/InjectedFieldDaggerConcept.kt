@@ -18,6 +18,10 @@ package com.android.tools.idea.dagger.index.concepts
 import com.android.tools.idea.dagger.index.IndexValue
 import com.android.tools.idea.dagger.index.concepts.DaggerAttributes.INJECT
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexFieldWrapper
+import org.jetbrains.kotlin.idea.core.util.readString
+import org.jetbrains.kotlin.idea.core.util.writeString
+import java.io.DataInput
+import java.io.DataOutput
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
@@ -37,6 +41,7 @@ import org.jetbrains.annotations.VisibleForTesting
  */
 object InjectedFieldDaggerConcept : DaggerConcept {
   override val indexers = DaggerConceptIndexers(fieldIndexers = listOf(InjectedFieldIndexer))
+  override val indexValueReaders: List<IndexValue.Reader> = listOf(InjectedFieldIndexValue.Reader)
 }
 
 private object InjectedFieldIndexer : DaggerConceptIndexer<DaggerIndexFieldWrapper> {
@@ -51,4 +56,14 @@ private object InjectedFieldIndexer : DaggerConceptIndexer<DaggerIndexFieldWrapp
 }
 
 @VisibleForTesting
-internal data class InjectedFieldIndexValue(val classFqName: String, val fieldName: String) : IndexValue(DataType.INJECTED_FIELD)
+internal data class InjectedFieldIndexValue(val classFqName: String, val fieldName: String) : IndexValue(DataType.INJECTED_FIELD) {
+  override fun save(output: DataOutput) {
+    output.writeString(classFqName)
+    output.writeString(fieldName)
+  }
+
+  object Reader : IndexValue.Reader {
+    override val supportedType = DataType.INJECTED_FIELD
+    override fun read(input: DataInput) = InjectedFieldIndexValue(input.readString(), input.readString())
+  }
+}

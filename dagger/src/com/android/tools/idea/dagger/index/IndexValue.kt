@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.dagger.index
 
+import com.android.tools.idea.dagger.index.IndexValue.Reader.Companion.ALL_READERS
+import com.android.tools.idea.dagger.index.concepts.DaggerConcept
+import com.intellij.util.io.DataExternalizer
+import java.io.DataInput
+import java.io.DataOutput
+
 /**
  * An index value for the Dagger index. Each [DaggerConcept] is responsible for defining the exact data that it needs to store for its
  * entries.
@@ -30,5 +36,44 @@ abstract class IndexValue(val dataType: DataType) {
     PROVIDES_METHOD,
     PROVIDES_METHOD_PARAMETER,
     INJECTED_FIELD,
+  }
+
+  abstract fun save(output: DataOutput)
+
+  object Externalizer : DataExternalizer<Set<IndexValue>> {
+    override fun save(output: DataOutput, value: Set<IndexValue>) {
+      output.writeInt(value.size)
+      value.forEach {
+        output.writeByte(it.dataType.ordinal)
+        it.save(output)
+      }
+    }
+
+    override fun read(input: DataInput): Set<IndexValue> {
+      return hashSetOf<IndexValue>().apply {
+        repeat(input.readInt()) {
+          val dataType = IndexValue.DataType.values()[input.readByte().toInt()]
+
+          val indexValue = ALL_READERS[dataType]!!.read(input)
+          assert(indexValue.dataType == dataType)
+          add(indexValue)
+        }
+      }
+    }
+  }
+
+  interface Reader {
+    val supportedType: DataType
+    fun read(input: DataInput): IndexValue
+
+    companion object {
+      internal val ALL_READERS = buildMap {
+        DaggerConcept.ALL_CONCEPTS.flatMap { it.indexValueReaders }.forEach { reader ->
+          val supportedType = reader.supportedType
+          assert(!containsKey(supportedType)) { "$supportedType cannot have two readers" }
+          put(supportedType, reader)
+        }
+      }
+    }
   }
 }

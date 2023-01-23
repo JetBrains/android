@@ -28,6 +28,9 @@ interface DaggerConcept {
   /** Any indexers required for this concept. */
   val indexers: DaggerConceptIndexers
 
+  /** [IndexValue.Reader]s for any [IndexValue]s that this concept uses. */
+  val indexValueReaders: List<IndexValue.Reader>
+
   companion object {
     internal val ALL_CONCEPTS = listOf(
       InjectedConstructorDaggerConcept,

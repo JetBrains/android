@@ -193,4 +193,16 @@ class ProvidesMethodDaggerConceptTest {
 
     assertThat(entries).isEmpty()
   }
+
+  @Test
+  fun providesMethodIndexValue_serialization() {
+    val indexValue = ProvidesMethodIndexValue("a", "b")
+    assertThat(serializeAndDeserializeIndexValue(indexValue)).isEqualTo(indexValue)
+  }
+
+  @Test
+  fun providesMethodParameterIndexValue_serialization() {
+    val indexValue = ProvidesMethodParameterIndexValue("a", "b", "c")
+    assertThat(serializeAndDeserializeIndexValue(indexValue)).isEqualTo(indexValue)
+  }
 }

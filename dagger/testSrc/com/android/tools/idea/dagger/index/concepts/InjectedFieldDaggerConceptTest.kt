@@ -114,4 +114,10 @@ class InjectedFieldDaggerConceptTest {
 
     assertThat(entries).isEmpty()
   }
+
+  @Test
+  fun injectedFieldIndexValue_serialization() {
+    val indexValue = InjectedFieldIndexValue("a", "b")
+    assertThat(serializeAndDeserializeIndexValue(indexValue)).isEqualTo(indexValue)
+  }
 }
