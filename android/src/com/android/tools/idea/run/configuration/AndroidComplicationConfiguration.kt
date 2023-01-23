@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.configuration
 
+import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.deployer.model.component.Complication
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.run.ApkProvider
@@ -64,11 +65,11 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
     private constructor() : this(-1, Complication.ComplicationType.LONG_TEXT)
   }
 
+  @WorkerThread
   override fun checkConfiguration() {
     super.checkConfiguration()
     // super.checkConfiguration() has already checked that module and componentName are not null.
     val rawTypes = getComplicationTypesFromManifest(module!!, componentLaunchOptions.componentName!!)
-                   ?: throw RuntimeConfigurationWarning(AndroidBundle.message("provider.type.manifest.not.available"))
     if (componentLaunchOptions.chosenSlots.isEmpty()) {
       throw RuntimeConfigurationError(AndroidBundle.message("provider.slots.empty.error"))
     }

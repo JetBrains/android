@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.configuration
 
 import com.android.SdkConstants
+import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.deployer.model.component.Complication
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.model.MergedManifestSnapshot
@@ -30,13 +31,11 @@ import org.jetbrains.android.util.AndroidBundle
 /**
  * Return raw complications types from Manifest for given [complicationName] or null if [MergedManifestSnapshot] is not ready.
  */
-internal fun getComplicationTypesFromManifest(module: com.intellij.openapi.module.Module, complicationName: String): List<String>? {
-  val snapshotFuture = MergedManifestManager.getMergedManifestSupplier(module).get()
-  if (snapshotFuture.isDone) {
-    return extractSupportedComplicationTypes(snapshotFuture.get(), complicationName)
-  }
-  return null
-}
+@WorkerThread
+internal fun getComplicationTypesFromManifest(module: com.intellij.openapi.module.Module, complicationName: String): List<String> =
+  extractSupportedComplicationTypes(
+    MergedManifestManager.getMergedManifestSupplier(module).get().get(),
+    complicationName)
 
 internal fun parseRawComplicationTypes(supportedTypesStr: List<String>): List<Complication.ComplicationType> {
   return supportedTypesStr.mapNotNull {

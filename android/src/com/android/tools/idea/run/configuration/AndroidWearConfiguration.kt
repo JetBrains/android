@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.configuration
 
+import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.execution.common.WearSurfaceLaunchOptions
@@ -70,6 +71,8 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
   val deployOptions: DeployOptions = DeployOptions(emptyList(), "", installOnAllUsers = true, alwaysInstallWithPm = true)
 
   override fun getConfigurationEditor(): AndroidWearConfigurationEditor<*> = AndroidWearConfigurationEditor(project, this)
+
+  @WorkerThread
   override fun checkConfiguration() {
     configurationModule.checkForWarning()
     // If module is null `configurationModule.checkForWarning()` will throw an error
