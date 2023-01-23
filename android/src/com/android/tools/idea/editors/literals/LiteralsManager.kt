@@ -409,12 +409,12 @@ class LiteralsManager(
     /**
      * The project is indexing. A future retry might succeed.
      */
-    object NotInSmartMode: FindResult()
+    object IndexNotReady: FindResult()
 
     /**
      * The file passed to the [findLiterals] call is not supported by the [LiteralsManager].
      */
-    object NotSupported: FindResult()
+    object Unsupported: FindResult()
   }
 
   private suspend fun findLiterals(root: PsiElement,
@@ -491,7 +491,7 @@ class LiteralsManager(
 
           return@Callable FindResult.Snapshot(if (savedLiterals.isNotEmpty()) LiteralReferenceSnapshotImpl(savedLiterals) else EmptyLiteralReferenceSnapshot)
         } catch(_: IndexNotReadyException) {
-          return@Callable FindResult.NotInSmartMode
+          return@Callable FindResult.IndexNotReady
         }
       })
         .expireWhen { !isActive }
@@ -511,7 +511,7 @@ class LiteralsManager(
     }
     else {
       LOG.warn("Only Kotlin is supported for LiveLiterals")
-      FindResult.NotSupported
+      FindResult.Unsupported
     }
 
   companion object {

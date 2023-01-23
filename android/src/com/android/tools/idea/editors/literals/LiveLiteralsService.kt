@@ -401,8 +401,8 @@ class LiveLiteralsService private constructor(private val project: Project,
             return@withContext result.snapshot
           }
         }
-        is LiteralsManager.FindResult.NotInSmartMode -> log.debug("Not in smart mode")
-        is LiteralsManager.FindResult.NotSupported -> log.debug("File not supported")
+        is LiteralsManager.FindResult.IndexNotReady -> log.debug("Not in smart mode")
+        is LiteralsManager.FindResult.Unsupported -> log.debug("File not supported")
       }
     } catch (_: ProcessCanceledException) {
       // After 222.2889.14 the visitor can throw ProcessCanceledException instead of IndexNotReadyException if in dumb mode.

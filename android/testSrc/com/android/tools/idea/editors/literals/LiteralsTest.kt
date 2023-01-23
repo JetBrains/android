@@ -115,7 +115,7 @@ class LiteralsTest {
   }
 
   private fun LiteralsManager.findLiteralsBlocking(root : PsiElement) = runBlocking {
-    var lastResult: LiteralsManager.FindResult = LiteralsManager.FindResult.NotSupported
+    var lastResult: LiteralsManager.FindResult = LiteralsManager.FindResult.Unsupported
     repeat(3) {
       lastResult = findLiterals(root)
       if (lastResult is LiteralsManager.FindResult.Snapshot) return@repeat
@@ -124,8 +124,8 @@ class LiteralsTest {
 
     return@runBlocking when (lastResult) {
       is LiteralsManager.FindResult.Snapshot -> (lastResult as LiteralsManager.FindResult.Snapshot).snapshot
-      is LiteralsManager.FindResult.NotInSmartMode -> throw IndexNotReadyException.create()
-      is LiteralsManager.FindResult.NotSupported -> throw RuntimeException("Unsupported file type")
+      is LiteralsManager.FindResult.IndexNotReady -> throw IndexNotReadyException.create()
+      is LiteralsManager.FindResult.Unsupported -> throw RuntimeException("Unsupported file type")
     }
   }
 
