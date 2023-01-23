@@ -51,6 +51,7 @@ abstract class AbstractGradleSyncMemoryUsageTestCase {
 
   abstract val relativePath: String
   abstract val projectName: String
+  abstract val memoryLimitMb: Int
 
   val projectRule = AndroidGradleProjectRule()
   @get:Rule val ruleChain = org.junit.rules.RuleChain.outerRule(projectRule).around(EdtRule())!!
@@ -88,7 +89,7 @@ abstract class AbstractGradleSyncMemoryUsageTestCase {
 
   @Test
   open fun testSyncMemory() {
-    reduceMaxMemory()
+    adjustMemoryUsage()
     projectRule.loadProject(relativePath)
     // Free up some memory by closing the Gradle Daemon
     DefaultGradleConnector.close()
@@ -136,9 +137,9 @@ abstract class AbstractGradleSyncMemoryUsageTestCase {
     metricAfterSyncWeak.commit()
   }
 
-  private fun reduceMaxMemory() {
+  private fun adjustMemoryUsage() {
     GradleProperties(File(projectRule.resolveTestDataPath(relativePath), SdkConstants.FN_GRADLE_PROPERTIES)).apply {
-      setJvmArgs(jvmArgs.orEmpty().replace("-Xmx60g", "-Xmx8g"))
+      setJvmArgs(jvmArgs.orEmpty().replace("-Xmx60g", "-Xmx${memoryLimitMb}m"))
       save()
     }
   }
