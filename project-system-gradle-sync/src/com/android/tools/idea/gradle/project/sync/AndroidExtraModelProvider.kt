@@ -67,6 +67,9 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
     if (syncOptions.flags.studioHprofOutputDirectory.isNotEmpty()) {
       captureSnapshot(syncOptions.flags.studioHprofOutputDirectory, "before_sync")
     }
+    if (syncOptions.flags.studioHeapAnalysisOutputDirectory.isNotEmpty()) {
+      analyzeCurrentProcessHeap(syncOptions.flags.studioHeapAnalysisOutputDirectory, "before_sync")
+    }
   }
 
   private var buildModelsAndMap: BuildModelsAndMap? = null
@@ -115,6 +118,9 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
       }
       if (syncOptions.flags.studioHprofOutputDirectory.isNotEmpty()) {
         captureSnapshot(syncOptions.flags.studioHprofOutputDirectory, "after_sync")
+      }
+      if (syncOptions.flags.studioHeapAnalysisOutputDirectory.isNotEmpty()) {
+        analyzeCurrentProcessHeap(syncOptions.flags.studioHeapAnalysisOutputDirectory, "after_sync")
       }
    }
   }

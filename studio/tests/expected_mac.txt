@@ -2071,6 +2071,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/libstudio.proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libversion.jar
 Android Studio Preview.app/Contents/plugins/android/lib/lint-ide.jar
 Android Studio Preview.app/Contents/plugins/android/lib/manifest-merger.jar
+Android Studio Preview.app/Contents/plugins/android/lib/memory-usage.jar
 Android Studio Preview.app/Contents/plugins/android/lib/network_inspector_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/org.eclipse.elk.alg.layered-0.3.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/org.eclipse.elk.core-0.3.0.jar

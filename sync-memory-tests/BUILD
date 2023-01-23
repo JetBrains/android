@@ -31,11 +31,15 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/android-32",  # Used for model v1 tests that needs AGP 7.1 (which needs compile sdk 32)
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/tools/common/eclipse-mat",
+        "//tools/adt/idea/memory-usage/src/main/native:liblightweight_heap_traverse",
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
         "//tools/data-binding:data_binding_runtime.zip",
+    ],
+    test_jvm_flags = [
+        "-Dmemory.agent.path=$(location //tools/adt/idea/memory-usage/src/main/native:liblightweight_heap_traverse)",
     ],
     test_srcs = ["testSrc"],
     test_tags = [

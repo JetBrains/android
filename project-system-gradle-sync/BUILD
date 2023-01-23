@@ -20,6 +20,7 @@ iml_module(
         "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model[module]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
+        "//tools/adt/idea/memory-usage[module]",
     ],
 )
 

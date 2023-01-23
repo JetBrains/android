@@ -268,6 +268,9 @@ studio_plugin(
         "layoutlib-api.jar": [
             "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api",
         ],
+        "memory-usage.jar": [
+            "//tools/adt/idea/memory-usage",
+        ],
     },
     resources = {
         "lib": [

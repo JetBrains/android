@@ -52,6 +52,7 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
     studioFlagDisableForcedUpgrades = AndroidGradleProjectResolver.shouldDisableForceUpgrades(),
     studioFlagOutputSyncStats = StudioFlags.GRADLE_SYNC_OUTPUT_SYNC_STATS.get(),
     studioHprofOutputDirectory = StudioFlags.GRADLE_HPROF_OUTPUT_DIRECTORY.get(),
+    studioHeapAnalysisOutputDirectory = StudioFlags.GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY.get()
   )
 
   fun getAdditionalArtifactsAction() = AdditionalClassifierArtifactsActionOptions(

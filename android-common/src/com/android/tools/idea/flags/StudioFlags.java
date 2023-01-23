@@ -759,6 +759,15 @@ public final class StudioFlags {
     ""
   );
 
+  public static final Flag<String> GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY = Flag.create(
+    GRADLE_IDE,
+    "gradle.heap.analysis.output.directory",
+    "Gradle heap analysis output directory",
+    "If set, files with information about heap usage such as total live objects size and the strongly reachable objects size, will be dumped" +
+    "to a file at certain points during project sync.",
+    ""
+  );
+
   //endregion
 
   //region Database Inspector

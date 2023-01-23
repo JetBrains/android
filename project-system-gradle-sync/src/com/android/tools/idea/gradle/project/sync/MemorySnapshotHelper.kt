@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.tools.memory.usage.LightweightHeapTraverse
+import com.android.tools.memory.usage.LightweightHeapTraverseConfig
 import com.intellij.util.MemoryDumpHelper
 import java.io.File
 import java.time.Instant
@@ -24,11 +26,7 @@ import kotlin.system.measureTimeMillis
 
 fun captureSnapshot(outputPath: String, name: String) {
   try {
-    val timestamp = DateTimeFormatter
-      .ofPattern("yyyy.MM.dd-HH:mm")
-      .withZone(ZoneOffset.UTC)
-      .format(Instant.now())
-    val file = File(outputPath).resolve("$timestamp-$name.hprof")
+    val file = File(outputPath).resolve("${getTimestamp()}-$name.hprof")
     println("Capturing memory snapshot at: ${file.absolutePath}")
     val elapsedTime = measureTimeMillis {
       MemoryDumpHelper.captureMemoryDump(file.absolutePath)
@@ -38,3 +36,23 @@ fun captureSnapshot(outputPath: String, name: String) {
     println("Error capturing snapshot:  ${e.stackTraceToString()}")
   }
 }
+
+fun analyzeCurrentProcessHeap(outputPath: String, name: String) {
+  println("Starting heap traversal for $name")
+  val elapsedTime = measureTimeMillis {
+    val result = LightweightHeapTraverse.collectReport(LightweightHeapTraverseConfig())
+    println("Heap $name total size MBs: ${result.totalObjectsSizeBytes shr 20} ")
+    println("Heap $name strong size MBs: ${result.totalStrongReferencedObjectsSizeBytes shr 20} ")
+
+    val fileStrong = File(outputPath).resolve("${getTimestamp()}_${name}_strong")
+    fileStrong.writeText(result.totalStrongReferencedObjectsSizeBytes.toString())
+    val fileTotal = File(outputPath).resolve("${getTimestamp()}_${name}_total")
+    fileTotal.writeText(result.totalObjectsSizeBytes.toString())
+  }
+  println("Heap traversal for $name finished in $elapsedTime milliseconds")
+}
+
+private fun getTimestamp() = DateTimeFormatter
+  .ofPattern("yyyy.MM.dd-HH:mm")
+  .withZone(ZoneOffset.UTC)
+  .format(Instant.now())

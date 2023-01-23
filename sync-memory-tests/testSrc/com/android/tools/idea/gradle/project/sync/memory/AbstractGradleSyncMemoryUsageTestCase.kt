@@ -39,7 +39,6 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.Instant
 import kotlin.io.path.createDirectory
-import kotlin.system.measureTimeMillis
 
 @RunsInEdt
 abstract class AbstractGradleSyncMemoryUsageTestCase {
@@ -56,9 +55,8 @@ abstract class AbstractGradleSyncMemoryUsageTestCase {
   val projectRule = AndroidGradleProjectRule()
   @get:Rule val ruleChain = org.junit.rules.RuleChain.outerRule(projectRule).around(EdtRule())!!
 
-  private val eclipseMatHelper = EclipseMatHelper()
-  private lateinit var snapshotDirectory: String
-  private val keepSnapshots = System.getProperty("keep_snapshots").toBoolean()
+  private lateinit var outputDirectory: String
+  private val memoryAgentPath = System.getProperty("memory.agent.path")
 
   @Before
   open fun setUp() {
@@ -66,10 +64,10 @@ abstract class AbstractGradleSyncMemoryUsageTestCase {
     projectSettings.distributionType = DistributionType.DEFAULT_WRAPPED
     GradleSettings.getInstance(projectRule.project).linkedProjectsSettings = listOf(projectSettings)
     projectRule.fixture.testDataPath = AndroidTestBase.getModulePath("sync-memory-tests") + File.separator + "testData"
-    snapshotDirectory = File(System.getenv("TEST_TMPDIR"), "snapshots").also {
+    outputDirectory = File(System.getenv("TEST_TMPDIR"), "snapshots").also {
       it.toPath().createDirectory()
     }.absolutePath
-    StudioFlags.GRADLE_HPROF_OUTPUT_DIRECTORY.override(snapshotDirectory)
+    StudioFlags.GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY.override(outputDirectory)
   }
 
   @After
@@ -83,63 +81,42 @@ abstract class AbstractGradleSyncMemoryUsageTestCase {
       .forEach {
         Files.move(it.toPath(), testOutputDir.resolve(it.name))
       }
-    StudioFlags.GRADLE_HPROF_OUTPUT_DIRECTORY.clearOverride()
-    File(snapshotDirectory).delete()
+    StudioFlags.GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY.clearOverride()
+    File(outputDirectory).delete()
   }
 
   @Test
   open fun testSyncMemory() {
-    adjustMemoryUsage()
+    setJvmArgs()
     projectRule.loadProject(relativePath)
     // Free up some memory by closing the Gradle Daemon
     DefaultGradleConnector.close()
 
     val metricBeforeSync = Metric("${projectName}_Before_Sync")
-    val metricBeforeSyncSoft = Metric("${projectName}_Before_Sync_Soft")
-    val metricBeforeSyncWeak = Metric("${projectName}_Before_Sync_Weak")
     val metricBeforeSyncTotal = Metric("${projectName}_Before_Sync_Total")
     val metricAfterSync = Metric("${projectName}_After_Sync")
-    val metricAfterSyncSoft = Metric("${projectName}_After_Sync_Soft")
-    val metricAfterSyncWeak = Metric("${projectName}_After_Sync_Weak")
     val metricAfterSyncTotal = Metric("${projectName}_After_Sync_Total")
     val currentTime = Instant.now().toEpochMilli()
-    for (hprofPath in File(snapshotDirectory).walk().filter { !it.isDirectory && it.name.endsWith(".hprof")}.asIterable()) {
-      val elapsedTime = measureTimeMillis {
-        val metrics = eclipseMatHelper.getHeapUsageMetrics(hprofPath.absolutePath)
-        println("Size of ${hprofPath.name}: $metrics")
-        if (hprofPath.name.contains("before_sync")) {
-          metricBeforeSync.addSamples(BENCHMARK, MetricSample(currentTime, metrics.excludeSoftAndWeak()))
-          metricBeforeSyncTotal.addSamples(BENCHMARK, MetricSample(currentTime, metrics.totalUsage))
-          metricBeforeSyncSoft.addSamples(BENCHMARK, MetricSample(currentTime, metrics.softlyReferenced))
-          metricBeforeSyncWeak.addSamples(BENCHMARK, MetricSample(currentTime, metrics.weaklyReferenced))
-        }
-        if (hprofPath.name.contains("after_sync")) {
-          metricAfterSync.addSamples(BENCHMARK, MetricSample(currentTime, metrics.excludeSoftAndWeak()))
-          metricAfterSyncTotal.addSamples(BENCHMARK, MetricSample(currentTime, metrics.totalUsage))
-          metricAfterSyncSoft.addSamples(BENCHMARK, MetricSample(currentTime, metrics.softlyReferenced))
-          metricAfterSyncWeak.addSamples(BENCHMARK, MetricSample(currentTime, metrics.weaklyReferenced))
-        }
-      }
-      println("Analysis took $elapsedTime MS.")
-      if (keepSnapshots) {
-        val testOutputDir = TestUtils.getTestOutputDir()
-        Files.move(hprofPath.toPath(), testOutputDir.resolve(hprofPath.name))
-      }
+    for (metricFilePath in File(outputDirectory).walk().filter { !it.isDirectory }.asIterable()) {
+      when {
+        metricFilePath.name.endsWith("before_sync_strong") -> metricBeforeSync
+        metricFilePath.name.endsWith("before_sync_total") -> metricBeforeSyncTotal
+        metricFilePath.name.endsWith("after_sync_strong") -> metricAfterSync
+        metricFilePath.name.endsWith("after_sync_total") -> metricAfterSyncTotal
+        else -> null
+      }?.addSamples(BENCHMARK, MetricSample(currentTime, metricFilePath.readText().toLong()))
     }
     metricBeforeSync.commit()
     metricBeforeSyncTotal.commit()
-    metricBeforeSyncSoft.commit()
-    metricBeforeSyncWeak.commit()
 
     metricAfterSync.commit()
     metricAfterSyncTotal.commit()
-    metricAfterSyncSoft.commit()
-    metricAfterSyncWeak.commit()
   }
 
-  private fun adjustMemoryUsage() {
+  private fun setJvmArgs() {
     GradleProperties(File(projectRule.resolveTestDataPath(relativePath), SdkConstants.FN_GRADLE_PROPERTIES)).apply {
       setJvmArgs(jvmArgs.orEmpty().replace("-Xmx60g", "-Xmx${memoryLimitMb}m"))
+      setJvmArgs("$jvmArgs -agentpath:${File(memoryAgentPath).absolutePath}")
       save()
     }
   }
