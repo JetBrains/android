@@ -1,5 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
+load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
 
 # managed by go/iml_to_build
 iml_module(
@@ -12,6 +13,14 @@ iml_module(
         },
         "Benchmark200": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark200MemoryTest",
+        },
+        "Benchmark500": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark500MemoryTest",
+            "exec_properties": LARGE_MACHINE,
+        },
+        "Benchmark1000": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryTest",
+            "exec_properties": LARGE_MACHINE,
         },
     },
     test_class = "com.android.tools.idea.gradle.project.sync.memory.SyncMemoryTestSuite",
