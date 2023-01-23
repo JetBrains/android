@@ -43,7 +43,10 @@ iml_test(
         "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
     ],
     module = ":app-inspection.integration",
-    tags_linux = ["block-network"],
+    tags_linux = [
+        "block-network",
+        "very_flaky",  # b/263123192
+    ],
     tags_mac = [],
     tags_windows = [
         "block-network",
