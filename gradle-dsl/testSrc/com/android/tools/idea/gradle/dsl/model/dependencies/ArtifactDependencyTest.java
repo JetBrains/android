@@ -246,7 +246,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
                {
                  ArtifactDependencyModel actual = dependencies.get(i);
                  expected.get(i).assertMatches(actual);
-                 actual.enableSetThrough();
                  actual.setConfigurationName("testImplementation");
                  actual.version().setValue(newVersions.get(i));
                });

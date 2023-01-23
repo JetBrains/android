@@ -114,20 +114,23 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
         if (mapNotation != null) {
           dest.add(mapNotation);
           // cannot do extract variables for version catalog dependencies for now
-          if(resolved.getDslFile() instanceof GradleVersionCatalogFile) mapNotation.markAsVersionCatalogDependency();
+          if(isInVersionCatalogFile(resolved)) mapNotation.markAsVersionCatalogDependency();
         }
       }
       else if (element instanceof GradleDslSimpleExpression) {
         ArtifactDependencyModel compactNotation = ArtifactDependencyModelImpl.CompactNotation.create(
           configurationName, (GradleDslSimpleExpression)element, configurationElement, maintainer, methodName);
         if (compactNotation != null) {
-          if(element instanceof GradleBundleRefLiteral && ((GradleBundleRefLiteral)element).isReference())
-            compactNotation.enableSetThrough();
+          if(isInVersionCatalogFile(resolved)) compactNotation.enableSetThrough();
           dest.add(compactNotation);
         }
       }
     }
   };
+
+  private static boolean isInVersionCatalogFile(GradleDslElement element){
+    return element.getDslFile() instanceof GradleVersionCatalogFile;
+  }
 
   private final static Fetcher<ModuleDependencyModel> ourModuleFetcher = new Fetcher<ModuleDependencyModel>() {
     @Override
