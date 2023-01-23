@@ -83,7 +83,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     buildAttributionUiManager = BuildAttributionUiManagerImpl(project)
     buildSessionId = UUID.randomUUID().toString()
 
-    project.replaceService(FileEditorManager::class.java, FileEditorManagerImpl(project), testRootDisposable)
+    project.replaceService(FileEditorManager::class.java, FileEditorManagerImpl(project, project.coroutineScope), testRootDisposable)
   }
 
   override fun tearDown() {

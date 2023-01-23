@@ -27,7 +27,7 @@ class SourceCodeNavigationTest : CodeInsightFixtureTestCase<ModuleFixtureBuilder
 
   override fun setUp() {
     super.setUp()
-    project.replaceService(FileEditorManager::class.java, FileEditorManagerImpl(project), testRootDisposable)
+    project.replaceService(FileEditorManager::class.java, FileEditorManagerImpl(project, project.coroutineScope), testRootDisposable)
   }
 
   fun testNavigationWithinFile() {
