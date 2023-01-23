@@ -232,7 +232,7 @@ fun Module.getDefaultTheme(renderingTarget: IAndroidTarget?, screenSize: ScreenS
   // For Android Wear and Android TV, the defaults differ
   if (device != null) {
     if (HardwareConfigHelper.isWear(device)) {
-      return "@android:style/Theme.DeviceDefault.Light"
+      return "@android:style/Theme.DeviceDefault"
     }
     else if (HardwareConfigHelper.isTv(device)) {
       return "@style/Theme.Leanback"
