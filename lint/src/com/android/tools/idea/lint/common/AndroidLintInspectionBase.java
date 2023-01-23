@@ -632,26 +632,15 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     }
   }
 
-  /**
-   * Returns true if the given analysis scope is adequate for single-file analysis
-   */
-  private static boolean isSingleFileScope(EnumSet<Scope> scopes) {
-    if (scopes.size() != 1) {
-      return false;
-    }
-    final Scope scope = scopes.iterator().next();
-    return scope == Scope.JAVA_FILE || scope == Scope.RESOURCE_FILE || scope == Scope.MANIFEST
-           || scope == Scope.PROGUARD_FILE || scope == Scope.OTHER;
-  }
-
   @Override
   public boolean worksInBatchModeOnly() {
     Implementation implementation = myIssue.getImplementation();
-    if (isSingleFileScope(implementation.getScope())) {
+    EnumSet<Scope> scopes = implementation.getScope();
+    if (Scope.checkSingleFile(scopes)) {
       return false;
     }
-    for (EnumSet<Scope> scopes : implementation.getAnalysisScopes()) {
-      if (isSingleFileScope(scopes)) {
+    for (EnumSet<Scope> analysisScopes : implementation.getAnalysisScopes()) {
+      if (Scope.checkSingleFile(analysisScopes)) {
         return false;
       }
     }
