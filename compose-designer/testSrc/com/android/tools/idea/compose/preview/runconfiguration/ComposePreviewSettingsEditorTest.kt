@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.compose.preview.runconfiguration
 
+import com.android.AndroidProjectTypes
 import com.android.tools.adtui.TreeWalker
 import com.intellij.application.options.ModulesComboBox
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
+import com.intellij.testFramework.fixtures.TestFixtureBuilder
+import com.intellij.ui.SortedComboBoxModel
 import com.intellij.ui.components.JBTextField
 import org.jetbrains.android.AndroidTestCase
 
@@ -24,6 +28,20 @@ class ComposePreviewSettingsEditorTest : AndroidTestCase() {
 
   private lateinit var runConfiguration: ComposePreviewRunConfiguration
   private lateinit var settingsEditor: ComposePreviewSettingsEditor
+
+  override fun configureAdditionalModules(
+    projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture?>,
+    modules: List<MyAdditionalModuleData?>
+  ) {
+    super.configureAdditionalModules(projectBuilder, modules)
+    addModuleWithAndroidFacet(
+      projectBuilder,
+      modules,
+      "library",
+      AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
+      false
+    )
+  }
 
   override fun setUp() {
     super.setUp()
@@ -45,6 +63,17 @@ class ComposePreviewSettingsEditorTest : AndroidTestCase() {
     val composableText =
       TreeWalker(settingsEditor.component).descendants().filterIsInstance<JBTextField>().first()
     assertEquals("my.composable.NameKt", composableText.text)
+  }
+
+  // Regression test for b/266054909
+  fun testAllowLibraryModules() {
+    runConfiguration.composableMethodFqn = "my.composable.NameKt"
+    runConfiguration.setModule(myModule)
+    settingsEditor.resetFrom(runConfiguration)
+
+    val modulesComboBox =
+      TreeWalker(settingsEditor.component).descendants().filterIsInstance<ModulesComboBox>().first()
+    assertTrue((modulesComboBox.model as SortedComboBoxModel).items.any { it?.name == "library" })
   }
 
   fun testApplyTo() {
