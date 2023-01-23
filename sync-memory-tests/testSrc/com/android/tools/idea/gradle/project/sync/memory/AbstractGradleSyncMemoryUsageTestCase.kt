@@ -36,6 +36,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.Paths
 import java.time.Instant
 import kotlin.io.path.createDirectory
 import kotlin.system.measureTimeMillis
@@ -72,6 +73,15 @@ abstract class AbstractGradleSyncMemoryUsageTestCase {
 
   @After
   open fun tearDown() {
+    val tmpDir = Paths.get(System.getProperty("java.io.tmpdir"))
+    val testOutputDir = TestUtils.getTestOutputDir()
+    tmpDir
+      .resolve(".gradle/daemon").toFile()
+      .walk()
+      .filter { it.name.endsWith("out.log") }
+      .forEach {
+        Files.move(it.toPath(), testOutputDir.resolve(it.name))
+      }
     StudioFlags.GRADLE_HPROF_OUTPUT_DIRECTORY.clearOverride()
     File(snapshotDirectory).delete()
   }
