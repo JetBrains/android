@@ -55,6 +55,11 @@ public class AndroidDataSourceManager extends BasicDataSourceManager<AndroidData
   }
 
   @Override
+  public boolean isLoading(@NotNull AndroidDataSource dataSource) {
+    return false;
+  }
+
+  @Override
   public void addDataSource(@NotNull AndroidDataSource dataSource) {
     myStorage.addDataSource(dataSource);
     attachDataSource(dataSource);
