@@ -29,8 +29,9 @@ final class VirtualDeviceTableCellRenderer extends DeviceTableCellRenderer<Virtu
     super(VirtualDevice.class, manager);
   }
 
+  @Nullable
   @Override
-  protected @Nullable Icon getStateIcon(@NotNull VirtualDevice device) {
+  protected Icon getStateIcon(@NotNull VirtualDevice device) {
     if (!device.getAvdInfo().getStatus().equals(AvdStatus.OK)) {
       return StudioIcons.Common.WARNING_INLINE;
     }
@@ -38,8 +39,9 @@ final class VirtualDeviceTableCellRenderer extends DeviceTableCellRenderer<Virtu
     return super.getStateIcon(device);
   }
 
+  @NotNull
   @Override
-  protected @NotNull String getLine2(@NotNull VirtualDevice device) {
+  protected String getLine2(@NotNull VirtualDevice device) {
     AvdInfo avd = device.getAvdInfo();
 
     if (!avd.getStatus().equals(AvdStatus.OK)) {

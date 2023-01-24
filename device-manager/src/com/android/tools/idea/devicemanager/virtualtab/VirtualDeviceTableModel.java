@@ -77,7 +77,8 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
 
   @VisibleForTesting
   interface NewSetOnline {
-    @NotNull FutureCallback<Boolean> apply(@NotNull VirtualDeviceTableModel model, @NotNull Key key);
+    @NotNull
+    FutureCallback<Boolean> apply(@NotNull VirtualDeviceTableModel model, @NotNull Key key);
   }
 
   static final class EditValue {
@@ -141,7 +142,8 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
     });
   }
 
-  @NotNull List<VirtualDevice> getDevices() {
+  @NotNull
+  List<VirtualDevice> getDevices() {
     return myDevices;
   }
 
@@ -168,11 +170,12 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
     fireTableRowsUpdated(modelRowIndex, modelRowIndex);
   }
 
-  @SuppressWarnings("UnstableApiUsage")
-  @NotNull ListenableFuture<Boolean> remove(@NotNull VirtualDevice device) {
+  @NotNull
+  ListenableFuture<Boolean> remove(@NotNull VirtualDevice device) {
     FutureCallback<Boolean> callback =
       new DeviceManagerFutureCallback<>(VirtualDeviceTableModel.class, deletionSuccessful -> remove(deletionSuccessful, device));
 
+    @SuppressWarnings("UnstableApiUsage")
     ListenableFuture<Boolean> future = FluentFuture.from(getDefaultAvdManagerConnection())
       .transform(connection -> connection.deleteAvd(device.getAvdInfo()), AppExecutorUtil.getAppExecutorService());
 
@@ -231,93 +234,60 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   @SuppressWarnings("DuplicateBranchesInSwitch")
   @Override
   public @NotNull String getColumnName(int modelColumnIndex) {
-    switch (modelColumnIndex) {
-      case DEVICE_ICON_MODEL_COLUMN_INDEX:
-        return "";
-      case DEVICE_MODEL_COLUMN_INDEX:
-        return "Device";
-      case API_MODEL_COLUMN_INDEX:
-        return "API";
-      case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
-        return "Size on Disk";
-      case LAUNCH_OR_STOP_MODEL_COLUMN_INDEX:
-      case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
-      case EDIT_MODEL_COLUMN_INDEX:
-      case POP_UP_MENU_MODEL_COLUMN_INDEX:
-        return "";
-      default:
-        throw new AssertionError(modelColumnIndex);
-    }
+    return switch (modelColumnIndex) {
+      case DEVICE_ICON_MODEL_COLUMN_INDEX -> "";
+      case DEVICE_MODEL_COLUMN_INDEX -> "Device";
+      case API_MODEL_COLUMN_INDEX -> "API";
+      case SIZE_ON_DISK_MODEL_COLUMN_INDEX -> "Size on Disk";
+      case LAUNCH_OR_STOP_MODEL_COLUMN_INDEX, ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX, EDIT_MODEL_COLUMN_INDEX, POP_UP_MENU_MODEL_COLUMN_INDEX ->
+        "";
+      default -> throw new AssertionError(modelColumnIndex);
+    };
   }
 
   @Override
   public @NotNull Class<?> getColumnClass(int modelColumnIndex) {
-    switch (modelColumnIndex) {
-      case DEVICE_ICON_MODEL_COLUMN_INDEX:
-        return DeviceType.class;
-      case DEVICE_MODEL_COLUMN_INDEX:
-        return Device.class;
-      case API_MODEL_COLUMN_INDEX:
-        return AndroidVersion.class;
-      case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
-        return Long.class;
-      case LAUNCH_OR_STOP_MODEL_COLUMN_INDEX:
-        return VirtualDevice.State.class;
-      case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
-        return ActivateDeviceFileExplorerWindowValue.class;
-      case EDIT_MODEL_COLUMN_INDEX:
-        return EditValue.class;
-      case POP_UP_MENU_MODEL_COLUMN_INDEX:
-        return PopUpMenuValue.class;
-      default:
-        throw new AssertionError(modelColumnIndex);
-    }
+    return switch (modelColumnIndex) {
+      case DEVICE_ICON_MODEL_COLUMN_INDEX -> DeviceType.class;
+      case DEVICE_MODEL_COLUMN_INDEX -> Device.class;
+      case API_MODEL_COLUMN_INDEX -> AndroidVersion.class;
+      case SIZE_ON_DISK_MODEL_COLUMN_INDEX -> Long.class;
+      case LAUNCH_OR_STOP_MODEL_COLUMN_INDEX -> VirtualDevice.State.class;
+      case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX -> ActivateDeviceFileExplorerWindowValue.class;
+      case EDIT_MODEL_COLUMN_INDEX -> EditValue.class;
+      case POP_UP_MENU_MODEL_COLUMN_INDEX -> PopUpMenuValue.class;
+      default -> throw new AssertionError(modelColumnIndex);
+    };
   }
 
   @Override
   public boolean isCellEditable(int modelRowIndex, int modelColumnIndex) {
-    switch (modelColumnIndex) {
-      case DEVICE_ICON_MODEL_COLUMN_INDEX:
-        return myDevices.get(modelRowIndex).getIcon().equals(AllIcons.Actions.Download);
-      case DEVICE_MODEL_COLUMN_INDEX:
-      case API_MODEL_COLUMN_INDEX:
-      case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
-        return false;
-      case LAUNCH_OR_STOP_MODEL_COLUMN_INDEX:
+    return switch (modelColumnIndex) {
+      case DEVICE_ICON_MODEL_COLUMN_INDEX -> myDevices.get(modelRowIndex).getIcon().equals(AllIcons.Actions.Download);
+      case DEVICE_MODEL_COLUMN_INDEX, API_MODEL_COLUMN_INDEX, SIZE_ON_DISK_MODEL_COLUMN_INDEX -> false;
+      case LAUNCH_OR_STOP_MODEL_COLUMN_INDEX -> {
         VirtualDevice device = myDevices.get(modelRowIndex);
-        return device.getState().isEnabled(device);
-      case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
-        return myProject != null && myDevices.get(modelRowIndex).isOnline();
-      case EDIT_MODEL_COLUMN_INDEX:
-      case POP_UP_MENU_MODEL_COLUMN_INDEX:
-        return true;
-      default:
-        throw new AssertionError(modelColumnIndex);
-    }
+        yield device.getState().isEnabled(device);
+      }
+      case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX -> myProject != null && myDevices.get(modelRowIndex).isOnline();
+      case EDIT_MODEL_COLUMN_INDEX, POP_UP_MENU_MODEL_COLUMN_INDEX -> true;
+      default -> throw new AssertionError(modelColumnIndex);
+    };
   }
 
   @Override
   public @NotNull Object getValueAt(int modelRowIndex, int modelColumnIndex) {
-    switch (modelColumnIndex) {
-      case DEVICE_ICON_MODEL_COLUMN_INDEX:
-        return myDevices.get(modelRowIndex).getType();
-      case DEVICE_MODEL_COLUMN_INDEX:
-        return myDevices.get(modelRowIndex);
-      case API_MODEL_COLUMN_INDEX:
-        return myDevices.get(modelRowIndex).getAndroidVersion();
-      case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
-        return myDevices.get(modelRowIndex).getSizeOnDisk();
-      case LAUNCH_OR_STOP_MODEL_COLUMN_INDEX:
-        return myDevices.get(modelRowIndex).getState();
-      case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
-        return ActivateDeviceFileExplorerWindowValue.INSTANCE;
-      case EDIT_MODEL_COLUMN_INDEX:
-        return EditValue.INSTANCE;
-      case POP_UP_MENU_MODEL_COLUMN_INDEX:
-        return PopUpMenuValue.INSTANCE;
-      default:
-        throw new AssertionError(modelColumnIndex);
-    }
+    return switch (modelColumnIndex) {
+      case DEVICE_ICON_MODEL_COLUMN_INDEX -> myDevices.get(modelRowIndex).getType();
+      case DEVICE_MODEL_COLUMN_INDEX -> myDevices.get(modelRowIndex);
+      case API_MODEL_COLUMN_INDEX -> myDevices.get(modelRowIndex).getAndroidVersion();
+      case SIZE_ON_DISK_MODEL_COLUMN_INDEX -> myDevices.get(modelRowIndex).getSizeOnDisk();
+      case LAUNCH_OR_STOP_MODEL_COLUMN_INDEX -> myDevices.get(modelRowIndex).getState();
+      case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX -> ActivateDeviceFileExplorerWindowValue.INSTANCE;
+      case EDIT_MODEL_COLUMN_INDEX -> EditValue.INSTANCE;
+      case POP_UP_MENU_MODEL_COLUMN_INDEX -> PopUpMenuValue.INSTANCE;
+      default -> throw new AssertionError(modelColumnIndex);
+    };
   }
 
   @SuppressWarnings("DuplicateBranchesInSwitch")
@@ -346,22 +316,11 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
 
   private void launchOrStop(@NotNull VirtualDevice.State state, int modelRowIndex) {
     switch (state) {
-      case STOPPED:
-        assert false;
-        break;
-      case LAUNCHING:
-        launch(modelRowIndex);
-        break;
-      case LAUNCHED:
-        // noinspection DuplicateBranchesInSwitch
-        assert false;
-        break;
-      case STOPPING:
-        stop(modelRowIndex);
-        break;
-      default:
+      case LAUNCHING -> launch(modelRowIndex);
+      case STOPPING -> stop(modelRowIndex);
+      default -> {
         assert false : state;
-        break;
+      }
     }
   }
 

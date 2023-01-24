@@ -21,13 +21,14 @@ import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
 
 final class LaunchOrStopButtonTableCellRenderer extends IconButtonTableCellRenderer {
+  @NotNull
   @Override
-  public @NotNull Component getTableCellRendererComponent(@NotNull JTable table,
-                                                          @NotNull Object value,
-                                                          boolean selected,
-                                                          boolean focused,
-                                                          int viewRowIndex,
-                                                          int viewColumnIndex) {
+  public Component getTableCellRendererComponent(@NotNull JTable table,
+                                                 @NotNull Object value,
+                                                 boolean selected,
+                                                 boolean focused,
+                                                 int viewRowIndex,
+                                                 int viewColumnIndex) {
     VirtualDevice.State state = (VirtualDevice.State)value;
 
     myButton.setDefaultIcon(state.getIcon());
