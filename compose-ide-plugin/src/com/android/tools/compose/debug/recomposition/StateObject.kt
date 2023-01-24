@@ -25,14 +25,14 @@ import com.intellij.xdebugger.frame.XNamedValue
  * There are 2 types of objects, parameters (including an extension receiver) and a `this` pointer. A [StateObject] can be converted into an
  * [XNamedValue] which can then be added to the [ComposeStateNode].
  */
-internal sealed class StateObject(val state: ParamState) {
+internal sealed class StateObject(val state: ParamState, val name: String) {
   abstract fun toXValue(context: EvaluationContextImpl): XNamedValue
 
-  class Parameter(state: ParamState, val name: String, val param: LocalVariableProxyImpl?) : StateObject(state) {
+  class Parameter(state: ParamState, name: String, val param: LocalVariableProxyImpl?) : StateObject(state, name) {
     override fun toXValue(context: EvaluationContextImpl): XNamedValue = ParameterNode(context, name, param, state)
   }
 
-  class ThisObject(state: ParamState) : StateObject(state) {
+  class ThisObject(state: ParamState) : StateObject(state, "this") {
     override fun toXValue(context: EvaluationContextImpl): XNamedValue = ThisObjectNode(context, state)
   }
 }

@@ -23,6 +23,7 @@ import com.intellij.xdebugger.frame.XValueChildrenList
 import com.intellij.xdebugger.frame.XValueNode
 import com.intellij.xdebugger.frame.XValuePlace
 import icons.StudioIcons
+import kotlin.collections.Map.Entry
 
 /**
  *  A [XNamedValue] representing the recomposition state of the enclosing Composable function/lambda
@@ -30,7 +31,7 @@ import icons.StudioIcons
  *  The node looks something like this:
  *
  *  ```
- *  + Recomposition State = [Different, Same, Same]
+ *  + Recomposition State = Arguments: Different: [arg1] Same: [arg2, this]
  *    + arg1 = Different
  *      + value = <value of arg1>
  *    + arg2 = Same
@@ -50,18 +51,24 @@ internal class ComposeStateNode(
   private val childNodes = stateObjects.map { it.toXValue(evaluationContext) }
 
   override fun computePresentation(node: XValueNode, place: XValuePlace) {
-    val forceText = if (forced) " ${ComposeBundle.message("recomposition.state.forced")}" else ""
-    node.setPresentation(
-      StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION,
-      null,
-      stateObjects.joinToString(prefix = "[", postfix = "]$forceText") { it.state.getDisplayName() },
-      true
-    )
+    val summary = when {
+      forced -> ComposeBundle.message("recomposition.state.forced")
+      stateObjects.isEmpty() -> ComposeBundle.message("recomposition.state.composing")
+      else -> getStateSummary()
+    }
+    node.setPresentation(StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION, null, summary, true)
   }
 
   override fun computeChildren(node: XCompositeNode) {
     val children = XValueChildrenList(childNodes.size)
     childNodes.forEach { children.add(it) }
     node.addChildren(children, true)
+  }
+
+  private fun getStateSummary(): String {
+    fun Entry<ParamState, List<StateObject>>.toSummary() = "${key.name}: [${value.joinToString { it.name }}]"
+
+    val summary = stateObjects.groupBy { it.state }.entries.joinToString { it.toSummary() }
+    return ComposeBundle.message("recomposition.state.summary", summary)
   }
 }
