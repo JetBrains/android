@@ -153,7 +153,7 @@ internal class DeviceClient(
     @Suppress("BlockingMethodInNonBlockingContext")
     val asyncChannel = AsynchronousServerSocketChannel.open().bind(InetSocketAddress(0))
     val port = (asyncChannel.localAddress as InetSocketAddress).port
-    thisLogger().debug("Using port $port")
+    logger.debug("Using port $port")
     SuspendingServerSocketChannel(asyncChannel).use { serverSocketChannel ->
       val socketName = "screen-sharing-agent-$port"
       ClosableReverseForwarding(deviceSelector, SocketSpec.LocalAbstract(socketName), SocketSpec.Tcp(port), adb).use {
@@ -242,7 +242,7 @@ internal class DeviceClient(
           }
         }
         catch (e: IOException) {
-          thisLogger().warn(e)
+          logger.warn(e)
         }
       }
       try {
@@ -251,7 +251,7 @@ internal class DeviceClient(
         }
       }
       catch (e: IOException) {
-        thisLogger().warn(e)
+        logger.warn(e)
       }
       videoChannelClosed.await()
     }
@@ -289,7 +289,6 @@ internal class DeviceClient(
     }
 
     coroutineScope {
-      this@DeviceClient.thisLogger()
       // "chown shell:shell" ensures proper ownership of /data/local/tmp/.studio if adb is rooted.
       val command = "mkdir -p $DEVICE_PATH_BASE; chmod 700 $DEVICE_PATH_BASE; chown shell:shell $DEVICE_PATH_BASE"
       adb.shellAsLines(deviceSelector, command).collect {
