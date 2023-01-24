@@ -33,6 +33,7 @@ import com.sun.jdi.Location
 import org.jetbrains.kotlin.idea.debugger.core.stackFrame.KotlinStackFrame
 import org.jetbrains.kotlin.idea.debugger.core.stackFrame.KotlinStackFrameValueContributor
 import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtFunctionLiteral
 import java.util.concurrent.CancellationException
 
 private const val COMPOSER_VAR = "\$composer"
@@ -76,8 +77,7 @@ internal class ComposeValueContributor : KotlinStackFrameValueContributor {
       val nodeManager = context.debugProcess.xdebugProcess?.nodeManager
       if (nodeManager == null) {
         thisLogger().warn("Unable to add $COMPOSER_VAR. nodeManager is null")
-      }
-      else {
+      } else {
         values.add(JavaValue.create(null, LocalVariableDescriptorImpl(context.project, composer), context, nodeManager, false))
       }
     }
@@ -87,6 +87,7 @@ internal class ComposeValueContributor : KotlinStackFrameValueContributor {
     val forced = (dirty ?: changed).intValue(frame) and 0b1 != 0
 
     val states = getParamStates(frame, variables)
+
     val stateObjects = mutableListOf<StateObject>()
 
     val firstParameter = variables.minWithOrNull { v1, v2 ->
@@ -96,18 +97,18 @@ internal class ComposeValueContributor : KotlinStackFrameValueContributor {
       stateObjects.add(Parameter(states.first(), firstParameter.variable.name(), firstParameter))
     }
 
-    // Named parameters
     try {
-      val parameters = findNamedParameters(context.debugProcess.positionManager, frame.stackFrameProxy.location())
-      parameters.zip(states.drop(stateObjects.size)).forEach { (param, state) ->
+      val functionInfo = getFunctionInfo(context.debugProcess.positionManager, frame.stackFrameProxy.location())
+      // Named parameters
+      functionInfo.parameters.zip(states.drop(stateObjects.size)).forEach { (param, state) ->
         stateObjects.add(Parameter(state, param, variableMap[param]))
       }
+
       // This object
       if (frame.descriptor.thisObject != null) {
         stateObjects.add(ThisObject(states[stateObjects.size]))
       }
-      values.add(ComposeStateNode(context, forced, stateObjects))
-
+      values.add(ComposeStateNode(context, forced, functionInfo.description, stateObjects))
     }
     catch (e: IllegalStateException) {
       thisLogger().error("Error fetching parameters for $frame", e)
@@ -121,13 +122,23 @@ internal class ComposeValueContributor : KotlinStackFrameValueContributor {
    *
    * Inspired by [org.jetbrains.kotlin.idea.debugger.coroutine.KotlinVariableNameFinder.findVariableNames].
    */
-  private fun findNamedParameters(positionManager: CompoundPositionManager, location: Location): List<String> {
+  private fun getFunctionInfo(positionManager: CompoundPositionManager, location: Location): FunctionInfo {
     val position = positionManager.getSourcePosition(location) ?: throw IllegalStateException("Unable to get source position")
     return runReadAction {
       val function = position.elementAt.parentOfType<KtFunction>(withSelf = true)
                      ?: throw IllegalStateException("Unable to find KtFunction element")
-      function.valueParameters.mapNotNull { it.name }
+      val parameters = function.valueParameters.mapNotNull { it.name }
+      FunctionInfo(function.getDescription(), parameters)
     }
+  }
+
+  private class FunctionInfo(val description: String, val parameters: List<String>)
+}
+
+private fun KtFunction.getDescription(): String {
+  return when (this) {
+    is KtFunctionLiteral -> ComposeBundle.message("recomposition.state.function.description.lambda")
+    else -> ComposeBundle.message("recomposition.state.function.description.function", nameAsSafeName.asString())
   }
 }
 
