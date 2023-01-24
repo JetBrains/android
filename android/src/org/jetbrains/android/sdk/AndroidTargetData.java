@@ -36,6 +36,8 @@ import com.android.tools.idea.res.FrameworkResourceRepositoryManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.internal.statistic.analytics.StudioCrashDetails;
+import com.intellij.internal.statistic.analytics.StudioCrashDetection;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -165,6 +167,21 @@ public class AndroidTargetData {
     }
   }
 
+  private static boolean isCrashCausedByLayoutlib(@NotNull StudioCrashDetails crash) {
+    return crash.isJvmCrash() &&
+           (crash.getErrorThread().contains("Layoutlib Render Thread") || crash.getErrorFrame().contains("libandroid_runtime"));
+  }
+
+  private static boolean hasStudioCrash() {
+    List<StudioCrashDetails> crashes = StudioCrashDetection.reapCrashDescriptions();
+    for (StudioCrashDetails crash : crashes) {
+      if (isCrashCausedByLayoutlib(crash)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Slow
   @NotNull
   public LayoutLibrary getLayoutLibrary(@NotNull Project project) throws RenderingException {
@@ -181,7 +198,7 @@ public class AndroidTargetData {
       if (!(myTarget instanceof StudioEmbeddedRenderTarget)) {
         LOG.warn("Rendering will not use the StudioEmbeddedRenderTarget");
       }
-      myLayoutLibrary = LayoutLibraryLoader.load(myTarget, getFrameworkEnumValues());
+      myLayoutLibrary = LayoutLibraryLoader.load(myTarget, getFrameworkEnumValues(), AndroidTargetData::hasStudioCrash);
       Disposer.register(((ProjectEx)project).getEarlyDisposable(), myLayoutLibrary);
     }
 

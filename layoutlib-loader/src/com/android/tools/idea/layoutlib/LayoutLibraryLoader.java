@@ -22,20 +22,17 @@ import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.utils.ILogger;
-import com.intellij.internal.statistic.analytics.StudioCrashDetails;
-import com.intellij.internal.statistic.analytics.StudioCrashDetection;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.system.CpuArch;
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
-import java.util.List;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -56,8 +53,7 @@ public class LayoutLibraryLoader {
   private static LayoutLibrary loadImpl(@NotNull IAndroidTarget target, @NotNull Map<String, Map<String, Integer>> enumMap)
     throws RenderingException {
     final Path fontFolderPath = (target.getPath(IAndroidTarget.FONTS));
-    final VirtualFile fontFolder = LocalFileSystem.getInstance().findFileByNioFile(fontFolderPath);
-    if (fontFolder == null || !fontFolder.isDirectory()) {
+    if (!Files.exists(fontFolderPath) || !Files.isDirectory(fontFolderPath)) {
       throw new RenderingException(
         LayoutlibBundle.message("android.directory.cannot.be.found.error", fontFolderPath));
     }
@@ -84,7 +80,7 @@ public class LayoutLibraryLoader {
 
     LayoutLibrary library = LayoutLibraryProvider.EP_NAME.computeSafeIfAny(LayoutLibraryProvider::getLibrary);
     if (library == null ||
-        !library.init(buildPropMap != null ? buildPropMap : Collections.emptyMap(), new File(fontFolder.getPath()),
+        !library.init(buildPropMap != null ? buildPropMap : Collections.emptyMap(), fontFolderPath.toFile(),
                       getNativeLibraryPath(dataPath), dataPath + "/icu/icudt70l.dat", keyboardPaths, enumMap, layoutLog)) {
       throw new RenderingException(LayoutlibBundle.message("layoutlib.init.failed"));
     }
@@ -108,30 +104,25 @@ public class LayoutLibraryLoader {
    * Loads and initializes layoutlib.
    */
   @NotNull
-  public static synchronized LayoutLibrary load(@NotNull IAndroidTarget target, @NotNull Map<String, Map<String, Integer>> enumMap)
+  public static synchronized LayoutLibrary load(
+    @NotNull IAndroidTarget target,
+    @NotNull Map<String, Map<String, Integer>> enumMap,
+    @NotNull Supplier<Boolean> hasExternalCrash)
     throws RenderingException {
     if (Bridge.hasNativeCrash()) {
       throw new RenderingException("Rendering disabled following a crash");
     }
     LayoutLibrary library = ourLibraryCache.get(target);
     if (library == null || library.isDisposed()) {
-      List<StudioCrashDetails> crashes = StudioCrashDetection.reapCrashDescriptions();
-      for (StudioCrashDetails crash : crashes) {
-        if (isCrashCausedByLayoutlib(crash)) {
-          Bridge.setNativeCrash(true);
-          throw new RenderingException("Rendering disabled following a crash");
-        }
+      if (hasExternalCrash.get()) {
+        Bridge.setNativeCrash(true);
+        throw new RenderingException("Rendering disabled following a crash");
       }
       library = loadImpl(target, enumMap);
       ourLibraryCache.put(target, library);
     }
 
     return library;
-  }
-
-  private static boolean isCrashCausedByLayoutlib(@NotNull StudioCrashDetails crash) {
-    return crash.isJvmCrash() &&
-           (crash.getErrorThread().contains("Layoutlib Render Thread") || crash.getErrorFrame().contains("libandroid_runtime"));
   }
 
   /**
