@@ -15,6 +15,7 @@
  */
 package com.android.tools.compose.debug.recomposition
 
+import com.android.tools.compose.ComposeBundle
 import com.android.tools.compose.debug.recomposition.StateObject.Parameter
 import com.android.tools.compose.debug.recomposition.StateObject.ThisObject
 import com.intellij.debugger.engine.CompoundPositionManager
@@ -75,7 +76,8 @@ internal class ComposeValueContributor : KotlinStackFrameValueContributor {
       val nodeManager = context.debugProcess.xdebugProcess?.nodeManager
       if (nodeManager == null) {
         thisLogger().warn("Unable to add $COMPOSER_VAR. nodeManager is null")
-      } else {
+      }
+      else {
         values.add(JavaValue.create(null, LocalVariableDescriptorImpl(context.project, composer), context, nodeManager, false))
       }
     }
@@ -85,8 +87,6 @@ internal class ComposeValueContributor : KotlinStackFrameValueContributor {
     val forced = (dirty ?: changed).intValue(frame) and 0b1 != 0
 
     val states = getParamStates(frame, variables)
-    val parameters = findNamedParameters(context.debugProcess.positionManager, frame.stackFrameProxy.location())
-
     val stateObjects = mutableListOf<StateObject>()
 
     val firstParameter = variables.minWithOrNull { v1, v2 ->
@@ -97,16 +97,22 @@ internal class ComposeValueContributor : KotlinStackFrameValueContributor {
     }
 
     // Named parameters
-    parameters.zip(states.drop(stateObjects.size)).forEach { (param, state) ->
-      stateObjects.add(Parameter(state, param, variableMap[param]))
-    }
+    try {
+      val parameters = findNamedParameters(context.debugProcess.positionManager, frame.stackFrameProxy.location())
+      parameters.zip(states.drop(stateObjects.size)).forEach { (param, state) ->
+        stateObjects.add(Parameter(state, param, variableMap[param]))
+      }
+      // This object
+      if (frame.descriptor.thisObject != null) {
+        stateObjects.add(ThisObject(states[stateObjects.size]))
+      }
+      values.add(ComposeStateNode(context, forced, stateObjects))
 
-    // This object
-    if (frame.descriptor.thisObject != null) {
-      stateObjects.add(ThisObject(states[stateObjects.size]))
     }
-    values.add(ComposeStateNode(context, forced, stateObjects))
-
+    catch (e: IllegalStateException) {
+      thisLogger().error("Error fetching parameters for $frame", e)
+      values.add(ErrorNode(ComposeBundle.message("recomposition.state.missing.parameters")))
+    }
     return values
   }
 
@@ -116,19 +122,10 @@ internal class ComposeValueContributor : KotlinStackFrameValueContributor {
    * Inspired by [org.jetbrains.kotlin.idea.debugger.coroutine.KotlinVariableNameFinder.findVariableNames].
    */
   private fun findNamedParameters(positionManager: CompoundPositionManager, location: Location): List<String> {
-    val position = positionManager.getSourcePosition(location)
-    if (position == null) {
-      // TODO(266481577): Throw and add an error node to the tree?
-      thisLogger().warn("Unable to get source position for location $location")
-      return emptyList()
-    }
+    val position = positionManager.getSourcePosition(location) ?: throw IllegalStateException("Unable to get source position")
     return runReadAction {
       val function = position.elementAt.parentOfType<KtFunction>(withSelf = true)
-      if (function == null) {
-        // TODO(266481577): Throw and add an error node to the tree?
-        thisLogger().warn("Unable to find KtFunction element as $position")
-        return@runReadAction emptyList()
-      }
+                     ?: throw IllegalStateException("Unable to find KtFunction element")
       function.valueParameters.mapNotNull { it.name }
     }
   }
