@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.dagger.index.concepts
 
+import com.android.tools.idea.dagger.index.DaggerConceptIndexers
 import com.android.tools.idea.dagger.index.IndexValue
-import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexFieldWrapper
-import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexMethodWrapper
-import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexPsiWrapper
 
 /**
  * Represents a concept in the Dagger framework that will be indexed and analyzed at runtime. Some examples include "injected constructor",
@@ -36,28 +34,5 @@ interface DaggerConcept {
       InjectedConstructorDaggerConcept,
       InjectedFieldDaggerConcept,
       ProvidesMethodDaggerConcept)
-  }
-}
-
-/** Utility class containing [DaggerConceptIndexer]s associated with [DaggerConcept]s. */
-class DaggerConceptIndexers(
-  val fieldIndexers: List<DaggerConceptIndexer<DaggerIndexFieldWrapper>> = emptyList(),
-  val methodIndexers: List<DaggerConceptIndexer<DaggerIndexMethodWrapper>> = emptyList()) {
-
-  companion object {
-    val ALL_INDEXERS = DaggerConcept.ALL_CONCEPTS.map { it.indexers }.let { indexers ->
-      DaggerConceptIndexers(
-        indexers.map { it.fieldIndexers }.flatten(),
-        indexers.map { it.methodIndexers }.flatten())
-    }
-  }
-}
-
-/** An indexer for a single [DaggerConcept]. Operates using a [DaggerIndexPsiWrapper], so that the logic is common to Kotlin and Java. */
-interface DaggerConceptIndexer<T : DaggerIndexPsiWrapper> {
-  fun addIndexEntries(wrapper: T, indexEntries: MutableMap<String, MutableSet<IndexValue>>)
-
-  fun MutableMap<String, MutableSet<IndexValue>>.addIndexValue(key: String, value: IndexValue) {
-    this.getOrPut(key) { mutableSetOf() }.add(value)
   }
 }
