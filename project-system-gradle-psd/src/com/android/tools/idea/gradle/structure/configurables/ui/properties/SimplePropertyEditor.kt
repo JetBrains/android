@@ -34,9 +34,13 @@ import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.meta.valueFormatter
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.components.ActionLink
+import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.util.ui.accessibility.ScreenReader
 import icons.StudioIcons
 import java.awt.BorderLayout
@@ -47,6 +51,7 @@ import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.BorderFactory
 import javax.swing.DefaultComboBoxModel
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -69,7 +74,9 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
     cellEditor: TableCellEditor? = null,
     private val isPropertyContext: Boolean = false,
     private val logValueEdited: () -> Unit = {},
-    private val hideMiniButton: Boolean = false
+    private val hideMiniButton: Boolean = false,
+    private val viewOnly: Boolean = false,
+    private val note: Pair<String, String?>? = null
 ) :
     PropertyEditorBase<ModelPropertyT, PropertyT>(property, propertyContext, variablesScope),
     ModelPropertyEditor<PropertyT>,
@@ -222,6 +229,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
         putClientProperty(TABLE_CELL_EDITOR_PROPERTY, cellEditor)
       }
       setEditable(true)
+      isEnabled = !viewOnly
 
       addActionListener {
         if (!disposed && !beingLoaded) {
@@ -256,6 +264,23 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
       isFocusable = false
       add(renderedComboBox)
       if(!hideMiniButton) add(createMiniButton(extensions.firstOrNull { it.isMainAction }), BorderLayout.EAST)
+      if(note != null) {
+        val subPanel = JPanel(HorizontalLayout(5)).apply {
+          add(JBLabel(note.first), HorizontalLayout.LEFT)
+          note.second?.let { url ->
+            ActionLink("Learn more")
+              .apply {
+                addActionListener { BrowserUtil.browse(url) }
+                setExternalLinkIcon()
+              }
+              .also {
+                add(it, HorizontalLayout.LEFT)
+              }
+          }
+        }
+        subPanel.border = BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0), subPanel.border)
+        add(subPanel, BorderLayout.SOUTH)
+      }
     }
 
     private fun createMiniButton(extensionAction: EditorExtensionAction<PropertyT, ModelPropertyT>?): JComponent {
@@ -358,7 +383,9 @@ fun <ModelPropertyT : ModelPropertyCore<PropertyT>, PropertyT : Any> simplePrope
     isPropertyContext: Boolean,
     cellEditor: TableCellEditor?,
     logValueEdited: () -> Unit = { /* no usage tracking */ },
-    hideMiniButton: Boolean = false
+    hideMiniButton: Boolean = false,
+    viewOnly: Boolean = false,
+    note: Pair<String, String?>? = null
 ): SimplePropertyEditor<PropertyT, ModelPropertyT> =
     SimplePropertyEditor(
         boundProperty,
@@ -368,4 +395,6 @@ fun <ModelPropertyT : ModelPropertyCore<PropertyT>, PropertyT : Any> simplePrope
         cellEditor,
         isPropertyContext,
         logValueEdited,
-        hideMiniButton)
+        hideMiniButton,
+        viewOnly,
+        note)
