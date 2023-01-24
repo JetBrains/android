@@ -188,6 +188,10 @@ internal class FakePopupChooserBuilder<T>(
     TODO("Not yet implemented")
   }
 
+  override fun setCancelOnOtherWindowOpen(cancelOnWindow: Boolean): IPopupChooserBuilder<T> {
+    TODO("Not yet implemented")
+  }
+
   override fun setSelectionMode(selection: Int): IPopupChooserBuilder<T> {
     TODO("Not yet implemented")
   }
