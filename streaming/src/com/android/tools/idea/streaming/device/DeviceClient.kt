@@ -91,7 +91,7 @@ internal class DeviceClient(
   internal var pushEndTime = 0L // Time when the agent push completed.
   internal var startAgentTime = 0L // Time when the command to start the agent was issued.
   internal var channelConnectedTime = 0L // Time when the channels were connected.
-  private val coroutineScope = AndroidCoroutineScope(this)
+  private val clientScope = AndroidCoroutineScope(this)
   private lateinit var controlChannel: SuspendingSocketChannel
   private lateinit var videoChannel: SuspendingSocketChannel
   private val connectionState = AtomicReference<CompletableDeferred<Unit>>()
@@ -107,7 +107,7 @@ internal class DeviceClient(
    * Asynchronously establishes connection to the screen sharing agent without activating the video stream.
    */
   fun establishAgentConnectionWithoutVideoStreamAsync() {
-    coroutineScope.launch { establishAgentConnection(Dimension(), UNKNOWN_ORIENTATION, false)}
+    clientScope.launch { establishAgentConnection(Dimension(), UNKNOWN_ORIENTATION, false)}
   }
 
   /**
@@ -170,7 +170,7 @@ internal class DeviceClient(
     catch (e: IncorrectOperationException) {
       return // Already disposed.
     }
-    videoDecoder = VideoDecoder(videoChannel, coroutineScope, maxVideoSize).apply { start() }
+    videoDecoder = VideoDecoder(videoChannel, clientScope, maxVideoSize).apply { start() }
     videoStreamActive.set(startVideoStream)
   }
 
