@@ -65,7 +65,7 @@ internal class PreviewSurfaceActionManager(
     }
     // Jump to Definition
     ((surface as? NlDesignSurface)?.navigationHandler as? ComposePreviewNavigationHandler)?.let {
-      actionGroup.add(JumpToDefinitionAction(surface, sceneManagerProvider, it, sceneView))
+      actionGroup.add(JumpToDefinitionAction(surface, it, sceneView))
     }
     return actionGroup
   }
