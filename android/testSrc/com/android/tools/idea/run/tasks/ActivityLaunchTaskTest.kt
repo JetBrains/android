@@ -58,7 +58,6 @@ class ActivityLaunchTaskTest {
     assertThat(result.result).isEqualTo(LaunchResult.Result.SUCCESS)
     assertThat(result.errorId).isEmpty()
     assertThat(result.message).isEmpty()
-    assertThat(result.consoleMessage).isEmpty()
   }
 
   @Test
@@ -72,7 +71,6 @@ class ActivityLaunchTaskTest {
     assertThat(result.result).isEqualTo(LaunchResult.Result.ERROR)
     assertThat(result.errorId).isEqualTo(ActivityLaunchTask.UNABLE_TO_DETERMINE_LAUNCH_ACTIVITY)
     assertThat(result.message).isEqualTo("Error test launching activity")
-    assertThat(result.consoleMessage).isEqualTo("Error while test launching activity")
   }
 
   @Test
@@ -89,7 +87,6 @@ class ActivityLaunchTaskTest {
     assertThat(result.result).isEqualTo(LaunchResult.Result.ERROR)
     assertThat(result.errorId).isEqualTo(ActivityLaunchTask.ACTIVITY_DOES_NOT_EXIST)
     assertThat(result.message).isEqualTo("Error test launching activity")
-    assertThat(result.consoleMessage).isEqualTo("Error while test launching activity")
   }
 
   @Test
@@ -106,7 +103,6 @@ class ActivityLaunchTaskTest {
     assertThat(result.result).isEqualTo(LaunchResult.Result.ERROR)
     assertThat(result.errorId).isEqualTo(UNKNOWN_ACTIVITY_LAUNCH_TASK_ERROR)
     assertThat(result.message).isEqualTo("Error test launching activity")
-    assertThat(result.consoleMessage).isEqualTo("Error while test launching activity")
   }
 }
 

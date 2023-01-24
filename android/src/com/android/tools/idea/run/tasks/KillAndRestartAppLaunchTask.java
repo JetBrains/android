@@ -29,6 +29,7 @@ import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.playback.commands.ActionCommand;
 import javax.swing.JComponent;
@@ -103,8 +104,7 @@ public class KillAndRestartAppLaunchTask implements LaunchTask {
       result.setResult(LaunchResult.Result.ERROR);
       result.setErrorId("");
       result.setMessage("Swap failed, need to rerun.");
-      result.setConsoleMessage("Swap failed, need to rerun.");
-      result.addOnFinishedCallback(() -> {
+      ApplicationManager.getApplication().invokeLater(() -> {
         ActionManager manager = ActionManager.getInstance();
         String id;
         if (DefaultRunExecutor.getRunExecutorInstance().getId().equals(launchContext.getExecutor().getId())) {

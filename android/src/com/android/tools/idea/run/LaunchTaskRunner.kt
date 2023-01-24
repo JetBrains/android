@@ -45,7 +45,6 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.execution.ui.RunContentManager
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.runBlockingCancellable
@@ -73,7 +72,6 @@ class LaunchTaskRunner(
 ) : AndroidConfigurationExecutor {
 
   val project = myEnv.project
-  private val myOnFinished = ArrayList<Runnable>()
   override val configuration = myEnv.runProfile as RunConfiguration
   private val LOG = Logger.getInstance(this::class.java)
 
@@ -153,10 +151,6 @@ class LaunchTaskRunner(
           }
         }
       }.awaitAll()
-
-      for (runnable in myOnFinished) {
-        ApplicationManager.getApplication().invokeLater(runnable)
-      }
     }
     finally {
       stat.endLaunchTasks()
@@ -255,7 +249,6 @@ class LaunchTaskRunner(
       if (task.shouldRun(launchContext)) {
         val details = stat.beginLaunchTask(task)
         val launchResult = task.run(launchContext)
-        myOnFinished.addAll(launchResult.onFinishedCallbacks())
 
         when (launchResult.result) {
           LaunchResult.Result.SUCCESS -> stat.endLaunchTask(task, details, true)

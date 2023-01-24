@@ -18,8 +18,6 @@ package com.android.tools.idea.run.tasks;
 import static com.android.tools.idea.run.tasks.LaunchResult.Result.ERROR;
 import static com.android.tools.idea.run.tasks.LaunchResult.Result.SUCCESS;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class LaunchResult {
@@ -32,14 +30,11 @@ public class LaunchResult {
   private String myErrorId;
   private String myConsoleMessage;
 
-  private final List<Runnable> myOnFinishedCallbacks;
-
   public LaunchResult() {
     myResult = SUCCESS;
     myMessage = "";
     myErrorId = "";
     myConsoleMessage = "";
-    myOnFinishedCallbacks = new ArrayList<>();
   }
 
   public void setResult(Result result) {
@@ -65,23 +60,6 @@ public class LaunchResult {
   public String getErrorId() {
     return myErrorId;
   }
-
-  public void setConsoleMessage(String consoleMessage) {
-    myConsoleMessage = consoleMessage;
-  }
-
-  public String getConsoleMessage() {
-    return myConsoleMessage;
-  }
-
-  public List<Runnable> onFinishedCallbacks() {
-    return myOnFinishedCallbacks;
-  }
-
-  public void addOnFinishedCallback(Runnable runnable) {
-    myOnFinishedCallbacks.add(runnable);
-  }
-
   @NotNull
   public static LaunchResult success() {
     return new LaunchResult();
@@ -93,7 +71,6 @@ public class LaunchResult {
     result.setResult(ERROR);
     result.setErrorId(errorId);
     result.setMessage("Error " + taskDescription);
-    result.setConsoleMessage("Error while " + taskDescription);
     return result;
   }
 }
