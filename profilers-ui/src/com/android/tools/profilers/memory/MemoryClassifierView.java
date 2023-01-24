@@ -102,6 +102,8 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
   private static final String HELP_TIP_HEADER_EXPLICIT_CAPTURE = "Selected capture has no contents";
   private static final String HELP_TIP_DESCRIPTION_EXPLICIT_CAPTURE = "There are no allocations in the selected capture.";
   private static final String HELP_TIP_HEADER_FILTER_NO_MATCH = "Selected filters have no match";
+  private static final String HELP_TIP_HEADER_FILTER_NO_RESULTS = "The filter term provided returned no results";
+  private static final String HELP_TIP_DESCRIPTION_FILTER_NO_RESULTS = "You can modify your filter term or filter settings to try again.";
 
   @NotNull private final MemoryCaptureSelection mySelection;
 
@@ -471,6 +473,10 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
                                    filterNames.size() > 1 ? "s" : "",
                                    String.join(", ", filterNames));
         myClassifierPanel.add(makeInstructionsPanel(HELP_TIP_HEADER_FILTER_NO_MATCH, msg), BorderLayout.CENTER);
+      }
+      else if (myHeapSet != null && myHeapSet.isFiltered()) {
+        myClassifierPanel.add(makeInstructionsPanel(HELP_TIP_HEADER_FILTER_NO_RESULTS, HELP_TIP_DESCRIPTION_FILTER_NO_RESULTS),
+                              BorderLayout.CENTER);
       }
       else {
         myClassifierPanel.add(myHelpTipPanel, BorderLayout.CENTER);
