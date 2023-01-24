@@ -674,18 +674,52 @@ py_test(
     ],
 )
 
+config_setting(
+    name = "macos-arm64",
+    constraint_values = [
+        "@platforms//os:macos",
+        "@platforms//cpu:arm64",
+    ],
+    visibility = ["//visibility:private"],
+)
+
+config_setting(
+    name = "macos-x86_64",
+    constraint_values = [
+        "@platforms//os:macos",
+        "@platforms//cpu:x86_64",
+    ],
+    visibility = ["//visibility:private"],
+)
+
 py_test(
     name = "test_updater",
     timeout = "long",  # b/233245811
     srcs = ["tests/test_updater.py"],
     data = [
-        ":android-studio.linux.zip",
-        ":android-studio.mac.zip",
-        ":android-studio.mac_arm.zip",
-        ":android-studio.win.zip",
         ":updater",
         ":updater.jar",
-    ],
+    ] + select({
+        # On macOS, the test converts macOS ↔ Windows
+        ":macos-arm64": [
+            ":android-studio.mac_arm.zip",
+            ":android-studio.win.zip",
+        ],
+        ":macos-x86_64": [
+            ":android-studio.mac.zip",
+            ":android-studio.win.zip",
+        ],
+        # On Windows, the test converts Windows ↔ macOS
+        "@platforms//os:windows": [
+            ":android-studio.win.zip",
+            ":android-studio.mac.zip",
+        ],
+        # On Linux, the test converts Linux ↔ Windows
+        "@platforms//os:linux": [
+            ":android-studio.linux.zip",
+            ":android-studio.win.zip",
+        ],
+    }),
     tags = ["no_windows"],  # b/233968084
 )
 

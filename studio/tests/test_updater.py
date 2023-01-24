@@ -202,8 +202,8 @@ class UpdaterTests(unittest.TestCase):
   def test_patch_platforms(self):
     current_platform = get_current_platform()
 
-    if current_platform == Platform.LINUX:
-      self.validate_patcher(Platform.LINUX.get_path_to_zip(),
+    if current_platform == Platform.LINUX or current_platform == Platform.MAC_ARM:
+      self.validate_patcher(current_platform.get_path_to_zip(),
                             Platform.WIN.get_path_to_zip())
     else:
       self.validate_patcher(Platform.MAC.get_path_to_zip(),
