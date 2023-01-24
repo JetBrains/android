@@ -17,6 +17,7 @@ package com.android.tools.idea.run.tasks
 
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.execution.common.RunConfigurationNotifier
 import com.android.tools.idea.run.tasks.LaunchTaskDurations.CLEAR_APP_DATA
 import org.jetbrains.android.util.AndroidBundle
 
@@ -39,7 +40,9 @@ class ClearAppStorageTask(private val packageName: String) : LaunchTask {
     if (packageList.contains("^package:${packageName.replace(".", "\\.")}$".toRegex())) {
       val result = device.shellToString("pm clear $packageName").trim()
       if (result != "Success") {
-        return LaunchResult.warning(AndroidBundle.message("android.launch.task.clear.app.data.error", packageName, device))
+        val message = AndroidBundle.message("android.launch.task.clear.app.data.error", packageName, device)
+        RunConfigurationNotifier.notifyWarning(launchContext.project, "", message)
+        launchContext.consolePrinter.stdout(message)
       }
     }
     return LaunchResult.success()

@@ -17,7 +17,6 @@ package com.android.tools.idea.run.tasks;
 
 import static com.android.tools.idea.run.tasks.LaunchResult.Result.ERROR;
 import static com.android.tools.idea.run.tasks.LaunchResult.Result.SUCCESS;
-import static com.android.tools.idea.run.tasks.LaunchResult.Result.WARNING;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 public class LaunchResult {
   public enum Result {
     SUCCESS,
-    WARNING,
     ERROR,
   }
   private Result myResult;
@@ -96,15 +94,6 @@ public class LaunchResult {
     result.setErrorId(errorId);
     result.setMessage("Error " + taskDescription);
     result.setConsoleMessage("Error while " + taskDescription);
-    return result;
-  }
-
-  @NotNull
-  public static LaunchResult warning(@NotNull String message) {
-    LaunchResult result = new LaunchResult();
-    result.setResult(WARNING);
-    result.setMessage(message);
-    result.setConsoleMessage(message);
     return result;
   }
 }

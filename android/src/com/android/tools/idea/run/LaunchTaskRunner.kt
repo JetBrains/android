@@ -19,7 +19,6 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.execution.common.ApplicationTerminator
 import com.android.tools.idea.execution.common.RunConfigurationNotifier.notifyError
-import com.android.tools.idea.execution.common.RunConfigurationNotifier.notifyWarning
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.ShowLogcatListener.Companion.getShowLogcatLinkText
@@ -249,6 +248,7 @@ class LaunchTaskRunner(
   }
 
   private fun runLaunchTasks(launchTasks: List<LaunchTask>, launchContext: LaunchContext) {
+
     // Update the indicator progress.
     val stat = RunStats.from(myEnv)
     for (task in launchTasks) {
@@ -266,13 +266,6 @@ class LaunchTaskRunner(
             }
             stat.setErrorId(launchResult.errorId)
             throw ExecutionException(launchResult.message)
-          }
-
-          LaunchResult.Result.WARNING -> {
-            stat.endLaunchTask(task, details, false)
-            if (launchResult.message.isNotEmpty()) {
-              notifyWarning(project, configuration.name, launchResult.message)
-            }
           }
         }
       }

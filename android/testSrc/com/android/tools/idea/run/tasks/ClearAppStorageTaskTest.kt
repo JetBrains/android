@@ -23,11 +23,14 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.util.LaunchStatus
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.NotificationRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.Executor
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.project.Project
+import com.intellij.testFramework.RuleChain
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
@@ -37,12 +40,17 @@ import kotlin.test.fail
  * Tests for [ClearAppStorageTask]
  */
 class ClearAppStorageTaskTest {
-  val project = mock<Project>()
   val executor = mock<Executor>()
   val launchStatus = mock<LaunchStatus>()
   val printer = mock<ConsolePrinter>()
   val handler = mock<ProcessHandler>()
   val indicator = mock<ProgressIndicator>()
+
+  val projectRule = AndroidProjectRule.inMemory()
+  val notificationRule = NotificationRule(projectRule)
+
+  @get:Rule
+  val ruleChain = RuleChain(projectRule, notificationRule)
 
   @Test
   fun appExists_success() {
@@ -62,10 +70,11 @@ class ClearAppStorageTaskTest {
 
     val result = task.run(launchContext(device))
 
-    assertThat(result.result).isEqualTo(LaunchResult.Result.WARNING)
-    assertThat(result.message).isEqualTo("Failed to clear app storage for com.company.application on device device1")
-    assertThat(result.consoleMessage).isEqualTo("Failed to clear app storage for com.company.application on device device1")
+    assertThat(result.result).isEqualTo(LaunchResult.Result.SUCCESS)
     verify(device).executeShellCommand(eq("pm clear com.company.application"), any())
+    verify(printer).stdout("Failed to clear app storage for com.company.application on device device1")
+    val notificationInfo = notificationRule.notifications.find { it.content == "Failed to clear app storage for com.company.application on device device1" }
+    assertThat(notificationInfo).isNotNull()
   }
 
   @Test
@@ -80,7 +89,7 @@ class ClearAppStorageTaskTest {
   }
 
   private fun launchContext(device: IDevice): LaunchContext =
-    LaunchContext(project, executor, device, launchStatus, printer, handler, indicator)
+    LaunchContext(projectRule.project, executor, device, launchStatus, printer, handler, indicator)
 }
 
 private fun mockDevice(packageName: String, clearAppStorageSuccess: Boolean = true): IDevice {
