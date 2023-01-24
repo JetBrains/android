@@ -138,6 +138,17 @@ public class StudioProfilersViewTest {
   }
 
   @Test
+  public void testViewHasNoExceptionsWhenProfilersStop() {
+    FakeStage stage = new FakeStage(myProfilers);
+    myProfilers.setStage(stage);
+    StageView view = myView.getStageView();
+
+    myProfilers.setStage(stage);
+    myProfilers.stop();
+    // Make sure no exceptions
+  }
+
+  @Test
   public void testMonitorExpansion() {
     assumeFalse(myIsTestingProfileable);
     // Set session to enable Energy Monitor.

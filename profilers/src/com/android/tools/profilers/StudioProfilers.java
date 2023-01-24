@@ -305,8 +305,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // and make some models inconsistent. In this case, we want future calls to this method to return early, as we can only make the
     // inconsistency worse if we call these lines again.
     setProcess(null, null);
-    myClient.shutdownChannel();
     changed(ProfilerAspect.STAGE);
+    // Shutdown the gRPC channel after changing the aspect because some operations triggered by the aspect depends on the channel.
+    myClient.shutdownChannel();
   }
 
   @NotNull
