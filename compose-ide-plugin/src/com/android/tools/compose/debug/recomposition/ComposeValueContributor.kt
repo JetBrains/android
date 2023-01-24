@@ -32,6 +32,7 @@ import com.sun.jdi.Location
 import org.jetbrains.kotlin.idea.debugger.core.stackFrame.KotlinStackFrame
 import org.jetbrains.kotlin.idea.debugger.core.stackFrame.KotlinStackFrameValueContributor
 import org.jetbrains.kotlin.psi.KtFunction
+import java.util.concurrent.CancellationException
 
 private const val COMPOSER_VAR = "\$composer"
 private const val CHANGED_VAR = "\$changed"
@@ -42,6 +43,21 @@ private const val DIRTY_VAR = "\$dirty"
  */
 internal class ComposeValueContributor : KotlinStackFrameValueContributor {
   override fun contributeValues(
+    frame: KotlinStackFrame,
+    context: EvaluationContextImpl,
+    variables: List<LocalVariableProxyImpl>,
+  ): List<XNamedValue> {
+    return try {
+      doContributeValues(frame, context, variables)
+    } catch (e: CancellationException) {
+      throw e
+    } catch (t: Throwable) {
+      thisLogger().warn("Unexpected error building a Compose state node", t)
+      emptyList()
+    }
+  }
+
+  private fun doContributeValues(
     frame: KotlinStackFrame,
     context: EvaluationContextImpl,
     variables: List<LocalVariableProxyImpl>,
