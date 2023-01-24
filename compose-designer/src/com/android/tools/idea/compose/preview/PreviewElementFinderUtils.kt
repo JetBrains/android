@@ -272,6 +272,7 @@ private fun UAnnotation.getPreviewNodes(
 private fun UAnnotation.shouldTraverse(
   visitedAnnotationClasses: MutableMap<String, MultiPreviewNodeInfo?>
 ): Boolean {
+  if (!this.isPsiValid) return false
   val annotationClassFqcn = (this.tryResolve() as? PsiClass)?.qualifiedName
   return this.isPreviewAnnotation() ||
     (this.couldBeMultiPreviewAnnotation() &&
