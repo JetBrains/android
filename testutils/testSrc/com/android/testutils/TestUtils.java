@@ -26,6 +26,7 @@ import com.android.utils.FileUtils;
 import com.android.utils.PathUtils;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.SystemProperties;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -501,17 +502,31 @@ public final class TestUtils {
 
   @Nullable
   private static Path findInDownloadedJdks(String prefix) {
-    String userHome = System.getProperty("user.home");
-    Path jdks = Paths.get(userHome, ".jdks");
+    Path userHome = Path.of(System.getProperty("user.home"));
+    Path jdks;
+    if (SystemInfo.isMac) {
+      jdks = userHome.resolve("Library/Java/JavaVirtualMachines");
+    }
+    else {
+      jdks = userHome.resolve(".jdks");
+    }
+
     if (Files.isDirectory(jdks)) {
       try (Stream<Path> stream = Files.list(jdks)) {
-        Optional<Path> jdk11Path = stream
+        Optional<Path> jdkPath = stream
           .filter(file -> Files.isDirectory(file) && file.getFileName().toString().startsWith(prefix))
           .findAny();
 
-        if (jdk11Path.isPresent()) {
-          Logger.getInstance(TestUtils.class).info("Found JDK11 at " + jdk11Path);
-          return jdk11Path.get();
+        if (jdkPath.isPresent()) {
+          String jdkVersion = prefix.substring(Math.max(0, prefix.indexOf("-")), Math.max(0, prefix.length() - 1));
+          Logger.getInstance(TestUtils.class).info("Found JDK" + jdkVersion + " at " + jdkPath);
+
+          if (SystemInfo.isMac) {
+            return jdkPath.get().resolve("Contents/Home");
+          }
+          else {
+            return jdkPath.get();
+          }
         }
       }
       catch (IOException e) {
