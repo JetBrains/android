@@ -43,6 +43,7 @@ import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -60,6 +61,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.Mockito
+import org.mockito.Mockito.isNull
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import java.time.Clock
@@ -111,6 +113,10 @@ class AndroidTestSuiteViewTest {
     view.attachToProcess(processHandler)
 
     verify(processHandler).putCopyableUserData(eq(ANDROID_TEST_RESULT_LISTENER_KEY), eq(view))
+
+    Disposer.dispose(view)
+
+    verify(processHandler).putCopyableUserData(eq(ANDROID_TEST_RESULT_LISTENER_KEY), isNull())
   }
 
   @Test

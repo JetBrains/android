@@ -306,7 +306,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     }
 
     myComponentsSplitter.firstComponent = contentPanel
-    myDetailsView = AndroidTestSuiteDetailsView(parentDisposable, this, this, myProject, myLogger).apply {
+    myDetailsView = AndroidTestSuiteDetailsView(this, this, this, myProject, myLogger).apply {
       isDeviceSelectorListVisible = false
       rootPanel.isVisible = false
       rootPanel.minimumSize = Dimension()
@@ -673,6 +673,9 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     // Put this test suite view to the process handler as AndroidTestResultListener so the view
     // is notified the test results and to be updated.
     processHandler.putCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY, this)
+    Disposer.register(this) {
+      processHandler.putCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY, null)
+    }
     myDetailsView.rawTestLogConsoleView.attachToProcess(processHandler)
   }
 
