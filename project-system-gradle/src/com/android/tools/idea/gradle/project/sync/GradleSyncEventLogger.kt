@@ -67,7 +67,8 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
   fun generateSyncEvent(
     project: Project,
     rootProjectPath: @SystemIndependent String?,
-    kind: AndroidStudioEvent.EventKind
+    kind: AndroidStudioEvent.EventKind,
+    updateAdditionalData: GradleSyncStats.Builder.() -> Unit = {}
   ): AndroidStudioEvent.Builder {
     fun generateKotlinSupport(): KotlinSupport.Builder {
       var kotlinVersion: Version? = null
@@ -111,6 +112,7 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
     if (rootProjectPath != null) {
       syncStats.updateUserRequestedParallelSyncMode(project, rootProjectPath)
     }
+    syncStats.updateAdditionalData()
 
     runReadAction {
       val lastKnownVersion = GradleUtil.getLastKnownAndroidGradlePluginVersion(project)

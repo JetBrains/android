@@ -48,41 +48,16 @@ class DownloadsAnalyzer : BaseAnalyzer<DownloadsAnalyzer.Result>(),
                           BuildAttributionReportAnalyzer,
                           PostBuildProcessAnalyzer {
 
-  private val processedEvents = mutableListOf<DownloadResult>()
+  private var statsAccumulator = DownloadStatsAccumulator()
   private var gradleCanProvideDownloadEvents: Boolean? = null
   private var currentAgpVersionFromBuild: AgpVersion? = null
 
   override fun receiveEvent(event: ProgressEvent) {
-    if (event !is FileDownloadFinishEvent) return
-    val repository = detectRepository(event.descriptor.uri)
-    val status: DownloadStatus = when {
-      event.result is FailureResult -> DownloadStatus.FAILURE
-      event.result.bytesDownloaded == 0L -> DownloadStatus.MISSED
-      else -> DownloadStatus.SUCCESS
-    }
-    val failureMessage: String? = (event.result as? FailureResult)?.let {
-      buildString { appendMessagesRecursively(it.failures) }
-    }
-    processedEvents.add(DownloadResult(
-      timestamp = event.eventTime,
-      repository = repository,
-      url = event.descriptor.uri.toString(),
-      status = status,
-      duration = event.result.let { it.endTime - it.startTime },
-      bytes = event.result.bytesDownloaded,
-      failureMessage = failureMessage
-    ))
-  }
-
-  private fun StringBuilder.appendMessagesRecursively(failures: List<Failure>) {
-    failures.forEach { failure ->
-      failure.message?.let { append(it).appendLine() }
-      appendMessagesRecursively(failure.causes)
-    }
+    statsAccumulator.receiveEvent(event)
   }
 
   override fun cleanupTempState() {
-    processedEvents.clear()
+    statsAccumulator = DownloadStatsAccumulator()
     gradleCanProvideDownloadEvents = null
     currentAgpVersionFromBuild = null
   }
@@ -99,15 +74,42 @@ class DownloadsAnalyzer : BaseAnalyzer<DownloadsAnalyzer.Result>(),
 
   override fun calculateResult(): Result {
     if (gradleCanProvideDownloadEvents != true) return GradleDoesNotProvideEvents
-    val resultList = processedEvents.groupBy { it.repository }.map { (repo, events) ->
-      RepositoryResult(repository = repo, downloads = events)
-    }
+    val resultList = statsAccumulator.repositoryResults
 
     LOG.debug("Downloads stats for this build: ", resultList)
     return ActiveResult(repositoryResults = resultList)
   }
 
-  private fun detectRepository(uri: URI): Repository = KnownRepository.values().find { it.matches(uri) } ?: OtherRepository(uri.authority!!)
+  class DownloadStatsAccumulator {
+    private val processedEvents = mutableListOf<DownloadResult>()
+    val repositoryResults: List<RepositoryResult> get() = synchronized(processedEvents) {
+      processedEvents.groupBy { it.repository }.map { (repo, events) ->
+        RepositoryResult(repository = repo, downloads = events)
+      }
+    }
+
+    fun receiveEvent(event: ProgressEvent) {
+      if (event !is FileDownloadFinishEvent) return
+      val repository = detectRepository(event.descriptor.uri)
+      val status: DownloadStatus = when {
+        event.result is FailureResult -> DownloadStatus.FAILURE
+        event.result.bytesDownloaded == 0L -> DownloadStatus.MISSED
+        else -> DownloadStatus.SUCCESS
+      }
+      val failureMessage: String? = (event.result as? FailureResult)?.let { buildFailureMessage(it.failures) }
+      synchronized(processedEvents) {
+        processedEvents.add(DownloadResult(
+          timestamp = event.eventTime,
+          repository = repository,
+          url = event.descriptor.uri.toString(),
+          status = status,
+          duration = event.result.let { it.endTime - it.startTime },
+          bytes = event.result.bytesDownloaded,
+          failureMessage = failureMessage
+        ))
+      }
+    }
+  }
 
   sealed class Result: AnalyzerResult
   data class ActiveResult(
@@ -160,6 +162,10 @@ class DownloadsAnalyzer : BaseAnalyzer<DownloadsAnalyzer.Result>(),
     }
   }
 
+  companion object {
+    fun detectRepository(uri: URI): Repository = KnownRepository.values().find { it.matches(uri) } ?: OtherRepository(uri.authority!!)
+  }
+
   sealed interface Repository {
     val analyticsType: RepositoryType
   }
@@ -174,6 +180,7 @@ class DownloadsAnalyzer : BaseAnalyzer<DownloadsAnalyzer.Result>(),
     private val uri: URI
   ) : Repository {
     //TODO (mlazeba): maybe reuse from Repository.kt:24 somehow?
+    //TODO (mlazeba): need to add plugins.gradle.org and repo.gradle.org? What else?
     GOOGLE("Google", RepositoryType.GOOGLE, URI.create("https://dl.google.com/dl/android/maven2/")),
     MAVEN_CENTRAL("Maven Central", RepositoryType.MAVEN_CENTRAL, URI.create("https://repo.maven.apache.org/maven2/")),
     JCENTER("JCenter", RepositoryType.JCENTER, URI.create("https://jcenter.bintray.com/"));
@@ -182,5 +189,14 @@ class DownloadsAnalyzer : BaseAnalyzer<DownloadsAnalyzer.Result>(),
       return uri.scheme == resourceURI.scheme
              && uri.authority == resourceURI.authority
     }
+  }
+}
+
+fun buildFailureMessage(failures: List<Failure>): String = buildString { appendMessagesRecursively(failures) }
+
+private fun StringBuilder.appendMessagesRecursively(failures: List<Failure>) {
+  failures.forEach { failure ->
+    failure.message?.let { append(it).appendLine() }
+    appendMessagesRecursively(failure.causes)
   }
 }
