@@ -36,7 +36,6 @@ class PreviewAnimationClockMethodTransform(delegate: ClassVisitor) : ClassVisito
                      superName: String,
                      interfaces: Array<String>) {
     isPreviewAnimationClockClass = name == "androidx/compose/ui/tooling/animation/PreviewAnimationClock"
-                                   || name == "androidx/compose/ui/tooling/preview/animation/PreviewAnimationClock"
     super.visit(version, access, name, signature, superName, interfaces)
   }
 
