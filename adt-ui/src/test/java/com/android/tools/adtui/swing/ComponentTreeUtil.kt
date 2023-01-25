@@ -53,7 +53,7 @@ inline fun <reified T: Any> Component.getDescendant(crossinline predicate: (T) -
  */
 @TestOnly
 fun <T: Any> Component.getDescendant(type: Class<T>, predicate: (T) -> Boolean = { true }): T =
-  findAllDescendants(type, predicate).first()
+  findDescendant(type, predicate) ?: throw NoSuchElementException("Unable to find ${type.javaClass.name} satisfying $predicate")
 
 /**
  * Returns a [Sequence] of descendants satisfying the given [predicate] by doing breadth-first
