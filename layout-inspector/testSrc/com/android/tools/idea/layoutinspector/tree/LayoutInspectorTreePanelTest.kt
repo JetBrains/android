@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.tree
 import com.android.SdkConstants
 import com.android.SdkConstants.FQCN_RELATIVE_LAYOUT
 import com.android.SdkConstants.FQCN_TEXT_VIEW
-import com.android.flags.junit.FlagRule
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.Density
@@ -34,7 +33,6 @@ import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.componenttree.treetable.TreeTableModelImplAdapter
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
@@ -115,7 +113,6 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
   private val inspectorRule = LayoutInspectorRule(listOf(appInspectorRule.createInspectorClientProvider()), projectRule) {
     it.name == PROCESS.name
   }
-  private val treeRule = FlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, useTreeTable)
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
   private var lastUpdateSettingsCommand: UpdateSettingsCommand? = null
   private var updateSettingsCommands = 0
@@ -126,7 +123,6 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
     .around(appInspectorRule)
     .around(inspectorRule)
     .around(fileOpenCaptureRule)
-    .around(treeRule)
     .around(EdtRule())!!
 
   @Before
@@ -730,10 +726,6 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
 
   @Test
   fun testNonStructuralModelChanges() {
-    if (!StudioFlags.USE_COMPONENT_TREE_TABLE.get()) {
-      // This test is specific to the TreeTable implementation of the component tree
-      return
-    }
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val inspector = inspectorRule.inspector
     tree.setToolContext(inspector)
@@ -760,10 +752,6 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
   @RunsInEdt
   @Test
   fun testRecompositionColumnVisibility() {
-    if (!StudioFlags.USE_COMPONENT_TREE_TABLE.get()) {
-      // This test is specific to the TreeTable implementation of the component tree
-      return
-    }
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val inspector = inspectorRule.inspector
     inspector.treeSettings.showRecompositions = true
@@ -794,10 +782,6 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
 
   @Test
   fun testResetRecompositionCounts() {
-    if (!StudioFlags.USE_COMPONENT_TREE_TABLE.get()) {
-      // This test is specific to the TreeTable implementation of the component tree
-      return
-    }
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val inspector = inspectorRule.inspector
     val model = inspector.layoutInspectorModel

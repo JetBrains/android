@@ -68,7 +68,7 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
 
     definitions.add(PaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.DOCKED))
     definitions.add(NlPropertiesPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED))
-    if (StudioFlags.NELE_NEW_COMPONENT_TREE.get() && StudioFlags.USE_COMPONENT_TREE_TABLE.get()) {
+    if (StudioFlags.NELE_NEW_COMPONENT_TREE.get()) {
       definitions.add(NlComponentTreeDefinition(myProject, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED))
     } else {
       definitions.add(

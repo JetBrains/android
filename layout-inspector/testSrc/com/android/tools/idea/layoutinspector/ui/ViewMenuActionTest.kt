@@ -56,7 +56,6 @@ class ViewMenuActionTest {
   @get:Rule
   val rules: RuleChain = RuleChain
     .outerRule(MockitoCleanerRule())
-    .around(FlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true))
     .around(FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS, true))
     .around(FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS, true))
 

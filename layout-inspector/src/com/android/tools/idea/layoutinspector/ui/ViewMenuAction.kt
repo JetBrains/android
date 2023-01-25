@@ -72,7 +72,6 @@ object HighlightColorAction : DefaultActionGroup("Recomposition Highlight Color"
     val isConnected = layoutInspector?.currentClient?.isConnected ?: false
     event.presentation.isVisible = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS.get() &&
                                    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.get() &&
-                                   StudioFlags.USE_COMPONENT_TREE_TABLE.get() &&
                                    layoutInspector?.treeSettings?.showRecompositions ?: false &&
                                    (!isConnected || isActionActive(event, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS))
     event.presentation.isEnabled = isConnected

@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.fakeadbserver.DeviceState
-import com.android.flags.junit.FlagRule
 import com.android.repository.Revision
 import com.android.repository.api.LocalPackage
 import com.android.repository.api.RemotePackage
@@ -135,7 +134,6 @@ class AppInspectionInspectorClientTest {
 
   private lateinit var inspectorClientSettings: InspectorClientSettings
 
-  private val treeRule = FlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true)
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val inspectionRule = AppInspectionInspectorRule(projectRule)
   private val inspectorRule = LayoutInspectorRule(
@@ -149,7 +147,6 @@ class AppInspectionInspectorClientTest {
   val ruleChain = RuleChain.outerRule(projectRule)
     .around(inspectionRule)
     .around(inspectorRule)
-    .around(treeRule)
     .around(usageRule)!!
 
   @Before

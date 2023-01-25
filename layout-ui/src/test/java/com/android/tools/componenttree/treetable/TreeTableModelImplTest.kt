@@ -21,7 +21,6 @@ import com.android.SdkConstants.FQCN_LINEAR_LAYOUT
 import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
-import com.android.tools.componenttree.common.ViewTreeCellRenderer
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.componenttree.util.Style

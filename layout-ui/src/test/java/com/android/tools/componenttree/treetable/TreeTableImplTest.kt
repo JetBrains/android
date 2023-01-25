@@ -16,7 +16,6 @@
 package com.android.tools.componenttree.treetable
 
 import com.android.SdkConstants
-import com.android.flags.junit.FlagRule
 import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
@@ -34,7 +33,6 @@ import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.componenttree.util.Style
 import com.android.tools.componenttree.util.StyleNodeType
-import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.advanced.AdvancedSettingType
@@ -87,8 +85,7 @@ class TreeTableImplTest {
 
   @get:Rule
   val chain = RuleChain
-    .outerRule(FlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true))
-    .around(MockitoCleanerRule())
+    .outerRule(MockitoCleanerRule())
     .around(EdtRule())
     .around(IconLoaderRule())
     .around(disposableRule)!!

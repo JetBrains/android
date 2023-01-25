@@ -15,7 +15,6 @@
  */
 package com.android.tools.componenttree.treetable
 
-import com.android.flags.junit.FlagRule
 import com.android.tools.adtui.FocusableIcon
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
@@ -27,7 +26,6 @@ import com.android.tools.componenttree.api.ComponentTreeBuilder
 import com.android.tools.componenttree.api.createIntColumn
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.componenttree.util.StyleNodeType
-import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -67,8 +65,7 @@ class TreeTableHeaderTest {
 
   @get:Rule
   val chain = RuleChain
-    .outerRule(FlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true))
-    .around(EdtRule())
+    .outerRule(EdtRule())
     .around(IconLoaderRule())
     .around(disposableRule)!!
 

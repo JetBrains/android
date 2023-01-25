@@ -140,8 +140,7 @@ object RecompositionCounts : ToggleAction("Show Recomposition Counts", null, nul
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isVisible = isActionActive(event, Capability.SUPPORTS_COMPOSE) &&
-                                   StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.get() &&
-                                   StudioFlags.USE_COMPONENT_TREE_TABLE.get()
+                                   StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.get()
     event.presentation.isEnabled = isActionActive(event, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
     event.presentation.text =
       if (event.presentation.isEnabled) "Show Recomposition Counts" else "Show Recomposition Counts (Needs Compose 1.2.1+)"

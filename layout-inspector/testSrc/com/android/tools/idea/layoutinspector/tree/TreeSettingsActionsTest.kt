@@ -72,9 +72,6 @@ class TreeSettingsActionsTest {
   val recompositionFlagRule =
     FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS, true)
 
-  @get:Rule
-  val treeTableFlagRule = FlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true)
-
   private val treeSettings = FakeTreeSettings()
   private val model = createModel()
   private val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)

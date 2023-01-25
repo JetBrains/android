@@ -249,8 +249,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
         String ids = component.getLiveAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS);
         if (ids != null) {
           String[] list = ids.split(",");
-          return StudioFlags.NELE_NEW_COMPONENT_TREE.get() &&
-                 StudioFlags.USE_COMPONENT_TREE_TABLE.get() ? new NlComponentReference(component, list[i]) : list[i];
+          return StudioFlags.NELE_NEW_COMPONENT_TREE.get() ? new NlComponentReference(component, list[i]) : list[i];
         }
       }
       return component.getChild(i);
