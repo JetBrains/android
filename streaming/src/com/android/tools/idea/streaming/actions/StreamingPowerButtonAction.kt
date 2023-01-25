@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming.device.actions
+package com.android.tools.idea.streaming.actions
 
-import com.android.tools.idea.streaming.device.AKEYCODE_BACK
+import com.android.tools.idea.streaming.device.actions.DevicePowerButtonAction
+import com.android.tools.idea.streaming.emulator.actions.EmulatorPowerButtonAction
 
 /**
- * Simulates pressing the Back button on an Android device.
+ * Simulates pressing the Power button on an Android device.
  */
-internal class DeviceBackButtonAction : DevicePushButtonAction(AKEYCODE_BACK)
+internal class StreamingPowerButtonAction : StreamingPushButtonAction(EmulatorPowerButtonAction(), DevicePowerButtonAction())

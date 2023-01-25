@@ -32,6 +32,11 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.project.Project
+import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.CHAR_UNDEFINED
+import java.awt.event.KeyEvent.CTRL_DOWN_MASK
+import java.awt.event.KeyEvent.KEY_RELEASED
+import java.awt.event.KeyEvent.VK_E
 
 /**
  * Executes an action related to device mirroring.
@@ -39,20 +44,12 @@ import com.intellij.openapi.project.Project
 internal fun executeDeviceAction(actionId: String, displayView: AbstractDisplayView, project: Project) {
   val actionManager = ActionManager.getInstance()
   val action = actionManager.getAction(actionId)
+  val inputEvent = KeyEvent(displayView, KEY_RELEASED, System.currentTimeMillis(), CTRL_DOWN_MASK, VK_E, CHAR_UNDEFINED)
   val presentation = Presentation()
-  val event = AnActionEvent(null, TestDataContext(displayView, project), ActionPlaces.UNKNOWN, presentation, actionManager, 0)
+  val event = AnActionEvent(inputEvent, TestDataContext(displayView, project), ActionPlaces.UNKNOWN, presentation, actionManager, 0)
   action.update(event)
-  Truth.assertThat(presentation.isEnabledAndVisible).isTrue()
+  Truth.assertThat(event.presentation.isEnabledAndVisible).isTrue()
   action.actionPerformed(event)
-}
-
-internal fun getDeviceActionPresentation(actionId: String, displayView: AbstractDisplayView, project: Project): Presentation {
-  val actionManager = ActionManager.getInstance()
-  val action = actionManager.getAction(actionId)
-  val presentation = Presentation()
-  val event = AnActionEvent(null, TestDataContext(displayView, project), ActionPlaces.UNKNOWN, presentation, actionManager, 0)
-  action.update(event)
-  return presentation
 }
 
 private class TestDataContext(private val displayView: AbstractDisplayView, private val project: Project) : DataContext {

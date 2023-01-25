@@ -182,7 +182,7 @@ class EmulatorViewTest {
     assertThat(view.canZoomToFit()).isFalse()
 
     // Check rotation.
-    emulatorViewRule.executeAction("android.emulator.rotate.left", view)
+    emulatorViewRule.executeAction("android.device.rotate.left", view)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setPhysicalModel")
     assertThat(shortDebugString(call.request)).isEqualTo("target: ROTATION value { data: 0.0 data: 0.0 data: 90.0 }")
@@ -265,7 +265,7 @@ class EmulatorViewTest {
       if (SystemInfo.isMac) "format: RGB888 width: 740 height: 360" else "format: RGB888 width: 740 height: 360")
     assertThat(view.canZoomOut()).isTrue()
     assertThat(view.canZoomToFit()).isTrue()
-    emulatorViewRule.executeAction("android.emulator.rotate.right", view)
+    emulatorViewRule.executeAction("android.device.rotate.right", view)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setPhysicalModel")
     assertThat(shortDebugString(call.request)).isEqualTo("target: ROTATION value { data: 0.0 data: 0.0 data: 0.0 }")
@@ -477,19 +477,19 @@ class EmulatorViewTest {
     val emulator = emulatorViewRule.getFakeEmulator(view)
 
     // Check EmulatorBackButtonAction.
-    emulatorViewRule.executeAction("android.emulator.back.button", view)
+    emulatorViewRule.executeAction("android.device.back.button", view)
     var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "GoBack"""")
 
     // Check EmulatorHomeButtonAction.
-    emulatorViewRule.executeAction("android.emulator.home.button", view)
+    emulatorViewRule.executeAction("android.device.home.button", view)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Home"""")
 
     // Check EmulatorOverviewButtonAction.
-    emulatorViewRule.executeAction("android.emulator.overview.button", view)
+    emulatorViewRule.executeAction("android.device.overview.button", view)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "AppSwitch"""")

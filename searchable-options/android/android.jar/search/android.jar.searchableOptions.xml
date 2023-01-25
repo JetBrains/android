@@ -163,12 +163,13 @@
     <option name="file" path="ActionManager" hit="Create new resource file" />
     <option name="new" path="ActionManager" hit="Create new resource file" />
     <option name="resource" path="ActionManager" hit="Create new resource file" />
-    <option name="create" path="ActionManager" hit="Create, load, rename or delete snapshots" />
-    <option name="delete" path="ActionManager" hit="Create, load, rename or delete snapshots" />
-    <option name="load" path="ActionManager" hit="Create, load, rename or delete snapshots" />
-    <option name="or" path="ActionManager" hit="Create, load, rename or delete snapshots" />
-    <option name="rename" path="ActionManager" hit="Create, load, rename or delete snapshots" />
-    <option name="snapshots" path="ActionManager" hit="Create, load, rename or delete snapshots" />
+    <option name="create" path="ActionManager" hit="Create, load, rename or delete emulator snapshots" />
+    <option name="delete" path="ActionManager" hit="Create, load, rename or delete emulator snapshots" />
+    <option name="emulator" path="ActionManager" hit="Create, load, rename or delete emulator snapshots" />
+    <option name="load" path="ActionManager" hit="Create, load, rename or delete emulator snapshots" />
+    <option name="or" path="ActionManager" hit="Create, load, rename or delete emulator snapshots" />
+    <option name="rename" path="ActionManager" hit="Create, load, rename or delete emulator snapshots" />
+    <option name="snapshots" path="ActionManager" hit="Create, load, rename or delete emulator snapshots" />
     <option name="build" path="ActionManager" hit="Debug Without Build" />
     <option name="debug" path="ActionManager" hit="Debug Without Build" />
     <option name="without" path="ActionManager" hit="Debug Without Build" />
@@ -471,40 +472,56 @@
     <option name="palm" path="ActionManager" hit="Palm" />
     <option name="phone" path="ActionManager" hit="Phone" />
     <option name="power" path="ActionManager" hit="Power" />
-    <option name="back" path="ActionManager" hit="Press the Back button" />
-    <option name="button" path="ActionManager" hit="Press the Back button" />
-    <option name="press" path="ActionManager" hit="Press the Back button" />
-    <option name="the" path="ActionManager" hit="Press the Back button" />
-    <option name="button" path="ActionManager" hit="Press the Home button" />
-    <option name="home" path="ActionManager" hit="Press the Home button" />
-    <option name="press" path="ActionManager" hit="Press the Home button" />
-    <option name="the" path="ActionManager" hit="Press the Home button" />
-    <option name="button" path="ActionManager" hit="Press the Overview button" />
-    <option name="overview" path="ActionManager" hit="Press the Overview button" />
-    <option name="press" path="ActionManager" hit="Press the Overview button" />
-    <option name="the" path="ActionManager" hit="Press the Overview button" />
-    <option name="button" path="ActionManager" hit="Press the Power button" />
-    <option name="power" path="ActionManager" hit="Press the Power button" />
-    <option name="press" path="ActionManager" hit="Press the Power button" />
-    <option name="the" path="ActionManager" hit="Press the Power button" />
-    <option name="button" path="ActionManager" hit="Press the Volume Down button" />
-    <option name="down" path="ActionManager" hit="Press the Volume Down button" />
-    <option name="press" path="ActionManager" hit="Press the Volume Down button" />
-    <option name="the" path="ActionManager" hit="Press the Volume Down button" />
-    <option name="volume" path="ActionManager" hit="Press the Volume Down button" />
-    <option name="button" path="ActionManager" hit="Press the Volume Up button" />
-    <option name="press" path="ActionManager" hit="Press the Volume Up button" />
-    <option name="the" path="ActionManager" hit="Press the Volume Up button" />
-    <option name="up" path="ActionManager" hit="Press the Volume Up button" />
-    <option name="volume" path="ActionManager" hit="Press the Volume Up button" />
-    <option name="button" path="ActionManager" hit="Press the first button" />
-    <option name="first" path="ActionManager" hit="Press the first button" />
-    <option name="press" path="ActionManager" hit="Press the first button" />
-    <option name="the" path="ActionManager" hit="Press the first button" />
-    <option name="button" path="ActionManager" hit="Press the second button" />
-    <option name="press" path="ActionManager" hit="Press the second button" />
-    <option name="second" path="ActionManager" hit="Press the second button" />
-    <option name="the" path="ActionManager" hit="Press the second button" />
+    <option name="back" path="ActionManager" hit="Press the Back button of the device" />
+    <option name="button" path="ActionManager" hit="Press the Back button of the device" />
+    <option name="device" path="ActionManager" hit="Press the Back button of the device" />
+    <option name="of" path="ActionManager" hit="Press the Back button of the device" />
+    <option name="press" path="ActionManager" hit="Press the Back button of the device" />
+    <option name="the" path="ActionManager" hit="Press the Back button of the device" />
+    <option name="button" path="ActionManager" hit="Press the Home button of the device" />
+    <option name="device" path="ActionManager" hit="Press the Home button of the device" />
+    <option name="home" path="ActionManager" hit="Press the Home button of the device" />
+    <option name="of" path="ActionManager" hit="Press the Home button of the device" />
+    <option name="press" path="ActionManager" hit="Press the Home button of the device" />
+    <option name="the" path="ActionManager" hit="Press the Home button of the device" />
+    <option name="button" path="ActionManager" hit="Press the Overview button of the device" />
+    <option name="device" path="ActionManager" hit="Press the Overview button of the device" />
+    <option name="of" path="ActionManager" hit="Press the Overview button of the device" />
+    <option name="overview" path="ActionManager" hit="Press the Overview button of the device" />
+    <option name="press" path="ActionManager" hit="Press the Overview button of the device" />
+    <option name="the" path="ActionManager" hit="Press the Overview button of the device" />
+    <option name="button" path="ActionManager" hit="Press the Power button of the device" />
+    <option name="device" path="ActionManager" hit="Press the Power button of the device" />
+    <option name="of" path="ActionManager" hit="Press the Power button of the device" />
+    <option name="power" path="ActionManager" hit="Press the Power button of the device" />
+    <option name="press" path="ActionManager" hit="Press the Power button of the device" />
+    <option name="the" path="ActionManager" hit="Press the Power button of the device" />
+    <option name="button" path="ActionManager" hit="Press the Volume Down button of the device" />
+    <option name="device" path="ActionManager" hit="Press the Volume Down button of the device" />
+    <option name="down" path="ActionManager" hit="Press the Volume Down button of the device" />
+    <option name="of" path="ActionManager" hit="Press the Volume Down button of the device" />
+    <option name="press" path="ActionManager" hit="Press the Volume Down button of the device" />
+    <option name="the" path="ActionManager" hit="Press the Volume Down button of the device" />
+    <option name="volume" path="ActionManager" hit="Press the Volume Down button of the device" />
+    <option name="button" path="ActionManager" hit="Press the Volume Up button of the device" />
+    <option name="device" path="ActionManager" hit="Press the Volume Up button of the device" />
+    <option name="of" path="ActionManager" hit="Press the Volume Up button of the device" />
+    <option name="press" path="ActionManager" hit="Press the Volume Up button of the device" />
+    <option name="the" path="ActionManager" hit="Press the Volume Up button of the device" />
+    <option name="up" path="ActionManager" hit="Press the Volume Up button of the device" />
+    <option name="volume" path="ActionManager" hit="Press the Volume Up button of the device" />
+    <option name="button" path="ActionManager" hit="Press the first button of the device" />
+    <option name="device" path="ActionManager" hit="Press the first button of the device" />
+    <option name="first" path="ActionManager" hit="Press the first button of the device" />
+    <option name="of" path="ActionManager" hit="Press the first button of the device" />
+    <option name="press" path="ActionManager" hit="Press the first button of the device" />
+    <option name="the" path="ActionManager" hit="Press the first button of the device" />
+    <option name="button" path="ActionManager" hit="Press the second button of the device" />
+    <option name="device" path="ActionManager" hit="Press the second button of the device" />
+    <option name="of" path="ActionManager" hit="Press the second button of the device" />
+    <option name="press" path="ActionManager" hit="Press the second button of the device" />
+    <option name="second" path="ActionManager" hit="Press the second button of the device" />
+    <option name="the" path="ActionManager" hit="Press the second button of the device" />
     <option name="profile" path="ActionManager" hit="Profile" />
     <option name="apk" path="ActionManager" hit="Profile or Debug APK" />
     <option name="debug" path="ActionManager" hit="Profile or Debug APK" />
@@ -562,14 +579,18 @@
     <option name="rotate" path="ActionManager" hit="Rotate Left" />
     <option name="right" path="ActionManager" hit="Rotate Right" />
     <option name="rotate" path="ActionManager" hit="Rotate Right" />
-    <option name="by" path="ActionManager" hit="Rotate clockwise by 90 degrees" />
-    <option name="clockwise" path="ActionManager" hit="Rotate clockwise by 90 degrees" />
-    <option name="degrees" path="ActionManager" hit="Rotate clockwise by 90 degrees" />
-    <option name="rotate" path="ActionManager" hit="Rotate clockwise by 90 degrees" />
-    <option name="by" path="ActionManager" hit="Rotate counterclockwise by 90 degrees" />
-    <option name="counterclockwise" path="ActionManager" hit="Rotate counterclockwise by 90 degrees" />
-    <option name="degrees" path="ActionManager" hit="Rotate counterclockwise by 90 degrees" />
-    <option name="rotate" path="ActionManager" hit="Rotate counterclockwise by 90 degrees" />
+    <option name="by" path="ActionManager" hit="Rotate the device clockwise by 90 degrees" />
+    <option name="clockwise" path="ActionManager" hit="Rotate the device clockwise by 90 degrees" />
+    <option name="degrees" path="ActionManager" hit="Rotate the device clockwise by 90 degrees" />
+    <option name="device" path="ActionManager" hit="Rotate the device clockwise by 90 degrees" />
+    <option name="rotate" path="ActionManager" hit="Rotate the device clockwise by 90 degrees" />
+    <option name="the" path="ActionManager" hit="Rotate the device clockwise by 90 degrees" />
+    <option name="by" path="ActionManager" hit="Rotate the device counterclockwise by 90 degrees" />
+    <option name="counterclockwise" path="ActionManager" hit="Rotate the device counterclockwise by 90 degrees" />
+    <option name="degrees" path="ActionManager" hit="Rotate the device counterclockwise by 90 degrees" />
+    <option name="device" path="ActionManager" hit="Rotate the device counterclockwise by 90 degrees" />
+    <option name="rotate" path="ActionManager" hit="Rotate the device counterclockwise by 90 degrees" />
+    <option name="the" path="ActionManager" hit="Rotate the device counterclockwise by 90 degrees" />
     <option name="build" path="ActionManager" hit="Run Without Build" />
     <option name="run" path="ActionManager" hit="Run Without Build" />
     <option name="without" path="ActionManager" hit="Run Without Build" />
@@ -608,20 +629,28 @@
     <option name="previous" path="ActionManager" hit="Show Results Analysis of Previous Builds" />
     <option name="results" path="ActionManager" hit="Show Results Analysis of Previous Builds" />
     <option name="show" path="ActionManager" hit="Show Results Analysis of Previous Builds" />
-    <option name="controls" path="ActionManager" hit="Show extended controls" />
-    <option name="extended" path="ActionManager" hit="Show extended controls" />
-    <option name="show" path="ActionManager" hit="Show extended controls" />
-    <option name="controls" path="ActionManager" hit="Show folding controls" />
-    <option name="folding" path="ActionManager" hit="Show folding controls" />
-    <option name="show" path="ActionManager" hit="Show folding controls" />
-    <option name="gesture" path="ActionManager" hit="Simulate the Palm gesture" />
-    <option name="palm" path="ActionManager" hit="Simulate the Palm gesture" />
-    <option name="simulate" path="ActionManager" hit="Simulate the Palm gesture" />
-    <option name="the" path="ActionManager" hit="Simulate the Palm gesture" />
-    <option name="gesture" path="ActionManager" hit="Simulate the Tilt gesture" />
-    <option name="simulate" path="ActionManager" hit="Simulate the Tilt gesture" />
-    <option name="the" path="ActionManager" hit="Simulate the Tilt gesture" />
-    <option name="tilt" path="ActionManager" hit="Simulate the Tilt gesture" />
+    <option name="controls" path="ActionManager" hit="Show emulator extended controls" />
+    <option name="emulator" path="ActionManager" hit="Show emulator extended controls" />
+    <option name="extended" path="ActionManager" hit="Show emulator extended controls" />
+    <option name="show" path="ActionManager" hit="Show emulator extended controls" />
+    <option name="controls" path="ActionManager" hit="Show folding controls for the device" />
+    <option name="device" path="ActionManager" hit="Show folding controls for the device" />
+    <option name="folding" path="ActionManager" hit="Show folding controls for the device" />
+    <option name="for" path="ActionManager" hit="Show folding controls for the device" />
+    <option name="show" path="ActionManager" hit="Show folding controls for the device" />
+    <option name="the" path="ActionManager" hit="Show folding controls for the device" />
+    <option name="device" path="ActionManager" hit="Simulate the Palm gesture for the device" />
+    <option name="for" path="ActionManager" hit="Simulate the Palm gesture for the device" />
+    <option name="gesture" path="ActionManager" hit="Simulate the Palm gesture for the device" />
+    <option name="palm" path="ActionManager" hit="Simulate the Palm gesture for the device" />
+    <option name="simulate" path="ActionManager" hit="Simulate the Palm gesture for the device" />
+    <option name="the" path="ActionManager" hit="Simulate the Palm gesture for the device" />
+    <option name="device" path="ActionManager" hit="Simulate the Tilt gesture for the device" />
+    <option name="for" path="ActionManager" hit="Simulate the Tilt gesture for the device" />
+    <option name="gesture" path="ActionManager" hit="Simulate the Tilt gesture for the device" />
+    <option name="simulate" path="ActionManager" hit="Simulate the Tilt gesture for the device" />
+    <option name="the" path="ActionManager" hit="Simulate the Tilt gesture for the device" />
+    <option name="tilt" path="ActionManager" hit="Simulate the Tilt gesture for the device" />
     <option name="snapshots" path="ActionManager" hit="Snapshots" />
     <option name="style" path="ActionManager" hit="Style..." />
     <option name="feedback" path="ActionManager" hit="Submit Feedback" />

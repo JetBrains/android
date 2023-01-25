@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,4 +18,4 @@ package com.android.tools.idea.streaming.emulator.actions
 /**
  * Simulates pressing the first button on an Android Wear virtual device.
  */
-internal class EmulatorWear1ButtonAction : EmulatorKeypressAction("Home", configFilter = { it.isWearOs && it.api >= 28 })
+internal class EmulatorWear1ButtonAction : EmulatorPushButtonAction("Home", configFilter = { it.isWearOs && it.api >= 28 })

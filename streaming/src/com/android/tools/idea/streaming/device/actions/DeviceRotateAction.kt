@@ -35,7 +35,6 @@ internal sealed class DeviceRotateAction(
     deviceController.sendControlMessage(controlMessage)
   }
 
-
   class Left : DeviceRotateAction(1)
   class Right : DeviceRotateAction(3)
 }

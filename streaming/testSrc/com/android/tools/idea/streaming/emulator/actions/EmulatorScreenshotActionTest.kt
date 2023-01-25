@@ -77,7 +77,7 @@ class EmulatorScreenshotActionTest {
 
   @Test
   fun testAction() {
-    emulatorViewRule.executeAction("android.emulator.screenshot", emulatorView)
+    emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
 
     waitForCondition(500, TimeUnit.SECONDS) { findScreenshotViewer() != null }
     val screenshotViewer = findScreenshotViewer()!!

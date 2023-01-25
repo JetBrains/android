@@ -26,6 +26,6 @@ import com.intellij.openapi.actionSystem.DataKey
 
 @JvmField internal val DEVICE_CONFIGURATION_KEY = DataKey.create<DeviceConfiguration>("DeviceConfiguration")
 
-internal const val DEVICE_MAIN_TOOLBAR_ID = "DeviceToolbar"
+internal const val DEVICE_MAIN_TOOLBAR_ID = "StreamingToolbarPhysicalDevice"
 
 internal const val UNKNOWN_ORIENTATION = -1
