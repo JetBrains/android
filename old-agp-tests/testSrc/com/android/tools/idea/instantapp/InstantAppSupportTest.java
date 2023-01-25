@@ -19,13 +19,17 @@ import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.as
 import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.assertModuleIsValidAIAInstantApp;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
+import static com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration.TEST_CLASS;
 import static com.android.tools.idea.testing.HighlightInfos.assertFileHasNoErrors;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
+import static com.intellij.testFramework.UsefulTestCase.assertEmpty;
 import static com.intellij.testFramework.UsefulTestCase.assertInstanceOf;
 import static com.intellij.testFramework.UsefulTestCase.assertThrows;
+import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 
 import com.android.testutils.junit4.OldAgpTest;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.activity.launch.ActivityLaunchOptionState;
@@ -42,8 +46,8 @@ import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
 import java.io.File;
 import java.util.List;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
@@ -74,7 +78,19 @@ public class InstantAppSupportTest {
 
   @Test
   @RunsInEdt
-  @Ignore("b/203803107")
+  public void testCorrectAndroidTestRunConfigurationsCreated() throws Exception {
+    projectRule.loadProject(INSTANT_APP, "feature", AgpVersionSoftwareEnvironmentDescriptor.AGP_35);
+    AndroidFacet mainTestFacet = AndroidFacet.getInstance(ModuleSystemUtil.getMainModule(projectRule.getModule("feature")));
+    assertNotNull(mainTestFacet);
+    AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(projectRule.getProject(), "com.example.instantapp.ExampleInstrumentedTest");
+    assertNotNull(runConfig);
+    assertEmpty(runConfig.checkConfiguration(mainTestFacet));
+    assertEquals(runConfig.CLASS_NAME, "com.example.instantapp.ExampleInstrumentedTest");
+    assertEquals(runConfig.TESTING_TYPE, TEST_CLASS);
+  }
+
+  @Test
+  @RunsInEdt
   public void testCorrectRunConfigurationsCreated() throws Exception {
     // Use a plugin with instant app support
     projectRule.loadProject(INSTANT_APP, "instant-app", AgpVersionSoftwareEnvironmentDescriptor.AGP_35);
@@ -107,7 +123,6 @@ public class InstantAppSupportTest {
 
   @Test
   @RunsInEdt
-  @Ignore("b/203803107")
   public void testRunConfigurationFailsIfWrongURL() throws Throwable {
     // Use a plugin with instant app support
     projectRule.loadProject(INSTANT_APP, "instant-app", AgpVersionSoftwareEnvironmentDescriptor.AGP_35);

@@ -15,9 +15,19 @@
  */
 package com.android.tools.idea.testartifacts.instrumented;
 
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromDirectory;
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromFile;
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromMethod;
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createConfigurationFromPsiElement;
+import static com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration.TEST_CLASS;
+import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
+import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN;
+import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN_MULTIPLATFORM;
+import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
-import com.android.tools.idea.run.AndroidRunConfigurationType;
-import com.android.tools.idea.testartifacts.TestConfigurationTesting;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.io.Files;
 import com.intellij.execution.Location;
@@ -32,7 +42,6 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
-
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
@@ -42,17 +51,6 @@ import com.intellij.testFramework.PlatformTestUtil;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.Nullable;
-
-import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromMethod;
-import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createConfigurationFromPsiElement;
-import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
-import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromDirectory;
-import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromFile;
-import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN;
-import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN_MULTIPLATFORM;
-import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
-import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Test for {@link AndroidTestConfigurationProducer}
@@ -70,6 +68,8 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(getProject(), "google.simpleapplication.ApplicationTest");
     assertNotNull(runConfig);
     assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
+    assertEquals(runConfig.CLASS_NAME, "google.simpleapplication.ApplicationTest");
+    assertEquals(runConfig.TESTING_TYPE, TEST_CLASS);
   }
 
   public void testCannotCreateAndroidTestConfigurationFromJUnitTestClass() throws Exception {
@@ -205,6 +205,19 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(getProject(), "com.example.android.app.ExampleTest");
     assertNotNull(runConfig);
     assertEmpty(runConfig.checkConfiguration(mainTestFacet));
+    assertEquals(runConfig.CLASS_NAME, "com.example.android.app.ExampleTest");
+    assertEquals(runConfig.TESTING_TYPE, TEST_CLASS);
+  }
+
+  public void testCanCreateAndroidTestConfigurationFromFromDynamicFeatureModule() throws Exception {
+    loadProject(DYNAMIC_APP);
+    AndroidFacet mainTestFacet = AndroidFacet.getInstance(ModuleSystemUtil.getMainModule(getModule("feature1")));
+    assertNotNull(mainTestFacet);
+    AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(getProject(), "com.example.feature1.ExampleInstrumentedTest");
+    assertNotNull(runConfig);
+    assertEmpty(runConfig.checkConfiguration(mainTestFacet));
+    assertEquals(runConfig.CLASS_NAME, "com.example.feature1.ExampleInstrumentedTest");
+    assertEquals(runConfig.TESTING_TYPE, TEST_CLASS);
   }
 
   public void testCanCreateAndroidTestConfigurationWhenOriginalConfigExists() throws Exception {
@@ -300,7 +313,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
       getProject(), "ExampleInstrumentedTest");
     assertNotNull(runConfig);
     assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
-    assertThat(runConfig.TESTING_TYPE).isEqualTo(AndroidTestRunConfiguration.TEST_CLASS);
+    assertThat(runConfig.TESTING_TYPE).isEqualTo(TEST_CLASS);
     assertThat(runConfig.INSTRUMENTATION_RUNNER_CLASS).isEmpty();
     assertThat(runConfig.PACKAGE_NAME).isEmpty();
     assertThat(runConfig.CLASS_NAME).isEqualTo("ExampleInstrumentedTest");
