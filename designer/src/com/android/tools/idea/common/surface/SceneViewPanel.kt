@@ -22,7 +22,9 @@ import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.layout.findAllScanlines
 import com.android.tools.idea.common.surface.layout.findLargerScanline
 import com.android.tools.idea.common.surface.layout.findSmallerScanline
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.getScaledContentSize
@@ -33,6 +35,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
+import kotlinx.coroutines.launch
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Graphics
@@ -137,6 +140,9 @@ class SceneViewPeerPanel(val sceneView: SceneView,
                          private val sceneViewLeftBar: JComponent?,
                          private val sceneViewRightBar: JComponent?,
                          private val sceneViewErrorsPanel: JComponent?) : JPanel() {
+
+  private val scope = AndroidCoroutineScope(sceneView.surface)
+
   /**
    * Contains cached layout data that can be used by this panel to verify when it's been invalidated
    * without having to explicitly call [revalidate]
@@ -264,7 +270,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     // Since sceneViewToolbar visibility can change, sceneViewTopPanel (its container) might want to reduce its size when sceneViewToolbar
     // gets invisible, resulting in a visual misbehavior where the toolbar moves a little when the actions appear/disappear. To fix this,
     // we should set sceneViewTopPanel preferred size to always occupy the height taken by sceneViewToolbar when it exists.
-    val minHeight = maxOf(minimumSize.height, sceneViewToolbar?.preferredSize?.height ?: 0)
+    val minHeight = maxOf(minimumSize.height, sceneViewToolbar?.preferredSize?.height ?: 0, sceneViewToolbar?.minimumSize?.height ?: 0)
     minimumSize = Dimension(minWidth, minHeight)
     preferredSize = sceneViewToolbar?.let { Dimension(minWidth, minHeight) }
 
@@ -276,6 +282,14 @@ class SceneViewPeerPanel(val sceneView: SceneView,
    * hide it otherwise.
    */
   private fun JPanel.setUpTopPanelMouseListeners() {
+    modelNameLabel.addMouseListener(object : MouseAdapter() {
+      override fun mouseClicked(e: MouseEvent?) {
+        scope.launch {
+          (sceneView.surface as? NlDesignSurface)?.navigationHandler?.handleNavigate(sceneView, false)
+        }
+      }
+    })
+
     // MouseListener to show the sceneViewToolbar when the mouse enters the target component, and to hide it when the mouse exits the bounds
     // of sceneViewTopPanel.
     val hoverTopPanelMouseListener = object : MouseAdapter() {

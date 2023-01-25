@@ -15,16 +15,39 @@
  */
 package com.android.tools.idea.compose.gradle.navigation
 
+import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
+import com.android.tools.idea.compose.gradle.activateAndWaitForRender
+import com.android.tools.idea.compose.gradle.preview.TestComposePreviewView
+import com.android.tools.idea.compose.gradle.preview.displayName
+import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.navigation.findComponentHits
 import com.android.tools.idea.compose.preview.navigation.findNavigatableComponentHit
 import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
+import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.util.Disposer
+import com.intellij.psi.PsiManager
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.testFramework.runInEdtAndWait
+import java.awt.BorderLayout
+import java.awt.Dimension
+import java.util.concurrent.CountDownLatch
+import javax.swing.JLabel
+import javax.swing.JPanel
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -32,10 +55,33 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
+private class TestNavigationHandler(private val expectedInvocations: CountDownLatch) :
+  NavigationHandler {
+  override suspend fun handleNavigate(
+    sceneView: SceneView,
+    x: Int,
+    y: Int,
+    requestFocus: Boolean
+  ): Boolean {
+    return true
+  }
+
+  override suspend fun handleNavigate(sceneView: SceneView, requestFocus: Boolean): Boolean {
+    expectedInvocations.countDown()
+    return true
+  }
+
+  override fun dispose() {}
+}
+
 class PreviewNavigationTest {
   private val LOG = Logger.getInstance(PreviewNavigationTest::class.java)
 
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
+  private val project: Project
+    get() = projectRule.project
+  private val fixture: CodeInsightTestFixture
+    get() = projectRule.fixture
 
   /** Checks the rendering of the default `@Preview` in the Compose template. */
   @Test
@@ -161,5 +207,57 @@ class PreviewNavigationTest {
         }
       }
       .join()
+  }
+
+  @Test
+  fun testPreviewNameNavigation() {
+    val mainFile =
+      project.guessProjectDir()!!.findFileByRelativePath(
+        SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path
+      )!!
+    val psiMainFile = runReadAction { PsiManager.getInstance(project).findFile(mainFile)!! }
+
+    // Create a preview representation with an associated fakeUi
+    val countDownLatch = CountDownLatch(1)
+    val previewView =
+      TestComposePreviewView(
+        fixture.testRootDisposable,
+        project,
+        TestNavigationHandler(countDownLatch)
+      )
+    val composePreviewRepresentation =
+      ComposePreviewRepresentation(psiMainFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
+        previewView
+      }
+    Disposer.register(fixture.testRootDisposable, composePreviewRepresentation)
+    lateinit var fakeUi: FakeUi
+    runInEdtAndWait {
+      fakeUi =
+        FakeUi(
+          JPanel().apply {
+            layout = BorderLayout()
+            size = Dimension(1000, 800)
+            add(previewView, BorderLayout.CENTER)
+          },
+          1.0,
+          true
+        )
+      fakeUi.root.validate()
+    }
+    runBlocking { composePreviewRepresentation.activateAndWaitForRender(fakeUi) }
+
+    // Find a name label
+    val panels = fakeUi.findAllComponents<SceneViewPeerPanel>()
+    val sceneViewPanel = panels.single { it.displayName == "DefaultPreview" }
+    val nameLabel =
+      sceneViewPanel.sceneViewTopPanel.components.single {
+        it is JLabel && it.text == "DefaultPreview"
+      }
+
+    // Click the label and verify that navigation was called
+    assertEquals(1, countDownLatch.count)
+    runInEdtAndWait { fakeUi.clickRelativeTo(nameLabel, 1, 1) }
+    countDownLatch.await()
+    assertEquals(0, countDownLatch.count)
   }
 }

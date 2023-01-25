@@ -40,4 +40,15 @@ interface NavigationHandler : Disposable {
     @SwingCoordinate y: Int,
     requestFocus: Boolean
   ): Boolean
+
+  /**
+   *  Triggered when need to perform a navigation associated to the [sceneView] as a whole,
+   *  but not any of its components. This could happen for example when the [sceneView]'s
+   *  name/title shown in the design surface is clicked.
+   *  Returns true if the navigation was handled by this handler.
+   *
+   *  @param sceneView [SceneView] for which the navigation request is being issued
+   *  @param requestFocus true if the navigation should focus the editor
+   */
+  suspend fun handleNavigate(sceneView: SceneView, requestFocus: Boolean): Boolean
 }

@@ -52,6 +52,12 @@ open class DefaultNavigationHandler(
           .createNavigatable(model.project, psiFile.virtualFile!!, offset)
   }
 
+  override suspend fun handleNavigate(sceneView: SceneView, requestFocus: Boolean): Boolean {
+    return (defaultNavigationMap[sceneView.sceneManager.model]?.second?.apply {
+      withContext(uiThread) { navigate(requestFocus) }
+    } != null).also { LOG.debug { "Navigated to default? $it" } }
+  }
+
   override suspend fun handleNavigate(
     sceneView: SceneView,
     @SwingCoordinate hitX: Int,
@@ -67,11 +73,7 @@ open class DefaultNavigationHandler(
     // Only allow default navigation when double clicking since it might take us to a different file
     if (!requestFocus) return true
 
-    return (defaultNavigationMap[sceneView.sceneManager.model]?.second?.apply {
-      withContext(uiThread) {
-        navigate(requestFocus)
-      }
-    } != null).also { LOG.debug { "Navigated to default? $it" } }
+    return handleNavigate(sceneView, requestFocus)
   }
 
   override fun dispose() {

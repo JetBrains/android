@@ -21,6 +21,7 @@ import com.android.tools.idea.compose.preview.ComposePreviewView
 import com.android.tools.idea.compose.preview.createMainDesignSurfaceBuilder
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
+import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileEditor
@@ -33,12 +34,15 @@ import kotlinx.coroutines.CompletableDeferred
 internal val SceneViewPeerPanel.displayName: String
   get() = sceneView.sceneManager.model.modelDisplayName ?: ""
 
-internal class TestComposePreviewView(parentDisposable: Disposable, project: Project) :
-  ComposePreviewView, JPanel() {
+internal class TestComposePreviewView(
+  parentDisposable: Disposable,
+  project: Project,
+  navigationHandler: NavigationHandler = ComposePreviewNavigationHandler()
+) : ComposePreviewView, JPanel() {
   override val mainSurface: NlDesignSurface =
     createMainDesignSurfaceBuilder(
         project,
-        ComposePreviewNavigationHandler(),
+        navigationHandler,
         DelegateInteractionHandler(),
         { null },
         parentDisposable,
