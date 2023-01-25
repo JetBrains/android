@@ -21,6 +21,7 @@ import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.actions.SetColorBlindModeAction
+import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
@@ -46,6 +47,11 @@ class ComposeViewControlAction(
     message("action.scene.view.control.description"),
     AllIcons.Debugger.RestoreLayout
   ) {
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    e.presentation.isEnabled = !isAnyPreviewRefreshing(e.dataContext)
+  }
 
   @VisibleForTesting
   public override fun updateActions(context: DataContext): Boolean {

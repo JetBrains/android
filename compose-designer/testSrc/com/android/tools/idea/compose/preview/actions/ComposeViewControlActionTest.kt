@@ -23,6 +23,9 @@ import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.layout.EmptySurfaceLayoutManager
+import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
+import com.android.tools.idea.compose.preview.ComposePreviewManager
+import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
@@ -31,8 +34,11 @@ import com.android.tools.idea.uibuilder.actions.SurfaceLayoutManagerOption
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.testFramework.TestActionEvent
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -97,6 +103,53 @@ class ComposeViewControlActionTest {
 
     val actionContent = prettyPrintActions(viewControlAction)
     assertEquals(expected, actionContent)
+  }
+
+  @Test
+  fun testNotEnabledWhenRefreshing() {
+    val manager = TestComposePreviewManager()
+    val refreshingStatus =
+      ComposePreviewManager.Status(
+        hasRuntimeErrors = false,
+        hasSyntaxErrors = false,
+        isOutOfDate = false,
+        isRefreshing = true,
+        areResourcesOutOfDate = false,
+        interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
+      )
+    val nonRefreshingStatus =
+      ComposePreviewManager.Status(
+        hasRuntimeErrors = false,
+        hasSyntaxErrors = false,
+        isOutOfDate = false,
+        isRefreshing = false,
+        areResourcesOutOfDate = false,
+        interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
+      )
+    val context = DataContext {
+      when {
+        COMPOSE_PREVIEW_MANAGER.`is`(it) -> manager
+        else -> null
+      }
+    }
+    val event = TestActionEvent(context)
+    val viewControlAction =
+      ComposeViewControlAction(
+        EmptyLayoutManagerSwitcher,
+        listOf(createOption("Layout A", EmptySurfaceLayoutManager()))
+      )
+
+    manager.currentStatus = nonRefreshingStatus
+    viewControlAction.update(event)
+    assertTrue(event.presentation.isEnabled)
+
+    manager.currentStatus = refreshingStatus
+    viewControlAction.update(event)
+    assertFalse(event.presentation.isEnabled)
+
+    manager.currentStatus = nonRefreshingStatus
+    viewControlAction.update(event)
+    assertTrue(event.presentation.isEnabled)
   }
 }
 
