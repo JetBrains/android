@@ -46,6 +46,7 @@ import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.CustomReferenceConverter;
 import com.intellij.util.xml.GenericDomValue;
@@ -257,7 +258,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     if (rootReference != null) {
       result.add(rootReference);
       // Expand first reference if possible, e.g. "Integer" -> "java.lang.Integer"
-      nameParts.set(0, rootReference.getCanonicalText());
+      nameParts = ContainerUtil.prepend(nameParts.subList(1, nameParts.size()), rootReference.getCanonicalText());
       offset++; // Move past the next character which should be a "." or "$"
     }
 
