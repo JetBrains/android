@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.editor
 
+import com.android.tools.adtui.TreeWalker
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
@@ -30,12 +31,14 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.SplitEditorToolbar
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.DumbAware
 import com.intellij.pom.Navigatable
+import com.intellij.util.containers.orNull
 import javax.swing.Icon
 import javax.swing.JComponent
 
@@ -74,6 +77,12 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
 
   override fun getComponent(): JComponent {
     val thisComponent = super.getComponent()
+    // If displaying the split controls in the editor tabs, we should make sure the legacy toolbar is not visible.
+    if (isShowActionsInTabs) {
+      TreeWalker(thisComponent).descendantStream().filter { it is SplitEditorToolbar }.findFirst().orNull()?.let {
+        it.isVisible = false
+      }
+    }
     if (!shortcutsRegistered) {
       shortcutsRegistered = true
       registerModeNavigationShortcuts(thisComponent)
