@@ -1,0 +1,28 @@
+{
+  "intui": {
+    "icons": {
+      "shell": {
+        "filetree": {
+          "android-module.svg": "studio/icons/shell/filetree/android-module.svg",
+          "android-project.svg": "studio/icons/shell/filetree/android-project.svg"
+        },
+        "tool-windows": {
+          "android-profiler.svg": "studio/icons/shell/tool-windows/android-profiler.svg",
+          "app-quality-insights.svg": "studio/icons/shell/tool-windows/app-quality-insights.svg",
+          "assistant.svg": "studio/icons/shell/tool-windows/assistant.svg",
+          "attributes.svg": "studio/icons/shell/tool-windows/attributes.svg",
+          "build-variants.svg": "studio/icons/shell/tool-windows/build-variants.svg",
+          "captures.svg": "studio/icons/shell/tool-windows/captures.svg",
+          "component-tree.svg": "studio/icons/shell/tool-windows/component-tree.svg",
+          "device-explorer.svg": "studio/icons/shell/tool-windows/device-explorer.svg",
+          "device-manager.svg": "studio/icons/shell/tool-windows/device-manager.svg",
+          "emulator.svg": "studio/icons/shell/tool-windows/emulator.svg",
+          "logcat.svg": "studio/icons/shell/tool-windows/logcat.svg",
+          "multi-preview.svg": "studio/icons/shell/tool-windows/multi-preview.svg",
+          "palette.svg": "studio/icons/shell/tool-windows/palette.svg",
+          "visual-assets.svg": "studio/icons/shell/tool-windows/visual-assets.svg"
+        }
+      }
+    }
+  }
+}

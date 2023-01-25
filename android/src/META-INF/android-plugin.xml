@@ -703,6 +703,8 @@
     <regExpLanguageHost forClass="org.jetbrains.kotlin.psi.KtStringTemplateExpression"
                         implementationClass="com.android.tools.idea.editors.AndroidRegExpHost"
                         order="first" />
+
+    <iconMapper mappingFile="StudioIntUiIconMappings.json"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
