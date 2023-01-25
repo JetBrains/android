@@ -37,7 +37,7 @@ import static com.intellij.openapi.util.io.FileUtil.copyDir;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static org.jetbrains.plugins.gradle.util.GradlePropertiesUtil.GRADLE_JAVA_HOME_PROPERTY;
+import static org.jetbrains.plugins.gradle.properties.GradlePropertiesFileKt.GRADLE_JAVA_HOME_PROPERTY;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
