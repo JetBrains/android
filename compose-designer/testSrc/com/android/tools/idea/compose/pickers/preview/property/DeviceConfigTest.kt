@@ -39,6 +39,7 @@ internal class DeviceConfigTest {
 
     config = parseDeviceSpec("spec:shape=Normal,width=120,height=240,unit=px,dpi=480")
     assertNotNull(config)
+    assertNull(config.deviceId)
     assertEquals(120f, config.width)
     assertEquals(240f, config.height)
     assertEquals(DimUnit.px, config.dimUnit)
@@ -47,6 +48,7 @@ internal class DeviceConfigTest {
 
     config = parseDeviceSpec("spec:shape=Round,width=240,height=120,unit=px,dpi=480")
     assertNotNull(config)
+    assertNull(config.deviceId)
     assertEquals(Orientation.landscape, config.orientation)
     assertEquals(Shape.Round, config.shape)
 
@@ -250,6 +252,27 @@ internal class DeviceConfigTest {
       DeviceConfig(width = 123.45f, height = 567.89f).deviceSpec()
     )
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
+  }
+
+  @Test
+  fun testReferenceDevicesIdInjection() {
+    assertEquals(
+      "_device_class_phone",
+      parseDeviceSpec("spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420")!!
+        .deviceId
+    )
+    assertEquals(
+      "_device_class_foldable",
+      parseDeviceSpec("spec:shape=Normal,width=673,height=841,unit=dp,dpi=480")!!.deviceId
+    )
+    assertEquals(
+      "_device_class_tablet",
+      parseDeviceSpec("spec:shape=Normal,width=1280,height=800,unit=dp,dpi=420")!!.deviceId
+    )
+    assertEquals(
+      "_device_class_desktop",
+      parseDeviceSpec("spec:shape=Normal,width=1920,height=1080,unit=dp,dpi=420")!!.deviceId
+    )
   }
 }
 

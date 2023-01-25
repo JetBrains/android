@@ -83,7 +83,7 @@ internal fun Device.toDeviceConfig(): DeviceConfig {
   // Set the backing ID at the end, otherwise there's risk of deleting it by changing other
   // properties
   if (this.id != Configuration.CUSTOM_DEVICE_ID) {
-    config.backingDeviceId = this.id
+    config.parentDeviceId = this.id
   }
   return config
 }
