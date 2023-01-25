@@ -243,7 +243,7 @@ public class PropertyUtil {
     GradlePropertiesDslElement holder = parent instanceof GradleDslMethodCall ? ((GradleDslMethodCall)parent).getArgumentsElement() :
                                         (GradlePropertiesDslElement)parent;
 
-    if (holder instanceof GradleDslExpressionList) {
+    if (holder instanceof GradleDslExpressionList || holder instanceof GradleDslElementList) {
       // get all elements that are loaded from file
       List<GradleDslElement> originalElements = holder.getOriginalElements();
       // get all effective elements (with new and without deleted)
