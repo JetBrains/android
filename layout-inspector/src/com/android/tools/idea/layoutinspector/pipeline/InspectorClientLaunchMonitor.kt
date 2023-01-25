@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.ddmlib.Client
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.adb.findClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.errorCode
@@ -51,6 +52,7 @@ import java.util.concurrent.TimeUnit
 class InspectorClientLaunchMonitor(
   private val project: Project,
   private val attachErrorStateListeners: ListenerCollection<(AttachErrorState) -> Unit>,
+  private val stats: SessionStatistics,
   @TestOnly private val executorService: ScheduledExecutorService = AppExecutorUtil.getAppScheduledExecutorService()
 ) {
   private var lastUpdate: Long = 0L
@@ -87,6 +89,7 @@ class InspectorClientLaunchMonitor(
     timeoutFuture?.cancel(true)
     debuggerFuture?.cancel(true)
     currentProgress = progress
+    stats.currentProgress = progress
     if (currentProgress < CONNECTED_STATE) {
       lastUpdate = System.currentTimeMillis()
       synchronized(clientLock) {

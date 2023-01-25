@@ -53,7 +53,7 @@ class LayoutInspectorSessionMetrics(
       DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS -> if (loggedInitialRender) return else loggedInitialRender = true
       DynamicLayoutInspectorEventType.ATTACH_REQUEST,
       DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST -> if (loggedInitialConnect) return else loggedInitialConnect = true
-      DynamicLayoutInspectorEventType.ATTACH_ERROR -> stats.attachError(errorState, errorCode)
+      DynamicLayoutInspectorEventType.ATTACH_ERROR -> stats.attachError(errorCode)
       DynamicLayoutInspectorEventType.ATTACH_SUCCESS -> stats.attachSuccess()
       DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS -> stats.attachSuccess()
       else -> {} // continue

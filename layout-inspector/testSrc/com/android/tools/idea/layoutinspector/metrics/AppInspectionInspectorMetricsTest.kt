@@ -107,7 +107,7 @@ class AppInspectionInspectorMetricsTest {
       assertThat(inspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.SESSION_DATA)
       assertThat(inspectorEvent.session.attach.clientType).isEqualTo(APP_INSPECTION_CLIENT)
       assertThat(inspectorEvent.session.attach.success).isTrue()
-      assertThat(inspectorEvent.session.attach.errorInfo.attachErrorState).isEqualTo(AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE)
+      assertThat(inspectorEvent.session.attach.errorInfo.attachErrorState).isEqualTo(AttachErrorState.MODEL_UPDATED)
     }
 
     assertThat(usages[0].studioEvent.deviceInfo).isEqualTo(usages[1].studioEvent.deviceInfo)

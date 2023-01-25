@@ -66,6 +66,7 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
@@ -1234,8 +1235,8 @@ class AppInspectionInspectorClientWithFailingClientTest {
   private val inspectionRule = AppInspectionInspectorRule(projectRule)
   private var throwOnState: AttachErrorState = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
   private var exceptionToThrow: Exception = RuntimeException("expected")
-  private val getMonitor: () -> InspectorClientLaunchMonitor = {
-    spy(InspectorClientLaunchMonitor(projectRule.project, ListenerCollection.createWithDirectExecutor())).also {
+  private val getMonitor: (AbstractInspectorClient) -> InspectorClientLaunchMonitor = { client ->
+    spy(InspectorClientLaunchMonitor(projectRule.project, ListenerCollection.createWithDirectExecutor(), client.stats)).also {
       doAnswer { invocation ->
         val state = invocation.arguments[0] as AttachErrorState
         if (state == throwOnState) {

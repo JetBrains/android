@@ -64,7 +64,7 @@ abstract class AbstractInspectorClient(
   private val treeEventCallbacks = ListenerCollection.createWithDirectExecutor<(Any) -> Unit>()
   private val attachStateListeners = ListenerCollection.createWithDirectExecutor<(DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit>()
 
-  var launchMonitor: InspectorClientLaunchMonitor = InspectorClientLaunchMonitor(project, attachStateListeners)
+  var launchMonitor: InspectorClientLaunchMonitor = InspectorClientLaunchMonitor(project, attachStateListeners, stats)
     @TestOnly set
 
   override fun dispose() {

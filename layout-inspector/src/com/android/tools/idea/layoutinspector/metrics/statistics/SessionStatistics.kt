@@ -87,7 +87,7 @@ interface SessionStatistics {
   /**
    * The connection failed to attach to the process.
    */
-  fun attachError(errorState: AttachErrorState?, errorCode: AttachErrorCode)
+  fun attachError(errorCode: AttachErrorCode)
 
   /**
    * The compose inspector failed to initialize.
@@ -128,6 +128,11 @@ interface SessionStatistics {
    * The current recomposition highlight color selected.
    */
   var recompositionHighlightColor: Int
+
+  /**
+   * The current progress in the launch monitor
+   */
+  var currentProgress: AttachErrorState
 }
 
 class SessionStatisticsImpl(
@@ -202,8 +207,8 @@ class SessionStatisticsImpl(
     attach.attachSuccess()
   }
 
-  override fun attachError(errorState: AttachErrorState?, errorCode: AttachErrorCode) {
-    attach.attachError(errorState, errorCode)
+  override fun attachError(errorCode: AttachErrorCode) {
+    attach.attachError(errorCode)
   }
 
   override fun composeAttachError(errorCode: AttachErrorCode) {
@@ -237,4 +242,8 @@ class SessionStatisticsImpl(
   override var recompositionHighlightColor: Int
     get() = compose.recompositionHighlightColor
     set(value) { compose.recompositionHighlightColor = value }
+
+  override var currentProgress: AttachErrorState
+    get() = attach.currentProgress
+    set(value) { attach.currentProgress = value }
 }
