@@ -15,8 +15,6 @@
  */
 package org.jetbrains.android.dom.converters;
 
-import static com.android.tools.idea.lang.databinding.DataBindingLangUtil.JAVA_LANG;
-
 import com.android.tools.idea.databinding.index.BindingXmlData;
 import com.android.tools.idea.databinding.index.BindingXmlIndex;
 import com.android.tools.idea.databinding.index.ImportData;
@@ -26,18 +24,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.ElementManipulators;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiClassType;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiPackage;
-import com.intellij.psi.PsiPrimitiveType;
-import com.intellij.psi.PsiReference;
-import com.intellij.psi.PsiReferenceBase;
-import com.intellij.psi.PsiTypeElement;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiJavaParserFacadeImpl;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -45,19 +32,23 @@ import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.CustomReferenceConverter;
 import com.intellij.util.xml.GenericDomValue;
 import com.intellij.util.xml.ResolvingConverter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import org.jetbrains.android.AndroidResolveScopeEnlarger;
 import org.jetbrains.android.AndroidXmlCompletionContributor;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import static com.android.tools.idea.lang.databinding.DataBindingLangUtil.JAVA_LANG;
 
 /**
  * The converter for "type" attribute of "import" element in databinding layouts.
@@ -256,7 +247,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     if (rootReference != null) {
       result.add(rootReference);
       // Expand first reference if possible, e.g. "Integer" -> "java.lang.Integer"
-      nameParts.set(0, rootReference.getCanonicalText());
+      nameParts = ContainerUtil.prepend(nameParts.subList(1, nameParts.size()), rootReference.getCanonicalText());
       offset++; // Move past the next character which should be a "." or "$"
     }
 
