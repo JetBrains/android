@@ -46,7 +46,7 @@ import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils;
 import com.google.common.io.Files;
 import com.intellij.execution.ui.RunContentManager;
 import com.intellij.ide.GeneralSettings;
-import com.intellij.ide.GeneralSettings.ProcessCloseConfirmation;
+import com.intellij.ide.ProcessCloseConfirmation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
