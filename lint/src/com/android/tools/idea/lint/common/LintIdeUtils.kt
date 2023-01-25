@@ -16,21 +16,18 @@
 package com.android.tools.idea.lint.common
 
 import com.android.tools.lint.detector.api.Context
-import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
-import org.jetbrains.kotlin.descriptors.PropertyDescriptor
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
 import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
 /**
  * Returns the [PsiFile] associated with a given lint [Context].
@@ -46,9 +43,14 @@ fun Context.getPsiFile(): PsiFile? {
 }
 
 /** Checks if this [KtProperty] has a backing field or implements get/set on its own. */
+@OptIn(KtAllowAnalysisOnEdt::class)
 fun KtProperty.hasBackingField(): Boolean {
-  val propertyDescriptor = descriptor as? PropertyDescriptor ?: return false
-  return analyze(BodyResolveMode.PARTIAL)[BindingContext.BACKING_FIELD_REQUIRED, propertyDescriptor] ?: false
+  allowAnalysisOnEdt {
+    analyze(this) {
+      val propertySymbol = this@hasBackingField.getVariableSymbol() as? KtPropertySymbol ?: return false
+      return propertySymbol.hasBackingField
+    }
+  }
 }
 
 /**
