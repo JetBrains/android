@@ -34,6 +34,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.util.Disposer
@@ -133,7 +134,7 @@ class DeviceToolWindowPanelTest {
     val powerAction = ActionManager.getInstance().getAction("android.device.power.button")
     val keyEvent = KeyEvent(panel, KeyEvent.KEY_RELEASED, System.currentTimeMillis(), InputEvent.CTRL_DOWN_MASK, KeyEvent.VK_P, 0.toChar())
     val dataContext = DataManager.getInstance().getDataContext(panel.deviceView)
-    powerAction.actionPerformed(AnActionEvent.createFromAnAction(powerAction, keyEvent, "", dataContext))
+    powerAction.actionPerformed(AnActionEvent.createFromAnAction(powerAction, keyEvent, ActionPlaces.KEYBOARD_SHORTCUT, dataContext))
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_DOWN_AND_UP, AKEYCODE_POWER, 0))
 
     // Check that the Wear OS-specific buttons are hidden.

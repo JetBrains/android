@@ -41,12 +41,13 @@ import java.awt.event.KeyEvent.VK_E
 /**
  * Executes an action related to device mirroring.
  */
-internal fun executeDeviceAction(actionId: String, displayView: AbstractDisplayView, project: Project) {
+internal fun executeDeviceAction(
+    actionId: String, displayView: AbstractDisplayView, project: Project, place: String = ActionPlaces.TOOLBAR) {
   val actionManager = ActionManager.getInstance()
   val action = actionManager.getAction(actionId)
   val inputEvent = KeyEvent(displayView, KEY_RELEASED, System.currentTimeMillis(), CTRL_DOWN_MASK, VK_E, CHAR_UNDEFINED)
   val presentation = Presentation()
-  val event = AnActionEvent(inputEvent, TestDataContext(displayView, project), ActionPlaces.UNKNOWN, presentation, actionManager, 0)
+  val event = AnActionEvent(inputEvent, TestDataContext(displayView, project), place, presentation, actionManager, 0)
   action.update(event)
   Truth.assertThat(event.presentation.isEnabledAndVisible).isTrue()
   action.actionPerformed(event)

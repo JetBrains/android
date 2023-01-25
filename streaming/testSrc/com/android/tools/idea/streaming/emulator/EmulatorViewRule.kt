@@ -21,6 +21,7 @@ import com.android.tools.idea.streaming.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.executeDeviceAction
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.project.Project
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import org.junit.rules.ExternalResource
@@ -74,8 +75,8 @@ class EmulatorViewRule : TestRule {
     return view
   }
 
-  fun executeAction(actionId: String, emulatorView: EmulatorView) {
-    executeDeviceAction(actionId, emulatorView, projectRule.project)
+  fun executeAction(actionId: String, emulatorView: EmulatorView, place: String = ActionPlaces.TOOLBAR) {
+    executeDeviceAction(actionId, emulatorView, projectRule.project, place)
   }
 
   fun getFakeEmulator(emulatorView: EmulatorView): FakeEmulator {
