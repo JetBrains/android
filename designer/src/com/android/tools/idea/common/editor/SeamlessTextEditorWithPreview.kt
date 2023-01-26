@@ -51,7 +51,9 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(textEditor: TextEditor,
     // super.getComponent() initializes toolbar and sets true visibility values for
     val mainComponent = super.getComponent()
     if (toolbarComponent == null) {
-      toolbarComponent = TreeWalker(mainComponent).descendantStream().filter { it is SplitEditorToolbar }.findFirst().orElseThrow { IllegalStateException("TextEditorWithPreview should have a toolbar.") }
+      toolbarComponent = TreeWalker(mainComponent).descendantStream().filter { it is SplitEditorToolbar }.findFirst().orElseThrow {
+        IllegalStateException("TextEditorWithPreview should have a toolbar.")
+      }
       // Apply visibility values overridden by this
       if (isPureTextEditor) {
         setPureTextEditorVisibility()
@@ -74,7 +76,7 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(textEditor: TextEditor,
   }
 
   /**
-   * Setting visibility values [isPureTextEditor]=true, see [setSplitTextEditorVisibility] for more details.
+   * Sets the visibility values of both [myEditor] and [myPreview] components when [isPureTextEditor] is true.
    */
   private fun setPureTextEditorVisibility() {
     myEditor.component.isVisible = true
