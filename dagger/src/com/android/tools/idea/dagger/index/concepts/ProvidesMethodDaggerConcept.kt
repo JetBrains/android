@@ -17,6 +17,7 @@ package com.android.tools.idea.dagger.index.concepts
 
 import com.android.tools.idea.dagger.index.DaggerConceptIndexer
 import com.android.tools.idea.dagger.index.DaggerConceptIndexers
+import com.android.tools.idea.dagger.index.IndexEntries
 import com.android.tools.idea.dagger.index.IndexValue
 import com.android.tools.idea.dagger.index.concepts.DaggerAttributes.MODULE
 import com.android.tools.idea.dagger.index.concepts.DaggerAttributes.PROVIDES
@@ -49,7 +50,7 @@ object ProvidesMethodDaggerConcept : DaggerConcept {
 }
 
 private object ProvidesMethodIndexer : DaggerConceptIndexer<DaggerIndexMethodWrapper> {
-  override fun addIndexEntries(wrapper: DaggerIndexMethodWrapper, indexEntries: MutableMap<String, MutableSet<IndexValue>>) {
+  override fun addIndexEntries(wrapper: DaggerIndexMethodWrapper, indexEntries: IndexEntries) {
     if (!wrapper.getIsAnnotatedWith(PROVIDES)) return
 
     val containingClass = wrapper.getContainingClass() ?: return

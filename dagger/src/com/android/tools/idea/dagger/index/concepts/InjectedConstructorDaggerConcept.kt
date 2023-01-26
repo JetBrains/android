@@ -17,6 +17,7 @@ package com.android.tools.idea.dagger.index.concepts
 
 import com.android.tools.idea.dagger.index.DaggerConceptIndexer
 import com.android.tools.idea.dagger.index.DaggerConceptIndexers
+import com.android.tools.idea.dagger.index.IndexEntries
 import com.android.tools.idea.dagger.index.IndexValue
 import com.android.tools.idea.dagger.index.concepts.DaggerAttributes.INJECT
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexMethodWrapper
@@ -47,7 +48,7 @@ object InjectedConstructorDaggerConcept : DaggerConcept {
 }
 
 private object InjectedConstructorIndexer : DaggerConceptIndexer<DaggerIndexMethodWrapper> {
-  override fun addIndexEntries(wrapper: DaggerIndexMethodWrapper, indexEntries: MutableMap<String, MutableSet<IndexValue>>) {
+  override fun addIndexEntries(wrapper: DaggerIndexMethodWrapper, indexEntries: IndexEntries) {
     if (!wrapper.getIsConstructor() || !wrapper.getIsAnnotatedWith(INJECT)) return
 
     val classFqName = wrapper.getContainingClass()?.getFqName() ?: return

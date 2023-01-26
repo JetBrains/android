@@ -17,6 +17,7 @@ package com.android.tools.idea.dagger.index.concepts
 
 import com.android.tools.idea.dagger.index.DaggerConceptIndexer
 import com.android.tools.idea.dagger.index.DaggerConceptIndexers
+import com.android.tools.idea.dagger.index.IndexEntries
 import com.android.tools.idea.dagger.index.IndexValue
 import com.android.tools.idea.dagger.index.concepts.DaggerAttributes.INJECT
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexFieldWrapper
@@ -47,7 +48,7 @@ object InjectedFieldDaggerConcept : DaggerConcept {
 }
 
 private object InjectedFieldIndexer : DaggerConceptIndexer<DaggerIndexFieldWrapper> {
-  override fun addIndexEntries(wrapper: DaggerIndexFieldWrapper, indexEntries: MutableMap<String, MutableSet<IndexValue>>) {
+  override fun addIndexEntries(wrapper: DaggerIndexFieldWrapper, indexEntries: IndexEntries) {
     if (!wrapper.getIsAnnotatedWith(INJECT)) return
 
     val fieldTypeSimpleName = wrapper.getType()?.getSimpleName() ?: ""

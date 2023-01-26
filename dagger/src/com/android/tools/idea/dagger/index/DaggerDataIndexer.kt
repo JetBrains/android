@@ -35,6 +35,8 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtSecondaryConstructor
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 
+typealias IndexEntries = MutableMap<String, MutableSet<IndexValue>>
+
 internal class DaggerDataIndexer @VisibleForTesting internal constructor(
   private val conceptIndexers: DaggerConceptIndexers = DaggerConceptIndexers.ALL_INDEXERS)
   : DataIndexer<String, Set<IndexValue>, FileContent> {
@@ -44,7 +46,7 @@ internal class DaggerDataIndexer @VisibleForTesting internal constructor(
   }
 
   override fun map(inputData: FileContent): Map<String, Set<IndexValue>> {
-    val results: MutableMap<String, MutableSet<IndexValue>> = mutableMapOf()
+    val results: IndexEntries = mutableMapOf()
     val visitor = when (inputData.fileType) {
       KotlinFileType.INSTANCE -> KotlinVisitor(results, conceptIndexers, inputData.psiFile as KtFile)
       JavaFileType.INSTANCE -> JavaVisitor(results, conceptIndexers, inputData.psiFile as PsiJavaFile)
@@ -55,7 +57,7 @@ internal class DaggerDataIndexer @VisibleForTesting internal constructor(
     return results
   }
 
-  private class KotlinVisitor(private val results: MutableMap<String, MutableSet<IndexValue>>,
+  private class KotlinVisitor(private val results: IndexEntries,
                               private val conceptIndexers: DaggerConceptIndexers,
                               ktFile: KtFile) : KtTreeVisitorVoid() {
     private val wrapperFactory = DaggerIndexPsiWrapper.KotlinFactory(ktFile)
@@ -81,7 +83,7 @@ internal class DaggerDataIndexer @VisibleForTesting internal constructor(
     }
   }
 
-  private class JavaVisitor(private val results: MutableMap<String, MutableSet<IndexValue>>,
+  private class JavaVisitor(private val results: IndexEntries,
                             private val conceptIndexers: DaggerConceptIndexers,
                             psiJavaFile: PsiJavaFile) : JavaRecursiveElementWalkingVisitor() {
     private val wrapperFactory = DaggerIndexPsiWrapper.JavaFactory(psiJavaFile)
@@ -100,9 +102,9 @@ internal class DaggerDataIndexer @VisibleForTesting internal constructor(
 
 /** An indexer for a single [DaggerConcept]. Operates using a [DaggerIndexPsiWrapper], so that the logic is common to Kotlin and Java. */
 fun interface DaggerConceptIndexer<T : DaggerIndexPsiWrapper> {
-  fun addIndexEntries(wrapper: T, indexEntries: MutableMap<String, MutableSet<IndexValue>>)
+  fun addIndexEntries(wrapper: T, indexEntries: IndexEntries)
 
-  fun MutableMap<String, MutableSet<IndexValue>>.addIndexValue(key: String, value: IndexValue) {
+  fun IndexEntries.addIndexValue(key: String, value: IndexValue) {
     this.getOrPut(key) { mutableSetOf() }.add(value)
   }
 }
@@ -112,9 +114,9 @@ class DaggerConceptIndexers(
   val fieldIndexers: List<DaggerConceptIndexer<DaggerIndexFieldWrapper>> = emptyList(),
   val methodIndexers: List<DaggerConceptIndexer<DaggerIndexMethodWrapper>> = emptyList()) {
 
-  fun doIndexing(wrapper: DaggerIndexFieldWrapper, indexEntries: MutableMap<String, MutableSet<IndexValue>>) =
+  fun doIndexing(wrapper: DaggerIndexFieldWrapper, indexEntries: IndexEntries) =
     fieldIndexers.forEach { it.addIndexEntries(wrapper, indexEntries) }
-  fun doIndexing(wrapper: DaggerIndexMethodWrapper, indexEntries: MutableMap<String, MutableSet<IndexValue>>) =
+  fun doIndexing(wrapper: DaggerIndexMethodWrapper, indexEntries: IndexEntries) =
     methodIndexers.forEach { it.addIndexEntries(wrapper, indexEntries) }
 
   companion object {
