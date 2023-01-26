@@ -325,7 +325,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     val firstDependencyModel = buildModel.dependencies().artifacts()[0]!!
 
-    assertTrue(firstDependencyModel.group().isModified) // TODO(b/263584928) fix false positive as isModified cannot find old element by name
+    assertFalse(firstDependencyModel.group().isModified)
   }
 
   @Test
