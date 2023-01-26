@@ -429,6 +429,7 @@ class TreeTableImplTest {
     table.removeNotify()
     table.addNotify()
     assertThat(table.tableHeader.isShowing).isFalse()
+    table.removeNotify()
   }
 
   @Test
