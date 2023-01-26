@@ -658,12 +658,12 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:lib-MAIN
-                        library                       : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:lib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:lib-MAIN
-                            dependency                    : <ROOT>-:otherlib-MAIN
-                        library                       : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:lib-MAIN
+                            module                        : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
                 ApplicationId                 : testData.namespaces
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -692,9 +692,9 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:app-MAIN
-                        library                       : <ROOT>-:lib-MAIN
-                        library                       : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:app-MAIN
+                        module                        : <ROOT>-:lib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
                     runtimeClasspath
                 ApplicationId                 : testData.namespaces.test
                 SigningConfigName             : debug
@@ -719,16 +719,16 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:app-MAIN
-                        library                       : <ROOT>-:lib-MAIN
-                        library                       : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:app-MAIN
+                        module                        : <ROOT>-:lib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:app-MAIN
-                            dependency                    : <ROOT>-:lib-MAIN
-                            dependency                    : <ROOT>-:otherlib-MAIN
-                        library                       : <ROOT>-:lib-MAIN
-                            dependency                    : <ROOT>-:otherlib-MAIN
-                        library                       : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:app-MAIN
+                            module                        : <ROOT>-:lib-MAIN
+                            module                        : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:lib-MAIN
+                            module                        : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : project.app.androidTest
@@ -997,9 +997,9 @@ MODULE                        : project.lib
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -1025,12 +1025,12 @@ MODULE                        : project.lib
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:lib-MAIN
-                        library                       : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:lib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:lib-MAIN
-                            dependency                    : <ROOT>-:otherlib-MAIN
-                        library                       : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:lib-MAIN
+                            module                        : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
                 ApplicationId                 : com.example.lib.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1054,12 +1054,12 @@ MODULE                        : project.lib
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:lib-MAIN
-                        library                       : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:lib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:lib-MAIN
-                            dependency                    : <ROOT>-:otherlib-MAIN
-                        library                       : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:lib-MAIN
+                            module                        : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :lib (DefaultExternalProject) (*seen*)
 MODULE                        : project.lib.androidTest
@@ -1354,9 +1354,9 @@ MODULE                        : project.otherlib
                 ClassesFolder                 : <ROOT>/otherlib/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
                 ApplicationId                 : com.example.otherlib.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1380,9 +1380,9 @@ MODULE                        : project.otherlib
                 ClassesFolder                 : <ROOT>/otherlib/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :otherlib (DefaultExternalProject) (*seen*)
 MODULE                        : project.otherlib.androidTest

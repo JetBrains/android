@@ -994,9 +994,9 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:library-MAIN
+                        module                        : <ROOT>-:library-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:library-MAIN
+                        module                        : <ROOT>-:library-MAIN
                 ApplicationId                 : com.example.app
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1025,8 +1025,8 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:app-MAIN
-                        library                       : <ROOT>-:library-MAIN
+                        module                        : <ROOT>-:app-MAIN
+                        module                        : <ROOT>-:library-MAIN
                     runtimeClasspath
                 ApplicationId                 : com.example.app.test
                 SigningConfigName             : debug
@@ -1051,12 +1051,12 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:app-MAIN
-                        library                       : <ROOT>-:library-MAIN
+                        module                        : <ROOT>-:app-MAIN
+                        module                        : <ROOT>-:library-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:app-MAIN
-                            dependency                    : <ROOT>-:library-MAIN
-                        library                       : <ROOT>-:library-MAIN
+                        module                        : <ROOT>-:app-MAIN
+                            module                        : <ROOT>-:library-MAIN
+                        module                        : <ROOT>-:library-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : project.app.androidTest
@@ -1332,9 +1332,9 @@ MODULE                        : project.library
                 ClassesFolder                 : <ROOT>/library/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:library-MAIN
+                        module                        : <ROOT>-:library-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:library-MAIN
+                        module                        : <ROOT>-:library-MAIN
                 ApplicationId                 : com.example.library.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1358,9 +1358,9 @@ MODULE                        : project.library
                 ClassesFolder                 : <ROOT>/library/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:library-MAIN
+                        module                        : <ROOT>-:library-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:library-MAIN
+                        module                        : <ROOT>-:library-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :library (DefaultExternalProject) (*seen*)
 MODULE                        : project.library-remote
@@ -1633,9 +1633,9 @@ MODULE                        : project.library-remote
                 ClassesFolder                 : <ROOT>/library-remote/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:library-remote-MAIN
+                        module                        : <ROOT>-:library-remote-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:library-remote-MAIN
+                        module                        : <ROOT>-:library-remote-MAIN
                 ApplicationId                 : com.example.library.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1659,9 +1659,9 @@ MODULE                        : project.library-remote
                 ClassesFolder                 : <ROOT>/library-remote/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:library-remote-MAIN
+                        module                        : <ROOT>-:library-remote-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:library-remote-MAIN
+                        module                        : <ROOT>-:library-remote-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :library-remote (DefaultExternalProject) (*seen*)
 MODULE                        : project.library-remote.androidTest

@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeApiVersion
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
@@ -32,6 +33,7 @@ import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeDependenciesInfo
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeJavaCompileOptions
+import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeLintOptions
 import com.android.tools.idea.gradle.model.IdeModelSyncFile
@@ -395,17 +397,24 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         is IdeUnknownLibrary -> key
       }.replaceKnownPaths()
 
+      fun IdeLibrary.toLibraryType(): String = when (this) {
+        is IdeAndroidLibrary -> "androidLibrary"
+        is IdeJavaLibrary -> "javaLibrary"
+        is IdeModuleLibrary -> "module"
+        is IdeUnknownLibrary -> "unknown"
+      }
+
       head(property)
       nest {
         ideDependencies.unresolvedDependencies.forEach { dependency ->
           ideDependencies.resolver.resolve(dependency).forEach {
-            prop("library") { it.toDisplayString() }
+            prop(it.toLibraryType()) { it.toDisplayString() }
           }
           nest {
             // All the dependencies are included in unresolvedDependencies so we only need to dump the first level of children
             dependency.dependencies?.map { ideDependencies.unresolvedDependencies[it] }?.forEach { nestedDependency ->
               ideDependencies.resolver.resolve(nestedDependency).forEach { lib ->
-                prop("dependency") { lib.toDisplayString() }
+                prop(lib.toLibraryType()) { lib.toDisplayString() }
               }
             }
           }

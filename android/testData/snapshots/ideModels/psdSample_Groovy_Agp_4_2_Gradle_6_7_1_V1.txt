@@ -3355,79 +3355,79 @@ MODULE                        : project.app
                     ShadersDirectories            : <ROOT>/app/src/basicBar/shaders [-]
                 Dependencies
                     compileClasspath
-                        library                       : __local_aars__:<ROOT>/app/libs/lib1-1.0.aar:unspecified@jar
-                        library                       : com.example.libs:lib2:1.0@aar
-                        library                       : <ROOT>-:lib-MAIN
-                        library                       : com.android.support:appcompat-v7:28.0.0@aar
-                        library                       : com.android.support:support-fragment:28.0.0@aar
-                        library                       : com.android.support:animated-vector-drawable:28.0.0@aar
-                        library                       : com.android.support:support-core-ui:28.0.0@aar
-                        library                       : com.android.support:support-core-utils:28.0.0@aar
-                        library                       : com.android.support:support-vector-drawable:28.0.0@aar
-                        library                       : com.android.support:loader:28.0.0@aar
-                        library                       : com.android.support:viewpager:28.0.0@aar
-                        library                       : com.android.support:coordinatorlayout:28.0.0@aar
-                        library                       : com.android.support:drawerlayout:28.0.0@aar
-                        library                       : com.android.support:slidingpanelayout:28.0.0@aar
-                        library                       : com.android.support:customview:28.0.0@aar
-                        library                       : com.android.support:swiperefreshlayout:28.0.0@aar
-                        library                       : com.android.support:asynclayoutinflater:28.0.0@aar
-                        library                       : com.android.support:support-compat:28.0.0@aar
-                        library                       : com.android.support:versionedparcelable:28.0.0@aar
-                        library                       : com.android.support:cursoradapter:28.0.0@aar
-                        library                       : android.arch.lifecycle:runtime:1.1.1@aar
-                        library                       : com.android.support:documentfile:28.0.0@aar
-                        library                       : com.android.support:localbroadcastmanager:28.0.0@aar
-                        library                       : com.android.support:print:28.0.0@aar
-                        library                       : android.arch.lifecycle:viewmodel:1.1.1@aar
-                        library                       : android.arch.lifecycle:livedata:1.1.1@aar
-                        library                       : android.arch.lifecycle:livedata-core:1.1.1@aar
-                        library                       : android.arch.core:runtime:1.1.1@aar
-                        library                       : com.android.support:interpolator:28.0.0@aar
-                        library                       : com.android.support.constraint:constraint-layout:1.1.0@aar
-                        library                       : com.android.support:collections:28.0.0@jar
-                        library                       : android.arch.lifecycle:common:1.1.1@jar
-                        library                       : android.arch.core:common:1.1.1@jar
-                        library                       : com.android.support:support-annotations:28.0.0@jar
-                        library                       : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
-                        library                       : com.example.jlib:lib3:1.0@jar
-                        library                       : com.example.jlib:lib4:1.0@jar
+                        androidLibrary                : __local_aars__:<ROOT>/app/libs/lib1-1.0.aar:unspecified@jar
+                        androidLibrary                : com.example.libs:lib2:1.0@aar
+                        module                        : <ROOT>-:lib-MAIN
+                        androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                        androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                        androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                        androidLibrary                : com.android.support:loader:28.0.0@aar
+                        androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                        androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                        androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                        androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                        androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                        androidLibrary                : com.android.support:print:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                        androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                        androidLibrary                : com.android.support.constraint:constraint-layout:1.1.0@aar
+                        javaLibrary                   : com.android.support:collections:28.0.0@jar
+                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                        javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
+                        javaLibrary                   : com.example.jlib:lib3:1.0@jar
+                        javaLibrary                   : com.example.jlib:lib4:1.0@jar
                     runtimeClasspath
-                        library                       : __local_aars__:<ROOT>/app/libs/lib1-1.0.aar:unspecified@jar
-                        library                       : <ROOT>-:lib-MAIN
-                        library                       : com.android.support:appcompat-v7:28.0.0@aar
-                        library                       : com.android.support:support-fragment:28.0.0@aar
-                        library                       : com.android.support:animated-vector-drawable:28.0.0@aar
-                        library                       : com.android.support:support-core-ui:28.0.0@aar
-                        library                       : com.android.support:support-core-utils:28.0.0@aar
-                        library                       : com.android.support:support-vector-drawable:28.0.0@aar
-                        library                       : com.android.support:loader:28.0.0@aar
-                        library                       : com.android.support:viewpager:28.0.0@aar
-                        library                       : com.android.support:coordinatorlayout:28.0.0@aar
-                        library                       : com.android.support:drawerlayout:28.0.0@aar
-                        library                       : com.android.support:slidingpanelayout:28.0.0@aar
-                        library                       : com.android.support:customview:28.0.0@aar
-                        library                       : com.android.support:swiperefreshlayout:28.0.0@aar
-                        library                       : com.android.support:asynclayoutinflater:28.0.0@aar
-                        library                       : com.android.support:support-compat:28.0.0@aar
-                        library                       : com.android.support:versionedparcelable:28.0.0@aar
-                        library                       : com.android.support:cursoradapter:28.0.0@aar
-                        library                       : android.arch.lifecycle:runtime:1.1.1@aar
-                        library                       : com.android.support:documentfile:28.0.0@aar
-                        library                       : com.android.support:localbroadcastmanager:28.0.0@aar
-                        library                       : com.android.support:print:28.0.0@aar
-                        library                       : android.arch.lifecycle:viewmodel:1.1.1@aar
-                        library                       : android.arch.lifecycle:livedata:1.1.1@aar
-                        library                       : android.arch.lifecycle:livedata-core:1.1.1@aar
-                        library                       : android.arch.core:runtime:1.1.1@aar
-                        library                       : com.android.support:interpolator:28.0.0@aar
-                        library                       : com.android.support.constraint:constraint-layout:1.1.0@aar
-                        library                       : com.android.support:collections:28.0.0@jar
-                        library                       : android.arch.lifecycle:common:1.1.1@jar
-                        library                       : android.arch.core:common:1.1.1@jar
-                        library                       : com.android.support:support-annotations:28.0.0@jar
-                        library                       : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
-                        library                       : __local_jars__:<ROOT>/jav/build/libs/jav.jar:unspecified
+                        androidLibrary                : __local_aars__:<ROOT>/app/libs/lib1-1.0.aar:unspecified@jar
+                        module                        : <ROOT>-:lib-MAIN
+                        androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                        androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                        androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                        androidLibrary                : com.android.support:loader:28.0.0@aar
+                        androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                        androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                        androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                        androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                        androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                        androidLibrary                : com.android.support:print:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                        androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                        androidLibrary                : com.android.support.constraint:constraint-layout:1.1.0@aar
+                        javaLibrary                   : com.android.support:collections:28.0.0@jar
+                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                        javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
+                        javaLibrary                   : __local_jars__:<ROOT>/jav/build/libs/jav.jar:unspecified
                 ProvidedDependencies
                     - provided                    : com.example.jlib:lib3:1.0
                     - provided                    : com.example.jlib:lib4:1.0
@@ -3483,69 +3483,69 @@ MODULE                        : project.app
                     ShadersDirectories            : <ROOT>/app/src/androidTestBasicBar/shaders [-]
                 Dependencies
                     compileClasspath
-                        library                       : __local_aars__:<ROOT>/app/libs/lib1-1.0.aar:unspecified@jar
-                        library                       : com.android.support.test.espresso:espresso-core:3.0.2@aar
-                        library                       : <ROOT>-:lib-MAIN
-                        library                       : com.android.support:appcompat-v7:28.0.0@aar
-                        library                       : com.android.support.test:runner:1.0.2@aar
-                        library                       : com.android.support:support-fragment:28.0.0@aar
-                        library                       : com.android.support:animated-vector-drawable:28.0.0@aar
-                        library                       : com.android.support:support-core-ui:28.0.0@aar
-                        library                       : com.android.support:support-core-utils:28.0.0@aar
-                        library                       : com.android.support:support-vector-drawable:28.0.0@aar
-                        library                       : com.android.support:loader:28.0.0@aar
-                        library                       : com.android.support:viewpager:28.0.0@aar
-                        library                       : com.android.support:coordinatorlayout:28.0.0@aar
-                        library                       : com.android.support:drawerlayout:28.0.0@aar
-                        library                       : com.android.support:slidingpanelayout:28.0.0@aar
-                        library                       : com.android.support:customview:28.0.0@aar
-                        library                       : com.android.support:swiperefreshlayout:28.0.0@aar
-                        library                       : com.android.support:asynclayoutinflater:28.0.0@aar
-                        library                       : com.android.support:support-compat:28.0.0@aar
-                        library                       : com.android.support:versionedparcelable:28.0.0@aar
-                        library                       : com.android.support:cursoradapter:28.0.0@aar
-                        library                       : com.android.support.test:monitor:1.0.2@aar
-                        library                       : android.arch.lifecycle:runtime:1.1.1@aar
-                        library                       : com.android.support:documentfile:28.0.0@aar
-                        library                       : com.android.support:localbroadcastmanager:28.0.0@aar
-                        library                       : com.android.support:print:28.0.0@aar
-                        library                       : android.arch.lifecycle:viewmodel:1.1.1@aar
-                        library                       : android.arch.lifecycle:livedata:1.1.1@aar
-                        library                       : android.arch.lifecycle:livedata-core:1.1.1@aar
-                        library                       : android.arch.core:runtime:1.1.1@aar
-                        library                       : com.android.support:interpolator:28.0.0@aar
-                        library                       : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
-                        library                       : com.android.support.constraint:constraint-layout:1.1.0@aar
-                        library                       : com.android.support:collections:28.0.0@jar
-                        library                       : android.arch.lifecycle:common:1.1.1@jar
-                        library                       : android.arch.core:common:1.1.1@jar
-                        library                       : com.android.support:support-annotations:28.0.0@jar
-                        library                       : junit:junit:4.12@jar
-                        library                       : org.hamcrest:hamcrest-integration:1.3@jar
-                        library                       : org.hamcrest:hamcrest-library:1.3@jar
-                        library                       : org.hamcrest:hamcrest-core:1.3@jar
-                        library                       : net.sf.kxml:kxml2:2.3.0@jar
-                        library                       : com.squareup:javawriter:2.1.1@jar
-                        library                       : javax.inject:javax.inject:1@jar
-                        library                       : com.google.code.findbugs:jsr305:2.0.1@jar
-                        library                       : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
-                        library                       : <ROOT>-:app-MAIN
+                        androidLibrary                : __local_aars__:<ROOT>/app/libs/lib1-1.0.aar:unspecified@jar
+                        androidLibrary                : com.android.support.test.espresso:espresso-core:3.0.2@aar
+                        module                        : <ROOT>-:lib-MAIN
+                        androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        androidLibrary                : com.android.support.test:runner:1.0.2@aar
+                        androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                        androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                        androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                        androidLibrary                : com.android.support:loader:28.0.0@aar
+                        androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                        androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                        androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                        androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                        androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                        androidLibrary                : com.android.support.test:monitor:1.0.2@aar
+                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                        androidLibrary                : com.android.support:print:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                        androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                        androidLibrary                : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
+                        androidLibrary                : com.android.support.constraint:constraint-layout:1.1.0@aar
+                        javaLibrary                   : com.android.support:collections:28.0.0@jar
+                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                        javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : junit:junit:4.12@jar
+                        javaLibrary                   : org.hamcrest:hamcrest-integration:1.3@jar
+                        javaLibrary                   : org.hamcrest:hamcrest-library:1.3@jar
+                        javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
+                        javaLibrary                   : net.sf.kxml:kxml2:2.3.0@jar
+                        javaLibrary                   : com.squareup:javawriter:2.1.1@jar
+                        javaLibrary                   : javax.inject:javax.inject:1@jar
+                        javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1@jar
+                        javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
+                        module                        : <ROOT>-:app-MAIN
                     runtimeClasspath
-                        library                       : com.android.support.test.espresso:espresso-core:3.0.2@aar
-                        library                       : <ROOT>-:lib-MAIN
-                        library                       : com.android.support.test:runner:1.0.2@aar
-                        library                       : com.android.support.test:monitor:1.0.2@aar
-                        library                       : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
-                        library                       : com.android.support:support-annotations:28.0.0@jar
-                        library                       : junit:junit:4.12@jar
-                        library                       : org.hamcrest:hamcrest-integration:1.3@jar
-                        library                       : org.hamcrest:hamcrest-library:1.3@jar
-                        library                       : org.hamcrest:hamcrest-core:1.3@jar
-                        library                       : net.sf.kxml:kxml2:2.3.0@jar
-                        library                       : com.squareup:javawriter:2.1.1@jar
-                        library                       : javax.inject:javax.inject:1@jar
-                        library                       : com.google.code.findbugs:jsr305:2.0.1@jar
-                        library                       : <ROOT>-:app-MAIN
+                        androidLibrary                : com.android.support.test.espresso:espresso-core:3.0.2@aar
+                        module                        : <ROOT>-:lib-MAIN
+                        androidLibrary                : com.android.support.test:runner:1.0.2@aar
+                        androidLibrary                : com.android.support.test:monitor:1.0.2@aar
+                        androidLibrary                : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
+                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : junit:junit:4.12@jar
+                        javaLibrary                   : org.hamcrest:hamcrest-integration:1.3@jar
+                        javaLibrary                   : org.hamcrest:hamcrest-library:1.3@jar
+                        javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
+                        javaLibrary                   : net.sf.kxml:kxml2:2.3.0@jar
+                        javaLibrary                   : com.squareup:javawriter:2.1.1@jar
+                        javaLibrary                   : javax.inject:javax.inject:1@jar
+                        javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1@jar
+                        module                        : <ROOT>-:app-MAIN
                 ProvidedDependencies
                     - provided                    : ./app/libs/lib1-1.0.aar
                     - provided                    : android.arch.core:common:1.1.1
@@ -3624,78 +3624,78 @@ MODULE                        : project.app
                     ShadersDirectories            : <ROOT>/app/src/testBasicBar/shaders [-]
                 Dependencies
                     compileClasspath
-                        library                       : __local_aars__:<ROOT>/app/libs/lib1-1.0.aar:unspecified@jar
-                        library                       : <ROOT>-:lib-MAIN
-                        library                       : com.android.support:appcompat-v7:28.0.0@aar
-                        library                       : com.android.support:support-fragment:28.0.0@aar
-                        library                       : com.android.support:animated-vector-drawable:28.0.0@aar
-                        library                       : com.android.support:support-core-ui:28.0.0@aar
-                        library                       : com.android.support:support-core-utils:28.0.0@aar
-                        library                       : com.android.support:support-vector-drawable:28.0.0@aar
-                        library                       : com.android.support:loader:28.0.0@aar
-                        library                       : com.android.support:viewpager:28.0.0@aar
-                        library                       : com.android.support:coordinatorlayout:28.0.0@aar
-                        library                       : com.android.support:drawerlayout:28.0.0@aar
-                        library                       : com.android.support:slidingpanelayout:28.0.0@aar
-                        library                       : com.android.support:customview:28.0.0@aar
-                        library                       : com.android.support:swiperefreshlayout:28.0.0@aar
-                        library                       : com.android.support:asynclayoutinflater:28.0.0@aar
-                        library                       : com.android.support:support-compat:28.0.0@aar
-                        library                       : com.android.support:versionedparcelable:28.0.0@aar
-                        library                       : com.android.support:cursoradapter:28.0.0@aar
-                        library                       : android.arch.lifecycle:runtime:1.1.1@aar
-                        library                       : com.android.support:documentfile:28.0.0@aar
-                        library                       : com.android.support:localbroadcastmanager:28.0.0@aar
-                        library                       : com.android.support:print:28.0.0@aar
-                        library                       : android.arch.lifecycle:viewmodel:1.1.1@aar
-                        library                       : android.arch.lifecycle:livedata:1.1.1@aar
-                        library                       : android.arch.lifecycle:livedata-core:1.1.1@aar
-                        library                       : android.arch.core:runtime:1.1.1@aar
-                        library                       : com.android.support:interpolator:28.0.0@aar
-                        library                       : com.android.support.constraint:constraint-layout:1.1.0@aar
-                        library                       : com.android.support:collections:28.0.0@jar
-                        library                       : android.arch.lifecycle:common:1.1.1@jar
-                        library                       : android.arch.core:common:1.1.1@jar
-                        library                       : com.android.support:support-annotations:28.0.0@jar
-                        library                       : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
-                        library                       : <ROOT>-:app-MAIN
+                        androidLibrary                : __local_aars__:<ROOT>/app/libs/lib1-1.0.aar:unspecified@jar
+                        module                        : <ROOT>-:lib-MAIN
+                        androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                        androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                        androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                        androidLibrary                : com.android.support:loader:28.0.0@aar
+                        androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                        androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                        androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                        androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                        androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                        androidLibrary                : com.android.support:print:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                        androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                        androidLibrary                : com.android.support.constraint:constraint-layout:1.1.0@aar
+                        javaLibrary                   : com.android.support:collections:28.0.0@jar
+                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                        javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
+                        module                        : <ROOT>-:app-MAIN
                     runtimeClasspath
-                        library                       : __local_aars__:<ROOT>/app/libs/lib1-1.0.aar:unspecified@jar
-                        library                       : <ROOT>-:lib-MAIN
-                        library                       : com.android.support:appcompat-v7:28.0.0@aar
-                        library                       : com.android.support:support-fragment:28.0.0@aar
-                        library                       : com.android.support:animated-vector-drawable:28.0.0@aar
-                        library                       : com.android.support:support-core-ui:28.0.0@aar
-                        library                       : com.android.support:support-core-utils:28.0.0@aar
-                        library                       : com.android.support:support-vector-drawable:28.0.0@aar
-                        library                       : com.android.support:loader:28.0.0@aar
-                        library                       : com.android.support:viewpager:28.0.0@aar
-                        library                       : com.android.support:coordinatorlayout:28.0.0@aar
-                        library                       : com.android.support:drawerlayout:28.0.0@aar
-                        library                       : com.android.support:slidingpanelayout:28.0.0@aar
-                        library                       : com.android.support:customview:28.0.0@aar
-                        library                       : com.android.support:swiperefreshlayout:28.0.0@aar
-                        library                       : com.android.support:asynclayoutinflater:28.0.0@aar
-                        library                       : com.android.support:support-compat:28.0.0@aar
-                        library                       : com.android.support:versionedparcelable:28.0.0@aar
-                        library                       : com.android.support:cursoradapter:28.0.0@aar
-                        library                       : android.arch.lifecycle:runtime:1.1.1@aar
-                        library                       : com.android.support:documentfile:28.0.0@aar
-                        library                       : com.android.support:localbroadcastmanager:28.0.0@aar
-                        library                       : com.android.support:print:28.0.0@aar
-                        library                       : android.arch.lifecycle:viewmodel:1.1.1@aar
-                        library                       : android.arch.lifecycle:livedata:1.1.1@aar
-                        library                       : android.arch.lifecycle:livedata-core:1.1.1@aar
-                        library                       : android.arch.core:runtime:1.1.1@aar
-                        library                       : com.android.support:interpolator:28.0.0@aar
-                        library                       : com.android.support.constraint:constraint-layout:1.1.0@aar
-                        library                       : com.android.support:collections:28.0.0@jar
-                        library                       : android.arch.lifecycle:common:1.1.1@jar
-                        library                       : android.arch.core:common:1.1.1@jar
-                        library                       : com.android.support:support-annotations:28.0.0@jar
-                        library                       : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
-                        library                       : <ROOT>-:app-MAIN
-                        library                       : __local_jars__:<ROOT>/jav/build/libs/jav.jar:unspecified
+                        androidLibrary                : __local_aars__:<ROOT>/app/libs/lib1-1.0.aar:unspecified@jar
+                        module                        : <ROOT>-:lib-MAIN
+                        androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                        androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                        androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                        androidLibrary                : com.android.support:loader:28.0.0@aar
+                        androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                        androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                        androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                        androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                        androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                        androidLibrary                : com.android.support:print:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                        androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                        androidLibrary                : com.android.support.constraint:constraint-layout:1.1.0@aar
+                        javaLibrary                   : com.android.support:collections:28.0.0@jar
+                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                        javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
+                        module                        : <ROOT>-:app-MAIN
+                        javaLibrary                   : __local_jars__:<ROOT>/jav/build/libs/jav.jar:unspecified
                 RuntimeOnlyClasses
                     - class                       : <ROOT>/jav/build/libs/jav.jar [-]
                 MockablePlatformJar           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/android.jar
@@ -3975,9 +3975,9 @@ MODULE                        : project.dyn_feature
                 ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:dyn_feature-MAIN
+                        module                        : <ROOT>-:dyn_feature-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:dyn_feature-MAIN
+                        module                        : <ROOT>-:dyn_feature-MAIN
                 ApplicationId                 : com.example.dyn_feature.test
                 IsSigned                      : false
                 CodeShrinker                  : null
@@ -4000,9 +4000,9 @@ MODULE                        : project.dyn_feature
                 ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:dyn_feature-MAIN
+                        module                        : <ROOT>-:dyn_feature-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:dyn_feature-MAIN
+                        module                        : <ROOT>-:dyn_feature-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/android.jar
     externalProject               : :dyn_feature (DefaultExternalProject) (*seen*)
 MODULE                        : project.dyn_feature.androidTest
@@ -4280,69 +4280,69 @@ MODULE                        : project.lib
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : com.android.support:appcompat-v7:28.0.0@aar
-                        library                       : com.android.support:support-fragment:28.0.0@aar
-                        library                       : com.android.support:animated-vector-drawable:28.0.0@aar
-                        library                       : com.android.support:support-core-ui:28.0.0@aar
-                        library                       : com.android.support:support-core-utils:28.0.0@aar
-                        library                       : com.android.support:support-vector-drawable:28.0.0@aar
-                        library                       : com.android.support:loader:28.0.0@aar
-                        library                       : com.android.support:viewpager:28.0.0@aar
-                        library                       : com.android.support:coordinatorlayout:28.0.0@aar
-                        library                       : com.android.support:drawerlayout:28.0.0@aar
-                        library                       : com.android.support:slidingpanelayout:28.0.0@aar
-                        library                       : com.android.support:customview:28.0.0@aar
-                        library                       : com.android.support:swiperefreshlayout:28.0.0@aar
-                        library                       : com.android.support:asynclayoutinflater:28.0.0@aar
-                        library                       : com.android.support:support-compat:28.0.0@aar
-                        library                       : com.android.support:versionedparcelable:28.0.0@aar
-                        library                       : com.android.support:cursoradapter:28.0.0@aar
-                        library                       : android.arch.lifecycle:runtime:1.1.1@aar
-                        library                       : com.android.support:documentfile:28.0.0@aar
-                        library                       : com.android.support:localbroadcastmanager:28.0.0@aar
-                        library                       : com.android.support:print:28.0.0@aar
-                        library                       : android.arch.lifecycle:viewmodel:1.1.1@aar
-                        library                       : android.arch.lifecycle:livedata:1.1.1@aar
-                        library                       : android.arch.lifecycle:livedata-core:1.1.1@aar
-                        library                       : android.arch.core:runtime:1.1.1@aar
-                        library                       : com.android.support:interpolator:28.0.0@aar
-                        library                       : com.android.support:collections:28.0.0@jar
-                        library                       : android.arch.lifecycle:common:1.1.1@jar
-                        library                       : android.arch.core:common:1.1.1@jar
-                        library                       : com.android.support:support-annotations:28.0.0@jar
-                        library                       : <ROOT>-:jav-MAIN
+                        androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                        androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                        androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                        androidLibrary                : com.android.support:loader:28.0.0@aar
+                        androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                        androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                        androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                        androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                        androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                        androidLibrary                : com.android.support:print:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                        androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                        javaLibrary                   : com.android.support:collections:28.0.0@jar
+                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                        javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        module                        : <ROOT>-:jav-MAIN
                     runtimeClasspath
-                        library                       : com.android.support:appcompat-v7:28.0.0@aar
-                        library                       : com.android.support:support-fragment:28.0.0@aar
-                        library                       : com.android.support:animated-vector-drawable:28.0.0@aar
-                        library                       : com.android.support:support-core-ui:28.0.0@aar
-                        library                       : com.android.support:support-core-utils:28.0.0@aar
-                        library                       : com.android.support:support-vector-drawable:28.0.0@aar
-                        library                       : com.android.support:loader:28.0.0@aar
-                        library                       : com.android.support:viewpager:28.0.0@aar
-                        library                       : com.android.support:coordinatorlayout:28.0.0@aar
-                        library                       : com.android.support:drawerlayout:28.0.0@aar
-                        library                       : com.android.support:slidingpanelayout:28.0.0@aar
-                        library                       : com.android.support:customview:28.0.0@aar
-                        library                       : com.android.support:swiperefreshlayout:28.0.0@aar
-                        library                       : com.android.support:asynclayoutinflater:28.0.0@aar
-                        library                       : com.android.support:support-compat:28.0.0@aar
-                        library                       : com.android.support:versionedparcelable:28.0.0@aar
-                        library                       : com.android.support:cursoradapter:28.0.0@aar
-                        library                       : android.arch.lifecycle:runtime:1.1.1@aar
-                        library                       : com.android.support:documentfile:28.0.0@aar
-                        library                       : com.android.support:localbroadcastmanager:28.0.0@aar
-                        library                       : com.android.support:print:28.0.0@aar
-                        library                       : android.arch.lifecycle:viewmodel:1.1.1@aar
-                        library                       : android.arch.lifecycle:livedata:1.1.1@aar
-                        library                       : android.arch.lifecycle:livedata-core:1.1.1@aar
-                        library                       : android.arch.core:runtime:1.1.1@aar
-                        library                       : com.android.support:interpolator:28.0.0@aar
-                        library                       : com.android.support:collections:28.0.0@jar
-                        library                       : android.arch.lifecycle:common:1.1.1@jar
-                        library                       : android.arch.core:common:1.1.1@jar
-                        library                       : com.android.support:support-annotations:28.0.0@jar
-                        library                       : <ROOT>-:jav-MAIN
+                        androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                        androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                        androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                        androidLibrary                : com.android.support:loader:28.0.0@aar
+                        androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                        androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                        androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                        androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                        androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                        androidLibrary                : com.android.support:print:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                        androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                        javaLibrary                   : com.android.support:collections:28.0.0@jar
+                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                        javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        module                        : <ROOT>-:jav-MAIN
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -4364,71 +4364,71 @@ MODULE                        : project.lib
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:lib-MAIN
-                        library                       : com.android.support:appcompat-v7:28.0.0@aar
-                        library                       : com.android.support:support-fragment:28.0.0@aar
-                        library                       : com.android.support:animated-vector-drawable:28.0.0@aar
-                        library                       : com.android.support:support-core-ui:28.0.0@aar
-                        library                       : com.android.support:support-core-utils:28.0.0@aar
-                        library                       : com.android.support:support-vector-drawable:28.0.0@aar
-                        library                       : com.android.support:loader:28.0.0@aar
-                        library                       : com.android.support:viewpager:28.0.0@aar
-                        library                       : com.android.support:coordinatorlayout:28.0.0@aar
-                        library                       : com.android.support:drawerlayout:28.0.0@aar
-                        library                       : com.android.support:slidingpanelayout:28.0.0@aar
-                        library                       : com.android.support:customview:28.0.0@aar
-                        library                       : com.android.support:swiperefreshlayout:28.0.0@aar
-                        library                       : com.android.support:asynclayoutinflater:28.0.0@aar
-                        library                       : com.android.support:support-compat:28.0.0@aar
-                        library                       : com.android.support:versionedparcelable:28.0.0@aar
-                        library                       : com.android.support:cursoradapter:28.0.0@aar
-                        library                       : android.arch.lifecycle:runtime:1.1.1@aar
-                        library                       : com.android.support:documentfile:28.0.0@aar
-                        library                       : com.android.support:localbroadcastmanager:28.0.0@aar
-                        library                       : com.android.support:print:28.0.0@aar
-                        library                       : android.arch.lifecycle:viewmodel:1.1.1@aar
-                        library                       : android.arch.lifecycle:livedata:1.1.1@aar
-                        library                       : android.arch.lifecycle:livedata-core:1.1.1@aar
-                        library                       : android.arch.core:runtime:1.1.1@aar
-                        library                       : com.android.support:interpolator:28.0.0@aar
-                        library                       : com.android.support:collections:28.0.0@jar
-                        library                       : android.arch.lifecycle:common:1.1.1@jar
-                        library                       : android.arch.core:common:1.1.1@jar
-                        library                       : com.android.support:support-annotations:28.0.0@jar
-                        library                       : <ROOT>-:jav-MAIN
+                        module                        : <ROOT>-:lib-MAIN
+                        androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                        androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                        androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                        androidLibrary                : com.android.support:loader:28.0.0@aar
+                        androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                        androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                        androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                        androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                        androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                        androidLibrary                : com.android.support:print:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                        androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                        javaLibrary                   : com.android.support:collections:28.0.0@jar
+                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                        javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        module                        : <ROOT>-:jav-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:lib-MAIN
-                        library                       : com.android.support:appcompat-v7:28.0.0@aar
-                        library                       : com.android.support:support-fragment:28.0.0@aar
-                        library                       : com.android.support:animated-vector-drawable:28.0.0@aar
-                        library                       : com.android.support:support-core-ui:28.0.0@aar
-                        library                       : com.android.support:support-core-utils:28.0.0@aar
-                        library                       : com.android.support:support-vector-drawable:28.0.0@aar
-                        library                       : com.android.support:loader:28.0.0@aar
-                        library                       : com.android.support:viewpager:28.0.0@aar
-                        library                       : com.android.support:coordinatorlayout:28.0.0@aar
-                        library                       : com.android.support:drawerlayout:28.0.0@aar
-                        library                       : com.android.support:slidingpanelayout:28.0.0@aar
-                        library                       : com.android.support:customview:28.0.0@aar
-                        library                       : com.android.support:swiperefreshlayout:28.0.0@aar
-                        library                       : com.android.support:asynclayoutinflater:28.0.0@aar
-                        library                       : com.android.support:support-compat:28.0.0@aar
-                        library                       : com.android.support:versionedparcelable:28.0.0@aar
-                        library                       : com.android.support:cursoradapter:28.0.0@aar
-                        library                       : android.arch.lifecycle:runtime:1.1.1@aar
-                        library                       : com.android.support:documentfile:28.0.0@aar
-                        library                       : com.android.support:localbroadcastmanager:28.0.0@aar
-                        library                       : com.android.support:print:28.0.0@aar
-                        library                       : android.arch.lifecycle:viewmodel:1.1.1@aar
-                        library                       : android.arch.lifecycle:livedata:1.1.1@aar
-                        library                       : android.arch.lifecycle:livedata-core:1.1.1@aar
-                        library                       : android.arch.core:runtime:1.1.1@aar
-                        library                       : com.android.support:interpolator:28.0.0@aar
-                        library                       : com.android.support:collections:28.0.0@jar
-                        library                       : android.arch.lifecycle:common:1.1.1@jar
-                        library                       : android.arch.core:common:1.1.1@jar
-                        library                       : com.android.support:support-annotations:28.0.0@jar
-                        library                       : <ROOT>-:jav-MAIN
+                        module                        : <ROOT>-:lib-MAIN
+                        androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                        androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                        androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                        androidLibrary                : com.android.support:loader:28.0.0@aar
+                        androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                        androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                        androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                        androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                        androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                        androidLibrary                : com.android.support:print:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                        androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                        javaLibrary                   : com.android.support:collections:28.0.0@jar
+                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                        javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        module                        : <ROOT>-:jav-MAIN
                 ApplicationId                 : com.example.projectwithappandlib.lib.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -4452,71 +4452,71 @@ MODULE                        : project.lib
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:lib-MAIN
-                        library                       : com.android.support:appcompat-v7:28.0.0@aar
-                        library                       : com.android.support:support-fragment:28.0.0@aar
-                        library                       : com.android.support:animated-vector-drawable:28.0.0@aar
-                        library                       : com.android.support:support-core-ui:28.0.0@aar
-                        library                       : com.android.support:support-core-utils:28.0.0@aar
-                        library                       : com.android.support:support-vector-drawable:28.0.0@aar
-                        library                       : com.android.support:loader:28.0.0@aar
-                        library                       : com.android.support:viewpager:28.0.0@aar
-                        library                       : com.android.support:coordinatorlayout:28.0.0@aar
-                        library                       : com.android.support:drawerlayout:28.0.0@aar
-                        library                       : com.android.support:slidingpanelayout:28.0.0@aar
-                        library                       : com.android.support:customview:28.0.0@aar
-                        library                       : com.android.support:swiperefreshlayout:28.0.0@aar
-                        library                       : com.android.support:asynclayoutinflater:28.0.0@aar
-                        library                       : com.android.support:support-compat:28.0.0@aar
-                        library                       : com.android.support:versionedparcelable:28.0.0@aar
-                        library                       : com.android.support:cursoradapter:28.0.0@aar
-                        library                       : android.arch.lifecycle:runtime:1.1.1@aar
-                        library                       : com.android.support:documentfile:28.0.0@aar
-                        library                       : com.android.support:localbroadcastmanager:28.0.0@aar
-                        library                       : com.android.support:print:28.0.0@aar
-                        library                       : android.arch.lifecycle:viewmodel:1.1.1@aar
-                        library                       : android.arch.lifecycle:livedata:1.1.1@aar
-                        library                       : android.arch.lifecycle:livedata-core:1.1.1@aar
-                        library                       : android.arch.core:runtime:1.1.1@aar
-                        library                       : com.android.support:interpolator:28.0.0@aar
-                        library                       : com.android.support:collections:28.0.0@jar
-                        library                       : android.arch.lifecycle:common:1.1.1@jar
-                        library                       : android.arch.core:common:1.1.1@jar
-                        library                       : com.android.support:support-annotations:28.0.0@jar
-                        library                       : <ROOT>-:jav-MAIN
+                        module                        : <ROOT>-:lib-MAIN
+                        androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                        androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                        androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                        androidLibrary                : com.android.support:loader:28.0.0@aar
+                        androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                        androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                        androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                        androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                        androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                        androidLibrary                : com.android.support:print:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                        androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                        javaLibrary                   : com.android.support:collections:28.0.0@jar
+                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                        javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        module                        : <ROOT>-:jav-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:lib-MAIN
-                        library                       : com.android.support:appcompat-v7:28.0.0@aar
-                        library                       : com.android.support:support-fragment:28.0.0@aar
-                        library                       : com.android.support:animated-vector-drawable:28.0.0@aar
-                        library                       : com.android.support:support-core-ui:28.0.0@aar
-                        library                       : com.android.support:support-core-utils:28.0.0@aar
-                        library                       : com.android.support:support-vector-drawable:28.0.0@aar
-                        library                       : com.android.support:loader:28.0.0@aar
-                        library                       : com.android.support:viewpager:28.0.0@aar
-                        library                       : com.android.support:coordinatorlayout:28.0.0@aar
-                        library                       : com.android.support:drawerlayout:28.0.0@aar
-                        library                       : com.android.support:slidingpanelayout:28.0.0@aar
-                        library                       : com.android.support:customview:28.0.0@aar
-                        library                       : com.android.support:swiperefreshlayout:28.0.0@aar
-                        library                       : com.android.support:asynclayoutinflater:28.0.0@aar
-                        library                       : com.android.support:support-compat:28.0.0@aar
-                        library                       : com.android.support:versionedparcelable:28.0.0@aar
-                        library                       : com.android.support:cursoradapter:28.0.0@aar
-                        library                       : android.arch.lifecycle:runtime:1.1.1@aar
-                        library                       : com.android.support:documentfile:28.0.0@aar
-                        library                       : com.android.support:localbroadcastmanager:28.0.0@aar
-                        library                       : com.android.support:print:28.0.0@aar
-                        library                       : android.arch.lifecycle:viewmodel:1.1.1@aar
-                        library                       : android.arch.lifecycle:livedata:1.1.1@aar
-                        library                       : android.arch.lifecycle:livedata-core:1.1.1@aar
-                        library                       : android.arch.core:runtime:1.1.1@aar
-                        library                       : com.android.support:interpolator:28.0.0@aar
-                        library                       : com.android.support:collections:28.0.0@jar
-                        library                       : android.arch.lifecycle:common:1.1.1@jar
-                        library                       : android.arch.core:common:1.1.1@jar
-                        library                       : com.android.support:support-annotations:28.0.0@jar
-                        library                       : <ROOT>-:jav-MAIN
+                        module                        : <ROOT>-:lib-MAIN
+                        androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                        androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                        androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                        androidLibrary                : com.android.support:loader:28.0.0@aar
+                        androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                        androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                        androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                        androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                        androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                        androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                        androidLibrary                : com.android.support:print:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                        androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                        javaLibrary                   : com.android.support:collections:28.0.0@jar
+                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                        javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        module                        : <ROOT>-:jav-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/android.jar
     externalProject               : :lib (DefaultExternalProject) (*seen*)
 MODULE                        : project.lib.androidTest
@@ -4791,9 +4791,9 @@ MODULE                        : project.nested1
                 ClassesFolder                 : <ROOT>/nested1/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:nested1-MAIN
+                        module                        : <ROOT>-:nested1-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:nested1-MAIN
+                        module                        : <ROOT>-:nested1-MAIN
                 ApplicationId                 : com.example.nested1.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -4817,9 +4817,9 @@ MODULE                        : project.nested1
                 ClassesFolder                 : <ROOT>/nested1/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:nested1-MAIN
+                        module                        : <ROOT>-:nested1-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:nested1-MAIN
+                        module                        : <ROOT>-:nested1-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/android.jar
     externalProject               : :nested1 (DefaultExternalProject) (*seen*)
 MODULE                        : project.nested1.androidTest
@@ -5098,9 +5098,9 @@ MODULE                        : project.nested1.deep
                 ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:nested1:deep-MAIN
+                        module                        : <ROOT>-:nested1:deep-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:nested1:deep-MAIN
+                        module                        : <ROOT>-:nested1:deep-MAIN
                 ApplicationId                 : com.example.nested1.deep.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -5124,9 +5124,9 @@ MODULE                        : project.nested1.deep
                 ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:nested1:deep-MAIN
+                        module                        : <ROOT>-:nested1:deep-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:nested1:deep-MAIN
+                        module                        : <ROOT>-:nested1:deep-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/android.jar
     externalProject               : :nested1:deep (DefaultExternalProject) (*seen*)
 MODULE                        : project.nested1.deep.androidTest
@@ -5524,9 +5524,9 @@ MODULE                        : project.nested2
                     ShadersDirectories            : <ROOT>/nested2/src/androidTestBasicDebug/shaders [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:nested2-MAIN
+                        module                        : <ROOT>-:nested2-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:nested2-MAIN
+                        module                        : <ROOT>-:nested2-MAIN
                 ApplicationId                 : com.example.nested2.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -5561,9 +5561,9 @@ MODULE                        : project.nested2
                     ShadersDirectories            : <ROOT>/nested2/src/testBasicDebug/shaders [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:nested2-MAIN
+                        module                        : <ROOT>-:nested2-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:nested2-MAIN
+                        module                        : <ROOT>-:nested2-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/android.jar
     externalProject               : :nested2 (DefaultExternalProject) (*seen*)
 MODULE                        : project.nested2.androidTest
@@ -5836,9 +5836,9 @@ MODULE                        : project.nested2.deep
                 ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:nested2:deep-MAIN
+                        module                        : <ROOT>-:nested2:deep-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:nested2:deep-MAIN
+                        module                        : <ROOT>-:nested2:deep-MAIN
                 ApplicationId                 : com.example.nested2.deep.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -5862,9 +5862,9 @@ MODULE                        : project.nested2.deep
                 ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:nested2:deep-MAIN
+                        module                        : <ROOT>-:nested2:deep-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:nested2:deep-MAIN
+                        module                        : <ROOT>-:nested2:deep-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/android.jar
     externalProject               : :nested2:deep (DefaultExternalProject) (*seen*)
 MODULE                        : project.nested2.deep.androidTest
@@ -6149,9 +6149,9 @@ MODULE                        : project.nested2.trans.deep2
                 ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:nested2:trans:deep2-MAIN
+                        module                        : <ROOT>-:nested2:trans:deep2-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:nested2:trans:deep2-MAIN
+                        module                        : <ROOT>-:nested2:trans:deep2-MAIN
                 ApplicationId                 : com.example.nested2.trans.deep2.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -6175,9 +6175,9 @@ MODULE                        : project.nested2.trans.deep2
                 ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:nested2:trans:deep2-MAIN
+                        module                        : <ROOT>-:nested2:trans:deep2-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:nested2:trans:deep2-MAIN
+                        module                        : <ROOT>-:nested2:trans:deep2-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/android.jar
     externalProject               : :nested2:trans:deep2 (DefaultExternalProject) (*seen*)
 MODULE                        : project.nested2.trans.deep2.androidTest

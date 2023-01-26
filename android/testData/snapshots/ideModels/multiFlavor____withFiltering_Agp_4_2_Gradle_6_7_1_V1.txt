@@ -912,9 +912,9 @@ MODULE                        : MultiFlavor.app
                     ShadersDirectories            : <ROOT>/app/src/androidTestFirstAbcSecondAbc/shaders [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:app-MAIN
+                        module                        : <ROOT>-:app-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:app-MAIN
+                        module                        : <ROOT>-:app-MAIN
                 ApplicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -960,13 +960,13 @@ MODULE                        : MultiFlavor.app
                     ShadersDirectories            : <ROOT>/app/src/testFirstAbcSecondAbc/shaders [-]
                 Dependencies
                     compileClasspath
-                        library                       : junit:junit:4.12@jar
-                        library                       : org.hamcrest:hamcrest-core:1.3@jar
-                        library                       : <ROOT>-:app-MAIN
+                        javaLibrary                   : junit:junit:4.12@jar
+                        javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
+                        module                        : <ROOT>-:app-MAIN
                     runtimeClasspath
-                        library                       : junit:junit:4.12@jar
-                        library                       : org.hamcrest:hamcrest-core:1.3@jar
-                        library                       : <ROOT>-:app-MAIN
+                        javaLibrary                   : junit:junit:4.12@jar
+                        javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
+                        module                        : <ROOT>-:app-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : MultiFlavor.app.androidTest
