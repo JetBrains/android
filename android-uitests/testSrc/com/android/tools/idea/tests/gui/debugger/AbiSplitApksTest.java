@@ -136,7 +136,6 @@ public class AbiSplitApksTest extends DebuggerTestBase {
   public void shutdownFakeAdb() throws Exception {
     AndroidDebugBridge.terminate();
     AndroidDebugBridge.disableFakeAdbServerMode();
-    guiTest.ideFrame().stopApp();
 
     try {
       fakeAdbServer.awaitServerTermination(120, TimeUnit.SECONDS);
