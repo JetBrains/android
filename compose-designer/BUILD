@@ -141,6 +141,7 @@ maven_repository(
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
         "@maven//:androidx.lifecycle.lifecycle-common-java8_2.4.0",
+        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.5.1",
         "@maven//:androidx.lifecycle.lifecycle-common_2.4.0",
         "@maven//:androidx.savedstate.savedstate_1.1.0-rc01",
         "@maven//:com.google.auto.value.auto-value_1.6.2",
@@ -219,6 +220,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20",
+        "@maven//:org.jetbrains.markdown_0.2.1",
     ],
 )
 

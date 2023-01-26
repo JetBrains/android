@@ -459,12 +459,12 @@ LIBRARY_TABLE
     - library                     : androidx.annotation:annotation:1.2.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/androidx/annotation/annotation/1.2.0/annotation-1.2.0.jar
         artifactAddress               : androidx.annotation:annotation:1.2.0@jar
-    - library                     : androidx.lifecycle:lifecycle-common:2.3.1 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/androidx/lifecycle/lifecycle-common/2.3.1/lifecycle-common-2.3.1.jar
-        artifactAddress               : androidx.lifecycle:lifecycle-common:2.3.1@jar
     - library                     : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar
         artifactAddress               : androidx.arch.core:core-common:2.1.0@jar
+    - library                     : androidx.lifecycle:lifecycle-common:2.3.1 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/androidx/lifecycle/lifecycle-common/2.3.1/lifecycle-common-2.3.1.jar
+        artifactAddress               : androidx.lifecycle:lifecycle-common:2.3.1@jar
     - library                     : androidx.collection:collection:1.1.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar
         artifactAddress               : androidx.collection:collection:1.1.0@jar
@@ -2812,10 +2812,10 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                             javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                         androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
@@ -2845,9 +2845,9 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                         androidLibrary                : androidx.tracing:tracing:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.fragment:fragment:1.3.4@aar
@@ -2880,11 +2880,11 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
                         androidLibrary                : androidx.appcompat:appcompat-resources:1.3.0@aar
+                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
                             androidLibrary                : androidx.vectordrawable:vectordrawable:1.1.0@aar
                             androidLibrary                : androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
-                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         androidLibrary                : androidx.vectordrawable:vectordrawable:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
@@ -2911,9 +2911,9 @@ MODULE                        : NonStandardSourceSetDependencies.app
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -3101,10 +3101,10 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                             javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                         androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
@@ -3134,9 +3134,9 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                         androidLibrary                : androidx.tracing:tracing:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.fragment:fragment:1.3.4@aar
@@ -3169,11 +3169,11 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
                         androidLibrary                : androidx.appcompat:appcompat-resources:1.3.0@aar
+                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
                             androidLibrary                : androidx.vectordrawable:vectordrawable:1.1.0@aar
                             androidLibrary                : androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
-                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         androidLibrary                : androidx.vectordrawable:vectordrawable:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
@@ -3203,9 +3203,9 @@ MODULE                        : NonStandardSourceSetDependencies.app
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4143,10 +4143,10 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                             javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                         androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
@@ -4176,9 +4176,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                         androidLibrary                : androidx.tracing:tracing:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.fragment:fragment:1.3.4@aar
@@ -4211,11 +4211,11 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
                         androidLibrary                : androidx.appcompat:appcompat-resources:1.3.0@aar
+                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
                             androidLibrary                : androidx.vectordrawable:vectordrawable:1.1.0@aar
                             androidLibrary                : androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
-                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         androidLibrary                : androidx.vectordrawable:vectordrawable:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
@@ -4241,9 +4241,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4413,10 +4413,10 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                             javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                         androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
@@ -4446,9 +4446,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                         androidLibrary                : androidx.tracing:tracing:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.fragment:fragment:1.3.4@aar
@@ -4481,11 +4481,11 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
                         androidLibrary                : androidx.appcompat:appcompat-resources:1.3.0@aar
+                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
                             androidLibrary                : androidx.vectordrawable:vectordrawable:1.1.0@aar
                             androidLibrary                : androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
-                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         androidLibrary                : androidx.vectordrawable:vectordrawable:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
@@ -4511,9 +4511,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4688,10 +4688,10 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                             javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                         androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
@@ -4721,9 +4721,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                         androidLibrary                : androidx.tracing:tracing:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.fragment:fragment:1.3.4@aar
@@ -4756,11 +4756,11 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
                         androidLibrary                : androidx.appcompat:appcompat-resources:1.3.0@aar
+                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
                             androidLibrary                : androidx.vectordrawable:vectordrawable:1.1.0@aar
                             androidLibrary                : androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
-                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         androidLibrary                : androidx.vectordrawable:vectordrawable:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
@@ -4786,9 +4786,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar

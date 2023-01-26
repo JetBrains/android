@@ -93,6 +93,8 @@ iml_test(
         "//prebuilts/studio/sdk:platform-tools",
         INTEGRATION_TEST_GRADLE_VERSION,
         "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
+        "@maven//:org.jetbrains.markdown_0.2.1",
     ],
     module = ":intellij.android.device-explorer.integration.tests",
     tags_linux = ["block-network"],
