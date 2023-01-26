@@ -82,8 +82,7 @@ open class LiveEditStatus(
         AllIcons.General.InspectionsPause,
         "Paused",
         message,
-        RECOVERABLE_ERROR,
-        hasRefreshIcon = true
+        RECOVERABLE_ERROR
       )
     }
   }
