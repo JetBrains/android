@@ -76,17 +76,17 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
     val facet = element.androidFacet ?: return
     when (element) {
       is PsiClass -> {
-        val gotoList = getItemsForClass(element) ?: return
+        val gotoList = Handler.getItemsForClass(element) ?: return
         val nameIdentifier = element.nameIdentifier ?: return
         result.add(createRelatedItemLineMarkerInfo(nameIdentifier, gotoList, XmlFileType.INSTANCE.icon!!, "Related XML file"))
       }
       is KtClass -> {
-        val gotoList = element.toLightClass()?.let { getItemsForClass(it) } ?: return
+        val gotoList = element.toLightClass()?.let { Handler.getItemsForClass(it) } ?: return
         val nameIdentifier = element.nameIdentifier ?: return
         result.add(createRelatedItemLineMarkerInfo(nameIdentifier, gotoList, XmlFileType.INSTANCE.icon!!, "Related XML file"))
       }
       is XmlFile -> {
-        val gotoList = getItemsForXmlFile(element, facet) ?: return
+        val gotoList = Handler.getItemsForXmlFile(element, facet) ?: return
         val rootTag = element.rootTag ?: return
         val anchor = XmlTagUtil.getStartTagNameElement(rootTag) ?: return
         if (gotoList.any { it.element?.language == KotlinLanguage.INSTANCE }) {
@@ -123,7 +123,7 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
       { gotoList })
   }
 
-  companion object {
+  internal object Handler {
 
     private val REQUIRED_RESOURCE_TYPES = listOf(ResourceType.LAYOUT, ResourceType.MENU)
 
@@ -152,7 +152,7 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
       }
     }
 
-    private fun getItemsForClass(psiClass: PsiClass): List<GotoRelatedItem>? {
+    fun getItemsForClass(psiClass: PsiClass): List<GotoRelatedItem>? {
       val items = ArrayList<GotoRelatedItem>()
       psiClass.findComponentDeclarationInManifest()?.xmlAttributeValue?.let { items.add(MyGotoManifestItem(it)) }
 
