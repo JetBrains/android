@@ -16,19 +16,13 @@
 package com.android.tools.idea.widget;
 
 import com.android.ddmlib.AndroidDebugBridge;
-import com.android.tools.idea.adb.AdbService;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.TimerListener;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.StatusBar;
 import com.intellij.openapi.wm.WindowManager;
-import java.io.File;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,24 +36,8 @@ class StudioAdapter implements AdbConnectionWidget.StudioAdapter {
 
   @Override
   public boolean isBridgeConnected() {
-    AdbService adb = AdbService.getInstance();
-    File adbFile = AndroidSdkUtils.getAdb(myProject);
-    if (adbFile != null) {
-      Future<AndroidDebugBridge> bridgeFuture = adb.getDebugBridge(adbFile);
-      if (!bridgeFuture.isCancelled() && bridgeFuture.isDone()) {
-        try {
-          return bridgeFuture.get().isConnected();
-        }
-        catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-          Logger.getInstance(StudioAdapter.class).warn(e);
-        }
-        catch (ExecutionException e) {
-          Logger.getInstance(StudioAdapter.class).warn(e);
-        }
-      }
-    }
-    return false;
+    AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
+    return bridge != null && bridge.isConnected();
   }
 
   @Override
