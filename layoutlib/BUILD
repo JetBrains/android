@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 
 # managed by go/iml_to_build
 iml_module(
@@ -29,5 +30,22 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
         "//tools/adt/idea/.idea/libraries:layoutlib[test]",
+    ],
+)
+
+# Build target to verify that layoutlib builds for tools/base
+kotlin_library(
+    name = "tools.layoutlib",
+    srcs = glob(
+        ["src/**/*.java"],
+    ),
+    deps = [
+        "//prebuilts/studio/layoutlib/data:layoutlib",
+        "//prebuilts/tools/common/lint-psi/intellij-core",
+        "//tools/adt/idea/layoutlib-loader:tools.layoutlib-loader",
+        "//tools/base/layoutlib-api:tools.layoutlib-api",
+        "@maven//:com.google.guava.guava",
+        "@maven//:org.ow2.asm.asm",
+        "@maven//:org.ow2.asm.asm-commons",
     ],
 )
