@@ -19,13 +19,11 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowi
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
 import static com.android.tools.idea.tests.gui.framework.matcher.Matchers.byType;
 
-import com.intellij.openapi.util.Trinity;
 import com.intellij.ui.components.JBList;
 import java.awt.event.KeyEvent;
 import javax.swing.JLabel;
 import javax.swing.JRootPane;
 import javax.swing.JTextField;
-import org.fest.swing.cell.JListCellReader;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JListFixture;
@@ -51,15 +49,9 @@ public class NewKotlinClassDialogFixture extends ComponentFixture<NewKotlinClass
     return this;
   }
 
-  private static final JListCellReader KIND_PICKER_READER = (list, index) -> {
-    Trinity element = (Trinity) list.getModel().getElementAt(index);
-    return element.getFirst().toString();
-  };
-
   @NotNull
   public NewKotlinClassDialogFixture selectType(@NotNull String type) {
     JListFixture listFixture = new JListFixture(robot(), waitUntilShowingAndEnabled(robot(), target(), byType(JBList.class)));
-    listFixture.replaceCellReader(KIND_PICKER_READER);
     listFixture.selectItem(type);
 
     return this;
