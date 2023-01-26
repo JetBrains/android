@@ -522,7 +522,19 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     List<PluginModel> plugins = buildModel.plugins();
     verifyPlugins(ImmutableList.of("org.jetbrains.kotlin.android", "com.android.application"), plugins);
+    assertFalse(plugins.get(0).name().isModified());
     assertFalse(plugins.get(0).version().isModified());
+    assertFalse(plugins.get(1).name().isModified());
+    assertFalse(plugins.get(1).version().isModified());
+    plugins.get(0).version().setValue("1.4.10");
+    assertFalse(plugins.get(0).name().isModified());
+    assertTrue(plugins.get(0).version().isModified());
+    assertFalse(plugins.get(1).name().isModified());
+    assertFalse(plugins.get(1).version().isModified());
+    plugins.get(1).name().setValue("com.android.library");
+    assertFalse(plugins.get(0).name().isModified());
+    assertTrue(plugins.get(0).version().isModified());
+    assertTrue(plugins.get(1).name().isModified());
     assertFalse(plugins.get(1).version().isModified());
   }
 

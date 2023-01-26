@@ -43,9 +43,10 @@ public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends Grad
 
   @NotNull private Map<T, PropertyTransform> myTransforms;
   @NotNull private T myType;
+  @NotNull private T myOriginalType;
 
   /***
-   * @param defaultType the type to default to if no transforms in trasformMap are active.
+   * @param defaultType the type to default to if no transforms in transformMap are active.
    * @param element the element that the model should represent.
    * @param transformMap a map of types to the {@link PropertyTransform}s that should be used for them.
    *                     The order of this map is the order in which {@link PropertyTransform#test(GradleDslElement, GradleDslElement)}
@@ -57,6 +58,7 @@ public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends Grad
     super(element);
     myTransforms = new LinkedHashMap<>(transformMap);
     myType = defaultType;
+    myOriginalType = defaultType;
     // This must be called after myType has been assign a default value.
     setUpTransforms();
   }
@@ -78,6 +80,7 @@ public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends Grad
     super(holder, propertyType, name);
     myTransforms = new LinkedHashMap<>(transformMap);
     myType = defaultType;
+    myOriginalType = defaultType;
     // This must be called after myType has been assigned a default value.
     setUpTransforms();
   }
@@ -91,6 +94,7 @@ public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends Grad
     for (Map.Entry<T, PropertyTransform> e : myTransforms.entrySet()) {
       if (e.getValue().test(myElement, myPropertyHolder)) {
         myType = e.getKey();
+        myOriginalType = myType;
         break;
       }
     }
@@ -114,6 +118,17 @@ public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends Grad
       return pt;
     }
     return super.getTransform();
+  }
+
+  @Override
+  protected @NotNull PropertyTransform getTransformFor(@Nullable GradleDslElement element) {
+    if (element == null) return super.getTransformFor(element);
+    for (PropertyTransform pt : myTransforms.values()) {
+      if (pt.test(element, myPropertyHolder)) {
+        return pt;
+      }
+    }
+    return super.getTransformFor(element);
   }
 
   @Override
@@ -163,5 +178,10 @@ public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends Grad
     if (newValue != null) {
       super.setValue(newValue);
     }
+  }
+
+  @Override
+  public boolean isModified() {
+    return (myType != myOriginalType) || super.isModified();
   }
 }
