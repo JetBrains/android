@@ -16,6 +16,8 @@
 package com.android.tools.idea.common.editor
 
 import com.android.tools.adtui.TreeWalker
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.SplitEditorToolbar
@@ -46,6 +48,8 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(textEditor: TextEditor,
   SplitEditor<P>(textEditor, preview, editorName) {
 
   private var toolbarComponent: Component? = null
+
+  private var tabsAction: TabsActionWrapper? = null
 
   override fun getComponent(): JComponent {
     // super.getComponent() initializes toolbar and sets true visibility values for
@@ -83,6 +87,11 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(textEditor: TextEditor,
     myPreview.component.isVisible = false
   }
 
+  override fun getTabActions(): ActionGroup? {
+    val parentActions = super.getTabActions() ?: return null
+    return tabsAction ?: TabsActionWrapper(parentActions).also { tabsAction = it }
+  }
+
   // Even though isPureTextEditor is meant to be persistent this editor delegates keeping the state persistent to the clients
   var isPureTextEditor: Boolean = true
     set(value) {
@@ -90,6 +99,7 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(textEditor: TextEditor,
       // are shown in a floating toolbar.
       val shouldHideToolbar = value || isShowActionsInTabs || isShowFloatingToolbar
       toolbarComponent?.isVisible = !shouldHideToolbar
+      tabsAction?.setTabsActionVisibility(!value && isShowActionsInTabs)
       if (value) {
         setPureTextEditorVisibility()
         setEditorLayout(Layout.SHOW_EDITOR)
@@ -100,4 +110,23 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(textEditor: TextEditor,
       }
       field = value
     }
+
+  /**
+   * [DefaultActionGroup] wrapper that controls another [ActionGroup] visibility by adding/removing its actions to the wrapper whenever
+   * [setTabsActionVisibility] is called. Since the wrapper sets its template presentation `isHideGroupIfEmpty` property to true, the group
+   * entry point will be invisible if its children list is empty.
+   */
+  private class TabsActionWrapper(private val originalActionGroup: ActionGroup) : DefaultActionGroup() {
+    init {
+      templatePresentation.isHideGroupIfEmpty = true
+    }
+
+    fun setTabsActionVisibility(visible: Boolean) {
+      if (visible && childrenCount == 0) {
+        addAll(originalActionGroup)
+      } else {
+        removeAll()
+      }
+    }
+  }
 }
