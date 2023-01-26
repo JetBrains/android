@@ -34,12 +34,12 @@ import com.intellij.psi.PsiClassObjectAccessExpression
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiLiteralExpression
 import com.intellij.psi.PsiMethod
-import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceContributor
 import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
 import com.intellij.psi.util.PsiTypesUtil
 import com.intellij.psi.util.parentOfType
@@ -284,7 +284,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
               var methodName = (methodAttribute as? PsiLiteralExpression)?.value as? String ?: continue
               // If method isn't provided, the attribute name is used to find its name, either prefixing with "is" or "get".
               if (methodName.isEmpty()) {
-                val methodPrefix = if (attributeType.isAssignableFrom(PsiPrimitiveType.BOOLEAN)) "is" else "get"
+                val methodPrefix = if (attributeType.isAssignableFrom(PsiTypes.booleanType())) "is" else "get"
                 methodName = methodPrefix + attribute.name.substringAfter(":").usLocaleCapitalize()
               }
               for (method in PsiModelClass(type, mode).findMethods(methodName, MemberAccess.ALL_MEMBERS)) {

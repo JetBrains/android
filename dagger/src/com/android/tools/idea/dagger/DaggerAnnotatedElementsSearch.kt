@@ -28,6 +28,7 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.psi.impl.cache.TypeInfo
 import com.intellij.psi.impl.compiled.ClsTypeElementImpl
 import com.intellij.psi.impl.compiled.SignatureParsing
@@ -255,7 +256,7 @@ private fun createTypeFromCanonicalText(
 
   val javaType = SignatureParsing.parseTypeString(signature, StubBuildingVisitor.GUESSING_MAPPER)
   val typeInfo = TypeInfo.fromString(javaType, false)
-  val typeText = TypeInfo.createTypeText(typeInfo) ?: return PsiType.NULL
+  val typeText = TypeInfo.createTypeText(typeInfo) ?: return PsiTypes.nullType()
 
   val type = ClsTypeElementImpl(psiContext, typeText, '\u0000').type
   return type
@@ -273,20 +274,20 @@ private fun KotlinType.toPsi(context: PsiElement): PsiType {
 
 // Inspired by KtLightAnnotationsValues.kt#psiType
 private val kotlinPrimitiveTypeFqNameToPsiType: Map<String, PsiType> = mapOf(
-  "kotlin.Int" to PsiType.INT,
-  "kotlin.Long" to PsiType.LONG,
-  "kotlin.Short" to PsiType.SHORT,
-  "kotlin.Boolean" to PsiType.BOOLEAN,
-  "kotlin.Byte" to PsiType.BYTE,
-  "kotlin.Char" to PsiType.CHAR,
-  "kotlin.Double" to PsiType.DOUBLE,
-  "kotlin.Float" to PsiType.FLOAT,
-  "kotlin.IntArray" to PsiType.INT.createArrayType(),
-  "kotlin.LongArray" to PsiType.LONG.createArrayType(),
-  "kotlin.ShortArray" to PsiType.SHORT.createArrayType(),
-  "kotlin.BooleanArray" to PsiType.BOOLEAN.createArrayType(),
-  "kotlin.ByteArray" to PsiType.BYTE.createArrayType(),
-  "kotlin.CharArray" to PsiType.CHAR.createArrayType(),
-  "kotlin.DoubleArray" to PsiType.DOUBLE.createArrayType(),
-  "kotlin.FloatArray" to PsiType.FLOAT.createArrayType()
+  "kotlin.Int" to PsiTypes.intType(),
+  "kotlin.Long" to PsiTypes.longType(),
+  "kotlin.Short" to PsiTypes.shortType(),
+  "kotlin.Boolean" to PsiTypes.booleanType(),
+  "kotlin.Byte" to PsiTypes.byteType(),
+  "kotlin.Char" to PsiTypes.charType(),
+  "kotlin.Double" to PsiTypes.doubleType(),
+  "kotlin.Float" to PsiTypes.floatType(),
+  "kotlin.IntArray" to PsiTypes.intType().createArrayType(),
+  "kotlin.LongArray" to PsiTypes.longType().createArrayType(),
+  "kotlin.ShortArray" to PsiTypes.shortType().createArrayType(),
+  "kotlin.BooleanArray" to PsiTypes.booleanType().createArrayType(),
+  "kotlin.ByteArray" to PsiTypes.byteType().createArrayType(),
+  "kotlin.CharArray" to PsiTypes.charType().createArrayType(),
+  "kotlin.DoubleArray" to PsiTypes.doubleType().createArrayType(),
+  "kotlin.FloatArray" to PsiTypes.floatType().createArrayType()
 )

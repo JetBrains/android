@@ -24,6 +24,7 @@ import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiParameterList;
 import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypes;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -230,7 +231,7 @@ public class AndroidClassMembersImplicitUsagesProvider implements ImplicitUsageP
       }
       if (parameterCount > 2) {
         type = parameters[2].getType();
-        if (!PsiType.INT.equals(type)) {
+        if (!PsiTypes.intType().equals(type)) {
           return false;
         }
       }

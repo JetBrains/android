@@ -25,6 +25,7 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiSubstitutor
 import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.psi.util.MethodSignatureUtil
 import com.intellij.psi.util.TypeConversionUtil
 
@@ -83,7 +84,7 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
   /**
    * Returns true if this ModelClass represents a void
    */
-  private val isVoid = PsiType.VOID.equalsToText(type.canonicalText)
+  private val isVoid = PsiTypes.voidType().equalsToText(type.canonicalText)
 
   /**
    * Returns true if this is a type variable. For example, in List&lt;T>, T is a type variable.

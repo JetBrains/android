@@ -61,6 +61,7 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiReferenceList;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypes;
 import com.intellij.psi.ResolveState;
 import com.intellij.psi.XmlRecursiveElementWalkingVisitor;
 import com.intellij.psi.impl.light.LightField;
@@ -484,7 +485,7 @@ public class LightBindingClass extends AndroidLightClassBase {
 
     String javaName = DataBindingUtil.convertVariableNameToJavaFieldName(variable.getName());
     String capitalizedName = StringUtil.capitalize(javaName);
-    LightMethodBuilder setter = createPublicMethod("set" + capitalizedName, PsiType.VOID);
+    LightMethodBuilder setter = createPublicMethod("set" + capitalizedName, PsiTypes.voidType());
     setter.addParameter(javaName, type);
     if (myConfig.settersShouldBeAbstract()) {
       setter.addModifier("abstract");
@@ -519,7 +520,7 @@ public class LightBindingClass extends AndroidLightClassBase {
       DeprecatableLightMethodBuilder inflate4Params = createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL);
       inflate4Params.addNullabilityParameter("inflater", inflaterType, true);
       inflate4Params.addNullabilityParameter("root", viewGroupType, false);
-      inflate4Params.addParameter("attachToRoot", PsiType.BOOLEAN);
+      inflate4Params.addParameter("attachToRoot", PsiTypes.booleanType());
       inflate4Params.addNullabilityParameter("bindingComponent", dataBindingComponentType, false);
       // Methods receiving DataBindingComponent are deprecated. see: b/116541301.
       inflate4Params.setDeprecated(true);
@@ -527,7 +528,7 @@ public class LightBindingClass extends AndroidLightClassBase {
       NullabilityLightMethodBuilder inflate3Params = createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL);
       inflate3Params.addNullabilityParameter("inflater", inflaterType, true);
       inflate3Params.addNullabilityParameter("root", viewGroupType, false);
-      inflate3Params.addParameter("attachToRoot", PsiType.BOOLEAN);
+      inflate3Params.addParameter("attachToRoot", PsiTypes.booleanType());
 
       DeprecatableLightMethodBuilder inflate2Params = createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL);
       inflate2Params.addNullabilityParameter("inflater", inflaterType, true);
@@ -563,7 +564,7 @@ public class LightBindingClass extends AndroidLightClassBase {
         NullabilityLightMethodBuilder inflate3Params = createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL);
         inflate3Params.addNullabilityParameter("inflater", inflaterType, true);
         inflate3Params.addNullabilityParameter("parent", viewGroupType, false);
-        inflate3Params.addParameter("attachToParent", PsiType.BOOLEAN);
+        inflate3Params.addParameter("attachToParent", PsiTypes.booleanType());
 
         NullabilityLightMethodBuilder inflate1Param = createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL);
         inflate1Param.addNullabilityParameter("inflater", inflaterType, true);

@@ -35,7 +35,7 @@ fun PsiMethod.checkSignaturesAndReturnType(
 ) {
   assertThat(this.name).isEqualTo(name)
 
-  if (returnType == PsiType.NULL.name) {
+  if (returnType == "null") {
     assertThat(getTypeName(this.returnType)).isNull()
   }
   else {

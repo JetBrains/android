@@ -34,6 +34,7 @@ import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiReferenceList;
 import com.intellij.psi.PsiStatement;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypes;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -96,7 +97,7 @@ public class JavaMigrationClassGenerator implements MigrationClassGenerator<PsiC
 
   private void addMigrationMethod(@NotNull PsiClass migrationClass,
                                   @NotNull DatabaseUpdate databaseUpdate) {
-    PsiMethod migrationMethod = myPsiElementFactory.createMethod(MIGRATION_METHOD_NAME, PsiType.VOID);
+    PsiMethod migrationMethod = myPsiElementFactory.createMethod(MIGRATION_METHOD_NAME, PsiTypes.voidType());
 
     migrationMethod.getModifierList().addAnnotation(OVERRIDE_ANNOTATION);
 

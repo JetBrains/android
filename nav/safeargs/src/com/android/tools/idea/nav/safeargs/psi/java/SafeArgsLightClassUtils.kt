@@ -27,6 +27,7 @@ import com.intellij.psi.PsiElementFactory
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.psi.impl.light.LightFieldBuilder
 import com.intellij.psi.impl.light.LightMethodBuilder
 import com.intellij.psi.xml.XmlTag
@@ -44,9 +45,9 @@ private const val FALLBACK_TYPE = STRING_FQCN
 private val NAV_TO_JAVA_TYPE_MAP = mapOf(
   "string" to STRING_FQCN,
   "string[]" to STRING_FQCN_ARRAY,
-  "integer" to PsiType.INT.name,
+  "integer" to PsiTypes.intType().name,
   "integer[]" to INT_ARRAY,
-  "reference" to PsiType.INT.name,
+  "reference" to PsiTypes.intType().name,
   "reference[]" to INT_ARRAY
 )
 
@@ -126,18 +127,18 @@ private fun String.parseReference(): String? {
 
 private fun String.parseLong(): String? {
   if (!endsWith('L')) return null
-  return substringBeforeLast('L').toLongOrNull()?.let { PsiType.LONG.name }
+  return substringBeforeLast('L').toLongOrNull()?.let { PsiTypes.longType().name }
 }
 
 private fun String.parseInt(): String? {
-  return this.toIntOrNull()?.let { PsiType.INT.name }
+  return this.toIntOrNull()?.let { PsiTypes.intType().name }
 }
 
 private fun String.parseUnsignedInt(): String? {
   if (!this.startsWith("0x")) return null
   try {
     Integer.parseUnsignedInt(this.substring(2), 16)
-    return PsiType.INT.name
+    return PsiTypes.intType().name
   }
   catch (ignore: NumberFormatException) {
     return null
@@ -145,12 +146,12 @@ private fun String.parseUnsignedInt(): String? {
 }
 
 private fun String.parseFloat(): String? {
-  return this.toFloatOrNull()?.let { PsiType.FLOAT.name }
+  return this.toFloatOrNull()?.let { PsiTypes.floatType().name }
 }
 
 private fun String.parseBoolean(): String? {
   if (this == "true" || this == "false") {
-    return PsiType.BOOLEAN.name
+    return PsiTypes.booleanType().name
   }
 
   return null
@@ -190,7 +191,7 @@ internal fun PsiClass.createMethod(
   name: String,
   navigationElement: PsiElement? = null,
   modifiers: Array<String> = MODIFIERS_PUBLIC_METHOD,
-  returnType: PsiType = PsiType.VOID
+  returnType: PsiType = PsiTypes.voidType()
 ): LightMethodBuilder {
   return LightMethodBuilder(manager, JavaLanguage.INSTANCE, name)
     .setContainingClass(this)

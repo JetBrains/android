@@ -22,7 +22,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiMethod
-import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
@@ -159,7 +159,7 @@ class LightDirectionsClassTest {
         returnType = "ActionFragment1ToFragment2",
         parameters = listOf(
           Parameter("argOne", "String"),
-          Parameter("argTwo", PsiType.FLOAT.name)
+          Parameter("argTwo", PsiTypes.floatType().name)
         )
       )
     }
@@ -168,7 +168,7 @@ class LightDirectionsClassTest {
         name = "actionFragment1ToFragment3",
         returnType = "ActionFragment1ToFragment3",
         parameters = listOf(
-          Parameter("arg", PsiType.INT.name)
+          Parameter("arg", PsiTypes.intType().name)
         )
       )
     }

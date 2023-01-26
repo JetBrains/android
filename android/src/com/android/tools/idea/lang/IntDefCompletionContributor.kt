@@ -35,7 +35,7 @@ import com.intellij.psi.PsiNameValuePair
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiReferenceExpression
-import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.parentOfType
@@ -172,7 +172,7 @@ private fun getIntDefValues(calleeElement: PsiElement?, argumentIndex: Int, argu
       return function?.annotations?.firstNotNullOfOrNull { it.intDefValues }
     }
     is PsiMethod -> {
-      val parameter = calleeElement.parameters.getOrNull(argumentIndex).safeAs<PsiParameter>()?.takeIf { it.type == PsiType.INT }
+      val parameter = calleeElement.parameters.getOrNull(argumentIndex).safeAs<PsiParameter>()?.takeIf { it.type == PsiTypes.intType() }
       return parameter?.annotations?.firstNotNullOfOrNull { it.intDefValues }
     }
     is KtFunction -> {

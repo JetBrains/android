@@ -17,6 +17,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiType
 import com.intellij.psi.PsiTypeElement
+import com.intellij.psi.PsiTypes
 import com.intellij.psi.PsiVariable
 import com.intellij.psi.impl.ElementPresentationUtil
 import com.intellij.psi.impl.PsiClassImplUtil
@@ -124,7 +125,7 @@ class StyleableAttrLightField(
   myContext: PsiClass,
   fieldModifier: FieldModifier,
   myConstantValue: Any?
-) : AndroidLightField(styleableAttrFieldUrl.toFieldName(), myContext, PsiType.INT, fieldModifier, myConstantValue) {
+) : AndroidLightField(styleableAttrFieldUrl.toFieldName(), myContext, PsiTypes.intType(), fieldModifier, myConstantValue) {
 
   override fun toString(): String {
     return MoreObjects.toStringHelper(this)

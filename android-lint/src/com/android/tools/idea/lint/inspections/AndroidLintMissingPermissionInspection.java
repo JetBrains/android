@@ -50,7 +50,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiLiteralExpression;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiStatement;
-import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypes;
 import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -374,7 +374,7 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
       // or adding more of a skeleton from that article.
 
       PsiMethod method = isKotlin ? null : PsiTreeUtil.getParentOfType(call, PsiMethod.class, true);
-      if (method != null && !PsiType.VOID.equals(method.getReturnType())) {
+      if (method != null && !PsiTypes.voidType().equals(method.getReturnType())) {
         sb.append("return TODO");
       }
       else {

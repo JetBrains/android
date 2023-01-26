@@ -33,7 +33,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.util.ui.ColorIcon
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.inspections.AbstractRangeInspection.Companion.constantValueOrNull
@@ -65,7 +65,7 @@ class ComposeColorAnnotator : Annotator {
       element is KtCallElement -> {
         val uElement = element.toUElement(UCallExpression::class.java) ?: return
         val returnType = uElement.returnType ?: return
-        if (uElement.kind != UastCallKind.METHOD_CALL || returnType != PsiType.LONG || COLOR_METHOD != uElement.methodName) {
+        if (uElement.kind != UastCallKind.METHOD_CALL || returnType != PsiTypes.longType() || COLOR_METHOD != uElement.methodName) {
           return
         }
 
@@ -330,9 +330,9 @@ private fun floatColorMapToColor(floatColorMap: FloatColorMap): Color? {
 private fun getConstructorType(arguments: List<UExpression>): ComposeColorConstructor? {
   val paramType = arguments.firstOrNull()?.getExpressionType() ?: return null
   return when (arguments.size) {
-    1 -> if (PsiType.INT == paramType) ComposeColorConstructor.INT else ComposeColorConstructor.LONG
-    3 -> if (PsiType.INT == paramType) ComposeColorConstructor.INT_X3 else ComposeColorConstructor.FLOAT_X3
-    4 -> if (PsiType.INT == paramType) ComposeColorConstructor.INT_X4 else ComposeColorConstructor.FLOAT_X4
+    1 -> if (PsiTypes.intType() == paramType) ComposeColorConstructor.INT else ComposeColorConstructor.LONG
+    3 -> if (PsiTypes.intType() == paramType) ComposeColorConstructor.INT_X3 else ComposeColorConstructor.FLOAT_X3
+    4 -> if (PsiTypes.intType() == paramType) ComposeColorConstructor.INT_X4 else ComposeColorConstructor.FLOAT_X4
     5 -> ComposeColorConstructor.FLOAT_X4_COLORSPACE
     else -> null
   }

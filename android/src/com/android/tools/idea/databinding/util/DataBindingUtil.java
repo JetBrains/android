@@ -42,6 +42,7 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiPrimitiveType;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.PsiTypeVisitor;
+import com.intellij.psi.PsiTypes;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -213,7 +214,7 @@ public final class DataBindingUtil {
     if (returnType == null) {
       return false; // Null return type indicates a constructor
     }
-    return (!returnType.equals(PsiType.VOID)
+    return (!returnType.equals(PsiTypes.voidType())
             && psiMethod.getParameterList().getParametersCount() == 0
             && isPrefixedJavaIdentifier(psiMethod.getName(), "get"));
   }
@@ -223,7 +224,7 @@ public final class DataBindingUtil {
     if (returnType == null) {
       return false; // Null return type indicates a constructor
     }
-    return (returnType.equals(PsiType.BOOLEAN)
+    return (returnType.equals(PsiTypes.booleanType())
             && psiMethod.getParameterList().getParametersCount() == 0
             && isPrefixedJavaIdentifier(psiMethod.getName(), "is"));
   }
@@ -233,7 +234,7 @@ public final class DataBindingUtil {
     if (returnType == null) {
       return false; // Null return type indicates a constructor
     }
-    return (returnType.equals(PsiType.VOID)
+    return (returnType.equals(PsiTypes.voidType())
             && psiMethod.getParameterList().getParametersCount() == 1
             && isPrefixedJavaIdentifier(psiMethod.getName(), "set"));
   }

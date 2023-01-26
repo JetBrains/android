@@ -17,7 +17,7 @@ package com.android.tools.idea.lang.databinding.model
 
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifier
-import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import java.lang.Integer.min
 
 /**
@@ -37,7 +37,7 @@ class PsiModelMethod(override val containingClass: PsiModelClass, val psiMethod:
   val returnType: PsiModelClass?
     get() = psiMethod.returnType?.let { PsiModelClass(containingClass.substitutor.substitute(it), containingClass.mode) }
 
-  val isVoid = PsiType.VOID == psiMethod.returnType
+  val isVoid = PsiTypes.voidType() == psiMethod.returnType
 
   val isPublic = psiMethod.hasModifierProperty(PsiModifier.PUBLIC)
 

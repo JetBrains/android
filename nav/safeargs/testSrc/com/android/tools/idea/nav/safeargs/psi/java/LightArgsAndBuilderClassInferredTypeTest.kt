@@ -22,7 +22,7 @@ import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
-import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
@@ -45,14 +45,14 @@ class LightArgsAndBuilderClassInferredTypeTest(
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
     fun data() = listOf(
-      DefaultValueTypeMapping("1", PsiType.INT.name),
-      DefaultValueTypeMapping("0x21", PsiType.INT.name),
-      DefaultValueTypeMapping("1f", PsiType.FLOAT.name),
-      DefaultValueTypeMapping("1L", PsiType.LONG.name),
-      DefaultValueTypeMapping("true", PsiType.BOOLEAN.name),
+      DefaultValueTypeMapping("1", PsiTypes.intType().name),
+      DefaultValueTypeMapping("0x21", PsiTypes.intType().name),
+      DefaultValueTypeMapping("1f", PsiTypes.floatType().name),
+      DefaultValueTypeMapping("1L", PsiTypes.longType().name),
+      DefaultValueTypeMapping("true", PsiTypes.booleanType().name),
       DefaultValueTypeMapping("someString", "String"),
       DefaultValueTypeMapping("@null", "String"),
-      DefaultValueTypeMapping("@resourceType/resourceName", PsiType.INT.name),
+      DefaultValueTypeMapping("@resourceType/resourceName", PsiTypes.intType().name),
       DefaultValueTypeMapping("someCustomType", "String"), // custom type can't be recognized
       DefaultValueTypeMapping("someEnumType", "String") // custom type can't be recognized
     )
@@ -93,7 +93,7 @@ class LightArgsAndBuilderClassInferredTypeTest(
       assertThat(constructors.size).isEqualTo(2)
       constructors[0].checkSignaturesAndReturnType(
         name = "Builder",
-        returnType = PsiType.NULL.name,
+        returnType = "null",
         parameters = listOf(
           Parameter("original", "FragmentArgs")
         )
@@ -101,7 +101,7 @@ class LightArgsAndBuilderClassInferredTypeTest(
 
       constructors[1].checkSignaturesAndReturnType(
         name = "Builder",
-        returnType = PsiType.NULL.name
+        returnType = "null"
       )
     }
 

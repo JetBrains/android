@@ -57,7 +57,7 @@ import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceContributor
 import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
-import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.util.ProcessingContext
@@ -426,13 +426,13 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
       val literalExpr = element as PsiDbLiteralExpr
       val psiType = when (literalExpr.node.firstChildNode.elementType) {
-        DbTokenTypes.INTEGER_LITERAL -> PsiType.INT
-        DbTokenTypes.FLOAT_LITERAL -> PsiType.FLOAT
-        DbTokenTypes.LONG_LITERAL -> PsiType.LONG
-        DbTokenTypes.DOUBLE_LITERAL -> PsiType.DOUBLE
-        DbTokenTypes.TRUE, DbTokenTypes.FALSE -> PsiType.BOOLEAN
-        DbTokenTypes.NULL -> PsiType.NULL
-        DbTokenTypes.CHARACTER_LITERAL -> PsiType.CHAR
+        DbTokenTypes.INTEGER_LITERAL -> PsiTypes.intType()
+        DbTokenTypes.FLOAT_LITERAL -> PsiTypes.floatType()
+        DbTokenTypes.LONG_LITERAL -> PsiTypes.longType()
+        DbTokenTypes.DOUBLE_LITERAL -> PsiTypes.doubleType()
+        DbTokenTypes.TRUE, DbTokenTypes.FALSE -> PsiTypes.booleanType()
+        DbTokenTypes.NULL -> PsiTypes.nullType()
+        DbTokenTypes.CHARACTER_LITERAL -> PsiTypes.charType()
         DbTokenTypes.STRING_LITERAL -> LayoutBindingTypeUtil.parsePsiType("java.lang.String", element) ?: return arrayOf()
         else -> return arrayOf()
       }

@@ -36,13 +36,14 @@ import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.psi.PsiVariable
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.SearchScope
 import org.jetbrains.kotlin.asJava.elements.KtLightField
 import org.jetbrains.kotlin.asJava.toLightClass
-import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.idea.base.util.module
+import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtClass
@@ -313,8 +314,8 @@ val PsiElement?.isAssistedInjectedConstructor: Boolean
  * True if PsiElement is @AssistedInject-annotated constructor.
  */
 val PsiElement?.isAssistedFactoryMethod: Boolean
-  get() = (this is PsiMethod && containingClass.isDaggerAssistedFactory && this.returnType?.unboxed != PsiType.VOID) ||
-          (this is KtNamedFunction && containingClass().isDaggerAssistedFactory && this.psiType?.unboxed != PsiType.VOID)
+  get() = (this is PsiMethod && containingClass.isDaggerAssistedFactory && this.returnType?.unboxed != PsiTypes.voidType()) ||
+          (this is KtNamedFunction && containingClass().isDaggerAssistedFactory && this.psiType?.unboxed != PsiTypes.voidType())
 
 /**
  * True if PsiElement is Dagger consumer i.e @Inject-annotated field or param of Dagger provider, see [isDaggerProvider].

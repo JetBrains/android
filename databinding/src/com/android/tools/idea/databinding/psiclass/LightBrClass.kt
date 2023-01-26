@@ -38,7 +38,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiModifierListOwner
-import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.psi.impl.light.LightField
 import com.intellij.psi.impl.light.LightIdentifier
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
@@ -132,7 +132,7 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, priv
   }
 
   private fun createPsiField(project: Project, factory: PsiElementFactory, id: String): PsiField {
-    val field = factory.createField(id, PsiType.INT)
+    val field = factory.createField(id, PsiTypes.intType())
     PsiUtil.setModifierProperty(field, PsiModifier.PUBLIC, true)
     PsiUtil.setModifierProperty(field, PsiModifier.STATIC, true)
     PsiUtil.setModifierProperty(field, PsiModifier.FINAL, true)

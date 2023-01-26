@@ -18,6 +18,7 @@ import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiPolyVariantReferenceBase;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypes;
 import com.intellij.psi.ResolveResult;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -215,7 +216,7 @@ public abstract class OnClickConverter extends Converter<String> implements Cust
   }
 
   public boolean checkSignature(@NotNull PsiMethod method) {
-    if (!PsiType.VOID.equals(method.getReturnType())) {
+    if (!PsiTypes.voidType().equals(method.getReturnType())) {
       return false;
     }
 

@@ -21,7 +21,7 @@ import com.android.tools.idea.nav.safeargs.extensions.checkSignaturesAndReturnTy
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
-import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
@@ -42,12 +42,12 @@ class LightArgsBuilderClassConstructorsAndMethodsTest(private val typeMapping: T
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
     fun data() = listOf(
-      TypeMapping("integer", PsiType.INT.name),
-      TypeMapping(PsiType.FLOAT.name),
-      TypeMapping(PsiType.LONG.name),
-      TypeMapping(PsiType.BOOLEAN.name),
+      TypeMapping("integer", PsiTypes.intType().name),
+      TypeMapping(PsiTypes.floatType().name),
+      TypeMapping(PsiTypes.longType().name),
+      TypeMapping(PsiTypes.booleanType().name),
       TypeMapping("string", "String"),
-      TypeMapping("reference", PsiType.INT.name),
+      TypeMapping("reference", PsiTypes.intType().name),
       TypeMapping("test.safeargs.MyCustomType", "MyCustomType"), // e.g Parcelable, Serializable
       TypeMapping("test.safeargs.MyEnum", "MyEnum"),
       TypeMapping("test.safeargs.Outer\$Inner", "Inner"),
@@ -101,7 +101,7 @@ class LightArgsBuilderClassConstructorsAndMethodsTest(private val typeMapping: T
       assertThat(constructors.size).isEqualTo(2)
       constructors[0].checkSignaturesAndReturnType(
         name = "Builder",
-        returnType = PsiType.NULL.name,
+        returnType = "null",
         parameters = listOf(
           Parameter("original", "FragmentArgs")
         )
@@ -109,7 +109,7 @@ class LightArgsBuilderClassConstructorsAndMethodsTest(private val typeMapping: T
 
       constructors[1].checkSignaturesAndReturnType(
         name = "Builder",
-        returnType = PsiType.NULL.name,
+        returnType = "null",
         parameters = listOf(
           Parameter("argOne", typeMapping.after),
           Parameter("argThree", "${typeMapping.after}[]")

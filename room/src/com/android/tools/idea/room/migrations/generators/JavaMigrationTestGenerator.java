@@ -49,6 +49,7 @@ import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.PsiStatement;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypes;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import org.jetbrains.annotations.NotNull;
@@ -148,7 +149,8 @@ public class JavaMigrationTestGenerator implements MigrationTestGenerator {
                                       @NotNull String databaseName,
                                       int startVersion,
                                       int endVersion) {
-    PsiMethod migrationTestMethod = myPsiElementFactory.createMethod(getMigrationTestMethodName(startVersion, endVersion), PsiType.VOID);
+    PsiMethod migrationTestMethod = myPsiElementFactory.createMethod(getMigrationTestMethodName(startVersion, endVersion),
+                                                                     PsiTypes.voidType());
     migrationTestMethod.getModifierList().addAnnotation(TEST_ANNOTATION_QUALIFIED_NAME);
     migrationTestMethod.getThrowsList().add(
       myPsiElementFactory.createFQClassNameReferenceElement(IO_EXCEPTION_QUALIFIED_NAME,

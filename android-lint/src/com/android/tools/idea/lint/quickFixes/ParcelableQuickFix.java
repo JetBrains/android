@@ -47,6 +47,7 @@ import com.intellij.psi.PsiParameterList;
 import com.intellij.psi.PsiReferenceList;
 import com.intellij.psi.PsiStatement;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypes;
 import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
@@ -391,7 +392,7 @@ public class ParcelableQuickFix extends DefaultLintQuickFix {
       return method.getName().equals("writeToParcel") &&
              params.getParametersCount() == 2 &&
              params.getParameters()[0].getType().equalsToText(CLASS_PARCEL) &&
-             params.getParameters()[1].getType().equalsToText(PsiType.INT.getCanonicalText());
+             params.getParameters()[1].getType().equalsToText(PsiTypes.intType().getCanonicalText());
     }
 
     private boolean doesSuperClassImplementParcelable() {
@@ -594,7 +595,7 @@ public class ParcelableQuickFix extends DefaultLintQuickFix {
       myPersistenceMap.put(myTType, new ParcelableFieldPersistence());
       myPersistenceMap.put(myTArrayType, new EfficientParcelableArrayFieldPersistence());
       myPersistenceMap.put(myTListType, new EfficientParcelableListFieldPersistence());
-      myPersistenceMap.put(PsiType.BOOLEAN, new BooleanFieldPersistence());
+      myPersistenceMap.put(PsiTypes.booleanType(), new BooleanFieldPersistence());
     }
 
     @NotNull
@@ -625,7 +626,7 @@ public class ParcelableQuickFix extends DefaultLintQuickFix {
         return false;
       }
       PsiParameter param = method.getParameterList().getParameters()[1];
-      return param.getType().equals(PsiType.INT) && Objects.equals(param.getName(), "parcelableFlags");
+      return param.getType().equals(PsiTypes.intType()) && Objects.equals(param.getName(), "parcelableFlags");
     }
 
     private static boolean isSimpleRead(@NotNull PsiMethod method) {

@@ -24,7 +24,7 @@ import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
-import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -116,17 +116,17 @@ class DataBindingUtilTest {
 
     val boolGetters = modelClass.methods.filter { m -> DataBindingUtil.isBooleanGetter(m) }
     boolGetters.forEach { method -> assertThat(method.parameters.size).isEqualTo(0) }
-    boolGetters.forEach { method -> assertThat(method.returnType).isEqualTo(PsiType.BOOLEAN) }
+    boolGetters.forEach { method -> assertThat(method.returnType).isEqualTo(PsiTypes.booleanType()) }
     assertThat(boolGetters.map { m -> m.name }).containsExactly("isBoolValue")
 
     val getters = modelClass.methods.filter { m -> DataBindingUtil.isGetter(m) }
     getters.forEach { method -> assertThat(method.parameters.size).isEqualTo(0) }
-    getters.forEach { method -> assertThat(method.returnType).isNotEqualTo(PsiType.VOID) }
+    getters.forEach { method -> assertThat(method.returnType).isNotEqualTo(PsiTypes.voidType()) }
     assertThat(getters.map { m -> m.name }).containsExactly("getBoolValue", "getIntValue", "getStringValue")
 
     val setters = modelClass.methods.filter { m -> DataBindingUtil.isSetter(m) }
     setters.forEach { method -> assertThat(method.parameters.size).isEqualTo(1) }
-    setters.forEach { method -> assertThat(method.returnType).isEqualTo(PsiType.VOID) }
+    setters.forEach { method -> assertThat(method.returnType).isEqualTo(PsiTypes.voidType()) }
     assertThat(setters.map { m -> m.name }).containsExactly("setBoolValue", "setIntValue", "setStringValue")
   }
 }

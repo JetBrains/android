@@ -22,7 +22,7 @@ import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiParameterList
-import com.intellij.psi.PsiPrimitiveType
+import com.intellij.psi.PsiTypes
 import com.intellij.psi.util.parentOfType
 
 class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
@@ -207,14 +207,14 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     var primitiveType = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8JavaPrimitive>()
 
     assertThat(primitiveType).isNotNull()
-    assertThat(primitiveType!!.psiPrimitive).isEqualTo(PsiPrimitiveType.INT)
+    assertThat(primitiveType!!.psiPrimitive).isEqualTo(PsiTypes.intType())
 
     myFixture.moveCaret("by|te")
 
     primitiveType = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8JavaPrimitive>()
 
     assertThat(primitiveType).isNotNull()
-    assertThat(primitiveType!!.psiPrimitive).isEqualTo(PsiPrimitiveType.BYTE)
+    assertThat(primitiveType!!.psiPrimitive).isEqualTo(PsiTypes.byteType())
   }
 
   fun testMatchesPsiType() {
@@ -230,7 +230,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
       """.trimIndent())
 
     var type = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Type>()!!
-    assertThat(type.matchesPsiType(PsiPrimitiveType.BOOLEAN)).isTrue()
+    assertThat(type.matchesPsiType(PsiTypes.booleanType())).isTrue()
 
     myFixture.moveCaret("Str|ing")
     type = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Type>()!!
@@ -241,13 +241,13 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     type = myFixture.file.findElementAt(myFixture.caretOffset - 1)!!.parentOfType<ProguardR8Type>()!!
     // String is NOT primitive
     assertThat(type.matchesPsiType(stringType)).isFalse()
-    assertThat(type.matchesPsiType(PsiPrimitiveType.LONG)).isTrue()
-    assertThat(type.matchesPsiType(PsiPrimitiveType.VOID)).isFalse()
+    assertThat(type.matchesPsiType(PsiTypes.longType())).isTrue()
+    assertThat(type.matchesPsiType(PsiTypes.voidType())).isFalse()
 
     myFixture.moveCaret("*|**")
     type = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Type>()!!
     assertThat(type.matchesPsiType(stringType)).isTrue()
-    assertThat(type.matchesPsiType(PsiPrimitiveType.LONG)).isTrue()
+    assertThat(type.matchesPsiType(PsiTypes.longType())).isTrue()
   }
 
   fun testAcceptAnyParameters() {
@@ -283,7 +283,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
   fun testMatchesParameterList() {
 
     val stringFQ = String::class.java.canonicalName
-    val intFQ = PsiPrimitiveType.INT.name
+    val intFQ = PsiTypes.intType().name
 
     myFixture.configureByText(
       ProguardR8FileType.INSTANCE,
@@ -310,7 +310,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     psiParameters = createParameterList(intFQ, intFQ)
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
     // (int) != (long)
-    psiParameters = createParameterList(PsiPrimitiveType.LONG.name)
+    psiParameters = createParameterList(PsiTypes.longType().name)
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
     // (int) != ()
     psiParameters = createParameterList()
@@ -369,11 +369,11 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Parameters>()!!
     // (%, String, %) == (int, String, boolean)
     psiParameters = createParameterList(
-      intFQ, stringFQ, PsiPrimitiveType.BOOLEAN.name)
+      intFQ, stringFQ, PsiTypes.booleanType().name)
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
     // (%, String, %) != (int, String, void)
     psiParameters = createParameterList(
-      intFQ, stringFQ, PsiPrimitiveType.VOID.name)
+      intFQ, stringFQ, PsiTypes.voidType().name)
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
     // (%, String, %) != (int, String, String)
     psiParameters = createParameterList(
@@ -387,7 +387,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
     // (...) == (int, String, long[])
     psiParameters = createParameterList(
-      intFQ, stringFQ, "${PsiPrimitiveType.LONG.name}[]")
+      intFQ, stringFQ, "${PsiTypes.longType().name}[]")
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
     // (...) == ()
     psiParameters = createParameterList()
@@ -400,13 +400,13 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
     // (int, ...) == (int, String, long[])
     psiParameters = createParameterList(
-      intFQ, stringFQ, "${PsiPrimitiveType.LONG.name}[]")
+      intFQ, stringFQ, "${PsiTypes.longType().name}[]")
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
     // (int, ...) != ()
     psiParameters = createParameterList()
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
     // (int, ...) != (String, long[])
-    psiParameters = createParameterList(stringFQ, "${PsiPrimitiveType.LONG.name}[]")
+    psiParameters = createParameterList(stringFQ, "${PsiTypes.longType().name}[]")
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
 
     myFixture.moveCaret("myMethod(..|., int)")

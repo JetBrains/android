@@ -6,7 +6,7 @@ import com.android.tools.idea.res.ResourceRepositoryRClass;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypes;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -70,7 +70,7 @@ public class ResourceRepositoryInnerRClass extends InnerRClassBase {
 
     return new ResourceLightField(name,
                                   this,
-                                  PsiType.INT,
+                                  PsiTypes.intType(),
                                   AndroidLightField.FieldModifier.NON_FINAL,
                                   null,
                                   ResourceVisibility.PUBLIC);

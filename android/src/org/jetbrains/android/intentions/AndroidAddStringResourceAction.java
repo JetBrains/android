@@ -73,6 +73,7 @@ import com.intellij.psi.PsiMethodCallExpression;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiParameterList;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypes;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -320,7 +321,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
 
         // We want to find a method that all parameters matches except ith parameter be int and annotated with STRING_RES_ANNOTATION.
         if (i == index) {
-          if (!PsiType.INT.equals(otherParameter.getType())) {
+          if (!PsiTypes.intType().equals(otherParameter.getType())) {
             found = false;
             break;
           }
@@ -449,7 +450,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     if (resourceType == ResourceType.DIMEN) {
       // Choose between getDimensionPixelSize and getDimension based on whether we're needing an int or a float
       PsiType targetType = computeTargetType(element);
-      if (PsiType.INT.equals(targetType)) {
+      if (PsiTypes.intType().equals(targetType)) {
         return "getDimensionPixelSize";
       }
       return "getDimension";

@@ -20,6 +20,7 @@ import com.intellij.psi.PsiArrayType;
 import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiPrimitiveType;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypes;
 import com.intellij.psi.util.TypeConversionUtil;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -33,15 +34,15 @@ public final class TraceSignatureConverter {
    */
   private static final Map<PsiType, Character> PRIMITIVE_TYPES =
     new ImmutableMap.Builder<PsiType, Character>()
-      .put(PsiType.BYTE, 'B')
-      .put(PsiType.CHAR, 'C')
-      .put(PsiType.DOUBLE, 'D')
-      .put(PsiType.FLOAT, 'F')
-      .put(PsiType.INT, 'I')
-      .put(PsiType.LONG, 'J')
-      .put(PsiType.SHORT, 'S')
-      .put(PsiType.BOOLEAN, 'Z')
-      .put(PsiType.VOID, 'V').build();
+      .put(PsiTypes.byteType(), 'B')
+      .put(PsiTypes.charType(), 'C')
+      .put(PsiTypes.doubleType(), 'D')
+      .put(PsiTypes.floatType(), 'F')
+      .put(PsiTypes.intType(), 'I')
+      .put(PsiTypes.longType(), 'J')
+      .put(PsiTypes.shortType(), 'S')
+      .put(PsiTypes.booleanType(), 'Z')
+      .put(PsiTypes.voidType(), 'V').build();
 
   /**
    * @return - java encoding of the given PsiType.

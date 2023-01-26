@@ -25,7 +25,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiPolyVariantReference
-import com.intellij.psi.PsiPrimitiveType
+import com.intellij.psi.PsiTypes
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.IncorrectOperationException
 import org.junit.Assert
@@ -61,7 +61,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
 
     var method = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMember>()!!
     assertThat(method.type).isNotNull()
-    assertThat(method.type!!.matchesPsiType(PsiPrimitiveType.INT)).isTrue()
+    assertThat(method.type!!.matchesPsiType(PsiTypes.intType())).isTrue()
 
     myFixture.moveCaret("my|String")
     method = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMember>()!!

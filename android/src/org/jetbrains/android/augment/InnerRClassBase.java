@@ -20,6 +20,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypes;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
@@ -46,7 +47,7 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
   @Nullable
   private CachedValue<PsiField[]> myFieldsCache;
 
-  protected static final PsiType INT_ARRAY = PsiType.INT.createArrayType();
+  protected static final PsiType INT_ARRAY = PsiTypes.intType().createArrayType();
 
   protected static final Predicate<@NotNull ResourceItem> ACCESSIBLE_RESOURCE_FILTER = resource -> {
     if (!resource.getNamespace().equals(ResourceNamespace.ANDROID) && resource.getLibraryName() == null) {
@@ -127,7 +128,7 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
       int fieldId = nextId++;
       ResourceLightField field = new ResourceLightField(entry.getKey(),
                                                         context,
-                                                        PsiType.INT,
+                                                        PsiTypes.intType(),
                                                         fieldModifier,
                                                         fieldModifier == AndroidLightField.FieldModifier.FINAL ? fieldId : null,
                                                         entry.getValue());

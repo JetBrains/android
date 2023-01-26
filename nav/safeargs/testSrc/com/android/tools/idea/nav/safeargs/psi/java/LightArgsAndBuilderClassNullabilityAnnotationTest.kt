@@ -21,7 +21,7 @@ import com.android.tools.idea.nav.safeargs.extensions.checkSignaturesAndReturnTy
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
-import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
@@ -44,12 +44,12 @@ class LightArgsAndBuilderClassNullabilityAnnotationTest(
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
     fun data() = listOf(
-      TypeNullabilityMapping("integer", PsiType.INT.name, false),
-      TypeNullabilityMapping(PsiType.FLOAT.name, false),
-      TypeNullabilityMapping(PsiType.LONG.name, false),
-      TypeNullabilityMapping(PsiType.BOOLEAN.name, false),
+      TypeNullabilityMapping("integer", PsiTypes.intType().name, false),
+      TypeNullabilityMapping(PsiTypes.floatType().name, false),
+      TypeNullabilityMapping(PsiTypes.longType().name, false),
+      TypeNullabilityMapping(PsiTypes.booleanType().name, false),
       TypeNullabilityMapping("string", "String", true),
-      TypeNullabilityMapping("reference", PsiType.INT.name, false),
+      TypeNullabilityMapping("reference", PsiTypes.intType().name, false),
       TypeNullabilityMapping("test.safeargs.MyCustomType", "MyCustomType", true) // e.g Parcelable, Serializable
     )
   }

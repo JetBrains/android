@@ -72,6 +72,7 @@ import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.psi.PsiVariable
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
@@ -328,14 +329,14 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
         // PsiPrimitiveType.getUnboxedType does not work properly when clazz.resolve() returns null
         if (clazz.resolve() == null) {
           when (clazz.canonicalText) {
-            TYPE_BOOLEAN_WRAPPER -> return PsiType.BOOLEAN
-            TYPE_INTEGER_WRAPPER -> return PsiType.INT
-            TYPE_BYTE_WRAPPER -> return PsiType.BYTE
-            TYPE_SHORT_WRAPPER -> return PsiType.SHORT
-            TYPE_LONG_WRAPPER -> return PsiType.LONG
-            TYPE_DOUBLE_WRAPPER -> return PsiType.DOUBLE
-            TYPE_FLOAT_WRAPPER -> return PsiType.FLOAT
-            TYPE_CHARACTER_WRAPPER -> return PsiType.CHAR
+            TYPE_BOOLEAN_WRAPPER -> return PsiTypes.booleanType()
+            TYPE_INTEGER_WRAPPER -> return PsiTypes.intType()
+            TYPE_BYTE_WRAPPER -> return PsiTypes.byteType()
+            TYPE_SHORT_WRAPPER -> return PsiTypes.shortType()
+            TYPE_LONG_WRAPPER -> return PsiTypes.longType()
+            TYPE_DOUBLE_WRAPPER -> return PsiTypes.doubleType()
+            TYPE_FLOAT_WRAPPER -> return PsiTypes.floatType()
+            TYPE_CHARACTER_WRAPPER -> return PsiTypes.charType()
           }
         }
         PsiPrimitiveType.getUnboxedType(clazz)?.let {
@@ -667,8 +668,8 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
           // see a method that takes non-integers, or an actual put method
           // (2 parameter method where our target is the second parameter and
           // the name begins with put) we ignore it.
-          if (PsiType.INT != parameter.type ||
-            parameter.parameterIndex() == 1 && parameters.size == 2 && method.name.startsWith("put")
+          if (PsiTypes.intType() != parameter.type ||
+              parameter.parameterIndex() == 1 && parameters.size == 2 && method.name.startsWith("put")
           ) {
             continue
           }

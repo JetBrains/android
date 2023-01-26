@@ -29,6 +29,7 @@ import com.intellij.psi.PsiParameterList
 import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.psi.impl.source.PsiClassReferenceType
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReference
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReferenceSet
@@ -107,15 +108,15 @@ fun resolveSuperPsiClasses(classSpecificationHeader: ProguardR8ClassSpecificatio
 fun getPsiPrimitive(proguardR8JavaPrimitive: ProguardR8JavaPrimitive): PsiPrimitiveType? {
   val primitive = proguardR8JavaPrimitive.node.firstChildNode
   return when (primitive.elementType) {
-    ProguardR8PsiTypes.BOOLEAN -> PsiPrimitiveType.BOOLEAN
-    ProguardR8PsiTypes.BYTE -> PsiPrimitiveType.BYTE
-    ProguardR8PsiTypes.CHAR -> PsiPrimitiveType.CHAR
-    ProguardR8PsiTypes.SHORT -> PsiPrimitiveType.SHORT
-    ProguardR8PsiTypes.INT -> PsiPrimitiveType.INT
-    ProguardR8PsiTypes.LONG -> PsiPrimitiveType.LONG
-    ProguardR8PsiTypes.FLOAT -> PsiPrimitiveType.FLOAT
-    ProguardR8PsiTypes.DOUBLE -> PsiPrimitiveType.DOUBLE
-    ProguardR8PsiTypes.VOID -> PsiPrimitiveType.VOID
+    ProguardR8PsiTypes.BOOLEAN -> PsiTypes.booleanType()
+    ProguardR8PsiTypes.BYTE -> PsiTypes.byteType()
+    ProguardR8PsiTypes.CHAR -> PsiTypes.charType()
+    ProguardR8PsiTypes.SHORT -> PsiTypes.shortType()
+    ProguardR8PsiTypes.INT -> PsiTypes.intType()
+    ProguardR8PsiTypes.LONG -> PsiTypes.longType()
+    ProguardR8PsiTypes.FLOAT -> PsiTypes.floatType()
+    ProguardR8PsiTypes.DOUBLE -> PsiTypes.doubleType()
+    ProguardR8PsiTypes.VOID -> PsiTypes.voidType()
     else -> {
       assert(false) { "Couldn't match ProguardR8JavaPrimitive \"${primitive.text}\" to PsiPrimitive" }
       null
@@ -153,7 +154,7 @@ fun matchesPsiType(type: ProguardR8Type, other: PsiType): Boolean {
     type.javaPrimitive != null -> type.javaPrimitive!!.psiPrimitive == typeToMatch
     type.qualifiedName != null && typeToMatch is PsiClassReferenceType -> type.qualifiedName!!.resolveToPsiClass() == typeToMatch.resolve()
     // "%" matches any primitive type ("boolean", "int", etc, but not "void").
-    type.anyPrimitiveType != null -> typeToMatch is PsiPrimitiveType && typeToMatch != PsiPrimitiveType.VOID
+    type.anyPrimitiveType != null -> typeToMatch is PsiPrimitiveType && typeToMatch != PsiTypes.voidType()
     type.anyNotPrimitiveType != null -> typeToMatch is PsiClassReferenceType
     type.anyType != null -> true
     else -> false
