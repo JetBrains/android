@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.AppLaunchTask
 import com.android.tools.idea.run.tasks.LaunchContext
-import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTaskDurations
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.project.Project
@@ -136,12 +135,11 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
     }
   }
 
-  override fun run(launchContext: LaunchContext): LaunchResult {
+  override fun run(launchContext: LaunchContext) {
     myGradleConnectedAndroidTestInvoker.schedule(
       project, taskId, processHandler, consolePrinter, androidModuleModel,
       waitForDebugger, testPackageName, testClassName, testMethodName, testRegex,
       device, retentionConfiguration, extraInstrumentationOptions)
-    return LaunchResult.success()
   }
 
   override fun getId(): String = "GRADLE_ANDROID_TEST_APPLICATION_LAUNCH_TASK"

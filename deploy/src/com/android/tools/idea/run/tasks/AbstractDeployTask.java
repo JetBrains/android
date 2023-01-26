@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.run.tasks;
 
-import static com.android.tools.idea.run.tasks.LaunchResult.Result.ERROR;
 
 import com.android.ddmlib.AdbHelper;
 import com.android.ddmlib.IDevice;
@@ -47,6 +46,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.ApplyChangesAgentError;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
+import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.notification.NotificationAction;
@@ -117,7 +117,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
   }
 
   @Override
-  public LaunchResult run(@NotNull LaunchContext launchContext) {
+  public void run(@NotNull LaunchContext launchContext) throws ExecutionException {
     IDevice device = launchContext.getDevice();
     Executor executor = launchContext.getExecutor();
 
@@ -132,12 +132,9 @@ public abstract class AbstractDeployTask implements LaunchTask {
     }
     catch (DeployerException e) {
       suggestResolveAction(executor, e);
-      LaunchResult result = new LaunchResult();
-      result.setResult(ERROR);
-      result.setErrorId(e.getId());
-      return result;
+      //TODO: Remove wrapping when detach AbstractDeployTask from LaunchTask
+      throw new ExecutionException(e);
     }
-    return new LaunchResult();
   }
 
   private List<Deployer.Result> doRun(@NotNull IDevice device, ProgressIndicator indicator)

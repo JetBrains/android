@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.configuration
 
+import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
@@ -103,6 +104,9 @@ abstract class AndroidConfigurationProgramRunner internal constructor(
           stats.success()
         }
         catch (e: ExecutionException) {
+          if (e is AndroidExecutionException) {
+            stats.setErrorId(e.errorId)
+          }
           promise.setError(e)
           stats.fail()
         }

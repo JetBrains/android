@@ -23,7 +23,6 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.LaunchContext
-import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.util.LaunchStatus
 import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration
 import com.google.common.truth.Truth.assertThat
@@ -105,11 +104,7 @@ class AndroidTestApplicationLaunchTaskTest {
     whenever(mockLaunchStatus.processHandler).thenReturn(mockProcessHandler)
 
     val launchTask = createLaunchTask()
-
-    val result = launchTask.run(mockLaunchContext)
-
-    requireNotNull(result)
-    assertThat(result.result).isEqualTo(LaunchResult.Result.SUCCESS)
+    launchTask.run(mockLaunchContext)
 
     verify(mockPrinter).stdout(eq("Running tests\n"))
     verify(mockProcessHandler).detachDevice(eq(mockDevice))

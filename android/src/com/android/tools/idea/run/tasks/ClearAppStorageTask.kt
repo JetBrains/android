@@ -33,7 +33,7 @@ class ClearAppStorageTask(private val packageName: String) : LaunchTask {
 
   override fun getId(): String = "CLEAR_APP_STORAGE_TASK"
 
-  override fun run(launchContext: LaunchContext): LaunchResult {
+  override fun run(launchContext: LaunchContext) {
     val device = launchContext.device
 
     val packageList = device.shellToString("pm list packages $packageName")
@@ -42,10 +42,8 @@ class ClearAppStorageTask(private val packageName: String) : LaunchTask {
       if (result != "Success") {
         val message = AndroidBundle.message("android.launch.task.clear.app.data.error", packageName, device)
         RunConfigurationNotifier.notifyWarning(launchContext.project, "", message)
-        launchContext.consolePrinter.stdout(message)
       }
     }
-    return LaunchResult.success()
   }
 }
 

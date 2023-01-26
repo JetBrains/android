@@ -26,6 +26,7 @@ import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
 import com.android.tools.idea.project.AndroidNotification;
@@ -36,7 +37,6 @@ import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.idea.run.tasks.LaunchContext;
-import com.android.tools.idea.run.tasks.LaunchResult;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTaskDurations;
 import com.android.tools.idea.run.util.LaunchStatus;
@@ -46,9 +46,7 @@ import com.android.tools.idea.transport.TransportService;
 import com.android.tools.idea.util.StudioPathManager;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
@@ -73,7 +71,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -447,7 +444,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     }
 
     @Override
-    public LaunchResult run(@NotNull LaunchContext launchContext) {
+    public void run(@NotNull LaunchContext launchContext) {
       IDevice device = launchContext.getDevice();
 
       // Get the current device time so that the profiler knows to not profile existing processes that were spawned before that time.
@@ -502,8 +499,6 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
         };
         processHandler.addProcessListener(adapter);
       }
-
-      return LaunchResult.success();
     }
 
     @NotNull

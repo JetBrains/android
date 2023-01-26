@@ -16,18 +16,19 @@
 package com.android.tools.idea.run
 
 import com.android.ddmlib.IDevice
+import com.android.tools.deployer.DeployerException
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.ApplicationTerminator
-import com.android.tools.idea.execution.common.RunConfigurationNotifier.notifyError
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.ShowLogcatListener.Companion.getShowLogcatLinkText
 import com.android.tools.idea.run.applychanges.findExistingSessionAndMaybeDetachForColdSwap
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
+import com.android.tools.idea.run.configuration.execution.ConsoleViewToConsolePrinter
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.tasks.LaunchContext
-import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTasksProvider
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus
@@ -106,7 +107,7 @@ class LaunchTaskRunner(
     )
 
     val console = createConsole(processHandler)
-    doRun(devices, processHandler, indicator)
+    doRun(devices, processHandler, indicator, console)
 
     devices.forEach { device ->
       processHandler.addTargetDevice(device)
@@ -120,13 +121,16 @@ class LaunchTaskRunner(
     createRunContentDescriptor(processHandler, console, myEnv)
   }
 
-  private suspend fun doRun(devices: List<IDevice>, processHandler: ProcessHandler, indicator: ProgressIndicator) = coroutineScope {
+  private suspend fun doRun(devices: List<IDevice>,
+                            processHandler: ProcessHandler,
+                            indicator: ProgressIndicator,
+                            console: ConsoleView) = coroutineScope {
     val applicationId = applicationIdProvider.packageName
     val stat = RunStats.from(myEnv).apply { setPackage(applicationId) }
     stat.beginLaunchTasks()
     try {
       val launchStatus = ProcessHandlerLaunchStatus(processHandler)
-      val consolePrinter = ProcessHandlerConsolePrinter(processHandler)
+      val consolePrinter = ConsoleViewToConsolePrinter(console)
 
       printLaunchTaskStartedMessage(consolePrinter)
       myLaunchTasksProvider.fillStats(stat)
@@ -184,7 +188,7 @@ class LaunchTaskRunner(
 
     val processHandler = NopProcessHandler()
     val console = createConsole(processHandler)
-    doRun(devices, processHandler, indicator)
+    doRun(devices, processHandler, indicator, console)
 
     val device = devices.single()
     val debuggerTask = myLaunchTasksProvider.connectDebuggerTask
@@ -208,7 +212,7 @@ class LaunchTaskRunner(
 
     val console = oldSession.executionConsole as? ConsoleView ?: createConsole(processHandler)
 
-    doRun(devices, processHandler, indicator)
+    doRun(devices, processHandler, indicator, console)
 
     if (oldSession.processHandler == null && processHandler is AndroidProcessHandler) {
       devices.forEach { device ->
@@ -242,24 +246,20 @@ class LaunchTaskRunner(
   }
 
   private fun runLaunchTasks(launchTasks: List<LaunchTask>, launchContext: LaunchContext) {
-
-    // Update the indicator progress.
     val stat = RunStats.from(myEnv)
     for (task in launchTasks) {
       if (task.shouldRun(launchContext)) {
         val details = stat.beginLaunchTask(task)
-        val launchResult = task.run(launchContext)
-
-        when (launchResult.result) {
-          LaunchResult.Result.SUCCESS -> stat.endLaunchTask(task, details, true)
-          LaunchResult.Result.ERROR -> {
-            stat.endLaunchTask(task, details, false)
-            if (launchResult.message.isNotEmpty()) {
-              notifyError(project, configuration.name, launchResult.message)
-            }
-            stat.setErrorId(launchResult.errorId)
-            throw ExecutionException(launchResult.message)
+        try {
+          task.run(launchContext)
+          stat.endLaunchTask(task, details, true)
+        }
+        catch (e: Exception) {
+          stat.endLaunchTask(task, details, false)
+          if (e is DeployerException) {
+            throw AndroidExecutionException(e.id, e.message)
           }
+          throw e
         }
       }
     }

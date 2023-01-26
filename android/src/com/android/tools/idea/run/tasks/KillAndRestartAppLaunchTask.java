@@ -62,7 +62,7 @@ public class KillAndRestartAppLaunchTask implements LaunchTask {
   }
 
   @Override
-  public LaunchResult run(@NotNull LaunchContext launchContext) {
+  public void run(@NotNull LaunchContext launchContext) throws ExecutionException {
     boolean terminateApp;
 
     ProcessHandler handler = launchContext.getProcessHandler();
@@ -82,28 +82,20 @@ public class KillAndRestartAppLaunchTask implements LaunchTask {
     }
 
     if (!terminateApp) {
-      return LaunchResult.success();
+      return;
     }
 
     // Ensure the app is killed (otherwise launch won't work).
     ApplicationTerminator appTerminator = new ApplicationTerminator(device, myPackageName);
-    try {
-      if (!appTerminator.killApp()) {
-        return LaunchResult.error("", "trying to terminate app prior to restarting.");
-      }
+    if (!appTerminator.killApp()) {
+      throw new ExecutionException("Fail to terminate app prior to restarting.");
     }
-    catch (ExecutionException e) {
-      return LaunchResult.error("", e.getMessage());
-    }
+
     if (device.isOnline() && handler instanceof AndroidProcessHandler) {
       // Add the device back to the existing process handler.
       ((AndroidProcessHandler)launchContext.getProcessHandler()).addTargetDevice(device);
     }
     else {
-      LaunchResult result = new LaunchResult();
-      result.setResult(LaunchResult.Result.ERROR);
-      result.setErrorId("");
-      result.setMessage("Swap failed, need to rerun.");
       ApplicationManager.getApplication().invokeLater(() -> {
         ActionManager manager = ActionManager.getInstance();
         String id;
@@ -131,10 +123,8 @@ public class KillAndRestartAppLaunchTask implements LaunchTask {
         DataManager.registerDataProvider(contextComponent, new RerunDataProvider(project));
         manager.tryToExecute(action, ActionCommand.getInputEvent(id), contextComponent, ActionPlaces.UNKNOWN, true);
       });
-      return result;
+      throw new ExecutionException("Swap failed, need to rerun.");
     }
-
-    return LaunchResult.success();
   }
 
   @NotNull

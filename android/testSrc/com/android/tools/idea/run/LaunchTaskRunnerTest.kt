@@ -27,7 +27,6 @@ import com.android.tools.idea.run.activity.launch.EmptyTestConsoleView
 import com.android.tools.idea.run.configuration.execution.TestDeployTarget
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask
 import com.android.tools.idea.run.tasks.LaunchContext
-import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTasksProvider
 import com.android.tools.idea.run.util.LaunchStatus
@@ -321,7 +320,10 @@ class LaunchTaskRunnerTest {
     override fun getTasks(device: IDevice, launchStatus: LaunchStatus, consolePrinter: ConsolePrinter) = listOf(object : LaunchTask {
       override fun getDescription() = "TestTask"
       override fun getDuration() = 0
-      override fun run(launchContext: LaunchContext) = LaunchResult.success()
+      override fun run(launchContext: LaunchContext) {
+        return
+      }
+
       override fun getId() = "ID"
     })
 
@@ -343,7 +345,7 @@ class LaunchTaskRunnerTest {
       override fun getTasks(device: IDevice, launchStatus: LaunchStatus, consolePrinter: ConsolePrinter) = listOf(object : LaunchTask {
         override fun getDescription() = "TestTask"
         override fun getDuration() = 0
-        override fun run(launchContext: LaunchContext) = LaunchResult.error("1", "Error")
+        override fun run(launchContext: LaunchContext) = throw ExecutionException("error")
         override fun getId() = "ID"
       })
 

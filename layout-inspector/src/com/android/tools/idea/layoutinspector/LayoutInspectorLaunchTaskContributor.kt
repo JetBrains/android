@@ -22,7 +22,6 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAt
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.tasks.LaunchContext
-import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTaskDurations
 import com.intellij.execution.Executor
@@ -46,11 +45,10 @@ class LayoutInspectorLaunchTaskContributor : AndroidLaunchTaskContributor {
     override fun getId() = LAYOUT_INSPECTOR_TOOL_WINDOW_ID
     override fun getDescription() = "Launching Layout Inspector"
     override fun getDuration() = LaunchTaskDurations.LAUNCH_ACTIVITY
-    override fun run(launchContext: LaunchContext): LaunchResult {
+    override fun run(launchContext: LaunchContext) {
       if (configuration.INSPECTION_WITHOUT_ACTIVITY_RESTART && launchContext.device.version.apiLevel >= 29) {
         enableDebugViewAttributes(configuration.project, applicationId, launchContext)
       }
-      return LaunchResult.success()
     }
 
     private fun enableDebugViewAttributes(project: Project, packageName: String, launchContext: LaunchContext) {

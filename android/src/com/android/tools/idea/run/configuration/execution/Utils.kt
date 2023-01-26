@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:JvmName("ExecutionUtils")
+
 package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.ddmlib.MultiLineReceiver
@@ -25,6 +28,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.model.component.WearComponent
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.run.ConsolePrinter
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.process.ProcessHandler
@@ -40,9 +44,8 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.android.util.AndroidBundle
 import java.util.concurrent.TimeUnit
 
-internal fun ConsoleView.printShellCommand(command: String) {
-  print("$ adb shell $command \n", ConsoleViewContentType.NORMAL_OUTPUT)
-}
+
+internal fun ConsolePrinter.printShellCommand(command: String) = stdout("$ adb shell $command \n")
 
 internal fun ConsoleView.print(text: String) {
   print(text + "\n", ConsoleViewContentType.NORMAL_OUTPUT)
@@ -52,13 +55,39 @@ internal fun ConsoleView.printError(error: String) {
   print(error + "\n", ConsoleViewContentType.ERROR_OUTPUT)
 }
 
-@WorkerThread
+const val TARGET_REGEX = "\\berror\\b"
+
+val errorPattern = Regex(TARGET_REGEX, RegexOption.IGNORE_CASE)
+
+class ConsoleViewToConsolePrinter(val console: ConsoleView) : ConsolePrinter {
+  override fun stdout(message: String) = console.print(message + "\n")
+  override fun stderr(message: String) = console.printError(message + "\n")
+}
+
+@Throws(ExecutionException::class)
 internal fun IDevice.executeShellCommand(command: String, console: ConsoleView, receiver: IShellOutputReceiver = NullOutputReceiver(),
                                          timeOut: Long = 5, timeOutUnits: TimeUnit = TimeUnit.SECONDS, indicator: ProgressIndicator?) {
+  executeShellCommand(command, ConsoleViewToConsolePrinter(console), receiver, timeOut, timeOutUnits, indicator)
+}
+
+@WorkerThread
+@Throws(ExecutionException::class)
+@JvmOverloads
+fun IDevice.executeShellCommand(command: String, consolePrinter: ConsolePrinter, receiver: IShellOutputReceiver = NullOutputReceiver(),
+                                timeOut: Long = 5, timeOutUnits: TimeUnit = TimeUnit.SECONDS, indicator: ProgressIndicator?) {
   ApplicationManager.getApplication().assertIsNonDispatchThread()
-  console.printShellCommand(command)
-  val consoleReceiver = ConsoleOutputReceiver({ indicator?.isCanceled == true }, console)
-  executeShellCommand(command, MultiReceiver(receiver, consoleReceiver), timeOut, timeOutUnits)
+  consolePrinter.printShellCommand(command)
+  val consoleReceiver = ConsoleOutputReceiver({ indicator?.isCanceled == true }, consolePrinter)
+  val collectingOutputReceiver = CollectingOutputReceiver()
+  try {
+    executeShellCommand(command, MultiReceiver(receiver, consoleReceiver, collectingOutputReceiver), timeOut, timeOutUnits)
+  }
+  catch (e: Exception) {
+    throw ExecutionException("Error while executing: '$command'")
+  }
+  if (collectingOutputReceiver.output.matches(errorPattern)) {
+    throw ExecutionException("Error while executing: '$command'")
+  }
 }
 
 internal fun IDevice.getWearDebugSurfaceVersion(indicator: ProgressIndicator): Int {

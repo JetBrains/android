@@ -57,9 +57,8 @@ class ClearAppStorageTaskTest {
     val device = mockDevice("com.company.application")
     val task = ClearAppStorageTask("com.company.application")
 
-    val result = task.run(launchContext(device))
+    task.run(launchContext(device))
 
-    assertThat(result.result).isEqualTo(LaunchResult.Result.SUCCESS)
     verify(device).executeShellCommand(eq("pm clear com.company.application"), any())
   }
 
@@ -68,11 +67,9 @@ class ClearAppStorageTaskTest {
     val device = mockDevice("com.company.application", clearAppStorageSuccess = false)
     val task = ClearAppStorageTask("com.company.application")
 
-    val result = task.run(launchContext(device))
+    task.run(launchContext(device))
 
-    assertThat(result.result).isEqualTo(LaunchResult.Result.SUCCESS)
     verify(device).executeShellCommand(eq("pm clear com.company.application"), any())
-    verify(printer).stdout("Failed to clear app storage for com.company.application on device device1")
     val notificationInfo = notificationRule.notifications.find { it.content == "Failed to clear app storage for com.company.application on device device1" }
     assertThat(notificationInfo).isNotNull()
   }
@@ -82,9 +79,7 @@ class ClearAppStorageTaskTest {
     val device = mockDevice("com.company.application1")
     val task = ClearAppStorageTask("com.company.application")
 
-    val result = task.run(launchContext(device))
-
-    assertThat(result.result).isEqualTo(LaunchResult.Result.SUCCESS)
+    task.run(launchContext(device))
     verify(device, never()).executeShellCommand(eq("pm clear com.company.application"), any())
   }
 

@@ -26,7 +26,6 @@ import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.AppLaunchTask
 import com.android.tools.idea.run.tasks.LaunchContext
-import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTaskDurations
 import com.android.tools.idea.stats.UsageTrackerTestRunListener
@@ -194,7 +193,7 @@ class AndroidTestApplicationLaunchTask(
     }
   }
 
-  override fun run(launchContext: LaunchContext): LaunchResult? {
+  override fun run(launchContext: LaunchContext) {
     val printer = launchContext.consolePrinter
     val device = launchContext.device
     val launchStatus = launchContext.launchStatus
@@ -265,8 +264,6 @@ class AndroidTestApplicationLaunchTask(
     // is fully finished. This is required because test process on device might finish earlier than AndroidTestListener
     // is notified.
     launchStatus.addLaunchTerminationCondition(testExecutionFuture::isDone)
-
-    return LaunchResult.success()
   }
 
   /**

@@ -81,7 +81,7 @@ open class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment,
 
   private fun setWatchTile(app: App, mode: AppComponent.Mode, indicator: ProgressIndicator?, console: ConsoleView): Int? {
     val outputReceiver = RecordOutputReceiver { indicator?.isCanceled == true }
-    val consoleReceiver = ConsoleOutputReceiver({ indicator?.isCanceled == true }, console)
+    val consoleReceiver = ConsoleOutputReceiver({ indicator?.isCanceled == true }, ConsoleViewToConsolePrinter(console))
     val indexReceiver = AddTileCommandResultReceiver { indicator?.isCanceled == true }
     val receiver = MultiReceiver(outputReceiver, consoleReceiver, indexReceiver)
     try {
