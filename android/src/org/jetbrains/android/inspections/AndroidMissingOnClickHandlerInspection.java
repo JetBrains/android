@@ -64,7 +64,7 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
   @NotNull
   private static Set<PsiClass> findRelatedActivities(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
     if (isFileInResourceFolderType(file, ResourceFolderType.LAYOUT)) {
-      final List<GotoRelatedItem> items = AndroidGotoRelatedLineMarkerProvider.getItemsForXmlFile(file, facet);
+      final List<GotoRelatedItem> items = AndroidGotoRelatedLineMarkerProvider.Handler.getItemsForXmlFile(file, facet);
       if (items == null || items.isEmpty()) {
         return Collections.emptySet();
       }
