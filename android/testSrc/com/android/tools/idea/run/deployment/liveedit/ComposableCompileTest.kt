@@ -50,11 +50,16 @@ class ComposableCompileTest {
                                                                               "import androidx.compose.runtime.Composable\n" +
                                                                               "@Composable fun hasLambdaA(content: @Composable () -> Unit) { }\n" +
                                                                               "@Composable fun hasLambdaB() { hasLambdaA {} }")
+
+    files["Mixed.kt"] = projectRule.fixture.configureByText("Mixed.kt",
+                                                            "import androidx.compose.runtime.Composable\n" +
+                                                            "@Composable fun isComposable() {}\n" +
+                                                            "fun notComposable() {}\n")
   }
 
   @Test
   fun simpleComposeChange() {
-    var output = compile(files["ComposeSimple.kt"], "composableFun")
+    val output = compile(files["ComposeSimple.kt"], "composableFun")
     // We can't really invoke any composable without a "host". Normally that host will be the
     // Android activity. There are other hosts that we can possibly run as a Compose unit test.
     // We could potentially look into doing that. However, for the purpose of verifying the
@@ -63,7 +68,7 @@ class ComposableCompileTest {
 
     Assert.assertEquals(1639534479, output.groupIds.first())
 
-    var c = loadClass(output)
+    val c = loadClass(output)
     var foundFunction = false;
     for (m in c.methods) {
       if (m.toString().contains("ComposeSimpleKt.composableFun(androidx.compose.runtime.Composer,int)")) {
@@ -75,16 +80,16 @@ class ComposableCompileTest {
 
   @Test
   fun simpleComposeNested() {
-    var output = compile(files["ComposeNested.kt"], "composableNested")
+    val output = compile(files["ComposeNested.kt"], "composableNested")
     Assert.assertEquals(-1050554150, output.groupIds.first())
   }
 
   @Test
   fun multipleEditsInOneUpdate() {
     // Testing an edit that has two files and three function modified.
-    var file1 = files["ComposeSimple.kt"]
-    var file2 = files["ComposeNested.kt"]
-    var output = compile(listOf(
+    val file1 = files["ComposeSimple.kt"]
+    val file2 = files["ComposeNested.kt"]
+    val output = compile(listOf(
       LiveEditCompilerInput(file1!!, findFunction(file1, "composableFun")),
       LiveEditCompilerInput(file1!!, findFunction(file1, "composableFun2")),
       LiveEditCompilerInput(file1!!, findFunction(file1, "composableFun2")), // Multiple edits of the same function
@@ -99,15 +104,28 @@ class ComposableCompileTest {
     Assert.assertTrue("groupids = " + output.groupIds.toString(), output.groupIds.contains(1639534479))
     Assert.assertTrue("groupids = " + output.groupIds.toString(), output.groupIds.contains(-1050554150))
     Assert.assertTrue("groupids = " + output.groupIds.toString(), output.groupIds.contains(-1350204187))
+    Assert.assertFalse(output.resetState) // Compose only edits should not request for a full state reset.
+  }
+
+  @Test
+  fun simpleMixed() {
+    var output = compile(files["Mixed.kt"], "isComposable")
+    Assert.assertEquals(-785806172, output.groupIds.first())
+    Assert.assertFalse(output.resetState)
+
+    output = compile(files["Mixed.kt"], "notComposable")
+    // Editing a normal Kotlin function should not result any group IDs. Instead, it should manually trigger a full state reset every edit.
+    Assert.assertTrue(output.groupIds.isEmpty())
+    Assert.assertTrue(output.resetState)
   }
 
   @Test
   fun testModuleName() {
-    var output = compile(files["HasComposableSingletons.kt"], "hasLambdaA")
-    var singleton = output.supportClasses.get("ComposableSingletons\$HasComposableSingletonsKt");
+    val output = compile(files["HasComposableSingletons.kt"], "hasLambdaA")
+    val singleton = output.supportClasses.get("ComposableSingletons\$HasComposableSingletonsKt");
     Assert.assertNotNull(singleton)
-    var cl = loadClass(output, "ComposableSingletons\$HasComposableSingletonsKt")
-    var getLambda = cl.methods.find { it.name.contains("getLambda") }
+    val cl = loadClass(output, "ComposableSingletons\$HasComposableSingletonsKt")
+    val getLambda = cl.methods.find { it.name.contains("getLambda") }
     // Make sure we have getLambda$<MODULE_NAME>
     Assert.assertTrue(getLambda!!.name.contains(projectRule.module.name))
   }
