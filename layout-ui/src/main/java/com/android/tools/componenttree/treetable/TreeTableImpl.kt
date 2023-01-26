@@ -37,6 +37,7 @@ import com.intellij.ui.tree.ui.Control
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.ui.treeStructure.treetable.TreeTableModel
 import com.intellij.ui.treeStructure.treetable.TreeTableModelAdapter
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.tree.TreeUtil
 import org.jetbrains.annotations.TestOnly
 import java.awt.Component
@@ -96,6 +97,7 @@ class TreeTableImpl(
   private var dndClient: Disposable? = null
 
   init {
+    tree.border = JBUI.Borders.empty(0, 4)
     isFocusTraversalPolicyProvider = true
     focusTraversalPolicy = DisabledTraversalPolicy()
     resetDefaultFocusTraversalKeys()
