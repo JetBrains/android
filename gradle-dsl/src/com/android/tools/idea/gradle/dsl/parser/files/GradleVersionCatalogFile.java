@@ -115,12 +115,30 @@ public class GradleVersionCatalogFile extends GradleDslFile {
     @Override
     public void setValue(@NotNull Object value) {
       if (value instanceof ReferenceTo) {
-        super.setValue(((ReferenceTo) value).getReferredElement().getName());
+        if(isReference()) deleteOldDependencies();
+
+        GradleDslElement referredElement = ((ReferenceTo) value).getReferredElement();
+        super.setValue(referredElement.getName());
+        setupNewDependency(referredElement);
+
         ref = true;
         return;
       }
       super.setValue(value);
       ref = false;
+    }
+
+    private void deleteOldDependencies() {
+      myDependencies.forEach(e -> e.getToBeInjected().unregisterDependent(e));
+      myDependencies.clear();
+    }
+
+    private void setupNewDependency(GradleDslElement targetVersion) {
+      if (getPsiElement() != null) { // cannot create injection for new element
+        GradleReferenceInjection injection = new GradleReferenceInjection(this, targetVersion, getPsiElement(), targetVersion.getName());
+        targetVersion.registerDependent(injection);
+        addDependency(injection);
+      }
     }
 
     @Override

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.TestFileName
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
@@ -1277,6 +1278,42 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
 
         [libraries]
         foo = { version = "2.3.4", group = "com.example", name = "foo" }
+      """.trimIndent())
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
+  @Test
+  fun testLibraryMapVersionResetToAnotherVersion() {
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile("")
+      writeToVersionCatalogFile("""
+        [versions]
+        fooVersion = "1.2.3"
+        newFooVersion = "2.3.4"
+        [libraries]
+        foo = { version.ref = "fooVersion", group = "com.example", name = "foo" }
+      """.trimIndent())
+
+      val pbm = projectBuildModel
+      val vcModel = pbm.versionCatalogsModel
+      val libraries = vcModel.libraries("libs")!!
+      val versions = vcModel.versions("libs")!!
+      val foo = libraries.findProperty("foo")
+      val newFooVersion: GradlePropertyModel = versions.findProperty("newFooVersion")
+
+      foo.getMapValue("version")!!.setValue(ReferenceTo(newFooVersion))
+      assertEquals("2.3.4", foo.getMapValue("version")!!.resolve().getValue(STRING_TYPE))
+      applyChanges(pbm)
+      verifyVersionCatalogFileContents(myVersionCatalogFile, """
+        [versions]
+        fooVersion = "1.2.3"
+        newFooVersion = "2.3.4"
+        [libraries]
+        foo = { version.ref = "newFooVersion", group = "com.example", name = "foo" }
       """.trimIndent())
     }
     finally {
