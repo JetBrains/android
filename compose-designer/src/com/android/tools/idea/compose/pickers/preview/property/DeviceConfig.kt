@@ -70,6 +70,18 @@ private val referenceDeviceIds =
   )
 
 /**
+ * Map linking reference device ids to their real density, so that it can be used when displaying
+ * the preview in
+ */
+private val referenceDeviceRealDensities =
+  mapOf(
+    DEVICE_CLASS_PHONE_ID to 420,
+    DEVICE_CLASS_FOLDABLE_ID to 420,
+    DEVICE_CLASS_TABLET_ID to 240,
+    DEVICE_CLASS_DESKTOP_ID to 160
+  )
+
+/**
  * Defines some hardware parameters of a Device. Can be encoded using [deviceSpec] and decoded using
  * [DeviceConfig.toDeviceConfigOrNull].
  *
@@ -270,7 +282,12 @@ internal open class DeviceConfig(
           paramsMap.getOrDefault(PARAMETER_UNIT, "").toLowerCaseAsciiOnly()
         )
           ?: return null
-      val dpi = paramsMap.getOrDefault(PARAMETER_DPI, "").toIntOrNull() ?: return null
+      val dpi =
+        if (StudioFlags.NELE_DP_SIZED_PREVIEW.get() && referenceDeviceId != null) {
+          referenceDeviceRealDensities[referenceDeviceId]!!
+        } else {
+          paramsMap.getOrDefault(PARAMETER_DPI, "").toIntOrNull() ?: return null
+        }
       return DeviceConfig(
         deviceId = referenceDeviceId,
         width = width.toFloat(),
