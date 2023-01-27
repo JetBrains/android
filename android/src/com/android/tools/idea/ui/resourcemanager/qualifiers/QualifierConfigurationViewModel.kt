@@ -20,6 +20,7 @@ import com.android.ide.common.resources.configuration.CountryCodeQualifier
 import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.ide.common.resources.configuration.EnumBasedResourceQualifier
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.ide.common.resources.configuration.GrammaticalGenderQualifier
 import com.android.ide.common.resources.configuration.HighDynamicRangeQualifier
 import com.android.ide.common.resources.configuration.KeyboardStateQualifier
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier
@@ -142,6 +143,7 @@ class QualifierConfigurationViewModel(private val folderConfiguration: FolderCon
       is UiModeQualifier -> enumConfiguration(::UiModeQualifier, qualifier.value)
       is VersionQualifier -> VersionQualifierConfiguration(qualifier.version)
       is WideGamutColorQualifier -> enumConfiguration(::WideGamutColorQualifier, qualifier.value)
+      is GrammaticalGenderQualifier -> enumConfiguration(::GrammaticalGenderQualifier, qualifier.value)
       else -> null
     }
   }
