@@ -67,6 +67,7 @@ internal class DisplayModeActionGroup : DefaultActionGroup() {
     presentation.isVisible = hasDisplayModes
     if (hasDisplayModes) {
       presentation.isEnabled = isEmulatorConnected(event)
+      presentation.isPerformGroup = true
       presentation.icon = when (getCurrentDisplayMode(event)) {
         DisplayModeValue.DESKTOP -> StudioIcons.Emulator.Menu.MODE_DESKTOP
         DisplayModeValue.FOLDABLE -> StudioIcons.Emulator.Menu.MODE_FOLDABLE
