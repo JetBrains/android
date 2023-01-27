@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.diagnostics.report
 
+import com.android.tools.idea.diagnostics.DIAGNOSTICS_REPORTS_DIR
 import com.intellij.openapi.project.Project
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -63,7 +64,7 @@ interface DiagnosticsSummaryFileProvider {
      * Assumes that the log directory exists
      */
     fun getDiagnosticsDirectoryPath(logDir: String): Path {
-      val dir = Paths.get(logDir).resolve("diagnostics")
+      val dir = Paths.get(logDir).resolve(DIAGNOSTICS_REPORTS_DIR)
       dir.toFile().mkdirs()
       return dir
     }

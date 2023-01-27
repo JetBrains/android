@@ -21,6 +21,7 @@ import com.android.tools.adtui.compose.InformationPopupImpl
 import com.android.tools.adtui.compose.IssueNotificationAction
 import com.android.tools.adtui.compose.REFRESH_BUTTON
 import com.android.tools.adtui.compose.actionLink
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
@@ -39,6 +40,7 @@ import com.android.tools.idea.preview.actions.ShowProblemsPanel
 import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -217,16 +219,32 @@ class PreviewIssueNotificationAction(
  * trigger a refresh of the surface. The action visibility is controlled by the
  * [PreviewStatus.hasRefreshIcon]
  */
-private class ForceCompileAndRefreshActionForNotification(private val surface: DesignSurface<*>) :
-  AnAction(
-    message("action.build.and.refresh.title"),
-    message("action.build.and.refresh.description"),
-    REFRESH_BUTTON
-  ),
-  RightAlignedToolbarAction,
-  CustomComponentAction {
+@Suppress("ComponentNotRegistered") // Register in compose-designer.xml already.
+class ForceCompileAndRefreshActionForNotification private constructor() :
+  AnAction(), RightAlignedToolbarAction, CustomComponentAction {
+
+  init {
+    templatePresentation.text = message("action.build.and.refresh.title")
+    templatePresentation.description = message("action.build.and.refresh.description")
+    templatePresentation.icon = REFRESH_BUTTON
+  }
+
+  companion object {
+    private const val ACTION_ID =
+      "Android.Designer.CommonActions.ForceCompileAndRefreshActionForNotification"
+
+    @JvmStatic
+    fun getInstance(): ForceCompileAndRefreshActionForNotification =
+      ActionManager.getInstance().getAction(ACTION_ID) as
+        ForceCompileAndRefreshActionForNotification
+  }
 
   override fun actionPerformed(e: AnActionEvent) {
+    val surface = e.getData(DESIGN_SURFACE)
+    if (surface == null) {
+      e.presentation.isEnabledAndVisible = false
+      return
+    }
     // Each ComposePreviewManager will avoid refreshing the corresponding previews if it detects
     // that nothing has changed. But we want to always force a refresh when this button is pressed
     findComposePreviewManagersForContext(e.dataContext).forEach { composePreviewManager ->
@@ -272,5 +290,8 @@ private class ForceCompileAndRefreshActionForNotification(private val surface: D
  */
 class ComposeNotificationGroup(surface: DesignSurface<*>) :
   DefaultActionGroup(
-    listOf(PreviewIssueNotificationAction(), ForceCompileAndRefreshActionForNotification(surface))
+    listOf(
+      PreviewIssueNotificationAction(),
+      ForceCompileAndRefreshActionForNotification.getInstance()
+    )
   )

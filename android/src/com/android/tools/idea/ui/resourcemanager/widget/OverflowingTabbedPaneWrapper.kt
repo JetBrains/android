@@ -19,6 +19,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTabbedPaneUI
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.JBPopupMenu
 import com.intellij.util.ui.JBUI
@@ -127,7 +128,7 @@ private class OverflowingTabbedPaneUI : DarculaTabbedPaneUI() {
   private val overFlowPopupAction = createOverflowPopupAction()
 
   val overflowButton = ActionButton(overFlowPopupAction,
-                                    overFlowPopupAction.templatePresentation,
+                                    PresentationFactory().getPresentation(overFlowPopupAction),
                                     "",
                                     JBUI.size(20)).apply {
     border = JBUI.Borders.emptyRight(2)

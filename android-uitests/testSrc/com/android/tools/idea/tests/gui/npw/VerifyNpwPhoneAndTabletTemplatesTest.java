@@ -43,13 +43,12 @@ import org.junit.runner.RunWith;
 public class VerifyNpwPhoneAndTabletTemplatesTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(20, TimeUnit.MINUTES);
 
-  private List<String> expectedTemplates = List.of("No Activity", "Basic Activity", "Basic Activity (Material3)",
-                                                   "Bottom Navigation Activity", "Empty Compose Activity", "Empty Compose Activity (Material3)",
-                                                   "Empty Activity", "Google Wallet Activity", "Login Activity", "Navigation Drawer Activity",
-                                                   "Responsive Activity", "Settings Activity", "Game Activity (C++)", "Native C++");
+  private List<String> expectedTemplates = List.of("No Activity", "Empty Activity", "Basic Views Activity",
+                                                   "Bottom Navigation Views Activity", "Empty Views Activity", "Navigation Drawer Views Activity",
+                                                   "Responsive Views Activity", "Game Activity (C++)", "Native C++");
 
   private String defaultActivity = "Empty Activity";
-  private List<String> material3Templates = List.of("Basic Activity (Material3)", "Empty Compose Activity (Material3)");
+  private List<String> material3Templates = List.of("Empty Activity", "Basic Views Activity");
   private List<String> failedBuildTemplates = new ArrayList<String>();
   private List<String> dependencyMissingTemplates = new ArrayList<String>();
   private List<String> failedGradleSyncTemplates = new ArrayList<String>();
@@ -81,13 +80,13 @@ public class VerifyNpwPhoneAndTabletTemplatesTest {
     String actualActivityName = newProjectWizard.getActivityName(defaultActivity);
     newProjectWizard.clickCancel(); //Close New Project dialog
     System.out.println("\nObserved default activity " + actualActivityName);
-    assertThat(actualActivityName).contains(defaultActivity); //Verify expected default template
+    assertThat((actualActivityName).contains(defaultActivity)).isTrue(); //Verify expected default template
   }
 
   @Test
   public void testTemplateBuild() throws InterruptedException {
     for (String templateName : expectedTemplates) {
-      if (templateName != "Game Activity (C++)") {
+      if (!templateName.toLowerCase(Locale.ROOT).contains("c++")) {
         System.out.println("\nValidating Build > Make Project for: " + templateName);
 
         NewProjectWizardFixture newProjectWizard = guiTest
@@ -103,22 +102,22 @@ public class VerifyNpwPhoneAndTabletTemplatesTest {
 
         if (templateName.toLowerCase(Locale.ROOT).contains("c++")) {
           newProjectWizard.clickNext();
+          guiTest.robot().waitForIdle();
         }
         newProjectWizard.clickFinish(Wait.seconds(15), Wait.seconds(240));
         guiTest.robot().waitForIdle();
-        boolean isGradleSyncSuccessful = guiTest.ideFrame().waitForGradleSyncToFinish(Wait.seconds(180));
+        boolean isGradleSyncSuccessful = guiTest.ideFrame().waitForGradleSyncToFinish(Wait.seconds(200));
 
         if (!isGradleSyncSuccessful) {
           failedGradleSyncTemplates.add(templateName);
+          GuiTests.takeScreenshot(guiTest.robot(), "Gradle_sync_error_for_"+templateName);
         }
 
-        GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(10)));
+        GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(5)));
 
         guiTest.ideFrame().focus();
-        guiTest.ideFrame().invokeMenuPath("Help");
-        guiTest.ideFrame().invokeMenuPath("Help");
-
         guiTest.robot().waitForIdle();
+        guiTest.waitForBackgroundTasks();
 
         //Some templates have missing dependencies. Hence catching those for reporting purpose.
         int initialPopups = guiTest.robot().finder().findAll(Matchers.byTitle(JDialog.class, "Add Project Dependency").andIsShowing()).size();
@@ -129,15 +128,21 @@ public class VerifyNpwPhoneAndTabletTemplatesTest {
           dependencyMissingTemplates.add(templateName);
         }
 
-        boolean buildSuccessful = guiTest.ideFrame().invokeProjectMake().isBuildSuccessful();
+        boolean buildSuccessful = guiTest.ideFrame().invokeProjectMake(Wait.seconds(180)).isBuildSuccessful();
 
         if (!buildSuccessful) {
           failedBuildTemplates.add(templateName);
+          GuiTests.takeScreenshot(guiTest.robot(), "Build_make_error_for_"+templateName);
         }
 
         if(material3Templates.contains(templateName)) {
-          validateGradleFile(); //Validate Gradle file contains Material 3 dependencies
-          validateMainActivity(); //Validate MainActivity has @Composable
+          System.out.println("\nValidating Material3 content for: " + templateName);
+          if(templateName.equals("Basic Views Activity")) {
+            validateThemeFile("app/src/main/res/values/themes.xml");
+          }else {
+            validateGradleFile(); //Validate Gradle file contains Material 3 dependencies
+            validateMainActivity(); //Validate MainActivity has @Composable
+          }
         }
         guiTest.ideFrame().closeProject();
       }
@@ -159,18 +164,19 @@ public class VerifyNpwPhoneAndTabletTemplatesTest {
 
   private void validateMainActivity() {
     String mainActivityContents = guiTest.getProjectFileText("app/src/main/java/com/example/myapplication/MainActivity.kt");
-      assertThat(mainActivityContents).contains("@Composable");
+      assertThat((mainActivityContents).contains("@Composable")).isTrue();
   }
 
   private void validateGradleFile() {
     String buildGradleContents = guiTest.getProjectFileText("app/build.gradle");
-      assertThat(buildGradleContents).contains("implementation \"androidx.compose.ui:ui:");
-      assertThat(buildGradleContents).contains("implementation 'androidx.compose.material:");
-      assertThat(buildGradleContents).contains("implementation 'androidx.compose.material3:");
-      assertThat(buildGradleContents).contains("implementation \"androidx.compose.ui:ui-tooling-preview:");
-      assertThat(buildGradleContents).contains("debugImplementation \"androidx.compose.ui:ui-tooling:");
+      assertThat((buildGradleContents).contains("implementation 'androidx.compose.ui:ui")).isTrue();
+      assertThat((buildGradleContents).contains("implementation 'androidx.compose.material3:")).isTrue();
+      assertThat((buildGradleContents).contains("implementation 'androidx.compose.ui:ui-tooling-preview")).isTrue();
+      assertThat((buildGradleContents).contains("debugImplementation 'androidx.compose.ui:ui-tooling")).isTrue();
+  }
 
-    String projectBuildGradleContents = guiTest.getProjectFileText("build.gradle");
-      assertThat(projectBuildGradleContents).contains("compose_version = '1.3");
+  private void validateThemeFile(String fileRelPath) {
+    String themeFileContents = guiTest.getProjectFileText(fileRelPath);
+      assertThat(themeFileContents.contains("Theme.Material3")).isTrue();
   }
 }

@@ -53,10 +53,13 @@ class AndroidStartupManager : StartupActivity {
         })
         // [facetAdded] is not invoked for a facet if it is added together with a new module that holds it.
         connection.subscribe(ProjectTopics.MODULES, object : ModuleListener {
-          override fun moduleAdded(project: Project, module: Module) {
-            if (AndroidFacet.getInstance(module) != null) {
-              runAndroidStartupActivities()
-              connection.disconnect()
+          override fun modulesAdded(project: Project, modules: List<Module>) {
+            for (module in modules) {
+              if (AndroidFacet.getInstance(module) != null) {
+                runAndroidStartupActivities()
+                connection.disconnect()
+                break
+              }
             }
           }
         })

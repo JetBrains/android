@@ -29,8 +29,7 @@ import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_PROTECTED;
 import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_SUPER;
 import static org.jetbrains.org.objectweb.asm.Opcodes.ALOAD;
-import static org.jetbrains.org.objectweb.asm.Opcodes.ASM5;
-import static org.jetbrains.org.objectweb.asm.Opcodes.ASM7;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ASM9;
 import static org.jetbrains.org.objectweb.asm.Opcodes.GETFIELD;
 import static org.jetbrains.org.objectweb.asm.Opcodes.ICONST_0;
 import static org.jetbrains.org.objectweb.asm.Opcodes.ICONST_1;
@@ -256,7 +255,7 @@ public class ClassConverterTest extends TestCase {
 
     assertEquals(5, classNode.methods.size());
     final Set<String> methods = new HashSet<>();
-    classNode.accept(new ClassVisitor(ASM5) {
+    classNode.accept(new ClassVisitor(ASM9) {
       @Override
       public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         methods.add(name + desc);
@@ -493,7 +492,7 @@ public class ClassConverterTest extends TestCase {
     private final Consumer<String> onVisited;
 
     private TestVisitor(ClassVisitor classVisitor, Consumer<String> onVisited) {
-      super(ASM7, classVisitor);
+      super(ASM9, classVisitor);
 
       this.onVisited = onVisited;
     }

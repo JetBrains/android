@@ -183,15 +183,10 @@ class TemplateTest {
   @TemplateCheck
   @Test
   fun testNewBasicActivityMaterial3() {
-    StudioFlags.NPW_MATERIAL3_ENABLED.override(true)
-    try {
-      val withMaterial3: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, _: ProjectTemplateDataBuilder ->
-        moduleData.isMaterial3 = true
-      }
-      checkCreateTemplate("Basic Views Activity", withKotlin, withMaterial3)
-    } finally {
-      StudioFlags.NPW_MATERIAL3_ENABLED.clearOverride()
+    val withMaterial3: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, _: ProjectTemplateDataBuilder ->
+      moduleData.isMaterial3 = true
     }
+    checkCreateTemplate("Basic Views Activity", withKotlin, withMaterial3)
   }
 
   @TemplateCheck
@@ -415,16 +410,11 @@ class TemplateTest {
   @TemplateCheck
   @Test
   fun testComposeActivityMaterial3() {
-    StudioFlags.NPW_MATERIAL3_ENABLED.override(true)
-    try {
-      val withSpecificKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
-        projectData.language = Language.Kotlin
-        projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = true)
-      }
-      checkCreateTemplate("Empty Activity", withSpecificKotlin) // Compose is always Kotlin
-    } finally {
-      StudioFlags.NPW_MATERIAL3_ENABLED.clearOverride()
+    val withSpecificKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+      projectData.language = Language.Kotlin
+      projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = true)
     }
+    checkCreateTemplate("Empty Activity", withSpecificKotlin) // Compose is always Kotlin
   }
 
   @TemplateCheck

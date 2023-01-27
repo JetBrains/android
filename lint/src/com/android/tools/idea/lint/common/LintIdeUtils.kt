@@ -16,7 +16,7 @@
 package com.android.tools.idea.lint.common
 
 import com.android.tools.lint.detector.api.Context
-import com.intellij.codeInsight.FileModificationService
+import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
@@ -63,11 +63,4 @@ fun VirtualFile.getPsiFileSafely(project: Project): PsiFile? {
       else -> null
     }
   }))
-}
-
-fun preparedToWrite(element: PsiElement): Boolean {
-  // TODO: When we've merged more recent version of IntelliJ and the following API is available,
-  // (via 7748e0104bba4a1cef42afee2edf4856f18b5a62), switch to it here:
-  //  return IntentionPreviewUtils.prepareElementForWrite(element)
-  return !element.isPhysical || FileModificationService.getInstance().preparePsiElementForWrite(element)
 }

@@ -52,7 +52,7 @@ import javax.imageio.IIOException
 import javax.imageio.ImageIO
 
 /**
- * Takes a screenshot of the Emulator display, saves it to a file, and opens it in an editor.
+ * Takes a screenshot of the Emulator display, saves it to a file, and opens it in editor.
  */
 class EmulatorScreenshotAction : AbstractEmulatorAction() {
 

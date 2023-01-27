@@ -35,7 +35,6 @@ import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.xdebugger.impl.XDebugSessionImpl
-import org.jetbrains.concurrency.Promise
 
 class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment,
                                            deployTarget: DeployTarget,
@@ -52,20 +51,22 @@ class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment,
     activityLaunchOptions.launch(device, app, apkProvider, isDebug, getFlags(device), console)
   }
 
-  public override fun startDebugSession(device: IDevice, console: ConsoleView): Promise<XDebugSessionImpl> {
+  public override fun startDebugSession(device: IDevice, console: ConsoleView, indicator: ProgressIndicator): XDebugSessionImpl {
     return DebugSessionStarter.attachDebuggerToStartedProcess(device, appId, environment, AndroidJavaDebugger(),
-                                                              AndroidJavaDebugger().createState(), { it.forceStop(appId) }, console)
+                                                              AndroidJavaDebugger().createState(), { it.forceStop(appId) },
+                                                              indicator = indicator,
+                                                              console)
   }
 
-  override fun runAsInstantApp(indicator: ProgressIndicator): Promise<RunContentDescriptor> {
+  override fun runAsInstantApp(indicator: ProgressIndicator): RunContentDescriptor {
     throw RuntimeException("Unsupported operation")
   }
 
-  override fun applyChanges(indicator: ProgressIndicator): Promise<RunContentDescriptor> {
+  override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor {
     throw RuntimeException("Unsupported operation")
   }
 
-  override fun applyCodeChanges(indicator: ProgressIndicator): Promise<RunContentDescriptor> {
+  override fun applyCodeChanges(indicator: ProgressIndicator): RunContentDescriptor {
     throw RuntimeException("Unsupported operation")
   }
 

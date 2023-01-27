@@ -92,6 +92,7 @@ private:
   int socket_fd_;
   int64_t presentation_timestamp_offset_;
   int32_t max_bit_rate_;
+  int32_t consequent_deque_error_count_;
   std::atomic_bool streamer_stopped_ = true;
 
   std::mutex mutex_;

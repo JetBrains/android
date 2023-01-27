@@ -20,7 +20,6 @@ import com.android.adblib.serialNumber
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.DeviceState
-import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 import com.android.sdklib.deviceprovisioner.isOnline
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
@@ -97,21 +96,6 @@ internal class DeviceComboBoxDeviceTracker @VisibleForTesting constructor(
         }
       }
     }.flowOn(Dispatchers.IO)
-  }
-}
-
-private fun DeviceState.toDevice(): Device? {
-  val serialNumber = connectedDevice?.serialNumber ?: return null
-  val properties = this.properties
-
-  val release = properties.androidRelease ?: "Unknown"
-  val apiLevel = properties.androidVersion?.apiLevel ?: 0
-  val manufacturer = properties.manufacturer ?: "Unknown"
-  val model = properties.model ?: "Unknown"
-
-  return when (properties) {
-    is LocalEmulatorProperties -> Device.createEmulator(serialNumber, true, release, apiLevel, properties.avdName)
-    else -> Device.createPhysical(serialNumber, true, release, apiLevel, manufacturer, model)
   }
 }
 

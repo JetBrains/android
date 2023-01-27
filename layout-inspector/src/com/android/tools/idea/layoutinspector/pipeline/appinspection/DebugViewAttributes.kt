@@ -20,10 +20,10 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.pipeline.adb.AbortAdbCommandRunnable
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.project.AndroidNotification
 import com.google.common.html.HtmlEscapers
 import com.intellij.notification.NotificationType
@@ -52,7 +52,7 @@ private sealed class Command(val setting: String) {
 
 private const val PER_DEVICE_SETTING = "debug_view_attributes"
 private const val PER_APP_SETTING = "debug_view_attributes_application_package"
-private val shouldUsePerDeviceSetting get() = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()
+private val shouldUsePerDeviceSetting get() = LayoutInspectorSettings.getInstance().autoConnectEnabled
 
 /**
  * Helper class that handles setting debug settings on the device via ADB.

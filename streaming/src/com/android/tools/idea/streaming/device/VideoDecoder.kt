@@ -83,7 +83,7 @@ import kotlin.text.Charsets.UTF_8
 
 internal class VideoDecoder(
   private val videoChannel: SuspendingSocketChannel,
-  private val coroutineScope: CoroutineScope,
+  private val decoderScope: CoroutineScope,
   @Volatile var maxOutputSize: Dimension,
 ) {
 
@@ -109,11 +109,11 @@ internal class VideoDecoder(
 
   /**
    * Starts the decoder and returns. The decoder will continue to run until the video channel
-   * is disconnected or [coroutineScope] is cancelled.
+   * is disconnected or [decoderScope] is cancelled.
    */
   fun start() {
     firstPacketArrival = 0L
-    coroutineScope.launch {
+    decoderScope.launch {
       val header = ByteBuffer.allocate(CHANNEL_HEADER_LENGTH)
       videoChannel.readFully(header)
       val codecName = String(header.array(), UTF_8).trim()
@@ -393,7 +393,6 @@ internal class VideoDecoder(
   ) {
 
     companion object {
-      @Suppress("UsePropertyAccessSyntax")
       fun deserialize(buffer: ByteBuffer): PacketHeader {
         val width = buffer.getInt()
         val height = buffer.getInt()

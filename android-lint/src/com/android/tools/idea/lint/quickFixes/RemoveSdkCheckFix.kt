@@ -17,7 +17,7 @@ package com.android.tools.idea.lint.quickFixes
 
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.android.tools.idea.lint.common.DefaultLintQuickFix
-import com.android.tools.idea.lint.common.preparedToWrite
+import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils.prepareElementForWrite
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.TreeElement
 import com.intellij.psi.util.PsiTreeUtil
@@ -40,7 +40,7 @@ class RemoveSdkCheckFix(private var removeThen: Boolean) : DefaultLintQuickFix(
   override fun apply(startElement: PsiElement, endElement: PsiElement, context: AndroidQuickfixContexts.Context) {
     val condition = findSdkConditional(startElement) ?: return
 
-    if (!preparedToWrite(startElement)) {
+    if (!prepareElementForWrite(startElement)) {
       return
     }
 

@@ -17,6 +17,7 @@ package com.android.tools.idea.lint.common
 
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts.ContextType
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts.EditorContext
+import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
@@ -45,6 +46,10 @@ class CreateFileQuickFix(
     endElement: PsiElement,
     context: AndroidQuickfixContexts.Context
   ) {
+    if (IntentionPreviewUtils.isIntentionPreviewActive()) {
+      // The newly created file is never the current preview one we're looking at
+      return
+    }
     val project = startElement.project
     if (LocalFileSystem.getInstance().findFileByIoFile(myFile) != null && !isUnitTestMode()) {
       if (Messages.showYesNoDialog(project, "${myFile.name} already exists; do you want to replace it?", "Replace File",

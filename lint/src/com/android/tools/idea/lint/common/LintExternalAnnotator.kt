@@ -71,6 +71,7 @@ import com.intellij.util.IncorrectOperationException
 import com.intellij.xml.util.XmlStringUtil
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.gradle.config.GradleFileType
+import org.toml.lang.psi.TomlFileType
 import java.util.EnumSet
 import javax.swing.Icon
 
@@ -180,6 +181,8 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
         scope = Scope.GRADLE_SCOPE
       } else if (fileType === PropertiesFileType.INSTANCE) {
         scope = Scope.PROPERTY_SCOPE
+      } else if (fileType === TomlFileType) {
+        scope = Scope.TOML_SCOPE
       } else {
         // #collectionInformation above should have prevented this
         assert(false) { fileType }

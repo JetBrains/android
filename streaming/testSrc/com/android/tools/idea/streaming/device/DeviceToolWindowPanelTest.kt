@@ -34,10 +34,12 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
@@ -71,7 +73,7 @@ class DeviceToolWindowPanelTest {
   private val agentRule = FakeScreenSharingAgentRule()
 
   @get:Rule
-  val ruleChain = RuleChain(ClipboardSynchronizationDisablementRule(), agentRule, PortableUiFontRule(), EdtRule())
+  val ruleChain = RuleChain(ApplicationRule(), ClipboardSynchronizationDisablementRule(), agentRule, PortableUiFontRule(), EdtRule())
 
   private lateinit var device: FakeDevice
   private val panel: DeviceToolWindowPanel by lazy { createToolWindowPanel() }
@@ -116,6 +118,9 @@ class DeviceToolWindowPanelTest {
       Pair("Power", AKEYCODE_POWER),
       Pair("Volume Up", AKEYCODE_VOLUME_UP),
       Pair("Volume Down", AKEYCODE_VOLUME_DOWN),
+      Pair("Back", AKEYCODE_BACK),
+      Pair("Home", AKEYCODE_HOME),
+      Pair("Overview", AKEYCODE_APP_SWITCH),
     )
     for (case in pushButtonCases) {
       val button = fakeUi.getComponent<ActionButton> { it.action.templateText == case.first }
@@ -129,20 +134,8 @@ class DeviceToolWindowPanelTest {
     val powerAction = ActionManager.getInstance().getAction("android.device.power.button")
     val keyEvent = KeyEvent(panel, KeyEvent.KEY_RELEASED, System.currentTimeMillis(), InputEvent.CTRL_DOWN_MASK, KeyEvent.VK_P, 0.toChar())
     val dataContext = DataManager.getInstance().getDataContext(panel.deviceView)
-    powerAction.actionPerformed(AnActionEvent.createFromAnAction(powerAction, keyEvent, "", dataContext))
+    powerAction.actionPerformed(AnActionEvent.createFromAnAction(powerAction, keyEvent, ActionPlaces.KEYBOARD_SHORTCUT, dataContext))
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_DOWN_AND_UP, AKEYCODE_POWER, 0))
-
-    // Check keypress actions.
-    val keypressCases = listOf(
-      Pair("Back", AKEYCODE_BACK),
-      Pair("Home", AKEYCODE_HOME),
-      Pair("Overview", AKEYCODE_APP_SWITCH),
-    )
-    for (case in keypressCases) {
-      val button = fakeUi.getComponent<ActionButton> { it.action.templateText == case.first }
-      fakeUi.mouseClickOn(button)
-      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_DOWN_AND_UP, case.second, 0))
-    }
 
     // Check that the Wear OS-specific buttons are hidden.
     assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Button 1" }).isNull()
@@ -177,7 +170,9 @@ class DeviceToolWindowPanelTest {
 
     // Check push button actions.
     val pushButtonCases = listOf(
-      Pair("Button 1", AKEYCODE_POWER)
+      Pair("Button 1", AKEYCODE_POWER),
+      Pair("Button 2", AKEYCODE_STEM_PRIMARY),
+      Pair("Back", AKEYCODE_BACK),
     )
     for (case in pushButtonCases) {
       val button = fakeUi.getComponent<ActionButton> { it.action.templateText == case.first }
@@ -189,9 +184,7 @@ class DeviceToolWindowPanelTest {
 
     // Check keypress actions.
     val keypressCases = listOf(
-      Pair("Button 2", AKEYCODE_STEM_PRIMARY),
       Pair("Palm", AKEYCODE_SLEEP),
-      Pair("Back", AKEYCODE_BACK),
     )
     for (case in keypressCases) {
       val button = fakeUi.getComponent<ActionButton> { it.action.templateText == case.first }

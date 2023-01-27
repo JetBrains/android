@@ -27,6 +27,13 @@ sealed interface IdeArtifactDependency<T : IdeArtifactLibrary> : IdeDependency<T
 
 interface IdeDependencyCore {
   val target: LibraryReference
+
+  /**
+   * List of direct dependencies for this dependency if known, for old versions of AGP (V1 models) this will be null.
+   * For some dependencies (modules) this list of dependencies will be used as the classpath and as such we retain the order which
+   * was provided by AGP.
+   */
+  val dependencies: List<Int>?
 }
 
 @Deprecated("all subclasses and usages will be removed, work with IdeLibrary and subclasses instead")

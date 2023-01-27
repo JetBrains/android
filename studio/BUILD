@@ -268,6 +268,9 @@ studio_plugin(
         "layoutlib-api.jar": [
             "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api",
         ],
+        "memory-usage.jar": [
+            "//tools/adt/idea/memory-usage",
+        ],
     },
     resources = {
         "lib": [
@@ -604,13 +607,11 @@ studio_plugin(
 
 exports_files([
     "codesign/entitlements.xml",
-    "codesign/filelist",
 ])
 
 android_studio(
     name = "android-studio",
     codesign_entitlements = "codesign/entitlements.xml",
-    codesign_filelist = "codesign/filelist",
     files_linux = {
         "safemode/linux/studio_safe.sh": "bin/studio_safe.sh",
     },
@@ -673,18 +674,52 @@ py_test(
     ],
 )
 
+config_setting(
+    name = "macos-arm64",
+    constraint_values = [
+        "@platforms//os:macos",
+        "@platforms//cpu:arm64",
+    ],
+    visibility = ["//visibility:private"],
+)
+
+config_setting(
+    name = "macos-x86_64",
+    constraint_values = [
+        "@platforms//os:macos",
+        "@platforms//cpu:x86_64",
+    ],
+    visibility = ["//visibility:private"],
+)
+
 py_test(
     name = "test_updater",
     timeout = "long",  # b/233245811
     srcs = ["tests/test_updater.py"],
     data = [
-        ":android-studio.linux.zip",
-        ":android-studio.mac.zip",
-        ":android-studio.mac_arm.zip",
-        ":android-studio.win.zip",
         ":updater",
         ":updater.jar",
-    ],
+    ] + select({
+        # On macOS, the test converts macOS ↔ Windows
+        ":macos-arm64": [
+            ":android-studio.mac_arm.zip",
+            ":android-studio.win.zip",
+        ],
+        ":macos-x86_64": [
+            ":android-studio.mac.zip",
+            ":android-studio.win.zip",
+        ],
+        # On Windows, the test converts Windows ↔ macOS
+        "@platforms//os:windows": [
+            ":android-studio.win.zip",
+            ":android-studio.mac.zip",
+        ],
+        # On Linux, the test converts Linux ↔ Windows
+        "@platforms//os:linux": [
+            ":android-studio.linux.zip",
+            ":android-studio.win.zip",
+        ],
+    }),
     tags = ["no_windows"],  # b/233968084
 )
 
@@ -709,6 +744,12 @@ py_test(
     ],
     visibility = ["//visibility:public"],
     deps = [":stamper"],
+)
+
+py_library(
+    name = "intellij",
+    srcs = ["intellij.py"],
+    visibility = ["//visibility:public"],
 )
 
 java_binary(
@@ -906,6 +947,11 @@ iml_test(
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.UpdateTest",
+)
+
+exports_files(
+    ["sdk_version_test.py"],
+    visibility = ["//visibility:public"],
 )
 
 # TODO(b/239839457): Remove this export when a real metadata file is generated.

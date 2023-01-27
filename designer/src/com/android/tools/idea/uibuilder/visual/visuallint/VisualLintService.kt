@@ -235,7 +235,7 @@ class VisualLintService(val project: Project): Disposable {
  */
 fun createRenderResult(model: NlModel, requireRender: Boolean): CompletableFuture<RenderResult> {
   val renderService = RenderService.getInstance(model.project)
-  val logger = renderService.createLogger(model.facet)
+  val logger = renderService.createLogger(model.facet.module)
 
   return renderService.taskBuilder(model.facet, model.configuration)
     .withPsiFile(model.file)

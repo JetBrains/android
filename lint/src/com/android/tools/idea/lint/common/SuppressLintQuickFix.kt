@@ -22,6 +22,7 @@ import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.codeInsight.intention.AddAnnotationFix
+import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils.prepareElementForWrite
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.SuppressQuickFix
 import com.intellij.codeInspection.SuppressionUtilCore
@@ -59,6 +60,7 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 import org.jetbrains.plugins.groovy.GroovyLanguage
+import org.toml.lang.TomlLanguage
 
 class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) : SuppressQuickFix {
   private val label = displayName(element, id)
@@ -86,6 +88,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       XMLLanguage.INSTANCE -> handleXml(element)
       GroovyLanguage -> handleGroovy(element)
       KotlinLanguage.INSTANCE -> handleKotlin(element)
+      TomlLanguage -> handleToml(element)
       else -> {
         // Suppressing lint checks tagged on things like icons
         val file = if (element is PsiFile) element else element.containingFile ?: return
@@ -97,7 +100,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   @Throws(IncorrectOperationException::class)
   private fun handleXml(element: PsiElement) {
     val tag = PsiTreeUtil.getParentOfType(element, XmlTag::class.java, false) ?: return
-    if (!preparedToWrite(tag)) {
+    if (!prepareElementForWrite(tag)) {
       return
     }
     val file = if (tag is XmlFile) tag else tag.containingFile as? XmlFile ?: return
@@ -108,7 +111,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   @Throws(IncorrectOperationException::class)
   private fun handleJava(element: PsiElement) {
     val container = findJavaSuppressElement(element) ?: return
-    if (!preparedToWrite(container)) {
+    if (!prepareElementForWrite(container)) {
       return
     }
     val project = element.project
@@ -125,7 +128,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   @Throws(IncorrectOperationException::class)
   private fun handleGroovy(element: PsiElement) {
     val file = if (element is PsiFile) element else element.containingFile ?: return
-    if (!preparedToWrite(file)) {
+    if (!prepareElementForWrite(file)) {
       return
     }
     val project = file.project
@@ -133,9 +136,21 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     addNoInspectionComment(project, file, offset)
   }
 
+  @Throws(IncorrectOperationException::class)
+  private fun handleToml(element: PsiElement) {
+    val file = if (element is PsiFile) element else element.containingFile ?: return
+    if (!prepareElementForWrite(file)) {
+      return
+    }
+    val project = file.project
+    val offset = element.textOffset
+    addNoInspectionComment(project, file, offset, "#")
+  }
+
   /** Given a file and offset of a statement, inserts a //noinspection <id> comment on the **previous** line. */
-  private fun addNoInspectionComment(project: Project, file: PsiFile, offset: Int) {
-    val document = PsiDocumentManager.getInstance(project).getDocument(file) ?: return
+  private fun addNoInspectionComment(project: Project, file: PsiFile, offset: Int, commentPrefix: String = "//") {
+    val documentManager = PsiDocumentManager.getInstance(project)
+    val document = documentManager.getDocument(file) ?: return
     val line = document.getLineNumber(offset)
     val lineStart = document.getLineStartOffset(line)
     if (lineStart > 0) {
@@ -158,7 +173,8 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       nonSpace++
     }
     ApplicationManager.getApplication().assertWriteAccessAllowed()
-    document.insertString(lineStart + nonSpace, NO_INSPECTION_PREFIX + getLintId(id) + "\n" + linePrefix.substring(0, nonSpace))
+    document.insertString(lineStart + nonSpace, commentPrefix + NO_INSPECTION_PREFIX + getLintId(id) + "\n" + linePrefix.substring(0, nonSpace))
+    documentManager.commitDocument(document)
   }
 
   @Throws(IncorrectOperationException::class)
@@ -186,7 +202,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   private fun handleKotlin(element: PsiElement) {
     val target = findKotlinSuppressElement(element) ?: return
 
-    if (!preparedToWrite(target)) {
+    if (!prepareElementForWrite(target)) {
       return
     }
 
@@ -213,7 +229,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   }
 
   companion object {
-    private const val NO_INSPECTION_PREFIX = "//" + SuppressionUtilCore.SUPPRESS_INSPECTIONS_TAG_NAME + " "
+    private const val NO_INSPECTION_PREFIX = SuppressionUtilCore.SUPPRESS_INSPECTIONS_TAG_NAME + " "
 
     private fun getAnnotationClass(context: PsiElement): String {
       val project = context.project

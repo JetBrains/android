@@ -17,6 +17,7 @@ package com.android.tools.idea.lint.common
 
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.codeInsight.intention.AddAnnotationFix
+import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils.prepareElementForWrite
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnonymousClass
@@ -59,7 +60,7 @@ class AnnotateQuickFix(
     val language = element.language
     val container = findContainer(element) ?: return
 
-    if (!preparedToWrite(container)) {
+    if (!prepareElementForWrite(container)) {
       return
     }
 

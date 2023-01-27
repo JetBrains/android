@@ -43,6 +43,7 @@ iml_module(
         "//prebuilts/studio/sdk:licenses",
         "//tools/adt/idea/compose-ide-plugin/testData",
     ],
+    test_friends = ["//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin"],
     test_srcs = ["testSrc"],
     test_timeout = "long",
     visibility = ["//visibility:public"],

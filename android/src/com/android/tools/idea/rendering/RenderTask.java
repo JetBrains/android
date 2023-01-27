@@ -22,6 +22,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
+import com.android.ide.common.rendering.api.AssetRepository;
 import com.android.ide.common.rendering.api.DrawableParams;
 import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.ide.common.rendering.api.IImageFactory;
@@ -61,7 +62,6 @@ import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
-import com.android.tools.idea.res.AssetRepositoryImpl;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceIdManager;
@@ -101,7 +101,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
-import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.CompatibilityRenderTarget;
 import org.jetbrains.android.uipreview.ClassLoaderPreloaderKt;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
@@ -167,7 +167,7 @@ public class RenderTask {
   private boolean myShadowEnabled = true;
   private boolean myEnableLayoutScanner = false;
   private boolean myShowWithToolsVisibilityAndPosition = true;
-  private AssetRepositoryImpl myAssetRepository;
+  private AssetRepository myAssetRepository;
   private long myTimeout;
   @NotNull private final Locale myLocale;
   @NotNull private final Object myCredential;
@@ -196,9 +196,11 @@ public class RenderTask {
    * @param privateClassLoader if true, this task should have its own ModuleClassLoader, if false it can use a shared one for the module
    * @param onNewModuleClassLoader
    */
-  RenderTask(@NotNull AndroidFacet facet,
-             @NotNull RenderService renderService,
+  RenderTask(@NotNull Module module,
              @NotNull Configuration configuration,
+             @NotNull AssetRepository assetRepository,
+             @NotNull ResourceRepositoryManager resourceRepositoryManager,
+             @NotNull AndroidModuleInfo androidModuleInfo,
              @NotNull RenderLogger logger,
              @NotNull LayoutLibrary layoutLib,
              @NotNull Device device,
@@ -230,7 +232,7 @@ public class RenderTask {
     myCredential = credential;
     myCrashReporter = crashReporter;
     myImagePool = imagePool;
-    myAssetRepository = new AssetRepositoryImpl(facet);
+    myAssetRepository = assetRepository;
     myHardwareConfigHelper = new HardwareConfigHelper(device);
 
     ScreenOrientation orientation = configuration.getFullConfig().getScreenOrientationQualifier() != null ?
@@ -238,9 +240,8 @@ public class RenderTask {
                                     ScreenOrientation.PORTRAIT;
     myHardwareConfigHelper.setOrientation(orientation);
     myLayoutLib = layoutLib;
-    LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(facet);
+    LocalResourceRepository appResources = resourceRepositoryManager.getAppResources();
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
-    Module module = facet.getModule();
     ModuleClassLoaderManager manager = ModuleClassLoaderManager.get();
     WeakReference<RenderTask> xmlFileProvider = new WeakReference<>(this);
     ModuleRenderContext moduleRenderContext = ModuleRenderContext.forFile(module, () -> {
@@ -265,16 +266,24 @@ public class RenderTask {
     try {
       myLayoutlibCallback =
         new LayoutlibCallbackImpl(
-          this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler, parserFactory, myModuleClassLoader);
+          this,
+          myLayoutLib,
+          appResources,
+          module,
+          resourceRepositoryManager,
+          myLogger,
+          myCredential,
+          actionBarHandler,
+          parserFactory,
+          myModuleClassLoader);
       if (ResourceIdManager.get(module).getFinalIdsUsed()) {
         myLayoutlibCallback.loadAndParseRClass();
       }
-      AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(facet);
       myLocale = configuration.getLocale();
       myContext = new RenderContext(module,
                                     configuration,
-                                    moduleInfo,
-                                    renderService.getPlatform(facet));
+                                    androidModuleInfo,
+                                    AndroidPlatform.getInstance(module));
       myMinDownscalingFactor = minDownscalingFactor;
       myDefaultQuality = quality;
       // Some devices need more memory to avoid the blur when rendering. These are special cases.

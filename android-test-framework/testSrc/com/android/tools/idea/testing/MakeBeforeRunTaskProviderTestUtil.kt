@@ -54,7 +54,6 @@ import com.intellij.psi.PsiIdentifier
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.runInEdtAndWait
-import org.jetbrains.concurrency.resolvedPromise
 import javax.swing.Icon
 
 fun RunConfiguration.executeMakeBeforeRunStepInTest(device: IDevice) =
@@ -91,7 +90,7 @@ fun RunConfiguration.executeMakeBeforeRunStepInTest(deviceFutures: DeviceFutures
       override fun canRunWithMultipleDevices(executorId: String): Boolean = false
       override val supportedConfigurationTypeIds = emptyList<String>()
       override fun getRunner(environment: ExecutionEnvironment, state: RunProfileState) =
-        { _: ProgressIndicator -> resolvedPromise(mock<RunContentDescriptor>()) }
+        { _: ProgressIndicator -> mock<RunContentDescriptor>() }
     }
 
     val executionEnvironment = ExecutionEnvironment(

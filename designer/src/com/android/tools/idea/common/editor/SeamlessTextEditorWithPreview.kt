@@ -84,7 +84,10 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(textEditor: TextEditor,
   // Even though isPureTextEditor is meant to be persistent this editor delegates keeping the state persistent to the clients
   var isPureTextEditor: Boolean = true
     set(value) {
-      toolbarComponent?.isVisible = !isShowFloatingToolbar && !value
+      // Toolbar should be hidden if file the file is handled as pure-text, if the split controls are shown in tabs, or if the controls
+      // are shown in a floating toolbar.
+      val shouldHideToolbar = value || isShowActionsInTabs || isShowFloatingToolbar
+      toolbarComponent?.isVisible = !shouldHideToolbar
       if (value) {
         setPureTextEditorVisibility()
         setEditorLayout(Layout.SHOW_EDITOR)

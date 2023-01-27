@@ -95,11 +95,6 @@ public final class StudioFlags {
     NPW, "new.macro.benchmark.module", "New Macro Benchmark Module",
     "Show template to create a new Macro Benchmark module in the new module wizard.",
     true);
-
-  public static final Flag<Boolean> NPW_MATERIAL3_ENABLED = Flag.create(
-    NPW, "new.material3.templates", "New Material3 Templates",
-    "Enable the new material 3 templates.",
-    true);
   //endregion
 
   //region Memory Usage Reporting
@@ -554,7 +549,7 @@ public final class StudioFlags {
     "Use adblib to track device processes (Client)",
     "Use adblib instead of ddmlib to track processes (Client) on devices and handle debug sessions. " +
     "Note: Changing the value of this flag requires restarting Android Studio.",
-    false);
+    true);
 
   public static final Flag<Boolean> JDWP_TRACER = Flag.create(
     RUNDEBUG,
@@ -761,6 +756,15 @@ public final class StudioFlags {
     "gradle.hprof.output.directory",
     "Gradle sync HPROF output directory",
     "If set, HPROF snapshots will be created at certain points during project sync and saved in the directory",
+    ""
+  );
+
+  public static final Flag<String> GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY = Flag.create(
+    GRADLE_IDE,
+    "gradle.heap.analysis.output.directory",
+    "Gradle heap analysis output directory",
+    "If set, files with information about heap usage such as total live objects size and the strongly reachable objects size, will be dumped" +
+    "to a file at certain points during project sync.",
     ""
   );
 
@@ -1116,13 +1120,6 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> COMPOSE_WIZARD_TEMPLATES = Flag.create(
-    COMPOSE, "wizard.templates",
-    "Show Compose Wizards",
-    "If enabled, allows adding new Compose Projects/Modules/Activities through the wizards",
-    true
-  );
-
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT = Flag.create(
     COMPOSE, "deploy.live.edit.deploy",
     "Enable live edit deploy",
@@ -1355,7 +1352,7 @@ public final class StudioFlags {
     "virtual.device.watcher.enabled",
     "Enable VirtualDeviceWatcher",
     "Enable VirtualDeviceWatcher to update the Virtual table based on disk changes",
-    false);
+    true);
   // endregion
 
   //region DDMLIB
@@ -1562,6 +1559,15 @@ public final class StudioFlags {
   public static final Flag<Boolean> TSDKVUA_ENABLE = Flag.create(TSDKVUA, "enable", "Enable the Android SDK Upgrade Assistant", "Enable the Android SDK Upgrade Assistant", true);
   public static final Flag<Boolean> TSDKVUA_FILTERS = Flag.create(TSDKVUA, "filters", "Enable relevance filtering", "Enable relevance filtering", false);
   // endregion TargetSDKVersion Upgrade Assistant
+
+  // region PROCESS_NAME_MONITOR
+  private static final FlagGroup PROCESS_NAME_MONITOR = new FlagGroup(FLAGS, "processnamemonitor", "Process Name Monitor");
+  public static final Flag<Boolean> ENABLE_PROCESS_NAME_POLLING = Flag.create(
+    PROCESS_NAME_MONITOR, "processnamemonitor.enable.process.name.polling", "Enable process name polling",
+    "Enable process name polling. Changing the value of this flag requires restarting Android Studio.",
+    false
+  );
+  // endregion NEW_SEND_FEEDBACK_DIALOG
 
   private StudioFlags() { }
 }

@@ -398,6 +398,7 @@ tilemap
 tileset
 timeline
 tmpdir
+toml
 traceview
 truthy
 tvdpi

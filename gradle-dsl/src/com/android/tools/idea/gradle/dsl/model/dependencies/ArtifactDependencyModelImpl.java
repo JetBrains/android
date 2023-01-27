@@ -224,32 +224,37 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
 
   static class MapNotation extends ArtifactDependencyModelImpl {
     @NotNull private GradleDslExpressionMap myDslElement;
+    @NotNull private GradleDslElement myOriginalDslElement;
 
     @Nullable
     static MapNotation create(@NotNull String configurationName,
-                              @NotNull GradleDslExpressionMap dslElement,
+                              @NotNull GradleDslExpressionMap resolvedElement,
+                              @NotNull GradleDslElement originalElement,
                               @Nullable GradleDslClosure configurationElement,
                               @NotNull Maintainer maintainer,
                               @Nullable String platformMethodName) {
-      if (dslElement.getLiteral("name", String.class) == null && dslElement.getLiteral("module", String.class) == null) {
-        return null; // not a artifact dependency element.
+
+      if (resolvedElement.getLiteral("name", String.class) == null && resolvedElement.getLiteral("module", String.class) == null) {
+        return null; // not an artifact dependency element.
       }
 
       if (platformMethodName == null) {
-        return new MapNotation(configurationName, dslElement, configurationElement, maintainer);
+        return new MapNotation(configurationName, resolvedElement, originalElement, configurationElement, maintainer);
       }
       else {
         return new PlatformArtifactDependencyModelImpl.MapNotation(
-          configurationName, dslElement, configurationElement, maintainer, platformMethodName);
+          configurationName, resolvedElement, originalElement, configurationElement, maintainer, platformMethodName);
       }
     }
 
     MapNotation(@NotNull String configurationName,
                 @NotNull GradleDslExpressionMap dslElement,
+                @NotNull GradleDslElement originalElement,
                 @Nullable GradleDslClosure configurationElement,
                 @NotNull Maintainer maintainer) {
       super(configurationElement, configurationName, maintainer);
       myDslElement = dslElement;
+      myOriginalDslElement = originalElement;
     }
 
     @Override
@@ -301,12 +306,12 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     @Override
     @NotNull
     protected GradleDslElement getDslElement() {
-      return myDslElement;
+      return myOriginalDslElement;
     }
 
     @Override
     void setDslElement(@NotNull GradleDslElement dslElement) {
-      myDslElement = (GradleDslExpressionMap)dslElement;
+      myOriginalDslElement = dslElement;
     }
   }
 

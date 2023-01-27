@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run;
 
-import static org.jetbrains.concurrency.Promises.resolvedPromise;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -41,7 +40,6 @@ import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.concurrency.Promise;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -104,9 +102,9 @@ public class AndroidConfigurationProgramRunnerTest {
 
         @NotNull
         @Override
-        protected Function1<ProgressIndicator, Promise<RunContentDescriptor>> getRunner(@NotNull ExecutionEnvironment environment,
-                                                                                        @NotNull RunProfileState state) {
-          return (ProgressIndicator x) -> resolvedPromise(mock(RunContentDescriptor.class));
+        protected Function1<ProgressIndicator, RunContentDescriptor> getRunner(@NotNull ExecutionEnvironment environment,
+                                                                               @NotNull RunProfileState state) {
+          return (ProgressIndicator x) -> mock(RunContentDescriptor.class);
         }
       };
     target.setAvailableDeviceCount(2);
@@ -122,9 +120,9 @@ public class AndroidConfigurationProgramRunnerTest {
       new AndroidConfigurationProgramRunner(GradleSyncState::getInstance, (project, profileState) -> target) {
         @NotNull
         @Override
-        protected Function1<ProgressIndicator, Promise<RunContentDescriptor>> getRunner(@NotNull ExecutionEnvironment environment,
-                                                                                        @NotNull RunProfileState state) {
-          return (ProgressIndicator x) -> resolvedPromise(mock(RunContentDescriptor.class));
+        protected Function1<ProgressIndicator, RunContentDescriptor> getRunner(@NotNull ExecutionEnvironment environment,
+                                                                               @NotNull RunProfileState state) {
+          return (ProgressIndicator x) -> mock(RunContentDescriptor.class);
         }
 
         @NotNull

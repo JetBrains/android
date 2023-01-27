@@ -28,6 +28,7 @@ import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifestException;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
@@ -39,6 +40,8 @@ import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
+import com.android.tools.idea.res.AssetRepositoryImpl;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -184,8 +187,7 @@ public class RenderService implements Disposable {
   }
 
   @NotNull
-  public RenderLogger createLogger(@NotNull AndroidFacet facet) {
-    Module module = facet.getModule();
+  public RenderLogger createLogger(@NotNull Module module) {
     return new RenderLogger(module.getName(), module, myCredential);
   }
 
@@ -210,13 +212,7 @@ public class RenderService implements Disposable {
   }
 
   @Nullable
-  public AndroidPlatform getPlatform(@NotNull AndroidFacet facet) {
-    return AndroidPlatform.getInstance(facet.getModule());
-  }
-
-  @Nullable
-  private static AndroidPlatform getPlatform(@NotNull final AndroidFacet facet, @Nullable RenderLogger logger) {
-    Module module = facet.getModule();
+  private static AndroidPlatform getPlatform(@NotNull final Module module, @Nullable RenderLogger logger) {
     AndroidPlatform platform = AndroidPlatform.getInstance(module);
     if (platform == null && logger != null) {
       RenderProblem.Html message = RenderProblem.create(ERROR);
@@ -641,13 +637,13 @@ public class RenderService implements Disposable {
     @NotNull
     public CompletableFuture<RenderTask> build() {
       if (myLogger == null) {
-        withLogger(myService.createLogger(myFacet));
+        withLogger(myService.createLogger(myFacet.getModule()));
       }
 
       StackTraceCapture stackTraceCaptureElement = RenderTaskAllocationTrackerKt.captureAllocationStackTrace();
 
       return CompletableFuture.supplyAsync(() -> {
-        AndroidPlatform platform = getPlatform(myFacet, myLogger);
+        AndroidPlatform platform = getPlatform(myFacet.getModule(), myLogger);
         if (platform == null) {
           return null;
         }
@@ -691,7 +687,8 @@ public class RenderService implements Disposable {
 
         try {
           RenderTask task =
-            new RenderTask(myFacet, myService, myConfiguration, myLogger, layoutLib,
+            new RenderTask(module, myConfiguration, new AssetRepositoryImpl(myFacet), ResourceRepositoryManager.getInstance(myFacet),
+                           AndroidModuleInfo.getInstance(myFacet), myLogger, layoutLib,
                            device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, myManifestProvider,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,

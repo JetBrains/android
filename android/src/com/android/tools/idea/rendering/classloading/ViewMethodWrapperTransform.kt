@@ -40,7 +40,7 @@ catch (e: NoSuchMethodException) {
  * [ClassVisitor] that catches the exceptions on certain View methods like onLayout, onMeasure or onDraw so they do not stop the
  * rendering of the whole view.
  */
-class ViewMethodWrapperTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.ASM7, delegate), ClassVisitorUniqueIdProvider {
+class ViewMethodWrapperTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
   override val uniqueId: String = ViewMethodWrapperTransform::class.qualifiedName!!
 
   private var currentClassName: String? = null

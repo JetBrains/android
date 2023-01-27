@@ -28,6 +28,7 @@
     <storageComponentContainerContributor implementation="com.android.tools.compose.ComposableDeclarationChecker"/>
     <diagnosticSuppressor implementation="com.android.tools.compose.ComposeDiagnosticSuppressor"/>
     <highlighterExtension implementation="com.android.tools.compose.ComposableHighlighterExtension"/>
+
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -111,6 +112,7 @@
     <automaticRenamerFactory implementation="com.android.tools.compose.ComposableElementAutomaticRenamerFactory"/>
 
     <debugger.positionManagerFactory implementation="com.android.tools.compose.debug.ComposePositionManagerFactory"/>
+    <debugger.kotlinStackFrameValueContributor implementation="com.android.tools.compose.debug.recomposition.ComposeValueContributor"/>
     <debuggerClassFilterProvider implementation="com.android.tools.compose.debug.ComposeDebuggerClassesFilterProvider"/>
     <xdebugger.settings implementation="com.android.tools.compose.debug.ComposeDebuggerSettings"/>
     <debugger.compoundRendererProvider id="SnapshotMutableStateImplRenderer"
@@ -140,6 +142,11 @@
     />
 
     <iconProvider implementation="com.android.tools.compose.ComposableIconProvider" order="first" />
+
+    <registryKey key="androidx.compose.debugger.recomposition.node"
+                 description="Add a node to the debugger view of a composable function that describes why the function is being recomposed"
+                 defaultValue="false"
+                 restartRequired="false"/>
 
   </extensions>
 

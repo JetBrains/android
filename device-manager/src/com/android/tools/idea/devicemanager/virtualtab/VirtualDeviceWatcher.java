@@ -42,8 +42,9 @@ import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * The purpose of this class is to watch for changes to AVDs. Most operations within Studio on the AVDs are already tracked by Device
- * Manager, but if the user manually deletes files outside of Studio, we also need to update Device Manager. We save the current AVDs when
- * Studio loses focus, and then check the differences when Studio regains focus.
+ * Manager, but if the user manually deletes files outside of Studio, we also need to update Device Manager. When Studio regains focus, we
+ * gather a list of the current AVDs and fire a {@code VirtualDeviceWatcherEvent}. The UI should compare and adjust the table to reflect
+ * the current AVDs.
  */
 @Service
 public final class VirtualDeviceWatcher implements ApplicationActivationListener {

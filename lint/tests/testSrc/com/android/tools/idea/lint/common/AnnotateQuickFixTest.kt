@@ -17,6 +17,7 @@ package com.android.tools.idea.lint.common
 
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
+import com.intellij.refactoring.suggested.startOffset
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 
 class AnnotateQuickFixTest : JavaCodeInsightFixtureTestCase() {
@@ -143,6 +144,45 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureTestCase() {
       package p1.p2
       @Suppress("SomeInspection2")
       const val someProperty = ""
+      """.trimIndent(),
+      file.text
+    )
+  }
+
+  fun testTomlSuppressFix() {
+    val file = myFixture.configureByText(
+      "src/test.toml",
+      //language=TOML
+      """
+        key1="value1"
+        key2="value2"
+        #noinspection MyId2
+        key3="value3"
+      """.trimIndent()
+    )
+
+    val element = myFixture.findElementByText("value2", PsiElement::class.java)
+    val fixes = listOf(
+      SuppressLintIntentionAction("MyId1", element)
+    )
+
+    for (fix in fixes) {
+      assertTrue(fix.isAvailable(project, myFixture.editor, file))
+      WriteCommandAction.runWriteCommandAction(project) {
+        val editor = myFixture.editor
+        editor.caretModel.moveToOffset(element.startOffset)
+        fix.invoke(project, myFixture.editor, file)
+      }
+    }
+
+    assertEquals(
+      //language=TOML
+      """
+      key1="value1"
+      #noinspection MyId1
+      key2="value2"
+      #noinspection MyId2
+      key3="value3"
       """.trimIndent(),
       file.text
     )

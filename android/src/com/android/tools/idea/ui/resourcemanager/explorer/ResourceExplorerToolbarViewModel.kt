@@ -224,6 +224,11 @@ class ResourceExplorerToolbarViewModel(
     CommonDataKeys.PROJECT.name -> facet.module.project
     PlatformCoreDataKeys.MODULE.name -> facet.module
     LangDataKeys.IDE_VIEW.name -> this
+    PlatformCoreDataKeys.BGT_DATA_PROVIDER.name -> DataProvider { getDataInBackground(it) }
+    else -> null
+  }
+
+  private fun getDataInBackground(dataId: String): Any? = when(dataId) {
     CommonDataKeys.PSI_ELEMENT.name -> getPsiDirForResourceType()
     else -> null
   }

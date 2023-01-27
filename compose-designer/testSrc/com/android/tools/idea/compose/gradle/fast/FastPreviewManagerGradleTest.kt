@@ -162,6 +162,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     File(projectRule.project.guessProjectDir()!!.toIoFile(), "gradle.properties")
       .appendText("android.nonFinalResIds=false")
     projectRule.requestSyncAndWait()
+    projectRule.buildAndAssertIsSuccessful()
 
     val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
     typeAndSaveDocument("Text(stringResource(R.string.greeting))\n")
@@ -189,14 +190,17 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
           }
         }
 
-      val containsStaticFinalAccess =
-        decompiledOutput.lines().any {
-          it.contains("GETSTATIC google/simpleapplication/R\$string.greeting : I")
-        }
-
+      val stringResourceCallPatter =
+        Regex(
+          "LDC (\\d+)\n\\s+ALOAD (\\d+)\n\\s+ICONST_0\n\\s+INVOKESTATIC androidx/compose/ui/res/StringResources_androidKt\\.stringResource",
+          RegexOption.MULTILINE
+        )
+      val matches = stringResourceCallPatter.findAll(decompiledOutput)
+      assertTrue("Expected stringResource calls not found", matches.count() != 0)
+      // Real ids are all above 0x7f000000
       assertTrue(
-        "Fast Preview should not inline R values when compiling",
-        containsStaticFinalAccess
+        "Fake IDs are not expected for a compiled project in the light R class",
+        matches.all { it.groupValues[1].toInt() > 0x7f000000 }
       )
     }
   }

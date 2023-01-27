@@ -110,7 +110,7 @@ class NonTransitiveResourcesLoaderTest : AndroidTestCase() {
       }
     )
 
-    val logger = RenderService.getInstance(myModule.project).createLogger(myFacet)
+    val logger = RenderService.getInstance(myModule.project).createLogger(myModule)
     // We do not need any of the services offered by LayoutLibrary in this test so just mock it.
     val layoutlib = mock<LayoutLibrary>()
     val viewLoader = ViewLoader(layoutlib, myModule, logger, null, delegateClassLoader)

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.lint.common;
 
+import static com.intellij.codeInsight.intention.preview.IntentionPreviewUtils.prepareElementForWrite;
+
 import com.android.tools.lint.checks.CallSuperDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.lang.java.JavaLanguage;
@@ -60,7 +62,7 @@ public class AndroidLintMissingSuperCallInspection extends AndroidLintInspection
         public void apply(@NotNull PsiElement startElement,
                           @NotNull PsiElement endElement,
                           @NotNull AndroidQuickfixContexts.Context context) {
-          if (!LintIdeUtilsKt.preparedToWrite(startElement)) {
+          if (!prepareElementForWrite(startElement)) {
             return;
           }
           PsiMethod superMethod = LintFix.getMethod(fixData, CallSuperDetector.KEY_METHOD);

@@ -16,19 +16,20 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
-import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.ui.ConsoleView;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.xdebugger.impl.XDebugSessionImpl;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.concurrency.Promise;
 
 /**
  * A {@link ConnectDebuggerTask} is similar to a {@link LaunchTask}, except that running it creates a new launch descriptor and process.
  */
 public interface ConnectDebuggerTask {
 
-  @NotNull Promise<XDebugSessionImpl> perform(@NotNull IDevice device,
-                                              @NotNull String applicationId,
-                                              @NotNull ExecutionEnvironment environment,
-                                              @NotNull ProcessHandler oldProcessHandler);
+  @NotNull
+  XDebugSessionImpl perform(@NotNull IDevice device,
+                            @NotNull String applicationId,
+                            @NotNull ExecutionEnvironment environment,
+                            @NotNull ProgressIndicator progressIndicator, ConsoleView console);
 }

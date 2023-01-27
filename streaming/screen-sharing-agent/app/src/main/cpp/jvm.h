@@ -115,7 +115,7 @@ public:
     SetFloatField(GetJni(), field, value);
   }
   void SetFloatField(JNIEnv* jni_env, jfieldID field, float value) const;
-  // Call the toString() method on the Java object. Intended for debugging only and may be slow.
+  // Calls the toString() method on the Java object. Intended for debugging only and may be slow.
   std::string ToString() const;
 
 protected:

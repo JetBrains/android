@@ -27,7 +27,6 @@ import com.android.adblib.testingutils.TestingAdbSessionHost
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlugin
-import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlugin.FakeDeviceHandle
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
 import com.android.tools.idea.logcat.testing.TestDevice
@@ -142,7 +141,7 @@ class DeviceComboBoxDeviceTrackerTest {
 
   @Test
   fun changeState_goesOffline(): Unit = runBlockingWithTimeout {
-    val deviceHandle = addDevice(device1)
+    val deviceHandle = device1.addDevice(plugin)
     val deviceTracker = deviceComboBoxDeviceTracker()
     val events = mutableListOf<DeviceEvent>()
 
@@ -159,7 +158,7 @@ class DeviceComboBoxDeviceTrackerTest {
 
   @Test
   fun changeState_deviceRemoved(): Unit = runBlockingWithTimeout {
-    val deviceHandle = addDevice(device1)
+    val deviceHandle = device1.addDevice(plugin)
     val deviceTracker = deviceComboBoxDeviceTracker()
     val events = mutableListOf<DeviceEvent>()
 
@@ -176,7 +175,7 @@ class DeviceComboBoxDeviceTrackerTest {
 
   @Test
   fun changeState_goesOfflineComesOnline(): Unit = runBlockingWithTimeout {
-    val deviceHandle = addDevice(device1)
+    val deviceHandle = device1.addDevice(plugin)
     val deviceTracker = deviceComboBoxDeviceTracker()
     val events = mutableListOf<DeviceEvent>()
 
@@ -198,7 +197,7 @@ class DeviceComboBoxDeviceTrackerTest {
   @Test
   fun changeState_emulatorComesOnlineWithDifferentSerialNumber(): Unit = runBlockingWithTimeout {
     val emulator = emulator1.withSerialNumber("emulator-1")
-    val deviceHandle = addDevice(emulator)
+    val deviceHandle = emulator.addDevice(plugin)
     val deviceTracker = deviceComboBoxDeviceTracker()
     val events = mutableListOf<DeviceEvent>()
 
@@ -207,7 +206,7 @@ class DeviceComboBoxDeviceTrackerTest {
       deviceHandle.disconnect()
       yieldUntil { events.size == 2 }
       val emulatorReconnectedOnDifferentPort = emulator1.withSerialNumber("emulator-2")
-      addDevice(emulatorReconnectedOnDifferentPort)
+      emulatorReconnectedOnDifferentPort.addDevice(plugin)
     }.join()
 
     assertThat(events).containsExactly(
@@ -221,16 +220,7 @@ class DeviceComboBoxDeviceTrackerTest {
     return DeviceComboBoxDeviceTracker(deviceProvisioner, preexistingDevice)
   }
 
-  private suspend fun addDevice(device: TestDevice): FakeDeviceHandle {
-    val handle = plugin.newDevice(device.serialNumber, device.deviceProperties)
-    plugin.addDevice(handle)
-    if (device.state == ONLINE) {
-      handle.connect()
-    }
-    return handle
-  }
-
-  private suspend fun addDevices(vararg devices: TestDevice): List<DeviceHandle> = devices.map { addDevice(it) }
+  private suspend fun addDevices(vararg devices: TestDevice): List<DeviceHandle> = devices.map { it.addDevice(plugin) }
 }
 
 private suspend fun DeviceHandle.connect() {

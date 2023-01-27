@@ -17,7 +17,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <toolWindow id="Device Manager"
                 anchor="right"
-                icon="StudioIcons.Shell.ToolWindows.MULTI_PREVIEW"
+                icon="StudioIcons.Shell.ToolWindows.DEVICE_MANAGER"
                 factoryClass="com.android.tools.idea.devicemanager.DeviceManagerToolWindowFactory"/>
 
     <applicationService serviceImplementation="com.android.tools.idea.devicemanager.virtualtab.VirtualTabPersistentStateComponent" />

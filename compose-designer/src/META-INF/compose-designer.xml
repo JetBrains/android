@@ -179,6 +179,12 @@
             use-shortcut-of="Android.Designer.IssueNotificationAction" />
     <action internal="true" id="FastRefresh.RestartProcess" class="com.android.tools.idea.compose.preview.actions.internal.ForcePreviewDaemonStop" />
     <action internal="true" id="FastRefresh.SimulateAutoDisable" class="com.android.tools.idea.compose.preview.actions.internal.SimulateFastPreviewAutoDisable" />
+
+    <action id="Android.Designer.CommonActions.ForceCompileAndRefreshActionForNotification"
+            class="com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshActionForNotification"
+            use-shortcut-of="ForceRefresh" >
+      <add-to-group group-id="Android.Designer.CommonActions" />
+    </action>
   </actions>
 
 </idea-plugin>

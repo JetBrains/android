@@ -29,7 +29,6 @@ import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.xdebugger.impl.XDebugSessionImpl
-import org.jetbrains.concurrency.Promise
 
 abstract class AndroidWearConfigurationExecutor(environment: ExecutionEnvironment,
                                                 deployTarget: DeployTarget,
@@ -39,25 +38,28 @@ abstract class AndroidWearConfigurationExecutor(environment: ExecutionEnvironmen
                                                                                                              appRunSettings,
                                                                                                              applicationIdProvider,
                                                                                                              apkProvider) {
-  override fun runAsInstantApp(indicator: ProgressIndicator): Promise<RunContentDescriptor> {
+  override fun runAsInstantApp(indicator: ProgressIndicator): RunContentDescriptor {
     throw RuntimeException("Unsupported operation")
   }
 
-  override fun applyCodeChanges(indicator: ProgressIndicator): Promise<RunContentDescriptor> {
+  override fun applyCodeChanges(indicator: ProgressIndicator): RunContentDescriptor {
     throw RuntimeException("Unsupported operation")
   }
 
-  override fun applyChanges(indicator: ProgressIndicator): Promise<RunContentDescriptor> {
+  override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor {
     throw RuntimeException("Unsupported operation")
   }
 
   override fun startDebugSession(
     device: IDevice,
-    console: ConsoleView
-  ): Promise<XDebugSessionImpl> {
+    console: ConsoleView,
+    indicator: ProgressIndicator
+  ): XDebugSessionImpl {
     checkAndroidVersionForWearDebugging(device.version, console)
     return DebugSessionStarter.attachDebuggerToStartedProcess(device, appId, environment, AndroidJavaDebugger(),
-                                                              AndroidJavaDebugger().createState(), getStopCallback(console, true), console)
+                                                              AndroidJavaDebugger().createState(), getStopCallback(console, true),
+                                                              indicator = indicator,
+                                                              console)
   }
 
   protected fun showWatchFace(device: IDevice, console: ConsoleView, indicator: ProgressIndicator) {

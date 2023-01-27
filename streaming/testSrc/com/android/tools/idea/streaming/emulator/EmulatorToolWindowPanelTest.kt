@@ -46,6 +46,7 @@ import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.util.Disposer
@@ -159,10 +160,10 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "Power"""")
 
     // Check EmulatorPowerButtonAction invoked by a keyboard shortcut.
-    val powerAction = ActionManager.getInstance().getAction("android.emulator.power.button")
-    val keyEvent = KeyEvent(panel, KEY_RELEASED, System.currentTimeMillis(), CTRL_DOWN_MASK, VK_P, 0.toChar())
+    val powerAction = ActionManager.getInstance().getAction("android.device.power.button")
+    val keyEvent = KeyEvent(panel, KEY_RELEASED, System.currentTimeMillis(), CTRL_DOWN_MASK, VK_P, KeyEvent.CHAR_UNDEFINED)
     val dataContext = DataManager.getInstance().getDataContext(panel.primaryEmulatorView)
-    powerAction.actionPerformed(AnActionEvent.createFromAnAction(powerAction, keyEvent, "", dataContext))
+    powerAction.actionPerformed(AnActionEvent.createFromAnAction(powerAction, keyEvent, ActionPlaces.KEYBOARD_SHORTCUT, dataContext))
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Power"""")
@@ -242,7 +243,10 @@ class EmulatorToolWindowPanelTest {
     ui.mouseClickOn(button)
     var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Home"""")
+    assertThat(shortDebugString(call.request)).isEqualTo("""key: "Home"""")
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "Home"""")
 
     // Check Wear2ButtonAction.
     button = ui.getComponent { it.action.templateText == "Button 2" }

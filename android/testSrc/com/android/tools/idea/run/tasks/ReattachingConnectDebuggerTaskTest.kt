@@ -23,16 +23,17 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
-import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.logcat.AndroidLogcatService
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.DefaultStudioProgramRunner
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
+import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.testFramework.replaceService
@@ -87,6 +88,7 @@ class ReattachingConnectDebuggerTaskTest {
   fun tearDown() {
     XDebuggerManager.getInstance(project).debugSessions.forEach {
       it.stop()
+      it.debugProcess.processHandler.waitFor()
     }
   }
 
@@ -108,16 +110,15 @@ class ReattachingConnectDebuggerTaskTest {
       AndroidDebuggerState(),
       MASTER_PROCESS_NAME, 15)
 
-    val androidProcessHandler = AndroidProcessHandler(project, APP_ID)
-
     val firstStartDebugLatch = CountDownLatch(1)
     whenever(runContentManagerImplMock.showRunContent(any(), any())).thenAnswer {
       firstStartDebugLatch.countDown()
     }
+    val builder = TextConsoleBuilderFactory.getInstance().createBuilder(project)
+    val console = builder.console
 
-    reattachingDebuggerTask.perform(device, APP_ID, executionEnvironment, androidProcessHandler).then {
-      it.showSessionTab()
-    }
+    val sessionImpl = reattachingDebuggerTask.perform(device, APP_ID, executionEnvironment, EmptyProgressIndicator(), console)
+    sessionImpl.showSessionTab()
 
     if (!firstStartDebugLatch.await(20, TimeUnit.SECONDS)) {
       Assert.fail("First session tab wasn't open")
@@ -140,6 +141,8 @@ class ReattachingConnectDebuggerTaskTest {
     }
 
     assertThat(tabsOpened.get()).isEqualTo(ADDITIONAL_CLIENTS)
+    sessionImpl.debugProcess.processHandler.detachProcess()
+    sessionImpl.debugProcess.processHandler.waitFor()
   }
 
   private fun waitForProcessToStop(pid: Int) {

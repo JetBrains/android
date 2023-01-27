@@ -32,7 +32,6 @@ import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
@@ -65,7 +64,7 @@ internal class ProcessNameClientMonitor(
    * The map of pid -> [ProcessNames] for currently alive processes, plus recently terminated processes.
    */
   private val processes = ConcurrentHashMap<Int, ProcessNames>()
-  private val deviceProcessUpdater = DeviceProcessUpdater()
+  private val deviceProcessUpdater = if (StudioFlags.ENABLE_PROCESS_NAME_POLLING.get()) DeviceProcessUpdater() else null
   private val coroutineScope = parentScope.createChildScope(parentDisposable = this)
 
   init {
@@ -100,15 +99,17 @@ internal class ProcessNameClientMonitor(
         }
       }
     }
-    coroutineScope.launch {
-      while (true) {
-        deviceProcessUpdater.updateNow()
-        delay(DEVICE_PROCESSES_UPDATE_INTERVAL_MS)
+    if (deviceProcessUpdater != null) {
+      coroutineScope.launch {
+        while (true) {
+          deviceProcessUpdater.updateNow()
+          delay(DEVICE_PROCESSES_UPDATE_INTERVAL_MS)
+        }
       }
     }
   }
 
-  fun getProcessNames(pid: Int): ProcessNames? = processes[pid] ?: deviceProcessUpdater.getPidName(pid)
+  fun getProcessNames(pid: Int): ProcessNames? = processes[pid] ?: deviceProcessUpdater?.getPidName(pid)
 
   override fun dispose() {}
 
@@ -116,7 +117,7 @@ internal class ProcessNameClientMonitor(
     private val lastKnownPids = AtomicReference(mapOf<Int, ProcessNames>())
 
     /**
-     * A copy of [AdbDeviceServices.shellAsLines] that forces the use of legacy shell rather than shell-v2.
+     * A copy of AdbDeviceServices.shellAsLines that forces the use of legacy shell rather than shell-v2.
      * It is inlined here and made private since we don't want this to be generally used.
      */
     private fun AdbDeviceServices.legacyShellAsLines(

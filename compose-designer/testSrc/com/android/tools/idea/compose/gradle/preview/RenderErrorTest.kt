@@ -39,7 +39,6 @@ import javax.swing.JPanel
 import junit.framework.Assert.assertFalse
 import junit.framework.Assert.assertTrue
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -59,7 +58,6 @@ class RenderErrorTest {
     get() = projectRule.fixture
 
   /** Activates the [ComposePreviewRepresentation] and waits for scenes to complete rendering. */
-  @OptIn(ExperimentalTime::class)
   suspend fun ComposePreviewRepresentation.activateAndWaitForRender(fakeUi: FakeUi) =
     withTimeout(timeout = 30.seconds) {
       onActivate()

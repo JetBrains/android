@@ -25,29 +25,18 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.popup.ComponentPopupBuilder;
-import com.intellij.openapi.ui.popup.JBPopup;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import com.intellij.ui.awt.RelativePoint;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.util.Consumer;
 import com.intellij.util.io.URLUtil;
-import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import java.awt.MouseInfo;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import javax.swing.Icon;
-import javax.swing.SwingConstants;
 import org.jetbrains.android.AndroidAnnotatorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.CompatibilityRenderTarget;
@@ -58,10 +47,6 @@ import org.jetbrains.annotations.Nullable;
  * {@link com.intellij.openapi.editor.markup.GutterIconRenderer} for Drawable resource references in XML files.
  */
 public class GutterIconRenderer extends com.intellij.openapi.editor.markup.GutterIconRenderer implements DumbAware {
-  private final static int PREVIEW_MAX_WIDTH = JBUI.scale(128);
-  private final static int PREVIEW_MAX_HEIGHT = JBUI.scale(128);
-  private final static String PREVIEW_TEXT = "Click Image to Open Resource";
-
   @NotNull private final ResourceResolver myResourceResolver;
   @NotNull private final AndroidFacet myFacet;
   @Nullable private final VirtualFile myFile;
@@ -102,7 +87,7 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
   @Override
   @Nullable
   public AnAction getClickAction() {
-    return new GutterIconClickAction(myFile, myResourceResolver, myFacet, myConfiguration);
+    return new GutterIconClickAction(myFile, myFacet, myConfiguration);
   }
 
   @Override
@@ -133,24 +118,16 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
       project.getDisposed());
   }
 
-  private static void openImageResourceTab(@NotNull Project project, @NotNull VirtualFile navigationTarget) {
-    OpenFileDescriptor descriptor = new OpenFileDescriptor(project, navigationTarget, -1);
-    FileEditorManager.getInstance(project).openEditor(descriptor, true);
-  }
-
   private class GutterIconClickAction extends AnAction implements NavigationTargetProvider {
 
     @Nullable private final VirtualFile myFile;
-    @NotNull private final ResourceResolver myResourceResolver;
     @NotNull private final AndroidFacet myFacet;
     @NotNull private final Configuration myConfiguration;
     @Nullable private VirtualFile myNavigationTarget;
     private boolean myNavigationTargetComputed;
 
-    private GutterIconClickAction(@Nullable VirtualFile file, @NotNull ResourceResolver resourceResolver, @NotNull AndroidFacet facet,
-                                  @NotNull Configuration configuration) {
+    private GutterIconClickAction(@Nullable VirtualFile file, @NotNull AndroidFacet facet, @NotNull Configuration configuration) {
       myFile = file;
-      myResourceResolver = resourceResolver;
       myFacet = facet;
       myConfiguration = configuration;
     }
@@ -183,40 +160,6 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
           return null;
         }
       );
-    }
-
-    @Nullable
-    private JBPopup createPreview(@Nullable Runnable onClick) {
-      if (myFile == null) {
-        return null;
-      }
-
-      Icon icon = GutterIconFactory.createIcon(myFile, myResourceResolver, PREVIEW_MAX_WIDTH, PREVIEW_MAX_HEIGHT, myFacet);
-
-      if (icon == null) {
-        return null;
-      }
-
-      JBLabel label = new JBLabel(icon);
-      ComponentPopupBuilder builder = JBPopupFactory.getInstance().createComponentPopupBuilder(label, null);
-      if (onClick != null) {
-        builder.setAdText(PREVIEW_TEXT, SwingConstants.CENTER);
-      }
-
-      JBPopup popup = builder.createPopup();
-
-      if (onClick != null) {
-        label.addMouseListener(new MouseAdapter() {
-          @Override
-          public void mouseClicked(MouseEvent mouseEvent) {
-            onClick.run();
-            popup.cancel();
-            label.removeMouseListener(this);
-          }
-        });
-      }
-
-      return popup;
     }
 
     @VisibleForTesting

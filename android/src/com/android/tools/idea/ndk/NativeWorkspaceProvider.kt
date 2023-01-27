@@ -57,22 +57,22 @@ interface NativeWorkspaceProvider {
 
     /** Gets additional native files that are not under any source roots for each module. */
     fun getAdditionalNativeFiles(module: Module): Set<VirtualFile> =
-      EP_NAME.extensions().flatMap {
-        it.getAdditionalNativeFiles(module).stream()
-      }.collect(Collectors.toSet())
+      EP_NAME.extensionList.asSequence().flatMap {
+        it.getAdditionalNativeFiles(module)
+      }.toSet()
 
     fun getNativeHeaderDirs(project: Project, moduleVariantAbi: ModuleVariantAbi): Set<NativeHeaderDir> =
-      EP_NAME.extensions().flatMap {
-        it.getNativeHeaderDirs(project, moduleVariantAbi).stream()
-      }.collect(Collectors.toSet())
+      EP_NAME.extensionList.asSequence().flatMap {
+        it.getNativeHeaderDirs(project, moduleVariantAbi)
+      }.toSet()
 
     fun getCompilerSettings(project: Project, filter: (ModuleVariantAbi) -> Boolean): Stream<NativeCompilerSetting> =
-      EP_NAME.extensions().asSequence().flatMap {
+      EP_NAME.extensionList.asSequence().flatMap {
         it.getCompilerSettings(project, filter).asSequence()
       }.asStream()
 
     fun shouldShowInProjectView(module: Module,
-                                file: File): Boolean = EP_NAME.extensions().anyMatch { it.shouldShowInProjectView(module, file) }
+                                file: File): Boolean = EP_NAME.extensionList.any { it.shouldShowInProjectView(module, file) }
   }
 
   /** Gets additional native files that are not under any source roots for each module. */

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -38,10 +39,15 @@ import com.intellij.execution.RunManagerEx
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.roots.ModuleRootManagerEx
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.closeProjectAsync
+import com.intellij.testFramework.runInEdtAndWait
+import org.gradle.util.GradleVersion
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
@@ -258,5 +264,27 @@ class OpenProjectIntegrationTest {
       val secondSync = project.saveAndDump()
       assertThat(firstSync).isEqualTo(secondSync)
     }
+  }
+
+  @Test
+  fun testGradleVersionAfterClose() {
+    val preparedProjectA = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION, name = "A")
+    val preparedProjectB = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION_PLUGINS_DSL, name = "B")
+    val syncResult = preparedProjectA.open { A ->
+      preparedProjectB.open { B ->
+        runInEdtAndWait {
+          ProjectManager.getInstance().closeAndDispose(A)
+        }
+        B.requestSyncAndWait()
+        val wrapper = GradleWrapper.find(B)!!
+        wrapper.updateDistributionUrl(GradleVersion.version("7.999"))
+
+        syncProject(B, GradleSyncInvoker.Request.testRequest()) {
+          // Do not check status.
+        }
+        B.getProjectSystem().getSyncManager().getLastSyncResult()
+      }
+    }
+    assertThat(syncResult).isEqualTo(ProjectSystemSyncManager.SyncResult.FAILURE)
   }
 }

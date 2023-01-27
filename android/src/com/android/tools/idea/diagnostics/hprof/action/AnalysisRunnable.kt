@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.diagnostics.hprof.action
 
+import com.android.tools.idea.diagnostics.HEAP_REPORTS_DIR
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter
 import com.android.tools.idea.diagnostics.hprof.analysis.HProfAnalysis
 import com.android.tools.idea.diagnostics.hprof.util.HeapDumpAnalysisNotificationGroup
@@ -59,8 +60,6 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextArea
 import javax.swing.event.HyperlinkEvent
-
-const val HEAP_REPORTS_DIR = "heapReports"
 
 class AnalysisRunnable(val report: UnanalyzedHeapReport,
                        private val deleteAfterAnalysis: Boolean) : Runnable {

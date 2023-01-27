@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lint.common;
 
+import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiDocumentManager;
@@ -82,6 +83,11 @@ public class AndroidQuickfixContexts {
       myFile = file;
     }
 
+    @Nullable
+    public PsiFile getFile() {
+      return myFile;
+    }
+
     @NotNull
     public Editor getEditor() {
       return myEditor;
@@ -89,7 +95,7 @@ public class AndroidQuickfixContexts {
 
     @Override
     public @Nullable Editor getEditor(@NotNull PsiFile file) {
-      if (file == myFile) {
+      if (isPreviewFile(file)) {
         return myEditor;
       }
       return super.getEditor(file);
@@ -98,10 +104,15 @@ public class AndroidQuickfixContexts {
     @Override
     @Nullable
     public Document getDocument(@NotNull PsiFile file) {
-      if (file == myFile) {
+      if (isPreviewFile(file)) {
         return myEditor.getDocument();
       }
       return super.getDocument(file);
+    }
+
+    private boolean isPreviewFile(@NotNull PsiFile file) {
+      return file == myFile ||
+             myFile != null && IntentionPreviewUtils.isIntentionPreviewActive() && file.getName().equals(myFile.getName());
     }
 
     @NotNull

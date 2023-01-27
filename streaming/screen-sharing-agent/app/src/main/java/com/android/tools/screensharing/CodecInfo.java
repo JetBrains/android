@@ -2,15 +2,21 @@ package com.android.tools.screensharing;
 
 import static android.media.MediaCodecList.REGULAR_CODECS;
 
+import static java.lang.Math.min;
+
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecInfo.VideoCapabilities;
+import android.media.MediaCodecInfo.VideoCapabilities.PerformancePoint;
 import android.media.MediaCodecList;
+import android.os.Build.VERSION;
+import android.util.Log;
 import android.util.Range;
+import java.util.List;
 
 /**
  * Basic codec information and a static method to select a video encoder.
  * This code is in Java because NDK doesn't provide access to {@link MediaCodecList} and
- * {@link MediaCodecInfo}.
+ * {@link MediaCodecInfo}. Used from native code.
  */
 public class CodecInfo {
   public final String name;
@@ -55,5 +61,53 @@ public class CodecInfo {
     }
 
     return null;
+  }
+
+  /**
+   * Returns diagnostic information for the specified video encoder and video dimensions.
+   */
+  public static String getVideoEncoderDetails(String codecName, String mimeType, int width, int height) {
+    for (MediaCodecInfo codecInfo : new MediaCodecList(REGULAR_CODECS).getCodecInfos()) {
+      if (codecInfo.getName().equals(codecName)) {
+        VideoCapabilities videoCapabilities = codecInfo.getCapabilitiesForType(mimeType).getVideoCapabilities();
+        if (videoCapabilities == null) {
+          return codecName + " is not a video encoder";
+        }
+        Range<Integer> heights = videoCapabilities.getSupportedHeights();
+        Range<Integer> widths = videoCapabilities.getSupportedWidths();
+        int maxWidth = widths.getUpper();
+        int maxHeight = heights.getUpper();
+        StringBuilder result = new StringBuilder();
+        result.append("encoder: ").append(codecInfo.getName());
+        result.append("\nmime type: ").append(mimeType);
+        if (VERSION.SDK_INT >= 29) {
+          if (codecInfo.isHardwareAccelerated()) {
+            result.append(codecInfo.isHardwareAccelerated() ? " hardware accelerated" : " not hardware accelerated");
+          }
+        }
+        result.append("\nmax resolution: ").append(maxWidth).append("x").append(maxHeight);
+        result.append("\nmin resolution: ").append(widths.getLower()).append("x").append(heights.getLower());
+        result.append("\nalignment: ")
+            .append(videoCapabilities.getWidthAlignment()).append("x").append(videoCapabilities.getHeightAlignment());
+        result.append("\nmax frame rate: ").append(videoCapabilities.getSupportedFrameRates().getUpper());
+        double scale = min(1.0, min((double) maxWidth / width, (double) maxHeight / height));
+        width = (int) Math.round(width * scale);
+        height = (int) Math.round(height * scale);
+        result.append("\nmax frame rate for ").append(width).append('x').append(height).append(": ")
+            .append((int) Math.round(videoCapabilities.getSupportedFrameRatesFor(width, height).getUpper()));
+        result.append("\nmax bitrate: ").append(videoCapabilities.getBitrateRange().getUpper());
+        if (VERSION.SDK_INT >= 29) {
+          List<PerformancePoint> performancePoints = videoCapabilities.getSupportedPerformancePoints();
+          if (performancePoints != null) {
+            result.append("\nperformance points:");
+            for (PerformancePoint point : performancePoints) {
+              result.append("\n  ").append(point);
+            }
+          }
+        }
+        return result.toString();
+      }
+    }
+    return "Could not find " + codecName;
   }
 }

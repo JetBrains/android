@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 8.0.0-dev">
+<issues format="5" by="lint 8.1.0-dev">
 
     <issue
         id="AvoidByLazy"
         message="Avoid `by lazy` for simple lazy initialization">
-      <location
-          file="src/com/android/tools/idea/configurations/AdditionalDeviceService.kt"
-          line="43"/>
+        <location
+            file="src/com/android/tools/idea/configurations/AdditionalDeviceService.kt"
+            line="43"/>
     </issue>
 
     <issue
@@ -132,65 +132,65 @@
     <issue
         id="AvoidByLazy"
         message="Avoid `by lazy` for simple lazy initialization">
-      <location
-          file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
-          line="212"/>
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="212"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
         message="Avoid `by lazy` for simple lazy initialization">
-      <location
-          file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
-          line="212"/>
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="212"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
         message="Avoid `by lazy` for simple lazy initialization">
-      <location
-          file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
-          line="212"/>
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="212"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
         message="Avoid `by lazy` for simple lazy initialization">
-      <location
-          file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
-          line="212"/>
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="212"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
         message="Avoid `by lazy` for simple lazy initialization">
-      <location
-          file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
-          line="215"/>
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="215"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
         message="Avoid `by lazy` for simple lazy initialization">
-      <location
-          file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
-          line="215"/>
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="215"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
         message="Avoid `by lazy` for simple lazy initialization">
-      <location
-          file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
-          line="215"/>
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="215"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
         message="Avoid `by lazy` for simple lazy initialization">
-      <location
-          file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
-          line="215"/>
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="215"/>
     </issue>
 
     <issue
@@ -332,65 +332,65 @@
     <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-      <location
-          file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
-          line="51"/>
+        <location
+            file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
+            line="51"/>
     </issue>
 
     <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-      <location
-          file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
-          line="52"/>
+        <location
+            file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
+            line="52"/>
     </issue>
 
     <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-      <location
-          file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
-          line="65"/>
+        <location
+            file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
+            line="65"/>
     </issue>
 
     <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-      <location
-          file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
-          line="66"/>
+        <location
+            file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
+            line="66"/>
     </issue>
 
     <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-      <location
-          file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
-          line="67"/>
+        <location
+            file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
+            line="67"/>
     </issue>
 
     <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-      <location
-          file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
-          line="68"/>
+        <location
+            file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
+            line="68"/>
     </issue>
 
     <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-      <location
-          file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
-          line="69"/>
+        <location
+            file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
+            line="69"/>
     </issue>
 
     <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-      <location
-          file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
-          line="70"/>
+        <location
+            file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
+            line="70"/>
     </issue>
 
     <issue
@@ -415,22 +415,6 @@
         <location
             file="src/com/android/tools/idea/rendering/GutterIconCache.java"
             line="40"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-      <location
-          file="src/com/android/tools/idea/rendering/GutterIconRenderer.java"
-          line="61"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-      <location
-          file="src/com/android/tools/idea/rendering/GutterIconRenderer.java"
-          line="62"/>
     </issue>
 
     <issue
@@ -502,14 +486,6 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/explorer/ResourceExplorerToolbar.kt"
-            line="60"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcemanager/explorer/ResourceExplorerToolbar.kt"
             line="61"/>
     </issue>
 
@@ -526,7 +502,15 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/explorer/ResourceExplorerToolbar.kt"
-            line="64"/>
+            line="63"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/explorer/ResourceExplorerToolbar.kt"
+            line="65"/>
     </issue>
 
     <issue
@@ -628,65 +612,65 @@
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
-      <location
-          file="src/com/android/tools/idea/configurations/DeviceMenuAction2.kt"
-          line="231"/>
+        <location
+            file="src/com/android/tools/idea/configurations/DeviceMenuAction2.kt"
+            line="231"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
-      <location
-          file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
-          line="138"/>
+        <location
+            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
+            line="137"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
-      <location
-          file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
-          line="152"/>
+        <location
+            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
+            line="151"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
-      <location
-          file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
-          line="310"/>
+        <location
+            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
+            line="309"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
-      <location
-          file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
-          line="572"/>
+        <location
+            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
+            line="573"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
-      <location
-          file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
-          line="575"/>
+        <location
+            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
+            line="576"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
-      <location
-          file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
-          line="578"/>
+        <location
+            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
+            line="579"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
-      <location
-          file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
-          line="581"/>
+        <location
+            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
+            line="582"/>
     </issue>
 
     <issue
@@ -716,25 +700,25 @@
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
-      <location
-          file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
-          line="280"/>
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="280"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
-      <location
-          file="src/org/jetbrains/android/uipreview/ModuleClassLoaderUtil.kt"
-          line="371"/>
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderUtil.kt"
+            line="368"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
-      <location
-          file="src/com/android/tools/idea/rendering/classloading/loaders/ProjectSystemClassLoader.kt"
-          line="87"/>
+        <location
+            file="src/com/android/tools/idea/rendering/classloading/loaders/ProjectSystemClassLoader.kt"
+            line="87"/>
     </issue>
 
     <issue
@@ -806,7 +790,7 @@
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/model/MergedManifestInfo.java"
-            line="358"/>
+            line="399"/>
     </issue>
 
     <issue
@@ -814,15 +798,15 @@
         message="Avoid using common ForkJoinPool, directly or indirectly (for example via CompletableFuture). It has a limited set of threads on some machines which leads to hangs. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/fonts/MoreFontsDialog.java"
-            line="428"/>
+            line="429"/>
     </issue>
 
     <issue
         id="ImplicitExecutor"
         message="Use `runAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
-      <location
-          file="src/com/android/tools/idea/diagnostics/hprof/action/AnalysisRunnable.kt"
-          line="100"/>
+        <location
+            file="src/com/android/tools/idea/diagnostics/hprof/action/AnalysisRunnable.kt"
+            line="99"/>
     </issue>
 
     <issue
@@ -852,9 +836,9 @@
     <issue
         id="ImplicitExecutor"
         message="Use `whenCompleteAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
-      <location
-          file="src/com/android/tools/idea/rendering/RenderTask.java"
-          line="801"/>
+        <location
+            file="src/com/android/tools/idea/rendering/RenderTask.java"
+            line="810"/>
     </issue>
 
     <issue

@@ -214,7 +214,7 @@ public class RenderTestUtil {
                                     @NotNull VirtualFile file,
                                     @NotNull Configuration configuration) {
     RenderService renderService = RenderService.getInstance(facet.getModule().getProject());
-    return createRenderTask(facet, file, configuration, renderService.createLogger(facet), RenderingPriority.HIGH);
+    return createRenderTask(facet, file, configuration, renderService.createLogger(facet.getModule()), RenderingPriority.HIGH);
   }
 
   public static void withRenderTask(@NotNull AndroidFacet facet,
@@ -222,7 +222,7 @@ public class RenderTestUtil {
                                      @NotNull Configuration configuration,
                                      @NotNull Consumer<RenderTask> f) {
     RenderService renderService = RenderService.getInstance(facet.getModule().getProject());
-    withRenderTask(facet, file, configuration, renderService.createLogger(facet), f);
+    withRenderTask(facet, file, configuration, renderService.createLogger(facet.getModule()), f);
   }
 
   public static void withRenderTask(@NotNull AndroidFacet facet,
@@ -231,7 +231,7 @@ public class RenderTestUtil {
                                     boolean enableLayoutScanner,
                                     @NotNull Consumer<RenderTask> f) {
     RenderService renderService = RenderService.getInstance(facet.getModule().getProject());
-    withRenderTask(facet, file, configuration, renderService.createLogger(facet), f, enableLayoutScanner);
+    withRenderTask(facet, file, configuration, renderService.createLogger(facet.getModule()), f, enableLayoutScanner);
   }
 
   public static void withRenderTask(@NotNull AndroidFacet facet,

@@ -37,92 +37,105 @@
                        bundle="messages.AndroidBundle"
                        key="android.streaming.notification.title"/>
 
+    <keymapExtension implementation="com.android.tools.idea.streaming.actions.StreamingKeymapExtension"/>
     <projectService serviceImplementation="com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel$MultiDisplayStateStorage" />
   </extensions>
 
   <actions>
-    <group id="EmulatorToolbar">
-      <action id="android.emulator.power.button" class="com.android.tools.idea.streaming.emulator.actions.EmulatorPowerButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.POWER" text="Power" description="Press the Power button"/>
-      <action id="android.emulator.volume.up.button" class="com.android.tools.idea.streaming.emulator.actions.EmulatorVolumeUpButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.VOLUME_UP" text="Volume Up" description="Press the Volume Up button"/>
-      <action id="android.emulator.volume.down.button" class="com.android.tools.idea.streaming.emulator.actions.EmulatorVolumeDownButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.VOLUME_DOWN" text="Volume Down" description="Press the Volume Down button"/>
-      <action id="android.emulator.rotate.left" class="com.android.tools.idea.streaming.emulator.actions.EmulatorRotateAction$Left"
-              icon="StudioIcons.Emulator.Toolbar.ROTATE_LEFT" text="Rotate Left" description="Rotate counterclockwise by 90 degrees"/>
-      <action id="android.emulator.rotate.right" class="com.android.tools.idea.streaming.emulator.actions.EmulatorRotateAction$Right"
-              icon="StudioIcons.Emulator.Toolbar.ROTATE_RIGHT" text="Rotate Right" description="Rotate clockwise by 90 degrees"/>
+    <group id="Streaming">
+      <action id="android.device.power.button" class="com.android.tools.idea.streaming.actions.StreamingPowerButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.POWER" text="Power" description="Press the Power button of the device"/>
+      <action id="android.device.volume.up.button" class="com.android.tools.idea.streaming.actions.StreamingVolumeUpButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.VOLUME_UP" text="Volume Up" description="Press the Volume Up button of the device"/>
+      <action id="android.device.volume.down.button" class="com.android.tools.idea.streaming.actions.StreamingVolumeDownButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.VOLUME_DOWN" text="Volume Down" description="Press the Volume Down button of the device"/>
+      <action id="android.device.rotate.left" class="com.android.tools.idea.streaming.actions.StreamingRotateAction$Left"
+              icon="StudioIcons.Emulator.Toolbar.ROTATE_LEFT" text="Rotate Left" description="Rotate the device counterclockwise by 90 degrees"/>
+      <action id="android.device.rotate.right" class="com.android.tools.idea.streaming.actions.StreamingRotateAction$Right"
+              icon="StudioIcons.Emulator.Toolbar.ROTATE_RIGHT" text="Rotate Right" description="Rotate the device clockwise by 90 degrees"/>
       <action id="android.emulator.folding.controls" class="com.android.tools.idea.streaming.emulator.actions.EmulatorShowFoldingControlsAction"
-              icon="StudioIcons.Emulator.Toolbar.FOLD" text="Fold/Unfold" description="Show folding controls"/>
-      <action id="android.emulator.wear1.button" class="com.android.tools.idea.streaming.emulator.actions.EmulatorWear1ButtonAction"
-              icon="StudioIcons.Emulator.Wear.BUTTON_1" text="Button 1" description="Press the first button"/>
-      <action id="android.emulator.wear2.button" class="com.android.tools.idea.streaming.emulator.actions.EmulatorWear2ButtonAction"
-              icon="StudioIcons.Emulator.Wear.BUTTON_2" text="Button 2" description="Press the second button"/>
-      <action id="android.emulator.sleep" class="com.android.tools.idea.streaming.emulator.actions.EmulatorPalmAction"
-              icon="StudioIcons.Emulator.Wear.PALM" text="Palm" description="Simulate the Palm gesture"/>
+              icon="StudioIcons.Emulator.Toolbar.FOLD" text="Fold/Unfold" description="Show folding controls for the device"/>
+      <action id="android.device.wear1.button" class="com.android.tools.idea.streaming.actions.StreamingWear1ButtonAction"
+              icon="StudioIcons.Emulator.Wear.BUTTON_1" text="Button 1" description="Press the first button of the device"/>
+      <action id="android.device.wear2.button" class="com.android.tools.idea.streaming.actions.StreamingWear2ButtonAction"
+              icon="StudioIcons.Emulator.Wear.BUTTON_2" text="Button 2" description="Press the second button of the device"/>
+      <action id="android.device.sleep" class="com.android.tools.idea.streaming.actions.StreamingPalmAction"
+              icon="StudioIcons.Emulator.Wear.PALM" text="Palm" description="Simulate the Palm gesture for the device"/>
       <action id="android.emulator.tilt" class="com.android.tools.idea.streaming.emulator.actions.EmulatorTiltAction"
-              icon="StudioIcons.Emulator.Wear.TILT" text="Tilt" description="Simulate the Tilt gesture"/>
-      <action id="android.emulator.back.button" class="com.android.tools.idea.streaming.emulator.actions.EmulatorBackButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.BACK" text="Back" description="Press the Back button"/>
-      <action id="android.emulator.home.button" class="com.android.tools.idea.streaming.emulator.actions.EmulatorHomeButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.HOME" text="Home" description="Press the Home button"/>
-      <action id="android.emulator.overview.button" class="com.android.tools.idea.streaming.emulator.actions.EmulatorOverviewButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.OVERVIEW" text="Overview" description="Press the Overview button"/>
-      <action id="android.emulator.screenshot" class="com.android.tools.idea.streaming.emulator.actions.EmulatorScreenshotAction"
-              icon="StudioIcons.Emulator.Toolbar.SCREENSHOT" text="Take Screenshot" description="Obtain a screenshot from the device"/>
-      <action id="android.emulator.screen.record" class="com.android.tools.idea.ui.screenrecording.ScreenRecorderAction"
-              icon="StudioIcons.Common.VIDEO_CAPTURE" text="Record Screen" description="Record a video of the device display"/>
-      <group id="android.emulator.display.mode" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeActionGroup"
-              text="Display Mode" description="Select display mode" popup="true">
-        <action id="android.emulator.display.mode.phone" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeAction$Phone"
-                icon="StudioIcons.Emulator.Menu.MODE_PHONE" text="Phone" description="Change display size to match a typical phone"/>
-        <action id="android.emulator.display.mode.foldable" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeAction$Foldable"
-                icon="StudioIcons.Emulator.Menu.MODE_FOLDABLE" text="Unfolded Foldable"
-                description="Change display size to match a typical foldable"/>
-        <action id="android.emulator.display.mode.tablet" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeAction$Tablet"
-                icon="StudioIcons.Emulator.Menu.MODE_TABLET" text="Tablet" description="Change display size to match a typical tablet"/>
-        <separator/>
-      </group>
-      <action id="android.emulator.snapshots" class="com.android.tools.idea.streaming.emulator.actions.EmulatorManageSnapshotsAction"
-              icon="StudioIcons.Emulator.Toolbar.SNAPSHOTS" text="Snapshots" description="Create, load, rename or delete snapshots"/>
-      <action id="android.emulator.extended.controls" class="com.android.tools.idea.streaming.emulator.actions.EmulatorShowExtendedControlsAction"
-              icon="AllIcons.Actions.More" text="Extended Controls" description="Show extended controls"/>
-    </group>
-    <group id="DeviceToolbar">
-      <action id="android.device.power.button" class="com.android.tools.idea.streaming.device.actions.DevicePowerButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.POWER" text="Power" description="Press the Power button"/>
-      <action id="android.device.volume.up.button" class="com.android.tools.idea.streaming.device.actions.DeviceVolumeUpButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.VOLUME_UP" text="Volume Up" description="Press the Volume Up button"/>
-      <action id="android.device.volume.down.button" class="com.android.tools.idea.streaming.device.actions.DeviceVolumeDownButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.VOLUME_DOWN" text="Volume Down" description="Press the Volume Down button"/>
-      <action id="android.device.rotate.left" class="com.android.tools.idea.streaming.device.actions.DeviceRotateAction$Left"
-              icon="StudioIcons.Emulator.Toolbar.ROTATE_LEFT" text="Rotate Left" description="Rotate counterclockwise by 90 degrees"/>
-      <action id="android.device.rotate.right" class="com.android.tools.idea.streaming.device.actions.DeviceRotateAction$Right"
-              icon="StudioIcons.Emulator.Toolbar.ROTATE_RIGHT" text="Rotate Right" description="Rotate clockwise by 90 degrees"/>
-      <action id="android.device.wear1.button" class="com.android.tools.idea.streaming.device.actions.DeviceWear1ButtonAction"
-              icon="StudioIcons.Emulator.Wear.BUTTON_1" text="Button 1" description="Press the first button"/>
-      <action id="android.device.wear2.button" class="com.android.tools.idea.streaming.device.actions.DeviceWear2ButtonAction"
-              icon="StudioIcons.Emulator.Wear.BUTTON_2" text="Button 2" description="Press the second button"/>
-      <action id="android.device.sleep" class="com.android.tools.idea.streaming.device.actions.DevicePalmAction"
-              icon="StudioIcons.Emulator.Wear.PALM" text="Palm" description="Simulate the Palm gesture"/>
-      <action id="android.device.back.button" class="com.android.tools.idea.streaming.device.actions.DeviceBackButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.BACK" text="Back" description="Press the Back button"/>
-      <action id="android.device.home.button" class="com.android.tools.idea.streaming.device.actions.DeviceHomeButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.HOME" text="Home" description="Press the Home button"/>
-      <action id="android.device.overview.button" class="com.android.tools.idea.streaming.device.actions.DeviceOverviewButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.OVERVIEW" text="Overview" description="Press the Overview button"/>
-      <action id="android.device.screenshot" class="com.android.tools.idea.ui.screenshot.ScreenshotAction"
+              icon="StudioIcons.Emulator.Wear.TILT" text="Tilt" description="Simulate the Tilt gesture for the device"/>
+      <action id="android.device.back.button" class="com.android.tools.idea.streaming.actions.StreamingBackButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.BACK" text="Back" description="Press the Back button of the device"/>
+      <action id="android.device.home.button" class="com.android.tools.idea.streaming.actions.StreamingHomeButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.HOME" text="Home" description="Press the Home button of the device"/>
+      <action id="android.device.overview.button" class="com.android.tools.idea.streaming.actions.StreamingOverviewButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.OVERVIEW" text="Overview" description="Press the Overview button of the device"/>
+      <action id="android.device.screenshot" class="com.android.tools.idea.streaming.actions.StreamingScreenshotAction"
               icon="StudioIcons.Emulator.Toolbar.SCREENSHOT" text="Take Screenshot" description="Obtain a screenshot from the device"/>
       <action id="android.device.screen.record" class="com.android.tools.idea.ui.screenrecording.ScreenRecorderAction"
               icon="StudioIcons.Common.VIDEO_CAPTURE" text="Record Screen" description="Record a video of the device display"/>
+      <action id="android.emulator.display.mode.phone" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeAction$Phone"
+              icon="StudioIcons.Emulator.Menu.MODE_PHONE" text="Phone" description="Change display size to match a typical phone"/>
+      <action id="android.emulator.display.mode.foldable" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeAction$Foldable"
+              icon="StudioIcons.Emulator.Menu.MODE_FOLDABLE" text="Unfolded Foldable"
+              description="Change display size to match a typical foldable"/>
+      <action id="android.emulator.display.mode.tablet" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeAction$Tablet"
+              icon="StudioIcons.Emulator.Menu.MODE_TABLET" text="Tablet" description="Change display size to match a typical tablet"/>
+      <action id="android.emulator.snapshots" class="com.android.tools.idea.streaming.emulator.actions.EmulatorManageSnapshotsAction"
+              icon="StudioIcons.Emulator.Toolbar.SNAPSHOTS" text="Snapshots" description="Create, load, rename or delete emulator snapshots"/>
+      <action id="android.emulator.extended.controls" class="com.android.tools.idea.streaming.emulator.actions.EmulatorShowExtendedControlsAction"
+              icon="AllIcons.Actions.More" text="Extended Controls" description="Show emulator extended controls"/>
     </group>
-    <group id="StreamingToolbarSecondary">
-      <action id="android.emulator.liveedit.status" class="com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup"/>
-    </group>
-    <action internal="true" id="Android.Streaming.Benchmark" icon="StudioIcons.Shell.Menu.PROFILER"
-            class="com.android.tools.idea.streaming.benchmark.StreamingBenchmarkAction" text="Benchmark Streaming Device"
-            description="Benchmark embedded emulator or mirroring of physical device">
+    <action id="android.streaming.benchmark" class="com.android.tools.idea.streaming.benchmark.StreamingBenchmarkAction"
+            icon="StudioIcons.Shell.Menu.PROFILER" text="Benchmark Streaming Device"
+            description="Benchmark embedded emulator or mirroring of physical device" internal="true">
       <add-to-group group-id="Internal.Android"/>
     </action>
+
+    <group id="StreamingToolbarVirtualDevice">
+      <reference ref="android.device.power.button"/>
+      <reference ref="android.device.volume.up.button"/>
+      <reference ref="android.device.volume.down.button"/>
+      <reference ref="android.device.rotate.left"/>
+      <reference ref="android.device.rotate.right"/>
+      <reference ref="android.emulator.folding.controls"/>
+      <reference ref="android.device.wear1.button"/>
+      <reference ref="android.device.wear2.button"/>
+      <reference ref="android.device.sleep"/>
+      <reference ref="android.emulator.tilt"/>
+      <reference ref="android.device.back.button"/>
+      <reference ref="android.device.home.button"/>
+      <reference ref="android.device.overview.button"/>
+      <reference ref="android.device.screenshot"/>
+      <reference ref="android.device.screen.record"/>
+      <group id="android.emulator.display.mode" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeActionGroup"
+              text="Display Mode" description="Select display mode" popup="true">
+        <reference ref="android.emulator.display.mode.phone"/>
+        <reference ref="android.emulator.display.mode.foldable"/>
+        <reference ref="android.emulator.display.mode.tablet"/>
+        <separator/>
+      </group>
+      <reference ref="android.emulator.snapshots"/>
+      <reference ref="android.emulator.extended.controls"/>
+    </group>
+
+    <group id="StreamingToolbarPhysicalDevice">
+      <reference ref="android.device.power.button"/>
+      <reference ref="android.device.volume.up.button"/>
+      <reference ref="android.device.volume.down.button"/>
+      <reference ref="android.device.rotate.left"/>
+      <reference ref="android.device.rotate.right"/>
+      <reference ref="android.device.wear1.button"/>
+      <reference ref="android.device.wear2.button"/>
+      <reference ref="android.device.sleep"/>
+      <reference ref="android.device.back.button"/>
+      <reference ref="android.device.home.button"/>
+      <reference ref="android.device.overview.button"/>
+      <reference ref="android.device.screenshot"/>
+      <reference ref="android.device.screen.record"/>
+    </group>
+
+    <group id="StreamingToolbarSecondary">
+      <action id="android.device.liveedit.status" class="com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup"/>
+    </group>
   </actions>
 </idea-plugin>

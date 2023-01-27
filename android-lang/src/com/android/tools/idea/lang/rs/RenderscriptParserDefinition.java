@@ -26,15 +26,17 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.FileViewProvider;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
 
 public class RenderscriptParserDefinition implements ParserDefinition {
-  private static final TokenSet WHITESPACE_TOKENS = TokenSet.create(TokenType.WHITE_SPACE);
-  private static final TokenSet COMMENT_TOKENS = TokenSet.create(RenderscriptTokenType.COMMENT);
-  private static final TokenSet STRING_TOKENS = TokenSet.create(RenderscriptTokenType.STRING);
+
+  private static class TokenSets {
+    static final TokenSet WHITESPACE_TOKENS = TokenSet.WHITE_SPACE;
+    static final TokenSet COMMENT_TOKENS = TokenSet.create(RenderscriptTokenType.COMMENT);
+    static final TokenSet STRING_TOKENS = TokenSet.create(RenderscriptTokenType.STRING);
+  }
 
   public static final IFileElementType FILE =
     new IFileElementType(Language.findInstance(RenderscriptLanguage.class));
@@ -60,19 +62,19 @@ public class RenderscriptParserDefinition implements ParserDefinition {
   @NotNull
   @Override
   public TokenSet getWhitespaceTokens() {
-    return WHITESPACE_TOKENS;
+    return TokenSets.WHITESPACE_TOKENS;
   }
 
   @NotNull
   @Override
   public TokenSet getCommentTokens() {
-    return COMMENT_TOKENS;
+    return TokenSets.COMMENT_TOKENS;
   }
 
   @NotNull
   @Override
   public TokenSet getStringLiteralElements() {
-    return STRING_TOKENS;
+    return TokenSets.STRING_TOKENS;
   }
 
   @NotNull

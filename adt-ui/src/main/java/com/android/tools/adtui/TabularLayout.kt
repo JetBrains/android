@@ -16,7 +16,6 @@
 package com.android.tools.adtui
 
 import com.android.annotations.concurrency.UiThread
-import com.intellij.util.ui.EdtInvocationManager
 import com.intellij.util.ui.JBUI
 import java.awt.Component
 import java.awt.Container
@@ -252,9 +251,6 @@ class TabularLayout(colSizes: Array<out SizingRule>, initialRowSizes: Array<out 
   }
 
   override fun layoutContainer(parent: Container) {
-    // Ensure parent.getComponent access is synchronous
-    assert (EdtInvocationManager.getInstance().isEventDispatchThread)
-
     val result = LayoutResult(parent)
     val colCalc = result.colCalculator
     val rowCalc = result.rowCalculator
@@ -438,9 +434,6 @@ class TabularLayout(colSizes: Array<out SizingRule>, initialRowSizes: Array<out 
     val rowCalculator: SizeCalculator
 
     init {
-      // Ensure parent.getComponent access is synchronous
-      assert (EdtInvocationManager.getInstance().isEventDispatchThread)
-
       val components = mutableListOf<Component>()
 
       var numRows = 0

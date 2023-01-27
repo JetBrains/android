@@ -29,7 +29,6 @@ import com.intellij.ui.components.JBTabbedPane
 import com.intellij.ui.components.JBTextField
 import java.awt.BorderLayout
 import javax.swing.JPanel
-import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Represents the UI for editing and creating instances of [ComposePreviewRunConfiguration] in the
@@ -86,14 +85,7 @@ class ComposePreviewSettingsEditor(
   }
 
   private fun resetComboBoxModules() {
-    modulesComboBox.setModules(
-      project.getAndroidModulesForDisplay {
-        AndroidFacet.getInstance(it)?.let { facet ->
-          return@getAndroidModulesForDisplay !facet.configuration.isLibraryProject
-        }
-        return@getAndroidModulesForDisplay false
-      }
-    )
+    modulesComboBox.setModules(project.getAndroidModulesForDisplay())
   }
 
   override fun resetEditorFrom(runConfiguration: ComposePreviewRunConfiguration) {

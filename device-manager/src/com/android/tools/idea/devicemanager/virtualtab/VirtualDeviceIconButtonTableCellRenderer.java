@@ -23,19 +23,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
 
 final class VirtualDeviceIconButtonTableCellRenderer extends IconButtonTableCellRenderer {
+  @NotNull
   @Override
-  public @NotNull Component getTableCellRendererComponent(@NotNull JTable table,
-                                                          @NotNull Object value,
-                                                          boolean selected,
-                                                          boolean focused,
-                                                          int viewRowIndex,
-                                                          int viewColumnIndex) {
+  public Component getTableCellRendererComponent(@NotNull JTable table,
+                                                 @NotNull Object value,
+                                                 boolean selected,
+                                                 boolean focused,
+                                                 int viewRowIndex,
+                                                 int viewColumnIndex) {
     myButton.setDefaultIcon(((VirtualDeviceTable)table).getDeviceAt(viewRowIndex).getIcon());
     return super.getTableCellRendererComponent(table, value, selected, focused, viewRowIndex, viewColumnIndex);
   }
 
+  @NotNull
   @VisibleForTesting
-  @NotNull IconTableCell getButton() {
+  IconTableCell getButton() {
     return myButton;
   }
 }

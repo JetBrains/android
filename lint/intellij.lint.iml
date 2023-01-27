@@ -12,6 +12,7 @@
     <orderEntry type="library" name="studio-plugin-Groovy" level="project" />
     <orderEntry type="library" name="studio-plugin-gradle-java" level="project" />
     <orderEntry type="library" name="studio-plugin-properties" level="project" />
+    <orderEntry type="library" name="studio-plugin-toml" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="android.sdktools.lint-checks" />
   </component>

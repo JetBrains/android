@@ -20,4 +20,4 @@ import com.android.tools.idea.streaming.device.AKEYCODE_BACK
 /**
  * Simulates pressing the Back button on an Android device.
  */
-internal class DeviceBackButtonAction : DeviceKeypressAction(AKEYCODE_BACK)
+internal class DeviceBackButtonAction : DevicePushButtonAction(AKEYCODE_BACK)

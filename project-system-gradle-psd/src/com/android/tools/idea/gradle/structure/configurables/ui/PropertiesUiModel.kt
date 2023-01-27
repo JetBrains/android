@@ -205,6 +205,32 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT
     hideMiniButton = true)
 }
 
+fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT, ModelPropertyCore<ValueT>>>
+  androidGradlePluginVersionViewer(
+  project: PsProject,
+  module: PsModule?,
+  model: ModelT,
+  property: ModelPropertyT,
+  variablesScope: PsVariablesScope? = null,
+  cellEditor: TableCellEditor?,
+  logValueEdited: () -> Unit
+): SimplePropertyEditor<ValueT, ModelPropertyCore<ValueT>>  {
+  val boundProperty = property.bind(model)
+  val boundContext = property.bindContext(model)
+  val noteText = "Use the AGP Upgrade Assistant to change the project's version of AGP."
+  val noteRedirectPath = "/r/studio-ui/psd/agp-upgrade-assistant"
+  return simplePropertyEditor(
+    boundProperty,
+    boundContext,
+    variablesScope,
+    boundContext.createDefaultEditorExtensions(project, module),
+    isPropertyContext = true,
+    cellEditor = cellEditor,
+    logValueEdited = logValueEdited,
+    viewOnly = true,
+    note = noteText to "https://developer.android.com/$noteRedirectPath")
+}
+
 @Suppress("UNUSED_PARAMETER")
 fun <ModelT, ValueT : Any, ModelPropertyT : ModelListProperty<ModelT, ValueT>> listPropertyEditor(
   project: PsProject,

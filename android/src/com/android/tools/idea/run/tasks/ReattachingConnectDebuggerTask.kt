@@ -19,13 +19,11 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.execution.common.debug.AndroidDebugger
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
-import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.xdebugger.impl.XDebugSessionImpl
-import org.jetbrains.concurrency.Promise
 
 
 /**
@@ -41,13 +39,15 @@ class ReattachingConnectDebuggerTask<S : AndroidDebuggerState>(
   private val masterAndroidProcessName: String,
   private var timeoutSeconds: Int) : ConnectDebuggerTask {
 
-  override fun perform(device: IDevice,
-                       applicationId: String,
-                       environment: ExecutionEnvironment,
-                       oldProcessHandler: ProcessHandler): Promise<XDebugSessionImpl> {
+  override fun perform(
+    device: IDevice,
+    applicationId: String,
+    environment: ExecutionEnvironment,
+    progressIndicator: ProgressIndicator,
+    console: ConsoleView
+  ): XDebugSessionImpl {
     val logger = Logger.getInstance(ReattachingConnectDebuggerTask::class.java)
     // Reuse the current ConsoleView to retain the UI state and not to lose test results.
-    val androidTestResultListener = oldProcessHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY) as? ConsoleView
     logger.info("Attaching Debugger")
 
     return DebugSessionStarter.attachReattachingDebuggerToStartedProcess(
@@ -58,7 +58,8 @@ class ReattachingConnectDebuggerTask<S : AndroidDebuggerState>(
       androidDebugger,
       androidDebuggerState,
       destroyRunningProcess = { },
-      androidTestResultListener,
+      progressIndicator,
+      console,
       timeoutSeconds.toLong()
     )
   }

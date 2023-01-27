@@ -49,6 +49,7 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import java.util.Arrays
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import java.util.function.Predicate
 
 private const val DEFAULT_FILENAME = "layout.xml"
 
@@ -78,6 +79,10 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
   init {
     model.addListener(object : PropertiesModelListener<NlPropertyItem> {
       override fun propertiesGenerated(model: PropertiesModel<NlPropertyItem>) {
+        updates++
+      }
+
+      override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
         updates++
       }
     })
@@ -143,6 +148,13 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
     return this
   }
 
+  fun select(condition: Predicate<NlComponent>): SupportTestUtil {
+    components.clear()
+    components.add(nlModel.find(condition)!!)
+    model.surface?.selectionModel?.setSelection(components)
+    return this
+  }
+
   fun clearSnapshots(): SupportTestUtil {
     nlModel.flattenComponents().forEach { it.snapshot = null }
     return this
@@ -195,7 +207,7 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
       return component.children.find { it.id == id }
     }
 
-    private fun createComponent(
+    protected fun createComponent(
       facet: AndroidFacet,
       fixture: CodeInsightTestFixture,
       resourceFolder: String,

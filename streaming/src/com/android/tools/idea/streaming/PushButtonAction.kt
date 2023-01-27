@@ -58,9 +58,7 @@ interface PushButtonAction : CustomComponentAction {
    * Implementations of this interface must call this method from their `actionPerformed` methods.
    */
   fun actionPerformedImpl(event: AnActionEvent) {
-    val inputEvent = event.inputEvent as? KeyEvent ?: return
-    if (inputEvent.keyCode != KeyEvent.VK_SPACE) {
-      // The action was triggered by a keyboard shortcut.
+    if (!event.isFromActionToolbar) { // Invocation from toolbar goes through buttonPressed/buttonReleased.
       buttonPressedAndReleased(event)
     }
   }

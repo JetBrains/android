@@ -21,6 +21,14 @@ PluginInfo = provider(
     },
 )
 
+IntellijInfo = provider(
+    doc = "Info about the IntelliJ SDK provided by the intellij_platform rule",
+    fields = {
+        "major_version": "The major IntelliJ version.",
+        "minor_version": "The minor IntelliJ version.",
+    },
+)
+
 # Valid types (and their corresponding channels) which can be specified
 # by the android_studio rule.
 type_channel_mappings = {
@@ -566,19 +574,9 @@ def _zip_merger(ctx, zips, overrides, out):
         mnemonic = "zipmerger",
     )
 
-def _codesign(ctx, filelist_template, entitlements, prefix, out):
-    filelist = ctx.actions.declare_file(ctx.attr.name + ".codesign.filelist")
-    ctx.actions.expand_template(
-        template = filelist_template,
-        output = filelist,
-        substitutions = {
-            "%prefix%": prefix,
-        },
-    )
-
+def _codesign(ctx, entitlements, prefix, out):
     ctx.actions.declare_file(ctx.attr.name + ".codesign.zip")
     files = [
-        ("_codesign/filelist", filelist),
         ("_codesign/entitlements.xml", entitlements),
     ]
 
@@ -668,7 +666,7 @@ def _android_studio_os(ctx, platform, out):
 
     if platform == MAC or platform == MAC_ARM:
         codesign = ctx.actions.declare_file(ctx.attr.name + ".codesign.zip")
-        _codesign(ctx, ctx.file.codesign_filelist, ctx.file.codesign_entitlements, platform_prefix, codesign)
+        _codesign(ctx, ctx.file.codesign_entitlements, platform_prefix, codesign)
         zips += [("", codesign)]
 
     _zip_merger(ctx, zips, overrides, out)
@@ -719,7 +717,6 @@ def _android_studio_impl(ctx):
 _android_studio = rule(
     attrs = {
         "codesign_entitlements": attr.label(allow_single_file = True),
-        "codesign_filelist": attr.label(allow_single_file = True),
         "compress": attr.bool(),
         "files_linux": attr.label_keyed_string_dict(allow_files = True, default = {}),
         "files_mac": attr.label_keyed_string_dict(allow_files = True, default = {}),
@@ -940,6 +937,10 @@ def _intellij_platform_impl(ctx):
         providers = [
             DefaultInfo(files = files, runfiles = runfiles),
             java_common.merge([export[JavaInfo] for export in ctx.attr.exports]),
+            IntellijInfo(
+                major_version = ctx.attr.major_version,
+                minor_version = ctx.attr.minor_version,
+            ),
         ],
         data = struct(
             files = depset([]),
@@ -965,6 +966,8 @@ def _intellij_platform_impl(ctx):
 
 _intellij_platform = rule(
     attrs = {
+        "major_version": attr.string(),
+        "minor_version": attr.string(),
         "exports": attr.label_list(providers = [JavaInfo]),
         "extra_plugins": attr.label_list(providers = [PluginInfo]),
         "data": attr.label_list(allow_files = True),
@@ -977,6 +980,7 @@ _intellij_platform = rule(
             executable = True,
         ),
     },
+    provides = [DefaultInfo, JavaInfo, IntellijInfo],
     implementation = _intellij_platform_impl,
 )
 
@@ -998,6 +1002,8 @@ def intellij_platform(
 
     _intellij_platform(
         name = name,
+        major_version = spec.major_version,
+        minor_version = spec.minor_version,
         exports = [":" + name + "_jars"],
         extra_plugins = extra_plugins,
         compress = is_release(),
@@ -1024,6 +1030,28 @@ def intellij_platform(
                 exclude = [src + "/linux/android-studio/plugins/textmate/lib/bundles/**"],
             ),
         }),
+    )
+
+    resource_jars = {
+        "mac": src + "/darwin/android-studio/Contents/lib/resources.jar",
+        "mac_arm": src + "/darwin_aarch64/android-studio/Contents/lib/resources.jar",
+        "linux": src + "/linux/android-studio/lib/resources.jar",
+        "windows": src + "/windows/android-studio/lib/resources.jar",
+    }
+    native.py_test(
+        name = name + "_version_test",
+        srcs = ["//tools/adt/idea/studio:sdk_version_test.py"],
+        main = "sdk_version_test.py",
+        tags = ["no_test_windows", "no_test_mac"],
+        data = resource_jars.values(),
+        env = {
+            "expected_major_version": spec.major_version,
+            "expected_minor_version": spec.minor_version,
+            "intellij_resource_jars": ",".join(
+                [k + "=" + "$(execpath :" + v + ")" for k, v in resource_jars.items()],
+            ),
+        },
+        deps = ["//tools/adt/idea/studio:intellij"],
     )
 
     # Expose lib/resources.jar as a separate target

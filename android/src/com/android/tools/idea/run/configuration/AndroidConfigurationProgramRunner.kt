@@ -62,7 +62,7 @@ abstract class AndroidConfigurationProgramRunner internal constructor(
   protected abstract fun canRunWithMultipleDevices(executorId: String): Boolean
   protected abstract val supportedConfigurationTypeIds: List<String>
   protected abstract fun getRunner(environment: ExecutionEnvironment,
-                                   state: RunProfileState): (ProgressIndicator) -> Promise<RunContentDescriptor>
+                                   state: RunProfileState): (ProgressIndicator) -> RunContentDescriptor
 
   override fun getRunnerId(): String = "AndroidConfigurationProgramRunner"
 
@@ -89,29 +89,30 @@ abstract class AndroidConfigurationProgramRunner internal constructor(
 
     val stats = RunStats.from(environment)
     val promise = AsyncPromise<RunContentDescriptor?>()
-    fun handleError(error: Throwable) {
-      stats.fail()
-      promise.setError(error)
-    }
 
     ProgressManager.getInstance().run(object : Task.Backgroundable(environment.project, "Launching ${runProfile.name}") {
       override fun run(indicator: ProgressIndicator) {
-
-        getRunner(environment, state)(indicator)
-          .onSuccess {
-            val processHandler = it.processHandler
-                                 ?: throw RuntimeException("AndroidConfigurationExecutor returned RunContentDescriptor without process handler")
-            AndroidSessionInfo.create(processHandler, runProfile as RunConfiguration, environment.executor.id, environment.executionTarget)
-            promise.setResult(it)
-          }
-          .onError(::handleError)
+        try {
+          val runContentDescriptor = getRunner(environment, state)(indicator)
+          val processHandler = runContentDescriptor.processHandler
+                               ?: throw RuntimeException(
+                                 "AndroidConfigurationExecutor returned RunContentDescriptor without process handler")
+          AndroidSessionInfo.create(processHandler, runProfile as RunConfiguration, environment.executor.id,
+                                    environment.executionTarget)
+          promise.setResult(runContentDescriptor)
+          stats.success()
+        }
+        catch (e: ExecutionException) {
+          promise.setError(e)
+          stats.fail()
+        }
       }
 
-      override fun onThrowable(error: Throwable) = handleError(error)
-
-      override fun onSuccess() = stats.success()
-
-      override fun onCancel() = stats.abort()
+      override fun onCancel() {
+        super.onCancel()
+        promise.setResult(null)
+        stats.abort()
+      }
     })
 
     return promise

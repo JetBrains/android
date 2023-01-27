@@ -181,7 +181,7 @@ class CoroutineUtilsTest {
     LoggedErrorProcessor.executeWith<RuntimeException>(object : LoggedErrorProcessor() {
       override fun processError(category: String, message: String, details: Array<out String>, t: Throwable?): Set<Action> {
         messages.add(message)
-        return EnumSet.noneOf(Action::class.java)
+        return Action.NONE
       }
     }) {
       val fooManager = FooManager()

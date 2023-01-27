@@ -24,6 +24,7 @@ import com.android.ddmlib.NullOutputReceiver
 import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.model.component.WearComponent
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.process.ProcessHandler
@@ -33,12 +34,10 @@ import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.ExecutionUiService
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.concurrency.AsyncPromise
-import org.jetbrains.concurrency.Promise
 import java.util.concurrent.TimeUnit
 
 internal fun ConsoleView.printShellCommand(command: String) {
@@ -119,15 +118,13 @@ internal fun checkAndroidVersionForWearDebugging(version: AndroidVersion, consol
   }
 }
 
-internal fun createRunContentDescriptor(
+internal suspend fun createRunContentDescriptor(
   processHandler: ProcessHandler,
   console: ConsoleView,
   environment: ExecutionEnvironment
-): Promise<RunContentDescriptor> {
-  val promise = AsyncPromise<RunContentDescriptor>()
+): RunContentDescriptor {
   console.attachToProcess(processHandler)
-  runInEdt {
-    promise.setResult(ExecutionUiService.getInstance().showRunContent(DefaultExecutionResult(console, processHandler), environment))
+  return withContext(uiThread) {
+    ExecutionUiService.getInstance().showRunContent(DefaultExecutionResult(console, processHandler), environment)
   }
-  return promise
 }

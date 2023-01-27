@@ -49,5 +49,5 @@ interface AndroidSqlContext {
  * Finds the [AndroidSqlContext] applicable to this [AndroidSqlFile], if known.
  */
 val AndroidSqlFile.sqlContext: AndroidSqlContext? get() {
-  return AndroidSqlContext.Provider.EP_NAME.extensions().asSequence().mapNotNull { it.getContext(this) }.firstOrNull()
+  return AndroidSqlContext.Provider.EP_NAME.extensionList.asSequence().mapNotNull { it.getContext(this) }.firstOrNull()
 }

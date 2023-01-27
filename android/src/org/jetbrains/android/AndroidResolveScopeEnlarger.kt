@@ -42,7 +42,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiClass
 import com.intellij.psi.ResolveScopeEnlarger
+import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.impl.light.LightElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.SearchScope
@@ -74,6 +76,8 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
      */
     @JvmField
     val LIGHT_CLASS_KEY: Key<Class<out LightElement>> = Key.create(::LIGHT_CLASS_KEY.qualifiedName)
+    @JvmField
+    val BACKING_CLASS: Key<SmartPsiElementPointer<PsiClass>> = Key.create(::BACKING_CLASS.qualifiedName)
     @JvmField
     val MODULE_POINTER_KEY: Key<ModulePointer> = Key.create(::MODULE_POINTER_KEY.qualifiedName)
     val AAR_ADDRESS_KEY: Key<String> = Key.create(::AAR_ADDRESS_KEY.qualifiedName)

@@ -43,6 +43,7 @@ import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.InvalidModuleException
 import org.jetbrains.kotlin.diagnostics.Severity
+import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
 import org.jetbrains.kotlin.idea.core.util.analyzeInlinedFunctions
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
@@ -54,17 +55,6 @@ import org.jetbrains.kotlin.serialization.deserialization.descriptors.Deserializ
 import org.jetbrains.kotlin.types.isPrimitiveNumberUntil
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
-
-/**
- * IR Phases to disable.
- * Because of b/265119058 we disable constant inlining to avoid the R class ids being inlined in the Live Edit
- * compilations. If inlined, the Live Editor compiler will pick up the values from the light `ModuleRClass` class.
- * Disabling this two phases will avoid them being inlined.
- */
-private val disabledIrPhases = setOf(
-  "Const1",
-  "Const2"
-)
 
 private fun handleCompilerErrors(e: Throwable) {
   // These should be rethrown as per the javadoc for ProcessCanceledException. This allows the
@@ -141,8 +131,7 @@ interface CompileScope {
                      analysisResult: AnalysisResult,
                      input: List<KtFile>,
                      module: Module,
-                     inlineClassRequest : Set<SourceInlineCandidate>?,
-                     langVersion: LanguageVersionSettings): GenerationState
+                     inlineClassRequest : Set<SourceInlineCandidate>?): GenerationState
 }
 
 private object CompileScopeImpl : CompileScope {
@@ -192,10 +181,10 @@ private object CompileScopeImpl : CompileScope {
   }
 
   override fun backendCodeGen(project: Project, analysisResult: AnalysisResult, input: List<KtFile>,  module: Module,
-                              inlineClassRequest : Set<SourceInlineCandidate>?, langVersion: LanguageVersionSettings): GenerationState {
+                              inlineClassRequest : Set<SourceInlineCandidate>?): GenerationState {
 
     val compilerConfiguration = CompilerConfiguration()
-    compilerConfiguration.languageVersionSettings = langVersion
+    compilerConfiguration.languageVersionSettings = input.first().languageVersionSettings
 
     // The Kotlin compiler is built on top of the PSI parse tree which is used in the IDE.
     // In order to support things like auto-complete when the user is still typing code, the IDE needs to be able to perform
@@ -239,16 +228,9 @@ private object CompileScopeImpl : CompileScope {
                                                          compilerConfiguration);
 
     if (useComposeIR) {
-      val phaseConfig = PhaseConfig(org.jetbrains.kotlin.backend.jvm.jvmPhases)
-      phaseConfig
-        .enabled
-        .filter { disabledIrPhases.contains(it.name) }
-        .forEach {
-          phaseConfig.switch(it, false)
-        }
       generationStateBuilder.codegenFactory(JvmIrCodegenFactory(
         compilerConfiguration,
-        phaseConfig,
+        PhaseConfig(org.jetbrains.kotlin.backend.jvm.jvmPhases),
         jvmGeneratorExtensions = object : JvmGeneratorExtensionsImpl(compilerConfiguration) {
           override fun getContainerSource(descriptor: DeclarationDescriptor): DeserializedContainerSource? {
             val psiSourceFile =

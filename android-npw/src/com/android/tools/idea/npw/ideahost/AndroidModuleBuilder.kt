@@ -60,7 +60,7 @@ class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
    */
   private var wizardAdapter: IdeaWizardDelegate? = null // null if no adapter has been instantiated
 
-  override fun getBuilderId(): String? = javaClass.name
+  override fun getBuilderId(): String = "Android"
   override fun getPresentableName(): String = AndroidBundle.message("android.wizard.module.presentable.name")
   override fun getDescription(): String = AndroidBundle.message("android.wizard.module.description")
 

@@ -20,5 +20,6 @@ import com.android.tools.idea.gradle.model.LibraryReference
 import java.io.Serializable
 
 data class IdeDependencyCoreImpl(
-  override val target: LibraryReference
+  override val target: LibraryReference,
+  override val dependencies: List<Int>?
 ) : IdeDependencyCore, Serializable

@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import com.android.sdklib.AndroidVersion
+import com.android.sdklib.AndroidVersion.VersionCodes
+import com.android.sdklib.SdkVersionInfo
+import com.android.sdklib.devices.Abi
 import com.android.tools.idea.device.Resolution
 import com.android.tools.idea.grouplayout.GroupLayout.Companion.groupLayout
 import com.intellij.openapi.ui.ComboBox
@@ -37,13 +41,13 @@ internal class DeviceAndApiPanel internal constructor() : JBPanel<DeviceAndApiPa
     val deviceDefinitionComboBox = initDeviceDefinitionComboBox()
 
     val apiLevelLabel = JBLabel("API level")
-    val apiLevelComboBox = ComboBox<Any>()
+    val apiLevelComboBox = initApiLevelComboBox()
 
     val servicesLabel = JBLabel("Services")
-    val servicesComboBox = ComboBox<Any>()
+    val servicesComboBox = ComboBox(arrayOf(Service.ANDROID_OPEN_SOURCE))
 
     val abiLabel = JBLabel("ABI")
-    val abiComboBox = ComboBox<Any>()
+    val abiComboBox = ComboBox(arrayOf(Abi.ARM64_V8A))
 
     val max = JBUIScale.scale(Short.MAX_VALUE.toInt())
 
@@ -107,9 +111,27 @@ internal class DeviceAndApiPanel internal constructor() : JBPanel<DeviceAndApiPa
                                          index: Int,
                                          selected: Boolean,
                                          focused: Boolean) {
-        append(definition.name)
-        append(" ")
-        append("${definition.size}″, ${definition.resolution}, ${definition.density} dpi", SimpleTextAttributes.GRAY_ATTRIBUTES)
+        append("${definition.name} ")
+        append("${definition.size}″, ${definition.resolution}, ${definition.density} dpi", SimpleTextAttributes.GRAYED_ATTRIBUTES)
+      }
+    }
+
+    return comboBox
+  }
+
+  private fun initApiLevelComboBox(): Component {
+    val comboBox = ComboBox(arrayOf(AndroidVersion(VersionCodes.S)))
+
+    comboBox.renderer = object : ColoredListCellRenderer<AndroidVersion>() {
+      override fun customizeCellRenderer(list: JList<out AndroidVersion>,
+                                         version: AndroidVersion,
+                                         index: Int,
+                                         selected: Boolean,
+                                         focused: Boolean) {
+        append("$version ")
+
+        append("Android ${SdkVersionInfo.getVersionString(version.apiLevel)} ${SdkVersionInfo.getCodeName(version.featureLevel)}",
+               SimpleTextAttributes.GRAYED_ATTRIBUTES)
       }
     }
 

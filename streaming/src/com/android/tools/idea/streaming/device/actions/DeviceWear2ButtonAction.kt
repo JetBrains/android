@@ -20,4 +20,4 @@ import com.android.tools.idea.streaming.device.AKEYCODE_STEM_PRIMARY
 /**
  * Simulates pressing the second button on an Android Wear physical device.
  */
-internal class DeviceWear2ButtonAction : DeviceKeypressAction(AKEYCODE_STEM_PRIMARY, configFilter = { it.isWatch })
+internal class DeviceWear2ButtonAction : DevicePushButtonAction(AKEYCODE_STEM_PRIMARY, configFilter = { it.isWatch })

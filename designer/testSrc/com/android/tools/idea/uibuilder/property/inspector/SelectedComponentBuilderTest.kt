@@ -16,15 +16,18 @@
 package com.android.tools.idea.uibuilder.property.inspector
 
 import com.android.SdkConstants
-import com.android.tools.property.panel.impl.model.util.FakeLineType
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
-import com.google.common.truth.Truth
+import com.android.tools.property.panel.impl.model.util.FakeLineType
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JLabel
 
 @RunsInEdt
 class SelectedComponentBuilderTest {
@@ -40,17 +43,41 @@ class SelectedComponentBuilderTest {
   fun testSelectedComponent() {
     val util = InspectorTestUtil(projectRule, SdkConstants.TEXT_VIEW)
     util.addProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT, NlPropertyType.STRING)
-    val builder = SelectedComponentBuilder()
+    val builder = SelectedComponentBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
-    Truth.assertThat(util.inspector.lines).hasSize(1)
-    Truth.assertThat(util.inspector.lines[0].type).isEqualTo(FakeLineType.PANEL)
+    assertThat(util.inspector.lines).hasSize(1)
+    assertThat(util.inspector.lines[0].type).isEqualTo(FakeLineType.PANEL)
   }
 
   @Test
   fun testNoProperties() {
     val util = InspectorTestUtil(projectRule, SdkConstants.TEXT_VIEW)
-    val builder = SelectedComponentBuilder()
+    val builder = SelectedComponentBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
-    Truth.assertThat(util.inspector.lines).isEmpty()
+    assertThat(util.inspector.lines).isEmpty()
+  }
+
+  @Test
+  fun testUpdateIdValue() {
+    val util = InspectorTestUtil(projectRule, SdkConstants.TEXT_VIEW)
+    util.addProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID, NlPropertyType.ID)
+    util.select { it.tagName == SdkConstants.TEXT_VIEW }
+    val builder = SelectedComponentBuilder(util.model)
+    builder.attachToInspector(util.inspector, util.properties)
+    val component = util.inspector.lines[0].component!!
+    FakeUi(component, createFakeWindow = true)
+    val idComponent = component.components[1] as JLabel
+    assertThat(idComponent.text).isEqualTo("@+id/textview")
+
+    val idProperty = util.makeProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID, NlPropertyType.ID)
+    idProperty.value = ""
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+    util.model.firePropertyValueChangeIfNeeded()
+    assertThat(idComponent.text).isEqualTo("<unnamed>")
+
+    idProperty.value = "@+id/text123"
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+    util.model.firePropertyValueChangeIfNeeded()
+    assertThat(idComponent.text).isEqualTo("@+id/text123")
   }
 }

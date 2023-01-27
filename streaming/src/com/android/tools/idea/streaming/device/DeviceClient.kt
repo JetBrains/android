@@ -91,7 +91,7 @@ internal class DeviceClient(
   internal var pushEndTime = 0L // Time when the agent push completed.
   internal var startAgentTime = 0L // Time when the command to start the agent was issued.
   internal var channelConnectedTime = 0L // Time when the channels were connected.
-  private val coroutineScope = AndroidCoroutineScope(this)
+  private val clientScope = AndroidCoroutineScope(this)
   private lateinit var controlChannel: SuspendingSocketChannel
   private lateinit var videoChannel: SuspendingSocketChannel
   private val connectionState = AtomicReference<CompletableDeferred<Unit>>()
@@ -107,7 +107,7 @@ internal class DeviceClient(
    * Asynchronously establishes connection to the screen sharing agent without activating the video stream.
    */
   fun establishAgentConnectionWithoutVideoStreamAsync() {
-    coroutineScope.launch { establishAgentConnection(Dimension(), UNKNOWN_ORIENTATION, false)}
+    clientScope.launch { establishAgentConnection(Dimension(), UNKNOWN_ORIENTATION, false)}
   }
 
   /**
@@ -153,7 +153,7 @@ internal class DeviceClient(
     @Suppress("BlockingMethodInNonBlockingContext")
     val asyncChannel = AsynchronousServerSocketChannel.open().bind(InetSocketAddress(0))
     val port = (asyncChannel.localAddress as InetSocketAddress).port
-    thisLogger().debug("Using port $port")
+    logger.debug("Using port $port")
     SuspendingServerSocketChannel(asyncChannel).use { serverSocketChannel ->
       val socketName = "screen-sharing-agent-$port"
       ClosableReverseForwarding(deviceSelector, SocketSpec.LocalAbstract(socketName), SocketSpec.Tcp(port), adb).use {
@@ -170,7 +170,7 @@ internal class DeviceClient(
     catch (e: IncorrectOperationException) {
       return // Already disposed.
     }
-    videoDecoder = VideoDecoder(videoChannel, coroutineScope, maxVideoSize).apply { start() }
+    videoDecoder = VideoDecoder(videoChannel, clientScope, maxVideoSize).apply { start() }
     videoStreamActive.set(startVideoStream)
   }
 
@@ -242,7 +242,7 @@ internal class DeviceClient(
           }
         }
         catch (e: IOException) {
-          thisLogger().warn(e)
+          logger.warn(e)
         }
       }
       try {
@@ -251,7 +251,7 @@ internal class DeviceClient(
         }
       }
       catch (e: IOException) {
-        thisLogger().warn(e)
+        logger.warn(e)
       }
       videoChannelClosed.await()
     }
@@ -289,7 +289,6 @@ internal class DeviceClient(
     }
 
     coroutineScope {
-      this@DeviceClient.thisLogger()
       // "chown shell:shell" ensures proper ownership of /data/local/tmp/.studio if adb is rooted.
       val command = "mkdir -p $DEVICE_PATH_BASE; chmod 700 $DEVICE_PATH_BASE; chown shell:shell $DEVICE_PATH_BASE"
       adb.shellAsLines(deviceSelector, command).collect {

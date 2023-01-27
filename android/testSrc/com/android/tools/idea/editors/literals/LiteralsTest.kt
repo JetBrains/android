@@ -115,17 +115,18 @@ class LiteralsTest {
   }
 
   private fun LiteralsManager.findLiteralsBlocking(root : PsiElement) = runBlocking {
-    var savedException: Throwable? = null
+    var lastResult: LiteralsManager.FindResult = LiteralsManager.FindResult.Unsupported
     repeat(3) {
-      try {
-        return@runBlocking findLiterals(root)
-      } catch (e: IndexNotReadyException) {
-        // After 223.4884.69 the visitor will throw IndexNotReadyException if in dumb mode.
-        savedException = e
-      }
+      lastResult = findLiterals(root)
+      if (lastResult is LiteralsManager.FindResult.Snapshot) return@repeat
       delay(500L * it)
     }
-    throw savedException!!
+
+    return@runBlocking when (lastResult) {
+      is LiteralsManager.FindResult.Snapshot -> (lastResult as LiteralsManager.FindResult.Snapshot).snapshot
+      is LiteralsManager.FindResult.IndexNotReady -> throw IndexNotReadyException.create()
+      is LiteralsManager.FindResult.Unsupported -> throw RuntimeException("Unsupported file type")
+    }
   }
 
   @Before

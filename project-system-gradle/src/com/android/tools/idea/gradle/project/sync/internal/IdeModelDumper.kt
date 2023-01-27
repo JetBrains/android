@@ -32,10 +32,10 @@ import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeDependenciesInfo
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeJavaCompileOptions
+import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeLintOptions
 import com.android.tools.idea.gradle.model.IdeModelSyncFile
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
-import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
 import com.android.tools.idea.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
 import com.android.tools.idea.gradle.model.IdeSigningConfig
@@ -44,20 +44,23 @@ import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant
 import com.android.tools.idea.gradle.model.IdeUnknownLibrary
-import com.android.tools.idea.gradle.model.IdeUnresolvedModuleLibrary
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.gradle.model.IdeViewBindingOptions
+import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
+import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.findCompositeBuildMapModel
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.projectsystem.isHolderModule
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.Module
@@ -96,6 +99,8 @@ fun ProjectDumper.dumpAndroidIdeModel(
         .resolveIn(project)
         ?.findCompositeBuildMapModel()
         ?.let { dump(it) }
+
+      dumpLibraryTable(project)
 
       ModuleManager.getInstance(project).modules.sortedBy { it.name }.forEach { module ->
         head("MODULE") { module.name }
@@ -156,6 +161,7 @@ fun ProjectDumper.dumpAllVariantsSyncAndroidModuleModel(androidModuleModel: Grad
     with(ideModelDumper(this)) {
       androidModuleModel.let { androidModuleModel ->
         dump(androidModuleModel.androidProject)
+        dumpLibraryTable(androidModuleModel.project)
         // Dump all the fetched Ide variants.
         head("IdeVariants")
         nest {
@@ -343,6 +349,26 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       }
     }
 
+    fun dumpLibraryTable(project: Project) {
+      // Dump library table - this allows us to just use artifact addresses while dumping the dependency graphs for each artifact
+      // It also centralizes all library information in one place.
+      DataNodeCaches.getInstance(project).cachedProjectData?.let { projectData ->
+        val libraryTable = ExternalSystemApiUtil.find(projectData, AndroidProjectKeys.IDE_LIBRARY_TABLE)
+        head("LIBRARY_TABLE")
+        nest {
+          libraryTable?.data?.let {
+            dump(it)
+          }
+        }
+      }
+    }
+
+    fun dump(libraryTable: IdeResolvedLibraryTable) {
+      libraryTable.libraries.forEach { library ->
+        modelDumper.dumpModel(projectDumper, "library", library)
+      }
+    }
+
     fun dump(compositeBuildMap: IdeCompositeBuildMap) {
       modelDumper.dumpModel(projectDumper, "CompositeBuildMap", compositeBuildMap)
     }
@@ -360,6 +386,31 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       ideAndroidArtifact.testOptions?.let { dump(it) }
       ideAndroidArtifact.abiFilters.forEach { prop("AbiFilters") { it } }
       ideAndroidArtifact.modelSyncFiles.forEach { dump(it) }
+    }
+
+    private fun dump(property: String, ideDependencies: IdeDependencies) {
+      fun IdeLibrary.toDisplayString(): String = when (this) {
+        is IdeArtifactLibrary -> artifactAddress
+        is IdeModuleLibrary -> "${buildId}-${projectPath}-${sourceSet}"
+        is IdeUnknownLibrary -> key
+      }.replaceKnownPaths()
+
+      head(property)
+      nest {
+        ideDependencies.unresolvedDependencies.forEach { dependency ->
+          ideDependencies.resolver.resolve(dependency).forEach {
+            prop("library") { it.toDisplayString() }
+          }
+          nest {
+            // All the dependencies are included in unresolvedDependencies so we only need to dump the first level of children
+            dependency.dependencies?.map { ideDependencies.unresolvedDependencies[it] }?.forEach { nestedDependency ->
+              ideDependencies.resolver.resolve(nestedDependency).forEach { lib ->
+                prop("dependency") { lib.toDisplayString() }
+              }
+            }
+          }
+        }
+      }
     }
 
     private fun dump(ideBaseArtifact: IdeBaseArtifact) {
@@ -384,8 +435,8 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       }
       head("Dependencies")
       nest {
-        modelDumper.dumpModel(this@with, "compileClasspath", ideBaseArtifact.compileClasspath.libraries.asUnordered())
-        modelDumper.dumpModel(this@with, "runtimeClasspath", ideBaseArtifact.runtimeClasspath.libraries)
+        dump("compileClasspath", ideBaseArtifact.compileClasspath)
+        dump("runtimeClasspath", ideBaseArtifact.runtimeClasspath)
       }
       val runtimeNames =
         (ideBaseArtifact.runtimeClasspath.androidLibraries + ideBaseArtifact.runtimeClasspath.javaLibraries).map { it.target.name }.toSet()

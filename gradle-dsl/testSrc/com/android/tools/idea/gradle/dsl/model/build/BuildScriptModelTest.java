@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_SCRIPT_MO
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_SCRIPT_MODEL_ADD_DEPENDENCY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_SCRIPT_MODEL_EDIT_DEPENDENCY;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_SCRIPT_MODEL_EDIT_DEPENDENCY_EXPECTED;
+
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_FROM_BUILDSCRIPT_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_FROM_BUILDSCRIPT_BLOCK_SUB;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_NOT_VISIBLE_FROM_BUILDSCRIPT_BLOCK;

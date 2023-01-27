@@ -40,13 +40,13 @@ import java.util.function.Function
 internal fun waitForClientReadyForDebug(device: IDevice,
                                         appIds: Collection<String>,
                                         pollTimeoutSeconds: Long = 15,
-                                        indicator: ProgressIndicator?): Client {
-  indicator?.text = "Waiting for processes ${appIds.joinToString()}"
+                                        indicator: ProgressIndicator): Client {
+  indicator.text = "Waiting for processes ${appIds.joinToString()}"
   Logger.getInstance("waitForClientReadyForDebug").info("Waiting for clients $appIds for $pollTimeoutSeconds seconds")
 
   val startTimeMillis = System.currentTimeMillis()
   while ((System.currentTimeMillis() - startTimeMillis) <= TimeUnit.SECONDS.toMillis(pollTimeoutSeconds)) {
-    indicator?.checkCanceled()
+    indicator.checkCanceled()
     if (!device.isOnline) {
       throw ExecutionException("Device is offline")
     }

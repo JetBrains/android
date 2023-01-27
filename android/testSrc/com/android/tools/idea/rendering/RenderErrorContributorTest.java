@@ -136,7 +136,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     assertSame(target, configuration.getRealTarget());
 
     RenderService renderService = RenderService.getInstance(myModule.getProject());
-    RenderLogger logger = renderService.createLogger(facet);
+    RenderLogger logger = renderService.createLogger(myModule);
     List<RenderErrorModel.Issue> issues = new ArrayList<>();
 
     RenderTestUtil.withRenderTask(facet, file, configuration, logger, task -> {

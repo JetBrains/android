@@ -17,14 +17,17 @@ package com.android.tools.idea.logcat.testing
 
 import com.android.adblib.DeviceState
 import com.android.adblib.DeviceState.ONLINE
+import com.android.adblib.testingutils.CoroutineTestUtils.yieldUntil
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
+import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlugin
+import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlugin.FakeDeviceHandle
 import com.android.tools.idea.logcat.devices.Device
 
 internal class TestDevice(
   val serialNumber: String,
-  val state: DeviceState,
+  private val state: DeviceState,
   private val release: String,
   private val sdk: Int,
   private val manufacturer: String = "",
@@ -36,7 +39,7 @@ internal class TestDevice(
     serialNumber.isEmulatorSerial() -> Device.createEmulator(serialNumber, state == ONLINE, release, sdk, avdName)
     else -> Device.createPhysical(serialNumber, state == ONLINE, release, sdk, manufacturer, model)
   }
-  val deviceProperties = when {
+  private val deviceProperties = when {
     serialNumber.isEmulatorSerial() -> LocalEmulatorProperties.build {
       manufacturer = this@TestDevice.manufacturer
       model = this@TestDevice.model
@@ -63,6 +66,15 @@ internal class TestDevice(
   fun withState(state: DeviceState): TestDevice =
     TestDevice(device.serialNumber, state, release, sdk, manufacturer, model, avdName)
 
+  suspend fun addDevice(plugin: FakeAdbDeviceProvisionerPlugin): FakeDeviceHandle {
+    val handle = plugin.newDevice(serialNumber, deviceProperties)
+    plugin.addDevice(handle)
+    if (state == ONLINE) {
+      handle.activationAction.activate()
+      yieldUntil { handle.state.connectedDevice != null }
+    }
+    return handle
+  }
 }
 
 // Emulator can have a blank serial when it's offline

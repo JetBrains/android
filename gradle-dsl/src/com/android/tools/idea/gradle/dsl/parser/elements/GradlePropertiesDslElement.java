@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Predicates;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +63,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     e -> e.myElement.getElementType() == PropertyType.VARIABLE;
   // This filter currently gives us everything that is not a variable.
   @NotNull private final static Predicate<ElementList.ElementItem> PROPERTY_FILTER = VARIABLE_FILTER.negate();
-  @NotNull private final static Predicate<ElementList.ElementItem> ANY_FILTER = e -> true;
+  @NotNull private final static Predicate<ElementList.ElementItem> ANY_FILTER = Predicates.alwaysTrue();
 
   @NotNull public final ElementList myProperties = new ElementList();
 

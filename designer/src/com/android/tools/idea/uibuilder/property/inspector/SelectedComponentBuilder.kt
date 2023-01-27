@@ -18,9 +18,13 @@ package com.android.tools.idea.uibuilder.property.inspector
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.TAG_DEEP_LINK
+import com.android.tools.adtui.model.stdui.ValueChangedListener
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
+import com.android.tools.property.panel.api.PropertiesModel
+import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.panel.api.SelectedComponentModel
 import com.android.tools.property.panel.api.SelectedComponentPanel
@@ -32,7 +36,7 @@ import javax.swing.Icon
 private const val UNNAMED_COMPONENT = "<unnamed>"
 private const val MULTIPLE_COMPONENTS = "<multiple>"
 
-class SelectedComponentBuilder : InspectorBuilder<NlPropertyItem> {
+class SelectedComponentBuilder(private val model: NlPropertiesModel) : InspectorBuilder<NlPropertyItem> {
   private val hiddenTags = setOf(TAG_DEEP_LINK, TAG_ARGUMENT)
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
@@ -45,28 +49,47 @@ class SelectedComponentBuilder : InspectorBuilder<NlPropertyItem> {
       return
     }
 
-    val idProperty = properties.getOrNull(ANDROID_URI, ATTR_ID)
-    val idValue: String
     val iconValue: Icon?
     val qualifiedTagName: String
     if (components.size == 1) {
-      idValue = idProperty?.value.nullize() ?: UNNAMED_COMPONENT
       iconValue = components[0].mixin?.icon ?: StudioIcons.LayoutEditor.Palette.VIEW
       qualifiedTagName = components[0].tagName
     }
     else {
-      idValue = MULTIPLE_COMPONENTS
       // TODO: Get another icon for multiple components
       iconValue = StudioIcons.LayoutEditor.Palette.VIEW_SWITCHER
       qualifiedTagName = ""
     }
     val tagName = qualifiedTagName.substring(qualifiedTagName.lastIndexOf('.') + 1)
-    val model = object : SelectedComponentModel {
-      override val id = idValue
+    val selectedComponentModel = object : SelectedComponentModel {
+      private var lastId: String? = null
+      private var currentListener: ValueChangedListener? = null
+      val modelListener = object : PropertiesModelListener<NlPropertyItem> {
+        override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
+          val newId = id
+          if (newId != lastId) {
+            lastId = newId
+            currentListener?.valueChanged()
+          }
+        }
+      }
+      override val id: String
+        get() {
+          return if (components.size == 1) model.properties.getOrNull(ANDROID_URI, ATTR_ID)?.value.nullize() ?: UNNAMED_COMPONENT
+          else MULTIPLE_COMPONENTS
+        }
       override val icon = iconValue
       override val description = tagName
+      override fun addValueChangedListener(listener: ValueChangedListener) {
+        currentListener = listener
+        model.addListener(modelListener)
+      }
+      override fun removeValueChangedListener(listener: ValueChangedListener) {
+        currentListener = null
+        model.removeListener(modelListener)
+      }
     }
-    val panel = SelectedComponentPanel(model)
+    val panel = SelectedComponentPanel(selectedComponentModel)
     inspector.addComponent(panel, null)
   }
 }

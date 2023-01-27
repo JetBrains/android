@@ -6,6 +6,7 @@ iml_module(
     srcs = ["src/main/java"],
     enable_tests = False,
     iml_files = ["memory-usage.iml"],
+    jvm_target = "8",
     test_srcs = ["src/test/java"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

@@ -56,6 +56,7 @@ import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.largeFilesEditor.GuiUtils
 import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -305,7 +306,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     }
 
     myComponentsSplitter.firstComponent = contentPanel
-    myDetailsView = AndroidTestSuiteDetailsView(parentDisposable, this, this, myProject, myLogger).apply {
+    myDetailsView = AndroidTestSuiteDetailsView(this, this, this, myProject, myLogger).apply {
       isDeviceSelectorListVisible = false
       rootPanel.isVisible = false
       rootPanel.minimumSize = Dimension()
@@ -503,9 +504,10 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     if (toolWindowId == toolWindowManager.activeToolWindowId) {
       return
     }
-    val displayId = "Test Results: ${toolWindowId}"
-    val group = NotificationGroup.findRegisteredGroup(displayId) ?: NotificationGroup.toolWindowGroup(displayId, toolWindowId)
-    group.createNotification(notificationTitle, notificationContent, notificationType).notify(myProject)
+    val group = NotificationGroupManager.getInstance().getNotificationGroup("Test Results")
+    group.createNotification(notificationTitle, notificationContent, notificationType)
+      .setToolWindowId(toolWindowId)
+      .notify(myProject)
   }
 
   @get:UiThread
@@ -671,6 +673,9 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     // Put this test suite view to the process handler as AndroidTestResultListener so the view
     // is notified the test results and to be updated.
     processHandler.putCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY, this)
+    Disposer.register(this) {
+      processHandler.putCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY, null)
+    }
     myDetailsView.rawTestLogConsoleView.attachToProcess(processHandler)
   }
 

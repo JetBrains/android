@@ -94,7 +94,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       ModuleRenderContext renderContext = ModuleRenderContext.forFile(psiFile);
       ModuleClassLoader classLoader = ModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext, this);
       LayoutlibCallbackImpl layoutlibCallback =
-        new LayoutlibCallbackImpl(task, layoutlib, appResources, myModule, myFacet, IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
+        new LayoutlibCallbackImpl(task, layoutlib, appResources, myModule, ResourceRepositoryManager.getInstance(myFacet), IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
       ILayoutPullParser parser = layoutlibCallback.getParser(new ResourceValueImpl(
         ResourceNamespace.ANDROID, ResourceType.LAYOUT, "main", psiFile.getVirtualFile().getCanonicalPath()
       ));
@@ -133,7 +133,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       ModuleRenderContext renderContext = ModuleRenderContext.forFile(psiFile);
       ModuleClassLoader classLoader = ModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext, this);
       LayoutlibCallbackImpl layoutlibCallback =
-        new LayoutlibCallbackImpl(task, layoutlib, appResources, myModule, myFacet, IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
+        new LayoutlibCallbackImpl(task, layoutlib, appResources, myModule, ResourceRepositoryManager.getInstance(myFacet), IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
 
       assertNotNull(layoutlibCallback.createXmlParserForPsiFile(fontsFolder.toPath().resolve("aar_font_family.xml").toAbsolutePath().toString()));
 

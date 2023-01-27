@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lint.common
 
+import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils.prepareElementForWrite
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
@@ -46,7 +47,7 @@ class ReplaceCallFix(private val mySuggest: String) : DefaultLintQuickFix(null) 
       return
     }
 
-    if (!preparedToWrite(startElement)) {
+    if (!prepareElementForWrite(startElement)) {
       return
     }
 

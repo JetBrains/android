@@ -28,7 +28,7 @@ data class SingleMetric(val metric: String, val benchmarks: List<Benchmark>)
  * This is a tool that helps analyze multiple runs of a memory benchmark test. After invoking a bazel test with multiple runs.
  *
  * Usage:
- * bazel run <target_name> `bazel info output_path` <runs_per_test>
+ * bazel run <target_name> `bazel info bazel-testlogs` <runs_per_test>
  *
  * Example:
  * After the following bazel test run,
@@ -37,19 +37,18 @@ data class SingleMetric(val metric: String, val benchmarks: List<Benchmark>)
  * Invoke this tool like following:
  * `bazel run //tools/adt/idea/sync-memory-tests:benchmark_summary_tool\
  *   -- //tools/adt/idea/sync-memory-tests:intellij.android.sync-memory-tests_tests__Benchmark100\
- *   `bazel info output_path`\
+ *   `bazel info bazel-testlogs`\
  *   10
  */
 fun main(args : Array<String>) {
   val target = args[0]
-  val bazelOutDir = args[1]
+  val bazelTestLogDir = args[1]
   val numRuns = Integer.valueOf(args[2])
   val metricNameToDataMap = hashMapOf<String, MutableList<Long>>()
 
   check(target.startsWith("//"))
 
-  val outputDirectory = Path.of(bazelOutDir)
-    .resolve("k8-opt/testlogs")
+  val outputDirectory = Path.of(bazelTestLogDir)
     .resolve(target.removePrefix("//").replace(":", "/"))
 
   for ( i in 1..numRuns) {

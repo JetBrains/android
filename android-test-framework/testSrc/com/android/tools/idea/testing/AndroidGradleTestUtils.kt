@@ -789,7 +789,8 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
   val dependenciesStub = buildDependenciesStub(
     dependencies = androidLibraryDependencies.map {
       IdeDependencyCoreImpl(
-        internedModels.getOrCreate(it.library)
+        internedModels.getOrCreate(it.library),
+        dependencies = listOf()
       )
     } + toIdeModuleDependencies(androidModuleDependencies(variant).orEmpty())
   )
@@ -854,7 +855,8 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
                            lintJar = null,
                            sourceSet = IdeModuleWellKnownSourceSet.MAIN
                          )
-                       )
+                       ),
+                       dependencies = listOf()
                      )
                    )
   )
@@ -916,7 +918,8 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
                            lintJar = null,
                            sourceSet = IdeModuleWellKnownSourceSet.MAIN
                          )
-                       )
+                       ),
+                       dependencies = listOf()
                      )
                    )
   ),
@@ -952,7 +955,8 @@ private fun AndroidProjectStubBuilder.toIdeModuleDependencies(androidModuleDepen
           lintJar = null,
           sourceSet = IdeModuleWellKnownSourceSet.MAIN
         )
-      )
+      ),
+      dependencies = listOf()
     )
   }
 
@@ -970,7 +974,8 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
             lintJar = null,
             sourceSet = IdeModuleWellKnownSourceSet.MAIN
           )
-        )
+        ),
+        dependencies = listOf()
       )
     )
   )

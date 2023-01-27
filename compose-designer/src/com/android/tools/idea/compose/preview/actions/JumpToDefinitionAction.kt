@@ -25,7 +25,6 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import java.awt.MouseInfo
 import javax.swing.SwingUtilities
-import kotlin.properties.Delegates
 import kotlinx.coroutines.launch
 
 /**
@@ -34,14 +33,13 @@ import kotlinx.coroutines.launch
  */
 class JumpToDefinitionAction(
   surface: DesignSurface<LayoutlibSceneManager>,
-  private val sceneManagerProvider: () -> LayoutlibSceneManager?,
   private val composePreviewNavigationHandler: ComposePreviewNavigationHandler,
   private val sceneView: SceneView,
   title: String = "Jump to Definition"
 ) : AnAction(title) {
 
-  private var x by Delegates.notNull<Int>()
-  private var y by Delegates.notNull<Int>()
+  private val x: Int
+  private val y: Int
 
   init {
     // Extract the information relative to the mouse position when creating the action,
@@ -55,7 +53,8 @@ class JumpToDefinitionAction(
   private val scope = AndroidCoroutineScope(surface)
 
   override fun update(e: AnActionEvent) {
-    e.presentation.isVisible = sceneManagerProvider()?.renderResult != null
+    e.presentation.isEnabledAndVisible =
+      (sceneView.sceneManager as? LayoutlibSceneManager)?.renderResult != null
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread {
@@ -63,8 +62,6 @@ class JumpToDefinitionAction(
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    scope.launch {
-      composePreviewNavigationHandler.handleNavigate(sceneView, x, y, requestFocus = true)
-    }
+    scope.launch { composePreviewNavigationHandler.handleNavigate(sceneView, x, y, true) }
   }
 }

@@ -43,7 +43,7 @@ class NlPropertiesView(model : NlPropertiesModel) : PropertiesView<NlPropertyIte
 
   init {
     watermark = Watermark(WATERMARK_MESSAGE, WATERMARK_ACTION_MESSAGE, "")
-    main.builders.add(SelectedComponentBuilder())
+    main.builders.add(SelectedComponentBuilder(model))
     val tab = addTab("")
     if (StudioFlags.NELE_PROPERTY_PANEL_ACTIONBAR.get()) {
       tab.builders.add(ComponentActionsInspectorBuilder(model))

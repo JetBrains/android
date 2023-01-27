@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,4 +20,4 @@ import com.android.tools.idea.streaming.device.AKEYCODE_APP_SWITCH
 /**
  * Simulates pressing the Overview button on an Android device.
  */
-internal class DeviceOverviewButtonAction : DeviceKeypressAction(AKEYCODE_APP_SWITCH, configFilter = { !it.isWatch })
+internal class DeviceOverviewButtonAction : DevicePushButtonAction(AKEYCODE_APP_SWITCH, configFilter = { !it.isWatch })

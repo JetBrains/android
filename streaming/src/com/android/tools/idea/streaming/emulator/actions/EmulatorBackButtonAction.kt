@@ -18,5 +18,5 @@ package com.android.tools.idea.streaming.emulator.actions
 /**
  * Simulates pressing the Back button on an Android virtual device.
  */
-class EmulatorBackButtonAction : EmulatorKeypressAction("GoBack") {
+class EmulatorBackButtonAction : EmulatorPushButtonAction("GoBack") {
 }
