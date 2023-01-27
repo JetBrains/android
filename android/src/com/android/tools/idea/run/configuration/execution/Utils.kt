@@ -29,6 +29,9 @@ import com.android.tools.deployer.model.component.WearComponent
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.run.ConsolePrinter
+import com.android.tools.idea.run.editor.DeployTarget
+import com.android.tools.idea.run.util.LaunchUtils
+import com.android.tools.idea.stats.RunStats
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.process.ProcessHandler
@@ -40,6 +43,8 @@ import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.project.Project
+import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.util.AndroidBundle
 import java.util.concurrent.TimeUnit
@@ -156,4 +161,24 @@ internal suspend fun createRunContentDescriptor(
   return withContext(uiThread) {
     ExecutionUiService.getInstance().showRunContent(DefaultExecutionResult(console, processHandler), environment)
   }
+}
+
+@Throws(ExecutionException::class)
+@WorkerThread
+suspend fun getDevices(project: Project, indicator: ProgressIndicator, deployTarget: DeployTarget, stats: RunStats): List<IDevice> {
+  indicator.text = "Waiting for all target devices to come online"
+
+  val deviceFutureList = deployTarget.getDevices(project)?.get() ?: throw ExecutionException(
+    AndroidBundle.message("deployment.target.not.found"))
+
+  if (deviceFutureList.isEmpty()) {
+    throw ExecutionException(AndroidBundle.message("deployment.target.not.found"))
+  }
+
+  return deviceFutureList.map {
+    stats.beginWaitForDevice()
+    val device = it.await()
+    stats.endWaitForDevice(device)
+    device
+  }.onEach { LaunchUtils.initiateDismissKeyguard(it) }
 }

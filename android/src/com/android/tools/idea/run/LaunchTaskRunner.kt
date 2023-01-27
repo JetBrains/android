@@ -27,6 +27,7 @@ import com.android.tools.idea.run.applychanges.findExistingSessionAndMaybeDetach
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.ConsoleViewToConsolePrinter
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
+import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchTask
@@ -36,7 +37,6 @@ import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.stats.RunStats
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.configurations.RunProfile
@@ -61,8 +61,6 @@ import org.jetbrains.kotlin.utils.keysToMap
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 
 class LaunchTaskRunner(
   private val consoleProvider: ConsoleProvider,
@@ -95,7 +93,7 @@ class LaunchTaskRunner(
 
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
     findExistingSessionAndMaybeDetachForColdSwap(myEnv)
-    val devices = waitForDevices(indicator)
+    val devices = getDevices(project, indicator, deployTarget, RunStats.from(myEnv))
 
     waitPreviousProcessTermination(devices, applicationIdProvider.packageName, indicator)
 
@@ -178,7 +176,8 @@ class LaunchTaskRunner(
   override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
     val applicationId = applicationIdProvider.packageName
 
-    val devices = waitForDevices(indicator)
+    val devices = getDevices(project, indicator, deployTarget, RunStats.from(myEnv))
+
     if (devices.size != 1) {
       throw ExecutionException("Cannot launch a debug session on more than 1 device.")
     }
@@ -200,8 +199,7 @@ class LaunchTaskRunner(
   }
 
   override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
-    val listenableDeviceFutures = deployTarget.getDevices(project)?.get() ?: throw ExecutionException("No devices found")
-    val devices = listenableDeviceFutures.map { deviceFuture -> waitForDevice(deviceFuture, indicator) }
+    val devices = getDevices(project, indicator, deployTarget, RunStats.from(myEnv))
     val oldSession = findExistingSessionAndMaybeDetachForColdSwap(myEnv)
     val processHandler = oldSession.processHandler ?: AndroidProcessHandler(
       project,
@@ -294,33 +292,5 @@ class LaunchTaskRunner(
     }
     launchString.append(".")
     consolePrinter.stdout(launchString.toString())
-  }
-
-  private fun waitForDevices(indicator: ProgressIndicator): List<IDevice> {
-    val listenableDeviceFutures = deployTarget.getDevices(project)?.get() ?: throw ExecutionException("No devices found")
-    return listenableDeviceFutures.map { deviceFuture -> waitForDevice(deviceFuture, indicator) }
-  }
-
-  private fun waitForDevice(deviceFuture: ListenableFuture<IDevice>, indicator: ProgressIndicator): IDevice {
-    indicator.text = "Waiting for devices to come online"
-    val stat = RunStats.from(myEnv)
-    stat.beginWaitForDevice()
-    while (!indicator.isCanceled) {
-      try {
-        val device = deviceFuture[1, TimeUnit.SECONDS]
-        stat.endWaitForDevice(device)
-        return device
-      }
-      catch (ignored: TimeoutException) {
-        // Let's check the cancellation request then continue to wait for a device again.
-      }
-      catch (e: InterruptedException) {
-        throw ExecutionException("Interrupted while waiting for device")
-      }
-      catch (e: java.util.concurrent.ExecutionException) {
-        throw ExecutionException("Error while waiting for device: " + e.cause!!.message)
-      }
-    }
-    throw ExecutionException("Device is not launched")
   }
 }
