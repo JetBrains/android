@@ -44,7 +44,7 @@ import org.jetbrains.annotations.VisibleForTesting
  *   1. The provides method (`HeaterModule.provideHeater`), which is a Dagger Provider.
  *   2. The method's parameters (`electricHeater`), which are Dagger Consumers.
  */
-object ProvidesMethodDaggerConcept : DaggerConcept {
+internal object ProvidesMethodDaggerConcept : DaggerConcept {
   override val indexers = DaggerConceptIndexers(methodIndexers = listOf(ProvidesMethodIndexer))
   override val indexValueReaders = listOf(ProvidesMethodIndexValue.Reader, ProvidesMethodParameterIndexValue.Reader)
 }

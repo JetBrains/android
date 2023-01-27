@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.dagger.index
 
-import com.android.tools.idea.dagger.index.IndexValue.Reader.Companion.ALL_READERS
+import com.android.tools.idea.dagger.index.concepts.AllConcepts
 import com.android.tools.idea.dagger.index.concepts.DaggerConcept
 import com.intellij.util.io.DataExternalizer
+import org.jetbrains.annotations.VisibleForTesting
 import java.io.DataInput
 import java.io.DataOutput
 
@@ -49,12 +50,21 @@ abstract class IndexValue(val dataType: DataType) {
       }
     }
 
+    @VisibleForTesting
+    internal val readerMap = buildMap {
+      AllConcepts.indexValueReaders.forEach { reader ->
+        val supportedType = reader.supportedType
+        assert(!containsKey(supportedType)) { "$supportedType cannot have two readers" }
+        put(supportedType, reader)
+      }
+    }
+
     override fun read(input: DataInput): Set<IndexValue> {
       return hashSetOf<IndexValue>().apply {
         repeat(input.readInt()) {
           val dataType = IndexValue.DataType.values()[input.readByte().toInt()]
 
-          val indexValue = ALL_READERS[dataType]!!.read(input)
+          val indexValue = readerMap[dataType]!!.read(input)
           assert(indexValue.dataType == dataType)
           add(indexValue)
         }
@@ -65,15 +75,5 @@ abstract class IndexValue(val dataType: DataType) {
   interface Reader {
     val supportedType: DataType
     fun read(input: DataInput): IndexValue
-
-    companion object {
-      internal val ALL_READERS = buildMap {
-        DaggerConcept.ALL_CONCEPTS.flatMap { it.indexValueReaders }.forEach { reader ->
-          val supportedType = reader.supportedType
-          assert(!containsKey(supportedType)) { "$supportedType cannot have two readers" }
-          put(supportedType, reader)
-        }
-      }
-    }
   }
 }

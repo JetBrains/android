@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.dagger.index
 
+import com.android.tools.idea.dagger.index.concepts.AllConcepts
 import com.android.tools.idea.dagger.index.concepts.DaggerConcept
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexFieldWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexMethodWrapper
@@ -38,7 +39,7 @@ import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 typealias IndexEntries = MutableMap<String, MutableSet<IndexValue>>
 
 internal class DaggerDataIndexer @VisibleForTesting internal constructor(
-  private val conceptIndexers: DaggerConceptIndexers = DaggerConceptIndexers.ALL_INDEXERS)
+  private val conceptIndexers: DaggerConceptIndexers = AllConcepts.indexers)
   : DataIndexer<String, Set<IndexValue>, FileContent> {
 
   companion object {
@@ -118,12 +119,4 @@ class DaggerConceptIndexers(
     fieldIndexers.forEach { it.addIndexEntries(wrapper, indexEntries) }
   fun doIndexing(wrapper: DaggerIndexMethodWrapper, indexEntries: IndexEntries) =
     methodIndexers.forEach { it.addIndexEntries(wrapper, indexEntries) }
-
-  companion object {
-    val ALL_INDEXERS = DaggerConcept.ALL_CONCEPTS.map { it.indexers }.let { indexersList ->
-      DaggerConceptIndexers(
-        indexersList.flatMap { it.fieldIndexers },
-        indexersList.flatMap { it.methodIndexers })
-    }
-  }
 }

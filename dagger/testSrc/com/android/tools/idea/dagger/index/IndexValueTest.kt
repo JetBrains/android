@@ -25,6 +25,6 @@ class IndexValueTest {
 
   @Test
   fun indexValueReaders_everyDataTypeHasReader() {
-    assertThat(IndexValue.Reader.ALL_READERS.keys).containsExactlyElementsIn(IndexValue.DataType.values())
+    assertThat(IndexValue.Externalizer.readerMap.keys).containsExactlyElementsIn(IndexValue.DataType.values())
   }
 }

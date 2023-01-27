@@ -42,7 +42,7 @@ import org.jetbrains.annotations.VisibleForTesting
  *   1. The injected constructor (the `Thermosiphon` constructor), which is a Dagger Provider.
  *   2. The constructor's parameters (`heater`), which are Dagger Consumers.
  */
-object InjectedConstructorDaggerConcept : DaggerConcept {
+internal object InjectedConstructorDaggerConcept : DaggerConcept {
   override val indexers = DaggerConceptIndexers(methodIndexers = listOf(InjectedConstructorIndexer))
   override val indexValueReaders = listOf(InjectedConstructorIndexValue.Reader, InjectedConstructorParameterIndexValue.Reader)
 }

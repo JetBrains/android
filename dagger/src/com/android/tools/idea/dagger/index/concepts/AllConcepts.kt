@@ -19,13 +19,21 @@ import com.android.tools.idea.dagger.index.DaggerConceptIndexers
 import com.android.tools.idea.dagger.index.IndexValue
 
 /**
- * Represents a concept in the Dagger framework that will be indexed and analyzed at runtime. Some examples include "injected constructor",
- * "provides method", and "component".
+ * Collection of all known [DaggerConcept]s. This is effectively the entry point for external consumers of concepts, since they do not need
+ * to know about the individual concepts and instead look at the set of all of them together.
  */
-interface DaggerConcept {
-  /** Any indexers required for this concept. */
-  val indexers: DaggerConceptIndexers
+object AllConcepts : DaggerConcept {
+  private val CONCEPTS = listOf(
+    InjectedConstructorDaggerConcept,
+    InjectedFieldDaggerConcept,
+    ProvidesMethodDaggerConcept,
+  )
 
-  /** [IndexValue.Reader]s for any [IndexValue]s that this concept uses. */
-  val indexValueReaders: List<IndexValue.Reader>
+  override val indexers = CONCEPTS.map(DaggerConcept::indexers).let { indexersList ->
+    DaggerConceptIndexers(
+      indexersList.flatMap(DaggerConceptIndexers::fieldIndexers),
+      indexersList.flatMap(DaggerConceptIndexers::methodIndexers))
+  }
+
+  override val indexValueReaders: List<IndexValue.Reader> = CONCEPTS.flatMap(DaggerConcept::indexValueReaders)
 }

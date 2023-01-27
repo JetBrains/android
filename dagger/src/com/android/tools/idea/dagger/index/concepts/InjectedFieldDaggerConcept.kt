@@ -42,7 +42,7 @@ import org.jetbrains.annotations.VisibleForTesting
  * This concept deals with one type of index entry:
  *   1. The injected field (`heater` and `pump`).
  */
-object InjectedFieldDaggerConcept : DaggerConcept {
+internal object InjectedFieldDaggerConcept : DaggerConcept {
   override val indexers = DaggerConceptIndexers(fieldIndexers = listOf(InjectedFieldIndexer))
   override val indexValueReaders: List<IndexValue.Reader> = listOf(InjectedFieldIndexValue.Reader)
 }
