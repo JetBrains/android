@@ -86,6 +86,7 @@ typealias ComposeAnimationEventTracker =
  * `TransitionAnimation`, `AnimatedValue`). In addition, [Timeline] is a timeline view that can be
  * controlled by scrubbing or through a set of controllers, such as play/pause and jump to end. The
  * [AnimationPreview] therefore allows a detailed inspection of Compose animations.
+ *
  * @param psiFilePointer a pointer to a [PsiFile] for current Preview in which Animation Preview is
  * opened.
  */
@@ -345,9 +346,9 @@ class AnimationPreview(
     loadingPanelVisible = true
     // Reset tab names, so when new tabs are added they start as #1
     tabNames.clear()
-    timeline.cachedVal =
-      -1 // Reset the timeline cached value, so when new tabs are added, any new value will trigger
-    // an update
+    // Reset the timeline cached value, so when new tabs are added, any new value will trigger an
+    // update
+    timeline.cachedVal = -1
     // The animation panel might not have the focus when the "No animations" panel is displayed,
     // i.e. when a live literal is changed in the
     // editor and we need to refresh the animation preview so it displays the most up-to-date
@@ -468,7 +469,6 @@ class AnimationPreview(
           it.invoke(animationObject)
         }
           ?: states.firstOrNull()
-      ComposeAnimationType.ANIMATED_VISIBILITY -> {}
       else -> states.firstOrNull()
     }
   }
@@ -493,9 +493,13 @@ class AnimationPreview(
           // via reflection will return a String rather than an AnimatedVisibilityState. To work
           // around that, we select the initial combo
           // box item by checking the display value.
-          state = clock.getAnimatedVisibilityState(animation)
+          state =
+            clock.getAnimatedVisibilityState(animation).let { loadedState ->
+              animation.states.firstOrNull { it.toString() == loadedState.toString() }
+            }
         }
-        stateComboBox.setStartState(state)
+
+        stateComboBox.setStartState(state ?: animation.states.firstOrNull())
 
         // Use a longer timeout the first time we're updating the AnimatedVisiblity state. Since
         // we're running off EDT, the UI will not
@@ -505,6 +509,7 @@ class AnimationPreview(
         // timeout the first time they're executed.
         updateAnimatedVisibility(longTimeout = true)
         loadTransitionFromCacheOrLib(longTimeout = true)
+        loadProperties()
         // Set up the combo box listener so further changes to the selected state will trigger a
         // call to updateAnimatedVisibility.
         stateComboBox.callbackEnabled = true
