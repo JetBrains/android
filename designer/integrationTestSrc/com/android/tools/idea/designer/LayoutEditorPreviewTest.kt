@@ -18,16 +18,12 @@ package com.android.tools.idea.designer
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidStudio
 import com.android.tools.asdriver.tests.AndroidSystem
-import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Path
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.concurrent.TimeUnit
 
 /** Ensures that Layout Editor Preview works for an XML file. */
@@ -38,7 +34,7 @@ class LayoutEditorPreviewTest {
 
   @get:Rule
   var watcher = MemoryDashboardNameProviderWatcher()
-  
+
   private fun AndroidStudio.waitForSuccessfulRender(xmlName: String) {
     system.installation.ideaLog
       .waitForMatchingLine(
@@ -71,32 +67,21 @@ class LayoutEditorPreviewTest {
 
   @Test
   fun layoutEditorPreviewBasicTest() {
-    system.runAdb {
-      system.runEmulator {emulator ->
-        emulator.waitForBoot()
-        system.runStudio(project, watcher.dashboardName) { studio ->
-          studio.waitForSync()
-          studio.waitForIndex()
-          studio.executeAction("MakeGradleProject")
-          studio.waitForBuild()
+    system.runStudio(project, watcher.dashboardName) { studio ->
+      studio.waitForSync()
+      studio.waitForIndex()
+      studio.executeAction("MakeGradleProject")
+      studio.waitForBuild()
 
-          studio.openAndWaitForRender(project.targetProject.resolve("app/src/main/res/layout/simple_layout.xml"))
-          studio.executeAction("CloseAllEditors")
-          studio.openAndWaitForRender(project.targetProject.resolve("app/src/main/res/layout/normal_layout.xml"))
-          studio.executeAction("CloseAllEditors")
-          val complexLayoutFile = project.targetProject.resolve("app/src/main/res/layout/complex_layout.xml")
-          studio.openAndWaitForRender(complexLayoutFile)
-          studio.editFile(complexLayoutFile.toString(), "\\s*<!--EASY TEXT FIND", "")
-          studio.editFile(complexLayoutFile.toString(), "\\s*EASY TEXT FIND-->", "")
-          studio.waitForSuccessfulRender("complex_layout.xml")
-
-          studio.executeAction("Run")
-          system.installation.ideaLog.waitForMatchingLine(
-            ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for launched app: google\\.simpleapplication",
-            60, TimeUnit.SECONDS
-          )
-        }
-      }
+      studio.openAndWaitForRender(project.targetProject.resolve("app/src/main/res/layout/simple_layout.xml"))
+      studio.executeAction("CloseAllEditors")
+      studio.openAndWaitForRender(project.targetProject.resolve("app/src/main/res/layout/normal_layout.xml"))
+      studio.executeAction("CloseAllEditors")
+      val complexLayoutFile = project.targetProject.resolve("app/src/main/res/layout/complex_layout.xml")
+      studio.openAndWaitForRender(complexLayoutFile)
+      studio.editFile(complexLayoutFile.toString(), "\\s*<!--EASY TEXT FIND", "")
+      studio.editFile(complexLayoutFile.toString(), "\\s*EASY TEXT FIND-->", "")
+      studio.waitForSuccessfulRender("complex_layout.xml")
     }
   }
 }

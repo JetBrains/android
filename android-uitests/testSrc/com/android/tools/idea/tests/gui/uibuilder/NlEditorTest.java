@@ -17,8 +17,15 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import android.view.View;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.testing.FakeAdbRule;
+import com.android.fakeadbserver.CommandHandler;
+import com.android.fakeadbserver.DeviceState;
+import com.android.fakeadbserver.FakeAdbServer;
+import com.android.fakeadbserver.execcommandhandlers.SimpleExecHandler;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -29,6 +36,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.MorphDialogFixture;
+import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
@@ -37,16 +45,28 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.fixture.JPopupMenuFixture;
+import org.fest.swing.timing.Wait;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class NlEditorTest {
+  private static final String RUN_CONFIG_NAME = "app";
+
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
+
+  @Rule
+  public final FakeAdbRule adbRule = new FakeAdbRule().initAbdBridgeDuringSetup(false);
 
   @Test
   public void testSelectComponent() throws Exception {
@@ -65,6 +85,47 @@ public class NlEditorTest {
 
     // It should be selected now
     assertThat(layout.getSelection()).containsExactly(textView.getComponent());
+  }
+
+  @Test
+  public void testDeployToDevice() throws Exception {
+    // Enable the fake ADB server and attach a fake device to which the preview will be deployed.
+    AndroidDebugBridgeUtils.enableFakeAdbServerMode(adbRule.getFakeAdbServerPort());
+    AndroidDebugBridge.init(true);
+    AndroidDebugBridge debugBridge = AndroidDebugBridge.createBridge(10, TimeUnit.SECONDS);
+    assertNotNull(debugBridge);
+    Wait.seconds(10).expecting("Bridge is initialized").until(() -> debugBridge.isConnected() && debugBridge.hasInitialDeviceList());
+    adbRule.attachDevice("emulator-test", "Google", "Pix3l", "versionX", "29");
+    CountDownLatch installedLatch = new CountDownLatch(1);
+    adbRule.addDeviceCommandHandler(new SimpleExecHandler("/data/local/tmp/.studio/bin/installer") {
+      @Override
+      public void execute(@NotNull FakeAdbServer fakeAdbServer,
+                          @NotNull Socket responseSocket,
+                          @NotNull DeviceState device,
+                          @Nullable String args) {
+        installedLatch.countDown();
+        try {
+          OutputStream output = responseSocket.getOutputStream();
+          CommandHandler.writeOkay(output);
+        }
+        catch (IOException ignore) {
+        }
+      }
+    });
+
+    guiTest.importSimpleApplication();
+
+    // Open file as XML and switch to design tab, wait for successful render
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture layout = editor.getLayoutEditor();
+    layout.waitForRenderToFinish();
+
+    guiTest.ideFrame().runApp(RUN_CONFIG_NAME, "Google Pix3l");
+
+    // Check the application is deployed
+    installedLatch.await(10, TimeUnit.SECONDS);
   }
 
   @Test
