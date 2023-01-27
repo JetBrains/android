@@ -17,12 +17,16 @@ package com.android.tools.idea.compose.preview
 
 import com.android.testutils.JarTestSuiteRunner
 import com.android.tools.tests.IdeaTestSuiteBase
+import com.android.tools.tests.LeakCheckerRule
+import org.junit.ClassRule
 import org.junit.runner.RunWith
 
 @RunWith(JarTestSuiteRunner::class)
 @JarTestSuiteRunner.ExcludeClasses(ComposePreviewTestSuite::class)
 class ComposePreviewTestSuite : IdeaTestSuiteBase() {
   companion object {
+    @JvmField @ClassRule val checker = LeakCheckerRule()
+
     init {
       linkIntoOfflineMavenRepo("tools/adt/idea/compose-designer/test_deps.manifest")
       unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip")
