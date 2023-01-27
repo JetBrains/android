@@ -228,6 +228,9 @@
         text="Toggle Live Literals Highlights"
         description="Switches the Live Literals highlights on/off">
     </action>
+
+    <action id="Compose.Live.Edit.ManualLiveEdit" class="com.android.tools.idea.editors.liveedit.ui.ManualLiveEditAction"/>
+    <action id="Compose.Live.Edit.ShowLogcat" class="com.android.tools.idea.editors.liveedit.ui.ShowLogcatAction"/>
   </actions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">

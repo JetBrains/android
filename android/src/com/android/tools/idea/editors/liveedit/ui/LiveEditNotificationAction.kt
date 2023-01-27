@@ -78,9 +78,7 @@ internal fun defaultCreateInformationPopup(
     }
 
     val link = status.actionId?.let {
-      // PIGGYBACK_ACTION_ID ("Save All" action) doesn't actually kick off manual live edit since there isn't a clean way to trigger a
-      // shortcut, so we instead reroute to ManualLiveEditAction which saves and invokes manual live edit.
-      val action = if (it == LiveEditService.PIGGYBACK_ACTION_ID) ManualLiveEditAction() else ActionManager.getInstance().getAction(it)
+      val action = ActionManager.getInstance().getAction(it)
       val shortcut = KeymapManager.getInstance()?.activeKeymap?.getShortcuts(it)?.toList()?.firstOrNull()
       AnActionLink("${action.templateText}${if (shortcut != null) " (${KeymapUtil.getShortcutText(shortcut)})" else ""}", action)
     }

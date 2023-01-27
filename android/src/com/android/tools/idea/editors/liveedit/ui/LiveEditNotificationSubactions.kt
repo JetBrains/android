@@ -19,6 +19,7 @@ import com.android.tools.adtui.compose.REFRESH_BUTTON
 import com.android.tools.idea.editors.literals.LiveEditAnActionListener
 import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
+import com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory
 import com.android.tools.idea.run.deployment.liveedit.LiveEditBundle
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
 import com.intellij.ide.HelpTooltip
@@ -31,10 +32,14 @@ import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.options.ShowSettingsUtil
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.util.ui.JBUI
 import org.jetbrains.android.util.AndroidBundle
 import java.awt.Dimension
 import java.awt.Insets
+
+const val MANUAL_LIVE_EDIT_ACTION_ID = "Compose.Live.Edit.ManualLiveEdit"
+const val SHOW_LOGCAT_ACTION_ID = "Compose.Live.Edit.ShowLogcat"
 
 /**
  * [AnAction] that opens the Live Edit settings page for the user to enable/disable live edit.
@@ -130,6 +135,13 @@ internal class ManualLiveEditAction : AnAction("Refresh") {
     // we instead perform Save All followed by a manual Live Edit trigger.
     invokeActionNow(e, ActionManager.getInstance().getAction(LiveEditService.PIGGYBACK_ACTION_ID))
     LiveEditAnActionListener.triggerLiveEdit(project)
+  }
+}
+
+internal class ShowLogcatAction : AnAction("Show Logcat") {
+  override fun actionPerformed(e: AnActionEvent) {
+    val project = e.project ?: return
+    ToolWindowManager.getInstance(project).getToolWindow(AndroidLogcatToolWindowFactory.getToolWindowId())?.activate {}
   }
 }
 
