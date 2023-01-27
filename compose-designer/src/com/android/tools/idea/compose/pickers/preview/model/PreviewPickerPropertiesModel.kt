@@ -30,6 +30,7 @@ import com.android.tools.idea.compose.pickers.common.property.ColorPsiCallParame
 import com.android.tools.idea.compose.pickers.common.property.FloatPsiCallParameter
 import com.android.tools.idea.compose.pickers.preview.enumsupport.PreviewPickerValuesProvider
 import com.android.tools.idea.compose.pickers.preview.enumsupport.UiMode
+import com.android.tools.idea.compose.pickers.preview.enumsupport.Wallpaper
 import com.android.tools.idea.compose.pickers.preview.inspector.PreviewPropertiesInspectorBuilder
 import com.android.tools.idea.compose.pickers.preview.property.DeviceParameterPropertyItem
 import com.android.tools.idea.compose.pickers.preview.utils.findOrParseFromDefinition
@@ -46,6 +47,7 @@ import com.android.tools.idea.compose.preview.PARAMETER_LOCALE
 import com.android.tools.idea.compose.preview.PARAMETER_SHOW_BACKGROUND
 import com.android.tools.idea.compose.preview.PARAMETER_SHOW_SYSTEM_UI
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
+import com.android.tools.idea.compose.preview.PARAMETER_WALLPAPER
 import com.android.tools.idea.compose.preview.PARAMETER_WIDTH
 import com.android.tools.idea.compose.preview.PARAMETER_WIDTH_DP
 import com.android.tools.idea.compose.preview.findPreviewDefaultValues
@@ -153,6 +155,8 @@ private constructor(
               UiMode.values().firstOrNull { it.resolvedValue == entry.value }?.display ?: "Unknown"
             PARAMETER_DEVICE -> entry.value ?: "Default"
             PARAMETER_LOCALE -> entry.value ?: "Default (en-US)"
+            PARAMETER_WALLPAPER ->
+              Wallpaper.values().firstOrNull { it.resolvedValue == entry.value }?.display ?: "None"
             else -> entry.value
           }
         }
@@ -250,7 +254,7 @@ private class PreviewPropertiesProvider(private val defaultValues: Map<String, S
                 )
                 .also { properties.addAll(it.innerProperties) }
             }
-            PARAMETER_UI_MODE ->
+            PARAMETER_UI_MODE, PARAMETER_WALLPAPER ->
               ClassPsiCallParameter(
                 project,
                 model,

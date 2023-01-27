@@ -41,6 +41,7 @@ import com.android.tools.idea.compose.preview.PARAMETER_SHOW_BACKGROUND
 import com.android.tools.idea.compose.preview.PARAMETER_SHOW_DECORATION
 import com.android.tools.idea.compose.preview.PARAMETER_SHOW_SYSTEM_UI
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
+import com.android.tools.idea.compose.preview.PARAMETER_WALLPAPER
 import com.android.tools.idea.compose.preview.PARAMETER_WIDTH_DP
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.EditorProvider
@@ -111,6 +112,7 @@ private object PreviewControlTypeProvider : PsiPropertyItemControlTypeProvider {
       PARAMETER_HARDWARE_DIM_UNIT,
       PARAMETER_HARDWARE_DENSITY,
       PARAMETER_UI_MODE,
+      PARAMETER_WALLPAPER,
       PARAMETER_DEVICE -> ControlType.DROPDOWN
       PARAMETER_BACKGROUND_COLOR -> ControlType.COLOR_EDITOR
       PARAMETER_HARDWARE_IS_ROUND,

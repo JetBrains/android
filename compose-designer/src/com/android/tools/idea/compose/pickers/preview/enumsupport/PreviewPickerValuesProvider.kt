@@ -30,6 +30,7 @@ import com.android.tools.idea.compose.preview.PARAMETER_GROUP
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_LOCALE
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
+import com.android.tools.idea.compose.preview.PARAMETER_WALLPAPER
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.DeviceGroup
@@ -67,6 +68,8 @@ object PreviewPickerValuesProvider {
     providersMap[PARAMETER_LOCALE] = createLocaleEnumProvider(module)
 
     providersMap[PARAMETER_HARDWARE_DEVICE] = createDeviceEnumProvider(module)
+
+    providersMap[PARAMETER_WALLPAPER] = { Wallpaper.values().toList() }
 
     return PsiCallEnumSupportValuesProvider(providersMap)
   }

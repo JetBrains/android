@@ -153,6 +153,14 @@ class PreviewPickerValuesProviderTest(previewAnnotationPackage: String) {
     assertEquals("en-rUS", localeValues[2].value)
     assertEquals("es-ES", localeValues[3].display)
     assertEquals("es-rES", localeValues[3].value)
+
+    val wallpaperValues = valuesProvider.getValuesProvider("wallpaper")!!.invoke()
+    assertEquals(5, wallpaperValues.size)
+    assertEquals("None", wallpaperValues[0].display)
+    assertEquals("Red dominated", wallpaperValues[1].display)
+    assertEquals("Green dominated", wallpaperValues[2].display)
+    assertEquals("Blue dominated", wallpaperValues[3].display)
+    assertEquals("Yellow dominated", wallpaperValues[4].display)
   }
 
   @RunsInEdt
