@@ -354,7 +354,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_NEW_COMPONENT_TREE = Flag.create(
     NELE, "use.component.tree.builder", "Use the Component Tree builder",
     "If enabled, use the Component Tree builder for the Nele component tree",
-    false);
+    true);
   //endregion
 
   //region Navigation Editor
