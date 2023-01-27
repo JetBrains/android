@@ -21,6 +21,7 @@ import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.DeviceConfiguration
 import com.android.tools.idea.streaming.device.KeyEventMessage
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import java.util.function.Predicate
 
@@ -46,5 +47,9 @@ internal open class DevicePushButtonAction(
 
   final override fun actionPerformed(event: AnActionEvent) {
     actionPerformedImpl(event)
+  }
+
+  override fun getActionUpdateThread(): ActionUpdateThread {
+    return ActionUpdateThread.BGT
   }
 }
