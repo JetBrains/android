@@ -228,7 +228,7 @@ private fun <T> findAnnotatedMethodsCachedValues(
         deferred.completeExceptionally(it)
       }
 
-    val kotlinJavaModificationTracker = PsiModificationTracker.SERVICE.getInstance(project).forLanguages { lang ->
+    val kotlinJavaModificationTracker = PsiModificationTracker.getInstance(project).forLanguages { lang ->
       lang.`is`(KotlinLanguage.INSTANCE) || lang.`is`(JavaLanguage.INSTANCE)
     }
     CachedValueProvider.Result.create(deferred, kotlinJavaModificationTracker, PromiseModificationTracker(promise))
