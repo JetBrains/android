@@ -487,7 +487,7 @@ class EmulatorViewTest {
     emulatorViewRule.executeAction("android.device.home.button", view, place = ActionPlaces.KEYBOARD_SHORTCUT)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Home"""")
+    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "GoHome"""")
 
     // Check EmulatorOverviewButtonAction.
     emulatorViewRule.executeAction("android.device.overview.button", view, place = ActionPlaces.MOUSE_SHORTCUT)

@@ -243,10 +243,10 @@ class EmulatorToolWindowPanelTest {
     ui.mouseClickOn(button)
     var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""key: "Home"""")
+    assertThat(shortDebugString(call.request)).isEqualTo("""key: "GoHome"""")
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "Home"""")
+    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "GoHome"""")
 
     // Check Wear2ButtonAction.
     button = ui.getComponent { it.action.templateText == "Button 2" }
