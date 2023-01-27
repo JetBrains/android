@@ -16,10 +16,9 @@
 package com.android.tools.idea.updater.configure;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.AndroidVersionUtils;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Enumeration;
@@ -112,7 +111,7 @@ class ParentTreeNode extends UpdaterTreeNode {
                                 boolean hasFocus) {
     String title = myTitle;
     if (title == null) {
-      title = SdkVersionInfo.getVersionWithCodename(myVersion);
+      title = AndroidVersionUtils.getFullReleaseName(myVersion, false, true);
     }
     renderer.getTextRenderer()
       .append(title, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);

@@ -25,8 +25,8 @@ import static org.jetbrains.android.util.AndroidBuildCommonUtils.platformToolPat
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.AndroidVersionUtils;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -60,7 +60,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -291,19 +290,9 @@ public final class AndroidSdkUtils {
     if (!target.isPlatform()) {
       return String.format("%1$s (API %2$s)", target.getFullName(), target.getVersion().getApiString());
     }
+
     AndroidVersion version = target.getVersion();
-    if (version.isPreview()) {
-      return String.format(Locale.US, "API %d+: %s", target.getVersion().getApiLevel(), target.getName());
-    }
-    String name = SdkVersionInfo.getAndroidName(target.getVersion().getApiLevel());
-    if (isNotEmpty(name)) {
-      return name;
-    }
-    String release = target.getProperty("ro.build.version.release"); //$NON-NLS-1$
-    if (release != null) {
-      return String.format(Locale.US, "API %1$d: Android %2$s", version.getApiLevel(), release);
-    }
-    return String.format(Locale.US, "API %1$d", version.getApiLevel());
+    return AndroidVersionUtils.getFullApiName(version, /*includeReleaseName*/ true, /*IncludeCodeName*/ true);
   }
 
   @Nullable

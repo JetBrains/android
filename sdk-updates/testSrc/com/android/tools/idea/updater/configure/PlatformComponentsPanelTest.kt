@@ -60,18 +60,18 @@ class PlatformComponentsPanelTest {
     assertEquals("""
       Root
        Android Codename Preview
-       Android 11.0 (R)
+       Android 11.0 ("R")
     """.trimIndent(), panel.myPlatformSummaryRootNode.asString())
 
     assertEquals("""
       Root
        Android Codename Preview
         android-Codename
-       Android 11.0 (R)
+       Android 11.0 ("R")
         android-30
-       Android 11.0 (R), Extension Level 1
+       Android 11.0 ("R")
         android-30-1
-       Android 11.0 (R), Extension Level 2
+       Android 11.0 ("R")
         android-30-2
     """.trimIndent(), panel.myPlatformDetailsRootNode.asString())
   }
@@ -90,15 +90,15 @@ class PlatformComponentsPanelTest {
     ))
     assertEquals("""
       Root
-       Android 11.0 (R)
-       Android 10.0 (Q)
+       Android 11.0 ("R")
+       Android 10.0 ("Q")
     """.trimIndent(), panel.myPlatformSummaryRootNode.asString())
 
     assertEquals("""
       Root
-       Android 11.0 (R)
+       Android 11.0 ("R")
         android-30
-       Android 10.0 (Q)
+       Android 10.0 ("Q")
         android-29
     """.trimIndent(), panel.myPlatformDetailsRootNode.asString())
   }
@@ -119,8 +119,8 @@ class PlatformComponentsPanelTest {
       Root
        Android Codename Preview
        Android API 500
-       Android 11.0 (R)
-       Android 5.0 (Lollipop)
+       Android 11.0 ("R")
+       Android 5.0 ("Lollipop")
     """.trimIndent(), panel.myPlatformSummaryRootNode.asString())
 
     assertEquals("""
@@ -129,9 +129,9 @@ class PlatformComponentsPanelTest {
         android-501
        Android API 500
         android-500
-       Android 11.0 (R)
+       Android 11.0 ("R")
         android-30
-       Android 5.0 (Lollipop)
+       Android 5.0 ("Lollipop")
         android-21
         android-21
     """.trimIndent(), panel.myPlatformDetailsRootNode.asString())

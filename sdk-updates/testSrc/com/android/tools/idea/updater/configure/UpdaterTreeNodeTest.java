@@ -141,7 +141,7 @@ public class UpdaterTreeNodeTest {
   @Test
   public void testParentTreeNodeTitles() throws Exception {
     ParentTreeNode node = new ParentTreeNode(new AndroidVersion(10, null));
-    validateText(node, "Android 2.3.3 (Gingerbread)", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+    validateText(node, "Android 2.3.3 (\"Gingerbread\")", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
 
     node = new ParentTreeNode(new AndroidVersion(99, "dessert of the future"));
     validateText(node, "Android dessert of the future Preview", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
@@ -254,7 +254,7 @@ public class UpdaterTreeNodeTest {
 
     element.setIncludeInSummary(true);
     node = SummaryTreeNode.createNode(new AndroidVersion(17, null), ImmutableSet.of(element));
-    validateText(node, "Android 4.2 (Jelly Bean)", null);
+    validateText(node, "Android 4.2 (\"Jelly Bean\")", null);
   }
 
   @Test

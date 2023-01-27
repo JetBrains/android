@@ -77,9 +77,9 @@ class InstalledEnvironmentsTest {
         installedEnvironments(sdkManager, targets).androidSdks,
         equalTo(
             listOf(
-                ValueDescriptor(24, "API 24: Android 7.0 (Nougat)"),
-                ValueDescriptor(26, "API 26: Android 8.0 (Oreo)"),
-                ValueDescriptor(27, "API 27: Android 8.1 (Oreo)")
+                ValueDescriptor(24, "API 24 (\"Nougat\"; Android 7.0)"),
+                ValueDescriptor(26, "API 26 (\"Oreo\"; Android 8.0)"),
+                ValueDescriptor(27, "API 27 (\"Oreo\"; Android 8.1)")
             )))
 
   }
@@ -103,10 +103,10 @@ class InstalledEnvironmentsTest {
         installedEnvironments(sdkManager, targets).compiledApis,
         equalTo(
             listOf(
-                ValueDescriptor("24", "API 24: Android 7.0 (Nougat)"),
+                ValueDescriptor("24", "API 24 (\"Nougat\"; Android 7.0)"),
                 ValueDescriptor("vendor 24:ADDON:24", "ADDON (API 24)"),
-                ValueDescriptor("26", "API 26: Android 8.0 (Oreo)"),
-                ValueDescriptor("27", "API 27: Android 8.1 (Oreo)")
+                ValueDescriptor("26", "API 26 (\"Oreo\"; Android 8.0)"),
+                ValueDescriptor("27", "API 27 (\"Oreo\"; Android 8.1)")
             )))
 
   }

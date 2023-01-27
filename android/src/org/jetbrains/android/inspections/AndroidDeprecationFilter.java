@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.inspections;
 
-import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.AndroidVersionUtils;
 import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -125,7 +125,11 @@ public class AndroidDeprecationFilter extends AndroidDeprecationInspection.Depre
     if (version != ApiConstraint.UNKNOWN) {
       ApiConstraint.SdkApiConstraint sdk = version.findSdk(ExtensionSdk.ANDROID_SDK_ID, false);
       if (sdk != null) {
-        return defaultMessage + " as of " + SdkVersionInfo.getAndroidName(sdk.min());
+        return defaultMessage + " as of " + AndroidVersionUtils.computeFullApiName(
+            sdk.min(),
+            /*extensionLevel*/ null,
+            /*includeReleaseName*/ true,
+            /*includeCodeName*/ true);
       } else {
         return defaultMessage + " as of " + version.min();
       }

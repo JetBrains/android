@@ -74,7 +74,7 @@ public class AndroidSdkUtilsTest extends PlatformTestCase {
 
   public void testGetTargetLabel() throws Exception {
     IAndroidTarget platformTarget = new MockPlatformTarget(18, 2);
-    assertEquals("API 18: Android 4.3 (Jelly Bean)", AndroidSdkUtils.getTargetLabel(platformTarget));
+    assertEquals("API 18 (\"Jelly Bean\"; Android 4.3)", AndroidSdkUtils.getTargetLabel(platformTarget));
 
     IAndroidTarget unknownTarget = new MockPlatformTarget(-1, 1);
     assertEquals("API -1", AndroidSdkUtils.getTargetLabel(unknownTarget));
@@ -89,7 +89,7 @@ public class AndroidSdkUtilsTest extends PlatformTestCase {
         return new AndroidVersion(100, "Z");
       }
     };
-    assertEquals("API 100+: platform r100", AndroidSdkUtils.getTargetLabel(platformPreviewTarget));
+    assertEquals("API Z Preview", AndroidSdkUtils.getTargetLabel(platformPreviewTarget));
   }
 
   public void testGetDebugBridgeFromSystemPropertyOverride() throws Exception {

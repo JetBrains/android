@@ -77,7 +77,7 @@ class DeviceHandleRendererTest {
     val text = SimpleColoredText()
     DeviceHandleRenderer.renderDevice(text, device1)
 
-    assertThat(text.toString()).isEqualTo("Google Pixel 6 [Disconnected] Android 12.0 (S)")
+    assertThat(text.toString()).isEqualTo("Google Pixel 6 [Disconnected] Android 12.0 (\"S\")")
   }
 
   @Test
@@ -92,7 +92,7 @@ class DeviceHandleRendererTest {
     val text = SimpleColoredText()
     DeviceHandleRenderer.renderDevice(text, device1)
 
-    assertThat(text.toString()).isEqualTo("Google Pixel 6 [Unauthorized] Android 12.0 (S)")
+    assertThat(text.toString()).isEqualTo("Google Pixel 6 [Unauthorized] Android 12.0 (\"S\")")
   }
 
   @Test
@@ -102,7 +102,7 @@ class DeviceHandleRendererTest {
     val text = SimpleColoredText()
     DeviceHandleRenderer.renderDevice(text, device1)
 
-    assertThat(text.toString()).isEqualTo("Google Pixel 6 Android 12.0 (S)")
+    assertThat(text.toString()).isEqualTo("Google Pixel 6 Android 12.0 (\"S\")")
   }
 
   @Test
@@ -113,7 +113,7 @@ class DeviceHandleRendererTest {
     val text = SimpleColoredText()
     DeviceHandleRenderer.renderDevice(text, device1, allDevices)
 
-    assertThat(text.toString()).isEqualTo("Google Pixel 6 [SN1] Android 12.0 (S)")
+    assertThat(text.toString()).isEqualTo("Google Pixel 6 [SN1] Android 12.0 (\"S\")")
   }
 
   private suspend fun activate(deviceHandle: FakeAdbDeviceProvisionerPlugin.FakeDeviceHandle) {

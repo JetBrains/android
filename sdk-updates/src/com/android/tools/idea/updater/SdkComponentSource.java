@@ -25,7 +25,7 @@ import com.android.repository.api.RepoPackage;
 import com.android.repository.api.SettingsController;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.AndroidVersionUtils;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.StudioDownloader;
@@ -44,6 +44,7 @@ import com.intellij.openapi.util.Pair;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -201,11 +202,8 @@ public class SdkComponentSource implements ExternalComponentSource {
     }
     if (platformVersion != null) {
       result.add(Pair.create("Android Platform Version:",
-                             String.format("%1$s revision %2$s",
-                                           platformVersion.getCodename() != null
-                                           ? platformVersion.getCodename()
-                                           : SdkVersionInfo
-                                             .getAndroidName(platformVersion.getApiLevel()),
+                             String.format(Locale.US, "%1$s revision %2$s",
+                                           AndroidVersionUtils.getFullApiName(platformVersion, true, true),
                                            platformRevision)));
     }
     return result;

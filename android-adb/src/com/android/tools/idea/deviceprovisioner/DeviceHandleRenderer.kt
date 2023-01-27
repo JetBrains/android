@@ -19,6 +19,7 @@ import com.android.adblib.DeviceState
 import com.android.adblib.deviceInfo
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.getFullReleaseName
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.ColoredTextContainer
 import com.intellij.ui.SimpleTextAttributes
@@ -83,7 +84,7 @@ object DeviceHandleRenderer {
     // E.g. "Android 5.1 (Lollipop)"
     device.state.properties.androidVersion?.let {
       component.append(
-        " ${SdkVersionInfo.getVersionWithCodename(it)}",
+        " ${it.getFullReleaseName(includeApiLevel = false, includeCodeName = true)}",
         SimpleTextAttributes.GRAY_ATTRIBUTES
       )
     }

@@ -18,7 +18,7 @@ package com.android.tools.idea.updater;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.impl.meta.Archive;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.AndroidVersionUtils;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.welcome.wizard.WelcomeUiUtils;
@@ -149,7 +149,7 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
         else {
           first = false;
         }
-        packageHtmlBuilder.addNbsps(4).addBold(SdkVersionInfo.getVersionWithCodename(version) + ":").newline();
+        packageHtmlBuilder.addNbsps(4).addBold(AndroidVersionUtils.getFullApiName(version, true, true) + ":").newline();
         for (RemotePackage p : versionedPackages.get(version)) {
           packageHtmlBuilder.addNbsps(8).add(p.getDisplayName() + " revision " + p.getVersion()).newline();
         }

@@ -332,7 +332,7 @@ public class SdkComponentSourceTest {
                                 "</ns2:repository>");
     myTestComponentSource.getRepoManager().loadSynchronously(-1, new FakeProgressIndicator(), null, null);
     Collection<? extends Pair<String, String>> statuses = myTestComponentSource.getStatuses();
-    assertTrue(statuses.contains(Pair.create("Android Platform Version:", "API 23: Android 6.0 (Marshmallow) revision 2")));
+    assertTrue(statuses.contains(Pair.create("Android Platform Version:", "API 23 (\"Marshmallow\"; Android 6.0) revision 2")));
   }
 
   @Test
