@@ -652,7 +652,8 @@ android_studio(
     # TODO(b/240707039): automate this.
     version_release_number = 3,
     version_type = "Canary",
-    # version_update_message = "<html>this is optional</html>",
+    version_update_message = """<html>A new Android Studio Giraffe | 2022.3.1 Canary 3 is available in the Canary channel and includes new features and bug fixes.<p>
+    <b>Canary builds</b> are released approximately once a week and include all of our new features and bug fixes. Although these builds<br/>receive only minimal testing and may include bugs, they are made available to allow users to try out new features as early as possible.<p/></html>""",
     visibility = ["//visibility:public"],
 )
 
