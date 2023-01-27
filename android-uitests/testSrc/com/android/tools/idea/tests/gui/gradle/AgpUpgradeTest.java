@@ -46,7 +46,7 @@ public class AgpUpgradeTest {
   private String studioVersion;
   private IdeFrameFixture ideFrame;
   private String projectName = "SimpleApplication";
-  private String oldAgpVersion = "7.1.0";
+  private String oldAgpVersion = "7.3.1";
 
   @Before
   public void setUp() throws Exception {
