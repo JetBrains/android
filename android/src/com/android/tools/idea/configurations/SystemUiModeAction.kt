@@ -192,6 +192,7 @@ private class ActionItem(action: AnAction, dataContext: DataContext) : JBMenuIte
       selectedIcon = EmptyIcon.ICON_16
     }
 
+    iconTextGap = 0
     border = JBUI.Borders.empty(2, sideBorderWidth.unscaled.toInt())
 
     addActionListener {
