@@ -21,7 +21,7 @@ import com.android.emulator.control.WindowPosition
 import com.android.tools.idea.protobuf.Empty
 import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.android.tools.idea.streaming.emulator.EmulatorController
-import com.android.tools.idea.streaming.getEmulatorUiTheme
+import com.android.tools.idea.streaming.emulator.getEmulatorUiTheme
 import com.intellij.ide.ui.LafManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project

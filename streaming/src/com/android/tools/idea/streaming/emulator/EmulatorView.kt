@@ -44,11 +44,9 @@ import com.android.tools.idea.streaming.AbstractDisplayView
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.RUNNING_DEVICES_NOTIFICATION_GROUP
-import com.android.tools.idea.streaming.createHardwareKeyEvent
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.DisplayMode
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
-import com.android.tools.idea.streaming.getEmulatorUiTheme
 import com.android.tools.idea.streaming.isSameAspectRatio
 import com.android.tools.idea.streaming.rotatedByQuadrants
 import com.android.tools.idea.streaming.scaled

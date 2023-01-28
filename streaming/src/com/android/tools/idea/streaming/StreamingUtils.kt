@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.streaming
 
-import com.android.emulator.control.KeyboardEvent
-import com.android.emulator.control.KeyboardEvent.KeyEventType
-import com.android.emulator.control.ThemingStyle
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.ide.ui.LafManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectEx
@@ -37,18 +33,6 @@ import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.min
 import kotlin.math.roundToInt
-
-/**
- * Returns the emulator UI theme matching the current IDE theme.
- */
-internal fun getEmulatorUiTheme(lafManager: LafManager): ThemingStyle.Style {
-  val themeName = lafManager.currentLookAndFeel.name
-  return when {
-    themeName.contains("High contrast", ignoreCase = true) -> ThemingStyle.Style.CONTRAST
-    themeName.contains("Light", ignoreCase = true) -> ThemingStyle.Style.LIGHT
-    else -> ThemingStyle.Style.DARK // Darcula and custom themes that are based on Darcula.
-  }
-}
 
 /**
  * Coroutine-friendly version of [ListenableFuture.get].
@@ -73,17 +57,6 @@ suspend fun <T> ListenableFuture<T>.suspendingGet(): T {
     }
     addListener(listener, SameThreadExecutor.INSTANCE)
   }
-}
-
-/**
- * Creates a [KeyboardEvent] for the given hardware key.
- * Key names are defined in https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values.
- */
-internal fun createHardwareKeyEvent(keyName: String, eventType: KeyEventType = KeyEventType.keypress): KeyboardEvent {
-  return KeyboardEvent.newBuilder()
-    .setKey(keyName)
-    .setEventType(eventType)
-    .build()
 }
 
 /**

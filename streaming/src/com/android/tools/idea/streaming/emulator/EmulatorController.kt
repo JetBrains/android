@@ -875,10 +875,4 @@ private val EMPTY_REGISTRY = ExtensionRegistryLite.getEmptyRegistry()
 private val AUTHORIZATION_METADATA_KEY = Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER)
 private val KEEP_ALIVE_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(2)
 private val LOG = Logger.getInstance(EmulatorController::class.java)
-private val EMPTY_OBSERVER = EmptyStreamObserver<Any>()
 private val EMPTY_PROTO = Empty.getDefaultInstance()
-
-@Suppress("UNCHECKED_CAST")
-fun <T> getEmptyObserver(): StreamObserver<T> {
-  return EMPTY_OBSERVER as StreamObserver<T>
-}

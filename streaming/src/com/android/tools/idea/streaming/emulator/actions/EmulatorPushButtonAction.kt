@@ -17,8 +17,8 @@ package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.emulator.control.KeyboardEvent
 import com.android.tools.idea.streaming.PushButtonAction
-import com.android.tools.idea.streaming.createHardwareKeyEvent
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration
+import com.android.tools.idea.streaming.emulator.createHardwareKeyEvent
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import java.util.function.Predicate
