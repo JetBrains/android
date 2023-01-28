@@ -1,0 +1,19 @@
+[versions]
+constraint-layout = "1.0.2"
+guava = "19.0"
+junit = "4.12"
+gradlePlugins-agp = "8.0.0-beta01"
+kotlin = "1.7.20"
+
+[libraries]
+constraint-layout = { module = "com.android.support.constraint:constraint-layout", version.ref = "constraint-layout" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+junit = { module = "junit:junit", version.ref = "junit" }
+
+[plugins]
+ksp = { id = "com.google.devtools.ksp", version = "1.7.21-1.0.8" }
+android-application = { id = "com.android.application", version.ref = "gradlePlugins-agp" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+
+[bundles]
+both = ["constraint-layout", "guava"]
