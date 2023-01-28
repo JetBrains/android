@@ -452,6 +452,9 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
         renderscriptFolder = androidLibrary.renderscriptFolder.path,
         proguardRules = androidLibrary.proguardRules.path,
         lintJar = androidLibrary.lintJar.path,
+        srcJar = null,
+        docJar = null,
+        samplesJar = null,
         externalAnnotations = androidLibrary.externalAnnotations.path,
         publicResources = androidLibrary.publicResources.path,
         artifact = androidLibrary.bundle,
@@ -474,7 +477,10 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       val unnamedLibrary = IdeJavaLibraryImpl(
         artifactAddress = artifactAddress,
         name = "",
-        artifact = javaLibrary.jarFile
+        artifact = javaLibrary.jarFile,
+        srcJar = null,
+        docJar = null,
+        samplesJar = null
       )
       val isProvided = copyNewProperty(javaLibrary::isProvided, false)
 
@@ -484,7 +490,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
 
   fun libraryFrom(jarFile: File): IdeDependencyCoreAndIsProvided {
     val artifactAddress = "${ModelCache.LOCAL_JARS}:" + jarFile.path + ":unspecified"
-    val unnamedLibrary = IdeJavaLibraryImpl(artifactAddress, "", jarFile)
+    val unnamedLibrary = IdeJavaLibraryImpl(artifactAddress, "", jarFile, null, null, null)
     return makeDependency(internedModels.getOrCreate(unnamedLibrary), false)
   }
 
@@ -625,6 +631,9 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
             renderscriptFolder = aarLibraryDir.resolve("rs").absolutePath,
             proguardRules = aarLibraryDir.resolve("proguard.txt").absolutePath,
             lintJar = null,
+            srcJar = null,
+            docJar = null,
+            samplesJar = null,
             externalAnnotations = aarLibraryDir.resolve("annotations.zip").absolutePath,
             publicResources = aarLibraryDir.resolve("public.txt").absolutePath,
             artifact = null,
@@ -634,7 +643,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
         )
       } else {
         // NOTE: [artifactAddress] needs to be in this form to meet LintModelFactory expectations.
-        internedModels.getOrCreate(IdeJavaLibraryImpl("$LOCAL_JARS:" + jarFile.path + ":unspecified", "", jarFile))
+        internedModels.getOrCreate(IdeJavaLibraryImpl("$LOCAL_JARS:" + jarFile.path + ":unspecified", "", jarFile, null, null, null))
       }
     }
 

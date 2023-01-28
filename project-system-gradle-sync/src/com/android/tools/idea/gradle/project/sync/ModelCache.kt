@@ -137,7 +137,8 @@ interface ModelCache {
           internedModels,
           modelCacheLock,
           AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION),
-          syncTestMode = SyncTestMode.PRODUCTION
+          syncTestMode = SyncTestMode.PRODUCTION,
+          false,
         )
       } else {
         modelCacheV1Impl(internedModels, BuildFolderPaths(), modelCacheLock)

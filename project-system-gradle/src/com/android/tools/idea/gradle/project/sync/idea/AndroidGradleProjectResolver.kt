@@ -24,6 +24,7 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.model.IdeAndroidProject
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
@@ -509,9 +510,16 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
 
     val project = project
     val libraryFilePaths = project?.let(LibraryFilePaths::getInstance)
-    val artifactLookup = Function { artifactId: String ->
+    val artifactLookup = Function { library: IdeArtifactLibrary ->
+      // Attempt to find the source/doc/samples jars within the library if we haven't injected the additional artifacts model builder
+      if (additionalArtifacts == null) {
+        return@Function AdditionalArtifactsPaths(library.srcJar, library.docJar, library.samplesJar)
+      }
+
+      // Otherwise fall back to using the model from the injected model builder.
+      val artifactId = stripExtensionAndClassifier(library.name)
       // First check to see if we just obtained any paths from Gradle. Since we don't request all the paths this can be null
-      // or contain an incomplete set of entries. In order to complete this set we need to obtains the reminder from LibraryFilePaths cache.
+      // or contain an incomplete set of entries. In order to complete this set we need to obtain the reminder from LibraryFilePaths cache.
       val artifacts = additionalArtifactsMap[artifactId]
       if (artifacts != null) {
         return@Function AdditionalArtifactsPaths(artifacts.sources, artifacts.javadoc, artifacts.sampleSources)
@@ -526,6 +534,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       }
       null
     }
+
     ideModule.setupAndroidDependenciesForMpss(
       { gradleProjectPath: GradleSourceSetProjectPath ->
         val node = myModuleDataByGradlePath[gradleProjectPath] ?: return@setupAndroidDependenciesForMpss null

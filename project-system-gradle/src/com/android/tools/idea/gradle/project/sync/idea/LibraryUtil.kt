@@ -109,7 +109,10 @@ private fun IdeUnresolvedLibraryTable.resolve(
         IdeJavaLibraryImpl(
           unresolved.artifact.path,
           unresolved.artifact.path,
-          unresolved.artifact
+          unresolved.artifact,
+          null,
+          null,
+          null
         )
       )
 

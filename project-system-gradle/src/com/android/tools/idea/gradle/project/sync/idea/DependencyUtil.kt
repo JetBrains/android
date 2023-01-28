@@ -60,7 +60,6 @@ private val LOG = Logger.getInstance(AndroidDependenciesSetupContext::class.java
 typealias SourcesPath = File?
 typealias JavadocPath = File?
 typealias SampleSourcePath = File?
-typealias ArtifactId = String
 
 data class AdditionalArtifactsPaths(val sources: SourcesPath, val javadoc: JavadocPath, val sampleSources: SampleSourcePath)
 
@@ -88,7 +87,7 @@ private class AndroidDependenciesSetupContext(
   private val moduleDataNode: DataNode<out ModuleData>,
   private val projectDataNode: DataNode<ProjectData>,
   private val gradleProjectPathToModuleData: (GradleSourceSetProjectPath) -> ModuleData?,
-  private val additionalArtifactsMapper: (ArtifactId) -> AdditionalArtifactsPaths?,
+  private val additionalArtifactsMapper: (IdeArtifactLibrary) -> AdditionalArtifactsPaths?,
   private val processedLibraries: MutableMap<String, LibraryDependencyData>,
   private val processedModuleDependencies: MutableMap<GradleProjectPath, ModuleDependencyData>
 ) {
@@ -129,7 +128,7 @@ private class AndroidDependenciesSetupContext(
       }
 
       libraryData.addPath(BINARY, library.artifact.absolutePath)
-      setupSourcesAndJavaDocsFrom(libraryData, libraryName)
+      setupSourcesAndJavaDocsFrom(libraryData, library)
       return libraryData
     }
   }
@@ -147,7 +146,7 @@ private class AndroidDependenciesSetupContext(
         libraryData.addPath(BINARY, library.manifest.path)
       }
       setupAnnotationsFrom(libraryData, libraryName, library)
-      setupSourcesAndJavaDocsFrom(libraryData, libraryName)
+      setupSourcesAndJavaDocsFrom(libraryData, library)
       return libraryData
     }
   }
@@ -206,10 +205,10 @@ private class AndroidDependenciesSetupContext(
 
   private fun setupSourcesAndJavaDocsFrom(
     libraryData: LibraryData,
-    libraryName: String
+    library: IdeArtifactLibrary,
   ) {
     val (sources, javadocs, sampleSources) =
-      additionalArtifactsMapper(stripExtensionAndClassifier(libraryName)) ?: return
+      additionalArtifactsMapper(library) ?: return
 
     sources?.also { libraryData.addPath(SOURCE, it.absolutePath) }
     javadocs?.also { libraryData.addPath(DOC, it.absolutePath) }
@@ -246,7 +245,7 @@ private class AndroidDependenciesSetupContext(
 
 fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
   gradleProjectPathToModuleData: (GradleSourceSetProjectPath) -> ModuleData?,
-  additionalArtifactsMapper: (ArtifactId) -> AdditionalArtifactsPaths?,
+  additionalArtifactsMapper: (IdeArtifactLibrary) -> AdditionalArtifactsPaths?,
   variant: IdeVariant
 ) {
   // The DataNode tree should have a ProjectData node as a parent of the ModuleData node. We don't throw an

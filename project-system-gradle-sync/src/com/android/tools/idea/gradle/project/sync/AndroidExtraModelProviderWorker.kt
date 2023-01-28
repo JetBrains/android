@@ -118,7 +118,8 @@ internal class AndroidExtraModelProviderWorker(
           stackTrace = e.stackTrace.map { it.toString() },
           buildPath = e.myBuildPath,
           modulePath = e.myModulePath,
-          syncIssues = e.mySyncIssues),
+          syncIssues = e.mySyncIssues
+        ),
         IdeAndroidSyncError::class.java
       )
     }
@@ -137,7 +138,7 @@ internal class AndroidExtraModelProviderWorker(
               val versions = controller.findNonParameterizedV2Model(gradleProject, Versions::class.java)
               if (versions != null && canFetchV2Models(AgpVersion.tryParse(versions.agp))) {
                 // This means we can request V2.
-                return BasicV2AndroidModuleGradleProject(gradleProject, buildName, versions, syncOptions.syncTestMode)
+                return BasicV2AndroidModuleGradleProject(gradleProject, buildName, versions, syncOptions)
               }
             }
             // We cannot request V2 models.

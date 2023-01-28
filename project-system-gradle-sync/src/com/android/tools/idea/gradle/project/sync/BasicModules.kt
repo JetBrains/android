@@ -149,7 +149,7 @@ internal class BasicV2AndroidModuleGradleProject(
   gradleProject: BasicGradleProject,
   buildName: String,
   val versions: Versions,
-  val syncTestMode: SyncTestMode
+  val syncActionOptions: SyncActionOptions,
 ) :
   BasicIncompleteAndroidModule(gradleProject, buildName)
 {
@@ -180,7 +180,8 @@ internal class BasicV2AndroidModuleGradleProject(
         val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)
           ?: error("Cannot get GradlePropertiesModel (V2) for project '$gradleProject'")
 
-        val modelCache = modelCacheV2Impl(internedModels, modelCacheLock, agpVersion, syncTestMode)
+        val modelCache = modelCacheV2Impl(internedModels, modelCacheLock, agpVersion, syncActionOptions.syncTestMode,
+                                          syncActionOptions.flags.studioFlagMultiVariantAdditionalArtifactSupport)
         val rootBuildId = buildInfo.buildNameMap[":"] ?: error("Root build (':') not found")
         val buildId = buildInfo.buildNameMap[basicAndroidProject.buildName]
           ?: error("(Included) build named '${basicAndroidProject.buildName}' not found")

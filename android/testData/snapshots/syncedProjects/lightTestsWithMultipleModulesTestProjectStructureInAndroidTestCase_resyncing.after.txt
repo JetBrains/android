@@ -759,6 +759,9 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
                 APK_FROM_BUNDLE               : :lib:extractApksForDebug
     LIBRARY_TABLE
         LIBRARY                       : Gradle: com.example:library:1.0
+            *SOURCES                      : jar://<TEMP>/.gradle/libraryFolder/samples.jar!/ [-]
+            *SOURCES                      : jar://<TEMP>/.gradle/libraryFolder/srcJar.jar!/ [-]
+            *JAVADOC                      : jar://<TEMP>/.gradle/libraryFolder/docJar.jar!/ [-]
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
             CLEAN                         : <TEMP>::app:generateDebugSources, <TEMP>::app:ideAndroidTestSetupTask1, <TEMP>::app:ideAndroidTestSetupTask2, <TEMP>::app:ideUnitTestSetupTask1, <TEMP>::app:ideUnitTestSetupTask2, <TEMP>::lib:generateDebugSources, <TEMP>::lib:ideAndroidTestSetupTask1, <TEMP>::lib:ideAndroidTestSetupTask2, <TEMP>::lib:ideUnitTestSetupTask1, <TEMP>::lib:ideUnitTestSetupTask2

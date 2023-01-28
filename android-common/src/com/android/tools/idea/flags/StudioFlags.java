@@ -812,6 +812,16 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> GRADLE_MULTI_VARIANT_ADDITIONAL_ARTIFACT_SUPPORT = Flag.create(
+    GRADLE_IDE,
+    "gradle.multi.variant.additional.artifact.support",
+    "Gradle multi variant additional artifact support",
+    "Switch to building additional artifacts (javadocs/srcs/samples) inside Gradle rather than an injected model builder. This allows " +
+    "us to support variant specific artifacts and prevents the IDE from having to match by Gradle coordinate. This flag will have no effect " +
+    "if used with a version of AGP before 8.1.0-alpha8.",
+    false
+  );
+
   //endregion
 
   //region Database Inspector

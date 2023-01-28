@@ -79,6 +79,9 @@ class InternedModelsTest {
       artifactAddress = "com.example:lib:1.0",
       name = "",
       artifact = File("$libRoot/artifactFile"),
+      srcJar = null,
+      docJar = null,
+      samplesJar = null
     )
 
     val named = internedModels.getOrCreate(unnamed).lookup()
@@ -93,6 +96,9 @@ class InternedModelsTest {
       artifactAddress = "com.example:lib:1.0",
       name = "",
       artifact = File("$libRoot/artifactFile"),
+      srcJar = null,
+      docJar = null,
+      samplesJar = null
     )
 
     val unnamedCopy = unnamed.copy()
@@ -200,6 +206,9 @@ class InternedModelsTest {
     renderscriptFolder = "$libRoot/renderscriptFolder",
     proguardRules = "$libRoot/proguardRules",
     lintJar = "$libRoot/lint.jar",
+    srcJar = "$libRoot/srcJar.jar",
+    docJar = "$libRoot/docJar.jar",
+    samplesJar = "$libRoot/samplesJar.jar",
     externalAnnotations = "$libRoot/externalAnnotations",
     publicResources = "$libRoot/publicResources",
     artifact = File(artifact),
