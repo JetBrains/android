@@ -20,19 +20,19 @@ import com.intellij.util.containers.nullize
 import com.intellij.util.text.nullize
 import javax.swing.tree.TreeNode
 
-internal data class TestTree(val text: String, val children: List<TestTree>?) {
+data class TestTree(val text: String, val children: List<TestTree>?) {
   override fun toString(): String =
     listOfNotNull(text, children?.nullize()?.joinToString("\n")?.prependIndent("    ")).joinToString("\n")
 }
 
-internal fun AbstractPsNode.testStructure(filter: (AbstractPsNode) -> Boolean = { true }): TestTree =
+fun AbstractPsNode.testStructure(filter: (AbstractPsNode) -> Boolean = { true }): TestTree =
   TestTree(let {
     update()
     name ?: "(null)"
   },
            children.mapNotNull { it as? AbstractPsNode }.filter { filter(it) }.map { it.testStructure(filter) })
 
-internal fun TreeNode.testStructure(filter: (TreeNode) -> Boolean = { true }): TestTree =
+fun TreeNode.testStructure(filter: (TreeNode) -> Boolean = { true }): TestTree =
   TestTree(toString().nullize(nullizeSpaces = true) ?: "(null)",
            children().asSequence().mapNotNull { it as? TreeNode }.filter { filter(it) }.map { it.testStructure(filter) }.toList())
 

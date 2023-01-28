@@ -121,8 +121,8 @@ open class PsResolvedLibraryAndroidDependency(
   val artifact: PsAndroidArtifact,
   override val declaredDependencies: List<PsDeclaredLibraryAndroidDependency>
 ) : PsLibraryAndroidDependency(parent), PsResolvedDependency, PsResolvedLibraryDependency {
-  internal val pomDependencies = mutableListOf<PsArtifactDependencySpec>()
-  override val isDeclared: Boolean get() = !declaredDependencies.isEmpty()
+  internal val transitiveDependencies = mutableListOf<PsArtifactDependencySpec>()
+  override val isDeclared: Boolean get() = declaredDependencies.isNotEmpty()
 
   override fun hasPromotedVersion(): Boolean = getReverseDependencies().any { it.isPromoted }
 
@@ -130,11 +130,11 @@ open class PsResolvedLibraryAndroidDependency(
     artifact.dependencies.reverseDependencies[spec.toLibraryKey()].orEmpty()
 
   override fun getTransitiveDependencies(): Set<PsResolvedLibraryAndroidDependency> =
-    pomDependencies.flatMap { artifact.dependencies.findLibraryDependencies(it.group, it.name) }.toSet()
+    transitiveDependencies.flatMap { artifact.dependencies.findLibraryDependencies(it.group, it.name) }.toSet()
 
-  internal fun setDependenciesFromPomFile(value: List<PsArtifactDependencySpec>) {
-    pomDependencies.clear()
-    pomDependencies.addAll(value)
+  internal fun setTransitiveDependencies(value: List<PsArtifactDependencySpec>) {
+    transitiveDependencies.clear()
+    transitiveDependencies.addAll(value)
   }
 }
 
