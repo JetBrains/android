@@ -28,16 +28,31 @@ class Leaktrace(val elements: List<LeaktraceElement>) {
   }
 
   fun signatureAt(index: Int): String = element(index)?.signature() ?: ""
+
+  // It's generally more useful in specifying ignore-list patterns to describe a field of a particular
+  // class than a field name that has a value of a certain type. In the new format, this description spans
+  // elements - the class comes from element 'index', and the field from the subsequent element.
+  fun referenceMatches(index: Int, className: String, fieldName: String): Boolean {
+    val realIndex = if (index < 0) elements.size - 1 + index else index
+    if (realIndex < 0 || realIndex > elements.size - 2) return false
+    if (elements[realIndex].type == "java.lang.Class") {
+      // Leaktrace reference is a static field. Match className against the name of the class, not its type
+      return elements[realIndex].className == className && elements[realIndex+1].referenceLabel == fieldName
+    } else {
+      return elements[realIndex].type == className && elements[realIndex+1].referenceLabel == fieldName
+    }
+  }
 }
 
 class LeaktraceElement(val type: String, val referenceLabel: String, obj: Any?) {
+  val className = if (obj is Class<*>) obj.name else null
   val description = try {
     obj?.let { it.toString().take(100) }
   } catch (t: Throwable) {
     "[EXCEPTION in toString]"
   }
 
-  fun signature() = type + if (referenceLabel.isNotEmpty()) "#${referenceLabel}" else ""
+  fun signature() = "$referenceLabel: $type"
 
-  override fun toString() = "${signature()}: $description"
+  override fun toString() = "${signature()} [$description]"
 }
