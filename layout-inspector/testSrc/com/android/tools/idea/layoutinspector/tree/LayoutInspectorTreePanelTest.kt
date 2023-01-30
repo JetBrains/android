@@ -103,11 +103,7 @@ private val TIMEOUT_UNIT = TimeUnit.SECONDS
 
 private val PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
-class LayoutInspectorTreePanelTreeTest : LayoutInspectorTreePanelTest(useTreeTable = false)
-
-class LayoutInspectorTreePanelTreeTableTest : LayoutInspectorTreePanelTest(useTreeTable = true)
-
-abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
+class LayoutInspectorTreePanelTest {
   private val projectRule = AndroidProjectRule.withSdk()
   private val appInspectorRule = AppInspectionInspectorRule(projectRule)
   private val inspectorRule = LayoutInspectorRule(listOf(appInspectorRule.createInspectorClientProvider()), projectRule) {
