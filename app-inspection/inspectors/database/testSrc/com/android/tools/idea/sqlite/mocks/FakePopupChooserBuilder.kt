@@ -130,6 +130,8 @@ open class FakePopupChooserBuilder : IPopupChooserBuilder<SqliteDatabaseId> {
     cancelOnWindowDeactivation: Boolean
   ): IPopupChooserBuilder<SqliteDatabaseId> = this
 
+  override fun setCancelOnOtherWindowOpen(cancelOnWindow: Boolean): IPopupChooserBuilder<SqliteDatabaseId> = this
+
   override fun setSelectionMode(selection: Int): IPopupChooserBuilder<SqliteDatabaseId> = this
 
   override fun setSelectedValue(
