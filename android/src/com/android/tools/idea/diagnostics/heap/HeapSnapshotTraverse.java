@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
+import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.isPrimitive;
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.processMask;
 import static com.google.common.math.LongMath.isPowerOfTwo;
 import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.MemoryUsageCollectionMetadata.StatusCode;
@@ -100,10 +101,12 @@ public final class HeapSnapshotTraverse implements Disposable {
     if (!canTagObjects()) {
       return StatusCode.CANT_TAG_OBJECTS;
     }
-    WeakList<Object> classes = new WeakList<>();
-    classes.addAll(Arrays.asList(getClasses()));
 
-    return walkObjects(maxDepth, classes);
+    WeakList<Object> roots = new WeakList<>();
+    roots.addAll(Arrays.asList(getClasses()));
+    roots.addAll(Thread.getAllStackTraces().keySet());
+
+    return walkObjects(maxDepth, roots);
   }
 
   public StatusCode walkObjects(int maxDepth, @NotNull final Collection<?> startRoots) {
@@ -311,7 +314,10 @@ public final class HeapSnapshotTraverse implements Disposable {
     if (stackNode.depth + 1 > maxDepth) {
       return;
     }
-    if (HeapTraverseUtil.isPrimitive(value.getClass())) {
+    if (HeapTraverseUtil.isPrimitive(value.getClass()) ||
+        value instanceof Thread ||
+        value instanceof Class<?> ||
+        value instanceof ClassLoader) {
       return;
     }
     long tag = getObjectTag(value);
@@ -422,7 +428,11 @@ public final class HeapSnapshotTraverse implements Disposable {
                                       @NotNull final HeapTraverseNode parentNode,
                                       @NotNull final FieldCache fieldCache) throws HeapSnapshotTraverseException {
     heapTraverseChildProcessor.processChildObjects(parentObj, (Object value, HeapTraverseNode.RefWeight ownershipWeight) -> {
-      if (value == null) {
+      if (value == null ||
+          isPrimitive(value.getClass()) ||
+          value instanceof Thread ||
+          value instanceof Class<?> ||
+          value instanceof ClassLoader) {
         return;
       }
       long tag = getObjectTag(value);

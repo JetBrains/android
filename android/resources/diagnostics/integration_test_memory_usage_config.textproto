@@ -60,10 +60,11 @@ categories: {
 
   components: {
     label: "profiler_main"
-    package_names: "com.android.tools.profiling"
     package_names: "com.android.tools.profilers"
     package_names: "com.android.tools.profiler"
     package_names: "com.android.tools.idea.profilers"
+    package_names: "com.android.tools.perflib"
+    package_names: "trebuchet.io"
   }
   components: {
     label: "transport"
@@ -99,6 +100,7 @@ categories: {
   components: {
     label: "debug"
     package_names: "com.android.tools.idea.debug"
+    package_names: "com.intellij.xdebugger"
   }
   components: {
     label: "apkView"
@@ -206,6 +208,14 @@ categories: {
   components: {
     label: "psi"
     package_names: "com.intellij.psi"
+  }
+  components: {
+    label: "inspections"
+    package_names: "com.intellij.codeInspection"
+  }
+  components: {
+    label: "messages"
+    package_names: "com.intellij.util.messages"
   }
 }
 shared_components_limit: 200
