@@ -67,6 +67,12 @@ public class ComputeGradlePluginUpgradeStateTest {
       {"7.0.0-rc01", "7.1.0-beta01", Arrays.asList("7.0.0", "7.0.1", "7.0.2"), RECOMMEND, "7.0.2"},
       {"7.0.0", "7.2.0-alpha01", Arrays.asList("7.1.0", "7.1.1", "7.0.0", "7.0.1", "7.0.2"), RECOMMEND, "7.1.1"},
 
+      // If there are published versions to upgrade to, don't suggest the latest version unless it is published
+      {"7.3.1", "7.4.1", Arrays.asList("7.3.0", "7.3.1", "7.4.0"), RECOMMEND, "7.4.0"},
+      {"7.3.1", "7.4.1", Arrays.asList("7.3.0", "7.3.1", "7.4.0", "7.4.1"), RECOMMEND, "7.4.1"},
+      // If there are no published versions to upgrade to, suggest the latest version
+      {"7.4.0", "7.4.1", Arrays.asList("7.3.0", "7.3.1", "7.4.0"), RECOMMEND, "7.4.1"},
+
       // Alpha or Beta to any later version should force an upgrade
       {"7.0.0-alpha01", "7.0.0-alpha02", Collections.emptyList(), FORCE, "7.0.0-alpha02"},
       {"7.0.0-alpha02", "7.0.0-beta01", Collections.emptyList(), FORCE, "7.0.0-beta01"},
