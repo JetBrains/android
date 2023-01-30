@@ -46,6 +46,10 @@ class DeviceStatusManager {
     return deviceStatuses.values.any { it.unrecoverable() }
   }
 
+  fun isDisabled(): Boolean {
+    return deviceStatuses.values.any { it == LiveEditStatus.Disabled }
+  }
+
   fun clear() {
     deviceStatuses.clear()
   }

@@ -197,7 +197,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
       return;
     }
 
-    if (deviceStatusManager.isUnrecoverable()) {
+    if (deviceStatusManager.isUnrecoverable() || deviceStatusManager.isDisabled()) {
       return;
     }
 
