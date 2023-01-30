@@ -20,7 +20,6 @@ import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.RunManager;
-import com.intellij.ide.ui.laf.darcula.ui.ComboBoxButtonUI;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -46,7 +45,6 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.plaf.ComponentUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -276,40 +274,18 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @NotNull
   @Override
   protected ComboBoxButton createComboBoxButton(@NotNull Presentation presentation) {
-    var button = new DeviceAndSnapshotComboBoxButton(presentation);
-    myUpdatableDeviceHelpTooltip.installOn(button);
-
-    return button;
-  }
-
-  private final class DeviceAndSnapshotComboBoxButton extends ComboBoxButton {
-    @Nullable
-    private ComponentUI myComponentUi;
-
-    private DeviceAndSnapshotComboBoxButton(@NotNull Presentation presentation) {
-      super(presentation);
-      setName("deviceAndSnapshotComboBoxButton");
-    }
-
-    @NotNull
-    @Override
-    protected JBPopup createPopup(@Nullable Runnable runnable) {
-      var context = getDataContext();
-
-      assert runnable != null;
-      return new Popup(createPopupActionGroup(this, context), context, runnable);
-    }
-
-    @Override
-    public void updateUI() {
-      super.updateUI();
-
-      if (myComponentUi == null) {
-        myComponentUi = ComboBoxButtonUI.createUI(this);
+    ComboBoxButton button = new ComboBoxButton(presentation) {
+      @NotNull
+      @Override
+      protected JBPopup createPopup(@NotNull Runnable runnable) {
+        DataContext context = getDataContext();
+        return new Popup(createPopupActionGroup(this, context), context, runnable);
       }
+    };
 
-      setUI(myComponentUi);
-    }
+    myUpdatableDeviceHelpTooltip.installOn(button);
+    button.setName("deviceAndSnapshotComboBoxButton");
+    return button;
   }
 
   @Override
