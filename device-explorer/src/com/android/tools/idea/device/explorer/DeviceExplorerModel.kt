@@ -20,7 +20,6 @@ import com.android.adblib.utils.createChildScope
 import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
-import com.android.sdklib.deviceprovisioner.isOnline
 import com.android.sdklib.deviceprovisioner.pairWithNestedState
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.intellij.openapi.components.service
@@ -29,7 +28,6 @@ import com.intellij.serviceContainer.NonInjectable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
