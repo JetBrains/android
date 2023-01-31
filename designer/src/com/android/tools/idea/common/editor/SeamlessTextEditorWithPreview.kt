@@ -122,10 +122,9 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(textEditor: TextEditor,
     }
 
     fun setTabsActionVisibility(visible: Boolean) {
-      if (visible && childrenCount == 0) {
+      removeAll()
+      if (visible) {
         addAll(originalActionGroup)
-      } else {
-        removeAll()
       }
     }
   }
