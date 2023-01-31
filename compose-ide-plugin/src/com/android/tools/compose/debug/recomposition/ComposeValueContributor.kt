@@ -18,6 +18,9 @@ package com.android.tools.compose.debug.recomposition
 import com.android.tools.compose.ComposeBundle
 import com.android.tools.compose.debug.recomposition.StateObject.Parameter
 import com.android.tools.compose.debug.recomposition.StateObject.ThisObject
+import com.android.tools.compose.isComposableFunction
+import com.intellij.codeInsight.TargetElementUtil
+import com.intellij.codeInsight.TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED
 import com.intellij.debugger.engine.CompoundPositionManager
 import com.intellij.debugger.engine.JavaValue
 import com.intellij.debugger.engine.evaluation.EvaluationContextImpl
@@ -26,14 +29,20 @@ import com.intellij.debugger.ui.impl.watch.LocalVariableDescriptorImpl
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.registry.Registry
+import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
+import com.intellij.psi.util.parentOfTypes
+import com.intellij.refactoring.suggested.startOffset
 import com.intellij.xdebugger.frame.XNamedValue
 import com.sun.jdi.IntegerValue
 import com.sun.jdi.Location
+import org.jetbrains.kotlin.idea.codeinsight.utils.findExistingEditor
 import org.jetbrains.kotlin.idea.debugger.core.stackFrame.KotlinStackFrame
 import org.jetbrains.kotlin.idea.debugger.core.stackFrame.KotlinStackFrameValueContributor
+import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
+import org.jetbrains.kotlin.psi.KtNamedFunction
 import java.util.concurrent.CancellationException
 
 private const val COMPOSER_VAR = "\$composer"
@@ -123,23 +132,46 @@ internal class ComposeValueContributor : KotlinStackFrameValueContributor {
    * Inspired by [org.jetbrains.kotlin.idea.debugger.coroutine.KotlinVariableNameFinder.findVariableNames].
    */
   private fun getFunctionInfo(positionManager: CompoundPositionManager, location: Location): FunctionInfo {
-    val position = positionManager.getSourcePosition(location) ?: throw IllegalStateException("Unable to get source position")
     return runReadAction {
-      val function = position.elementAt.parentOfType<KtFunction>(withSelf = true)
-                     ?: throw IllegalStateException("Unable to find KtFunction element")
+      val element = positionManager.getSourcePosition(location)?.elementAt ?: throw IllegalStateException("Unable to get source position")
+      val function = element.parentOfType<KtFunction>(withSelf = true) ?: throw IllegalStateException("Unable to find KtFunction element")
       val parameters = function.valueParameters.mapNotNull { it.name }
-      FunctionInfo(function.getDescription(), parameters)
+      FunctionInfo(getDescription(function), parameters)
     }
   }
 
   private class FunctionInfo(val description: String, val parameters: List<String>)
 }
 
-private fun KtFunction.getDescription(): String {
-  return when (this) {
-    is KtFunctionLiteral -> ComposeBundle.message("recomposition.state.function.description.lambda")
-    else -> ComposeBundle.message("recomposition.state.function.description.function", nameAsSafeName.asString())
+private fun getDescription(function: KtFunction): String {
+  return when (function) {
+    is KtFunctionLiteral -> ComposeBundle.message("recomposition.state.function.description.lambda", getLambdaName(function))
+    else -> ComposeBundle.message("recomposition.state.function.description.function", function.nameAsSafeName.asString())
   }
+}
+
+/**
+ * Search parent hierarchy for either a declaration of a composable function or a call to a composable function.
+ */
+private fun getLambdaName(lambda: KtFunctionLiteral): String {
+  var element: PsiElement = lambda
+  while (true) {
+    element = element.parentOfTypes(KtNamedFunction::class, KtCallExpression::class) ?: return "lambda"
+    when {
+      element is KtNamedFunction && element.isComposableFunction() -> return element.getLambdaName()
+      element is KtCallExpression && element.isTargetComposable() -> return element.getLambdaName()
+    }
+  }
+}
+
+private fun KtNamedFunction.getLambdaName() = "lambda@${nameAsSafeName.asString()}"
+
+private fun KtCallExpression.getLambdaName() = calleeExpression?.let { "lambda@${it.text}" } ?: "lambda"
+
+private fun KtCallExpression.isTargetComposable(): Boolean {
+  val editor = findExistingEditor() ?: return false
+  val target = TargetElementUtil.getInstance().findTargetElement(editor, REFERENCED_ELEMENT_ACCEPTED, startOffset) ?: return false
+  return target.isComposableFunction()
 }
 
 private fun getParamStates(frame: KotlinStackFrame, variables: List<LocalVariableProxyImpl>): List<ParamState> {
