@@ -20,6 +20,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.getPsiFileSafely
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -90,8 +91,13 @@ private fun hasAnnotationsUncached(project: Project, vFile: VirtualFile,
  * A mapping to keep track of the cache [Key]s for the annotation combinations. Each [Key] instance is unique by implementation and [Key]
  * declares [hashCode] and [equals] methods as final. Thus, this mapping allows to reuse the same [Key] instance for the same [localKey].
  */
-@VisibleForTesting
-object CacheKeysManager {
+@Service
+class CacheKeysManager {
+  companion object {
+    @JvmStatic
+    fun getInstance(project: Project): CacheKeysManager = project.getService(CacheKeysManager::class.java)
+  }
+
   private val annotationCacheKeys = ConcurrentHashMap<Any, Key<out CachedValue<out Any>>>()
 
   fun <T : Any> getKey(localKey: Any): Key<CachedValue<T>> {
@@ -126,7 +132,7 @@ fun hasAnnotations(
   val psiFile = AndroidPsiUtils.getPsiFileSafely(project, vFile) ?: return false
   return CachedValuesManager.getManager(project).getCachedValue(
     psiFile,
-    CacheKeysManager.getKey(HasFilteredAnnotationsKey(annotations, shortAnnotationName, filter))) {
+    CacheKeysManager.getInstance(project).getKey(HasFilteredAnnotationsKey(annotations, shortAnnotationName, filter))) {
     CachedValueProvider.Result.create(
       hasAnnotationsUncached(project, vFile, annotations, shortAnnotationName, filter),
       psiFile,
@@ -148,7 +154,7 @@ fun findAnnotations(project: Project, vFile: VirtualFile, shortAnnotationName: S
   val psiFile = AndroidPsiUtils.getPsiFileSafely(project, vFile) ?: return emptyList()
   return CachedValuesManager.getManager(project).getCachedValue(
     psiFile,
-    CacheKeysManager.getKey(shortAnnotationName)) {
+    CacheKeysManager.getInstance(project).getKey(shortAnnotationName)) {
     val kotlinAnnotations: Sequence<PsiElement> = ReadAction.compute<Sequence<PsiElement>, Throwable> {
       KotlinAnnotationsIndex.getInstance().get(shortAnnotationName, project, GlobalSearchScope.fileScope(project, vFile)).asSequence()
     }
@@ -270,7 +276,7 @@ suspend fun <T> findAnnotatedMethodsValues(
       val promiseResult = runReadAction {
         CachedValuesManager.getManager(project).getCachedValue(
           psiFile,
-          CacheKeysManager.getKey(CachedValuesKey(annotations, shortAnnotationName, annotationFilter, toValues)),
+          CacheKeysManager.getInstance(project).getKey(CachedValuesKey(annotations, shortAnnotationName, annotationFilter, toValues)),
           findAnnotatedMethodsCachedValues(project, vFile, annotations, shortAnnotationName, annotationFilter, toValues))
       }
       try {
