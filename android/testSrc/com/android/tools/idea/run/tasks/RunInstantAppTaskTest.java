@@ -100,13 +100,7 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
       /* resultStream= */ any(),
       /* progressIndicator= */ any()))
       .thenReturn(StatusCode.SUCCESS);
-    try {
-      task.run(new LaunchContext(project, executor, device, launchStatus, consolePrinter, handler, indicator));
-      fail("Run should fail");
-    }
-    catch (ExecutionException e) {
-      assertThat(e.getMessage()).isEqualTo("Uploading and launching Instant App: Empty launch URL");
-    }
+    task.run(new LaunchContext(project, executor, device, launchStatus, consolePrinter, handler, indicator));
   }
 
   @Test

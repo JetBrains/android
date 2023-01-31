@@ -92,9 +92,6 @@ public class RunInstantAppTask implements LaunchTask {
         throw new ExecutionException(getDescription() + ": Invalid launch URL: " + myDeepLink);
       }
     }
-    else {
-      throw new ExecutionException(getDescription() + ": Empty launch URL");
-    }
 
     ResultStream resultStream = new ResultStream() {
       @Override
