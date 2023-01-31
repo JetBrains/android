@@ -17,10 +17,13 @@
 
 package org.jetbrains.android.refactoring
 
+import com.android.builder.model.v2.ide.AndroidGradlePluginProjectFlags.BooleanFlag
 import com.android.support.AndroidxName
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.lang.properties.IProperty
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modules
 
 const val USE_ANDROIDX_PROPERTY = "android.useAndroidX"
 const val ENABLE_JETIFIER_PROPERTY = "android.enableJetifier"
@@ -41,18 +44,17 @@ fun Project.disableJetifier(runAfterDisabling: (IProperty?) -> Unit) {
 }
 
 /**
- * Checks that the "useAndroidx" is set explicitly. This method does not say anything about its value.
+ * Returns the value of [USE_ANDROIDX_PROPERTY], or `null` if this info is not available (e.g., if the modules are not Android modules and
+ * the property is not specified in the `gradle.properties` file).
  */
-fun Project.hasAndroidxProperty(): Boolean = runReadAction {
-  getProjectProperties()?.findPropertyByKey(USE_ANDROIDX_PROPERTY) != null
+fun Project.useAndroidX(): Boolean? {
+  return modules.firstNotNullOfOrNull { it.getModuleSystem().useAndroidX } ?: runReadAction {
+    getProjectProperties()?.findPropertyByKey(USE_ANDROIDX_PROPERTY)?.value?.toBooleanStrictOrNull()
+  }
 }
 
-/**
- * Checks that the "useAndroidx" property is set to true
- */
-fun Project.isAndroidx(): Boolean = runReadAction {
-  getProjectProperties()?.findPropertyByKey(USE_ANDROIDX_PROPERTY)?.value?.toBoolean() ?: false
-}
+/** Returns the value of [USE_ANDROIDX_PROPERTY]. */
+fun Project.isAndroidx(): Boolean = this.useAndroidX() ?: BooleanFlag.USE_ANDROID_X.legacyDefault
 
 /**
  * Checks that the "enableJetifier" property is set to true

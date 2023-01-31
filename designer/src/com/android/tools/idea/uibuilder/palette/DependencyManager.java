@@ -215,8 +215,9 @@ public class DependencyManager implements Disposable {
       return false;
     }
 
-    if (MigrateToAndroidxUtil.hasAndroidxProperty(myProject)) {
-      return MigrateToAndroidxUtil.isAndroidx(myProject);
+    Boolean useAndroidX = MigrateToAndroidxUtil.useAndroidX(myProject);
+    if (useAndroidX != null) {
+      return useAndroidX;
     }
 
     if (myModule == null || myModule.isDisposed()) {

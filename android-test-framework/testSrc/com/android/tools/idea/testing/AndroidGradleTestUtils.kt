@@ -693,7 +693,7 @@ fun AndroidProjectStubBuilder.buildAgpProjectFlagsStub(): IdeAndroidGradlePlugin
     usesCompose = false,
     mlModelBindingEnabled = mlModelBindingEnabled,
     unifiedTestPlatformEnabled = true,
-    useAndroidX = AndroidGradlePluginProjectFlags.BooleanFlag.USE_ANDROID_X.legacyDefault,
+    useAndroidX = false,
   )
 
 fun AndroidProjectStubBuilder.buildDefaultConfigStub() = IdeProductFlavorContainerImpl(

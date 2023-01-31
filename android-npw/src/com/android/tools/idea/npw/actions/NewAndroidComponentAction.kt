@@ -41,10 +41,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
-import com.intellij.openapi.module.Module
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.refactoring.hasAndroidxProperty
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.util.AndroidBundle
 import java.io.File
@@ -95,7 +93,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
         presentation.text = AndroidBundle.message("android.wizard.action.requires.minsdk", templateName, minSdkApi)
         presentation.isEnabled = false
       }
-      templateConstraints.contains(TemplateConstraint.AndroidX) && !useAndroidX(module) -> {
+      templateConstraints.contains(TemplateConstraint.AndroidX) && !module.project.isAndroidx() -> {
         presentation.text = AndroidBundle.message("android.wizard.action.requires.androidx", templateName)
         presentation.isEnabled = false
       }
@@ -157,9 +155,5 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
     val wizardLayout = SimpleStudioWizardLayout()
     StudioWizardDialogBuilder(wizardBuilder.build(), dialogTitle).setProject(module.project).build(wizardLayout).show()
     e.dataContext.getData(CREATED_FILES)?.addAll(templateModel.createdFiles)
-  }
-
-  companion object {
-    private fun useAndroidX(module: Module?) = module != null && module.project.hasAndroidxProperty() && module.project.isAndroidx()
   }
 }
