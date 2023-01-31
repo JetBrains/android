@@ -151,11 +151,6 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     return myDisplayName;
   }
 
-  @Nullable
-  public String getLibraryName() {
-    return null;
-  }
-
   public void addParent(@NotNull MultiResourceRepository parent) {
     synchronized (ITEM_MAP_LOCK) {
       if (myParents == null) {
