@@ -19,8 +19,8 @@ import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.idea.streaming.device.DEVICE_CONFIGURATION_KEY
 import com.android.tools.idea.streaming.device.DEVICE_CONTROLLER_KEY
 import com.android.tools.idea.streaming.device.DEVICE_VIEW_KEY
-import com.android.tools.idea.streaming.device.DeviceConfiguration
 import com.android.tools.idea.streaming.device.DeviceView
+import com.android.tools.idea.streaming.device.emptyDeviceConfiguration
 import com.android.tools.idea.streaming.emulator.EMULATOR_CONTROLLER_KEY
 import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorView
@@ -62,7 +62,7 @@ private class TestDataContext(private val displayView: AbstractDisplayView, priv
       EMULATOR_VIEW_KEY.name -> emulatorView
       EMULATOR_CONTROLLER_KEY.name -> emulatorView?.emulator
       DEVICE_VIEW_KEY.name -> deviceView
-      DEVICE_CONFIGURATION_KEY.name -> DeviceConfiguration(mapOf())
+      DEVICE_CONFIGURATION_KEY.name -> emptyDeviceConfiguration
       DEVICE_CONTROLLER_KEY.name -> deviceView?.deviceController
       ZOOMABLE_KEY.name -> displayView
       SERIAL_NUMBER_KEY.name -> emulatorView?.deviceSerialNumber ?: deviceView?.deviceSerialNumber
