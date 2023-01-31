@@ -111,7 +111,7 @@ public class ConfigurationManager implements Disposable {
     return configurationManager.getConfiguration(projectFile);
   }
 
-  public ConfigurationManager(@NotNull Module module) {
+  protected ConfigurationManager(@NotNull Module module) {
     myModule = module;
     Disposer.register(myModule, this);
   }
