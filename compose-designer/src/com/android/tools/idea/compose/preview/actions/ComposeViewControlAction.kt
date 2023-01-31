@@ -91,7 +91,7 @@ class ComposeViewControlAction(
     return true
   }
 
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   /**
    * Zoom actions have the icons, which we don't want to display in [ComposeViewControlAction]. We
