@@ -35,6 +35,7 @@ import org.jetbrains.kotlin.statistics.metrics.BooleanMetrics
 import org.jetbrains.kotlin.statistics.metrics.StringMetrics
 import java.util.Locale
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executor
 
 object AndroidStudioEventLogger : StatisticsEventLogger {
   override fun cleanup() {}
@@ -58,6 +59,9 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
                         isState: Boolean): CompletableFuture<Void> {
     val data = dataProvider() ?: return CompletableFuture.completedFuture(null)
     return logAsync(group, eventId, data, isState)
+  }
+
+  override fun computeAsync(computation: (backgroundThreadExecutor: Executor) -> Unit) {
   }
 
   override fun rollOver() {}
