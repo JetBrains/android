@@ -61,6 +61,13 @@ class SwitchSurfaceLayoutManagerAction(private val layoutManagerSwitcher: Layout
   "Changes the layout of the preview elements.",
   null) {
 
+  /**
+   * When using [AllIcons.Debugger.RestoreLayout] as the icon, this action is considered as a multi-choice group, even
+   * [Presentation.setMultiChoice] sets to false. We clone the icon here so we can control the multi-choice state of this action ourselves.
+   *
+   * @see com.intellij.openapi.actionSystem.impl.Utils.isMultiChoiceGroup
+   */
+  private val enabledIcon = IconLoader.copy(AllIcons.Debugger.RestoreLayout, null, true)
   private val disabledIcon = IconLoader.getDisabledIcon(AllIcons.Debugger.RestoreLayout)
 
   inner class SetSurfaceLayoutManagerAction(private val option: SurfaceLayoutManagerOption) : ToggleAction(option.displayName) {
@@ -90,6 +97,6 @@ class SwitchSurfaceLayoutManagerAction(private val layoutManagerSwitcher: Layout
     // button the icon will be disabled (and gets re-enabled when releasing the mouse), since the action itself is disabled and not popup
     // will show up. Since we want users to know immediately that this action is disabled, we explicitly set the icon style when the
     // action is disabled.
-    e.presentation.icon = if (shouldEnableAction) AllIcons.Debugger.RestoreLayout else disabledIcon
+    e.presentation.icon = if (shouldEnableAction) enabledIcon else disabledIcon
   }
 }

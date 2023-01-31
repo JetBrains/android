@@ -34,6 +34,8 @@ import com.android.tools.idea.uibuilder.actions.SurfaceLayoutManagerOption
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.impl.Utils
 import com.intellij.testFramework.TestActionEvent
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -150,6 +152,32 @@ class ComposeViewControlActionTest {
     manager.currentStatus = nonRefreshingStatus
     viewControlAction.update(event)
     assertTrue(event.presentation.isEnabled)
+  }
+
+  @Suppress("UnstableApiUsage")
+  @Test
+  fun testNotMultiChoiceAction() {
+    val switcher =
+      object : LayoutManagerSwitcher {
+        override fun isLayoutManagerSelected(layoutManager: SurfaceLayoutManager): Boolean = true
+
+        override fun setLayoutManager(
+          layoutManager: SurfaceLayoutManager,
+          sceneViewAlignment: DesignSurface.SceneViewAlignment
+        ) = Unit
+      }
+    val option = listOf(SurfaceLayoutManagerOption("Layout A", EmptySurfaceLayoutManager()))
+
+    var enabled = true
+    val action = ComposeViewControlAction(switcher, option) { enabled }
+    val presentation = Presentation()
+
+    // It should always not be multi-choice no matter it is enabled or not.
+    action.update(TestActionEvent(presentation))
+    assertFalse(Utils.isMultiChoiceGroup(action))
+    enabled = false
+    action.update(TestActionEvent(presentation))
+    assertFalse(Utils.isMultiChoiceGroup(action))
   }
 }
 
