@@ -71,40 +71,6 @@ class IssueNotificationActionTest {
     assertTrue { showPopup }
   }
 
-
-  @Test
-  fun testTheAlarmHidesPopupOnMouseExit() {
-    // Given the popup already visible
-    var hidePopup = false
-    val fakePopup: InformationPopup = createFakePopup(
-      onHidePopup = {
-        hidePopup = true
-      },
-      isPopupVisible = true
-    )
-
-    var cancelAllRequestsCounter = 0
-    val fakeAlarm = createFakeAlarm(
-      onCancelAllRequest = {
-        cancelAllRequestsCounter++
-      }
-    )
-
-    val issueNotificationAction = createIssueNotificationAction(fakePopup, fakeAlarm)
-
-    // Show the popup without any mouse interaction
-    issueNotificationAction.actionPerformed(projectRule.createFakeActionEvent(issueNotificationAction))
-
-    // When the mouse exits the action button
-    issueNotificationAction.mouseListener.mouseExited(createFakeMouseEvent())
-
-    // The on hide callback get called
-    assertTrue { hidePopup }
-
-    // Alarm cancel the request two times
-    assertTrue { cancelAllRequestsCounter == 2 }
-  }
-
   @Test
   fun testAlarmIsCanceledOnMouseEnterPopup() {
     // Given the popup

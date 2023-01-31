@@ -40,6 +40,7 @@ import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.Point
+import java.awt.Rectangle
 import java.awt.event.InputEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -48,6 +49,7 @@ import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.SwingUtilities
 
 /**
  * Creates a popup that displays a title, a description, a list of actions as an overflow menu and a list of links at the bottom.
@@ -96,7 +98,7 @@ class InformationPopupImpl(
    * Keeps the popup open until the mouse reaches the popup area.
    */
   @VisibleForTesting
-  internal var shouldPopupStayOpen = false
+  internal var hasEnteredPopup = false
 
   private var popup: JBPopup? = null
 
@@ -109,12 +111,7 @@ class InformationPopupImpl(
         override fun mouseEntered(e: MouseEvent?) {
           onMouseEnteredCallback()
           // The popup should stay open meanwhile the mouse is navigating into the popup area
-          shouldPopupStayOpen = true
-        }
-
-        override fun mouseExited(e: MouseEvent?) {
-          // The popup can be closed once it leaves the popup area
-          shouldPopupStayOpen = false
+          hasEnteredPopup = true
         }
       })
     }
@@ -127,21 +124,36 @@ class InformationPopupImpl(
   }
 
   override fun showPopup(disposableParent: Disposable, event: InputEvent) {
-    // The popup is triggered by clicking the disposableParent.
-    // The popup should stay open until the mouse reaches the area of the popup.
-    shouldPopupStayOpen = true
-
+    val owner = event.component as JComponent
+    val size: Dimension = getPopupPreferredSize()
     val newPopup = JBPopupFactory.getInstance().createComponentPopupBuilder(popupComponent, null)
       .setCancelOnClickOutside(true)
       .setCancelOnWindowDeactivation(true)
-      .setCancelOnMouseOutCallback { !shouldPopupStayOpen }
+      .setCancelOnMouseOutCallback { e ->
+        if (!hasEnteredPopup) {
+          // We can't rely on AbstractPopup$Canceller because it doesn't take into account of the padding between the button and the popup.
+          val padding = JBUIScale.scale(POPUP_PADDING)
+          val popupParent = event.component
+          val point = SwingUtilities.convertPoint(e.component, e.point, popupParent)
+          // We add padding around the parent, because we added a gap (POPUP_PADDING) between the parent and the popup.
+          // We add it on all four sides because it's just a nicer experience.
+          return@setCancelOnMouseOutCallback !Rectangle(-padding, -padding, popupParent.width + 2 * padding,
+                                                        popupParent.height + 2 * padding).contains(point)
+        }
+
+        popup?.let { openPopup ->
+          // Verify that the mouse is not currently over the popup window or any of the owned windows (sub-popups)
+          val popupWindow =  SwingUtilities.getWindowAncestor(openPopup.content) ?: return@setCancelOnMouseOutCallback true
+          val currentWindow = SwingUtilities.getWindowAncestor(e.component) ?: return@setCancelOnMouseOutCallback true
+
+          currentWindow != popupWindow && !popupWindow.ownedWindows.contains(currentWindow)
+        } ?: true
+      }
       .createPopup()
 
     popup = newPopup
     Disposer.register(disposableParent, newPopup)
 
-    val owner = event.component as JComponent
-    val size: Dimension = getPopupPreferredSize()
     val point = getPointToShowPopupInWindow(owner, size)
 
     newPopup.size = size

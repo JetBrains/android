@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui
+package com.android.tools.adtui.compose
 
-import com.android.tools.adtui.compose.InformationPopup
-import com.android.tools.adtui.compose.InformationPopupImpl
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.intellij.icons.AllIcons
@@ -151,15 +149,15 @@ class InformationPopupImplTest {
       add(popup.popupComponent, BorderLayout.CENTER)
     }, 1.0, true)
 
-    assertFalse(popup.shouldPopupStayOpen)
+    assertFalse(popup.hasEnteredPopup)
 
     // Move mouse but not inside the popup
     fakeUi.mouse.moveTo(popup.popupComponent.x + popup.popupComponent.width * 2, 0)
-    assertFalse(popup.shouldPopupStayOpen)
+    assertFalse(popup.hasEnteredPopup)
 
     // Move mouse into the popup
     fakeUi.mouse.moveTo(popup.popupComponent.x + popup.popupComponent.width / 2, popup.popupComponent.y + popup.popupComponent.height / 2)
-    assertTrue(popup.shouldPopupStayOpen)
+    assertTrue(popup.hasEnteredPopup)
   }
 
   @Test
@@ -177,19 +175,19 @@ class InformationPopupImplTest {
       add(popup.popupComponent, BorderLayout.CENTER)
     }, 1.0, true)
 
-    assertFalse(popup.shouldPopupStayOpen)
+    assertFalse(popup.hasEnteredPopup)
 
     // Move mouse but not inside the popup
     fakeUi.mouse.moveTo(popup.popupComponent.x + popup.popupComponent.width * 2, 0)
-    assertFalse(popup.shouldPopupStayOpen)
+    assertFalse(popup.hasEnteredPopup)
 
     // Move mouse into the popup
     fakeUi.mouse.moveTo(popup.popupComponent.x + popup.popupComponent.width / 2, popup.popupComponent.y + popup.popupComponent.height / 2)
-    assertTrue(popup.shouldPopupStayOpen)
+    assertTrue(popup.hasEnteredPopup)
 
     // Move back out, popup should be closed
     fakeUi.mouse.moveTo(popup.popupComponent.x + popup.popupComponent.width * 2, 0)
-    assertFalse(popup.shouldPopupStayOpen)
+    assertFalse(popup.isVisible())
   }
 
   @Test
