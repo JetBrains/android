@@ -132,6 +132,14 @@
       <add-to-group group-id="NavBarToolBar" anchor="before" relative-to-action="SearchEverywhere" />
     </group>
 
+    <group id="Android.MainToolbarRight" >
+      <reference id="MakeGradleProject" />
+      <reference id="Android.InstantRunActions" />
+      <reference id="Android.SyncProject" />
+
+      <add-to-group group-id="MainToolbarRight" anchor="before" relative-to-action="SearchEverywhere" />
+    </group>
+
     <action id="WelcomeScreen.AndroidStudio.apkProfilingAndDebugging"
             class="com.android.tools.idea.apk.ImportApkAction">
       <add-to-group group-id="WelcomeScreen.QuickStart" relative-to-action="WelcomeScreen.ImportProject" anchor="before"/>
