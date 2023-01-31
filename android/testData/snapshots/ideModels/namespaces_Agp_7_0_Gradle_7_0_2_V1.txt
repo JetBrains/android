@@ -400,6 +400,7 @@ MODULE                        : project.app
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
         TransitiveRClasses            : true
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -762,6 +763,7 @@ MODULE                        : project.lib
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
         TransitiveRClasses            : true
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -1101,6 +1103,7 @@ MODULE                        : project.otherlib
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
         TransitiveRClasses            : true
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug

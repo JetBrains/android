@@ -2521,6 +2521,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
+        UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -3792,6 +3793,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
+        UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -5006,6 +5008,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
+        UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -6382,6 +6385,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
+        UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -6683,6 +6687,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
+        UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug

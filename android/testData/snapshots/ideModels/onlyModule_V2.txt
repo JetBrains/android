@@ -898,6 +898,7 @@ MODULE                        : project.app
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -1275,6 +1276,7 @@ MODULE                        : project.benchmark
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : benchmark
@@ -1741,6 +1743,7 @@ MODULE                        : project.test
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -2199,6 +2202,7 @@ MODULE                        : project.test2
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug

@@ -25,6 +25,7 @@ import com.android.builder.model.v2.models.VariantDependencies
 import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.gradle.model.GradlePluginModel
+import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.LegacyApplicationIdModel
 import com.android.ide.gradle.model.LegacyV1AgpVersionModel
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
@@ -104,6 +105,7 @@ data class ActionToRun<T>(
       AdditionalClassifierArtifactsModel::class.java -> true  // No known incompatibilities.
       LegacyV1AgpVersionModel::class.java -> true
       GradlePluginModel::class.java -> true
+      GradlePropertiesModel::class.java -> true
       else -> error("Unexpected model type: $modelType. ActionToRun.validateModelType needs to be updated.")
     }
     if (!isDeclared) {
@@ -321,6 +323,7 @@ private fun <T> SyncCounters.measure(modelType: Class<*>, block: () -> T): T {
     AdditionalClassifierArtifactsModel::class.java -> additionalArtifactsModel
     LegacyV1AgpVersionModel::class.java -> otherModel
     GradlePluginModel::class.java -> otherModel
+    GradlePropertiesModel::class.java -> otherModel
     else -> error("Unexpected model type: $modelType. ActionToRun.SyncCounters.measure needs to be updated.")
   }
   return counter(block)

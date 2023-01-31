@@ -2283,6 +2283,7 @@ MODULE                        : project.app
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : basicBarDebug
@@ -3779,6 +3780,7 @@ MODULE                        : project.dyn_feature
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -4088,6 +4090,7 @@ MODULE                        : project.lib
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -5101,6 +5104,7 @@ MODULE                        : project.nested1
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -5394,6 +5398,7 @@ MODULE                        : project.nested1.deep
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -5697,6 +5702,7 @@ MODULE                        : project.nested2
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : basicDebug
@@ -6130,6 +6136,7 @@ MODULE                        : project.nested2.deep
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -6435,6 +6442,7 @@ MODULE                        : project.nested2.trans.deep2
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug

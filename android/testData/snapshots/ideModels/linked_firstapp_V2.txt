@@ -1061,6 +1061,7 @@ MODULE                        : My_First_App.app
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
+        UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -2320,6 +2321,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
+        UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug

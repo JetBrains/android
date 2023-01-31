@@ -1119,6 +1119,7 @@ MODULE                        : TestCompositeLib1.app
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
         TransitiveRClasses            : true
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -2423,6 +2424,7 @@ MODULE                        : TestCompositeLib1.lib
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
         TransitiveRClasses            : true
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -4129,6 +4131,7 @@ MODULE                        : TestCompositeLib3.app
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
         TransitiveRClasses            : true
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -5409,6 +5412,7 @@ MODULE                        : TestCompositeLib3.lib
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
         TransitiveRClasses            : true
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -7285,6 +7289,7 @@ MODULE                        : project.app
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
         TransitiveRClasses            : true
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -8595,6 +8600,7 @@ MODULE                        : project.lib
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
         TransitiveRClasses            : true
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug

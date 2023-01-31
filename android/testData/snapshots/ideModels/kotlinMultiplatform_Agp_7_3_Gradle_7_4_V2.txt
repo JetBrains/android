@@ -1185,6 +1185,7 @@ MODULE                        : kotlinMultiPlatform.app
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
         TransitiveRClasses            : true
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -2444,6 +2445,7 @@ MODULE                        : kotlinMultiPlatform.module2
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
         TransitiveRClasses            : true
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug

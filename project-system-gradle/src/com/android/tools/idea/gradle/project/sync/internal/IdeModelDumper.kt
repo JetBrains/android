@@ -720,6 +720,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         prop("ApplicationRClassConstantIds") { agpFlags.applicationRClassConstantIds.toString() }
         prop("AestRClassConstantIds") { agpFlags.testRClassConstantIds.toString() }
         prop("TransitiveRClasses") { agpFlags.transitiveRClasses.toString() }
+        prop("UseAndroidX") { agpFlags.useAndroidX.toString() }
         prop("UsesCompose") { agpFlags.usesCompose.toString() }
         prop("MlModelBindingEnabled") { agpFlags.mlModelBindingEnabled.toString() }
       }

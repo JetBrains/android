@@ -1188,6 +1188,7 @@ MODULE                        : navgraph.app
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
+        UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -2598,6 +2599,7 @@ MODULE                        : navgraph.lib
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
+        UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug

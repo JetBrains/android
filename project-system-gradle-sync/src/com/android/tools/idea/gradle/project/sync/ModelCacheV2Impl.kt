@@ -54,6 +54,7 @@ import com.android.builder.model.v2.models.ndk.NativeBuildSystem
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.builder.model.v2.models.ndk.NativeVariant
 import com.android.ide.common.repository.AgpVersion
+import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.LegacyApplicationIdModel
 import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAaptOptions
@@ -1273,7 +1274,10 @@ internal fun modelCacheV2Impl(
     includeInBundle = model.includeInBundle
   )
 
-  fun androidGradlePluginProjectFlagsFrom(flags: AndroidGradlePluginProjectFlags): IdeAndroidGradlePluginProjectFlagsImpl =
+  fun androidGradlePluginProjectFlagsFrom(
+    flags: AndroidGradlePluginProjectFlags,
+    gradlePropertiesModel: GradlePropertiesModel
+  ): IdeAndroidGradlePluginProjectFlagsImpl =
     IdeAndroidGradlePluginProjectFlagsImpl(
       applicationRClassConstantIds =
       AndroidGradlePluginProjectFlags.BooleanFlag.APPLICATION_R_CLASS_CONSTANT_IDS.getValue(flags),
@@ -1282,6 +1286,8 @@ internal fun modelCacheV2Impl(
       usesCompose = AndroidGradlePluginProjectFlags.BooleanFlag.JETPACK_COMPOSE.getValue(flags),
       mlModelBindingEnabled = AndroidGradlePluginProjectFlags.BooleanFlag.ML_MODEL_BINDING.getValue(flags),
       unifiedTestPlatformEnabled = AndroidGradlePluginProjectFlags.BooleanFlag.UNIFIED_TEST_PLATFORM.getValue(flags),
+      // If the property is not found in AGPProjectFlags (e.g., when opening older AGPs), get it from GradlePropertiesModel
+      useAndroidX = AndroidGradlePluginProjectFlags.BooleanFlag.USE_ANDROID_X.getValue(flags, gradlePropertiesModel.useAndroidX)
     )
 
   fun copyProjectType(projectType: ProjectType): IdeAndroidProjectType = when (projectType) {
@@ -1301,7 +1307,8 @@ internal fun modelCacheV2Impl(
     project: AndroidProject,
     modelsVersions: Versions,
     androidDsl: AndroidDsl,
-    legacyApplicationIdModel: LegacyApplicationIdModel?
+    legacyApplicationIdModel: LegacyApplicationIdModel?,
+    gradlePropertiesModel: GradlePropertiesModel,
   ): ModelResult<IdeAndroidProjectImpl> {
     val defaultConfigCopy: IdeProductFlavorContainerImpl = productFlavorContainerFrom(androidDsl.defaultConfig, basicProject.mainSourceSet)
     val buildTypesCopy: Collection<IdeBuildTypeContainerImpl> = zip(
@@ -1341,7 +1348,7 @@ internal fun modelCacheV2Impl(
     val groupId = androidDsl.groupId
     val lintChecksJarsCopy: List<File> = project.lintChecksJars.deduplicateFiles()
     val isBaseSplit = basicProject.projectType == ProjectType.APPLICATION
-    val agpFlags: IdeAndroidGradlePluginProjectFlagsImpl = androidGradlePluginProjectFlagsFrom(project.flags)
+    val agpFlags: IdeAndroidGradlePluginProjectFlagsImpl = androidGradlePluginProjectFlagsFrom(project.flags, gradlePropertiesModel)
     val desugarLibConfig = if (agpVersion.isAtLeast(8, 1, 0, "alpha", 5, false))
       project.desugarLibConfig
     else
@@ -1429,9 +1436,10 @@ internal fun modelCacheV2Impl(
       project: AndroidProject,
       androidVersion: Versions,
       androidDsl: AndroidDsl,
-      legacyApplicationIdModel: LegacyApplicationIdModel?
+      legacyApplicationIdModel: LegacyApplicationIdModel?,
+      gradlePropertiesModel: GradlePropertiesModel,
     ): ModelResult<IdeAndroidProjectImpl> = lock.withLock {
-      androidProjectFrom(rootBuildId, buildId, basicProject, project, androidVersion, androidDsl, legacyApplicationIdModel)
+      androidProjectFrom(rootBuildId, buildId, basicProject, project, androidVersion, androidDsl, legacyApplicationIdModel, gradlePropertiesModel)
     }
 
     override fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl = lock.withLock { nativeModuleFrom(nativeModule) }

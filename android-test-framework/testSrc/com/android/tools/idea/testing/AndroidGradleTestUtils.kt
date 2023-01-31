@@ -17,6 +17,7 @@ package com.android.tools.idea.testing
 
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.SyncIssue
+import com.android.builder.model.v2.ide.AndroidGradlePluginProjectFlags
 import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
 import com.android.projectmodel.ARTIFACT_NAME_TEST_FIXTURES
@@ -688,6 +689,7 @@ fun AndroidProjectStubBuilder.buildAgpProjectFlagsStub(): IdeAndroidGradlePlugin
     usesCompose = false,
     mlModelBindingEnabled = mlModelBindingEnabled,
     unifiedTestPlatformEnabled = true,
+    useAndroidX = AndroidGradlePluginProjectFlags.BooleanFlag.USE_ANDROID_X.legacyDefault,
   )
 
 fun AndroidProjectStubBuilder.buildDefaultConfigStub() = IdeProductFlavorContainerImpl(

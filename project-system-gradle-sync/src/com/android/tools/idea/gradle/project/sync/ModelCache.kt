@@ -31,6 +31,7 @@ import com.android.builder.model.v2.models.VariantDependencies
 import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.repository.AgpVersion
+import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.LegacyApplicationIdModel
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
@@ -74,7 +75,8 @@ interface ModelCache {
       buildName: String,
       projectPath: String,
       project: AndroidProject,
-      legacyApplicationIdModel: LegacyApplicationIdModel?
+      legacyApplicationIdModel: LegacyApplicationIdModel?,
+      gradlePropertiesModel: GradlePropertiesModel,
     ): ModelResult<IdeAndroidProjectImpl>
 
     fun androidArtifactOutputFrom(output: OutputFile): IdeAndroidArtifactOutputImpl
@@ -115,7 +117,8 @@ interface ModelCache {
       project: com.android.builder.model.v2.models.AndroidProject,
       androidVersion: Versions,
       androidDsl: AndroidDsl,
-      legacyApplicationIdModel: LegacyApplicationIdModel?
+      legacyApplicationIdModel: LegacyApplicationIdModel?,
+      gradlePropertiesModel: GradlePropertiesModel,
     ): ModelResult<IdeAndroidProjectImpl>
   }
 

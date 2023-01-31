@@ -22,6 +22,7 @@ import com.android.builder.model.v2.models.BasicAndroidProject
 import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.repository.AgpVersion
+import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.LegacyApplicationIdModel
 import com.android.ide.gradle.model.LegacyV1AgpVersionModel
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.ignoreExceptionsAndGet
@@ -87,6 +88,8 @@ internal class BasicV1AndroidModuleGradleProject(
         ) ?: error("Cannot fetch AndroidProject models for V1 projects.")
 
         val legacyApplicationIdModel = controller.findModel(gradleProject, LegacyApplicationIdModel::class.java)
+        val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)
+          ?: error("Cannot get GradlePropertiesModel (V1) for project '$gradleProject'")
 
         val modelCache = modelCacheV1Impl(internedModels, buildInfo.buildFolderPaths, modelCacheLock)
         val buildId = BuildId(gradleProject.projectIdentifier.buildIdentifier.rootDir)
@@ -99,7 +102,8 @@ internal class BasicV1AndroidModuleGradleProject(
           buildName = buildName,
           projectPath = gradleProject.path,
           androidProject = androidProject,
-          legacyApplicationIdModel = legacyApplicationIdModel
+          legacyApplicationIdModel = legacyApplicationIdModel,
+          gradlePropertiesModel = gradlePropertiesModel
         )
 
         return androidProjectResult
@@ -173,6 +177,8 @@ internal class BasicV2AndroidModuleGradleProject(
         } else {
           null
         }
+        val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)
+          ?: error("Cannot get GradlePropertiesModel (V2) for project '$gradleProject'")
 
         val modelCache = modelCacheV2Impl(internedModels, modelCacheLock, agpVersion, syncTestMode)
         val rootBuildId = buildInfo.buildNameMap[":"] ?: error("Root build (':') not found")
@@ -187,7 +193,8 @@ internal class BasicV2AndroidModuleGradleProject(
             androidProject = androidProject,
             modelVersions = versions,
             androidDsl = androidDsl,
-            legacyApplicationIdModel = legacyApplicationIdModel
+            legacyApplicationIdModel = legacyApplicationIdModel,
+            gradlePropertiesModel = gradlePropertiesModel
           )
 
         return androidProjectResult.mapCatching { androidProjectResult ->
