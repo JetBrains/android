@@ -18,27 +18,30 @@ package com.android.tools.idea.gradle.project.sync.memory
 import com.android.SdkConstants
 import com.android.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject.Companion.openTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.testProjectTemplateFromPath
 import com.android.tools.idea.gradle.util.GradleProperties
-import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.memory.usage.LightweightHeapTraverse
+import com.android.tools.memory.usage.LightweightHeapTraverseConfig
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.android.tools.perflogger.Metric.MetricSample
-import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.plugins.gradle.settings.DistributionType
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
-import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
+import java.time.Duration
 import java.time.Instant
 import kotlin.io.path.createDirectory
+import kotlin.system.measureTimeMillis
 
 @RunsInEdt
 abstract class AbstractGradleSyncMemoryUsageTestCase {
@@ -46,24 +49,21 @@ abstract class AbstractGradleSyncMemoryUsageTestCase {
     val BENCHMARK = Benchmark.Builder("Retained heap size")
       .setProject("Android Studio Sync Test")
       .build()
+    val TEST_DATA: Path = Paths.get(AndroidTestBase.getModulePath("sync-memory-tests")).resolve("testData")
   }
 
   abstract val relativePath: String
   abstract val projectName: String
   abstract val memoryLimitMb: Int
 
-  val projectRule = AndroidGradleProjectRule()
-  @get:Rule val ruleChain = org.junit.rules.RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule
+  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   private lateinit var outputDirectory: String
   private val memoryAgentPath = System.getProperty("memory.agent.path")
 
   @Before
   open fun setUp() {
-    val projectSettings = GradleProjectSettings()
-    projectSettings.distributionType = DistributionType.DEFAULT_WRAPPED
-    GradleSettings.getInstance(projectRule.project).linkedProjectsSettings = listOf(projectSettings)
-    projectRule.fixture.testDataPath = AndroidTestBase.getModulePath("sync-memory-tests") + File.separator + "testData"
     outputDirectory = File(System.getenv("TEST_TMPDIR"), "snapshots").also {
       it.toPath().createDirectory()
     }.absolutePath
@@ -88,33 +88,54 @@ abstract class AbstractGradleSyncMemoryUsageTestCase {
   @Test
   open fun testSyncMemory() {
     setJvmArgs()
-    projectRule.loadProject(relativePath)
-    // Free up some memory by closing the Gradle Daemon
-    DefaultGradleConnector.close()
+    projectRule.openTestProject(testProjectTemplateFromPath(
+        path = relativePath,
+        testDataPath = TEST_DATA.toString())) {
+      // Free up some memory by closing the Gradle Daemon
+      DefaultGradleConnector.close()
 
-    val metricBeforeSync = Metric("${projectName}_Before_Sync")
-    val metricBeforeSyncTotal = Metric("${projectName}_Before_Sync_Total")
-    val metricAfterSync = Metric("${projectName}_After_Sync")
-    val metricAfterSyncTotal = Metric("${projectName}_After_Sync_Total")
-    val currentTime = Instant.now().toEpochMilli()
-    for (metricFilePath in File(outputDirectory).walk().filter { !it.isDirectory }.asIterable()) {
-      when {
-        metricFilePath.name.endsWith("before_sync_strong") -> metricBeforeSync
-        metricFilePath.name.endsWith("before_sync_total") -> metricBeforeSyncTotal
-        metricFilePath.name.endsWith("after_sync_strong") -> metricAfterSync
-        metricFilePath.name.endsWith("after_sync_total") -> metricAfterSyncTotal
-        else -> null
-      }?.addSamples(BENCHMARK, MetricSample(currentTime, metricFilePath.readText().toLong()))
+      // Wait for the IDE to "settle" before taking a measurement. There will be indexing
+      // and caching related cleanup jobs still running for a while. This allows them to
+      // finish and results in much more reliable values.
+      Thread.sleep(Duration.ofSeconds(30).toMillis())
+
+      val metricIdeAfterSync = Metric("${projectName}_IDE_After_Sync")
+      val metricIdeAfterSyncTotal = Metric("${projectName}_IDE_After_Sync_Total")
+      val metricBeforeSync = Metric("${projectName}_Before_Sync")
+      val metricBeforeSyncTotal = Metric("${projectName}_Before_Sync_Total")
+      val metricAfterSync = Metric("${projectName}_After_Sync")
+      val metricAfterSyncTotal = Metric("${projectName}_After_Sync_Total")
+
+      val currentTime = Instant.now().toEpochMilli()
+      val elapsedTimeAfterSync = measureTimeMillis {
+        val result = LightweightHeapTraverse.collectReport(LightweightHeapTraverseConfig())
+        metricIdeAfterSyncTotal.addSamples(BENCHMARK, MetricSample(currentTime, result.totalObjectsSizeBytes))
+        metricIdeAfterSync.addSamples(BENCHMARK, MetricSample(currentTime, result.totalStrongReferencedObjectsSizeBytes))
+      }
+      println("Heap traversal for IDE after sync finished in $elapsedTimeAfterSync milliseconds")
+
+      for (metricFilePath in File(outputDirectory).walk().filter { !it.isDirectory }.asIterable()) {
+        when {
+          metricFilePath.name.endsWith("before_sync_strong") -> metricBeforeSync
+          metricFilePath.name.endsWith("before_sync_total") -> metricBeforeSyncTotal
+          metricFilePath.name.endsWith("after_sync_strong") -> metricAfterSync
+          metricFilePath.name.endsWith("after_sync_total") -> metricAfterSyncTotal
+          else -> null
+        }?.addSamples(BENCHMARK, MetricSample(currentTime, metricFilePath.readText().toLong()))
+      }
+
+      metricBeforeSync.commit()
+      metricBeforeSyncTotal.commit()
+      metricAfterSync.commit()
+      metricAfterSyncTotal.commit()
+      metricIdeAfterSync.commit()
+      metricIdeAfterSyncTotal.commit()
     }
-    metricBeforeSync.commit()
-    metricBeforeSyncTotal.commit()
 
-    metricAfterSync.commit()
-    metricAfterSyncTotal.commit()
   }
 
   private fun setJvmArgs() {
-    GradleProperties(File(projectRule.resolveTestDataPath(relativePath), SdkConstants.FN_GRADLE_PROPERTIES)).apply {
+    GradleProperties(TEST_DATA.toFile().resolve(relativePath).resolve(SdkConstants.FN_GRADLE_PROPERTIES)).apply {
       setJvmArgs(jvmArgs.orEmpty().replace("-Xmx60g", "-Xmx${memoryLimitMb}m"))
       setJvmArgs("$jvmArgs -agentpath:${File(memoryAgentPath).absolutePath}")
       save()

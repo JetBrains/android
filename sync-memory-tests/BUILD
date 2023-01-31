@@ -39,6 +39,7 @@ iml_module(
         "//tools/data-binding:data_binding_runtime.zip",
     ],
     test_jvm_flags = [
+        "-agentpath:$(location //tools/adt/idea/memory-usage/src/main/native:liblightweight_heap_traverse)",
         "-Dmemory.agent.path=$(location //tools/adt/idea/memory-usage/src/main/native:liblightweight_heap_traverse)",
     ],
     test_srcs = ["testSrc"],
@@ -64,6 +65,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core.tests[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
+        "//tools/adt/idea/memory-usage[module, test]",
     ],
 )
 
