@@ -60,7 +60,7 @@ object WearDeviceModelsProvider: VisualizationModelsProvider {
 
     val virtualFile = file.virtualFile ?: return emptyList()
 
-    val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
     val wearDevices = deviceCaches.getOrElse(configurationManager) {
       val deviceList = ArrayList<Device>()
       for (name in WEAR_DEVICES_TO_DISPLAY) {

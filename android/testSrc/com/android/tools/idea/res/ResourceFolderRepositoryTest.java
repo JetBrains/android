@@ -4126,7 +4126,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     VirtualFile logoFile = myFixture.copyFileToProject(DRAWABLE_RED, "res/drawable/logo.png");
     ResourceFolderRepository repository = createRegisteredRepository();
     assertTrue(repository.hasResources(RES_AUTO, ResourceType.DRAWABLE, "logo"));
-    Configuration configuration = ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(logoFile);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(logoFile);
     DrawableRenderer renderer = new DrawableRenderer(myFacet, configuration);
 
     String bitmapXml = "<adaptive-icon xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +

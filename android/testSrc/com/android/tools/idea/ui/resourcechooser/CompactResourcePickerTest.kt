@@ -159,7 +159,7 @@ class CompactResourcePickerTest {
   private fun createAndWaitForResourcePickerPanel(resourcePickerSources: List<ResourcePickerSources> = ResourcePickerSources.allSources(),
                                                   onSelectedResource: (String) -> Unit): JPanel {
     val facet = AndroidFacet.getInstance(rule.module)!!
-    val configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(
+    val configuration = ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(
       LocalFileSystem.getInstance().findFileByPath(rule.project.basePath!!)!!)
     val panel = CompactResourcePicker(
       AndroidFacet.getInstance(rule.module)!!,

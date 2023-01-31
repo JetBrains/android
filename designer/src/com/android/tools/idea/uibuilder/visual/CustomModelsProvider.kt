@@ -115,7 +115,7 @@ class CustomModelsProvider(val customId: String,
     }
 
     val currentFile = file.virtualFile ?: return emptyList()
-    val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
     val currentFileConfig = configurationManager.getConfiguration(currentFile)
 
     val models = mutableListOf<NlModel>()

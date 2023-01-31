@@ -70,7 +70,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     ScaleContext scaleContext = ScaleContext.createIdentity();
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
-    NlModel model = NlModel.builder(myFacet, virtualFile, ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(virtualFile))
+    NlModel model = NlModel.builder(myFacet, virtualFile, ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
       .withParentDisposable(getMyRootDisposable())
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
@@ -130,7 +130,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     ScaleContext scaleContext = ScaleContext.createIdentity();
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
-    NlModel model = NlModel.builder(myFacet, virtualFile, ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(virtualFile))
+    NlModel model = NlModel.builder(myFacet, virtualFile, ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
       .withParentDisposable(getMyRootDisposable())
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
@@ -179,7 +179,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     ScaleContext scaleContext = ScaleContext.createIdentity();
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
-    NlModel model = NlModel.builder(myFacet, virtualFile, ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(virtualFile))
+    NlModel model = NlModel.builder(myFacet, virtualFile, ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
       .withParentDisposable(getMyRootDisposable())
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
@@ -203,7 +203,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
-    NlModel model = NlModel.builder(myFacet, virtualFile, ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(virtualFile))
+    NlModel model = NlModel.builder(myFacet, virtualFile, ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
       .withParentDisposable(getMyRootDisposable())
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();

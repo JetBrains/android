@@ -74,7 +74,7 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
 
     // Creating a basic configuration in case rendering of webp or xml drawables.
     Configuration configuration =
-      Configuration.create(ConfigurationManager.getOrCreateInstance(androidFacet), null, FolderConfiguration.createDefault());
+      Configuration.create(ConfigurationManager.getOrCreateInstance(androidFacet.getModule()), null, FolderConfiguration.createDefault());
     return AndroidJavaDocRenderer.render(module, configuration, resourceReference.getResourceUrl());
   }
 

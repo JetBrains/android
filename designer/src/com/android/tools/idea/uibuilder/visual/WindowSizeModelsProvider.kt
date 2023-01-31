@@ -53,7 +53,7 @@ object WindowSizeModelsProvider : VisualizationModelsProvider {
 
     val virtualFile = file.virtualFile ?: return emptyList()
 
-    val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
     val defaultConfig = configurationManager.getConfiguration(virtualFile)
 
     val models = mutableListOf<NlModel>()

@@ -90,7 +90,7 @@ class NavigationSlowPreviewProviderTest {
     val layoutFile = rule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_CONTENTS)
     val navigationFile = rule.fixture.addFileToProject("res/navigation/my_graph.xml", NAVIGATION_WITH_PREVIEW)
 
-    val configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(layoutFile.virtualFile)
+    val configuration = ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(layoutFile.virtualFile)
 
     setupRenderer(layoutFile as XmlFile, configuration)
 
@@ -108,7 +108,7 @@ class NavigationSlowPreviewProviderTest {
   fun noLayoutAttribute() {
     val navigationFile = rule.fixture.addFileToProject("res/navigation/my_graph.xml", NAVIGATION_NO_PREVIEW)
 
-    val configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(navigationFile.virtualFile)
+    val configuration = ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(navigationFile.virtualFile)
 
     val navigationPreviewProvider = NavigationSlowPreviewProvider(facet, configuration.resourceResolver)
 

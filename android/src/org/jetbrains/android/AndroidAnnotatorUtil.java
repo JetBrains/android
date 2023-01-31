@@ -260,7 +260,7 @@ public class AndroidAnnotatorUtil {
     }
 
     VirtualFile nearestConfigurationFile;
-    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(facet);
+    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(facet.getModule());
     if (!(file instanceof XmlFile)) {
       nearestConfigurationFile = IdeResourcesUtil.pickAnyLayoutFile(facet);
       if (nearestConfigurationFile == null) {

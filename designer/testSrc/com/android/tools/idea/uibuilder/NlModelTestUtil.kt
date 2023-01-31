@@ -48,7 +48,7 @@ import java.util.function.Consumer
 fun createNlModelFromTagName(androidFacet: AndroidFacet,
                              xmlContent: String = generateRootXml(SdkConstants.LINEAR_LAYOUT))
   : NlModel {
-  val configurationManager = ConfigurationManager.getOrCreateInstance(androidFacet)
+  val configurationManager = ConfigurationManager.getOrCreateInstance(androidFacet.module)
   val file = LightLayoutFile(xmlContent)
   val model = NlModel.builder(androidFacet, file, configurationManager.getConfiguration(file))
     .withParentDisposable(androidFacet.module)

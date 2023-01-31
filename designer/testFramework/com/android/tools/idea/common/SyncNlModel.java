@@ -44,7 +44,7 @@ public class SyncNlModel extends NlModel {
                                    @Nullable String tooltip,
                                    @NotNull AndroidFacet facet,
                                    @NotNull VirtualFile file) {
-    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(facet);
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(facet.getModule());
     Configuration configuration =  manager.getConfiguration(file);
     configuration.setDevice(manager.getDeviceById("Nexus 4"), true);
     return new SyncNlModel(parent, componentRegistrar, tooltip, facet, file, configuration);

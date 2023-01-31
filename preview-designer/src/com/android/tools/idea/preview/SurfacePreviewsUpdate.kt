@@ -143,7 +143,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   configureLayoutlibSceneManager: (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager): List<T> {
   val debugLogger = if (log.isDebugEnabled) PreviewElementDebugLogger(log) else null
   val facet = AndroidFacet.getInstance(psiFile) ?: return emptyList()
-  val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
+  val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
   // Retrieve the models that were previously displayed so we can reuse them instead of creating new ones.
   val existingModels = models.toMutableList()
   val previewElementsList = previewElementProvider.previewElements().toList().sortByDisplayAndSourcePosition()

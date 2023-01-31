@@ -86,7 +86,7 @@ class DrawableSlowPreviewProviderTest {
   }
 
   private fun createResourceResolver(androidFacet: AndroidFacet): ResourceResolver {
-    val configurationManager = ConfigurationManager.getOrCreateInstance(androidFacet)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(androidFacet.module)
     val manifest = MergedManifestManager.getMergedManifestSupplier(androidFacet.module).get().get()
     val theme = manifest.manifestTheme ?: manifest.getDefaultTheme(null, null, null)
     return configurationManager.resolverCache.getResourceResolver(null, theme, FolderConfiguration.createDefault())

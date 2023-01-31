@@ -125,7 +125,7 @@ public class GutterIconFactory {
         }
       }
       else {
-        Configuration configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(file);
+        Configuration configuration = ConfigurationManager.getOrCreateInstance(facet.getModule()).getConfiguration(file);
         DrawableRenderer renderer = new DrawableRenderer(facet, configuration);
         Dimension size = new Dimension(maxWidth * RENDERING_SCALING_FACTOR, maxHeight * RENDERING_SCALING_FACTOR);
         try {

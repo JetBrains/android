@@ -305,7 +305,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
                               "\n" +
                               "</FrameLayout>";
     XmlFile outerFile = (XmlFile)myFixture.addFileToProject("layout/outer.xml", outerFileContent);
-    Configuration configuration = ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(innerFileLand.getVirtualFile());
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(innerFileLand.getVirtualFile());
     XmlTag include = outerFile.getRootTag().findFirstSubTag("include");
     ResourceValue resolved =
       IdeResourcesUtil

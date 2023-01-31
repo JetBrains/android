@@ -235,7 +235,7 @@ public class AssetRepositoryImpl extends AssetRepository {
   @Nullable
   private static Path getSdkResDirOrJar(@NotNull AndroidFacet facet) {
     if (myFrameworkResDirOrJar == null) {
-      ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(facet);
+      ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(facet.getModule());
       IAndroidTarget target = manager.getHighestApiTarget();
       if (target == null) {
         return null;
