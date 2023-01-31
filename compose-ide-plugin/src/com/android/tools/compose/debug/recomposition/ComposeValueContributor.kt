@@ -99,11 +99,12 @@ internal class ComposeValueContributor : KotlinStackFrameValueContributor {
 
     val stateObjects = mutableListOf<StateObject>()
 
-    val firstParameter = variables.minWithOrNull { v1, v2 ->
-      v1.variable.compareTo(v2.variable)
-    } ?: throw IllegalStateException("Empty variable list") // Should not happen. Variable list at least has `$compose` item.
+    // ComposeValueContributor.contributeValues() is called with "variables == thisVariables + otherVariables" so if there is a "this"
+    // variable, it's going to be the first one.
+    val firstParameter = variables.first()
     if (firstParameter.name() == "this") {
-      stateObjects.add(Parameter(states.first(), firstParameter.variable.name(), firstParameter))
+      val name = "this@${firstParameter.typeName().substringAfterLast(".")}"
+      stateObjects.add(Parameter(states.first(), name, firstParameter))
     }
 
     try {
