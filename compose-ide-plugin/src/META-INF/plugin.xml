@@ -148,6 +148,9 @@
                  defaultValue="false"
                  restartRequired="false"/>
 
+    <overrideImplementsAnnotationsFilter id="ComposeOverrideImplementsAnnotationsFilter"
+                                         implementation="com.android.tools.compose.ComposeOverrideImplementsAnnotationsFilter"/>
+
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
