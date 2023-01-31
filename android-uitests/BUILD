@@ -1542,9 +1542,7 @@ java_test(
         "testData/SimpleApplication/**",
     ]) + glob(["testData/LayoutTest/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ComponentSelectionTest"],
-    tags = COMMON_TAGS + [
-        "qa_smoke",
-    ],
+    tags = COMMON_TAGS + ["manual"],  # b/267327815,
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
