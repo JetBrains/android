@@ -79,28 +79,6 @@ class FrameworkResourceRepositoryManager {
     return repository
   }
 
-  /**
-   * Returns a [FrameworkResourceRepository] for the given "res" directory or a jar file, if it has been loaded
-   * already. The [languages] parameter determines a subset of framework resources the repository should contain.
-   * The returned repository, if not null, is guaranteed to contain resources for the given set of languages plus
-   * the language-neutral ones, but may contain resources for more languages than was requested.
-   *
-   * @param resourceDirectoryOrFile the res directory or a jar file containing resources of the Android framework
-   * @param useCompiled9Patches whether the created directory should use compiled 9-patch files
-   * @param languages a set of ISO 639 language codes that the repository should contain. The returned repository
-   *     may contain data for more languages.
-   * @return the repository of Android framework resources, or null if not loaded yet
-   */
-  fun getCachedFrameworkResources(
-    resourceDirectoryOrFile: Path,
-    useCompiled9Patches: Boolean,
-    languages: Set<String>
-  ): FrameworkResourceRepository? {
-    val cacheKey = CacheKey(resourceDirectoryOrFile, useCompiled9Patches)
-    val repository = cache[cacheKey] ?: return null
-    return if (repository.containsLanguages(languages)) repository else null
-  }
-
   private fun createCachingData(resFolderOrJar: Path): CachingData? {
     if (resFolderOrJar.fileName.toString().endsWith(DOT_JAR, ignoreCase = true)) {
       return null // Caching data is not used when loading framework resources from a JAR.

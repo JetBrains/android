@@ -264,19 +264,6 @@ public final class ResourceRepositoryManager implements Disposable {
   }
 
   /**
-   * Returns the repository for the given namespace, if it has been loaded already.
-   *
-   * @return the repository, or null if the repository hasn't been loaded yet
-   * @see #getAppResources()
-   * @see #getFrameworkResources(Set)
-   * @see #getResourcesForNamespace(ResourceNamespace)
-   */
-  @Nullable
-  public ResourceRepository getCachedResourcesForNamespace(@NotNull ResourceNamespace namespace) {
-    return namespace.equals(ResourceNamespace.ANDROID) ? getCachedFrameworkResources(Collections.emptySet()) : getCachedAppResources();
-  }
-
-  /**
    * Returns the repository with all non-framework resources available to a given module (in the current variant).
    * This includes not just the resources defined in this module, but in any other modules that this module depends
    * on, as well as any libraries those modules may depend on (e.g. appcompat). This repository also contains sample
@@ -486,25 +473,6 @@ public final class ResourceRepositoryManager implements Disposable {
     }
 
     return androidPlatform.getSdkData().getTargetData(androidPlatform.getTarget()).getFrameworkResources(languages);
-  }
-
-  /**
-   * Returns the resource repository with Android framework resources for the module's compile SDK, if the repository
-   * has been loaded already.
-   *
-   * @param languages the set of ISO 639 language codes determining the subset of resources to load.
-   *     May be empty to load only the language-neutral resources. The returned repository may contain resources
-   *     for more languages than was requested.
-   * @return the framework repository, or null if the repository hasn't been loaded yet
-   */
-  @Nullable
-  public ResourceRepository getCachedFrameworkResources(@NotNull Set<String> languages) {
-    AndroidPlatform androidPlatform = AndroidPlatform.getInstance(myFacet.getModule());
-    if (androidPlatform == null) {
-      return null;
-    }
-
-    return androidPlatform.getSdkData().getTargetData(androidPlatform.getTarget()).getCachedFrameworkResources(languages);
   }
 
   /**

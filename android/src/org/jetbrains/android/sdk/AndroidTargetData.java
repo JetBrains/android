@@ -300,29 +300,6 @@ public class AndroidTargetData {
   }
 
   /**
-   * Returns a repository of framework resources for the Android target if it has been loaded already.
-   * The returned repository, if not null, is guaranteed to contain resources for the given set of languages
-   * plus the language-neutral ones, but may contain resources for more languages than was requested.
-   *
-   * @param languages a set of ISO 639 language codes
-   * @return the repository of Android framework resources, or null if not loaded yet
-   */
-  @Slow
-  @Nullable
-  public synchronized ResourceRepository getCachedFrameworkResources(@NotNull Set<String> languages) {
-    Path resFolderOrJar = myTarget.getPath(IAndroidTarget.RESOURCES);
-    if (!Files.exists(resFolderOrJar)) {
-      LOG.error(String.format("\"%s\" directory or file cannot be found", resFolderOrJar));
-      return null;
-    }
-
-    return FrameworkResourceRepositoryManager.getInstance().getCachedFrameworkResources(
-      resFolderOrJar,
-      myTarget instanceof CompatibilityRenderTarget,
-      languages);
-  }
-
-  /**
    * This method can return null when the user is changing the SDK setting in their project.
    */
   @Nullable
