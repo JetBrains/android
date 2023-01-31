@@ -73,6 +73,20 @@ class BasicCompileTest {
 
     files["RecoverableError.kt"] = projectRule.fixture.configureByText("RecoverableError.kt",
                                                                       "fun recoverableError() {\"a\".toString()}}")
+
+    // Create mocks for the kotlin.jvm to avoid having to bring in the whole dependency
+    projectRule.fixture.configureByText("JvmName.kt", "package kotlin.jvm\n" +
+                                                      "@Target(AnnotationTarget.FILE)\n" +
+                                                      "public annotation class JvmName(val name: String)\n")
+
+    projectRule.fixture.configureByText("JvmMultifileClass.kt", "package kotlin.jvm\n" +
+                                                                "@Target(AnnotationTarget.FILE)\n" +
+                                                                "public annotation class JvmMultifileClass()")
+
+    files["RenamedFile.kt"] = projectRule.fixture.configureByText("RenamedFile.kt",
+                                                                  "@file:kotlin.jvm.JvmName(\"CustomJvmName\")\n" +
+                                                                  "@file:kotlin.jvm.JvmMultifileClass\n" +
+                                                                  "fun T() {}")
   }
 
   @Test
@@ -162,5 +176,12 @@ class BasicCompileTest {
     } catch (e : LiveEditUpdateException) {
       Assert.assertEquals(LiveEditUpdateException.Error.NON_PRIVATE_INLINE_FUNCTION, e.error)
     }
+  }
+
+  @Test
+  fun renamedFile() {
+    var output = compile(files["RenamedFile.kt"], "T")
+    Assert.assertTrue(output.classes["CustomJvmName"]!!.isNotEmpty())
+    Assert.assertTrue(output.classes["CustomJvmName__RenamedFileKt"]!!.isNotEmpty())
   }
 }

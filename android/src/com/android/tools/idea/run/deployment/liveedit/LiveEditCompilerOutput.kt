@@ -37,11 +37,6 @@ data class LiveEditCompilerOutput private constructor (val classes: Map<String, 
       return this
     }
 
-    fun addSupportClasses(classes: Map<String, ByteArray>): Builder {
-      supportClasses.putAll(classes)
-      return this
-    }
-
     fun addGroupId(id: Int) : Builder{
       groupIds.add(id)
       return this
