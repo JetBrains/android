@@ -87,7 +87,6 @@ import com.android.tools.idea.lint.inspections.AndroidLintNotificationPermission
 import com.android.tools.idea.lint.inspections.AndroidLintObsoleteLayoutParamInspection
 import com.android.tools.idea.lint.inspections.AndroidLintObsoleteSdkIntInspection
 import com.android.tools.idea.lint.inspections.AndroidLintOldTargetApiInspection
-import com.android.tools.idea.lint.inspections.AndroidLintOverrideInspection
 import com.android.tools.idea.lint.inspections.AndroidLintParcelClassLoaderInspection
 import com.android.tools.idea.lint.inspections.AndroidLintParcelCreatorInspection
 import com.android.tools.idea.lint.inspections.AndroidLintPermissionImpliesUnsupportedChromeOsHardwareInspection
@@ -173,7 +172,6 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
-import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.android.util.AndroidBundle
 import java.nio.charset.StandardCharsets
 import java.util.Locale
@@ -1517,18 +1515,6 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     createManifest()
     myFixture.copyFileToProject("$globalTestDir/MyActivity.java", "src/p1/p2/MyActivity.java")
     doGlobalInspectionTest(AndroidLintInlinedApiInspection())
-  }
-
-  fun testApiOverride() {
-    createManifest()
-    createProjectProperties()
-    // We need a build target >= 1 but also *smaller* than 17. Ensure this is the case
-    val platform = AndroidPlatform.getInstance(myFacet.module)
-    if (platform != null && platform.apiLevel < 17) {
-      myFixture.copyFileToProject("$globalTestDir/MyActivity.java", "src/p1/p2/MyActivity.java")
-      doGlobalInspectionTest(AndroidLintOverrideInspection())
-    } else { // TODO: else try to find and set a target on the project such that the above returns true
-    }
   }
 
   fun testParcelLoader() {
