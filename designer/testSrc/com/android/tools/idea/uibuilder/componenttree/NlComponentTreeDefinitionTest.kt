@@ -17,16 +17,31 @@ package com.android.tools.idea.uibuilder.componenttree
 
 import com.android.AndroidXConstants
 import com.android.SdkConstants
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_VISIBILITY
+import com.android.SdkConstants.TOOLS_URI
 import com.android.flags.junit.FlagRule
+import com.android.testutils.ImageDiffUtil
+import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.laf.HeadlessTableUI
 import com.android.tools.adtui.swing.laf.HeadlessTreeUI
+import com.android.tools.adtui.swing.popup.FakeBalloon
+import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.adtui.workbench.AutoHide
 import com.android.tools.adtui.workbench.Side
 import com.android.tools.adtui.workbench.Split
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.componenttree.treetable.TreeTableImpl
 import com.android.tools.idea.common.SyncNlModel
+import com.android.tools.idea.common.error.Issue
+import com.android.tools.idea.common.error.IssueModel
+import com.android.tools.idea.common.error.IssuePanelService
+import com.android.tools.idea.common.error.IssueProvider
+import com.android.tools.idea.common.error.IssueSource
+import com.android.tools.idea.common.error.TestIssue
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
@@ -38,29 +53,53 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
+import com.google.common.collect.ImmutableCollection
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.XmlElementFactory
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
 import org.jetbrains.android.facet.AndroidFacet
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.verify
 import java.awt.Rectangle
+import java.awt.event.MouseEvent
+import java.awt.image.BufferedImage
+import java.nio.file.Path
+import java.util.concurrent.TimeUnit
+import javax.swing.JComponent
+import javax.swing.JPanel
 import javax.swing.JTree
 import javax.swing.SwingUtilities
+
+private const val TEST_DATA_PATH = "tools/adt/idea/designer/testData/componenttree"
+private const val DIFF_THRESHOLD = 0.01
 
 class NlComponentTreeDefinitionTest {
   private val treeRule = FlagRule(StudioFlags.NELE_NEW_COMPONENT_TREE, true)
   private val projectRule = AndroidProjectRule.withSdk()
+  private val popupRule = JBPopupRule()
+  private var testDataPath: Path = Path.of("")
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(treeRule).around(EdtRule())!!
+  val ruleChain = RuleChain
+    .outerRule(IconLoaderRule()) // Must be before AndroidProjectRule
+    .around(projectRule)
+    .around(treeRule)
+    .around(popupRule)
+    .around(EdtRule())!!
+
+  @Before
+  fun before() {
+    testDataPath = TestUtils.resolveWorkspacePathUnchecked(TEST_DATA_PATH)
+  }
 
   @RunsInEdt
   @Test
@@ -323,6 +362,96 @@ class NlComponentTreeDefinitionTest {
     """.trimIndent())
   }
 
+  @RunsInEdt
+  @Test
+  fun testIssueBadge() {
+    val issueService = projectRule.mockProjectService(IssuePanelService::class.java)
+    val content = createToolContent()
+    val model = createFlowModel()
+    val surface = model.surface
+    val textView = model.find("a")!!
+    val issues = surface.issueModel
+    val provider = object : IssueProvider() {
+      override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
+        issueListBuilder.add(TestIssue("Problem", source = IssueSource.fromNlComponent(textView)))
+      }
+    }
+    issues.addIssueProvider(provider)
+    issues.updateErrorsList()
+    val table = attach(content, model)
+    val ui = FakeUi(table)
+    val rect = table.getCellRect(1, 1, false)
+    ui.mouse.moveTo(rect.midX, rect.midY)
+    assertThat(table.getToolTipText(rect.midX, rect.midY)).isEqualTo("<html>Problem<br>Click the badge for detail.</html>")
+    ui.mouse.click(rect.midX, rect.midY)
+    verify(issueService).showIssueForComponent(surface, true, textView, true)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testVisibilityBadge() {
+    val content = createToolContent()
+    val model = createFlowModel()
+    val table = attach(content, model)
+    val ui = FakeUi(table)
+    val rect = table.getCellRect(1, 2, false)
+    val textView = model.find("a")!!
+    ui.mouse.click(rect.midX, rect.midY)
+    val balloon = popupRule.fakePopupFactory.getBalloon(0)
+    val androidPanel = balloon.component.components.filterIsInstance<JPanel>().first()
+    val toolsPanel = balloon.component.components.filterIsInstance<JPanel>().last()
+    val androidButtons = androidPanel.components.filterIsInstance<JBLabel>()
+    val toolsButtons = toolsPanel.components.filterIsInstance<JBLabel>()
+    val expectedValues = listOf(null, "visible", "invisible", "gone")
+    for (index in listOf(1, 2, 3, 0)) {
+      val androidButton = androidButtons[index]
+      val expectedValue = expectedValues[index]
+      assertThat(androidButton.toolTipText).isEqualTo(expectedValue ?: "Remove attribute")
+      checkPaint(androidButton, "android_${expectedValue ?: "clear"}_unset.png")
+      balloon.hover(androidButton)
+      checkPaint(androidButton, "android_${expectedValue ?: "clear"}_hover.png")
+      balloon.click(androidButton)
+      assertThat(textView.getAttribute(ANDROID_URI, ATTR_VISIBILITY)).isEqualTo(expectedValue)
+      checkPaint(androidButton, "android_${expectedValue ?: "clear"}_set.png")
+      assertThat(table.getToolTipText(rect.midX, rect.midY)).isEqualTo(expectedValue ?: "Visibility not set")
+    }
+    for (index in listOf(1, 2, 3, 0)) {
+      val toolsButton = toolsButtons[index]
+      val expectedValue = expectedValues[index]
+      assertThat(toolsButton.toolTipText).isEqualTo(expectedValue ?: "Remove attribute")
+      checkPaint(toolsButton, "tools_${expectedValue ?: "clear"}_unset.png")
+      balloon.hover(toolsButton)
+      checkPaint(toolsButton, "tools_${expectedValue ?: "clear"}_hover.png")
+      balloon.click(toolsButton)
+      assertThat(textView.getAttribute(TOOLS_URI, ATTR_VISIBILITY)).isEqualTo(expectedValue)
+      checkPaint(toolsButton, "tools_${expectedValue ?: "clear"}_set.png")
+      assertThat(table.getToolTipText(rect.midX, rect.midY)).isEqualTo(expectedValue ?: "Visibility not set")
+    }
+  }
+
+  private fun FakeBalloon.click(target: JComponent) {
+    val rect = SwingUtilities.convertRectangle(target.parent, target.bounds, component)
+    ui!!.mouse.click(rect.midX, rect.midY)
+  }
+
+  private fun FakeBalloon.hover(target: JComponent) {
+    val rect = SwingUtilities.convertRectangle(target.parent, target.bounds, component)
+    ui!!.mouse.moveTo(rect.midX, rect.midY)
+  }
+
+  private fun TreeTableImpl.getToolTipText(x: Int, y: Int): String? = getToolTipText(
+    MouseEvent(this, MouseEvent.MOUSE_MOVED, TimeUnit.NANOSECONDS.toMillis(System.nanoTime()), 0, x, y, 0, false, MouseEvent.BUTTON1))
+
+  private fun checkPaint(aButton: JBLabel, expected: String) {
+    @Suppress("UndesirableClassUsage")
+    val image = BufferedImage(aButton.width, aButton.height, BufferedImage.TYPE_INT_ARGB)
+    val graphics = image.createGraphics()
+    aButton.paint(graphics)
+    graphics.dispose()
+    ImageDiffUtil.assertImageSimilar(testDataPath.resolve(expected), image, DIFF_THRESHOLD)
+  }
+
+
   private fun dumpTree(tree: JTree): String {
     val builder = StringBuilder()
     val rows = tree.rowCount
@@ -394,6 +523,8 @@ class NlComponentTreeDefinitionTest {
         val manager = it.surface.sceneManager as? SyncLayoutlibSceneManager
         manager?.ignoreRenderRequests = true
         manager?.ignoreModelUpdateRequests = true
+        val issueModel = IssueModel.createForTesting(projectRule.testRootDisposable, projectRule.project)
+        whenever(it.surface.issueModel).thenReturn(issueModel)
       }
   }
 
@@ -416,4 +547,10 @@ class NlComponentTreeDefinitionTest {
   }
 
   private fun component(tag: String): ComponentDescriptor = ComponentDescriptor(tag)
+
+  private val Rectangle.midX: Int
+    get() = x + width / 2
+
+  private val Rectangle.midY: Int
+    get() = y + height / 2
 }
