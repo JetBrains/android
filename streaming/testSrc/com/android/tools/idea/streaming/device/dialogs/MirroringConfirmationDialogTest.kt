@@ -16,14 +16,13 @@
 package com.android.tools.idea.streaming.device.dialogs
 
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
-import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JButton
@@ -36,15 +35,7 @@ import javax.swing.JEditorPane
 class MirroringConfirmationDialogTest {
   private val projectRule = AndroidProjectRule.inMemory()
   @get:Rule
-  val ruleChain = RuleChain(projectRule, EdtRule())
-
-  private val testRootDisposable
-    get() = projectRule.testRootDisposable
-
-  @Before
-  fun setUp() {
-    enableHeadlessDialogs(testRootDisposable)
-  }
+  val ruleChain = RuleChain(projectRule, EdtRule(), HeadlessDialogRule())
 
   @Test
   fun testAccept() {

@@ -18,8 +18,8 @@ package com.android.tools.idea.ui.screenshot
 import com.android.SdkConstants
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.PortableUiFontRule
-import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.adtui.swing.findModelessDialog
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
@@ -33,7 +33,6 @@ import com.intellij.util.ui.EDT
 import org.intellij.images.ui.ImageComponent
 import org.intellij.images.ui.ImageComponentDecorator
 import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
@@ -74,21 +73,11 @@ private val DISPLAY_INFO_WATCH =
 class ScreenshotViewerTest {
   private val projectRule = ProjectRule()
 
-  private val portableUiFontRule = PortableUiFontRule()
-
   @get:Rule
-  val rule = RuleChain(projectRule, portableUiFontRule, EdtRule())
-
-  private val testRootDisposable
-    get() = projectRule.project
+  val rule = RuleChain(projectRule, EdtRule(), PortableUiFontRule(), HeadlessDialogRule())
 
   private val testFrame = object : FramingOption {
     override val displayName = "Test frame"
-  }
-
-  @Before
-  fun setUp() {
-    enableHeadlessDialogs(testRootDisposable)
   }
 
   @After
