@@ -27,6 +27,7 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.components.AnActionLink
 import com.intellij.ui.scale.JBUIScale
@@ -206,8 +207,10 @@ class InformationPopupImpl(
     hidePopup: () -> Unit
   ): JComponent {
     val content = JPanel(GridBagLayout()).also {
-      it.isOpaque = false
-      it.background = UIUtil.getToolTipBackground()
+      it.isOpaque = true
+      // See b/267198091#comment4 for the motivation of this change.
+      // TODO: Checking for ExperimentalUI.isNewUI() should be removed when the new UI becomes stable.
+      it.background = if (ExperimentalUI.isNewUI()) JBUI.CurrentTheme.Editor.Tooltip.BACKGROUND else UIUtil.getToolTipBackground()
     }
     val gc = GridBag()
 
