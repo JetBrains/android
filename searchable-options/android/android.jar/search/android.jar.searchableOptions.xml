@@ -1410,6 +1410,16 @@
     <option name="tasks" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
     <option name="test" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
     <option name="the" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
+    <option name="api" hit="Optimise/build app for the target device API level only" />
+    <option name="app" hit="Optimise/build app for the target device API level only" />
+    <option name="build" hit="Optimise/build app for the target device API level only" />
+    <option name="device" hit="Optimise/build app for the target device API level only" />
+    <option name="for" hit="Optimise/build app for the target device API level only" />
+    <option name="level" hit="Optimise/build app for the target device API level only" />
+    <option name="only" hit="Optimise/build app for the target device API level only" />
+    <option name="optimise" hit="Optimise/build app for the target device API level only" />
+    <option name="target" hit="Optimise/build app for the target device API level only" />
+    <option name="the" hit="Optimise/build app for the target device API level only" />
     <option name="and" hit="Parse and write to Version Catalog files" />
     <option name="catalog" hit="Parse and write to Version Catalog files" />
     <option name="files" hit="Parse and write to Version Catalog files" />

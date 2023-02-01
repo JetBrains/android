@@ -22,6 +22,7 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.Projects
 import com.android.tools.idea.flags.StudioFlags.API_OPTIMIZATION_ENABLE
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.run.createSpec
 import com.android.tools.idea.gradle.task.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE
@@ -372,7 +373,8 @@ class GradleConnectedAndroidTestInvoker(
 
     val deviceSpecificArguments = mutableListOf<String>()
     deviceSpec.commonVersion?.let { version ->
-      if (API_OPTIMIZATION_ENABLE.get()) {
+      val deviceApiOptimization = API_OPTIMIZATION_ENABLE.get() && GradleExperimentalSettings.getInstance().ENABLE_GRADLE_API_OPTIMIZATION
+      if (deviceApiOptimization) {
         deviceSpecificArguments.add(createProjectProperty(PROPERTY_BUILD_API, version.apiLevel.toString()))
         version.codename?.let { codename ->
           deviceSpecificArguments.add(createProjectProperty(PROPERTY_BUILD_API_CODENAME, codename))

@@ -72,6 +72,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JCheckBox myEnableParallelSync;
 
   private JCheckBox myEnableVersionCatalogParsing;
+  private JCheckBox myEnableDeviceApiOptimization;
 
   private Runnable myRestartCallback;
 
@@ -91,6 +92,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
     myEnableParallelSync.setVisible(StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get());
     myEnableVersionCatalogParsing.setVisible(StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.get());
+    myEnableDeviceApiOptimization.setVisible(StudioFlags.API_OPTIMIZATION_ENABLE.get());
 
     Hashtable<Integer, JComponent> qualityLabels = new Hashtable<>();
     qualityLabels.put(0, new JLabel("Fastest"));
@@ -137,6 +139,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
            mySettings.TRACE_PROFILE_SELECTION != getTraceProfileSelection() ||
            !mySettings.TRACE_PROFILE_LOCATION.equals(getTraceProfileLocation()) ||
            mySettings.ENABLE_PARALLEL_SYNC != enableParallelSync() ||
+           mySettings.ENABLE_GRADLE_API_OPTIMIZATION != isGradleApiOptimization() ||
            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
            myPreviewPickerCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled() ||
            myEnableNewLogcatToolCheckBox.isSelected() != LogcatExperimentalSettings.getInstance().getLogcatV2Enabled() ||
@@ -152,6 +155,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = isUseL2DependenciesInSync();
     mySettings.SKIP_GRADLE_TASKS_LIST = skipGradleTasksList();
     mySettings.ENABLE_PARALLEL_SYNC = enableParallelSync();
+    mySettings.ENABLE_GRADLE_API_OPTIMIZATION = isGradleApiOptimization();
 
     myRenderSettings.setQuality(getQualitySetting() / 100f);
 
@@ -235,9 +239,18 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     return myEnableParallelSync.isSelected();
   }
 
+  boolean isGradleApiOptimization() {
+    return myEnableDeviceApiOptimization.isSelected();
+  }
+
   @TestOnly
   void setEnableParallelSync(boolean value) {
     myEnableParallelSync.setSelected(value);
+  }
+
+  @TestOnly
+  void setEnabledGradleApiOptimization(boolean value) {
+    myEnableDeviceApiOptimization.setSelected(value);
   }
 
   @TestOnly
@@ -331,6 +344,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myTraceProfileComboBox.setSelectedItem(mySettings.TRACE_PROFILE_SELECTION);
     myTraceProfilePathField.setText(mySettings.TRACE_PROFILE_LOCATION);
     myEnableParallelSync.setSelected(mySettings.ENABLE_PARALLEL_SYNC);
+    myEnableDeviceApiOptimization.setSelected(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
     updateTraceComponents();
     myPreviewPickerCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled());
     myEnableNewLogcatToolCheckBox.setSelected(LogcatExperimentalSettings.getInstance().getLogcatV2Enabled());
