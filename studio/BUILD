@@ -648,12 +648,12 @@ android_studio(
     ],
     searchable_options = "//tools/adt/idea/searchable-options",
     version_code_name = "Giraffe",
-    version_micro_patch = "1.3",
+    version_micro_patch = "1.4",
     # This will get added to the end of the full-version string.
     # TODO(b/240707039): automate this.
-    version_release_number = 3,
+    version_release_number = 4,
     version_type = "Canary",
-    # version_update_message = "<html>this is optional</html>",
+    version_update_message = "<html>A new Android Studio Giraffe | 2022.3.1 Canary 4 is available in the Canary channel and includes new features and bug fixes.<p><b>Canary builds</b> are released approximately once a week and include all of our new features and bug fixes. Although these builds<br/>receive only minimal testing and may include bugs, they are made available to allow users to try out new features as early as possible.</p></html>",
     visibility = ["//visibility:public"],
 )
 
