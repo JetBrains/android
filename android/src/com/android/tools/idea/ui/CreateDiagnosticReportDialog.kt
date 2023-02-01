@@ -15,9 +15,15 @@
  */
 package com.android.tools.idea.ui
 
+import com.android.tools.idea.actions.ShowDiagnosticReportAction
 import com.android.tools.idea.diagnostics.report.FileInfo
 import com.android.tools.idea.util.ZipData
 import com.android.tools.idea.util.zipFiles
+import com.intellij.ide.actions.RevealFileAction
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.project.Project
@@ -34,6 +40,7 @@ import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -150,6 +157,7 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
   override fun doOKAction() {
     val saveFile = getSaveFile(project) ?: return
     createZipFile(saveFile)
+    showNotification(saveFile)
 
     super.doOKAction()
   }
@@ -235,6 +243,26 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
     for (child in node.children()) {
       addFilesToList(child as FileTreeNode, list)
     }
+  }
+
+  private fun showNotification(path: Path) {
+    if (!RevealFileAction.isSupported()) {
+      return
+    }
+
+    val notificationGroup =
+      NotificationGroupManager.getInstance().getNotificationGroup("Create Diagnostic Report") ?: return
+
+    val notification =
+      notificationGroup.createNotification(
+        "Diagnostic report created",
+        "The diagnostic report has been created.",
+        NotificationType.INFORMATION
+      )
+
+    notification.addAction(ShowDiagnosticReportAction(path.toFile()))
+
+    ApplicationManager.getApplication().invokeLater { Notifications.Bus.notify(notification) }
   }
 
   private class FileTreeRenderer : CheckboxTree.CheckboxTreeCellRenderer() {
