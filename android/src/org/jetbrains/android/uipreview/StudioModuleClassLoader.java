@@ -23,10 +23,8 @@ import com.android.tools.idea.rendering.classloading.ThreadControllingTransform;
 import com.android.tools.idea.rendering.classloading.ThreadLocalTrackingTransform;
 import com.android.tools.idea.rendering.classloading.VersionClassTransform;
 import com.android.tools.idea.rendering.classloading.ViewMethodWrapperTransform;
-import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader;
 import com.android.tools.idea.rendering.classloading.loaders.ProjectSystemClassLoader;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.WeakReferenceDisposableWrapper;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -60,8 +58,8 @@ import org.jetbrains.annotations.VisibleForTesting;
  * used by those custom views (other than the framework itself, which is loaded by a parent class
  * loader via layout library.)
  */
-public final class ModuleClassLoader extends DelegatingClassLoader implements ModuleProvider, Disposable {
-  private static final Logger LOG = Logger.getInstance(ModuleClassLoader.class);
+public final class StudioModuleClassLoader extends ModuleClassLoader implements ModuleProvider {
+  private static final Logger LOG = Logger.getInstance(StudioModuleClassLoader.class);
 
   /**
    * If the project uses any of these libraries, we re-package them with a different name (prefixing them with
@@ -139,17 +137,17 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
   private final Supplier<PsiFile> myPsiFileProvider;
   private final ModuleClassLoaderImpl myImpl;
   /**
-   * Saves the given {@link ClassLoader} passed as parent to this {@link ModuleClassLoader}. This allows to check
+   * Saves the given {@link ClassLoader} passed as parent to this {@link StudioModuleClassLoader}. This allows to check
    * the parent compatibility in {@link #isCompatibleParentClassLoader(ClassLoader).}
    */
   private final ClassLoader myParentAtConstruction;
 
   private final AtomicBoolean isDisposed = new AtomicBoolean(false);
 
-  ModuleClassLoader(@Nullable ClassLoader parent, @NotNull ModuleRenderContext renderContext,
-                    @NotNull ClassTransform projectTransformations,
-                    @NotNull ClassTransform nonProjectTransformations,
-                    @NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
+  StudioModuleClassLoader(@Nullable ClassLoader parent, @NotNull ModuleRenderContext renderContext,
+                          @NotNull ClassTransform projectTransformations,
+                          @NotNull ClassTransform nonProjectTransformations,
+                          @NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
     this(parent, renderContext, projectTransformations, nonProjectTransformations,
          NELE_CLASS_BINARY_CACHE.get()
          ? ClassBinaryCacheManager.getInstance().getCache(renderContext.getModule())
@@ -157,10 +155,10 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
          diagnostics);
   }
 
-  private ModuleClassLoader(@Nullable ClassLoader parent,
-                            @NotNull ModuleRenderContext renderContext,
-                            @NotNull ModuleClassLoaderImpl loader,
-                            @NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
+  private StudioModuleClassLoader(@Nullable ClassLoader parent,
+                                  @NotNull ModuleRenderContext renderContext,
+                                  @NotNull ModuleClassLoaderImpl loader,
+                                  @NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
     super(
       new LibraryResourceClassLoader(
         new FirewalledResourcesClassLoader(
@@ -198,11 +196,11 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
     });
   }
 
-  private ModuleClassLoader(@Nullable ClassLoader parent, @NotNull ModuleRenderContext renderContext,
-                            @NotNull ClassTransform projectTransformations,
-                            @NotNull ClassTransform nonProjectTransformations,
-                            @NotNull ClassBinaryCache cache,
-                            @NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
+  private StudioModuleClassLoader(@Nullable ClassLoader parent, @NotNull ModuleRenderContext renderContext,
+                                  @NotNull ClassTransform projectTransformations,
+                                  @NotNull ClassTransform nonProjectTransformations,
+                                  @NotNull ClassBinaryCache cache,
+                                  @NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
     this(
       parent,
       renderContext,
@@ -218,7 +216,7 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
   }
 
   /**
-   * Checks if the given parent {@link ClassLoader} is the same as the given to this {@link ModuleClassLoader} at construction
+   * Checks if the given parent {@link ClassLoader} is the same as the given to this {@link StudioModuleClassLoader} at construction
    * time. This class loader adds additional parents to the chain so {@link ClassLoader#getParent()} can not be used directly.
    */
   boolean isCompatibleParentClassLoader(@Nullable ClassLoader parent) {
@@ -269,6 +267,7 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
    * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader. Always returns
    * false if there has not been any PSI changes.
    */
+  @Override
   public boolean isUserCodeUpToDate() {
     Module module = getModule();
     if (module == null) return true;
@@ -317,6 +316,7 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
     return myModuleReference.get();
   }
 
+  @Override
   @NotNull
   public ModuleClassLoaderDiagnosticsRead getStats() {
     return myDiagnostics;
@@ -380,11 +380,11 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
   }
 
   @Nullable
-  ModuleClassLoader copy(@NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
+  StudioModuleClassLoader copy(@NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
     ModuleRenderContext renderContext = getModuleContext();
     if (isDisposed() || renderContext == null || renderContext.isDisposed()) return null;
-    return new ModuleClassLoader(myParentAtConstruction, renderContext, getProjectClassesTransform(), getNonProjectClassesTransform(),
-                                 diagnostics);
+    return new StudioModuleClassLoader(myParentAtConstruction, renderContext, getProjectClassesTransform(), getNonProjectClassesTransform(),
+                                       diagnostics);
   }
 
   public boolean isDisposed() {

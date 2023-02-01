@@ -36,8 +36,8 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolder
 import com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService
-import org.jetbrains.android.uipreview.ModuleClassLoader.NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS
-import org.jetbrains.android.uipreview.ModuleClassLoader.PROJECT_DEFAULT_TRANSFORMS
+import org.jetbrains.android.uipreview.StudioModuleClassLoader.NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS
+import org.jetbrains.android.uipreview.StudioModuleClassLoader.PROJECT_DEFAULT_TRANSFORMS
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.groovy.util.removeUserData
@@ -88,7 +88,7 @@ private class ModuleClassLoaderProjectHelperService(val project: Project): Proje
  * This is a wrapper around a class preloading [CompletableFuture] that allows for the proper disposal of the resources used.
  */
 class Preloader(
-  moduleClassLoader: ModuleClassLoader,
+  moduleClassLoader: StudioModuleClassLoader,
   classesToPreload: Collection<String> = emptyList()) {
   private val classLoader = SoftReference(moduleClassLoader)
   private var isActive = AtomicBoolean(true)
@@ -108,7 +108,7 @@ class Preloader(
     isActive.set(false)
   }
 
-  fun getClassLoader(): ModuleClassLoader? {
+  fun getClassLoader(): StudioModuleClassLoader? {
     cancel() // Stop preloading since we are going to use the class loader
     return classLoader.get()
   }
@@ -117,13 +117,13 @@ class Preloader(
    * Checks if this [Preloader] loads classes for [cl] [ModuleClassLoader]. This allows for safe check without the need for share the
    * actual [classLoader] and prevent its use.
    */
-  fun isLoadingFor(cl: ModuleClassLoader) = classLoader.get() == cl
+  fun isLoadingFor(cl: StudioModuleClassLoader) = classLoader.get() == cl
 
   fun isForCompatible(parent: ClassLoader?, projectTransformations: ClassTransform, nonProjectTransformations: ClassTransform) =
     classLoader.get()?.isCompatible(parent, projectTransformations, nonProjectTransformations) == true
 
   /**
-   * Returns the number of currently loaded classes for the underlying [ModuleClassLoader]. Intended to be used for debugging and
+   * Returns the number of currently loaded classes for the underlying [StudioModuleClassLoader]. Intended to be used for debugging and
    * diagnostics.
    */
   fun getLoadedCount(): Int = classLoader.get()?.let { it.nonProjectLoadedClasses.size + it.projectLoadedClasses.size } ?: 0
@@ -141,19 +141,19 @@ private fun calculateTransformationsUniqueId(projectClassesTransformationProvide
     .toString()
 }
 
-fun ModuleClassLoader.areTransformationsUpToDate(projectClassesTransformationProvider: ClassTransform,
+fun StudioModuleClassLoader.areTransformationsUpToDate(projectClassesTransformationProvider: ClassTransform,
                                                                                                           nonProjectClassesTransformationProvider: ClassTransform): Boolean {
   return (calculateTransformationsUniqueId(this.projectClassesTransform, this.nonProjectClassesTransform)
     == calculateTransformationsUniqueId(projectClassesTransformationProvider, nonProjectClassesTransformationProvider))
 }
 
 /**
- * Checks if the [ModuleClassLoader] has the same transformations and parent [ClassLoader] making it compatible but not necessarily
- * up-to-date because it does not check the state of user project files. Compatibility means that the [ModuleClassLoader] can be used if it
+ * Checks if the [StudioModuleClassLoader] has the same transformations and parent [ClassLoader] making it compatible but not necessarily
+ * up-to-date because it does not check the state of user project files. Compatibility means that the [StudioModuleClassLoader] can be used if it
  * did not load any classes from the user source code. This allows for pre-loading the classes from dependencies (which are usually more
  * stable than user code) and speeding up the preview update when user changes the source code (but not dependencies).
  */
-fun ModuleClassLoader.isCompatible(
+fun StudioModuleClassLoader.isCompatible(
   parent: ClassLoader?,
   projectTransformations: ClassTransform,
   nonProjectTransformations: ClassTransform) = when {
@@ -191,7 +191,7 @@ private fun UserDataHolder.getOrCreateHatchery() = getOrCreate(HATCHERY) { Modul
  */
 class StudioModuleClassLoaderManager : ModuleClassLoaderManager {
   // MutableSet is backed by the WeakHashMap in prod so we do not retain the holders
-  private val holders: MutableMap<ModuleClassLoader, MutableSet<Any>> = IdentityHashMap()
+  private val holders: MutableMap<StudioModuleClassLoader, MutableSet<Any>> = IdentityHashMap()
   private var captureDiagnostics = false
 
   @TestOnly
@@ -204,7 +204,7 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager {
   override fun getShared(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext, holder: Any,
                          additionalProjectTransformation: ClassTransform,
                          additionalNonProjectTransformation: ClassTransform,
-                         onNewModuleClassLoader: Runnable): ModuleClassLoader {
+                         onNewModuleClassLoader: Runnable): StudioModuleClassLoader {
     val module: Module = moduleRenderContext.module
     var moduleClassLoader = module.getUserData(PRELOADER)?.getClassLoader()
     val combinedProjectTransformations: ClassTransform by lazy {
@@ -214,7 +214,7 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager {
       combine(NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS, additionalNonProjectTransformation)
     }
 
-    var oldClassLoader: ModuleClassLoader? = null
+    var oldClassLoader: StudioModuleClassLoader? = null
     if (moduleClassLoader != null) {
       val invalidate =
         moduleClassLoader.isDisposed ||
@@ -231,14 +231,14 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager {
       // Make sure the helper service is initialized
       moduleRenderContext.module.project.getService(ModuleClassLoaderProjectHelperService::class.java)
       LOG.debug { "Loading new class loader for module ${anonymize(module)}" }
-      val preloadedClassLoader: ModuleClassLoader? =
+      val preloadedClassLoader: StudioModuleClassLoader? =
         moduleRenderContext.module.getOrCreateHatchery().requestClassLoader(
           parent, combinedProjectTransformations, combinedNonProjectTransformations)
-      moduleClassLoader = preloadedClassLoader ?: ModuleClassLoader(parent,
-                                                                    moduleRenderContext,
-                                                                    combinedProjectTransformations,
-                                                                    combinedNonProjectTransformations,
-                                                                    createDiagnostics())
+      moduleClassLoader = preloadedClassLoader ?: StudioModuleClassLoader(parent,
+                                                                          moduleRenderContext,
+                                                                          combinedProjectTransformations,
+                                                                          combinedNonProjectTransformations,
+                                                                          createDiagnostics())
       module.putUserData(PRELOADER, Preloader(moduleClassLoader))
       onNewModuleClassLoader.run()
     }
@@ -253,27 +253,27 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager {
     getShared(parent, moduleRenderContext, holder, ClassTransform.identity, ClassTransform.identity) { }
 
   /**
-   * Return a [ModuleClassLoader] for a [Module] to be used for rendering. Similar to [getShared] but guarantees that the returned
-   * [ModuleClassLoader] is not shared and the caller has full ownership of it.
+   * Return a [StudioModuleClassLoader] for a [Module] to be used for rendering. Similar to [getShared] but guarantees that the returned
+   * [StudioModuleClassLoader] is not shared and the caller has full ownership of it.
    */
   @Synchronized
   override fun getPrivate(parent: ClassLoader?,
                           moduleRenderContext: ModuleRenderContext,
                           holder: Any,
                           additionalProjectTransformation: ClassTransform,
-                          additionalNonProjectTransformation: ClassTransform): ModuleClassLoader {
+                          additionalNonProjectTransformation: ClassTransform): StudioModuleClassLoader {
     // Make sure the helper service is initialized
     moduleRenderContext.module.project.getService(ModuleClassLoaderProjectHelperService::class.java)
 
     val combinedProjectTransformations = combine(PROJECT_DEFAULT_TRANSFORMS, additionalProjectTransformation)
     val combinedNonProjectTransformations = combine(NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS, additionalNonProjectTransformation)
-    val preloadedClassLoader: ModuleClassLoader? =
+    val preloadedClassLoader: StudioModuleClassLoader? =
       moduleRenderContext.module.getOrCreateHatchery().requestClassLoader(
         parent, combinedProjectTransformations, combinedNonProjectTransformations)
-    return (preloadedClassLoader ?: ModuleClassLoader(parent, moduleRenderContext,
-                                                      combinedProjectTransformations,
-                                                      combinedNonProjectTransformations,
-                                                      createDiagnostics())).apply {
+    return (preloadedClassLoader ?: StudioModuleClassLoader(parent, moduleRenderContext,
+                                                            combinedProjectTransformations,
+                                                            combinedNonProjectTransformations,
+                                                            createDiagnostics())).apply {
       holders[this] = createHoldersSet().apply { add(holder) }
     }
   }
@@ -283,7 +283,7 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager {
     getPrivate(parent, moduleRenderContext, holder, ClassTransform.identity, ClassTransform.identity)
 
   @VisibleForTesting
-  fun createCopy(mcl: ModuleClassLoader): ModuleClassLoader? = mcl.copy(createDiagnostics())
+  fun createCopy(mcl: StudioModuleClassLoader): StudioModuleClassLoader? = mcl.copy(createDiagnostics())
 
   private fun createDiagnostics() = if (captureDiagnostics) ModuleClassLoadedDiagnosticsImpl() else NopModuleClassLoadedDiagnostics
 
@@ -299,7 +299,8 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager {
   private fun createHoldersSet(): MutableSet<Any> =
     if (ApplicationManager.getApplication().isUnitTestMode) {
       mutableSetOf()
-    } else {
+    }
+    else {
       Collections.newSetFromMap(WeakHashMap())
     }
 
@@ -325,7 +326,7 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager {
   }
 
   @Synchronized
-  private fun stopManagingIfNotHeld(moduleClassLoader: ModuleClassLoader): Boolean {
+  private fun stopManagingIfNotHeld(moduleClassLoader: StudioModuleClassLoader): Boolean {
     if (holders[moduleClassLoader]?.isNotEmpty() == true) {
       return false
     }
@@ -359,11 +360,14 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager {
    * disposed if no longer managed.
    */
   override fun release(moduleClassLoader: ModuleClassLoader, holder: Any) {
-    unHold(moduleClassLoader, holder)
-    if (stopManagingIfNotHeld(moduleClassLoader)) {
-      Disposer.dispose(moduleClassLoader)
+    if (moduleClassLoader is StudioModuleClassLoader) {
+      unHold(moduleClassLoader, holder)
+      if (stopManagingIfNotHeld(moduleClassLoader)) {
+        Disposer.dispose(moduleClassLoader)
+      }
     }
   }
+
 
   /**
    * If set to true, any class loaders instantiated after this call will record diagnostics about the load

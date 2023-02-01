@@ -39,7 +39,7 @@ class ModuleClassLoaderHatcheryTest {
 
     var requests = 0
 
-    val cloner: (ModuleClassLoader) -> ModuleClassLoader? = { d ->
+    val cloner: (StudioModuleClassLoader) -> StudioModuleClassLoader? = { d ->
       requests++
       StudioModuleClassLoaderManager.get().createCopy(d)
     }

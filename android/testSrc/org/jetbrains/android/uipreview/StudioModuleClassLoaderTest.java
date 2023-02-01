@@ -67,7 +67,7 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.annotations.NotNull;
 
-public class ModuleClassLoaderTest extends AndroidTestCase {
+public class StudioModuleClassLoaderTest extends AndroidTestCase {
 
   private TestResourceIdManager testResourceIdManager;
 
@@ -210,7 +210,9 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
     javac.run(null, null, null, aClassSrc.toString());
 
-    ModuleClassLoader loader = StudioModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(myModule), this);
+    StudioModuleClassLoader loader =
+      (StudioModuleClassLoader)StudioModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(myModule), this);
+
     // Add the compiled class to the overlay directory
     Files.copy(packageDir.resolve("AClass.class"), overlayDir1.resolve("com/google/example/AClass.class"));
     loader.loadClass("com.google.example.AClass");
@@ -343,8 +345,9 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     );
 
     Module appModule = gradleModule(getProject(), ":app");
-    ModuleClassLoader loader = StudioModuleClassLoaderManager.get().getPrivate(null, ModuleRenderContext.forModule(
-      Objects.requireNonNull(appModule)), this);
+    StudioModuleClassLoader loader =
+      (StudioModuleClassLoader)StudioModuleClassLoaderManager.get()
+        .getPrivate(null, ModuleRenderContext.forModule(Objects.requireNonNull(appModule)), this);
     // In addition to the initial check this also triggers creation of myJarClassLoader in ModuleClassLoader
     assertTrue(loader.areDependenciesUpToDate());
 
@@ -371,10 +374,11 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
   }
 
   public void testModuleClassLoaderCopy() {
-    ModuleClassLoader loader = StudioModuleClassLoaderManager.get().getPrivate(null, ModuleRenderContext.forModule(
-      Objects.requireNonNull(myFixture.getModule())), this);
+    StudioModuleClassLoader loader =
+      (StudioModuleClassLoader)StudioModuleClassLoaderManager.get()
+        .getPrivate(null, ModuleRenderContext.forModule(Objects.requireNonNull(myFixture.getModule())), this);
 
-    ModuleClassLoader copy = loader.copy(NopModuleClassLoadedDiagnostics.INSTANCE);
+    StudioModuleClassLoader copy = loader.copy(NopModuleClassLoadedDiagnostics.INSTANCE);
     assertNotNull(copy);
     Disposer.dispose(copy);
 
