@@ -43,12 +43,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolder
+import com.intellij.openapi.util.removeUserData
 import com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService
 import org.jetbrains.android.uipreview.StudioModuleClassLoader.NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS
 import org.jetbrains.android.uipreview.StudioModuleClassLoader.PROJECT_DEFAULT_TRANSFORMS
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.plugins.groovy.util.removeUserData
 import java.lang.ref.SoftReference
 import java.util.Collections
 import java.util.IdentityHashMap
