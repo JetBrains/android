@@ -180,7 +180,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
       DefaultActionGroup group = new DefaultActionGroup();
       group.add(new GoToModuleAction(name, myContext, myTree));
 
-      ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu("", group);
+      ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu("ResolvedDependenciesPanel", group);
       popupMenu.getComponent().show(myTree, x, y);
     }
   }
