@@ -24,9 +24,9 @@ import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionWrapper
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.EmptyAction.MyDelegatingAction
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 
@@ -77,7 +77,7 @@ fun List<AnAction>.disabledIfRefreshingOrRenderErrors(sceneView: SceneView): Lis
 private class EnableUnderConditionWrapper(
   delegate: AnAction,
   private val isEnabled: (context: DataContext) -> Boolean
-) : MyDelegatingAction(delegate), CustomComponentAction {
+) : AnActionWrapper(delegate), CustomComponentAction {
 
   override fun update(e: AnActionEvent) {
     super.update(e)
