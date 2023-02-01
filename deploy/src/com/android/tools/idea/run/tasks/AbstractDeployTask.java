@@ -119,7 +119,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
   @Override
   public void run(@NotNull LaunchContext launchContext) throws ExecutionException {
     IDevice device = launchContext.getDevice();
-    Executor executor = launchContext.getExecutor();
+    Executor executor = launchContext.getEnv().getExecutor();
 
     try {
       launchContext.setLaunchApp(shouldTaskLaunchApp());

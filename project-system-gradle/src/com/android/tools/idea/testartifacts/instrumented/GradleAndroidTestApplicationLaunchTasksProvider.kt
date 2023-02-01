@@ -27,12 +27,12 @@ import com.android.tools.idea.run.tasks.ConnectDebuggerTask
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTasksProvider
 import com.android.tools.idea.run.tasks.getBaseDebuggerTask
-import com.android.tools.idea.run.util.LaunchStatus
 import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplicationLaunchTask.Companion.allInModuleTest
 import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplicationLaunchTask.Companion.allInPackageTest
 import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplicationLaunchTask.Companion.classTest
 import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplicationLaunchTask.Companion.methodTest
 import com.google.common.collect.Lists
+import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -75,18 +75,19 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
 
   private val myLogger: Logger = Logger.getInstance(GradleAndroidTestApplicationLaunchTasksProvider::class.java)
 
-  override fun getTasks(device: IDevice, launchStatus: LaunchStatus, consolePrinter: ConsolePrinter): List<LaunchTask> {
+  @Throws(ExecutionException::class)
+  override fun getTasks(device: IDevice, consolePrinter: ConsolePrinter): List<LaunchTask> {
     val launchTasks: MutableList<LaunchTask> = Lists.newArrayList()
 
     val testAppId: String? = try {
       myApplicationIdProvider.testPackageName
-    } catch (e: ApkProvisionException) {
-      myLogger.warn(e)
-      null
     }
-    if (testAppId == null) {
-      launchStatus.terminateLaunch("Unable to determine test package name", true)
-      return launchTasks
+    catch (e: ApkProvisionException) {
+      throw ExecutionException("Unable to determine test package name")
+    }
+
+    if (testAppId.isNullOrEmpty()) {
+      throw ExecutionException("Unable to determine test package name")
     }
 
     val appLaunchTask = when (myTestingType) {
@@ -96,7 +97,6 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
           requireNotNull(GradleAndroidModel.get(myFacet)),
           testAppId,
           myLaunchOptions.isDebug,
-          launchStatus.processHandler,
           consolePrinter,
           device,
           testRegex,
@@ -104,13 +104,13 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
           retentionConfiguration,
           myExtraInstrumentationOptions)
       }
+
       TEST_ALL_IN_PACKAGE -> {
         allInPackageTest(
           myProject,
           requireNotNull(GradleAndroidModel.get(myFacet)),
           testAppId,
           myLaunchOptions.isDebug,
-          launchStatus.processHandler,
           consolePrinter,
           device,
           myPackageName,
@@ -118,13 +118,13 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
           retentionConfiguration,
           myExtraInstrumentationOptions)
       }
+
       TEST_CLASS -> {
         classTest(
           myProject,
           requireNotNull(GradleAndroidModel.get(myFacet)),
           testAppId,
           myLaunchOptions.isDebug,
-          launchStatus.processHandler,
           consolePrinter,
           device,
           myClassName,
@@ -132,28 +132,25 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
           retentionConfiguration,
           myExtraInstrumentationOptions)
       }
-     TEST_METHOD -> {
-       methodTest(
-         myProject,
-         requireNotNull(GradleAndroidModel.get(myFacet)),
-         testAppId,
-         myLaunchOptions.isDebug,
-         launchStatus.processHandler,
-         consolePrinter,
-         device,
-         myClassName,
-         myMethodName,
-         myGradleConnectedAndroidTestInvoker,
-         retentionConfiguration,
-         myExtraInstrumentationOptions)
-     } else -> {
-      launchStatus.terminateLaunch("Unknown testing type is selected, testing type is $myTestingType", true)
-      null
-     }
+
+      TEST_METHOD -> {
+        methodTest(
+          myProject,
+          requireNotNull(GradleAndroidModel.get(myFacet)),
+          testAppId,
+          myLaunchOptions.isDebug,
+          consolePrinter,
+          device,
+          myClassName,
+          myMethodName,
+          myGradleConnectedAndroidTestInvoker,
+          retentionConfiguration,
+          myExtraInstrumentationOptions)
+      } else -> {
+        throw RuntimeException("Unknown testing type is selected, testing type is $myTestingType")
+      }
     }
-    if (appLaunchTask != null) {
-      launchTasks.add(appLaunchTask)
-    }
+    launchTasks.add(appLaunchTask)
     return launchTasks
   }
 

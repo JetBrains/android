@@ -29,12 +29,10 @@ import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.editor.NoApksProvider;
 import com.android.tools.idea.run.tasks.LaunchTask;
-import com.android.tools.idea.run.util.LaunchStatus;
-import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestProjectPaths;
-import com.intellij.execution.process.NopProcessHandler;
+import com.intellij.execution.ExecutionException;
 import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
 
@@ -111,10 +109,15 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
 
     ApplicationIdProvider applicationIdProvider =
       getProjectSystem(myAndroidFacet.getModule().getProject()).getApplicationIdProvider(config);
-    LaunchStatus launchStatus = new ProcessHandlerLaunchStatus(new NopProcessHandler());
 
-    LaunchTask task = config.getApplicationLaunchTask(
-      applicationIdProvider, myAndroidFacet, "", false, launchStatus, new NoApksProvider(), mockPrinter, mockDevice);
+    LaunchTask task = null;
+    try {
+      task = config.getApplicationLaunchTask(
+        applicationIdProvider, myAndroidFacet, "", false, new NoApksProvider(), mockPrinter, mockDevice);
+    }
+    catch (ExecutionException e) {
+      fail(e.getMessage());
+    }
     assertThat(task).isInstanceOf(AndroidTestApplicationLaunchTask.class);
 
     AndroidTestApplicationLaunchTask androidTestTask = (AndroidTestApplicationLaunchTask)task;

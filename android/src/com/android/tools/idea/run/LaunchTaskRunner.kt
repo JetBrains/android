@@ -32,7 +32,6 @@ import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTasksProvider
-import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus
 import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.stats.RunStats
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
@@ -127,7 +126,6 @@ class LaunchTaskRunner(
     val stat = RunStats.from(myEnv).apply { setPackage(applicationId) }
     stat.beginLaunchTasks()
     try {
-      val launchStatus = ProcessHandlerLaunchStatus(processHandler)
       val consolePrinter = ConsoleViewToConsolePrinter(console)
 
       printLaunchTaskStartedMessage(consolePrinter)
@@ -135,14 +133,14 @@ class LaunchTaskRunner(
 
       // Create launch tasks for each device.
       indicator.text = "Getting task for devices"
-      val launchTaskMap = devices.keysToMap { myLaunchTasksProvider.getTasks(it, launchStatus, consolePrinter) }
+      val launchTaskMap = devices.keysToMap { myLaunchTasksProvider.getTasks(it, consolePrinter) }
 
       // A list of devices that we have launched application successfully.
       indicator.text = "Launching on devices"
       launchTaskMap.entries.map { (device, tasks) ->
         async {
           LOG.info("Launching on device ${device.name}")
-          val launchContext = LaunchContext(project, myEnv.executor, device, launchStatus, consolePrinter, processHandler, indicator)
+          val launchContext = LaunchContext(myEnv, device, consolePrinter, processHandler, indicator)
           runLaunchTasks(tasks, launchContext)
           // Notify listeners of the deployment.
           if (isLaunchingTest()) {

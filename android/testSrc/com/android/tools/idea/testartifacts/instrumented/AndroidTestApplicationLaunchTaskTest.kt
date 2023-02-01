@@ -23,7 +23,6 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.LaunchContext
-import com.android.tools.idea.run.util.LaunchStatus
 import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
@@ -50,7 +49,6 @@ class AndroidTestApplicationLaunchTaskTest {
   @Mock lateinit var mockPrinter: ConsolePrinter
   @Mock lateinit var mockITestRunListener: ITestRunListener
   @Mock lateinit var mockLaunchContext: LaunchContext
-  @Mock lateinit var mockLaunchStatus: LaunchStatus
 
   private val directExecutor: ExecutorService = MoreExecutors.newDirectExecutorService()
 
@@ -67,7 +65,7 @@ class AndroidTestApplicationLaunchTaskTest {
       null,
       /*waitForDebugger=*/ false,
       "instrumentationOptions",
-      listOf(mockITestRunListener),
+      { listOf(mockITestRunListener) },
       myBackgroundTaskExecutor = directExecutor::submit,
       myAndroidTestConfigurationProvider = { AndroidTestConfiguration() },
     ) {}
@@ -100,8 +98,7 @@ class AndroidTestApplicationLaunchTaskTest {
     val mockDevice = createMockDevice(AndroidVersion(26))
     whenever(mockLaunchContext.device).thenReturn(mockDevice)
     whenever(mockLaunchContext.consolePrinter).thenReturn(mockPrinter)
-    whenever(mockLaunchContext.launchStatus).thenReturn(mockLaunchStatus)
-    whenever(mockLaunchStatus.processHandler).thenReturn(mockProcessHandler)
+    whenever(mockLaunchContext.processHandler).thenReturn(mockProcessHandler)
 
     val launchTask = createLaunchTask()
     launchTask.run(mockLaunchContext)

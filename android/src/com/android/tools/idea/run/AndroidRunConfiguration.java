@@ -43,7 +43,6 @@ import com.android.tools.idea.run.editor.ApplicationRunParameters;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.ui.BaseAction;
-import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.RunStats;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -262,10 +261,9 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
                                                    @NotNull AndroidFacet facet,
                                                    @NotNull String contributorsAmStartOptions,
                                                    boolean waitForDebugger,
-                                                   @NotNull LaunchStatus launchStatus,
                                                    @NotNull ApkProvider apkProvider,
                                                    @NotNull ConsolePrinter consolePrinter,
-                                                   @NotNull IDevice device) {
+                                                   @NotNull IDevice device) throws ExecutionException {
     ActivityLaunchOptionState state = getLaunchOptionState(MODE);
     assert state != null;
 
@@ -295,9 +293,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
                                  apkProvider);
     }
     catch (ApkProvisionException e) {
-      Logger.getInstance(AndroidRunConfiguration.class).error(e);
-      launchStatus.terminateLaunch("Unable to identify application id", true);
-      return null;
+      throw new ExecutionException("Unable to identify application id :" + e);
     }
   }
 

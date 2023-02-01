@@ -21,7 +21,6 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.editor.NoApksProvider;
 import com.android.tools.idea.run.tasks.ActivityLaunchTask;
-import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.util.ReflectionUtil;
@@ -58,7 +57,6 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
   public void testContributorsAmStartOptionsIsInlinedWithAmStartCommand() throws ExecutionException {
     myRunConfiguration.setLaunchActivity("MyActivity");
 
-    LaunchStatus launchStatus = Mockito.mock(LaunchStatus.class);
     ConsolePrinter consolePrinter = Mockito.mock(ConsolePrinter.class);
     IDevice device = Mockito.mock(IDevice.class);
     when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.S_V2));
@@ -66,7 +64,7 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
                                                                                               myFacet,
                                                                                               "--start-profiling",
                                                                                               false,
-                                                                                              launchStatus, new NoApksProvider(),
+                                                                                              new NoApksProvider(),
                                                                                               consolePrinter, device);
 
     assertEquals("am start -n \"com.example.mypackage/MyActivity\" " +
@@ -77,7 +75,6 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
   public void testEmptyContributorsAmStartOptions() throws ExecutionException {
     myRunConfiguration.setLaunchActivity("MyActivity");
 
-    LaunchStatus launchStatus = Mockito.mock(LaunchStatus.class);
     ConsolePrinter consolePrinter = Mockito.mock(ConsolePrinter.class);
     IDevice device = Mockito.mock(IDevice.class);
     when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.S_V2));
@@ -85,7 +82,7 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
                                                                                               myFacet,
                                                                                               "",
                                                                                               false,
-                                                                                              launchStatus, new NoApksProvider(),
+                                                                                              new NoApksProvider(),
                                                                                               consolePrinter, device);
     assertEquals("am start -n \"com.example.mypackage/MyActivity\" " +
                  "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER",
@@ -96,7 +93,7 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
                                                                            myFacet,
                                                                            "",
                                                                            false,
-                                                                           launchStatus, new NoApksProvider(),
+                                                                           new NoApksProvider(),
                                                                            consolePrinter, device);
     assertEquals("am start -n \"com.example.mypackage/MyActivity\" " +
                  "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER --splashscreen-show-icon",

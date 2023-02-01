@@ -24,7 +24,6 @@ import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.editor.NoApksProvider
 import com.android.tools.idea.run.tasks.ActivityLaunchTask
 import com.android.tools.idea.run.tasks.AppLaunchTask
-import com.android.tools.idea.run.util.LaunchStatus
 import com.google.wireless.android.sdk.stats.ComposeDeployEvent
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.project.Project
@@ -49,7 +48,6 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
     runConfiguration.providerClassFqn = "com.mycomposeapp.ProviderClass"
     runConfiguration.providerIndex = 3
 
-    val status = mock(LaunchStatus::class.java)
     val consolePrinter = mock(ConsolePrinter::class.java)
     val device = mock(IDevice::class.java)
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.S_V2))
@@ -60,7 +58,6 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
         myFacet,
         "",
         false,
-        status,
         noApksProvider,
         consolePrinter,
         device
@@ -142,7 +139,6 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
       facet: AndroidFacet,
       contributorsAmStartOptions: String,
       waitForDebugger: Boolean,
-      launchStatus: LaunchStatus,
       apkProvider: ApkProvider,
       consolePrinter: ConsolePrinter,
       device: IDevice
@@ -152,7 +148,6 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
         facet,
         contributorsAmStartOptions,
         waitForDebugger,
-        launchStatus,
         apkProvider,
         consolePrinter,
         device

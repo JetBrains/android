@@ -20,17 +20,18 @@ import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.LaunchContext
-import com.android.tools.idea.run.util.LaunchStatus
-import com.intellij.execution.Executor
 import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.Mockito.verify
+import org.mockito.MockitoAnnotations
 import org.mockito.junit.MockitoJUnit
 import org.mockito.quality.Strictness
 
@@ -43,17 +44,26 @@ class GradleAndroidTestApplicationLaunchTaskTest {
   val mockitoJunitRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
 
   @Mock lateinit var mockProject: Project
-  @Mock lateinit var mockExecutor: Executor
   @Mock lateinit var mockHandler: ProcessHandler
-  @Mock lateinit var mockLaunchStatus: LaunchStatus
-  @Mock lateinit var mockPrinter: ConsolePrinter
-  @Mock lateinit var mockProcessHandler: ProcessHandler
-  @Mock lateinit var mockAndroidModuleModel: GradleAndroidModel
-  @Mock lateinit var mockDevice: IDevice
-  @Mock lateinit var mockGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker
-  @Mock lateinit var mockIndicator: ProgressIndicator
+  @Mock
+  lateinit var mockPrinter: ConsolePrinter
+  @Mock
+  lateinit var mockAndroidModuleModel: GradleAndroidModel
+  @Mock
+  lateinit var mockDevice: IDevice
+  @Mock
+  lateinit var mockGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker
+  @Mock
+  lateinit var mockIndicator: ProgressIndicator
+  @Mock
+  lateinit var mockEnv: ExecutionEnvironment
   val retentionConfiguration = RetentionConfiguration()
   val extraInstrumentationParams = ""
+
+  @Before
+  fun setUp() {
+    MockitoAnnotations.initMocks(this)
+  }
 
   @Test
   fun testTaskReturnsSuccessForAllInModuleTest() {
@@ -62,7 +72,6 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockAndroidModuleModel,
       "taskId",
       /*waitForDebugger*/false,
-      mockProcessHandler,
       mockPrinter,
       mockDevice,
       "testRegex",
@@ -71,12 +80,12 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       extraInstrumentationParams
     )
 
-    launchTask.run(LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
+    launchTask.run(LaunchContext(mockEnv, mockDevice, mockPrinter, mockHandler, mockIndicator))
 
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
       eq(mockProject),
       eq("taskId"),
-      eq(mockProcessHandler),
+      eq(mockHandler),
       eq(mockPrinter),
       eq(mockAndroidModuleModel),
       eq(false),
@@ -97,7 +106,6 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockAndroidModuleModel,
       "taskId",
       /*waitForDebugger*/false,
-      mockProcessHandler,
       mockPrinter,
       mockDevice,
       "com.example.test",
@@ -105,12 +113,12 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       retentionConfiguration,
       extraInstrumentationParams)
 
-    launchTask.run(LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
+    launchTask.run(LaunchContext(mockEnv, mockDevice, mockPrinter, mockHandler, mockIndicator))
 
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
       eq(mockProject),
       eq("taskId"),
-      eq(mockProcessHandler),
+      eq(mockHandler),
       eq(mockPrinter),
       eq(mockAndroidModuleModel),
       eq(false),
@@ -131,7 +139,6 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockAndroidModuleModel,
       "taskId",
       /*waitForDebugger*/false,
-      mockProcessHandler,
       mockPrinter,
       mockDevice,
       "com.example.test.TestClass",
@@ -140,12 +147,12 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       extraInstrumentationParams)
 
     val result = launchTask.run(
-      LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
+      LaunchContext(mockEnv, mockDevice, mockPrinter, mockHandler, mockIndicator))
 
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
       eq(mockProject),
       eq("taskId"),
-      eq(mockProcessHandler),
+      eq(mockHandler),
       eq(mockPrinter),
       eq(mockAndroidModuleModel),
       eq(false),
@@ -166,7 +173,6 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockAndroidModuleModel,
       "taskId",
       /*waitForDebugger*/false,
-      mockProcessHandler,
       mockPrinter,
       mockDevice,
       "com.example.test.TestClass",
@@ -175,12 +181,12 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       retentionConfiguration,
       extraInstrumentationParams)
 
-    launchTask.run(LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
+    launchTask.run(LaunchContext(mockEnv, mockDevice, mockPrinter, mockHandler, mockIndicator))
 
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
       eq(mockProject),
       eq("taskId"),
-      eq(mockProcessHandler),
+      eq(mockHandler),
       eq(mockPrinter),
       eq(mockAndroidModuleModel),
       eq(false),
@@ -202,7 +208,6 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockAndroidModuleModel,
       "taskId",
       /*waitForDebugger*/false,
-      mockProcessHandler,
       mockPrinter,
       mockDevice,
       "",
@@ -211,12 +216,12 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       extraInstrumentationParams
     )
 
-    launchTask.run(LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
+    launchTask.run(LaunchContext(mockEnv, mockDevice, mockPrinter, mockHandler, mockIndicator))
 
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
       eq(mockProject),
       eq("taskId"),
-      eq(mockProcessHandler),
+      eq(mockHandler),
       eq(mockPrinter),
       eq(mockAndroidModuleModel),
       eq(false),
@@ -236,7 +241,6 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockAndroidModuleModel,
       "taskId",
       /*waitForDebugger*/false,
-      mockProcessHandler,
       mockPrinter,
       mockDevice,
       "com.example.test",
@@ -244,12 +248,12 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       retentionConfiguration,
       extraInstrumentationParams)
 
-    launchTask.run(LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
+    launchTask.run(LaunchContext(mockEnv, mockDevice, mockPrinter, mockHandler, mockIndicator))
 
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
       eq(mockProject),
       eq("taskId"),
-      eq(mockProcessHandler),
+      eq(mockHandler),
       eq(mockPrinter),
       eq(mockAndroidModuleModel),
       eq(false),

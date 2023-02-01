@@ -29,7 +29,6 @@ import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugg
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.run.tasks.LaunchTask;
-import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
 import com.android.tools.idea.testing.MakeBeforeRunTaskProviderTestUtilKt;
@@ -112,11 +111,10 @@ public class AndroidLaunchTaskProviderTest {
         apkProvider,
         launchOptions);
 
-      LaunchStatus launchStatus = mock(LaunchStatus.class);
       ConsolePrinter consolePrinter = mock(ConsolePrinter.class);
 
       // Act
-      List<LaunchTask> launchTasks = provider.getTasks(device, launchStatus, consolePrinter);
+      List<LaunchTask> launchTasks = provider.getTasks(device, consolePrinter);
 
       // Assert
       launchTasks.forEach(task -> Logger.getInstance(this.getClass()).info("LaunchTask: " + task));

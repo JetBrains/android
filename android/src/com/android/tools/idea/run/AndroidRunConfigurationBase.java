@@ -25,7 +25,6 @@ import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.editor.RunConfigurationWithDebugger;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
-import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.stats.RunStats;
 import com.android.tools.idea.stats.RunStatsService;
@@ -399,10 +398,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                                             @NotNull AndroidFacet facet,
                                                             @NotNull String contributorsAmStartOptions,
                                                             boolean waitForDebugger,
-                                                            @NotNull LaunchStatus launchStatus,
                                                             @NotNull ApkProvider apkProvider,
                                                             @NotNull ConsolePrinter consolePrinter,
-                                                            @NotNull IDevice device);
+                                                            @NotNull IDevice device) throws ExecutionException;
+
   public void updateExtraRunStats(RunStats runStats) {
 
   }

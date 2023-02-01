@@ -16,8 +16,6 @@
 
 package com.android.tools.idea.testartifacts.instrumented;
 
-import static com.android.tools.idea.projectsystem.AndroidModuleSystem.Type.TYPE_LIBRARY;
-import static com.android.tools.idea.projectsystem.AndroidModuleSystem.Type.TYPE_TEST;
 import static com.android.tools.idea.projectsystem.ModuleSystemUtil.isAndroidTestModule;
 import static com.android.tools.idea.projectsystem.ModuleSystemUtil.isMainModule;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
@@ -46,7 +44,6 @@ import com.android.tools.idea.run.editor.AndroidTestExtraParamKt;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
-import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView;
 import com.google.common.base.Joiner;
@@ -54,6 +51,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.TestLibraries;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.execution.ExecutionBundle;
+import com.intellij.execution.ExecutionException;
 import com.intellij.execution.JUnitBundle;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.configurations.ConfigurationFactory;
@@ -360,17 +358,15 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                    @NotNull AndroidFacet facet,
                                                    @NotNull String contributorsAmStartOptions,
                                                    boolean waitForDebugger,
-                                                   @NotNull LaunchStatus launchStatus,
                                                    @NotNull ApkProvider apkProvider,
                                                    @NotNull ConsolePrinter consolePrinter,
-                                                   @NotNull IDevice device) {
+                                                   @NotNull IDevice device) throws ExecutionException {
     String runner = INSTRUMENTATION_RUNNER_CLASS;
     if (isEmptyOrSpaces(runner)) {
       runner = getDefaultInstrumentationRunner(facet);
     }
     if (isEmptyOrSpaces(runner)) {
-      launchStatus.terminateLaunch("Unable to determine instrumentation runner", true);
-      return null;
+      throw new ExecutionException("Unable to determine instrumentation runner");
     }
     @Nullable AndroidModel androidModel = AndroidModel.get(facet);
     @Nullable TestOptions testOptions = androidModel != null ? androidModel.getTestOptions() : null;
@@ -380,13 +376,11 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     try {
       testAppId = applicationIdProvider.getTestPackageName();
       if (testAppId == null) {
-        launchStatus.terminateLaunch("Unable to determine test package name", true);
-        return null;
+        throw new ExecutionException("Unable to determine test package name");
       }
     }
     catch (ApkProvisionException e) {
-      launchStatus.terminateLaunch("Unable to determine test package name", true);
-      return null;
+      throw new ExecutionException("Unable to determine test package name");
     }
 
     AndroidModuleSystem moduleSystem = getModuleSystem(facet);
@@ -400,7 +394,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                                 instrumentationOptions,
                                                                 testLibrariesInUse,
                                                                 testExecutionOption,
-                                                                launchStatus.getProcessHandler(),
                                                                 consolePrinter,
                                                                 device);
 
@@ -411,7 +404,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                                  instrumentationOptions,
                                                                  testLibrariesInUse,
                                                                  testExecutionOption,
-                                                                 launchStatus.getProcessHandler(),
                                                                  consolePrinter,
                                                                  device,
                                                                  PACKAGE_NAME);
@@ -423,7 +415,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                           instrumentationOptions,
                                                           testLibrariesInUse,
                                                           testExecutionOption,
-                                                          launchStatus.getProcessHandler(),
                                                           consolePrinter,
                                                           device,
                                                           CLASS_NAME);
@@ -435,15 +426,13 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                            instrumentationOptions,
                                                            testLibrariesInUse,
                                                            testExecutionOption,
-                                                           launchStatus.getProcessHandler(),
                                                            consolePrinter,
                                                            device,
                                                            CLASS_NAME,
                                                            METHOD_NAME);
 
       default:
-        launchStatus.terminateLaunch("Unknown testing type is selected", true);
-        return null;
+        throw new RuntimeException("Unknown testing type is selected");
     }
   }
 

@@ -22,18 +22,21 @@ import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.ConsolePrinter
-import com.android.tools.idea.run.util.LaunchStatus
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.NotificationRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.Executor
 import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.testFramework.RuleChain
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
+import org.mockito.MockitoAnnotations
 import kotlin.test.fail
 
 /**
@@ -41,16 +44,24 @@ import kotlin.test.fail
  */
 class ClearAppStorageTaskTest {
   val executor = mock<Executor>()
-  val launchStatus = mock<LaunchStatus>()
   val printer = mock<ConsolePrinter>()
   val handler = mock<ProcessHandler>()
   val indicator = mock<ProgressIndicator>()
+  val env = mock<ExecutionEnvironment>()
 
   val projectRule = AndroidProjectRule.inMemory()
   val notificationRule = NotificationRule(projectRule)
 
   @get:Rule
   val ruleChain = RuleChain(projectRule, notificationRule)
+
+  @Before
+  fun setUp() {
+    MockitoAnnotations.initMocks(this)
+    Mockito.`when`(env.project).thenReturn(projectRule.project)
+    Mockito.`when`(env.executor).thenReturn(executor)
+  }
+
 
   @Test
   fun appExists_success() {
@@ -84,7 +95,7 @@ class ClearAppStorageTaskTest {
   }
 
   private fun launchContext(device: IDevice): LaunchContext =
-    LaunchContext(projectRule.project, executor, device, launchStatus, printer, handler, indicator)
+    LaunchContext(env, device, printer, handler, indicator)
 }
 
 private fun mockDevice(packageName: String, clearAppStorageSuccess: Boolean = true): IDevice {

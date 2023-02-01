@@ -28,7 +28,6 @@ import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.DefaultStudioProgramRunner
 import com.android.tools.idea.run.LaunchOptions
 import com.android.tools.idea.run.tasks.RunInstantAppTask
-import com.android.tools.idea.run.util.LaunchStatus
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
@@ -49,7 +48,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 
 class DynamicFeatureInstantAppTest  {
@@ -67,8 +65,6 @@ class DynamicFeatureInstantAppTest  {
 
   private lateinit var device: IDevice
 
-  @Mock
-  private lateinit var launchStatus: LaunchStatus
   private val consolePrinter = StubConsolePrinter()
 
   private lateinit var instantAppSdks: InstantAppSdks
@@ -123,7 +119,7 @@ class DynamicFeatureInstantAppTest  {
       launchOptionsBuilder.build()
     )
 
-    val launchTasks = launchTaskProvider.getTasks(device, launchStatus, consolePrinter)
+    val launchTasks = launchTaskProvider.getTasks(device, consolePrinter)
 
     val deployTask = launchTasks.stream().filter { x -> x is RunInstantAppTask }.findFirst().orElse(null)
 
@@ -156,7 +152,7 @@ class DynamicFeatureInstantAppTest  {
       launchOptionsBuilder.build()
     )
 
-    val launchTasks = launchTaskProvider.getTasks(device, launchStatus, consolePrinter)
+    val launchTasks = launchTaskProvider.getTasks(device, consolePrinter)
 
     val deployTask = launchTasks.stream().filter { x -> x is RunInstantAppTask }.findFirst().orElse(null)
 
@@ -184,7 +180,7 @@ class DynamicFeatureInstantAppTest  {
       launchOptionsBuilder.build()
     )
 
-    val launchTasks = launchTaskProvider.getTasks(device, launchStatus, consolePrinter)
+    val launchTasks = launchTaskProvider.getTasks(device, consolePrinter)
 
     assertThat(launchTasks.stream().filter { x -> x is RunInstantAppTask }.findFirst().orElse(null)).isNull()
   }

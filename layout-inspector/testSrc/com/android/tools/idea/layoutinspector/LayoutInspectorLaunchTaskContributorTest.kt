@@ -17,12 +17,9 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
-import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebugProcessHandler
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
@@ -36,14 +33,13 @@ import com.android.tools.idea.run.DefaultStudioProgramRunner
 import com.android.tools.idea.run.LaunchOptions
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchTask
-import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.debugger.DebuggerManager
+import com.intellij.execution.ExecutionManager
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
-import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.runners.ExecutionEnvironmentBuilder
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
@@ -55,9 +51,11 @@ private const val PROCESS_NAME = "com.example.p1"
 
 class LayoutInspectorLaunchTaskContributorTest {
   private val commandHandler = FakeShellCommandHandler()
-  private val projectRule = AndroidProjectRule.inMemory()
+  private val projectRule = AndroidProjectRule.onDisk()
   private val adbRule = FakeAdbRule().withDeviceCommandHandler(commandHandler)
   private val adbService = AdbServiceRule(projectRule::project, adbRule)
+  lateinit var env: ExecutionEnvironment
+
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(adbRule).around(adbService)!!
@@ -65,6 +63,10 @@ class LayoutInspectorLaunchTaskContributorTest {
   @Before
   fun resetAttributes() {
     DebugViewAttributes.reset()
+    env = ExecutionEnvironmentBuilder.create(
+      DefaultRunExecutor.getRunExecutorInstance(),
+      AndroidRunConfiguration(projectRule.project, AndroidRunConfigurationType.getInstance().factory)
+    ).build()
   }
 
   @Test
@@ -74,8 +76,7 @@ class LayoutInspectorLaunchTaskContributorTest {
     // Start the process
     val project = projectRule.project
     val handler = AndroidProcessHandler(project, PROCESS_NAME)
-    val status = ProcessHandlerLaunchStatus(handler)
-    val launchContext = LaunchContext(project, DefaultRunExecutor(), iDevice, status, mock(), handler, mock())
+    val launchContext = LaunchContext(env, iDevice, mock(), handler, mock())
     task.run(launchContext)
     handler.startNotify()
 
@@ -94,9 +95,9 @@ class LayoutInspectorLaunchTaskContributorTest {
     // Start the process
     val project = projectRule.project
     val handler = AndroidProcessHandler(project, PROCESS_NAME)
-    val status = ProcessHandlerLaunchStatus(handler)
-    val launchContext = LaunchContext(project, DefaultRunExecutor(), iDevice, status, mock(), handler, mock())
+    val launchContext = LaunchContext(env, iDevice, mock(), handler, mock())
     task.run(launchContext)
+    project.messageBus.syncPublisher(ExecutionManager.EXECUTION_TOPIC).processStarted(DefaultRunExecutor.EXECUTOR_ID, env, handler)
     handler.startNotify()
 
     // Make sure the debug attributes are set.
@@ -118,8 +119,7 @@ class LayoutInspectorLaunchTaskContributorTest {
     // Start the process
     val project = projectRule.project
     val handler = AndroidProcessHandler(project, PROCESS_NAME)
-    val status = ProcessHandlerLaunchStatus(handler)
-    val launchContext = LaunchContext(project, DefaultRunExecutor(), iDevice, status, mock(), handler, mock())
+    val launchContext = LaunchContext(env, iDevice, mock(), handler, mock())
     task.run(launchContext)
     handler.startNotify()
 
@@ -140,8 +140,7 @@ class LayoutInspectorLaunchTaskContributorTest {
     // Start the process
     val project = projectRule.project
     val handler = AndroidProcessHandler(project, PROCESS_NAME)
-    val status = ProcessHandlerLaunchStatus(handler)
-    val launchContext = LaunchContext(project, DefaultRunExecutor(), iDevice, status, mock(), handler, mock())
+    val launchContext = LaunchContext(env, iDevice, mock(), handler, mock())
     task.run(launchContext)
     handler.startNotify()
 
@@ -154,51 +153,15 @@ class LayoutInspectorLaunchTaskContributorTest {
   }
 
   @Test
-  fun testLaunchDebugSessionWithDebugAttributes() = runWithFlagState(false) {
-    val (iDevice, task) = createLaunchTask(MODERN_DEVICE, debugAttributes = true)
-
-    // Start the process
-    val project = projectRule.project
-    val handler = AndroidProcessHandler(project, PROCESS_NAME)
-    val status = ProcessHandlerLaunchStatus(handler)
-    val launchContext = LaunchContext(project, DefaultRunExecutor(), iDevice, status, mock(), handler, mock())
-    task.run(launchContext)
-    handler.startNotify()
-
-    // Make sure the debug attributes are set.
-    assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(PROCESS_NAME)
-    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
-
-    // Simulate that the process was started in the debugger.
-    // The ProcessHandler will be switched See ConnectJavaDebuggerTask.launchDebugger.
-    val debugManager = projectRule.mockProjectService(DebuggerManager::class.java)
-    whenever(debugManager.getDebugProcess(any(ProcessHandler::class.java))).thenReturn(mock())
-    val debugHandler =
-      AndroidRemoteDebugProcessHandler(project, mock(), false)
-    debugHandler.startNotify()
-    status.processHandler = debugHandler
-    handler.killProcess()
-
-    // The debug attributes should still be set.
-    assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(PROCESS_NAME)
-    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
-
-    // Simulate the debug session ended and check that the debug attributes are reset.
-    debugHandler.destroyProcess()
-    assertThat(commandHandler.debugViewAttributesApplicationPackage).isNull()
-    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(2)
-  }
-
-  @Test
   fun testPerDeviceViewDebugAttributesIsNotCleared() = runWithFlagState(true) {
     val (iDevice, task) = createLaunchTask(MODERN_DEVICE, debugAttributes = true)
 
     // Start the process
     val project = projectRule.project
     val handler = AndroidProcessHandler(project, PROCESS_NAME)
-    val status = ProcessHandlerLaunchStatus(handler)
-    val launchContext = LaunchContext(project, DefaultRunExecutor(), iDevice, status, mock(), handler, mock())
+    val launchContext = LaunchContext(env, iDevice, mock(), handler, mock())
     task.run(launchContext)
+    project.messageBus.syncPublisher(ExecutionManager.EXECUTION_TOPIC).processStarted(DefaultRunExecutor.EXECUTOR_ID, env, handler)
     handler.startNotify()
 
     // Make sure the debug attributes are set.
@@ -227,7 +190,6 @@ class LayoutInspectorLaunchTaskContributorTest {
     device: DeviceDescriptor,
     debugAttributes: Boolean
   ): Pair<IDevice, LaunchTask> {
-    val processName = "com.example.p1"
     adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString())
 
     val project = projectRule.project
@@ -235,7 +197,7 @@ class LayoutInspectorLaunchTaskContributorTest {
     val runner = DefaultStudioProgramRunner()
     val env = ExecutionEnvironment(ex, runner, mock(), project)
     val applicationIdProvider: ApplicationIdProvider = object : ApplicationIdProvider {
-      override fun getPackageName(): String = processName
+      override fun getPackageName(): String = PROCESS_NAME
       override fun getTestPackageName(): String? = null
     }
 
@@ -254,7 +216,7 @@ class LayoutInspectorLaunchTaskContributorTest {
 
     val adb = AdbUtils.getAdbFuture(project).get()!!
     val iDevice = adb.findDevice(device)!!
-    val tasks = launchTaskProvider.getTasks(iDevice, mock(), mock())
+    val tasks = launchTaskProvider.getTasks(iDevice, mock())
       .filterIsInstance(LayoutInspectorLaunchTask::class.java)
 
     // Make sure the LayoutInspectorLaunchTaskContributor is registered.
