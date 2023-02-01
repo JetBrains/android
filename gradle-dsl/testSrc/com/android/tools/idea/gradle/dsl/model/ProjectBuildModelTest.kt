@@ -1795,7 +1795,34 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
+  fun testAddDependencyReferenceToVersionCatalog() {
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile(TestFile.ADD_DEPENDENCY_REFERENCE_TO_VERSION_CATALOG)
+      writeToVersionCatalogFile(TestFile.VERSION_CATALOG_GROUP_COMPACT_NOTATION)
+
+      val pbm = projectBuildModel
+      val buildModel = pbm.projectBuildModel!!
+      val dependencies = buildModel.dependencies()
+      val versionCatalog = pbm.versionCatalogsModel
+      println(versionCatalog)
+      // We have exposed the name to alias mapping in a way that makes this slightly awkward.
+      val reference = ReferenceTo(
+        versionCatalog.libraries("libs").findProperty("a").getMapValue("dep")?.getMapValue("endency")!!, dependencies)
+      dependencies.addArtifact("api", reference)
+      applyChangesAndReparse(pbm)
+      verifyFileContents(myBuildFile, TestFile.ADD_DEPENDENCY_REFERENCE_TO_VERSION_CATALOG_EXPECTED)
+      verifyVersionCatalogFileContents(myVersionCatalogFile, TestFile.VERSION_CATALOG_GROUP_COMPACT_NOTATION)
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
   enum class TestFile(val path: @SystemDependent String): TestFileName {
+    ADD_DEPENDENCY_REFERENCE_TO_VERSION_CATALOG("addDependencyReferenceToVersionCatalog"),
+    ADD_DEPENDENCY_REFERENCE_TO_VERSION_CATALOG_EXPECTED("addDependencyReferenceToVersionCatalogExpected"),
     APPLIED_FILES_SHARED("appliedFilesShared"),
     APPLIED_FILES_SHARED_APPLIED("appliedFilesSharedApplied"),
     APPLIED_FILES_SHARED_APPLIED_EXPECTED("appliedFilesSharedAppliedExpected"),

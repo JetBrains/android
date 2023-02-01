@@ -45,6 +45,7 @@ import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile
+import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.getNextValidParent
 import com.android.tools.idea.gradle.dsl.parser.removePsiIfInvalid
@@ -153,7 +154,7 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
   }
 
   // Now we Reached the dslFile level.
-  // We only need to add a prefix if we are applying the reference from a parent dslFile context.
+  // We need to add a prefix if we are applying the reference from a parent dslFile context.
   if (currentParent is GradleScriptFile && ((context.dslFile) as? GradleScriptFile)?.transitivelyApplies(currentParent) != true) {
     // If we are applying a property from rootProject => we only need rootProjectPrefix.
     if (currentParent.name == ":") {
@@ -170,7 +171,14 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
         while (currentContextParent != currentParent)
       }
     }
-  } else {
+  }
+  // We also need to add a prefix if we are referring to a Version Catalog entity from a build script.  (And if we're referring
+  // to something under [libraries], we should elide the `libraries` from the external text).
+  else if (currentParent is GradleVersionCatalogFile && context.dslFile is GradleScriptFile) {
+    externalName.append(currentParent.catalogName).append(".")
+    if (resolutionElements[0].name == "libraries") resolutionElements.removeAt(0)
+  }
+  else {
     // This is specific for extra properties: If we are trying to use the reference from a scope that has a dedicated extra block, we need
     // to use a "project" prefix so that we look for the property in the build file extra scope instead of the current one.
     // TODO(karimai): this is dangerous as we parse properties declared within a different scope that the build script,
@@ -186,13 +194,15 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
   for (currentElement in resolutionElements) {
     // Get the external name for the resolve reference.
     val elementExternalName = applyContext.parser.externalNameForParent(currentElement.name, currentElement.parent!!).externalNameParts.joinToString(".")
-    when (parentElement) {
-      is GradleDslExpressionMap -> externalName.append("[\"")
-      is GradleDslExpressionList -> externalName.append("[")
-      is ExtDslElement -> {
+    when {
+      parentElement == null -> Unit
+      currentElement.dslFile is GradleVersionCatalogFile -> externalName.append(".")
+      parentElement is GradleDslExpressionMap -> externalName.append("[\"")
+      parentElement is GradleDslExpressionList -> externalName.append("[")
+      parentElement is ExtDslElement -> {
         if (extraArraySyntax) externalName.append("[\"")
       }
-      null, is BuildScriptDslElement -> Unit
+      parentElement is BuildScriptDslElement -> Unit
       // TODO(xof): this conditional (on isNotEmpty) should be unconditional, but we sometimes have spurious parents in resolutionElements
       //  (see the note by the declaration of resolutionElements above)
       else -> if (externalName.isNotEmpty()) externalName.append(".")
@@ -204,9 +214,11 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
       is GradleDslExpressionMap -> {
         externalName.append(elementExternalName)
         fun maybeCast(close: String) {
-          externalName.append(close)
-          val updatedName = "($externalName as Map<*, *>)"
-          externalName.clear().append(updatedName)
+          if (currentElement.dslFile !is GradleVersionCatalogFile) {
+            externalName.append(close)
+            val updatedName = "($externalName as Map<*, *>)"
+            externalName.clear().append(updatedName)
+          }
         }
         when (parentElement) {
           is GradleDslExpressionMap -> maybeCast("\"]")
@@ -232,10 +244,11 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
         }
       }
       is GradleDslLiteral -> {
-        val useTypeCast = !forInjection && currentParent != context.dslFile && className != null
+        val useTypeCast = !forInjection && currentParent !is GradleVersionCatalogFile && currentParent != context.dslFile && className != null
         when (parentElement) {
           is GradleDslExpressionMap -> {
-            externalName.append("$elementExternalName\"]")
+            externalName.append(elementExternalName)
+            if (currentParent !is GradleVersionCatalogFile) externalName.append("\"]")
             if (useTypeCast) externalName.append(" as $className")
           }
           is GradleDslExpressionList -> {

@@ -41,6 +41,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpressi
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -409,6 +411,13 @@ public final class GroovyDslUtil {
     while (currentParent != null && currentParent.getParent() != null && !contextParents.contains(currentParent)) {
       resolutionElements.add(0, currentParent);
       currentParent = currentParent.getParent();
+    }
+
+    if (currentParent instanceof GradleVersionCatalogFile && context.getDslFile() instanceof GradleScriptFile) {
+      externalName.append(((GradleVersionCatalogFile)currentParent).getCatalogName()).append(".");
+      if (resolutionElements.size() > 0 && "libraries".equals(resolutionElements.get(0).getName())) {
+        resolutionElements.remove(0);
+      }
     }
 
     for (GradleDslElement currentElement : resolutionElements) {
