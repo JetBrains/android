@@ -5,16 +5,14 @@ import org.jetbrains.org.objectweb.asm.commons.GeneratorAdapter
 import org.jetbrains.org.objectweb.asm.commons.Method
 import kotlin.reflect.jvm.javaMethod
 
-class ProcessAborted(message: String) : RuntimeException(message)
-
-object LoopBreaker {
+object CooperativeInterruptTransformLoopBreaker {
   @JvmStatic
   fun checkLoop() {
     if (Thread.currentThread().isInterrupted) throw InterruptedException()
   }
 }
 
-object ThreadLocalRandom {
+object CooperativeInterruptTransformThreadLocalRandom {
   @JvmStatic
   fun nextInt(min: Int, max: Int): Int = java.util.concurrent.ThreadLocalRandom.current().nextInt(min, max)
 }
@@ -40,10 +38,10 @@ class CooperativeInterruptTransform @JvmOverloads constructor(
   }
 
   override val uniqueId: String = "${CooperativeInterruptTransform::className},$checkPercentage,$shouldInstrument"
-  private val loopBreakerType = Type.getType(LoopBreaker::class.java)
-  private val loopCheckMethod = LoopBreaker::checkLoop.javaMethod!!.toMethodType()
-  private val threadLocalRandomType = Type.getType(ThreadLocalRandom::class.java)
-  private val threadLocalRandomNextIntMethod = ThreadLocalRandom::nextInt.javaMethod!!.toMethodType()
+  private val loopBreakerType = Type.getType(CooperativeInterruptTransformLoopBreaker::class.java)
+  private val loopCheckMethod = CooperativeInterruptTransformLoopBreaker::checkLoop.javaMethod!!.toMethodType()
+  private val threadLocalRandomType = Type.getType(CooperativeInterruptTransformThreadLocalRandom::class.java)
+  private val threadLocalRandomNextIntMethod = CooperativeInterruptTransformThreadLocalRandom::nextInt.javaMethod!!.toMethodType()
   private var className = ""
 
   override fun visit(version: Int, access: Int, name: String?, signature: String?, superName: String?, interfaces: Array<out String>?) {
