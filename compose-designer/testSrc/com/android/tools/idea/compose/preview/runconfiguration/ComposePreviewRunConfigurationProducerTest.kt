@@ -21,6 +21,8 @@ import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.compiler.options.CompileStepBeforeRun
 import com.intellij.execution.RunManager
 import com.intellij.execution.actions.ConfigurationContext
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
@@ -134,11 +136,15 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
   fun testSetupConfigurationFromContextLibraryModule() {
     val modulePath = getAdditionalModulePath("myLibrary")
 
+    myFixture.stubPreviewAnnotation(modulePath = modulePath)
+    myFixture.stubComposableAnnotation(modulePath = modulePath)
     val file =
       myFixture.addFileToProjectAndInvalidate(
         "$modulePath/src/main/java/com/example/mylibrary/TestLibraryFile.kt",
         // language=kotlin
         """
+        package com.example.mylibrary
+
         import androidx.compose.ui.tooling.preview.Preview
         import androidx.compose.Composable
 
@@ -149,13 +155,12 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
       """.trimIndent()
       )
 
-    // We shouldn't be able to produce ComposePreviewRunConfiguration from library modules
     val composableLibraryModule =
       PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first()
     val configuration = createConfigurationFromElement(composableLibraryModule)
-    assertEquals(newComposePreviewRunConfiguration().name, configuration.name)
+    assertEquals("Preview1", configuration.name)
     assertEquals(
-      newComposePreviewRunConfiguration().composableMethodFqn,
+      "com.example.mylibrary.TestLibraryFileKt.Preview1",
       configuration.composableMethodFqn
     )
   }
@@ -219,7 +224,8 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
       PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first {
         it.name == "NotAPreview"
       }
-    val notPreviewConfiguration = createConfigurationFromElement(notPreview)
+    val notPreviewConfiguration =
+      createConfigurationFromElement(notPreview, setUpShouldSucceed = false)
     assertEquals(newComposePreviewRunConfiguration().name, notPreviewConfiguration.name)
     assertEquals(
       newComposePreviewRunConfiguration().composableMethodFqn,
@@ -230,7 +236,8 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
       PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first {
         it.name == "NestedPreview"
       }
-    val nestedPreviewConfiguration = createConfigurationFromElement(nestedPreview)
+    val nestedPreviewConfiguration =
+      createConfigurationFromElement(nestedPreview, setUpShouldSucceed = false)
     assertEquals(newComposePreviewRunConfiguration().name, nestedPreviewConfiguration.name)
     assertEquals(
       newComposePreviewRunConfiguration().composableMethodFqn,
@@ -238,9 +245,21 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     )
   }
 
+  // Regression test for b/266090665
+  fun testContextWithNoModule() {
+    // Setup should fail gracefully, without any NPE happening
+    val noModuleConfiguration =
+      createConfigurationFromDataContext(DataContext.EMPTY_CONTEXT, setUpShouldSucceed = false)
+    assertEquals(newComposePreviewRunConfiguration().name, noModuleConfiguration.name)
+    assertEquals(
+      newComposePreviewRunConfiguration().composableMethodFqn,
+      noModuleConfiguration.composableMethodFqn
+    )
+  }
+
   fun testIsConfigurationFromContext() {
     val producer = ComposePreviewRunConfigurationProducer()
-    val context = configurationContext(composableFunction)
+    val context = ConfigurationContext(composableFunction)
     val runConfiguration = newComposePreviewRunConfiguration()
 
     assertFalse(producer.isConfigurationFromContext(runConfiguration, context))
@@ -257,11 +276,32 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     assertTrue(producer.isConfigurationFromContext(runConfiguration, context))
   }
 
-  private fun createConfigurationFromElement(element: PsiElement): ComposePreviewRunConfiguration {
-    val context = configurationContext(element)
+  private fun createConfigurationFromElement(
+    element: PsiElement,
+    setUpShouldSucceed: Boolean = true
+  ): ComposePreviewRunConfiguration {
+    val context = ConfigurationContext(element)
     val runConfiguration = newComposePreviewRunConfiguration()
     val producer = ComposePreviewRunConfigurationProducer()
-    producer.setupConfigurationFromContext(runConfiguration, context, Ref(context.psiLocation))
+    assertEquals(
+      setUpShouldSucceed,
+      producer.setupConfigurationFromContext(runConfiguration, context, Ref(context.psiLocation))
+    )
+
+    return runConfiguration
+  }
+
+  private fun createConfigurationFromDataContext(
+    dataContext: DataContext,
+    setUpShouldSucceed: Boolean = true
+  ): ComposePreviewRunConfiguration {
+    val context = ConfigurationContext.getFromContext(dataContext, ActionPlaces.UNKNOWN)
+    val runConfiguration = newComposePreviewRunConfiguration()
+    val producer = ComposePreviewRunConfigurationProducer()
+    assertEquals(
+      setUpShouldSucceed,
+      producer.setupConfigurationFromContext(runConfiguration, context, Ref(context.psiLocation))
+    )
 
     return runConfiguration
   }
@@ -283,9 +323,5 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
       runConfiguration.beforeRunTasks.none { it is CompileStepBeforeRun.MakeBeforeRunTask }
     )
     return runConfiguration as ComposePreviewRunConfiguration
-  }
-
-  private fun configurationContext(element: PsiElement): ConfigurationContext {
-    return ConfigurationContext(element)
   }
 }

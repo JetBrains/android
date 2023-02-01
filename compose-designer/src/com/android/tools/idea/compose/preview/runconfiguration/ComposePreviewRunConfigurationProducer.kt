@@ -55,13 +55,14 @@ open class ComposePreviewRunConfigurationProducer :
     context: ConfigurationContext,
     sourceElement: Ref<PsiElement>
   ): Boolean {
+    val module = context.module ?: context.location?.module ?: return false
     configuration.setLaunchActivity(COMPOSE_PREVIEW_ACTIVITY_FQN, true)
     context.containingComposePreviewFunction()?.let {
       configuration.name = it.name!!
       configuration.composableMethodFqn = it.composePreviewFunctionFqn()
       // We don't want to be able to create a run configuration from individual source set modules
       // so we use their container module instead
-      configuration.setModule(context.module.getHolderModule())
+      configuration.setModule(module.getHolderModule())
       updateConfigurationTriggerToGutterIfNeeded(configuration, context)
 
       it.valueParameters.forEach { parameter ->
