@@ -134,8 +134,8 @@ class DownloadsAnalyzerTest {
     // Sometimes requests can change the order so compare without order.
     // There will be many failed requests for all dependencies, but we should check that expected ones are here.
     // `C` is part of project dependency, `D` is part of buildSrc dependency. Both should be requested on Sync.
-    // For `-sources` and `-javadoc`:
-    //  - android model builder requests both thus we should see both requests for C.
+    // For `-sources`, `-javadoc` and -samplessources:
+    //  - android model builder requests all three of them thus we should see all three of them for C.
     //  - platform model builder requests only sources by default for buildscript thus we should see only sources for D.
     Truth.assertThat(HttpServerWrapper.detectedHttpRequests.filter { it.contains("/example/") }).containsExactlyElementsIn("""
       Server1: GET on /example/C/1.0/C-1.0.pom - return error 404
@@ -145,7 +145,10 @@ class DownloadsAnalyzerTest {
       Server2: GET on /example/D/1.0/D-1.0.pom - OK
       Server2: GET on /example/D/1.0/D-1.0.jar - OK
       Server2: HEAD on /example/C/1.0/C-1.0-sources.jar - return error 404
+      Server2: HEAD on /example/C/1.0/C-1.0-sources.jar - return error 404
       Server2: HEAD on /example/C/1.0/C-1.0-javadoc.jar - return error 404
+      Server2: HEAD on /example/C/1.0/C-1.0-javadoc.jar - return error 404
+      Server2: GET on /example/C/1.0/C-1.0-samplessources.jar - return error 404
       Server2: HEAD on /example/D/1.0/D-1.0-sources.jar - return error 404
     """.trimIndent().split("\n"))
 
@@ -162,7 +165,7 @@ class DownloadsAnalyzerTest {
     Truth.assertThat(syncSetupStartedEvent.downloadsData.repositoriesList.filter {
     // Looking for content expected for Server2
       it.successRequestsCount == 4 &&
-      it.missedRequestsCount == 3 &&
+      it.missedRequestsCount == 4 &&
       it.failedRequestsCount == 0
     }).hasSize(1)
     Truth.assertThat(syncSetupStartedEvent.downloadsData.repositoriesList.filter {
