@@ -19,7 +19,7 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectPostStartupActivity
 import com.intellij.openapi.util.Key
-import org.jetbrains.plugins.groovy.util.removeUserData
+import com.intellij.openapi.util.removeUserData
 
 /**
  * A helper startup activity which is supposed to run first after the project initialization is completed.
