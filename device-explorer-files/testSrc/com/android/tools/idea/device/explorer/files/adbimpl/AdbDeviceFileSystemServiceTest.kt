@@ -21,8 +21,8 @@ import com.android.adblib.testingutils.CloseablesRule
 import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
 import com.android.adblib.testingutils.FakeAdbServerProvider
 import com.android.adblib.testingutils.TestingAdbSessionHost
-import com.android.sdklib.deviceprovisioner.Connected
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
+import com.android.sdklib.deviceprovisioner.DeviceState.Connected
 import com.android.sdklib.deviceprovisioner.OfflineDeviceProperties
 import com.android.sdklib.deviceprovisioner.receiveUntilPassing
 import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlugin
