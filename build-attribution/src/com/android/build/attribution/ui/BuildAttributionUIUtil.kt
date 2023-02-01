@@ -114,6 +114,11 @@ fun warningsCountString(warningsCount: Int) = when (warningsCount) {
   else -> "${warningsCount} warnings"
 }
 
+fun formatAvgDownloadSpeed(size: Long, durationMs: Long): String {
+  val bytesPerSecond = if (durationMs > 0L) 1000 * size / durationMs else 0L
+  return "${StringUtil.formatFileSize(bytesPerSecond)}/s"
+}
+
 fun warningIcon(): Icon = AllIcons.General.BalloonWarning
 
 /**

@@ -707,6 +707,10 @@ public final class StudioFlags {
     GRADLE_IDE, "build.analyzer.category.analysis", "Enable 'Group by Task Category' category task analysis",
     "Enable 'Group by Task Category' category task analysis in Build Analyzer.", true);
 
+  public static final Flag<Boolean> BUILD_OUTPUT_DOWNLOADS_INFORMATION = Flag.create(
+    GRADLE_IDE, "build.output.downloads.information", "Enable downloads information in Build/Sync View",
+    "Show separate node with downloads information in Build and Sync views.", false);
+
   public static final Flag<Boolean> DISABLE_FORCED_UPGRADES = Flag.create(
     GRADLE_IDE, "forced.agp.update", "Disable forced Android Gradle plugin upgrades",
     "This option is only respected when running Android Studio internally.", false);
