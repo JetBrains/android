@@ -75,7 +75,7 @@ class NonConstantRClassDefaultRefactoringProcessor : AgpUpgradeComponentRefactor
 
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.nonConstantRClass"
 
-  // override val readMoreUrlRedirect = ReadMoreUrlRedirect("non-constant-r-class-default") // TODO(b/170852493)
+  override val readMoreUrlRedirect = ReadMoreUrlRedirect("non-constant-r-class-default")
 
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
     return object : UsageViewDescriptorAdapter() {
