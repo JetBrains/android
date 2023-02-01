@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.api.dependencies;
 
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +36,8 @@ public interface DependenciesModel extends GradleBlockModel {
   void addArtifact(@NotNull String configurationName, @NotNull String compactNotation);
 
   boolean containsArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency);
+
+  void addArtifact(@NotNull String configurationName, @NotNull ReferenceTo reference);
 
   void addArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency);
 
