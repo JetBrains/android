@@ -36,6 +36,7 @@ import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.LongAdder
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -81,6 +82,7 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
   private val timeoutExecutor: ScheduledExecutorService = timeoutExecutorProvider()
   private val accumulatedTimeoutExceptions = AtomicInteger(0)
   private val isBusy = AtomicBoolean(false)
+  private val executedRenderActions = LongAdder()
 
   fun interrupt() = renderingThread.get()?.interrupt()
 
@@ -126,6 +128,8 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
       timeout,
       unit)
 
+  override fun getExecutedRenderActionCount(): Long = executedRenderActions.toLong()
+
   override fun <T : Any?> runAsyncActionWithTimeout(queueingTimeout: Long,
                                                     queueingTimeoutUnit: TimeUnit,
                                                     actionTimeout: Long,
@@ -169,6 +173,7 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
       it.completeExceptionally(EvictedException("Max number ($maxQueueingTasks) of render actions reached"))
     }
     renderingExecutor.execute(PriorityRunnable(priority) {
+      executedRenderActions.increment()
       // Clear the interrupted state
       Thread.interrupted()
       isBusy.set(true)

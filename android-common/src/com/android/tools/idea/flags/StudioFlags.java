@@ -1269,6 +1269,11 @@ public final class StudioFlags {
     COMPOSE, "fast.preview.auto.disable", "If enabled, Fast Preview can auto-disable",
     "If enabled, if fast preview finds a compiler problem, it will be auto disable until the user re-enables it",
     false);
+
+  public static final Flag<Boolean> COMPOSE_ALLOCATION_LIMITER = Flag.create(
+    COMPOSE, "allocation.limiter", "If enabled, limits allocations per render",
+    "If enabled, limits the number of allocations that user code can do in a single render action",
+    false);
   //endregion
 
   // region Wear surfaces
