@@ -34,6 +34,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
+import org.jetbrains.concurrency.Promise
 
 //TODO(b/266232023): define a better way for running ComposePreviewRunConfiguration and get rid of this constant.
 const val composePreviewRunConfigurationId = "ComposePreviewRunConfiguration"
@@ -89,5 +90,19 @@ class DefaultStudioProgramRunner : AndroidConfigurationProgramRunner {
         }
       }
     return runner
+  }
+
+  override fun execute(environment: ExecutionEnvironment, state: RunProfileState): Promise<RunContentDescriptor?> {
+    val activateToolWindowBeforeRun = environment.runnerAndConfigurationSettings?.isActivateToolWindowBeforeRun ?: false
+    val showLogcatAutomatically = (environment.runProfile as? AndroidRunConfiguration)?.SHOW_LOGCAT_AUTOMATICALLY ?: false
+    if (showLogcatAutomatically) {
+      environment.runnerAndConfigurationSettings?.isActivateToolWindowBeforeRun = false
+    }
+    try {
+      return super.execute(environment, state)
+    }
+    finally {
+      environment.runnerAndConfigurationSettings?.isActivateToolWindowBeforeRun = activateToolWindowBeforeRun
+    }
   }
 }
