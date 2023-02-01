@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment.liveedit;
 
 import static com.android.tools.idea.run.deployment.liveedit.ErrorReporterKt.errorMessage;
+import static com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.createRecomposeErrorStatus;
 import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.PrebuildChecks;
 
 import com.android.annotations.Nullable;
@@ -399,9 +400,9 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
   private void scheduleErrorPolling(LiveUpdateDeployer deployer, Installer installer, AdbClient adb, String packageName) {
     ScheduledExecutorService scheduler = JobScheduler.getScheduler();
     ScheduledFuture<?> statusPolling = scheduler.scheduleWithFixedDelay(() -> {
-      boolean hasError = !deployer.retrieveComposeStatus(installer, adb, packageName);
-      if (hasError) {
-        updateEditStatus(LiveEditStatus.RecomposeError.INSTANCE);
+      List<Deploy.ComposeException> errors = deployer.retrieveComposeStatus(installer, adb, packageName);
+      if (!errors.isEmpty()) {
+        updateEditStatus(createRecomposeErrorStatus(errors.get(0).getMessage()));
       }
     }, 2, 2, TimeUnit.SECONDS);
     // Schedule a cancel after 10 seconds.

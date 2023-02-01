@@ -67,6 +67,17 @@ open class LiveEditStatus(
       )
     }
 
+    // A composition error that is not recoverable.
+    @JvmStatic
+    fun createRecomposeErrorStatus(message: String): LiveEditStatus {
+      return LiveEditStatus(
+        AllIcons.General.Warning,
+        message("le.status.error.recompose.title"),
+        message,
+        UNRECOVERABLE_ERROR,
+      )
+    }
+
     @JvmStatic
     fun createComposeVersionError(message: String): LiveEditStatus {
       return LiveEditStatus(
