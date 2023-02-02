@@ -11,4 +11,6 @@
     <orderEntry type="module" module-name="intellij.android.device" scope="TEST" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
+
+  <component name="TestModuleProperties" production-module="intellij.android.device" />
 </module>

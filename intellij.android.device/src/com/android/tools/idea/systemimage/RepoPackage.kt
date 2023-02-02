@@ -20,10 +20,8 @@ import com.android.sdklib.repository.meta.DetailsTypes.AddonDetailsType
 import com.android.sdklib.repository.meta.DetailsTypes.PlatformDetailsType
 import com.android.sdklib.repository.meta.DetailsTypes.SysImgDetailsType
 import com.android.sdklib.repository.targets.SystemImage
-import com.google.common.annotations.VisibleForTesting
 
-@VisibleForTesting
-fun RepoPackage.hasSystemImage(): Boolean {
+internal fun RepoPackage.hasSystemImage(): Boolean {
   val details = typeDetails
 
   return details is SysImgDetailsType ||
