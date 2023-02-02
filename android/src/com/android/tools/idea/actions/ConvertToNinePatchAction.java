@@ -18,6 +18,7 @@ package com.android.tools.idea.actions;
 
 import com.android.SdkConstants;
 import com.android.tools.adtui.ImageUtils;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -53,6 +54,11 @@ public class ConvertToNinePatchAction extends AnAction {
     final VirtualFile file = e.getData(CommonDataKeys.VIRTUAL_FILE);
     final boolean isPng = isPngFile(file);
     e.getPresentation().setEnabledAndVisible(isPng);
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Contract("null -> false")

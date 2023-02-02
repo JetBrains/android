@@ -41,6 +41,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.T
 import com.intellij.ide.actions.NonEmptyActionGroup
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -96,6 +97,8 @@ class TemplateManager private constructor() {
         override fun update(e: AnActionEvent) {
           updateAction(e, category.name, childrenCount > 0, false)
         }
+
+        override fun getActionUpdateThread() = ActionUpdateThread.BGT
       }
       categoryGroup.isPopup = true
       fillCategory(categoryGroup, category, am)
@@ -113,6 +116,8 @@ class TemplateManager private constructor() {
         override fun update(e: AnActionEvent) {
           updateAction(e, "Gallery...", true, true)
         }
+
+        override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
         override fun actionPerformed(e: AnActionEvent) {
           showWizardDialog(e, category.name, message(messageKey, FormFactor.MOBILE.id), "New $name")

@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenViewLayer
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.LayoutEditorState
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -79,6 +80,8 @@ private class SetScreenViewProviderAction(name: String, description: String, pri
     resourceViewProvider.setDrawableBackgroundType(backgroundType)
     surface.repaint()
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }
 
 /**

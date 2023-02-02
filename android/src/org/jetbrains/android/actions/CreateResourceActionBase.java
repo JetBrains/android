@@ -100,6 +100,11 @@ public abstract class CreateResourceActionBase extends AnAction {
   }
 
   @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
+  }
+
+  @Override
   public boolean isDumbAware() {
     return false;
   }

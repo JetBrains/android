@@ -32,6 +32,7 @@ import com.intellij.psi.PsiManager
 import org.jetbrains.android.facet.AndroidFacet
 import com.android.tools.idea.res.isResourceDirectory
 import com.android.tools.idea.res.isResourceSubdirectory
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 
 /**
  * Opens the [ResourceExplorer] and select the current [VirtualFile] if available and is
@@ -67,6 +68,8 @@ class ShowFileInResourceManagerAction
       e.presentation.isEnabled = isSupported
     }
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   private fun showResourceExplorer(project: Project, file: VirtualFile) {
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID)!!
