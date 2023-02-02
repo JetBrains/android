@@ -18,18 +18,10 @@ package com.android.tools.idea.ui.resourcemanager.plugin
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.util.ui.ImageUtil
-import org.apache.batik.anim.dom.SAXSVGDocumentFactory
-import org.apache.batik.transcoder.TranscoderException
-import org.apache.batik.transcoder.TranscoderInput
-import org.apache.batik.transcoder.TranscoderOutput
-import org.apache.batik.transcoder.image.ImageTranscoder
-import org.apache.batik.util.XMLResourceDescriptor
-import org.xml.sax.SAXParseException
+import com.intellij.ui.svg.renderSvg
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.io.IOException
-import java.io.InputStream
 import java.util.concurrent.CompletableFuture
 
 /**
@@ -41,55 +33,23 @@ class SVGAssetRenderer : DesignAssetRenderer {
   override fun getImage(file: VirtualFile,
                         module: Module?,
                         dimension: Dimension,
-                        context: Any?): CompletableFuture<out BufferedImage?> =
-    CompletableFuture.supplyAsync {
+                        context: Any?): CompletableFuture<BufferedImage?> {
+    return CompletableFuture.supplyAsync {
       try {
-        SVGLoader(file.inputStream, dimension.height, dimension.width).createImage()
-      } catch (saxParserException: SAXParseException) {
-        logFileNotSupported(file, saxParserException)
-        null
-      } catch (saxIOException: IOException) {
-        logFileNotSupported(file, saxIOException)
+        file.inputStream.use { inputStream ->
+          renderSvg(inputStream = inputStream, overriddenWidth = dimension.width.toFloat(), overriddenHeight = dimension.height.toFloat())
+        }
+      }
+      catch (e: IOException) {
+        logFileNotSupported(file, e)
         null
       }
     }
+  }
 
   private fun logFileNotSupported(file: VirtualFile, ex: Exception) {
     Logger.getInstance(SVGAssetRenderer::class.java).warn(
       "${file.path} content is not supported by the SVG Loader\n ${ex.localizedMessage}"
     )
-  }
-}
-
-private class SVGLoader(
-  inputStream: InputStream,
-  private val width: Int,
-  private val height: Int
-) {
-  private var img: BufferedImage? = null
-  private val transcoderInput = TranscoderInput(
-    SAXSVGDocumentFactory(
-      XMLResourceDescriptor.getXMLParserClassName()
-    ).createDocument(null, inputStream)
-  )
-
-  private inner class MyTranscoder : ImageTranscoder() {
-    override fun createImage(w: Int, h: Int): BufferedImage {
-      return ImageUtil.createImage(w, h, BufferedImage.TYPE_INT_ARGB)
-    }
-
-    @Throws(TranscoderException::class)
-    override fun writeImage(img: BufferedImage, output: TranscoderOutput?) {
-      this@SVGLoader.img = img
-    }
-  }
-
-  @Throws(TranscoderException::class)
-  fun createImage(): BufferedImage? {
-    val transcoder = MyTranscoder()
-    transcoder.addTranscodingHint(ImageTranscoder.KEY_WIDTH, width.toFloat())
-    transcoder.addTranscodingHint(ImageTranscoder.KEY_HEIGHT, height.toFloat())
-    transcoder.transcode(transcoderInput, null)
-    return img
   }
 }
