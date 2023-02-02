@@ -19,7 +19,6 @@ import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.util.containers.toArray
 import org.intellij.lang.annotations.Language
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -461,7 +460,7 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
       fixture
         .doHighlighting(HighlightSeverity.WARNING)
         .sortedByDescending { -it.startOffset }
-        .toArray(emptyArray())
+        .toTypedArray()
 
     // Verify the height inspection only highlights the height parameter and value, i.e. "heightDp =
     // 2001"
