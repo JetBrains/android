@@ -198,6 +198,7 @@ public class RenderTask {
    * @param onNewModuleClassLoader
    */
   RenderTask(@NotNull Module module,
+             @NotNull ModuleClassLoaderManager classLoaderManager,
              @NotNull Configuration configuration,
              @NotNull AssetRepository assetRepository,
              @NotNull ResourceRepositoryManager resourceRepositoryManager,
@@ -243,25 +244,24 @@ public class RenderTask {
     myLayoutLib = layoutLib;
     LocalResourceRepository appResources = resourceRepositoryManager.getAppResources();
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
-    ModuleClassLoaderManager manager = StudioModuleClassLoaderManager.get();
     WeakReference<RenderTask> xmlFileProvider = new WeakReference<>(this);
     ModuleRenderContext moduleRenderContext = ModuleRenderContext.forFile(module, () -> {
       RenderTask task = xmlFileProvider.get();
       return task != null ? task.getXmlFile() : null;
     });
     if (privateClassLoader) {
-      myModuleClassLoader = manager.getPrivate(
+      myModuleClassLoader = classLoaderManager.getPrivate(
         myLayoutLib.getClassLoader(),
         moduleRenderContext,
         this, additionalProjectTransform, additionalNonProjectTransform);
       onNewModuleClassLoader.run();
     } else {
-      myModuleClassLoader = manager.getShared(myLayoutLib.getClassLoader(),
-                                              moduleRenderContext,
-                                              this,
-                                              additionalProjectTransform,
-                                              additionalNonProjectTransform,
-                                              onNewModuleClassLoader);
+      myModuleClassLoader = classLoaderManager.getShared(myLayoutLib.getClassLoader(),
+                                                         moduleRenderContext,
+                                                         this,
+                                                         additionalProjectTransform,
+                                                         additionalNonProjectTransform,
+                                                         onNewModuleClassLoader);
     }
     ClassLoaderPreloaderKt.preload(myModuleClassLoader, () -> Disposer.isDisposed(myModuleClassLoader), classesToPreload);
     try {

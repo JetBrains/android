@@ -70,6 +70,7 @@ import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -687,8 +688,8 @@ public class RenderService implements Disposable {
 
         try {
           RenderTask task =
-            new RenderTask(module, myConfiguration, new AssetRepositoryImpl(myFacet), ResourceRepositoryManager.getInstance(myFacet),
-                           AndroidModuleInfo.getInstance(myFacet), myLogger, layoutLib,
+            new RenderTask(module, StudioModuleClassLoaderManager.get(), myConfiguration, new AssetRepositoryImpl(myFacet),
+                           ResourceRepositoryManager.getInstance(myFacet), AndroidModuleInfo.getInstance(myFacet), myLogger, layoutLib,
                            device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, myManifestProvider,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
