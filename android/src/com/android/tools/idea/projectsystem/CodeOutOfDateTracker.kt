@@ -79,7 +79,7 @@ private class CodeOutOfDateTrackerImpl constructor(module: Module,
 
   @GuardedBy("previewFreshnessLock")
   private var kotlinJavaModificationCount = -1L
-  private val kotlinJavaModificationTracker = PsiModificationTracker.SERVICE.getInstance(module.project).forLanguages { lang ->
+  private val kotlinJavaModificationTracker = PsiModificationTracker.getInstance(module.project).forLanguages { lang ->
     lang.`is`(KotlinLanguage.INSTANCE) || lang.`is`(JavaLanguage.INSTANCE)
   }
 

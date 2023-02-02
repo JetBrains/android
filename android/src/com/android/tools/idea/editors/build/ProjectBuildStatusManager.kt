@@ -97,22 +97,6 @@ sealed class ProjectStatus {
 private val LOG = Logger.getInstance(ProjectStatus::class.java)
 
 /**
- * A filter to be applied to the file change detection in [ProjectBuildStatusManager]. This allows to ignore some [PsiElement]s when
- * comparing two snapshots of a file, for example, ignore literals.
- * If the filtering set changes, the modification count MUST change.
- */
-interface PsiFileSnapshotFilter : ModificationTracker {
-  fun accepts(element: PsiElement): Boolean
-}
-
-/**
- * A [PsiFileSnapshotFilter] that does not do filtering.
- */
-object NopPsiFileSnapshotFilter : PsiFileSnapshotFilter, ModificationTracker by ModificationTracker.NEVER_CHANGED {
-  override fun accepts(element: PsiElement): Boolean = true
-}
-
-/**
  * Interface representing the current build status of the project.
  */
 interface ProjectBuildStatusManager {
@@ -138,10 +122,9 @@ interface ProjectBuildStatusManager {
      */
     fun create(parentDisposable: Disposable,
                psiFile: PsiFile,
-               psiFilter: PsiFileSnapshotFilter = NopPsiFileSnapshotFilter,
                scope: CoroutineScope = AndroidCoroutineScope(parentDisposable, workerThread),
                onReady: (ProjectStatus) -> Unit = {}): ProjectBuildStatusManager =
-      ProjectBuildStatusManagerImpl(parentDisposable, psiFile, psiFilter, scope, onReady)
+      ProjectBuildStatusManagerImpl(parentDisposable, psiFile, scope, onReady)
   }
 }
 
@@ -168,7 +151,6 @@ private object NopPsiFileChangeDetector : PsiFileChangeDetector {
 private class ProjectBuildStatusManagerImpl(
   parentDisposable: Disposable,
   psiFile: PsiFile,
-  private val psiFilter: PsiFileSnapshotFilter = NopPsiFileSnapshotFilter,
   scope: CoroutineScope,
   private val onReady: (ProjectStatus) -> Unit) : ProjectBuildStatusManager, ProjectBuildStatusManagerForTests {
   private val editorFilePtr: SmartPsiElementPointer<PsiFile> = runReadAction {
@@ -179,7 +161,7 @@ private class ProjectBuildStatusManagerImpl(
     get() = runReadAction { editorFilePtr.element }
 
   private val project: Project = psiFile.project
-  private val psiFileChangeDetector = PsiFileChangeDetector.getInstance { psiFilter.accepts(it) }
+  private val psiFileChangeDetector = PsiFileChangeDetector.getInstance()
   private val fileChangeDetector: PsiFileChangeDetector
     get() =
       // When Live Edit is disabled, we do not do any tracking of the file since it will never be out of date.
@@ -198,18 +180,10 @@ private class ProjectBuildStatusManagerImpl(
         field = value
       }
     }
-  private var lastFilterModificationCount = psiFilter.modificationCount
   override val status: ProjectStatus
     get() {
       val currentProjectBuildStatus = projectBuildStatusLock.read {
         projectBuildStatus
-      }
-      if (psiFilter.modificationCount != lastFilterModificationCount) {
-        lastFilterModificationCount = psiFilter.modificationCount
-
-        if (currentProjectBuildStatus != ProjectBuildStatus.NotReady) {
-          fileChangeDetector.forceMarkFileAsUpToDate(editorFile)
-        }
       }
       val areResourcesOutOfDate = areResourcesOutOfDate.get()
       val isCodeOutOfDate = isCodeOutOfDate()
