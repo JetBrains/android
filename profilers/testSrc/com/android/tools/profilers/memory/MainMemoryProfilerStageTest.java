@@ -254,7 +254,6 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myStage.isTrackingAllocations()).isFalse();
   }
 
-
   @Test
   public void testRequestHeapDump() {
     // Bypass the load mechanism in HeapDumpCaptureObject.
@@ -865,6 +864,27 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     AllocationDurationData<CaptureObject> data = new AllocationDurationData<>(0, entry, 0.0, 1.0);
     myStage.selectCaptureDuration(data, null);
     assertThat(myProfilers.getStage()).isInstanceOf(AllocationStage.class);
+  }
+
+  @Test
+  public void testNativeAllocationTrackingWhenEventsAreOutOfOrder() {
+    // Start native allocation tracking the "normal" way.
+    MemoryProfilerTestUtils.toggleNativeAllocationTrackingHelper(myStage, myTimer);
+    // To simulate events being returned out of order by the transport pipeline:
+    // - insert another event into the pipeline; this event is added after the "normal" event, but has an earlier timestamp
+    // - manually turn off native allocation tracking
+    Trace.TraceStatusData unspecifiedTraceStatusData = Trace.TraceStatusData.newBuilder()
+      .setTraceStartStatus(Trace.TraceStartStatus.newBuilder().setStatus(Trace.TraceStartStatus.Status.UNSPECIFIED)).build();
+    Common.Event unspecifiedEvent = ProfilersTestData.generateTraceStatusEvent(ProfilersTestData.SESSION_DATA.getStreamId(),
+                                                                               ProfilersTestData.SESSION_DATA.getPid(),
+                                                                               /* timestampNs= */ -1,
+                                                                               unspecifiedTraceStatusData).build();
+    myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(), unspecifiedEvent);
+    myStage.myNativeAllocationTracking = false;
+
+    myStage.enter();
+
+    assertThat(myStage.myNativeAllocationTracking).isTrue();
   }
 
   private void assumePreO(boolean assumedPreO) {

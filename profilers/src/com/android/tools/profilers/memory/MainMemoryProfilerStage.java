@@ -538,12 +538,13 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   }
 
   private void updateNativeAllocationTrackingStatus() {
-    List<Trace.TraceStatusData> samples = MemoryProfiler
-      .getNativeHeapStatusForSession(getStudioProfilers().getClient(), getSessionData(), new Range(Long.MIN_VALUE, Long.MAX_VALUE));
-    if (samples.isEmpty()) {
+    List<Common.Event> events =
+      MemoryProfiler.getNativeHeapEventsForSessionSortedByTimestamp(getStudioProfilers().getClient(), getSessionData(),
+                                                                    new Range(Long.MIN_VALUE, Long.MAX_VALUE));
+    if (events.isEmpty()) {
       return;
     }
-    Trace.TraceStartStatus lastStartStatus = samples.get(samples.size() - 1).getTraceStartStatus();
+    Trace.TraceStartStatus lastStartStatus = events.get(events.size() - 1).getTraceStatus().getTraceStartStatus();
     // If there is an ongoing recording.
     if (lastStartStatus.getStatus() == Trace.TraceStartStatus.Status.SUCCESS) {
       nativeAllocationTrackingStart(lastStartStatus);
