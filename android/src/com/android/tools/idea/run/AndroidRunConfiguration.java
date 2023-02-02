@@ -36,7 +36,6 @@ import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
 import com.android.tools.idea.run.activity.launch.DefaultActivityLaunch;
 import com.android.tools.idea.run.activity.launch.NoLaunch;
 import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch;
-import com.android.tools.idea.run.configuration.execution.AndroidActivityConfigurationExecutor;
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.ApplicationRunParameters;
@@ -409,34 +408,6 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     runStats.setAppComponentType(ComponentType.ACTIVITY);
     runStats.setDeployedAsInstant(DEPLOY_AS_INSTANT);
     runStats.setDeployedFromBundle(DEPLOY_APK_FROM_BUNDLE);
-  }
-
-  @NotNull
-  public AndroidConfigurationExecutor getExecutor(@NotNull ExecutionEnvironment environment) {
-    Module myModule = getConfigurationModule().getModule();
-    ComponentLaunchOptions launchOptions = getLaunchOptionState(MODE);
-    DeployOptions deployOptions = new DeployOptions(getDisabledDynamicFeatures(), PM_INSTALL_OPTIONS, ALL_USERS, ALWAYS_INSTALL_WITH_PM);
-    AppRunSettings settings = new AppRunSettings() {
-
-      @Nullable
-      @Override
-      public Module getModule() {
-        return myModule;
-      }
-
-      @NotNull
-      @Override
-      public ComponentLaunchOptions getComponentLaunchOptions() {
-        return launchOptions;
-      }
-
-      @NotNull
-      @Override
-      public DeployOptions getDeployOptions() {
-        return deployOptions;
-      }
-    };
-    return new AndroidActivityConfigurationExecutor(environment, getDeployTarget(), settings, getApplicationIdProvider(), getApkProvider());
   }
 
   @Nullable
