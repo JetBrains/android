@@ -474,7 +474,6 @@ internal class DeviceView(
   private fun buildKeystrokeMap(): Map<KeyStroke, AndroidKeyStroke> {
     return mutableMapOf<KeyStroke, AndroidKeyStroke>().apply {
       addKeystrokesForAction(ACTION_CUT, AndroidKeyStroke(AKEYCODE_CUT))
-      addKeystrokesForAction(ACTION_CUT, AndroidKeyStroke(AKEYCODE_CUT))
       addKeystrokesForAction(ACTION_COPY, AndroidKeyStroke(AKEYCODE_COPY))
       addKeystrokesForAction(ACTION_PASTE, AndroidKeyStroke(AKEYCODE_PASTE))
       addKeystrokesForAction(ACTION_SELECT_ALL, AndroidKeyStroke(AKEYCODE_A, AMETA_CTRL_ON))
