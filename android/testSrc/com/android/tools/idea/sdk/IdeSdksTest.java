@@ -174,7 +174,7 @@ public class IdeSdksTest extends PlatformTestCase {
     localProperties.save();
 
     List<Sdk> sdks =
-      ApplicationManager.getApplication().runWriteAction((Computable<List<Sdk>>)() -> myIdeSdks.setAndroidSdkPath(myAndroidSdkPath, null));
+      ApplicationManager.getApplication().runWriteAction((Computable<List<Sdk>>)() -> myIdeSdks.setAndroidSdkPath(myAndroidSdkPath));
     assertOneSdkPerAvailableTarget(sdks);
 
     localProperties = new LocalProperties(myProject);

@@ -29,11 +29,11 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.ui.ApplicationUtils;
@@ -66,7 +66,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
@@ -364,7 +363,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       assert input != null;
 
       ApplicationUtils.invokeWriteActionAndWait(myModalityState, () -> {
-        IdeSdks.getInstance().setAndroidSdkPath(input, myJdk, ProjectManager.getInstance().getDefaultProject());
+        IdeSdks.getInstance().setAndroidSdkPath(input);
         if (myJdk != null && !isEmpty(myJdk.getHomePath())) {
           // Add as Android Studio default JDK
           IdeSdks.findOrCreateJdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, Paths.get(myJdk.getHomePath()));

@@ -24,7 +24,6 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -43,7 +42,7 @@ public class AndroidSdkDataTest extends AndroidTestCase {
 
     ApplicationManager.getApplication().runWriteAction(() -> {
       IdeSdks ideSdks = IdeSdks.getInstance();
-      ideSdks.setAndroidSdkPath(sdkDir, null);
+      ideSdks.setAndroidSdkPath(sdkDir);
       IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
       ProjectRootManager.getInstance(getProject()).setProjectSdk(ideSdks.getEligibleAndroidSdks().get(0));
     });

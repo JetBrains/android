@@ -370,11 +370,6 @@ public class IdeSdks {
     });
   }
 
-  @NotNull
-  public List<Sdk> setAndroidSdkPath(@NotNull File path, @Nullable Project currentProject) {
-    return setAndroidSdkPath(path, null, currentProject);
-  }
-
   /**
    * Sets the path of Android Studio's Android SDK. This method should be called in a write action. It is assumed that the given path has
    * been validated by {@link #isValidAndroidSdkPath(File)}. This method will fail silently if the given path is not valid.
@@ -383,7 +378,7 @@ public class IdeSdks {
    * @see com.intellij.openapi.application.Application#runWriteAction(Runnable)
    */
   @NotNull
-  public List<Sdk> setAndroidSdkPath(@NotNull File path, @Nullable Sdk javaSdk, @Nullable Project currentProject) {
+  public List<Sdk> setAndroidSdkPath(@NotNull File path) {
     if (isValidAndroidSdkPath(path)) {
       ApplicationManager.getApplication().assertWriteAccessAllowed();
 
@@ -413,7 +408,7 @@ public class IdeSdks {
       }
 
       // If there are any API targets that we haven't created IntelliJ SDKs for yet, fill those in.
-      List<Sdk> sdks = createAndroidSdkPerAndroidTarget(resolved.toFile(), javaSdk);
+      List<Sdk> sdks = createAndroidSdkPerAndroidTarget(resolved.toFile());
 
       afterAndroidSdkPathUpdate(resolved.toFile());
 
@@ -451,13 +446,6 @@ public class IdeSdks {
     return validateAndroidSdk(path, false).success;
   }
 
-  @NotNull
-  public List<Sdk> createAndroidSdkPerAndroidTarget(@NotNull File androidSdkPath) {
-    List<Sdk> sdks = createAndroidSdkPerAndroidTarget(androidSdkPath, null);
-    updateWelcomeRunAndroidSdkAction();
-    return sdks;
-  }
-
   public static void updateWelcomeRunAndroidSdkAction() {
     ActionManager actionManager = ApplicationManager.getApplication().getServiceIfCreated(ActionManager.class);
     if (actionManager == null) {
@@ -475,7 +463,7 @@ public class IdeSdks {
    * default naming convention and each individual build target do not already exist. If IntelliJ SDKs do exist, they are not updated.
    */
   @NotNull
-  private List<Sdk> createAndroidSdkPerAndroidTarget(@NotNull File androidSdkPath, @Nullable Sdk javaSdk) {
+  public List<Sdk> createAndroidSdkPerAndroidTarget(@NotNull File androidSdkPath) {
     AndroidSdkData sdkData = getSdkData(androidSdkPath);
     if (sdkData == null) {
       return Collections.emptyList();
@@ -494,6 +482,7 @@ public class IdeSdks {
         }
       }
     }
+    updateWelcomeRunAndroidSdkAction();
     return sdks;
   }
 

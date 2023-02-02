@@ -20,7 +20,8 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowi
 import com.android.SdkConstants;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.sdk.SdkProblemDialogFixture;
@@ -30,11 +31,10 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.components.JBLabel;
+import java.io.File;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.File;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class IntegratedSdkManagerTest {
@@ -92,7 +92,7 @@ public class IntegratedSdkManagerTest {
         File invalidAndroidSdkPath = GuiTests.getProjectCreationDirPath(null);
         File androidSdkPlatformPath = new File(invalidAndroidSdkPath, SdkConstants.FD_PLATFORMS);
         androidSdkPlatformPath.mkdirs();
-        IdeSdks.getInstance().setAndroidSdkPath(invalidAndroidSdkPath, null);
+        IdeSdks.getInstance().setAndroidSdkPath(invalidAndroidSdkPath);
         androidSdkPlatformPath.delete(); // Simulate user removing the Android SDK
       }));
 

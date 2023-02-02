@@ -16,16 +16,19 @@
 package com.android.tools.idea.tests.gui.emulator;
 
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.emulator.AvdTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.emulator.AvdSpec;
+import com.android.tools.idea.tests.gui.framework.emulator.AvdTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
@@ -35,10 +38,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
-
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class DebugOnEmulatorTest {
@@ -74,11 +73,9 @@ public class DebugOnEmulatorTest {
    */
   @Before
   public void setupSpecialSdk() {
-    GuiTask.execute(() -> {
-      ApplicationManager.getApplication().runWriteAction(() -> {
-        IdeSdks.getInstance().setAndroidSdkPath(avdRule.getGeneratedSdkLocation(), null);
-      });
-    });
+    GuiTask.execute(() -> ApplicationManager.getApplication().runWriteAction(() -> {
+      IdeSdks.getInstance().setAndroidSdkPath(avdRule.getGeneratedSdkLocation());
+    }));
   }
 
   /**
