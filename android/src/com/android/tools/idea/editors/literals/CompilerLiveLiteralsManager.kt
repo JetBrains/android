@@ -16,11 +16,11 @@
 package com.android.tools.idea.editors.literals
 
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.android.tools.idea.concurrency.runReadAction
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsFinder
 import com.android.tools.idea.editors.literals.internal.MethodData
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.roots.ProjectFileIndex
@@ -96,7 +96,7 @@ class CompilerLiveLiteralsManager private constructor(
   data class CompilerLiteralDefinition(val path: String, val offset: Int)
 
   private suspend fun findClassFileForSourceFileAndClassName(sourceFile: PsiFile, className: String): VirtualFile? =
-    runReadAction{ sourceFile.module }?.getModuleSystem()?.getClassFileFinderForSourceFile(sourceFile.virtualFile)?.findClassFile(className)
+    readAction { sourceFile.module }?.getModuleSystem()?.getClassFileFinderForSourceFile(sourceFile.virtualFile)?.findClassFile(className)
 
   /**
    * Finds the literals declared by the compiler for the given [sourceFile] and returns a [Finder] object with the result.
@@ -106,22 +106,18 @@ class CompilerLiveLiteralsManager private constructor(
       override fun hasCompilerLiveLiteral(file: PsiFile, offset: Int): Boolean = false
     }
     return withContext(workerThread) {
-      val packageName = runReadAction { sourceFile.packageName }
+      val packageName = readAction { sourceFile.packageName }
       val overlayLoader = if (FastPreviewManager.getInstance(sourceFile.project).isEnabled) {
-        runReadAction { sourceFile.module }?.let { ModuleClassLoaderOverlays.getInstance(it) }
+        readAction { sourceFile.module }?.let { ModuleClassLoaderOverlays.getInstance(it) }
       } else null
-      val liveLiteralClasses = runReadAction {
-        classOwner.classes.mapNotNull { it.name }
-      }
+      val liveLiteralClasses = readAction { classOwner.classes.mapNotNull { it.name } }
         .map { className -> "${packageName}.LiveLiterals${'$'}$className" }
         .mapNotNull { classFqn ->
           overlayLoader?.classLoaderLoader?.loadClass(classFqn) ?:
           findClassFileForSourceFileAndClassName(sourceFile, classFqn)?.contentsToByteArray()
         }
 
-      val literalDefinitions = runReadAction {
-        findLiteralsInClasses(liveLiteralClasses)
-      }
+      val literalDefinitions = readAction { findLiteralsInClasses(liveLiteralClasses) }
 
       return@withContext object : Finder {
         override fun hasCompilerLiveLiteral(file: PsiFile, offset: Int) =

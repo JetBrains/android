@@ -23,7 +23,6 @@ import com.android.tools.idea.common.editor.DesignFileEditor
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.android.tools.idea.concurrency.runReadAction
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -32,6 +31,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.editor.Editor
@@ -56,6 +56,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.kotlin.idea.util.application.runReadAction
 import java.awt.BorderLayout
 import java.util.concurrent.CancellationException
 import java.util.concurrent.atomic.AtomicBoolean
@@ -119,7 +120,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
   private val instanceId = psiFile.virtualFile.presentableName
 
   private val project = psiFile.project
-  private val psiFilePointer = org.jetbrains.kotlin.idea.util.application.runReadAction { SmartPointerManager.createPointer (psiFile) }
+  private val psiFilePointer = runReadAction { SmartPointerManager.createPointer (psiFile) }
   private var shortcutsApplicableComponent: JComponent? = null
 
   private var representationNeverShown = true
@@ -271,7 +272,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
    */
   private suspend fun updateRepresentationsImpl() {
     if (Disposer.isDisposed(this@MultiRepresentationPreview)) return
-    val file = runReadAction { psiFilePointer.element }
+    val file = readAction { psiFilePointer.element }
     if (file == null || !file.isValid) return
 
     val providers = providers.filter {

@@ -20,22 +20,15 @@ import com.android.ide.common.rendering.api.Bridge
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.common.editor.ActionsToolbar
-import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.updateFileContentBlocking
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
-import com.android.tools.idea.concurrency.runInSmartReadAction
-import com.android.tools.idea.concurrency.runReadAction
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.gradle.project.build.GradleBuildState
@@ -45,16 +38,16 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisi
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
@@ -64,18 +57,14 @@ import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.xml.XmlFile
-import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
-import java.awt.BorderLayout
 import java.util.function.BiFunction
 import javax.swing.JComponent
-import javax.swing.JPanel
-import javax.swing.OverlayLayout
 
 private fun fqcn2name(fcqn: String) = fcqn.substringAfterLast('.')
 
@@ -117,7 +106,7 @@ class CustomViewPreviewRepresentation(
     private val LOG = Logger.getInstance(CustomViewPreviewRepresentation::class.java)
   }
   private val project = psiFile.project
-  private val psiFilePointer = com.intellij.openapi.application.runReadAction { SmartPointerManager.createPointer(psiFile) }
+  private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
   private val persistenceManager = persistenceProvider(project)
   private var stateTracker: CustomViewVisualStateTracker
 
@@ -301,7 +290,7 @@ class CustomViewPreviewRepresentation(
 
     stateTracker.setVisualState(CustomViewVisualStateTracker.VisualState.RENDERING)
     scope.launch {
-      runInSmartReadAction(project) {
+      smartReadAction(project) {
         val calculatedClasses = (AndroidPsiUtils.getPsiFileSafely(project, psiFile.virtualFile) as PsiClassOwner).classes
           .filter { it.name != null && it.extendsView() }
           .mapNotNull { it.qualifiedName }
@@ -310,7 +299,7 @@ class CustomViewPreviewRepresentation(
           classes = calculatedClasses
           // This may happen if custom view classes got removed from the file
           if (classes.isEmpty()) {
-            return@runInSmartReadAction
+            return@smartReadAction
           }
         }
         updateModel()
@@ -325,7 +314,7 @@ class CustomViewPreviewRepresentation(
   }
 
   private fun updateModelAsync() = scope.launch {
-    val psiFile = runReadAction { psiFilePointer.element } ?: run {
+    val psiFile = readAction { psiFilePointer.element } ?: run {
       LOG.warn("updateModelSync with invalid PsiFile")
       return@launch
     }
