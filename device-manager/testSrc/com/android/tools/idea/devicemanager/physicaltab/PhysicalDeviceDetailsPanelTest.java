@@ -27,11 +27,14 @@ import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceDetailsPan
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.testFramework.DisposableRule;
 import java.awt.Container;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -41,6 +44,9 @@ import org.mockito.Mockito;
 public final class PhysicalDeviceDetailsPanelTest {
   private final @NotNull AsyncDetailsBuilder myBuilder = Mockito.mock(AsyncDetailsBuilder.class);
   private final @NotNull WearPairingManager myManager = Mockito.mock(WearPairingManager.class);
+
+  @Rule
+  public final DisposableRule myRule = new DisposableRule();
 
   @Test
   public void summarySectionCallbackOnSuccess() throws InterruptedException {
@@ -63,6 +69,8 @@ public final class PhysicalDeviceDetailsPanelTest {
                                                                       myBuilder,
                                                                       myManager,
                                                                       section -> newSummarySectionCallback(section, latch));
+
+    Disposer.register(myRule.getDisposable(), panel);
 
     // Assert
     CountDownLatchAssert.await(latch);
