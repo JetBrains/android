@@ -23,7 +23,6 @@ iml_module(
             "exec_properties": LARGE_MACHINE,
         },
     },
-    test_class = "com.android.tools.idea.gradle.project.sync.memory.SyncMemoryTestSuite",
     test_data = [
         "//prebuilts/studio/buildbenchmarks:ExtraLarge2022_project",
         "//prebuilts/studio/sdk:build-tools/latest",
