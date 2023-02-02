@@ -143,7 +143,7 @@ class ManifestPanelContentTest : SnapshotComparisonTest {
       null
     } else {
       StringWriter().let {
-        TransformerFactory.newInstance().newTransformer().apply {
+        TransformerFactory.newDefaultInstance().newTransformer().apply {
           setOutputProperty(OutputKeys.INDENT, "yes")
           setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
         }.transform(DOMSource((this.root as ManifestTreeNode).userObject), StreamResult(it))

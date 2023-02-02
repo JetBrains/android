@@ -309,7 +309,7 @@ private fun <T : Any> updateXmlDoc(manifestPath: Path, transform: (Document) -> 
 
   val result = transform(doc) ?: return null
 
-  val transformerFactory = TransformerFactory.newInstance()
+  val transformerFactory = TransformerFactory.newDefaultInstance()
   val transformer: Transformer = transformerFactory.newTransformer()
   val source = DOMSource(doc)
   transformer.transform(source, StreamResult(manifestPath.toFile()))

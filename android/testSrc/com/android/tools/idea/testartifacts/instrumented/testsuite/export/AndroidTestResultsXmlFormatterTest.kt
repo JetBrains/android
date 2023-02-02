@@ -253,7 +253,7 @@ class AndroidTestResultsXmlFormatterTest {
                      rootResultsNode: AndroidTestResultsTreeNode,
                      devices: List<AndroidDevice>,
                      runConfiguration: RunConfiguration): String {
-    val transformerFactory = SAXTransformerFactory.newInstance() as SAXTransformerFactory
+    val transformerFactory = SAXTransformerFactory.newDefaultInstance() as SAXTransformerFactory
     val resultHandler = transformerFactory.newTransformerHandler().apply {
       transformer.apply {
         setOutputProperty(OutputKeys.INDENT, "yes")

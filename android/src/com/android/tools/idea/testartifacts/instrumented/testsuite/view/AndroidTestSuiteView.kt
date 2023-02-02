@@ -575,7 +575,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
           val outputFile = File(TestStateStorage.getTestHistoryRoot(myProject!!), historyFileName)
           FileUtilRt.createParentDirs(outputFile)
 
-          val transformerFactory = TransformerFactory.newInstance() as SAXTransformerFactory
+          val transformerFactory = TransformerFactory.newDefaultInstance() as SAXTransformerFactory
           val transformerHandler = transformerFactory.newTransformerHandler().apply {
             transformer.apply {
               setOutputProperty(OutputKeys.INDENT, "yes")
