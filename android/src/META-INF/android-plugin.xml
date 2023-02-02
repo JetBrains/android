@@ -108,7 +108,6 @@
       <action internal="true" id="Android.Jfr.Start" class="com.android.tools.idea.diagnostics.profiler.StartJfr" />
       <action internal="true" id="Android.Jfr.Dump" class="com.android.tools.idea.diagnostics.profiler.DumpJfrRecording" />
       <action internal="true" id="Android.Jfr.Stop" class="com.android.tools.idea.diagnostics.profiler.StopJfr" />
-      <action internal="true" id="Android.Diagnostic.Summary.File" class="com.android.tools.idea.diagnostics.report.DiagnosticSummaryAction" />
       <add-to-group group-id="Internal"/>
     </group>
     <group id="Internal.Android.LiveLiterals" text="Live Literals" popup="true" internal="true">
