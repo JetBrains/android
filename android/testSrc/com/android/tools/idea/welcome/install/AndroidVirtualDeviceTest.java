@@ -170,23 +170,32 @@ public final class AndroidVirtualDeviceTest {
 
   @Test
   public void testSysimgWithExtensionLevel() {
-    FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-30-ext3");
+    // create remote packages for both a base platform and for an extension of the same platform.
     RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
+    Map<String, RemotePackage> remotes = new HashMap<>();
 
+    // Base: API 30
+    FakePackage.FakeRemotePackage baseRemotePlatform = new FakePackage.FakeRemotePackage("platforms;android-30");
     DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();
+    platformDetailsType.setApiLevel(30);
+    baseRemotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
+    remotes.put("platforms;android-30", baseRemotePlatform);
+
+    // Extension: API 30, extension 3.
+    FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-30-ext3");
+    platformDetailsType = factory.createPlatformDetailsType();
     platformDetailsType.setApiLevel(30);
     platformDetailsType.setBaseExtension(false);
     platformDetailsType.setExtensionLevel(3);
     remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
-
-    Map<String, RemotePackage> remotes = new HashMap<>();
     remotes.put("platforms;android-30-ext3", remotePlatform);
 
     AndroidVirtualDevice avd = new AndroidVirtualDevice(remotes, true);
     avd.sdkHandler = sdkHandler;
 
-    assertEquals("system-images;android-30-ext3;google_apis;x86", avd.getRequiredSysimgPath(false));
-    assertEquals("system-images;android-30-ext3;google_apis;arm64-v8a", avd.getRequiredSysimgPath(true));
+    // The selected image should be the base one.
+    assertEquals("system-images;android-30;google_apis;x86", avd.getRequiredSysimgPath(false));
+    assertEquals("system-images;android-30;google_apis;arm64-v8a", avd.getRequiredSysimgPath(true));
   }
 
   @Test

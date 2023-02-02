@@ -254,8 +254,22 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     }
   }
 
+  /**
+   * Returns the latest platform from a given list.
+   *
+   * It is possible to select whether one wants the last extension of the latest platform or whether
+   * one wants the latest base extension.
+   *
+   *
+   * @param remotePackages the list of packages to search for the last platform.
+   * @param returnBaseExtension whether to always return the base extension of the latest platform.
+   * @return
+   */
   @Nullable
-  public static RemotePackage findLatestPlatform(@Nullable Map<String, RemotePackage> remotePackages) {
+  public static RemotePackage findLatestPlatform(
+    @Nullable Map<String, RemotePackage> remotePackages,
+    boolean returnBaseExtension
+  ) {
     if (remotePackages == null) {
       return null;
     }
@@ -268,8 +282,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       }
       DetailsTypes.PlatformDetailsType platformDetails = (DetailsTypes.PlatformDetailsType)details;
       AndroidVersion version = platformDetails.getAndroidVersion();
-      if (version.isPreview()) {
-        // We only want stable platforms
+      if (version.isPreview() || (returnBaseExtension && !version.isBaseExtension())) {
+        // We only want stable platforms, and possibly only base extension if requested
         continue;
       }
       if (max == null || version.compareTo(max) > 0) {

@@ -90,7 +90,7 @@ class Platform(
 
   companion object {
     private fun getLatestPlatform(remotePackages: Map<String?, RemotePackage>?, installUpdates: Boolean): Platform? {
-      val latest = findLatestPlatform(remotePackages)
+      val latest = findLatestPlatform(remotePackages, true)
       if (latest != null) {
         val version = (latest.typeDetails as DetailsTypes.PlatformDetailsType).androidVersion
         val versionName = SdkVersionInfo.getAndroidName(version.featureLevel)
