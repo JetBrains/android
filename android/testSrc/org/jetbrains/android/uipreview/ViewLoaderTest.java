@@ -62,7 +62,7 @@ public class ViewLoaderTest extends AndroidTestCase {
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(module);
     myLayoutLib = RenderService.getLayoutLibrary(module, StudioEmbeddedRenderTarget.getCompatibilityTarget(manager.getHighestApiTarget()));
     assertNotNull(myLayoutLib);
-    myClassLoader = ModuleClassLoaderManager.get().getShared(myLayoutLib.getClassLoader(), ModuleRenderContext.forModule(myModule), this);
+    myClassLoader = StudioModuleClassLoaderManager.get().getShared(myLayoutLib.getClassLoader(), ModuleRenderContext.forModule(myModule), this);
   }
 
   @Override
@@ -73,7 +73,7 @@ public class ViewLoaderTest extends AndroidTestCase {
       // Copy the classloader field before super.tearDown() nulls it out via UsefulTestCase.clearDeclaredFields().
       ModuleClassLoader classLoader = myClassLoader;
       super.tearDown();
-      ModuleClassLoaderManager.get().release(classLoader, this);
+      StudioModuleClassLoaderManager.get().release(classLoader, this);
     }
   }
 

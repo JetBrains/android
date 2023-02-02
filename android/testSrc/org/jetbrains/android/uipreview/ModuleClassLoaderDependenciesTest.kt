@@ -17,7 +17,6 @@ package org.jetbrains.android.uipreview
 
 import com.android.SdkConstants
 import com.android.tools.idea.util.toVirtualFile
-import com.google.common.truth.Truth
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.ModuleRootModificationUtil
@@ -27,7 +26,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.PsiTestUtil
 import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.android.uipreview.ModuleClassLoaderManager.Companion.get
+import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager.Companion.get
 import org.jetbrains.android.uipreview.ModuleRenderContext.Companion.forModule
 import org.junit.Test
 import java.io.File

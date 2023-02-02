@@ -27,7 +27,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
-import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
+import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.annotations.NotNull;
 
 public class RenderUtils {
@@ -38,7 +38,7 @@ public class RenderUtils {
         IAndroidTarget target = configuration.getTarget();
         Module module = configuration.getModule();
         if (module != null) {
-          ModuleClassLoaderManager.get().clearCache(module);
+          StudioModuleClassLoaderManager.get().clearCache(module);
           ResourceIdManager.get(module).resetDynamicIds();
           ResourceClassRegistry.get(module.getProject()).clearCache();
           if (target != null) {

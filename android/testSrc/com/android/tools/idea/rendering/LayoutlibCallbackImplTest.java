@@ -47,7 +47,7 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
-import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
+import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.android.uipreview.ModuleRenderContext;
 
 public class LayoutlibCallbackImplTest extends AndroidTestCase {
@@ -92,7 +92,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(myFacet);
 
       ModuleRenderContext renderContext = ModuleRenderContext.forFile(psiFile);
-      ModuleClassLoader classLoader = ModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext, this);
+      ModuleClassLoader classLoader = StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext, this);
       LayoutlibCallbackImpl layoutlibCallback =
         new LayoutlibCallbackImpl(task, layoutlib, appResources, myModule, ResourceRepositoryManager.getInstance(myFacet), IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
       ILayoutPullParser parser = layoutlibCallback.getParser(new ResourceValueImpl(
@@ -108,7 +108,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       }
       String startDestination = parser.getAttributeValue(ANDROID_URI, ATTR_LAYOUT);
       assertEquals("@layout/fragment_blank", startDestination);
-      ModuleClassLoaderManager.get().release(classLoader, this);
+      StudioModuleClassLoaderManager.get().release(classLoader, this);
     });
   }
 
@@ -131,13 +131,13 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(myFacet);
 
       ModuleRenderContext renderContext = ModuleRenderContext.forFile(psiFile);
-      ModuleClassLoader classLoader = ModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext, this);
+      ModuleClassLoader classLoader = StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext, this);
       LayoutlibCallbackImpl layoutlibCallback =
         new LayoutlibCallbackImpl(task, layoutlib, appResources, myModule, ResourceRepositoryManager.getInstance(myFacet), IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
 
       assertNotNull(layoutlibCallback.createXmlParserForPsiFile(fontsFolder.toPath().resolve("aar_font_family.xml").toAbsolutePath().toString()));
 
-      ModuleClassLoaderManager.get().release(classLoader, this);
+      StudioModuleClassLoaderManager.get().release(classLoader, this);
     });
 
   }

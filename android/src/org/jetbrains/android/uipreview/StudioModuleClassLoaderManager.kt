@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.uipreview
 
-import com.android.flags.ifEnabled
 import com.android.tools.idea.LogAnonymizerUtil.anonymize
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
@@ -78,7 +77,7 @@ private class ModuleClassLoaderProjectHelperService(val project: Project): Proje
   override fun beforeBuildCompleted(result: ProjectSystemBuildManager.BuildResult) {
     if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS
         && (result.mode == ProjectSystemBuildManager.BuildMode.COMPILE || result.mode == ProjectSystemBuildManager.BuildMode.ASSEMBLE)) {
-      ModuleManager.getInstance(project).modules.forEach { ModuleClassLoaderManager.get().clearCache(it) }
+      ModuleManager.getInstance(project).modules.forEach { StudioModuleClassLoaderManager.get().clearCache(it) }
     }
   }
 
@@ -143,7 +142,7 @@ private fun calculateTransformationsUniqueId(projectClassesTransformationProvide
 }
 
 fun ModuleClassLoader.areTransformationsUpToDate(projectClassesTransformationProvider: ClassTransform,
-                               nonProjectClassesTransformationProvider: ClassTransform): Boolean {
+                                                                                                          nonProjectClassesTransformationProvider: ClassTransform): Boolean {
   return (calculateTransformationsUniqueId(this.projectClassesTransform, this.nonProjectClassesTransform)
     == calculateTransformationsUniqueId(projectClassesTransformationProvider, nonProjectClassesTransformationProvider))
 }
@@ -159,19 +158,19 @@ fun ModuleClassLoader.isCompatible(
   projectTransformations: ClassTransform,
   nonProjectTransformations: ClassTransform) = when {
   !this.isCompatibleParentClassLoader(parent) -> {
-    ModuleClassLoaderManager.LOG.debug("Parent has changed, discarding ModuleClassLoader")
+    StudioModuleClassLoaderManager.LOG.debug("Parent has changed, discarding ModuleClassLoader")
     false
   }
   !this.areTransformationsUpToDate(projectTransformations, nonProjectTransformations) -> {
-    ModuleClassLoaderManager.LOG.debug("Transformations have changed, discarding ModuleClassLoader")
+    StudioModuleClassLoaderManager.LOG.debug("Transformations have changed, discarding ModuleClassLoader")
     false
   }
   !this.areDependenciesUpToDate() -> {
-    ModuleClassLoaderManager.LOG.debug("Files have changed, discarding ModuleClassLoader")
+    StudioModuleClassLoaderManager.LOG.debug("Files have changed, discarding ModuleClassLoader")
     false
   }
   else -> {
-    ModuleClassLoaderManager.LOG.debug("ModuleClassLoader is up to date")
+    StudioModuleClassLoaderManager.LOG.debug("ModuleClassLoader is up to date")
     true
   }
 }
@@ -190,7 +189,7 @@ private fun UserDataHolder.getOrCreateHatchery() = getOrCreate(HATCHERY) { Modul
 /**
  * A [ClassLoader] for the [Module] dependencies.
  */
-class ModuleClassLoaderManager {
+class StudioModuleClassLoaderManager {
   // MutableSet is backed by the WeakHashMap in prod so we do not retain the holders
   private val holders: MutableMap<ModuleClassLoader, MutableSet<Any>> = IdentityHashMap()
   private var captureDiagnostics = false
@@ -206,7 +205,7 @@ class ModuleClassLoaderManager {
   fun getShared(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext, holder: Any,
                 additionalProjectTransformation: ClassTransform = ClassTransform.identity,
                 additionalNonProjectTransformation: ClassTransform = ClassTransform.identity,
-                onNewModuleClassLoader: Runnable = Runnable {}): ModuleClassLoader {
+                onNewModuleClassLoader: Runnable = Runnable { }): ModuleClassLoader {
     val module: Module = moduleRenderContext.module
     var moduleClassLoader = module.getUserData(PRELOADER)?.getClassLoader()
     val combinedProjectTransformations: ClassTransform by lazy {
@@ -236,8 +235,11 @@ class ModuleClassLoaderManager {
       val preloadedClassLoader: ModuleClassLoader? =
         moduleRenderContext.module.getOrCreateHatchery().requestClassLoader(
           parent, combinedProjectTransformations, combinedNonProjectTransformations)
-      moduleClassLoader = preloadedClassLoader ?:
-                          ModuleClassLoader(parent, moduleRenderContext, combinedProjectTransformations, combinedNonProjectTransformations, createDiagnostics())
+      moduleClassLoader = preloadedClassLoader ?: ModuleClassLoader(parent,
+                                                                    moduleRenderContext,
+                                                                    combinedProjectTransformations,
+                                                                    combinedNonProjectTransformations,
+                                                                    createDiagnostics())
       module.putUserData(PRELOADER, Preloader(moduleClassLoader))
       onNewModuleClassLoader.run()
     }
@@ -267,9 +269,9 @@ class ModuleClassLoaderManager {
       moduleRenderContext.module.getOrCreateHatchery().requestClassLoader(
         parent, combinedProjectTransformations, combinedNonProjectTransformations)
     return (preloadedClassLoader ?: ModuleClassLoader(parent, moduleRenderContext,
-                             combinedProjectTransformations,
-                             combinedNonProjectTransformations,
-                             createDiagnostics())).apply {
+                                                      combinedProjectTransformations,
+                                                      combinedNonProjectTransformations,
+                                                      createDiagnostics())).apply {
       holders[this] = createHoldersSet().apply { add(holder) }
     }
   }
@@ -284,7 +286,7 @@ class ModuleClassLoaderManager {
    * prod and in tests:
    *
    * In Prod, it should be a Set of WEAK references. So that in case we do not release the holder (due to some unexpected flow) it is not
-   * retained by the [ModuleClassLoaderManager]
+   * retained by the [StudioModuleClassLoaderManager]
    *
    * In Tests, we would like it to be a Set of STRONG references. So that any unreleased references got caught by the LeakHunter.
    */
@@ -347,7 +349,7 @@ class ModuleClassLoaderManager {
   }
 
   /**
-   * Inform [ModuleClassLoaderManager] that [ModuleClassLoader] is not used anymore and therefore can be
+   * Inform [StudioModuleClassLoaderManager] that [ModuleClassLoader] is not used anymore and therefore can be
    * disposed if no longer managed.
    */
   fun release(moduleClassLoader: ModuleClassLoader, holder: Any) {
@@ -369,10 +371,10 @@ class ModuleClassLoaderManager {
 
   companion object {
     @JvmStatic
-    val LOG = Logger.getInstance(ModuleClassLoaderManager::class.java)
+    val LOG = Logger.getInstance(StudioModuleClassLoaderManager::class.java)
 
     @JvmStatic
-    fun get(): ModuleClassLoaderManager =
-      ApplicationManager.getApplication().getService(ModuleClassLoaderManager::class.java)
+    fun get(): StudioModuleClassLoaderManager =
+      ApplicationManager.getApplication().getService(StudioModuleClassLoaderManager::class.java)
   }
 }

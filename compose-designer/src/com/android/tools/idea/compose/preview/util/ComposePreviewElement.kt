@@ -69,16 +69,14 @@ import kotlin.reflect.jvm.isAccessible
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.sdk.CompatibilityRenderTarget
-import org.jetbrains.android.uipreview.ModuleClassLoaderManager
 import org.jetbrains.android.uipreview.ModuleRenderContext
+import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -600,7 +598,7 @@ class ParametrizedComposePreviewElementTemplate(
 
     val moduleRenderContext = ModuleRenderContext.forFile(file)
     val classLoader =
-      ModuleClassLoaderManager.get()
+      StudioModuleClassLoaderManager.get()
         .getPrivate(
           ParametrizedComposePreviewElementTemplate::class.java.classLoader,
           moduleRenderContext,
@@ -670,7 +668,7 @@ class ParametrizedComposePreviewElementTemplate(
         }
         .first()
     } finally {
-      ModuleClassLoaderManager.get().release(classLoader, this)
+      StudioModuleClassLoaderManager.get().release(classLoader, this)
     }
   }
 

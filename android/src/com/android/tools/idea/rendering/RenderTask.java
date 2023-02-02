@@ -105,7 +105,7 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.CompatibilityRenderTarget;
 import org.jetbrains.android.uipreview.ClassLoaderPreloaderKt;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
-import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
+import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.android.uipreview.ModuleRenderContext;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -242,7 +242,7 @@ public class RenderTask {
     myLayoutLib = layoutLib;
     LocalResourceRepository appResources = resourceRepositoryManager.getAppResources();
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
-    ModuleClassLoaderManager manager = ModuleClassLoaderManager.get();
+    StudioModuleClassLoaderManager manager = StudioModuleClassLoaderManager.get();
     WeakReference<RenderTask> xmlFileProvider = new WeakReference<>(this);
     ModuleRenderContext moduleRenderContext = ModuleRenderContext.forFile(module, () -> {
       RenderTask task = xmlFileProvider.get();
@@ -372,7 +372,7 @@ public class RenderTask {
   // Workaround for http://b/143378087
   private void clearClassLoader() {
     try {
-      ModuleClassLoaderManager.get().release(myModuleClassLoader, this);
+      StudioModuleClassLoaderManager.get().release(myModuleClassLoader, this);
     }
     catch (AlreadyDisposedException e) {
       // The project has already been disposed.
