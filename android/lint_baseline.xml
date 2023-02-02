@@ -150,7 +150,7 @@
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/org/jetbrains/android/uipreview/StudioModuleClassLoaderManager.kt"
-            line="211"/>
+            line="210"/>
     </issue>
 
     <issue
@@ -158,55 +158,7 @@
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/org/jetbrains/android/uipreview/StudioModuleClassLoaderManager.kt"
-            line="211"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/org/jetbrains/android/uipreview/StudioModuleClassLoaderManager.kt"
-            line="211"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/org/jetbrains/android/uipreview/StudioModuleClassLoaderManager.kt"
-            line="211"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/org/jetbrains/android/uipreview/StudioModuleClassLoaderManager.kt"
-            line="214"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/org/jetbrains/android/uipreview/StudioModuleClassLoaderManager.kt"
-            line="214"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/org/jetbrains/android/uipreview/StudioModuleClassLoaderManager.kt"
-            line="214"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/org/jetbrains/android/uipreview/StudioModuleClassLoaderManager.kt"
-            line="214"/>
+            line="213"/>
     </issue>
 
     <issue
@@ -766,7 +718,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/org/jetbrains/android/uipreview/StudioModuleClassLoaderManager.kt"
-            line="282"/>
+            line="288"/>
     </issue>
 
     <issue
@@ -838,7 +790,7 @@
         message="Use `whenCompleteAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/rendering/RenderTask.java"
-            line="810"/>
+            line="811"/>
     </issue>
 
     <issue

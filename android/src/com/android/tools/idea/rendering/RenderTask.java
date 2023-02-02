@@ -105,6 +105,7 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.CompatibilityRenderTarget;
 import org.jetbrains.android.uipreview.ClassLoaderPreloaderKt;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
+import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.android.uipreview.ModuleRenderContext;
 import org.jetbrains.android.util.AndroidUtils;
@@ -242,7 +243,7 @@ public class RenderTask {
     myLayoutLib = layoutLib;
     LocalResourceRepository appResources = resourceRepositoryManager.getAppResources();
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
-    StudioModuleClassLoaderManager manager = StudioModuleClassLoaderManager.get();
+    ModuleClassLoaderManager manager = StudioModuleClassLoaderManager.get();
     WeakReference<RenderTask> xmlFileProvider = new WeakReference<>(this);
     ModuleRenderContext moduleRenderContext = ModuleRenderContext.forFile(module, () -> {
       RenderTask task = xmlFileProvider.get();

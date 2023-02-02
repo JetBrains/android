@@ -189,7 +189,7 @@ private fun UserDataHolder.getOrCreateHatchery() = getOrCreate(HATCHERY) { Modul
 /**
  * A [ClassLoader] for the [Module] dependencies.
  */
-class StudioModuleClassLoaderManager {
+class StudioModuleClassLoaderManager : ModuleClassLoaderManager {
   // MutableSet is backed by the WeakHashMap in prod so we do not retain the holders
   private val holders: MutableMap<ModuleClassLoader, MutableSet<Any>> = IdentityHashMap()
   private var captureDiagnostics = false
@@ -200,12 +200,11 @@ class StudioModuleClassLoaderManager {
   /**
    * Returns a project class loader to use for rendering. May cache instances across render sessions.
    */
-  @JvmOverloads
   @Synchronized
-  fun getShared(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext, holder: Any,
-                additionalProjectTransformation: ClassTransform = ClassTransform.identity,
-                additionalNonProjectTransformation: ClassTransform = ClassTransform.identity,
-                onNewModuleClassLoader: Runnable = Runnable { }): ModuleClassLoader {
+  override fun getShared(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext, holder: Any,
+                         additionalProjectTransformation: ClassTransform,
+                         additionalNonProjectTransformation: ClassTransform,
+                         onNewModuleClassLoader: Runnable): ModuleClassLoader {
     val module: Module = moduleRenderContext.module
     var moduleClassLoader = module.getUserData(PRELOADER)?.getClassLoader()
     val combinedProjectTransformations: ClassTransform by lazy {
@@ -249,17 +248,20 @@ class StudioModuleClassLoaderManager {
     return moduleClassLoader
   }
 
+  @Synchronized
+  override fun getShared(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext, holder: Any) =
+    getShared(parent, moduleRenderContext, holder, ClassTransform.identity, ClassTransform.identity) { }
+
   /**
    * Return a [ModuleClassLoader] for a [Module] to be used for rendering. Similar to [getShared] but guarantees that the returned
    * [ModuleClassLoader] is not shared and the caller has full ownership of it.
    */
-  @JvmOverloads
   @Synchronized
-  fun getPrivate(parent: ClassLoader?,
-                 moduleRenderContext: ModuleRenderContext,
-                 holder: Any,
-                 additionalProjectTransformation: ClassTransform = ClassTransform.identity,
-                 additionalNonProjectTransformation: ClassTransform = ClassTransform.identity): ModuleClassLoader {
+  override fun getPrivate(parent: ClassLoader?,
+                          moduleRenderContext: ModuleRenderContext,
+                          holder: Any,
+                          additionalProjectTransformation: ClassTransform,
+                          additionalNonProjectTransformation: ClassTransform): ModuleClassLoader {
     // Make sure the helper service is initialized
     moduleRenderContext.module.project.getService(ModuleClassLoaderProjectHelperService::class.java)
 
@@ -275,6 +277,10 @@ class StudioModuleClassLoaderManager {
       holders[this] = createHoldersSet().apply { add(holder) }
     }
   }
+
+  @Synchronized
+  override fun getPrivate(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext, holder: Any) =
+    getPrivate(parent, moduleRenderContext, holder, ClassTransform.identity, ClassTransform.identity)
 
   @VisibleForTesting
   fun createCopy(mcl: ModuleClassLoader): ModuleClassLoader? = mcl.copy(createDiagnostics())
@@ -352,7 +358,7 @@ class StudioModuleClassLoaderManager {
    * Inform [StudioModuleClassLoaderManager] that [ModuleClassLoader] is not used anymore and therefore can be
    * disposed if no longer managed.
    */
-  fun release(moduleClassLoader: ModuleClassLoader, holder: Any) {
+  override fun release(moduleClassLoader: ModuleClassLoader, holder: Any) {
     unHold(moduleClassLoader, holder)
     if (stopManagingIfNotHeld(moduleClassLoader)) {
       Disposer.dispose(moduleClassLoader)
