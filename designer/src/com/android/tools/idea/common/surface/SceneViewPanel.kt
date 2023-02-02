@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.surface
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.scaleBy
@@ -158,7 +159,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
    */
   private val modelNameLabel = JBLabel().apply {
     maximumSize = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
-    isEnabled = false
+    foreground = AdtUiUtils.TITLE_COLOR
   }
 
   val positionableAdapter = object : PositionableContent {
