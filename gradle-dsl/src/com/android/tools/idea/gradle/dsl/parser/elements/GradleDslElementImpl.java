@@ -43,6 +43,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import java.io.File;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -822,18 +823,25 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   private static @Nullable GradleDslElement resolveReferenceInVersionCatalogs(@NotNull GradleBuildFile buildFile, @NotNull List<String> referenceParts) {
     if (referenceParts.size() < 2) return null;
     String catalog = referenceParts.get(0);
-    GradleDslElement result1;
-    GradleDslElement result2;
     for (GradleVersionCatalogFile versionCatalogFile : buildFile.getVersionCatalogFiles()) {
       if (!catalog.equals(versionCatalogFile.getCatalogName())) continue;
-      result1 = versionCatalogFile;
-      result2 = versionCatalogFile.getElement("libraries");
-      for (String part : referenceParts.subList(1, referenceParts.size())) {
-        result1 = (result1 instanceof GradlePropertiesDslElement) ? ((GradlePropertiesDslElement)result1).getElement(part) : null;
-        result2 = (result2 instanceof GradlePropertiesDslElement) ? ((GradlePropertiesDslElement)result2).getElement(part) : null;
+      String tableName = referenceParts.get(1);
+      Pattern pattern;
+      GradleDslElement table;
+      if ("plugins".equals(tableName) || "bundles".equals(tableName) || "versions".equals(tableName)) {
+        pattern = Pattern.compile(String.join("[-_.]", referenceParts.subList(2, referenceParts.size())));
+        table = versionCatalogFile.getElement(tableName);
       }
-      if (result2 != null) return result2;
-      if (result1 != null) return result1;
+      else {
+        pattern = Pattern.compile(String.join("[-_.]", referenceParts.subList(1, referenceParts.size())));
+        table = versionCatalogFile.getElement("libraries");
+      }
+      if (table == null) return null;
+      for (GradleDslElement element : table.getChildren()) {
+        if (pattern.matcher(element.getName()).matches()) {
+          return element;
+        }
+      }
     }
     return null;
   }

@@ -423,7 +423,10 @@ public final class GroovyDslUtil {
     for (GradleDslElement currentElement : resolutionElements) {
       List<String> elementExternalNameParts =
         applyContext.getParser().externalNameForParent(currentElement.getName(), currentElement.getParent()).externalNameParts;
-      if (currentElement.getParent() instanceof GradleDslExpressionList && currentElement instanceof GradleDslSimpleExpression) {
+      if (currentElement.getDslFile() instanceof GradleVersionCatalogFile) {
+        externalName.append(String.join(".", elementExternalNameParts.get(0).split("[_.-]")));
+      }
+      else if (currentElement.getParent() instanceof GradleDslExpressionList && currentElement instanceof GradleDslSimpleExpression) {
         GradleDslExpressionList parent = (GradleDslExpressionList)currentElement.getParent();
         int i = parent.getSimpleExpressions().indexOf(currentElement);
         externalName.append(i + "]");

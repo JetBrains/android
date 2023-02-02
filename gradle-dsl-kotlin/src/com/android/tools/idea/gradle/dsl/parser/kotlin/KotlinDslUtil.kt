@@ -207,18 +207,19 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
       //  (see the note by the declaration of resolutionElements above)
       else -> if (externalName.isNotEmpty()) externalName.append(".")
     }
-    when (currentElement) {
-      is ExtDslElement -> if (extraArraySyntax) {
+    when {
+      currentElement.dslFile is GradleVersionCatalogFile -> {
+        externalName.append(elementExternalName.split('_', '-', '.').joinToString("."))
+      }
+      currentElement is ExtDslElement -> if (extraArraySyntax) {
         externalName.append("extra")
       }
-      is GradleDslExpressionMap -> {
+      currentElement is GradleDslExpressionMap -> {
         externalName.append(elementExternalName)
         fun maybeCast(close: String) {
-          if (currentElement.dslFile !is GradleVersionCatalogFile) {
-            externalName.append(close)
-            val updatedName = "($externalName as Map<*, *>)"
-            externalName.clear().append(updatedName)
-          }
+          externalName.append(close)
+          val updatedName = "($externalName as Map<*, *>)"
+          externalName.clear().append(updatedName)
         }
         when (parentElement) {
           is GradleDslExpressionMap -> maybeCast("\"]")
@@ -228,7 +229,7 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
           }
         }
       }
-      is GradleDslExpressionList -> {
+      currentElement is GradleDslExpressionList -> {
         externalName.append(elementExternalName)
         fun maybeCast(close: String) {
           externalName.append(close)
@@ -243,7 +244,7 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
           }
         }
       }
-      is GradleDslLiteral -> {
+      currentElement is GradleDslLiteral -> {
         val useTypeCast = !forInjection && currentParent !is GradleVersionCatalogFile && currentParent != context.dslFile && className != null
         when (parentElement) {
           is GradleDslExpressionMap -> {
@@ -281,8 +282,8 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
           }
         }
       }
-      is GradleDslNamedDomainContainer -> externalName.append(elementExternalName)
-      is GradleDslNamedDomainElement -> externalName.append("getByName(\"$elementExternalName\")")
+      currentElement is GradleDslNamedDomainContainer -> externalName.append(elementExternalName)
+      currentElement is GradleDslNamedDomainElement -> externalName.append("getByName(\"$elementExternalName\")")
       else -> {
         // if we have a model property with a transform (so not directly a GradleDslLiteral)
         if (currentElement.modelEffect?.property != null) {

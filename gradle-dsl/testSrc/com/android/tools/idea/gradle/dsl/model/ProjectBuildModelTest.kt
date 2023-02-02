@@ -1800,20 +1800,21 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
     try {
       writeToBuildFile(TestFile.ADD_DEPENDENCY_REFERENCE_TO_VERSION_CATALOG)
-      writeToVersionCatalogFile(TestFile.VERSION_CATALOG_GROUP_COMPACT_NOTATION)
+      writeToVersionCatalogFile(TestFile.VERSION_CATALOG_GROUP_BOTH_NOTATION)
 
       val pbm = projectBuildModel
       val buildModel = pbm.projectBuildModel!!
       val dependencies = buildModel.dependencies()
       val versionCatalog = pbm.versionCatalogsModel
-      println(versionCatalog)
-      // We have exposed the name to alias mapping in a way that makes this slightly awkward.
-      val reference = ReferenceTo(
-        versionCatalog.libraries("libs").findProperty("a").getMapValue("dep")?.getMapValue("endency")!!, dependencies)
-      dependencies.addArtifact("api", reference)
+      ReferenceTo(versionCatalog.libraries("libs").findProperty("a_dep-endency"), dependencies).let { reference ->
+        dependencies.addArtifact("api", reference)
+      }
+      ReferenceTo(versionCatalog.libraries("libs").findProperty("a_nother-dep_endency"), dependencies).let { reference ->
+        dependencies.addArtifact("implementation", reference)
+      }
       applyChangesAndReparse(pbm)
       verifyFileContents(myBuildFile, TestFile.ADD_DEPENDENCY_REFERENCE_TO_VERSION_CATALOG_EXPECTED)
-      verifyVersionCatalogFileContents(myVersionCatalogFile, TestFile.VERSION_CATALOG_GROUP_COMPACT_NOTATION)
+      verifyVersionCatalogFileContents(myVersionCatalogFile, TestFile.VERSION_CATALOG_GROUP_BOTH_NOTATION)
     }
     finally {
       StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
@@ -1861,6 +1862,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     VERSION_CATALOG_BUNDLE_BUILD_FILE("versionCatalogBundleBuildFile"),
     VERSION_CATALOG_BUILD_FILE_INVALID_ALIAS("versionCatalogBuildFileInvalidAlias"),
     VERSION_CATALOG_COMPACT_NOTATION("versionCatalogCompactNotation.toml"),
+    VERSION_CATALOG_GROUP_BOTH_NOTATION("versionCatalogGroupBothNotation.toml"),
     VERSION_CATALOG_GROUP_COMPACT_NOTATION("versionCatalogGroupCompactNotation.toml"),
     VERSION_CATALOG_MAP_NOTATION("versionCatalogMapNotation.toml"),
     VERSION_CATALOG_MAP_NOTATION_EXPECTED("versionCatalogMapNotationExpected.toml"),
