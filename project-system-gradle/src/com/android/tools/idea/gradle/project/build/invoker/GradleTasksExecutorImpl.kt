@@ -399,10 +399,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
     private fun reportAgpVersionMismatch(project: Project, buildInfo: BasicBuildAttributionInfo) {
       val syncedAgpVersions = ProjectStructure.getInstance(project).androidPluginVersions.allVersions
       if (!syncedAgpVersions.contains(buildInfo.agpVersion)) {
-        val incompatibilityMessage = String.format("Project was built with Android Gradle Plugin (AGP) %s but it is synced with %s.",
-                                                   buildInfo.agpVersion,
-                                                   syncedAgpVersions.joinToString(", ") { obj: AgpVersion? -> obj.toString() }
-        )
+        val incompatibilityMessage = getAgpIncompatibilityMessage(buildInfo.agpVersion, syncedAgpVersions)
         logger.warn(incompatibilityMessage)
         val quickFix = SyncProjectWithExtraCommandLineOptionsHyperlink("Sync project", "")
         NotificationGroupManager.getInstance()
@@ -426,6 +423,14 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
         throw ProcessCanceledException()
       }
     }
+
+    private fun getAgpIncompatibilityMessage(builtAgpVersion: AgpVersion?, syncedAgpVersions: List<AgpVersion>) =
+      if (builtAgpVersion == null || syncedAgpVersions.isEmpty()) {
+        "Unable to determine project Android Gradle Plugin (AGP) version."
+      } else {
+        String.format("Project was built with Android Gradle Plugin (AGP) %s but it is synced with %s.",
+                      builtAgpVersion, syncedAgpVersions.joinToString(", ") { it.toString() })
+      }
 
     private fun handleTaskExecutionError(e: Throwable) {
       if (myProgressIndicator.isCanceled) {
