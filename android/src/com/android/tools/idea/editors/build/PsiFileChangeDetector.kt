@@ -28,6 +28,7 @@ import com.intellij.psi.PsiRecursiveElementWalkingVisitor
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.templateLanguages.OuterLanguageElement
 import com.intellij.psi.util.elementType
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtImportDirective
@@ -38,11 +39,11 @@ fun PsiElement.toKeyableString(): String =
 
 /**
  * A [PsiRecursiveElementWalkingVisitor] that filters basic changes and allows the caller additional filters.
- * @param elementFilter if false is returned, the element and all its children will be removed from the visit.
- * @param onElement called for every element with a unique key for the element.
+ * @param onElementVisited called for every element with a unique key for the element.
  */
-private class FilteredPsiRecursiveElementWalkingVisitor(private val elementFilter: (PsiElement) -> Boolean,
-                                                        private val onElement: (PsiElement, Int) -> Boolean) : PsiRecursiveElementWalkingVisitor() {
+private class FilteredPsiRecursiveElementWalkingVisitor(
+  private val onElementVisited: (PsiElement, Int) -> Boolean
+) : PsiRecursiveElementWalkingVisitor() {
   private val filteredElementTypes = setOf(
     KtTokens.LBRACE,
     KtTokens.RBRACE,
@@ -55,15 +56,14 @@ private class FilteredPsiRecursiveElementWalkingVisitor(private val elementFilte
 
   override fun visitElement(element: PsiElement) {
     if (element is KtImportDirective
-        || KtPsiUtil.isInComment(element)
-        || filteredElementTypes.contains(element.elementType)
-        || element is KtAnnotationEntry) return
+      || KtPsiUtil.isInComment(element)
+      || filteredElementTypes.contains(element.elementType)
+      || element is KtAnnotationEntry
+    ) return
 
-    if (elementFilter(element)) {
-      super.visitElement(element)
-      if (!onElement(element, key(element))) {
-        stopWalking()
-      }
+    super.visitElement(element)
+    if (!onElementVisited(element, key(element))) {
+      stopWalking()
     }
   }
 
@@ -107,7 +107,7 @@ interface PsiFileChangeDetector {
 
   companion object {
     @JvmStatic
-    fun getInstance(elementFilter: (PsiElement) -> Boolean = { true }) = HashPsiFileChangeDetector(elementFilter)
+    fun getInstance() = HashPsiFileChangeDetector()
   }
 }
 
@@ -139,21 +139,24 @@ private class NaivePsiFileChangeDetector(id: String) : PsiFileChangeDetector {
 /**
  * A more expensive [PsiFileChangeDetector] that ignores a number of trivial changes in the file like comment changes or addition/removal
  * of spaces.
- * It also allows ignoring additional elements via passing an [elementFilter].
+ * [onElementVisited] will be called for every [PsiElement] visited by this detector.
  */
-class HashPsiFileChangeDetector(private val elementFilter: (PsiElement) -> Boolean = { true }) : PsiFileChangeDetector {
+class HashPsiFileChangeDetector private constructor(private val onElementVisited: () -> Unit) : PsiFileChangeDetector {
+  constructor() : this({})
+
   private val log: Logger = Logger.getInstance(HashPsiFileChangeDetector::class.java)
 
   private data class CalculatedHashValue(val lastPsiModificationStamp: Long, val lastHashValue: Int)
 
-  private val naiveDetector = NaivePsiFileChangeDetector(elementFilter.toString())
+  private val naiveDetector = NaivePsiFileChangeDetector("${HashPsiFileChangeDetector::class.java.name}#$onElementVisited}")
 
   // The markers are unique for the given elementFilter.
-  private val upToDateMarker = Key.create<Int>("${HashPsiFileChangeDetector::class.java.name}#$elementFilter}")
+  private val upToDateMarker = Key.create<Int>("${HashPsiFileChangeDetector::class.java.name}#$onElementVisited}")
 
   // Tis marker is used to avoid calling calculateFileHash for a file with 0 changes.
   private val lastCalculatedHashValueMarker = Key.create<CalculatedHashValue>(
-    "${HashPsiFileChangeDetector::class.java.name}#hashMarker#$elementFilter}")
+    "${HashPsiFileChangeDetector::class.java.name}#hashMarker#$onElementVisited}"
+  )
 
   /**
    * Calculate a hash for the given element. The hash only takes into account the elements that pass the [elementFilter] check.
@@ -168,7 +171,8 @@ class HashPsiFileChangeDetector(private val elementFilter: (PsiElement) -> Boole
 
     return ReadAction.compute<Int, Throwable> {
       var fileHash = 0
-      root.accept(FilteredPsiRecursiveElementWalkingVisitor(elementFilter) { _, elementKey ->
+      root.accept(FilteredPsiRecursiveElementWalkingVisitor { _, elementKey ->
+        onElementVisited()
         fileHash = 31 * fileHash + elementKey
         true
       })
@@ -213,8 +217,7 @@ class HashPsiFileChangeDetector(private val elementFilter: (PsiElement) -> Boole
       val isFileTooLarge = isFileTooLarge(file)
       if (!isFileTooLarge && !PowerSaveMode.isEnabled()) {
         calculateAndCheckFileHash(file, true)
-      }
-      else {
+      } else {
         if (isFileTooLarge) log.debug("$file is too large to be evaluated via HashPsiFileChangeDetector")
       }
       naiveDetector.markFileAsUpToDate(file)
@@ -227,5 +230,10 @@ class HashPsiFileChangeDetector(private val elementFilter: (PsiElement) -> Boole
       file.putCopyableUserData(lastCalculatedHashValueMarker, null)
       naiveDetector.clearMarks(file)
     }
+  }
+
+  companion object {
+    @TestOnly
+    fun forTest(onElementVisited: () -> Unit) = HashPsiFileChangeDetector(onElementVisited)
   }
 }

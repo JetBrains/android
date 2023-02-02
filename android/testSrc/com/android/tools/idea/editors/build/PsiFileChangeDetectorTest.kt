@@ -113,33 +113,9 @@ class PsiFileChangeDetectorTest {
   }
 
   @Test
-  fun `adding a new file level property is not detected if filtered`() {
-    val detectorWithFilter = HashPsiFileChangeDetector {
-      return@HashPsiFileChangeDetector it !is KtProperty
-    }
-    detectorWithFilter.markFileAsUpToDate(file)
-    projectRule.fixture.editor.executeAndSave {
-      replaceText("//Placeholder", "val b = 123.0")
-    }
-    file.assertChanged()
-    file.assertNoChanges(detectorWithFilter)
-  }
-
-  @Test
-  fun `spaces and comments do not generate diffs`() {
-    projectRule.fixture.editor.executeAndSave {
-      replaceText("comment", "New comment")
-    }
-    projectRule.fixture.editor.executeAndSave {
-      replaceText("fun TestMethod2() {", "fun TestMethod2(){")
-    }
-    file.assertNoChanges()
-  }
-
-  @Test
   fun `expensive hashing is not used when the file has no changes`() {
     var hasBeenInvoked = false
-    val detectorWithFilter = HashPsiFileChangeDetector {
+    val detectorWithFilter = HashPsiFileChangeDetector.forTest {
       hasBeenInvoked = true
       true
     }
