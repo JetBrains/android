@@ -111,7 +111,7 @@ public class TargetMenuAction extends DropDownAction {
   }
 
   @NotNull
-  private List<SetTargetAction> getCompatibilitySetTargetActions() {
+  private List<SetTargetAction> getCompatibilitySetTargetActions(boolean defaultSelectable) {
     Configuration configuration = myRenderContext.getConfiguration();
     assert configuration != null;
 
@@ -125,7 +125,7 @@ public class TargetMenuAction extends DropDownAction {
     int minApi = Math.max(getMinSdkVersion(), SHOW_FROM_API_LEVEL);
     for (int apiLevel = highestApiLevel; apiLevel >= minApi; apiLevel--) {
       IAndroidTarget target = new CompatibilityRenderTarget(highestTarget, apiLevel, null);
-      boolean isSelected = currentTarget != null && target.getVersion().equals(currentTarget.getVersion());
+      boolean isSelected = !defaultSelectable && currentTarget != null && target.getVersion().equals(currentTarget.getVersion());
       actions.add(new SetTargetAction(myRenderContext, target.getVersionName(), target, isSelected));
     }
 
@@ -133,7 +133,7 @@ public class TargetMenuAction extends DropDownAction {
   }
 
   @NotNull
-  private List<SetTargetAction> getRealSetTargetActions() {
+  private List<SetTargetAction> getRealSetTargetActions(boolean defaultSelectable) {
 
     Configuration configuration = myRenderContext.getConfiguration();
     assert configuration != null;
@@ -166,7 +166,7 @@ public class TargetMenuAction extends DropDownAction {
       }
 
       String title = getRenderingTargetLabel(target, true);
-      boolean select = current != null && target.getVersion().equals(current.getVersion());
+      boolean select = !defaultSelectable && current != null && target.getVersion().equals(current.getVersion());
       actions.add(new SetTargetAction(myRenderContext, title, target, select));
     }
 
@@ -206,12 +206,15 @@ public class TargetMenuAction extends DropDownAction {
     add(new TogglePickBestAction(configuration.getConfigurationManager()));
     addSeparator();
 
+    ConfigurationManager manager = configuration.getConfigurationManager();
+    boolean isPickBest = manager.getStateManager().getProjectState().isPickTarget();
+
     List<SetTargetAction> actions;
-    if (myUseCompatibilityTarget && configuration.getConfigurationManager().getHighestApiTarget() != null) {
-      actions = getCompatibilitySetTargetActions();
+    if (myUseCompatibilityTarget && manager.getHighestApiTarget() != null) {
+      actions = getCompatibilitySetTargetActions(isPickBest);
     }
     else {
-      actions = getRealSetTargetActions();
+      actions = getRealSetTargetActions(isPickBest);
     }
     addAll(actions);
 
@@ -316,6 +319,15 @@ public class TargetMenuAction extends DropDownAction {
       else {
         configuration.setTarget(myTarget);
       }
+    }
+
+    @Override
+    public void actionPerformed(@NotNull AnActionEvent e) {
+      Configuration config = myRenderContext.getConfiguration();
+      if (config != null) {
+        config.getConfigurationManager().getStateManager().getProjectState().setPickTarget(false);
+      }
+      super.actionPerformed(e);
     }
 
     @Override

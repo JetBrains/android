@@ -24,6 +24,9 @@ import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.idea.configurations.TargetMenuAction.SetTargetAction
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.Toggleable
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndGet
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito.doReturn
@@ -68,6 +71,64 @@ class TargetMenuActionTest : AndroidTestCase() {
 
     assertThat(target.version.apiLevel).isEqualTo(33)
     assertThat(target.revision).isEqualTo(2)
+  }
+
+  fun testNotSelectAutomaticallyPickupActionWhenSelectOtherTarget() {
+    // When switching the selected action from "Automatically Pick Best" to specified target, the "Automatically Pick Best" action should
+    // not be marked as selected.
+
+    val file = runInEdtAndGet { myFixture.addFileToProject("res/layout/layout.xml", "") }
+    val manager = createSpiedConfigurationManager()
+
+    val config = Configuration(manager, file.virtualFile, FolderConfiguration())
+    val menuAction = TargetMenuAction { config }
+
+    manager.stateManager.projectState.isPickTarget = true
+
+    menuAction.updateActions(DataContext.EMPTY_CONTEXT)
+    menuAction.getChildren(null).let { children ->
+      val presentation =  Presentation()
+      children[0].update(TestActionEvent(presentation))
+      assertTrue(Toggleable.isSelected(presentation))
+      for (child in children.drop(2)) {
+        assertFalse(Toggleable.isSelected(child.templatePresentation))
+      }
+
+      // Choose particular target
+      children[2].actionPerformed(TestActionEvent())
+    }
+
+    menuAction.updateActions(DataContext.EMPTY_CONTEXT)
+    menuAction.getChildren(null).let { children ->
+      val presentation =  Presentation()
+      // Automatically pick best should not be selected
+      children[0].update(TestActionEvent(presentation))
+      assertFalse(Toggleable.isSelected(presentation))
+
+      // The performed action should be selected
+      assertTrue(Toggleable.isSelected(children[2].templatePresentation))
+
+      // Other action is not selected
+      for (child in children.drop(3)) {
+        assertFalse(Toggleable.isSelected(child.templatePresentation))
+      }
+
+      // Select Automatically Pick Best action
+      children[0].actionPerformed(TestActionEvent())
+    }
+
+    menuAction.updateActions(DataContext.EMPTY_CONTEXT)
+    menuAction.getChildren(null).let { children ->
+      val presentation =  Presentation()
+      // Automatically pick best should be selected
+      children[0].update(TestActionEvent(presentation))
+      assertTrue(Toggleable.isSelected(presentation))
+
+      // Other actions should not be selected
+      for (child in children.drop(2)) {
+        assertFalse(Toggleable.isSelected(child.templatePresentation))
+      }
+    }
   }
 
   private fun createSpiedConfigurationManager(): ConfigurationManager {

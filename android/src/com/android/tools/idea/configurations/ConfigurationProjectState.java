@@ -86,6 +86,9 @@ public class ConfigurationProjectState {
     return myPickTarget;
   }
 
+  /**
+   * Set the target api level should be picked automatically or not.
+   */
   public void setPickTarget(boolean pickTarget) {
     myPickTarget = pickTarget;
   }
