@@ -72,12 +72,12 @@ class LogcatFilterErrorAnnotatorTest {
   @Test
   fun is_filter() {
     StudioFlags.LOGCAT_IS_FILTER.override(true)
-    val psi = parse("is:crash is:stacktrace is:foo")
+    val psi = parse("is:crash is:firebase is:stacktrace is:foo")
 
     val annotations = CodeInsightTestUtil.testAnnotator(annotator, *psi.children)
 
     assertThat(annotations.map(Annotation::toAnnotationInfo)).containsExactly(
-      AnnotationInfo(26, 29, "Invalid qualifier: foo", ERROR),
+      AnnotationInfo(38, 41, "Invalid qualifier: foo", ERROR),
     )
   }
 

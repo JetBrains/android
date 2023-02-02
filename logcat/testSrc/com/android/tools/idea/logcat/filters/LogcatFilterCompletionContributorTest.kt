@@ -48,7 +48,7 @@ private val STRING_KEYS = listOf(
 
 private val ALL_STRING_KEYS = STRING_KEYS.map(String::getKeyVariants).flatten()
 
-private val IS_VALUES = listOf("crash ", "stacktrace ")
+private val IS_VALUES = listOf("crash ", "firebase ", "stacktrace ")
 
 /**
  * Tests for [LogcatFilterCompletionContributor]
@@ -300,6 +300,7 @@ class LogcatFilterCompletionContributorTest {
 
     assertThat(fixture.lookupElementStrings).containsExactly(
       "is:crash ",
+      "is:firebase ",
       "is:stacktrace ",
     )
   }
