@@ -668,7 +668,7 @@ public class RenderErrorContributor {
     if (target == null) {
       return false;
     }
-    AndroidPlatform platform = renderContext.getPlatform();
+    AndroidPlatform platform = renderContext.getModule().getAndroidPlatform();
     if (platform == null) {
       return false;
     }

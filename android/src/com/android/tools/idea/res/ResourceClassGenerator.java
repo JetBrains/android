@@ -71,7 +71,7 @@ import static org.jetbrains.org.objectweb.asm.Opcodes.*;
 public class ResourceClassGenerator {
   private static final Logger LOG = Logger.getInstance(ResourceClassGenerator.class);
 
-  interface NumericIdProvider {
+  public interface NumericIdProvider {
     /**
      * Counter that tracks when the provider has been reset. This counter will be increased in every reset.
      * If the ids returned by {@link #getOrGenerateId(ResourceReference)} are being cached, they must be invalidated when

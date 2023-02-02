@@ -27,7 +27,8 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
@@ -89,12 +90,19 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
     RenderTestUtil.withRenderTask(myFacet, psiFile.getVirtualFile(), configuration, logger, task -> {
       LayoutLibrary layoutlib = RenderService.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
-      LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(myFacet);
 
       ModuleRenderContext renderContext = ModuleRenderContext.forFile(psiFile);
       ModuleClassLoader classLoader = StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext, this);
+      RenderModelModule module = new DefaultRenderModelModule(
+        myModule,
+        null,
+        ResourceRepositoryManager.getInstance(myFacet),
+        AndroidModuleInfo.getInstance(myFacet),
+        null,
+        ResourceIdManager.get(myModule)
+      );
       LayoutlibCallbackImpl layoutlibCallback =
-        new LayoutlibCallbackImpl(task, layoutlib, appResources, myModule, ResourceRepositoryManager.getInstance(myFacet), IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
+        new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
       ILayoutPullParser parser = layoutlibCallback.getParser(new ResourceValueImpl(
         ResourceNamespace.ANDROID, ResourceType.LAYOUT, "main", psiFile.getVirtualFile().getCanonicalPath()
       ));
@@ -128,12 +136,19 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
     RenderTestUtil.withRenderTask(myFacet, psiFile.getVirtualFile(), configuration, logger, task -> {
       LayoutLibrary layoutlib = RenderService.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
-      LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(myFacet);
 
       ModuleRenderContext renderContext = ModuleRenderContext.forFile(psiFile);
       ModuleClassLoader classLoader = StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext, this);
+      RenderModelModule module = new DefaultRenderModelModule(
+        myModule,
+        null,
+        ResourceRepositoryManager.getInstance(myFacet),
+        AndroidModuleInfo.getInstance(myFacet),
+        null,
+        ResourceIdManager.get(myModule)
+      );
       LayoutlibCallbackImpl layoutlibCallback =
-        new LayoutlibCallbackImpl(task, layoutlib, appResources, myModule, ResourceRepositoryManager.getInstance(myFacet), IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
+        new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
 
       assertNotNull(layoutlibCallback.createXmlParserForPsiFile(fontsFolder.toPath().resolve("aar_font_family.xml").toAbsolutePath().toString()));
 

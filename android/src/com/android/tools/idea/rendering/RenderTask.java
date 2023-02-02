@@ -22,7 +22,6 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
-import com.android.ide.common.rendering.api.AssetRepository;
 import com.android.ide.common.rendering.api.DrawableParams;
 import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.ide.common.rendering.api.IImageFactory;
@@ -53,7 +52,6 @@ import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.idea.model.ActivityAttributesSnapshot;
-import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
@@ -64,8 +62,6 @@ import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceIdManager;
-import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
@@ -101,12 +97,10 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
-import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.CompatibilityRenderTarget;
 import org.jetbrains.android.uipreview.ClassLoaderPreloaderKt;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
-import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.android.uipreview.ModuleRenderContext;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -154,6 +148,8 @@ public class RenderTask {
 
   @NotNull private final ImagePool myImagePool;
   @NotNull private final RenderContext myContext;
+
+  @NotNull private final ModuleClassLoaderManager myClassLoaderManager;
   @NotNull private final RenderLogger myLogger;
   @NotNull private final LayoutlibCallbackImpl myLayoutlibCallback;
   @NotNull private final LayoutLibrary myLayoutLib;
@@ -168,7 +164,6 @@ public class RenderTask {
   private boolean myShadowEnabled = true;
   private boolean myEnableLayoutScanner = false;
   private boolean myShowWithToolsVisibilityAndPosition = true;
-  private AssetRepository myAssetRepository;
   private long myTimeout;
   @NotNull private final Locale myLocale;
   @NotNull private final Object myCredential;
@@ -197,15 +192,11 @@ public class RenderTask {
    * @param privateClassLoader if true, this task should have its own ModuleClassLoader, if false it can use a shared one for the module
    * @param onNewModuleClassLoader
    */
-  RenderTask(@NotNull Module module,
+  RenderTask(@NotNull RenderModelModule module,
              @NotNull ModuleClassLoaderManager classLoaderManager,
              @NotNull Configuration configuration,
-             @NotNull AssetRepository assetRepository,
-             @NotNull ResourceRepositoryManager resourceRepositoryManager,
-             @NotNull AndroidModuleInfo androidModuleInfo,
              @NotNull RenderLogger logger,
              @NotNull LayoutLibrary layoutLib,
-             @NotNull Device device,
              @NotNull Object credential,
              @NotNull CrashReporter crashReporter,
              @NotNull ImagePool imagePool,
@@ -221,7 +212,10 @@ public class RenderTask {
              @NotNull Collection<String> classesToPreload,
              boolean reportOutOfDateUserClasses,
              @NotNull RenderAsyncActionExecutor.RenderingPriority priority,
-             float minDownscalingFactor) {
+             float minDownscalingFactor) throws NoDeviceException {
+    myImagePool = imagePool;
+    myContext = new RenderContext(module, configuration);
+    myClassLoaderManager = classLoaderManager;
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
     this.reportOutOfDateUserClasses = reportOutOfDateUserClasses;
 
@@ -233,8 +227,10 @@ public class RenderTask {
     myLogger = logger;
     myCredential = credential;
     myCrashReporter = crashReporter;
-    myImagePool = imagePool;
-    myAssetRepository = assetRepository;
+    Device device = configuration.getDevice();
+    if (device == null) {
+      throw new NoDeviceException();
+    }
     myHardwareConfigHelper = new HardwareConfigHelper(device);
 
     ScreenOrientation orientation = configuration.getFullConfig().getScreenOrientationQualifier() != null ?
@@ -242,10 +238,10 @@ public class RenderTask {
                                     ScreenOrientation.PORTRAIT;
     myHardwareConfigHelper.setOrientation(orientation);
     myLayoutLib = layoutLib;
-    LocalResourceRepository appResources = resourceRepositoryManager.getAppResources();
+    LocalResourceRepository appResources = module.getResourceRepositoryManager().getAppResources();
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
     WeakReference<RenderTask> xmlFileProvider = new WeakReference<>(this);
-    ModuleRenderContext moduleRenderContext = ModuleRenderContext.forFile(module, () -> {
+    ModuleRenderContext moduleRenderContext = ModuleRenderContext.forFile(module.getIdeaModule(), () -> {
       RenderTask task = xmlFileProvider.get();
       return task != null ? task.getXmlFile() : null;
     });
@@ -269,22 +265,16 @@ public class RenderTask {
         new LayoutlibCallbackImpl(
           this,
           myLayoutLib,
-          appResources,
           module,
-          resourceRepositoryManager,
           myLogger,
           myCredential,
           actionBarHandler,
           parserFactory,
           myModuleClassLoader);
-      if (ResourceIdManager.get(module).getFinalIdsUsed()) {
+      if (module.getResourceIdManager().getFinalIdsUsed()) {
         myLayoutlibCallback.loadAndParseRClass();
       }
       myLocale = configuration.getLocale();
-      myContext = new RenderContext(module,
-                                    configuration,
-                                    androidModuleInfo,
-                                    AndroidPlatform.getInstance(module));
       myMinDownscalingFactor = minDownscalingFactor;
       myDefaultQuality = quality;
       // Some devices need more memory to avoid the blur when rendering. These are special cases.
@@ -373,7 +363,7 @@ public class RenderTask {
   // Workaround for http://b/143378087
   private void clearClassLoader() {
     try {
-      StudioModuleClassLoaderManager.get().release(myModuleClassLoader, this);
+      myClassLoaderManager.release(myModuleClassLoader, this);
     }
     catch (AlreadyDisposedException e) {
       // The project has already been disposed.
@@ -425,7 +415,7 @@ public class RenderTask {
         clearClassLoader();
       }
       myImageFactoryDelegate = null;
-      myAssetRepository = null;
+      myContext.getModule().dispose();
 
       return null;
     });
@@ -551,7 +541,7 @@ public class RenderTask {
   @Nullable
   private RenderResult createRenderSession(@NotNull IImageFactory factory) {
     RenderContext context = getContext();
-    Module module = context.getModule();
+    Module module = context.getModule().getIdeaModule();
     if (module.isDisposed()) {
       return null;
     }
@@ -599,7 +589,7 @@ public class RenderTask {
       new SessionParams(modelParser, myRenderingMode, module /* projectKey */, hardwareConfig, resolver,
                         myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
                         myLogger, simulatedPlatform);
-    params.setAssetRepository(myAssetRepository);
+    params.setAssetRepository(context.getModule().getAssetRepository());
 
     params.setFlag(RenderParamsFlags.FLAG_KEY_ROOT_TAG, AndroidUtils.getRootTagName(psiFile));
     params.setFlag(RenderParamsFlags.FLAG_KEY_DISABLE_BITMAP_CACHING, true);
@@ -688,7 +678,7 @@ public class RenderTask {
       myLayoutlibCallback.setLogger(myLogger);
 
       RenderSecurityManager securityManager =
-        isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module, context.getPlatform()) : null;
+        isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module, context.getModule().getAndroidPlatform()) : null;
       if (securityManager != null) {
         securityManager.setActive(true, myCredential);
       }
@@ -739,7 +729,7 @@ public class RenderTask {
     // Code to support editing included layout.
     if (myIncludedWithin == null) {
       String layout = IncludeReference.getIncludingLayout(xmlFile);
-      Module module = getContext().getModule();
+      Module module = getContext().getModule().getIdeaModule();
       myIncludedWithin = layout != null ? IncludeReference.get(module, xmlFile, resolver) : IncludeReference.NONE;
     }
 
@@ -760,7 +750,7 @@ public class RenderTask {
       myLayoutlibCallback.setLayoutParser(queryLayoutName, modelParser);
 
       // Attempt to read from PSI.
-      PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(getContext().getProject(), layoutVirtualFile);
+      PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(getContext().getModule().getIdeaModule().getProject(), layoutVirtualFile);
       if (psiFile instanceof XmlFile) {
         LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
         // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag
@@ -1135,14 +1125,14 @@ public class RenderTask {
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
     RenderContext context = getContext();
-    Module module = getContext().getModule();
+    Module module = getContext().getModule().getIdeaModule();
     Configuration configuration = context.getConfiguration();
     DrawableParams params =
       new DrawableParams(drawableResourceValue, module, hardwareConfig, configuration.getResourceResolver(),
                          myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
                          myLogger);
     params.setForceNoDecor();
-    params.setAssetRepository(myAssetRepository);
+    params.setAssetRepository(context.getModule().getAssetRepository());
     params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, configuration.getAdaptiveShape().getPathDescription());
     params.setFlag(RenderParamsFlags.FLAG_KEY_USE_THEMED_ICON, configuration.getUseThemedIcon());
     params.setFlag(RenderParamsFlags.FLAG_KEY_WALLPAPER_PATH, configuration.getWallpaperPath());
@@ -1190,14 +1180,14 @@ public class RenderTask {
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
     RenderContext context = getContext();
-    Module module = context.getModule();
+    Module module = context.getModule().getIdeaModule();
     Configuration configuration = context.getConfiguration();
     DrawableParams params =
       new DrawableParams(drawableResourceValue, module, hardwareConfig, configuration.getResourceResolver(),
                          myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
                          myLogger);
     params.setForceNoDecor();
-    params.setAssetRepository(myAssetRepository);
+    params.setAssetRepository(context.getModule().getAssetRepository());
     params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_ALL_DRAWABLE_STATES, Boolean.TRUE);
     params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, configuration.getAdaptiveShape().getPathDescription());
     params.setFlag(RenderParamsFlags.FLAG_KEY_USE_THEMED_ICON, configuration.getUseThemedIcon());
@@ -1326,7 +1316,7 @@ public class RenderTask {
     myLayoutlibCallback.reset();
 
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
-    Module module = getContext().getModule();
+    Module module = getContext().getModule().getIdeaModule();
     SessionParams params = new SessionParams(parser,
                                              RenderingMode.NORMAL,
                                              module /* projectKey */,
@@ -1339,7 +1329,7 @@ public class RenderTask {
     params.setForceNoDecor();
     params.setExtendedViewInfoMode(true);
     params.setLocale(myLocale.toLocaleId());
-    params.setAssetRepository(myAssetRepository);
+    params.setAssetRepository(context.getModule().getAssetRepository());
     params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, configuration.getAdaptiveShape().getPathDescription());
     params.setFlag(RenderParamsFlags.FLAG_KEY_USE_THEMED_ICON, configuration.getUseThemedIcon());
     params.setFlag(RenderParamsFlags.FLAG_KEY_WALLPAPER_PATH, configuration.getWallpaperPath());

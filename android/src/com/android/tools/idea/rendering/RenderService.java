@@ -22,7 +22,6 @@ import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
@@ -41,6 +40,7 @@ import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.AssetRepositoryImpl;
+import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
@@ -681,17 +681,18 @@ public class RenderService implements Disposable {
           return null;
         }
 
-        Device device = myConfiguration.getDevice();
-        if (device == null) {
-          myLogger.addMessage(RenderProblem.createPlain(ERROR, "No device selected"));
-          return null;
-        }
-
         try {
+          RenderModelModule renderModule = new DefaultRenderModelModule(
+            module,
+            new AssetRepositoryImpl(myFacet),
+            ResourceRepositoryManager.getInstance(myFacet),
+            AndroidModuleInfo.getInstance(myFacet),
+            AndroidPlatform.getInstance(module),
+            ResourceIdManager.get(module)
+          );
           RenderTask task =
-            new RenderTask(module, StudioModuleClassLoaderManager.get(), myConfiguration, new AssetRepositoryImpl(myFacet),
-                           ResourceRepositoryManager.getInstance(myFacet), AndroidModuleInfo.getInstance(myFacet), myLogger, layoutLib,
-                           device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
+            new RenderTask(renderModule, StudioModuleClassLoaderManager.get(), myConfiguration, myLogger, layoutLib,
+                           myCredential, StudioCrashReporter.getInstance(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, myManifestProvider,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
                            classesToPreload, reportOutOfDateUserClasses, myPriority, myMinDownscalingFactor);
@@ -717,6 +718,9 @@ public class RenderService implements Disposable {
           }
 
           return task;
+        } catch (NoDeviceException e) {
+          myLogger.addMessage(RenderProblem.createPlain(ERROR, "No device selected"));
+          return null;
         } catch (IllegalStateException | IncorrectOperationException | AssertionError e) {
           // Ignore the exception if it was generated when the facet is being disposed (project is being closed)
           if (!module.isDisposed()) {

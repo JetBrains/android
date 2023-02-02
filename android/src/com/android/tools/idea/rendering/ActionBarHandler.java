@@ -160,7 +160,7 @@ public class ActionBarHandler extends ActionBarCallback {
 
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      Module module = myRenderTask.getContext().getModule();
+      Module module = myRenderTask.getContext().getModule().getIdeaModule();
       ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(module);
       if (repositoryManager != null) {
         ResourceNamespace namespace = repositoryManager.getNamespace();
@@ -224,7 +224,7 @@ public class ActionBarHandler extends ActionBarCallback {
   private ActivityAttributesSnapshot getActivityAttributes() {
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(myRenderTask.getContext().getModule());
+      MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(myRenderTask.getContext().getModule().getIdeaModule());
       String activity = StringUtil.notNullize(myRenderTask.getContext().getConfiguration().getActivity());
       return manifest.getActivityAttributes(activity);
     } finally {

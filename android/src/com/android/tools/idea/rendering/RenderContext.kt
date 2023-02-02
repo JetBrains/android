@@ -17,20 +17,18 @@ package com.android.tools.idea.rendering
 
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.model.AndroidModuleInfo
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.Project
-import org.jetbrains.android.sdk.AndroidPlatform
 
+/**
+ * Information required for rendering. Currently, this is [RenderModelModule] and [Configuration].
+ */
 class RenderContext(
-  val module: Module,
+  val module: RenderModelModule,
   val configuration: Configuration,
-  moduleInfo: AndroidModuleInfo,
-  val platform: AndroidPlatform?
 ) {
-  val project: Project
-    get() = module.project
-  val minSdkVersion = moduleInfo.minSdkVersion
-  val targetSdkVersion = moduleInfo.targetSdkVersion
+  val minSdkVersion = module.info.minSdkVersion
+  val targetSdkVersion = module.info.targetSdkVersion
+  /**
+   * Specifies the type of the resource if rendering is for resource file or null if it not for a resource file.
+   */
   var folderType: ResourceFolderType? = null
 }
