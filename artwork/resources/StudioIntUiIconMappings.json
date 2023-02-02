@@ -3,8 +3,25 @@
     "icons": {
       "shell": {
         "filetree": {
+          "activity.svg": "studio/icons/shell/filetree/activity.svg",
+          "android-file.svg": "studio/icons/shell/filetree/android-file.svg",
           "android-module.svg": "studio/icons/shell/filetree/android-module.svg",
-          "android-project.svg": "studio/icons/shell/filetree/android-project.svg"
+          "android-project.svg": "studio/icons/shell/filetree/android-project.svg",
+          "android-test-root.svg": "studio/icons/shell/filetree/android-test-root.svg",
+          "config-file.svg": "studio/icons/shell/filetree/config-file.svg",
+          "database-file.svg": "studio/icons/shell/filetree/database-file.svg",
+          "feature-module.svg": "studio/icons/shell/filetree/feature-module.svg",
+          "font-file.svg": "studio/icons/shell/filetree/font-file.svg",
+          "gradle-file.svg": "studio/icons/shell/filetree/gradle-file.svg",
+          "instant-apps.svg": "studio/icons/shell/filetree/instant-apps.svg",
+          "library-module.svg": "studio/icons/shell/filetree/library-module.svg",
+          "library-unknown.svg": "studio/icons/shell/filetree/library-unknown.svg",
+          "manifest-file.svg": "studio/icons/shell/filetree/manifest-file.svg",
+          "maven.svg": "studio/icons/shell/filetree/maven.svg",
+          "render-script.svg": "studio/icons/shell/filetree/render-script.svg",
+          "sceneform-asset-description.svg": "studio/icons/shell/filetree/sceneform-asset-description.svg",
+          "sceneform-binary.svg": "studio/icons/shell/filetree/sceneform-binary.svg",
+          "tflite-file.svg": "studio/icons/shell/filetree/tflite-file.svg"
         },
         "tool-windows": {
           "android-profiler.svg": "studio/icons/shell/tool-windows/android-profiler.svg",
@@ -14,13 +31,29 @@
           "build-variants.svg": "studio/icons/shell/tool-windows/build-variants.svg",
           "captures.svg": "studio/icons/shell/tool-windows/captures.svg",
           "component-tree.svg": "studio/icons/shell/tool-windows/component-tree.svg",
+          "database-inspector.svg": "studio/icons/shell/tool-windows/database-inspector.svg",
           "device-explorer.svg": "studio/icons/shell/tool-windows/device-explorer.svg",
           "device-manager.svg": "studio/icons/shell/tool-windows/device-manager.svg",
           "emulator.svg": "studio/icons/shell/tool-windows/emulator.svg",
+          "lint.svg": "studio/icons/shell/tool-windows/lint.svg",
           "logcat.svg": "studio/icons/shell/tool-windows/logcat.svg",
           "multi-preview.svg": "studio/icons/shell/tool-windows/multi-preview.svg",
           "palette.svg": "studio/icons/shell/tool-windows/palette.svg",
+          "structure.svg": "studio/icons/shell/tool-windows/structure.svg",
           "visual-assets.svg": "studio/icons/shell/tool-windows/visual-assets.svg"
+        },
+        "toolbar": {
+          "apply-all-changes.svg": "studio/icons/shell/toolbar/apply-all-changes.svg",
+          "apply-code-swap.svg": "studio/icons/shell/toolbar/apply-code-swap.svg",
+          "attach-debugger.svg": "studio/icons/shell/toolbar/attach-debugger.svg",
+          "device-manager.svg": "studio/icons/shell/toolbar/device-manager.svg",
+          "gradle-sync.svg": "studio/icons/shell/toolbar/gradle-sync.svg",
+          "instant-run.svg": "studio/icons/shell/toolbar/instant-run.svg",
+          "profiler.svg": "studio/icons/shell/toolbar/profiler.svg",
+          "run-with-coverage.svg": "studio/icons/shell/toolbar/run-with-coverage.svg",
+          "sdk-manager.svg": "studio/icons/shell/toolbar/sdk-manager.svg",
+          "user-profile.svg": "studio/icons/shell/toolbar/user-profile.svg",
+          "user-profile-active.svg": "studio/icons/shell/toolbar/user-profile-active.svg"
         }
       }
     }
