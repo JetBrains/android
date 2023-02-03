@@ -21,7 +21,7 @@ import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.util.Disposer
-import java.awt.EventQueue
+import com.intellij.util.ui.UIUtil
 import java.awt.KeyboardFocusManager
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
@@ -89,17 +89,20 @@ internal class DeviceClipboardSynchronizer(
     }
   }
 
+  @AnyThread
   override fun contentChanged(oldTransferable: Transferable?, newTransferable: Transferable?) {
-    val text = newTransferable?.getText() ?: return
-    if (text.isNotEmpty() && text != lastClipboardText) {
-      lastClipboardText = text
-      sendClipboardSyncMessage(text)
+    UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
+      val text = newTransferable?.getText() ?: return@invokeLaterIfNeeded
+      if (text.isNotEmpty() && text != lastClipboardText) {
+        lastClipboardText = text
+        sendClipboardSyncMessage(text)
+      }
     }
   }
 
   @AnyThread
   override fun onDeviceClipboardChanged(text: String) {
-    EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+    UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
       if (text != lastClipboardText) {
         lastClipboardText = text
         copyPasteManager.setContents(StringSelection(text))
