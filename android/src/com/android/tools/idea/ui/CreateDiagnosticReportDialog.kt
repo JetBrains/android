@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.ui
 
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.actions.ShowDiagnosticReportAction
 import com.android.tools.idea.diagnostics.report.FileInfo
 import com.android.tools.idea.util.ZipData
 import com.android.tools.idea.util.zipFiles
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.CreateDiagnosticReportAction
 import com.intellij.ide.actions.RevealFileAction
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
@@ -40,7 +43,6 @@ import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -158,8 +160,14 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
     val saveFile = getSaveFile(project) ?: return
     createZipFile(saveFile)
     showNotification(saveFile)
+    log(CreateDiagnosticReportAction.ActionType.CREATED)
 
     super.doOKAction()
+  }
+
+  override fun doCancelAction() {
+    log(CreateDiagnosticReportAction.ActionType.CANCELLED)
+    super.doCancelAction()
   }
 
   private fun buildTree(list: List<FileInfo>): Tree {
@@ -263,6 +271,16 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
     notification.addAction(ShowDiagnosticReportAction(path.toFile()))
 
     ApplicationManager.getApplication().invokeLater { Notifications.Bus.notify(notification) }
+  }
+
+  private fun log(type: CreateDiagnosticReportAction.ActionType) {
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.CREATE_DIAGNOSTIC_REPORT_ACTION
+        createDiagnosticReportActionEvent = CreateDiagnosticReportAction.newBuilder().apply {
+          actionType = type
+        }.build()
+      })
   }
 
   private class FileTreeRenderer : CheckboxTree.CheckboxTreeCellRenderer() {
