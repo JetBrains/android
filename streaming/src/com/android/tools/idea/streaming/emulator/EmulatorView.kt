@@ -777,12 +777,12 @@ class EmulatorView(
       }
     }
 
-    override fun mouseWheelMoved(e: MouseWheelEvent) {
-      if (e.wheelRotation == 0 || e.scrollType != WHEEL_UNIT_SCROLL) {
-        return;
+    override fun mouseWheelMoved(event: MouseWheelEvent) {
+      if (event.wheelRotation == 0 || event.scrollType != WHEEL_UNIT_SCROLL) {
+        return
       }
       // Multiplying wheelRotation by -1 because AWT assigns the opposite sign to Qt/Android.
-      getOrCreateMouseWheelSender().onNext(WheelEvent.newBuilder().setDy(-e.wheelRotation * 120).build())
+      getOrCreateMouseWheelSender().onNext(WheelEvent.newBuilder().setDy(-event.wheelRotation * 120).build())
     }
 
     private fun getOrCreateMouseWheelSender(): StreamObserver<WheelEvent> {
