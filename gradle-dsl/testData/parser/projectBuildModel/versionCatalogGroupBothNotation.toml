@@ -1,3 +1,6 @@
 [libraries]
 a_dep-endency = 'com.example:example:1.2.3'
 a_nother-dep_endency = { module = "com.example:example2", version = "2.3.4" }
+
+[bundles]
+dep_endencies = [ "a_dep-endency", "a_nother-dep_endency" ]
