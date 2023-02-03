@@ -464,7 +464,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
 
     switch (event) {
       case DEVICE_DISCONNECT ->
-        deviceStatusManager.update(device, LiveEditStatus.Disabled.INSTANCE);
+        deviceStatusManager.clear(device);
       case APPLICATION_CONNECT ->
         // If the device was previously in LOADING state, we are now ready to receive live edits.
         deviceStatusManager.update(device, status -> status == LiveEditStatus.Loading.INSTANCE ? LiveEditStatus.UpToDate.INSTANCE : status);

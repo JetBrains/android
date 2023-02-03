@@ -54,6 +54,10 @@ class DeviceStatusManager {
     deviceStatuses.clear()
   }
 
+  fun clear(device: IDevice) {
+    deviceStatuses.remove(device)
+  }
+
   fun update(status: LiveEditStatus) {
     update(deviceStatuses.keys) { _ -> status }
   }
