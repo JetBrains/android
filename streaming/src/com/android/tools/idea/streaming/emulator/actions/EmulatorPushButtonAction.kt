@@ -18,7 +18,7 @@ package com.android.tools.idea.streaming.emulator.actions
 import com.android.emulator.control.KeyboardEvent
 import com.android.tools.idea.streaming.PushButtonAction
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration
-import com.android.tools.idea.streaming.emulator.createHardwareKeyEvent
+import com.android.tools.idea.streaming.emulator.createKeyboardEvent
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import java.util.function.Predicate
@@ -34,15 +34,15 @@ open class EmulatorPushButtonAction(
 ) : AbstractEmulatorAction(configFilter = configFilter), PushButtonAction {
 
   final override fun buttonPressed(event: AnActionEvent) {
-    getEmulatorController(event)?.sendKey(createHardwareKeyEvent(keyName, eventType = KeyboardEvent.KeyEventType.keydown))
+    getEmulatorController(event)?.sendKey(createKeyboardEvent(keyName, eventType = KeyboardEvent.KeyEventType.keydown))
   }
 
   final override fun buttonReleased(event: AnActionEvent) {
-    getEmulatorController(event)?.sendKey(createHardwareKeyEvent(keyName, eventType = KeyboardEvent.KeyEventType.keyup))
+    getEmulatorController(event)?.sendKey(createKeyboardEvent(keyName, eventType = KeyboardEvent.KeyEventType.keyup))
   }
 
   final override fun buttonPressedAndReleased(event: AnActionEvent) {
-    getEmulatorController(event)?.sendKey(createHardwareKeyEvent(keyName, eventType = KeyboardEvent.KeyEventType.keypress))
+    getEmulatorController(event)?.sendKey(createKeyboardEvent(keyName, eventType = KeyboardEvent.KeyEventType.keypress))
   }
 
   final override fun actionPerformed(event: AnActionEvent) {

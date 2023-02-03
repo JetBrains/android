@@ -29,10 +29,10 @@ fun <T> getEmptyObserver(): StreamObserver<T> {
 }
 
 /**
- * Creates a [KeyboardEvent] for the given hardware key.
- * Key names are defined in https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values.
+ * Creates a [KeyboardEvent] for the given key. Key names are defined in
+ * https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values.
  */
-internal fun createHardwareKeyEvent(keyName: String, eventType: KeyEventType = KeyEventType.keypress): KeyboardEvent {
+internal fun createKeyboardEvent(keyName: String, eventType: KeyEventType = KeyEventType.keypress): KeyboardEvent {
   return KeyboardEvent.newBuilder()
     .setKey(keyName)
     .setEventType(eventType)

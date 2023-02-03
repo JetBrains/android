@@ -709,7 +709,7 @@ class EmulatorView(
           VK_PAGE_DOWN -> "PageDown"
           else -> return
         }
-      emulator.sendKey(createHardwareKeyEvent(keyName))
+      emulator.sendKey(createKeyboardEvent(keyName))
       event.consume()
     }
 
