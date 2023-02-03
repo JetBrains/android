@@ -99,12 +99,6 @@ public final class StudioFlags {
     MEMORY_USAGE_REPORTING, "use.disposer.tree.references", "Memory report collection traversal will use disposer tree reference.",
     "If enabled, the memory report collecting traversal will consider disposer tree references as an object graph edges.",
     false);
-
-  public static final Flag<Boolean> MEMORY_TRAFFIC_TRACK_OLDER_GENERATIONS = Flag.create(
-    MEMORY_USAGE_REPORTING, "memory.traffic.track.older.generations",
-    "Memory report collection keeps track of the older object statistics.",
-    "If enabled, the memory usage report will contain statistics on the number and total size of objects that have been allocated 1/2/3/... iterations ago.",
-    false);
   //endregion
 
   //region Profiler

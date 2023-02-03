@@ -18,7 +18,6 @@ package com.android.tools.idea.diagnostics.heap;
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.processMask;
 import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.MemoryUsageCollectionMetadata.StatusCode;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.google.wireless.android.sdk.stats.MemoryUsageReportEvent;
 import com.intellij.ide.PowerSaveMode;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -31,7 +30,6 @@ import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -95,44 +93,44 @@ final class HeapSnapshotStatistics {
     return categoryComponentStats;
   }
 
-  public void addObjectSizeToSharedComponent(long sharedMask, long size, short objectAge, String objectClassName) {
+  public void addObjectSizeToSharedComponent(long sharedMask, long size, String objectClassName) {
     if (!maskToSharedComponentStats.containsKey(sharedMask)) {
       maskToSharedComponentStats.put(sharedMask, new SharedClusterStatistics(sharedMask));
     }
     SharedClusterStatistics stats = maskToSharedComponentStats.get(sharedMask);
-    stats.getStatistics().addObject(size, objectAge);
+    stats.getStatistics().addObject(size);
 
     if (config.collectHistograms && extendedReportStatistics != null) {
       extendedReportStatistics.addClassNameToSharedClusterHistogram(stats, objectClassName, size);
     }
   }
 
-  public void addOwnedObjectSizeToComponent(int componentId, long size, short objectAge, String objectClassName) {
+  public void addOwnedObjectSizeToComponent(int componentId, long size, String objectClassName) {
     ComponentClusterObjectsStatistics stats = componentStats.get(componentId);
-    stats.addOwnedObject(size, objectAge);
+    stats.addOwnedObject(size);
     if (config.collectHistograms && extendedReportStatistics != null) {
       extendedReportStatistics.addClassNameToComponentOwnedHistogram(stats.getComponent(), objectClassName, size);
     }
   }
 
-  public void addObjectToTotal(long size, short objectAge) {
-    totalStats.addObject(size, objectAge);
+  public void addObjectToTotal(long size) {
+    totalStats.addObject(size);
   }
 
-  public void addRetainedObjectSizeToCategoryComponent(int categoryId, long size, short objectAge) {
-    categoryComponentStats.get(categoryId).addRetainedObject(size, objectAge);
+  public void addRetainedObjectSizeToCategoryComponent(int categoryId, long size) {
+    categoryComponentStats.get(categoryId).addRetainedObject(size);
   }
 
-  public void addOwnedObjectSizeToCategoryComponent(int categoryId, long size, short objectAge, String objectClassName) {
+  public void addOwnedObjectSizeToCategoryComponent(int categoryId, long size, String objectClassName) {
     CategoryClusterObjectsStatistics stats = categoryComponentStats.get(categoryId);
-    stats.addOwnedObject(size, objectAge);
+    stats.addOwnedObject(size);
     if (config.collectHistograms && extendedReportStatistics != null) {
       extendedReportStatistics.addClassNameToCategoryOwnedHistogram(stats.getComponentCategory(), objectClassName, size);
     }
   }
 
-  public void addRetainedObjectSizeToComponent(int componentID, long size, short objectAge) {
-    componentStats.get(componentID).addRetainedObject(size, objectAge);
+  public void addRetainedObjectSizeToComponent(int componentID, long size) {
+    componentStats.get(componentID).addRetainedObject(size);
   }
 
   void print(@NotNull final Consumer<String> writer, @NotNull final Function<ObjectsStatistics, String> objectsStatsPresentation,
@@ -227,8 +225,6 @@ final class HeapSnapshotStatistics {
   private MemoryUsageReportEvent.MemoryTrafficStatistics buildMemoryTrafficStatistics(@NotNull final ClusterObjectsStatistics.MemoryTrafficStatistics memoryTrafficStatistics) {
     return MemoryUsageReportEvent.MemoryTrafficStatistics.newBuilder()
       .setTotalStats(buildObjectStatistics(memoryTrafficStatistics.getObjectsStatistics()))
-      .setNewGenerationStats(
-        buildObjectStatistics(memoryTrafficStatistics.getNewObjectsStatistics()))
       .build();
   }
 
@@ -325,7 +321,7 @@ final class HeapSnapshotStatistics {
     @NotNull
     private final ComponentsSet.Component component;
 
-    private ComponentClusterObjectsStatistics(final ComponentsSet.Component component) {
+    private ComponentClusterObjectsStatistics(@NotNull final ComponentsSet.Component component) {
       this.component = component;
     }
 
@@ -350,19 +346,17 @@ final class HeapSnapshotStatistics {
   }
 
   static class ClusterObjectsStatistics {
-
-    public static final int MAX_TRACKED_OBJECT_AGE = 4;
     @NotNull
     private final MemoryTrafficStatistics retainedClusterStat = new MemoryTrafficStatistics();
     @NotNull
     private final MemoryTrafficStatistics ownedClusterStat = new MemoryTrafficStatistics();
 
-    public void addOwnedObject(long size, short objectAge) {
-      ownedClusterStat.addObject(size, objectAge);
+    public void addOwnedObject(long size) {
+      ownedClusterStat.addObject(size);
     }
 
-    public void addRetainedObject(long size, short objectAge) {
-      retainedClusterStat.addObject(size, objectAge);
+    public void addRetainedObject(long size) {
+      retainedClusterStat.addObject(size);
     }
 
     @NotNull
@@ -378,38 +372,13 @@ final class HeapSnapshotStatistics {
     static class MemoryTrafficStatistics {
       @NotNull
       private final ObjectsStatistics objectsStat = new ObjectsStatistics();
-      @NotNull
-      private final ObjectsStatistics newObjectsStat = new ObjectsStatistics();
-      @NotNull
-      private final List<ObjectsStatistics> previousSnapshotsRemainedObjectsStats =
-        IntStream.range(0, MAX_TRACKED_OBJECT_AGE).mapToObj(x -> new ObjectsStatistics())
-          .collect(Collectors.toList());
 
-      public void addObject(long size, short objectAge) {
+      public void addObject(long size) {
         objectsStat.addObject(size);
-
-        if (objectAge == 0) {
-          newObjectsStat.addObject(size);
-          return;
-        }
-        if (StudioFlags.MEMORY_TRAFFIC_TRACK_OLDER_GENERATIONS.get()) {
-          if (objectAge >= MAX_TRACKED_OBJECT_AGE) {
-            objectAge = MAX_TRACKED_OBJECT_AGE;
-          }
-          previousSnapshotsRemainedObjectsStats.get(objectAge - 1).addObject(size);
-        }
       }
 
       public ObjectsStatistics getObjectsStatistics() {
         return objectsStat;
-      }
-
-      public ObjectsStatistics getNewObjectsStatistics() {
-        return newObjectsStat;
-      }
-
-      public List<ObjectsStatistics> getPreviousSnapshotsRemainedObjectsStatistics() {
-        return previousSnapshotsRemainedObjectsStats;
       }
     }
   }

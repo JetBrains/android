@@ -42,14 +42,12 @@ public final class HeapSnapshotTraverse implements Disposable {
   private static final int INVALID_OBJECT_TAG = -1;
   private static final int MAX_DEPTH = 100_000;
 
-  private static final long OBJECT_CREATION_ITERATION_ID_MASK = 0xFF;
-  private static final long CURRENT_ITERATION_ID_MASK = 0xFF00;
-  private static final long CURRENT_ITERATION_VISITED_MASK = 0x10000;
-  private static final long CURRENT_ITERATION_OBJECT_ID_MASK = 0x1FFFFFFFE0000L;
+  private static final long CURRENT_ITERATION_ID_MASK = 0xFF;
+  private static final long CURRENT_ITERATION_VISITED_MASK = 0x100;
+  private static final long CURRENT_ITERATION_OBJECT_ID_MASK = 0x1FFFFFFFE00L;
 
-  private static final int CURRENT_ITERATION_OBJECT_ID_OFFSET = 17;
-  // 8(creation iteration id mask) + 8(current iteration id mask) + 1(visited mask)
-  private static final int CURRENT_ITERATION_ID_OFFSET = 8;
+  private static final int CURRENT_ITERATION_OBJECT_ID_OFFSET = 9;
+  // 8(current iteration id mask) + 1(visited mask)
 
   private static short ourIterationId = 0;
 
@@ -163,17 +161,16 @@ public final class HeapSnapshotTraverse implements Disposable {
             statistics.incrementGarbageCollectedObjectsCounter();
             continue;
           }
+          setObjectTag(currentObject, 0);
 
           // Check whether the current object is a root of one of the components
           ComponentsSet.Component currentObjectComponent =
             statistics.getConfig().getComponentsSet().getComponentOfObject(currentObject);
 
           long currentObjectSize = getObjectSize(currentObject);
-          short currentObjectCreationIterationId = getObjectCreationIterationId(node.tag);
-          short currentObjectAge = (short)(iterationId - currentObjectCreationIterationId);
           String currentObjectClassName = currentObject.getClass().getName();
 
-          statistics.addObjectToTotal(currentObjectSize, currentObjectAge);
+          statistics.addObjectToTotal(currentObjectSize);
 
           // if it's a root of a component
           if (currentObjectComponent != null) {
@@ -183,13 +180,12 @@ public final class HeapSnapshotTraverse implements Disposable {
 
           // If current object is retained by any components - propagate their stats.
           processMask(node.retainedMask,
-                      (index) -> statistics.addRetainedObjectSizeToComponent(index, currentObjectSize,
-                                                                             currentObjectAge));
+                      (index) -> statistics.addRetainedObjectSizeToComponent(index, currentObjectSize));
           // If current object is retained by any component categories - propagate their stats.
           processMask(node.retainedMaskForCategories,
                       (index) -> statistics.addRetainedObjectSizeToCategoryComponent(index,
-                                                                                     currentObjectSize,
-                                                                                     currentObjectAge));
+                                                                                     currentObjectSize
+                      ));
 
           AtomicInteger categoricalOwnedMask = new AtomicInteger();
           processMask(node.ownedByComponentMask,
@@ -202,7 +198,7 @@ public final class HeapSnapshotTraverse implements Disposable {
             processMask(categoricalOwnedMask.get(),
                         (index) -> statistics.addOwnedObjectSizeToCategoryComponent(index,
                                                                                     currentObjectSize,
-                                                                                    currentObjectAge, currentObjectClassName));
+                                                                                    currentObjectClassName));
           }
           if (node.ownedByComponentMask == 0) {
             int uncategorizedComponentId =
@@ -211,20 +207,20 @@ public final class HeapSnapshotTraverse implements Disposable {
               statistics.getConfig().getComponentsSet().getUncategorizedComponent().getComponentCategory()
                 .getId();
             statistics.addOwnedObjectSizeToComponent(uncategorizedComponentId, currentObjectSize,
-                                                     currentObjectAge, currentObjectClassName);
+                                                     currentObjectClassName);
             statistics.addOwnedObjectSizeToCategoryComponent(uncategorizedCategoryId,
-                                                             currentObjectSize, currentObjectAge, currentObjectClassName);
+                                                             currentObjectSize, currentObjectClassName);
           }
           else if (isPowerOfTwo(node.ownedByComponentMask)) {
             // if only owned by one component
             processMask(node.ownedByComponentMask,
                         (index) -> statistics.addOwnedObjectSizeToComponent(index, currentObjectSize,
-                                                                            currentObjectAge, currentObjectClassName));
+                                                                            currentObjectClassName));
           }
           else {
             // if owned by multiple components -> add to shared
             statistics.addObjectSizeToSharedComponent(node.ownedByComponentMask, currentObjectSize,
-                                                      currentObjectAge, currentObjectClassName);
+                                                      currentObjectClassName);
           }
 
           // propagate to referred objects
@@ -271,20 +267,7 @@ public final class HeapSnapshotTraverse implements Disposable {
    */
   @SuppressWarnings("BooleanMethodIsAlwaysInverted")
   private boolean isTagFromTheCurrentIteration(long tag) {
-    return ((tag & CURRENT_ITERATION_ID_MASK) >> CURRENT_ITERATION_ID_OFFSET) == iterationId;
-  }
-
-  static short getObjectCreationIterationId(long tag) {
-    return (short)(tag & OBJECT_CREATION_ITERATION_ID_MASK);
-  }
-
-  private long checkObjectCreationIterationIdAndSetIfNot(long tag) {
-    int creationIterationId = (int)(tag & OBJECT_CREATION_ITERATION_ID_MASK);
-    if (creationIterationId == 0) {
-      tag &= ~iterationId;
-      return tag | iterationId;
-    }
-    return tag;
+    return (tag & CURRENT_ITERATION_ID_MASK) == iterationId;
   }
 
   private int getObjectId(long tag) {
@@ -305,7 +288,7 @@ public final class HeapSnapshotTraverse implements Disposable {
     tag &= ~CURRENT_ITERATION_OBJECT_ID_MASK;
     tag |= (long)newObjectId << CURRENT_ITERATION_OBJECT_ID_OFFSET;
     tag &= ~CURRENT_ITERATION_ID_MASK;
-    tag |= (long)iterationId << CURRENT_ITERATION_ID_OFFSET;
+    tag |= iterationId;
     setObjectTag(obj, tag);
     return tag;
   }
@@ -314,7 +297,7 @@ public final class HeapSnapshotTraverse implements Disposable {
     tag &= ~CURRENT_ITERATION_VISITED_MASK;
     tag |= CURRENT_ITERATION_VISITED_MASK;
     tag &= ~CURRENT_ITERATION_ID_MASK;
-    tag |= (long)iterationId << CURRENT_ITERATION_ID_OFFSET;
+    tag |= iterationId;
     setObjectTag(obj, tag);
     return tag;
   }
@@ -398,7 +381,6 @@ public final class HeapSnapshotTraverse implements Disposable {
       long tag = stackNode.tag;
       // add to the topological order when ascending from the recursive subtree.
       if (stackNode.referencesProcessed) {
-        tag = checkObjectCreationIterationIdAndSetIfNot(tag);
         tag = setObjectId(stackNode.obj, tag, getNextObjectId());
         StackNode.popElementFromDepthFirstSearchStack();
         if (root == stackNode.obj) {
@@ -444,6 +426,9 @@ public final class HeapSnapshotTraverse implements Disposable {
         return;
       }
       long tag = getObjectTag(value);
+      if (tag == 0) {
+        return;
+      }
       int objectId = getObjectId(tag);
       // don't process non-enumerated objects.
       // This situation may occur if array/list element or field value changed after enumeration
@@ -526,7 +511,7 @@ public final class HeapSnapshotTraverse implements Disposable {
   /**
    * Returns a JVM TI tag of the passed object.
    */
-  private static native long getObjectTag(@NotNull final Object obj);
+  static native long getObjectTag(@NotNull final Object obj);
 
   /**
    * Sets a JVM TI object tag for a passed object.
@@ -536,6 +521,7 @@ public final class HeapSnapshotTraverse implements Disposable {
   /**
    * Checks that JVM TI agent has a capability to tag objects.
    */
+  @SuppressWarnings("BooleanMethodIsAlwaysInverted")
   private static native boolean canTagObjects();
 
   /**
