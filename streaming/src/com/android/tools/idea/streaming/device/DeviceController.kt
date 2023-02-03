@@ -64,10 +64,10 @@ class DeviceController(
     outputStream.flush()
   }
 
-  fun sendKeystroke(androidKeystroke: AndroidKeyStroke) {
-    pressMetaKeys(androidKeystroke.metaState)
-    sendControlMessage(KeyEventMessage(AndroidKeyEventActionType.ACTION_DOWN_AND_UP, androidKeystroke.keyCode, androidKeystroke.metaState))
-    releaseMetaKeys(androidKeystroke.metaState)
+  fun sendKeyStroke(androidKeyStroke: AndroidKeyStroke) {
+    pressMetaKeys(androidKeyStroke.metaState)
+    sendControlMessage(KeyEventMessage(AndroidKeyEventActionType.ACTION_DOWN_AND_UP, androidKeyStroke.keyCode, androidKeyStroke.metaState))
+    releaseMetaKeys(androidKeyStroke.metaState)
   }
 
   // Simulates pressing of meta keys corresponding to the given [metaState].
