@@ -15,20 +15,35 @@
  */
 package com.android.tools.idea.logcat.service
 
+import com.android.adblib.INFINITE_DURATION
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.flow.Flow
+import java.time.Duration
 
 /**
  * Reads and clears a logcat from a device
  */
-internal interface LogcatService {
-  suspend fun readLogcat(device: Device) : Flow<List<LogcatMessage>>
+interface LogcatService {
+  suspend fun readLogcat(
+    serialNumber: String,
+    sdk: Int,
+    duration: Duration = INFINITE_DURATION,
+    newMessagesOnly: Boolean = false,
+  ): Flow<List<LogcatMessage>>
+
+  suspend fun readLogcat(
+    device: Device,
+    duration: Duration = INFINITE_DURATION,
+    newMessagesOnly: Boolean = false,
+  ): Flow<List<LogcatMessage>> =
+    readLogcat(device.serialNumber, device.sdk, duration, newMessagesOnly)
 
   suspend fun clearLogcat(device: Device)
 
   companion object {
+    @JvmStatic
     fun getInstance(project: Project): LogcatService = project.getService(LogcatService::class.java)
   }
 }

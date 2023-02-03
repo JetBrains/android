@@ -18,7 +18,7 @@ package com.android.tools.idea.logcat.message
 /**
  * A Logcat message.
  */
-internal data class LogcatMessage(val header: LogcatHeader, val message: String) {
+data class LogcatMessage(val header: LogcatHeader, val message: String) {
   override fun toString(): String {
     return "$header: $message"
   }

@@ -21,6 +21,7 @@ import com.android.tools.idea.logcat.service.LogcatService
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.consumeAsFlow
+import java.time.Duration
 
 internal class FakeLogcatService : LogcatService {
   private var channel: Channel<List<LogcatMessage>>? = null
@@ -29,7 +30,7 @@ internal class FakeLogcatService : LogcatService {
     channel?.send(messages.asList()) ?: throw IllegalStateException("Channel not setup. Did you call readLogcat()?")
   }
 
-  override suspend fun readLogcat(device: Device): Flow<List<LogcatMessage>> {
+  override suspend fun readLogcat(serialNumber: String, sdk: Int, duration: Duration, newMessagesOnly: Boolean): Flow<List<LogcatMessage>> {
     return Channel<List<LogcatMessage>>(1).also {
       channel = it
     }.consumeAsFlow()

@@ -29,7 +29,7 @@ private val EPOCH_TIME_FORMATTER: DateTimeFormatter = DateTimeFormatterBuilder()
 /**
  * The header part of a Logcat message
  */
-internal data class LogcatHeader(
+data class LogcatHeader(
   val logLevel: LogLevel,
   val pid: Int,
   val tid: Int,
