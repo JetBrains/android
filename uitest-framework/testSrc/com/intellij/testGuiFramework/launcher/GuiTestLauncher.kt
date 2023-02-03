@@ -159,6 +159,7 @@ object GuiTestLauncher {
       "-Didea.config.path=${GuiTests.getConfigDirPath()}",
       "-Didea.system.path=${GuiTests.getSystemDirPath()}",
       "-Dplugin.path=${GuiTestOptions.getPluginPath()}",
+      "-Dkotlin.script.classpath=",  // TODO(b/213385827): Fix Kotlin script classpath calculation during tests
       "-Didea.force.use.core.classloader=true",
       "-Djava.system.class.loader=com.intellij.util.lang.PathClassLoader",
       "-Didea.trust.all.projects=true",
