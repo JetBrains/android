@@ -166,17 +166,6 @@ internal class DeviceView(
   private val displayTransform = AffineTransform()
   private var disposed = false
 
-  private var cachedKeyStrokeMap: Map<KeyStroke, AndroidKeyStroke>? = null
-  private val keyStrokeMap: Map<KeyStroke, AndroidKeyStroke>
-    get() {
-      var map = cachedKeyStrokeMap
-      if (map == null) {
-        map = buildKeyStrokeMap()
-        cachedKeyStrokeMap = map
-      }
-      return map
-    }
-
   private var multiTouchMode = false
     set(value) {
       if (value != field) {
@@ -200,11 +189,6 @@ internal class DeviceView(
         if (physicalWidth > 0 && physicalHeight > 0 && connectionState == ConnectionState.INITIAL) {
           connectToAgentAsync(initialDisplayOrientation)
         }
-      }
-    })
-    addFocusListener(object : FocusAdapter() {
-      override fun focusGained(event: FocusEvent) {
-        cachedKeyStrokeMap = null // Keyboard shortcuts may have changed while the view didn't have focus.
       }
     })
 
@@ -479,45 +463,6 @@ internal class DeviceView(
     connectionStateListeners.remove(listener)
   }
 
-  private fun buildKeyStrokeMap(): Map<KeyStroke, AndroidKeyStroke> {
-    return mutableMapOf<KeyStroke, AndroidKeyStroke>().apply {
-      addKeyStrokesForAction(ACTION_CUT, AndroidKeyStroke(AKEYCODE_CUT))
-      addKeyStrokesForAction(ACTION_COPY, AndroidKeyStroke(AKEYCODE_COPY))
-      addKeyStrokesForAction(ACTION_PASTE, AndroidKeyStroke(AKEYCODE_PASTE))
-      addKeyStrokesForAction(ACTION_SELECT_ALL, AndroidKeyStroke(AKEYCODE_A, AMETA_CTRL_ON))
-      addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_LEFT, AndroidKeyStroke(AKEYCODE_DPAD_LEFT))
-      addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_RIGHT, AndroidKeyStroke(AKEYCODE_DPAD_RIGHT))
-      addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_LEFT_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_DPAD_LEFT, AMETA_SHIFT_ON))
-      addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_RIGHT_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_DPAD_RIGHT, AMETA_SHIFT_ON))
-      addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_UP, AndroidKeyStroke(AKEYCODE_DPAD_UP))
-      addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_DOWN, AndroidKeyStroke(AKEYCODE_DPAD_DOWN))
-      addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_UP_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_DPAD_UP, AMETA_SHIFT_ON))
-      addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_DOWN_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_DPAD_DOWN, AMETA_SHIFT_ON))
-      addKeyStrokesForAction(ACTION_EDITOR_PREVIOUS_WORD, AndroidKeyStroke(AKEYCODE_DPAD_LEFT, AMETA_CTRL_ON))
-      addKeyStrokesForAction(ACTION_EDITOR_NEXT_WORD, AndroidKeyStroke(AKEYCODE_DPAD_RIGHT, AMETA_CTRL_ON))
-      addKeyStrokesForAction(ACTION_EDITOR_PREVIOUS_WORD_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_DPAD_LEFT, AMETA_CTRL_SHIFT_ON))
-      addKeyStrokesForAction(ACTION_EDITOR_NEXT_WORD_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_DPAD_RIGHT, AMETA_CTRL_SHIFT_ON))
-      addKeyStrokesForAction(ACTION_EDITOR_MOVE_LINE_START, AndroidKeyStroke(AKEYCODE_MOVE_HOME))
-      addKeyStrokesForAction(ACTION_EDITOR_MOVE_LINE_END, AndroidKeyStroke(AKEYCODE_MOVE_END))
-      addKeyStrokesForAction(ACTION_EDITOR_MOVE_LINE_START_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_MOVE_HOME, AMETA_SHIFT_ON))
-      addKeyStrokesForAction(ACTION_EDITOR_MOVE_LINE_END_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_MOVE_END, AMETA_SHIFT_ON))
-      addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_UP, AndroidKeyStroke(AKEYCODE_PAGE_UP))
-      addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_DOWN, AndroidKeyStroke(AKEYCODE_PAGE_DOWN))
-      addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_UP_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_PAGE_UP, AMETA_SHIFT_ON))
-      addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_DOWN_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_PAGE_DOWN, AMETA_SHIFT_ON))
-      addKeyStrokesForAction(ACTION_EDITOR_TEXT_START, AndroidKeyStroke(AKEYCODE_MOVE_HOME, AMETA_CTRL_ON))
-      addKeyStrokesForAction(ACTION_EDITOR_TEXT_END, AndroidKeyStroke(AKEYCODE_MOVE_END, AMETA_CTRL_ON))
-      addKeyStrokesForAction(ACTION_EDITOR_TEXT_START_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_MOVE_HOME, AMETA_CTRL_SHIFT_ON))
-      addKeyStrokesForAction(ACTION_EDITOR_TEXT_END_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_MOVE_END, AMETA_CTRL_SHIFT_ON))
-    }
-  }
-
-  private fun MutableMap<KeyStroke, AndroidKeyStroke>.addKeyStrokesForAction(actionId: String, androidKeyStroke: AndroidKeyStroke) {
-    for (keyStroke in KeymapUtil.getKeyStrokes(KeymapUtil.getActiveKeymapShortcuts(actionId))) {
-      put(keyStroke, androidKeyStroke)
-    }
-  }
-
   enum class ConnectionState { INITIAL, CONNECTING, CONNECTED, DISCONNECTED }
 
   /**
@@ -547,6 +492,25 @@ internal class DeviceView(
   }
 
   private inner class MyKeyListener  : KeyAdapter() {
+
+    var cachedKeyStrokeMap: Map<KeyStroke, AndroidKeyStroke>? = null
+    private val keyStrokeMap: Map<KeyStroke, AndroidKeyStroke>
+      get() {
+        var map = cachedKeyStrokeMap
+        if (map == null) {
+          map = buildKeyStrokeMap()
+          cachedKeyStrokeMap = map
+        }
+        return map
+      }
+
+    init {
+      addFocusListener(object : FocusAdapter() {
+        override fun focusGained(event: FocusEvent) {
+          cachedKeyStrokeMap = null // Keyboard shortcuts may have changed while the view didn't have focus.
+        }
+      })
+    }
 
     override fun keyTyped(event: KeyEvent) {
       if (!isConnected) {
@@ -642,6 +606,45 @@ internal class DeviceView(
 
     private fun modifierToMetaState(modifiers: Int, modifierMask: Int, metaState: Int) =
         if ((modifiers and modifierMask) != 0) metaState else 0
+
+    private fun buildKeyStrokeMap(): Map<KeyStroke, AndroidKeyStroke> {
+      return mutableMapOf<KeyStroke, AndroidKeyStroke>().apply {
+        addKeyStrokesForAction(ACTION_CUT, AndroidKeyStroke(AKEYCODE_CUT))
+        addKeyStrokesForAction(ACTION_COPY, AndroidKeyStroke(AKEYCODE_COPY))
+        addKeyStrokesForAction(ACTION_PASTE, AndroidKeyStroke(AKEYCODE_PASTE))
+        addKeyStrokesForAction(ACTION_SELECT_ALL, AndroidKeyStroke(AKEYCODE_A, AMETA_CTRL_ON))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_LEFT, AndroidKeyStroke(AKEYCODE_DPAD_LEFT))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_RIGHT, AndroidKeyStroke(AKEYCODE_DPAD_RIGHT))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_LEFT_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_DPAD_LEFT, AMETA_SHIFT_ON))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_RIGHT_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_DPAD_RIGHT, AMETA_SHIFT_ON))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_UP, AndroidKeyStroke(AKEYCODE_DPAD_UP))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_DOWN, AndroidKeyStroke(AKEYCODE_DPAD_DOWN))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_UP_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_DPAD_UP, AMETA_SHIFT_ON))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_DOWN_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_DPAD_DOWN, AMETA_SHIFT_ON))
+        addKeyStrokesForAction(ACTION_EDITOR_PREVIOUS_WORD, AndroidKeyStroke(AKEYCODE_DPAD_LEFT, AMETA_CTRL_ON))
+        addKeyStrokesForAction(ACTION_EDITOR_NEXT_WORD, AndroidKeyStroke(AKEYCODE_DPAD_RIGHT, AMETA_CTRL_ON))
+        addKeyStrokesForAction(ACTION_EDITOR_PREVIOUS_WORD_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_DPAD_LEFT, AMETA_CTRL_SHIFT_ON))
+        addKeyStrokesForAction(ACTION_EDITOR_NEXT_WORD_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_DPAD_RIGHT, AMETA_CTRL_SHIFT_ON))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_LINE_START, AndroidKeyStroke(AKEYCODE_MOVE_HOME))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_LINE_END, AndroidKeyStroke(AKEYCODE_MOVE_END))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_LINE_START_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_MOVE_HOME, AMETA_SHIFT_ON))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_LINE_END_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_MOVE_END, AMETA_SHIFT_ON))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_UP, AndroidKeyStroke(AKEYCODE_PAGE_UP))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_DOWN, AndroidKeyStroke(AKEYCODE_PAGE_DOWN))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_UP_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_PAGE_UP, AMETA_SHIFT_ON))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_DOWN_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_PAGE_DOWN, AMETA_SHIFT_ON))
+        addKeyStrokesForAction(ACTION_EDITOR_TEXT_START, AndroidKeyStroke(AKEYCODE_MOVE_HOME, AMETA_CTRL_ON))
+        addKeyStrokesForAction(ACTION_EDITOR_TEXT_END, AndroidKeyStroke(AKEYCODE_MOVE_END, AMETA_CTRL_ON))
+        addKeyStrokesForAction(ACTION_EDITOR_TEXT_START_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_MOVE_HOME, AMETA_CTRL_SHIFT_ON))
+        addKeyStrokesForAction(ACTION_EDITOR_TEXT_END_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_MOVE_END, AMETA_CTRL_SHIFT_ON))
+      }
+    }
+
+    private fun MutableMap<KeyStroke, AndroidKeyStroke>.addKeyStrokesForAction(actionId: String, androidKeyStroke: AndroidKeyStroke) {
+      for (keyStroke in KeymapUtil.getKeyStrokes(KeymapUtil.getActiveKeymapShortcuts(actionId))) {
+        put(keyStroke, androidKeyStroke)
+      }
+    }
   }
 
   private inner class MyMouseListener : MouseAdapter() {
