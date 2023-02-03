@@ -69,7 +69,7 @@ abstract class AndroidWearConfigurationExecutor(environment: ExecutionEnvironmen
     val resultReceiver = WearComponent.CommandResultReceiver()
     device.executeShellCommand(WatchFace.ShellCommand.SHOW_WATCH_FACE, console, resultReceiver, indicator = indicator)
     if (resultReceiver.resultCode != WearComponent.CommandResultReceiver.SUCCESS_CODE) {
-      console.printError("Warning: Launch was successful, but you may need to bring up the watch face manually")
+      console.printlnError("Warning: Launch was successful, but you may need to bring up the watch face manually")
     }
   }
 }

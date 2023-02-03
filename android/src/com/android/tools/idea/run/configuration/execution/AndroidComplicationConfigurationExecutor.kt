@@ -69,7 +69,7 @@ open class AndroidComplicationConfigurationExecutor(environment: ExecutionEnviro
       throw SurfaceVersionException(COMPLICATION_MIN_DEBUG_SURFACE_VERSION, version, device.isEmulator)
     }
     if (version < COMPLICATION_RECOMMENDED_DEBUG_SURFACE_VERSION) {
-      console.printError(AndroidBundle.message("android.run.configuration.debug.surface.warn"))
+      console.printlnError(AndroidBundle.message("android.run.configuration.debug.surface.warn"))
     }
     ProgressManager.checkCanceled()
 
@@ -169,7 +169,7 @@ private fun getStopComplicationCallback(complicationComponentName: String,
   val unsetReceiver = CommandResultReceiver()
   device.executeShellCommand(UNSET_WATCH_FACE, console, unsetReceiver, indicator = null)
   if (removeReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE || unsetReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
-    console.printError("Warning: Complication was not stopped.")
+    console.printlnError("Warning: Complication was not stopped.")
   }
   if (isDebug) {
     stopDebugApp(device)

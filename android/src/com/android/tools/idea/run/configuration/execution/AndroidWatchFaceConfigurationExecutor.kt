@@ -90,7 +90,7 @@ private fun getStopWatchFaceCallback(console: ConsoleView, isDebug: Boolean): (I
   val receiver = CommandResultReceiver()
   device.executeShellCommand(UNSET_WATCH_FACE, console, receiver, indicator = null)
   if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
-    console.printError("Warning: Watch face was not stopped.")
+    console.printlnError("Warning: Watch face was not stopped.")
   }
   if (isDebug) {
     stopDebugApp(device)

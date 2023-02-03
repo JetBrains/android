@@ -67,7 +67,7 @@ open class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment,
       throw SurfaceVersionException(TILE_MIN_DEBUG_SURFACE_VERSION, version, device.isEmulator)
     }
     if (version < TILE_RECOMMENDED_DEBUG_SURFACE_VERSION) {
-      console.printError(AndroidBundle.message("android.run.configuration.debug.surface.warn"))
+      console.printlnError(AndroidBundle.message("android.run.configuration.debug.surface.warn"))
     }
 
     // TODO(b/226550406): Only add this sleep for older versions where the race condition exists.
@@ -99,7 +99,7 @@ open class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment,
 
   private fun verifyResponse(receiver: CommandResultReceiver, console: ConsoleView) {
     if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
-      console.printError("Warning: Launch was successful, but you may need to bring up the tile manually.")
+      console.printlnError("Warning: Launch was successful, but you may need to bring up the tile manually.")
     }
   }
 }
@@ -133,7 +133,7 @@ private fun getStopTileCallback(tileName: String, console: ConsoleView, isDebug:
   val removeTileCommand = Tile.ShellCommand.UNSET_TILE + tileName
   device.executeShellCommand(removeTileCommand, console, receiver, indicator = null)
   if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
-    console.printError("Warning: Tile was not stopped.")
+    console.printlnError("Warning: Tile was not stopped.")
   }
   if (isDebug) {
     stopDebugApp(device)

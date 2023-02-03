@@ -52,11 +52,11 @@ import java.util.concurrent.TimeUnit
 
 internal fun ConsolePrinter.printShellCommand(command: String) = stdout("$ adb shell $command \n")
 
-internal fun ConsoleView.print(text: String) {
+fun ConsoleView.println(text: String) {
   print(text + "\n", ConsoleViewContentType.NORMAL_OUTPUT)
 }
 
-internal fun ConsoleView.printError(error: String) {
+fun ConsoleView.printlnError(error: String) {
   print(error + "\n", ConsoleViewContentType.ERROR_OUTPUT)
 }
 
@@ -65,8 +65,8 @@ const val TARGET_REGEX = "\\berror\\b"
 val errorPattern = Regex(TARGET_REGEX, RegexOption.IGNORE_CASE)
 
 class ConsoleViewToConsolePrinter(val console: ConsoleView) : ConsolePrinter {
-  override fun stdout(message: String) = console.print(message + "\n")
-  override fun stderr(message: String) = console.printError(message + "\n")
+  override fun stdout(message: String) = console.println(message + "\n")
+  override fun stderr(message: String) = console.printlnError(message + "\n")
 }
 
 @Throws(ExecutionException::class)
@@ -148,7 +148,7 @@ internal fun IDevice.getWearDebugSurfaceVersion(indicator: ProgressIndicator): I
 
 internal fun checkAndroidVersionForWearDebugging(version: AndroidVersion, console: ConsoleView) {
   if (version < AndroidVersion(28)) {
-    console.printError(AndroidBundle.message("android.run.configuration.wear.version.affects.debugging"))
+    console.printlnError(AndroidBundle.message("android.run.configuration.wear.version.affects.debugging"))
   }
 }
 
