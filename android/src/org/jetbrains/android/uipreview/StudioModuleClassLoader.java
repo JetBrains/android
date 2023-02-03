@@ -23,6 +23,7 @@ import com.android.tools.idea.rendering.classloading.ThreadControllingTransform;
 import com.android.tools.idea.rendering.classloading.ThreadLocalTrackingTransform;
 import com.android.tools.idea.rendering.classloading.VersionClassTransform;
 import com.android.tools.idea.rendering.classloading.ViewMethodWrapperTransform;
+import com.android.tools.idea.rendering.classloading.ViewTreeLifecycleTransform;
 import com.android.tools.idea.rendering.classloading.loaders.ProjectSystemClassLoader;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.WeakReferenceDisposableWrapper;
@@ -79,6 +80,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
    *   <li>Replaces ThreadLocal class with TrackingThreadLocal
    *   <li>Redirects calls to PreviewAnimationClock's notifySubscribe and notifyUnsubscribe to ComposePreviewAnimationManager
    *   <li>Repackages certain classes to avoid loading the Studio versions from the Studio class loader
+   *   <li>Wraps ViewTreeLifecycleOwner.get to intercept its returning value and make sure it never returns null
    * </ul>
    * Note that it does not attempt to handle cases where class file constructs cannot
    * be represented in the target version. This is intended for uses such as for example
@@ -112,6 +114,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
     PreviewAnimationClockMethodTransform::new,
     ResourcesCompatTransform::new,
     RequestExecutorTransform::new,
+    ViewTreeLifecycleTransform::new,
     // Leave this transformation as last so the rest of the transformations operate on the regular names.
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
   );
@@ -307,8 +310,10 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
   protected void onBeforeFindClass(@NotNull String fqcn) { myDiagnostics.classFindStart(fqcn); }
 
   @Override
-  protected void onAfterFindClass(@NotNull String fqcn, boolean found, long durationMs) { myDiagnostics.classFindEnd(fqcn, found,
-                                                                                                                     durationMs); }
+  protected void onAfterFindClass(@NotNull String fqcn, boolean found, long durationMs) {
+    myDiagnostics.classFindEnd(fqcn, found,
+                               durationMs);
+  }
 
   @Override
   @Nullable
@@ -374,7 +379,8 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
         }
       }
       LOG.warn("DefaultExecutor thread is still running");
-    } catch (Throwable t) {
+    }
+    catch (Throwable t) {
       LOG.warn(t);
     }
   }
@@ -405,10 +411,11 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
 
       // Because we are clearing-up ThreadLocals, the code must run on the Layoutlib Thread
       RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
-        for (ThreadLocal<?> threadLocal: threadLocals) {
+        for (ThreadLocal<?> threadLocal : threadLocals) {
           try {
             threadLocal.remove();
-          } catch (Exception e) {
+          }
+          catch (Exception e) {
             LOG.warn(e); // Failure detected here will most probably cause a memory leak
           }
         }
