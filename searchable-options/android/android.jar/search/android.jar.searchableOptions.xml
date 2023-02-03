@@ -226,6 +226,12 @@
     <option name="runs" path="ActionManager" hit="Deploys and runs the application without building." />
     <option name="the" path="ActionManager" hit="Deploys and runs the application without building." />
     <option name="without" path="ActionManager" hit="Deploys and runs the application without building." />
+    <option name="banner" path="ActionManager" hit="Dismisses banner for Gradle project notifications" />
+    <option name="dismisses" path="ActionManager" hit="Dismisses banner for Gradle project notifications" />
+    <option name="for" path="ActionManager" hit="Dismisses banner for Gradle project notifications" />
+    <option name="gradle" path="ActionManager" hit="Dismisses banner for Gradle project notifications" />
+    <option name="notifications" path="ActionManager" hit="Dismisses banner for Gradle project notifications" />
+    <option name="project" path="ActionManager" hit="Dismisses banner for Gradle project notifications" />
     <option name="display" path="ActionManager" hit="Display Mode" />
     <option name="mode" path="ActionManager" hit="Display Mode" />
     <option name="display" path="ActionManager" hit="Display selected file in the Resource Manager" />
@@ -284,6 +290,9 @@
     <option name="debug" path="ActionManager" hit="Help debug device connection" />
     <option name="device" path="ActionManager" hit="Help debug device connection" />
     <option name="help" path="ActionManager" hit="Help debug device connection" />
+    <option name="android" path="ActionManager" hit="Hide Android Banners" />
+    <option name="banners" path="ActionManager" hit="Hide Android Banners" />
+    <option name="hide" path="ActionManager" hit="Hide Android Banners" />
     <option name="home" path="ActionManager" hit="Home" />
     <option name="asset" path="ActionManager" hit="Image Asset" />
     <option name="image" path="ActionManager" hit="Image Asset" />
