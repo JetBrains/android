@@ -131,9 +131,6 @@ import java.awt.image.DirectColorModel
 import java.awt.image.Raster
 import java.awt.image.SinglePixelPackedSampleModel
 import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.locks.Lock
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.min
@@ -210,7 +207,7 @@ class EmulatorView(
       }
     }
 
-  private val connected
+  private val isConnected
     get() = emulator.connectionState == ConnectionState.CONNECTED
   private val emulatorConfig
     get() = emulator.emulatorConfig
@@ -311,7 +308,7 @@ class EmulatorView(
 
     val connection = ApplicationManager.getApplication().messageBus.connect(this)
     connection.subscribe(LafManagerListener.TOPIC, LafManagerListener { lafManager ->
-      if (connected) {
+      if (isConnected) {
         emulator.setUiTheme(getEmulatorUiTheme(lafManager))
       }
     })
@@ -336,7 +333,7 @@ class EmulatorView(
     displayConfigurationListeners.remove(listener)
   }
 
-  override fun canZoom(): Boolean = connected
+  override fun canZoom(): Boolean = isConnected
 
   override fun computeActualSize(): Dimension =
     computeActualSize(screenshotShape.orientation)
@@ -474,13 +471,13 @@ class EmulatorView(
   }
 
   private fun requestScreenshotFeed() {
-    if (connected) {
+    if (isConnected) {
       requestScreenshotFeed(currentDisplaySize, displayOrientationQuadrants)
     }
   }
 
   private fun requestScreenshotFeed(displaySize: Dimension, orientationQuadrants: Int) {
-    if (width != 0 && height != 0 && connected) {
+    if (width != 0 && height != 0 && isConnected) {
       val maxSize = physicalSize.rotatedByQuadrants(-orientationQuadrants)
       val skin = emulator.skinDefinition
       if (skin != null && deviceFrameVisible) {
@@ -525,7 +522,7 @@ class EmulatorView(
 
   private fun requestNotificationFeed() {
     cancelNotificationFeed()
-    if (connected) {
+    if (isConnected) {
       val receiver = NotificationReceiver()
       notificationReceiver = receiver
       notificationFeed = emulator.streamNotification(receiver)
