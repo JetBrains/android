@@ -245,9 +245,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Component component = action.createCustomComponent(myPresentation, i -> i);
 
     // Assert
-/* b/263906088
     assertEquals(253, component.getPreferredSize().width);
-b/263906088 */
   }
 
   @Test
