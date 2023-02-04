@@ -205,7 +205,7 @@ class EmulatorViewTest {
     ui.mouse.release()
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 1404 y: 2723");
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 1404 y: 2723")
 
     // Check clockwise rotation in a zoomed-in state.
     view.zoom(ZoomType.IN)
@@ -334,7 +334,6 @@ class EmulatorViewTest {
     ui.layoutAndDispatchEvents()
     assertThat(call.completion.isCancelled).isFalse() // The latest call has not been cancelled.
     assertThat(call.completion.isDone).isFalse() // The latest call is still ongoing.
-    println("Attention!")
     assertThat(view.canZoomIn()).isFalse()
     assertThat(view.canZoomOut()).isTrue()
     assertThat(view.canZoomToActual()).isTrue()
