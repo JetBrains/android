@@ -36,6 +36,7 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.io.IOException
 import java.nio.file.Files
+import java.nio.file.Path
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.swing.Action
@@ -47,6 +48,7 @@ import javax.swing.JScrollPane
 import javax.swing.JTree
 import javax.swing.event.HyperlinkEvent
 import javax.swing.tree.DefaultMutableTreeNode
+import kotlin.io.path.name
 
 private const val PRIVACY_TEXT =
   "By creating this report, you acknowledge that Google may use information included in the report and " +
@@ -55,6 +57,13 @@ private const val PRIVACY_TEXT =
   " potentially impacted by your issue. This report will include personal information logged by your computer, such as file names, " +
   "installed plugins, usage data, system information such as memory and processes, and machine specifications."
 
+/**
+ * CreateDiagnosticReportDialog displays a tree view of files to be included in a diagnostic zip file, as well as a preview pane
+ * to show the contents of each individual file
+ *
+ * @param project the currently active project
+ * @param files a list of source and destination pairs for the final zip file
+ */
 class CreateDiagnosticReportDialog(private val project: Project?, files: List<FileInfo>) : DialogWrapper(project) {
   private val fileTree: Tree
   private val grid = JPanel(GridBagLayout())
@@ -139,20 +148,10 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
   override fun createCenterPanel(): JComponent = grid
 
   override fun doOKAction() {
-    val descriptor = FileSaverDescriptor("Save Diagnostic Report As", "Choose a location for saving the diagnostic report", "zip")
-    val saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project)
+    val saveFile = getSaveFile(project) ?: return
+    createZipFile(saveFile)
 
-    val dateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))
-    val file = "DiagnosticsReport${dateTime}.zip"
-
-    val saveFileWrapper = saveFileDialog.save(VfsUtil.getUserHomeDir(), file)
-    if (saveFileWrapper != null) {
-      val list = buildList()
-      val zipInfo = list.map { ZipData(it.source.toString(), it.destination.toString()) }.toTypedArray()
-      val path = saveFileWrapper.file.toString()
-      zipFiles(zipInfo, path)
-      super.doOKAction()
-    }
+    super.doOKAction()
   }
 
   private fun buildTree(list: List<FileInfo>): Tree {
@@ -171,6 +170,22 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
     }
   }
 
+  private fun getSaveFile(project: Project?): Path? {
+    val descriptor = FileSaverDescriptor("Save Diagnostic Report As", "Choose a location for saving the diagnostic report", "zip")
+    val saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project)
+
+    val dateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))
+    val file = "DiagnosticsReport${dateTime}.zip"
+
+    return saveFileDialog.save(VfsUtil.getUserHomeDir(), file)?.file?.toPath()
+  }
+
+  private fun createZipFile(path: Path) {
+    val list = buildList()
+    val zipInfo = list.map { ZipData(it.source.toString(), it.destination.toString()) }.toTypedArray()
+    zipFiles(zipInfo, path.toString())
+  }
+
   private fun updateContents(node: FileTreeNode?) {
     contents.text = node?.fileInfo?.let {
       try {
@@ -186,7 +201,7 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
   }
 
   private fun addFilesToTree(root: DefaultMutableTreeNode, file: FileInfo) {
-    val tokens = file.destination.toString().split('/')
+    val tokens = file.destination.toList().map { it.name }
     var current = root
     for (i in 0..tokens.size - 2) {
       val token = tokens[i]
