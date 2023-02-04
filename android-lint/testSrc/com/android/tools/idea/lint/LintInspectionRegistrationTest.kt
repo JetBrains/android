@@ -37,6 +37,7 @@ import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 import org.junit.Assert
 import java.io.File
 import java.lang.String.CASE_INSENSITIVE_ORDER
@@ -265,15 +266,21 @@ class $LINT_INSPECTION_PREFIX${id}Inspection : AndroidLintInspectionBase(
       if (root == null) {
         sb.append("\nRegister the following inspections in $suffix (and try to preserve case insensitive alphabetical order):\n")
       }
-      for (issue in missing) {
+      for (issue in missing.sortedBy { it.id.toLowerCaseAsciiOnly() }) {
         if (issue.isAndroidSpecific() != androidSpecific) {
           continue
         }
         val desc = StringBuilder()
-        desc.append("<globalInspection hasStaticDescription=\"true\" shortName=\"")
+        desc.append("<globalInspection")
+        if (androidSpecific) {
+          desc.append(" projectType=\"Android\"")
+        }
+        desc.append(" hasStaticDescription=\"true\" shortName=\"")
         desc.append(LINT_INSPECTION_PREFIX)
         val id = issue.id
         desc.append(id)
+        desc.append("\" groupName=\"")
+        desc.append(AndroidLintInspectionBase.getGroupDisplayName(issue.category))
         desc.append("\" displayName=\"")
         desc.append(toXmlAttributeValue(issue.getBriefDescription(TextFormat.TEXT)))
         val bundle = if (androidSpecific) "AndroidLintBundle" else "LintBundle"

@@ -319,7 +319,7 @@
     <applicationConfigurable groupId="build" id="instant.run"
                              provider="com.android.tools.idea.deploy.DeploymentConfigurableProvider"/>
 
-    <projectTypesProvider implementation="com.android.tools.idea.gradle.project.importing.AndroidProjectTypesProvider"/>
+    <projectTypesProvider implementation="com.android.tools.idea.project.AndroidProjectTypesProvider"/>
 
     <applicationConfigurable groupId="build" id="configuration.execution"
                              provider="com.android.tools.idea.run.configuration.user.settings.AndroidConfigurationExecutionConfigurableProvider"/>

@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.sync.SdkSync
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.LocalProperties
 import com.android.tools.idea.io.FilePaths
+import com.android.tools.idea.project.ANDROID_PROJECT_TYPE
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.ToolWindows
 import com.google.common.annotations.VisibleForTesting
@@ -34,7 +35,6 @@ import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUt
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectType
 import com.intellij.openapi.project.ProjectTypeService
 import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.roots.CompilerProjectExtension
@@ -180,8 +180,6 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
   }
 
   companion object {
-    val ANDROID_PROJECT_TYPE = ProjectType("Android")
-
     // A copy of a private constant from GradleJvmStartupActivity.
     @NonNls
     private val SHOW_UNLINKED_GRADLE_POPUP = "show.inlinked.gradle.project.popup"
