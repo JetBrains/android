@@ -69,7 +69,6 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.ui.UIUtil
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap
 import kotlinx.coroutines.launch
-import java.awt.Component
 import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.Graphics
@@ -548,8 +547,7 @@ internal class DeviceView(
       // The Tab character is passed to the device, but Shift+Tab is converted to Tab and processed locally.
       if (keyCode == VK_TAB && modifiers == SHIFT_DOWN_MASK) {
         if (event.id == KEY_PRESSED) {
-          val tabEvent =
-              KeyEvent(event.source as Component, event.id, event.getWhen(), 0, keyCode, event.keyChar, event.keyLocation)
+          val tabEvent = KeyEvent(event.component, event.id, event.getWhen(), 0, keyCode, event.keyChar, event.keyLocation)
           traverseFocusLocally(tabEvent)
         }
         return
