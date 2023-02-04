@@ -22,6 +22,7 @@ import com.android.emulator.ImageConverter
 import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
+import com.android.emulator.control.KeyboardEvent.KeyEventType
 import com.android.emulator.control.Notification.EventType.DISPLAY_CONFIGURATIONS_CHANGED_UI
 import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_ACTIVE
 import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_INACTIVE
@@ -64,9 +65,11 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.IdeGlassPane
@@ -79,7 +82,6 @@ import com.intellij.util.ui.UIUtil
 import com.intellij.xml.util.XmlStringUtil
 import org.HdrHistogram.Histogram
 import org.jetbrains.annotations.VisibleForTesting
-import java.awt.Component
 import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.Graphics
@@ -90,6 +92,7 @@ import java.awt.Rectangle
 import java.awt.color.ColorSpace
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.InputEvent.CTRL_DOWN_MASK
@@ -97,6 +100,8 @@ import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.CHAR_UNDEFINED
+import java.awt.event.KeyEvent.KEY_PRESSED
+import java.awt.event.KeyEvent.VK_A
 import java.awt.event.KeyEvent.VK_BACK_SPACE
 import java.awt.event.KeyEvent.VK_CONTROL
 import java.awt.event.KeyEvent.VK_DELETE
@@ -131,6 +136,7 @@ import java.awt.image.DirectColorModel
 import java.awt.image.Raster
 import java.awt.image.SinglePixelPackedSampleModel
 import java.util.concurrent.atomic.AtomicReference
+import javax.swing.KeyStroke
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.min
@@ -642,6 +648,25 @@ class EmulatorView(
 
   private inner class MyKeyListener  : KeyAdapter() {
 
+    private var cachedKeyStrokeMap: Map<KeyStroke, EmulatorKeyStroke>? = null
+    private val keyStrokeMap: Map<KeyStroke, EmulatorKeyStroke>
+      get() {
+        var map = cachedKeyStrokeMap
+        if (map == null) {
+          map = buildKeyStrokeMap()
+          cachedKeyStrokeMap = map
+        }
+        return map
+      }
+
+    init {
+      addFocusListener(object : FocusAdapter() {
+        override fun focusGained(event: FocusEvent) {
+          cachedKeyStrokeMap = null // Keyboard shortcuts may have changed while the view didn't have focus.
+        }
+      })
+    }
+
     override fun keyTyped(event: KeyEvent) {
       if (virtualSceneCameraOperating) {
         return
@@ -677,52 +702,122 @@ class EmulatorView(
         return
       }
 
-      if (event.keyCode == VK_CONTROL && event.modifiersEx == CTRL_DOWN_MASK) {
-        multiTouchMode = true
-        return
-      }
-
-      // The Tab character is passed to the emulator, but Shift+Tab is converted to Tab and processed locally.
-      if (event.keyCode == VK_TAB && event.modifiersEx == SHIFT_DOWN_MASK) {
-        val tabEvent = KeyEvent(event.source as Component, event.id, event.getWhen(), 0, event.keyCode, event.keyChar, event.keyLocation)
-        traverseFocusLocally(tabEvent)
-        return
-      }
-
-      if (event.modifiersEx != 0) {
-        return
-      }
-      val keyName =
-        when (event.keyCode) {
-          VK_BACK_SPACE -> "Backspace"
-          VK_DELETE -> if (SystemInfo.isMac) "Backspace" else "Delete"
-          VK_ENTER -> "Enter"
-          VK_ESCAPE -> "Escape"
-          VK_TAB -> "Tab"
-          VK_LEFT, VK_KP_LEFT -> "ArrowLeft"
-          VK_RIGHT, VK_KP_RIGHT -> "ArrowRight"
-          VK_UP, VK_KP_UP -> "ArrowUp"
-          VK_DOWN, VK_KP_DOWN -> "ArrowDown"
-          VK_HOME -> "Home"
-          VK_END -> "End"
-          VK_PAGE_UP -> "PageUp"
-          VK_PAGE_DOWN -> "PageDown"
-          else -> return
-        }
-      emulator.sendKey(createKeyboardEvent(keyName))
-      event.consume()
+      keyPressedOrReleased(event)
     }
 
     override fun keyReleased(event: KeyEvent) {
-      if (event.keyCode == VK_CONTROL) {
-        multiTouchMode = false
-      }
-      else if (event.keyCode == VK_SHIFT) {
+      if (event.keyCode == VK_SHIFT) {
         virtualSceneCameraOperating = false
       }
 
       virtualSceneCameraVelocityController?.keyReleased(event.keyCode)
+
+      keyPressedOrReleased(event)
+    }
+
+    private fun keyPressedOrReleased(event: KeyEvent) {
+      val keyCode = event.keyCode
+      val modifiers = event.modifiersEx
+
+      if (keyCode == VK_CONTROL) {
+        if (modifiers == CTRL_DOWN_MASK) {
+          multiTouchMode = true
+        }
+        else if ((modifiers and CTRL_DOWN_MASK) == 0) {
+          multiTouchMode = false
+        }
+      }
+
+      // The Tab character is passed to the device, but Shift+Tab is converted to Tab and processed locally.
+      if (keyCode == VK_TAB && modifiers == SHIFT_DOWN_MASK) {
+        if (event.id == KEY_PRESSED) {
+          val tabEvent = KeyEvent(event.component, event.id, event.getWhen(), 0, keyCode, event.keyChar, event.keyLocation)
+          traverseFocusLocally(tabEvent)
+        }
+        return
+      }
+
+      if (!isConnected) {
+        return
+      }
+      val emulatorKeyStroke = hostKeyStrokeToEmulatorKeyStroke(keyCode, modifiers)
+      if (emulatorKeyStroke == null) {
+        val keyName = hostKeyCodeToEmulatorKeyName(keyCode)
+        if (keyName != null) {
+          emulator.pressModifierKeys(modifiers)
+          val eventType = if (event.id == KEY_PRESSED) KeyEventType.keydown else KeyEventType.keyup
+          emulator.sendKey(createKeyboardEvent(keyName, eventType))
+          emulator.releaseModifierKeys(modifiers)
+        }
+      }
+      else if (event.id == KEY_PRESSED) {
+        emulator.pressModifierKeys(emulatorKeyStroke.modifiers)
+        emulator.sendKey(emulatorKeyStroke.createKeyboardEvent(KeyEventType.keypress))
+        emulator.releaseModifierKeys(emulatorKeyStroke.modifiers)
+      }
       event.consume()
+    }
+
+    private fun hostKeyStrokeToEmulatorKeyStroke(hostKeyCode: Int, modifiers: Int): EmulatorKeyStroke? {
+      val canonicalKeyCode = when (hostKeyCode) {
+        VK_KP_LEFT -> VK_LEFT
+        VK_KP_RIGHT -> VK_RIGHT
+        VK_KP_UP -> VK_UP
+        VK_KP_DOWN -> VK_DOWN
+        else -> hostKeyCode
+      }
+
+      return keyStrokeMap[KeyStroke.getKeyStroke(canonicalKeyCode, modifiers)]
+    }
+
+    private fun hostKeyCodeToEmulatorKeyName(hostKeyCode: Int): String? {
+      return when (hostKeyCode) {
+        VK_BACK_SPACE -> "Backspace"
+        VK_DELETE -> if (SystemInfo.isMac) "Backspace" else "Delete"
+        VK_ENTER -> "Enter"
+        VK_ESCAPE -> "Escape"
+        VK_TAB -> "Tab"
+        else -> return null
+      }
+    }
+
+    private fun buildKeyStrokeMap(): Map<KeyStroke, EmulatorKeyStroke> {
+      return mutableMapOf<KeyStroke, EmulatorKeyStroke>().apply {
+        addKeystrokesForAction(IdeActions.ACTION_CUT, EmulatorKeyStroke("Cut"))
+        addKeystrokesForAction(IdeActions.ACTION_COPY, EmulatorKeyStroke("Copy"))
+        addKeystrokesForAction(IdeActions.ACTION_PASTE, EmulatorKeyStroke("Paste"))
+        addKeystrokesForAction(IdeActions.ACTION_SELECT_ALL, EmulatorKeyStroke(VK_A, CTRL_DOWN_MASK))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_MOVE_CARET_LEFT, EmulatorKeyStroke("ArrowLeft"))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_MOVE_CARET_RIGHT, EmulatorKeyStroke("ArrowRight"))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_MOVE_CARET_LEFT_WITH_SELECTION, EmulatorKeyStroke("ArrowLeft", SHIFT_DOWN_MASK))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_MOVE_CARET_RIGHT_WITH_SELECTION, EmulatorKeyStroke("ArrowRight", SHIFT_DOWN_MASK))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_MOVE_CARET_UP, EmulatorKeyStroke("ArrowUp"))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_MOVE_CARET_DOWN, EmulatorKeyStroke("ArrowDown"))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_MOVE_CARET_UP_WITH_SELECTION, EmulatorKeyStroke("ArrowUp", SHIFT_DOWN_MASK))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_MOVE_CARET_DOWN_WITH_SELECTION, EmulatorKeyStroke("ArrowDown", SHIFT_DOWN_MASK))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_PREVIOUS_WORD, EmulatorKeyStroke("ArrowLeft", CTRL_DOWN_MASK))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_NEXT_WORD, EmulatorKeyStroke("ArrowRight", CTRL_DOWN_MASK))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_PREVIOUS_WORD_WITH_SELECTION, EmulatorKeyStroke("ArrowLeft", CTRL_SHIFT_DOWN_MASK))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_NEXT_WORD_WITH_SELECTION, EmulatorKeyStroke("ArrowRight", CTRL_SHIFT_DOWN_MASK))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_MOVE_LINE_START, EmulatorKeyStroke("Home"))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_MOVE_LINE_END, EmulatorKeyStroke("End"))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_MOVE_LINE_START_WITH_SELECTION, EmulatorKeyStroke("Home", SHIFT_DOWN_MASK))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_MOVE_LINE_END_WITH_SELECTION, EmulatorKeyStroke("End", SHIFT_DOWN_MASK))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_MOVE_CARET_PAGE_UP, EmulatorKeyStroke("PageUp"))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_MOVE_CARET_PAGE_DOWN, EmulatorKeyStroke("PageDown"))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_MOVE_CARET_PAGE_UP_WITH_SELECTION, EmulatorKeyStroke("PageUp", SHIFT_DOWN_MASK))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_MOVE_CARET_PAGE_DOWN_WITH_SELECTION, EmulatorKeyStroke("PageDown", SHIFT_DOWN_MASK))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_TEXT_START, EmulatorKeyStroke("Home", CTRL_DOWN_MASK))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_TEXT_END, EmulatorKeyStroke("End", CTRL_DOWN_MASK))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_TEXT_START_WITH_SELECTION, EmulatorKeyStroke("Home", CTRL_SHIFT_DOWN_MASK))
+        addKeystrokesForAction(IdeActions.ACTION_EDITOR_TEXT_END_WITH_SELECTION, EmulatorKeyStroke("End", CTRL_SHIFT_DOWN_MASK))
+      }
+    }
+
+    private fun MutableMap<KeyStroke, EmulatorKeyStroke>.addKeystrokesForAction(actionId: String, androidKeystroke: EmulatorKeyStroke) {
+      for (keyStroke in KeymapUtil.getKeyStrokes(KeymapUtil.getActiveKeymapShortcuts(actionId))) {
+        put(keyStroke, androidKeystroke)
+      }
     }
   }
 
@@ -1218,6 +1313,8 @@ private const val CACHED_IMAGE_LIVE_TIME_MILLIS = 2000
 private const val ANDROID_BUTTON1_BIT = 1 shl 0 // Left
 private const val ANDROID_BUTTON2_BIT = 1 shl 2 // Middle
 private const val ANDROID_BUTTON3_BIT = 1 shl 1 // Right
+
+private const val CTRL_SHIFT_DOWN_MASK = CTRL_DOWN_MASK or SHIFT_DOWN_MASK
 
 private val STATS_LOG_INTERVAL_MILLIS = StudioFlags.EMBEDDED_EMULATOR_STATISTICS_INTERVAL_SECONDS.get().toLong() * 1000
 

@@ -38,10 +38,31 @@ import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.ide.ui.LafManager
 import com.intellij.ide.ui.laf.darcula.DarculaLookAndFeelInfo
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_DOWN_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_LEFT_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_PAGE_DOWN_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_PAGE_UP_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_RIGHT_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_UP_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_LINE_END_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_LINE_START_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_NEXT_WORD
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_NEXT_WORD_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_PREVIOUS_WORD
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_PREVIOUS_WORD_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_END
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_END_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_START
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_START_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_PASTE
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_SELECT_ALL
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
+import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
@@ -66,13 +87,25 @@ import java.awt.Point
 import java.awt.PointerInfo
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.KEY_PRESSED
-import java.awt.event.KeyEvent.VK_A
 import java.awt.event.KeyEvent.VK_BACK_SPACE
 import java.awt.event.KeyEvent.VK_CONTROL
+import java.awt.event.KeyEvent.VK_DELETE
+import java.awt.event.KeyEvent.VK_DOWN
+import java.awt.event.KeyEvent.VK_END
 import java.awt.event.KeyEvent.VK_ENTER
+import java.awt.event.KeyEvent.VK_ESCAPE
+import java.awt.event.KeyEvent.VK_HOME
+import java.awt.event.KeyEvent.VK_KP_DOWN
+import java.awt.event.KeyEvent.VK_KP_LEFT
+import java.awt.event.KeyEvent.VK_KP_RIGHT
+import java.awt.event.KeyEvent.VK_KP_UP
+import java.awt.event.KeyEvent.VK_LEFT
 import java.awt.event.KeyEvent.VK_PAGE_DOWN
+import java.awt.event.KeyEvent.VK_PAGE_UP
+import java.awt.event.KeyEvent.VK_RIGHT
 import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_TAB
+import java.awt.event.KeyEvent.VK_UP
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -257,27 +290,106 @@ class EmulatorViewTest {
     val container = createScrollPane(view)
     val ui = FakeUi(container, 2.0)
 
-    // Check keyboard input.
     ui.keyboard.setFocus(view)
-    ui.keyboard.type(VK_A)
-    var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""text: "A"""")
+    // Printable ASCII characters.
+    for (c in ' '..'~') {
+      ui.keyboard.type(c.code)
+      val call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+      val expectedText = when (c) { '\"', '\'', '\\' -> "\\$c" else -> c.toString() }
+      assertThat(shortDebugString(call.request)).isEqualTo("""text: "$expectedText"""")
+    }
 
-    ui.keyboard.pressAndRelease(VK_BACK_SPACE)
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Backspace"""")
+    val controlCharacterCases = mapOf(
+      VK_ENTER to "Enter",
+      VK_TAB to "Tab",
+      VK_ESCAPE to "Escape",
+      VK_BACK_SPACE to "Backspace",
+      VK_DELETE to if (SystemInfo.isMac) "Backspace" else "Delete",
+    )
+    for ((hostKeyStroke, emulatorKeyName) in controlCharacterCases) {
+      ui.keyboard.pressAndRelease(hostKeyStroke)
+      val pressCall = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+      assertThat(pressCall.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+      assertThat(shortDebugString(pressCall.request)).isEqualTo("""key: "$emulatorKeyName"""")
+      val releaseCall = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+      assertThat(releaseCall.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+      assertThat(shortDebugString(releaseCall.request)).isEqualTo("""eventType: keyup key: "$emulatorKeyName"""")
+    }
 
-    ui.keyboard.pressAndRelease(VK_ENTER)
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Enter"""")
+    val trivialKeyStrokeCases = mapOf(
+      VK_LEFT to "ArrowLeft",
+      VK_KP_LEFT to "ArrowLeft",
+      VK_RIGHT to "ArrowRight",
+      VK_KP_RIGHT to "ArrowRight",
+      VK_DOWN to "ArrowDown",
+      VK_KP_DOWN to "ArrowDown",
+      VK_UP to "ArrowUp",
+      VK_KP_UP to "ArrowUp",
+      VK_HOME to "Home",
+      VK_END to "End",
+      VK_PAGE_DOWN to "PageDown",
+      VK_PAGE_UP to "PageUp",
+    )
+    for ((hostKeyStroke, emulatorKeyName) in trivialKeyStrokeCases) {
+      ui.keyboard.pressAndRelease(hostKeyStroke)
+      val call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+      assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "$emulatorKeyName"""")
+    }
 
-    ui.keyboard.pressAndRelease(VK_TAB)
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Tab"""")
+    val keyStrokeCases = mapOf(
+      getKeyStroke(ACTION_CUT) to listOf("eventType: keypress key: \"Cut\""),
+      getKeyStroke(ACTION_COPY) to listOf("eventType: keypress key: \"Copy\""),
+      getKeyStroke(ACTION_PASTE) to listOf("eventType: keypress key: \"Paste\""),
+      getKeyStroke(ACTION_SELECT_ALL) to listOf("key: \"Control\"", "eventType: keypress keyCode: 65", "eventType: keyup key: \"Control\""),
+      getKeyStroke(ACTION_EDITOR_MOVE_CARET_LEFT_WITH_SELECTION) to
+          listOf("key: \"Shift\"", "eventType: keypress key: \"ArrowLeft\"", "eventType: keyup key: \"Shift\""),
+      getKeyStroke(ACTION_EDITOR_MOVE_CARET_RIGHT_WITH_SELECTION) to
+          listOf("key: \"Shift\"", "eventType: keypress key: \"ArrowRight\"", "eventType: keyup key: \"Shift\""),
+      getKeyStroke(ACTION_EDITOR_MOVE_CARET_DOWN_WITH_SELECTION) to
+          listOf("key: \"Shift\"", "eventType: keypress key: \"ArrowDown\"", "eventType: keyup key: \"Shift\""),
+      getKeyStroke(ACTION_EDITOR_MOVE_CARET_UP_WITH_SELECTION) to
+          listOf("key: \"Shift\"", "eventType: keypress key: \"ArrowUp\"", "eventType: keyup key: \"Shift\""),
+      getKeyStroke(ACTION_EDITOR_PREVIOUS_WORD) to
+          listOf("key: \"Control\"", "eventType: keypress key: \"ArrowLeft\"", "eventType: keyup key: \"Control\""),
+      getKeyStroke(ACTION_EDITOR_NEXT_WORD) to
+          listOf("key: \"Control\"", "eventType: keypress key: \"ArrowRight\"", "eventType: keyup key: \"Control\""),
+      getKeyStroke(ACTION_EDITOR_PREVIOUS_WORD_WITH_SELECTION) to
+          listOf("key: \"Shift\"", "key: \"Control\"", "eventType: keypress key: \"ArrowLeft\"",
+                 "eventType: keyup key: \"Control\"", "eventType: keyup key: \"Shift\""),
+      getKeyStroke(ACTION_EDITOR_NEXT_WORD_WITH_SELECTION) to
+          listOf("key: \"Shift\"", "key: \"Control\"", "eventType: keypress key: \"ArrowRight\"",
+                 "eventType: keyup key: \"Control\"", "eventType: keyup key: \"Shift\""),
+      getKeyStroke(ACTION_EDITOR_MOVE_LINE_START_WITH_SELECTION) to
+          listOf("key: \"Shift\"", "eventType: keypress key: \"Home\"", "eventType: keyup key: \"Shift\""),
+      getKeyStroke(ACTION_EDITOR_MOVE_LINE_END_WITH_SELECTION) to
+          listOf("key: \"Shift\"", "eventType: keypress key: \"End\"", "eventType: keyup key: \"Shift\""),
+      getKeyStroke(ACTION_EDITOR_MOVE_CARET_PAGE_DOWN_WITH_SELECTION) to
+          listOf("key: \"Shift\"", "eventType: keypress key: \"PageDown\"", "eventType: keyup key: \"Shift\""),
+      getKeyStroke(ACTION_EDITOR_MOVE_CARET_PAGE_UP_WITH_SELECTION) to
+          listOf("key: \"Shift\"", "eventType: keypress key: \"PageUp\"", "eventType: keyup key: \"Shift\""),
+      getKeyStroke(ACTION_EDITOR_TEXT_START) to
+          listOf("key: \"Control\"", "eventType: keypress key: \"Home\"", "eventType: keyup key: \"Control\""),
+      getKeyStroke(ACTION_EDITOR_TEXT_END) to
+          listOf("key: \"Control\"", "eventType: keypress key: \"End\"", "eventType: keyup key: \"Control\""),
+      getKeyStroke(ACTION_EDITOR_TEXT_START_WITH_SELECTION) to
+          listOf("key: \"Shift\"", "key: \"Control\"", "eventType: keypress key: \"Home\"",
+                 "eventType: keyup key: \"Control\"", "eventType: keyup key: \"Shift\""),
+      getKeyStroke(ACTION_EDITOR_TEXT_END_WITH_SELECTION) to
+          listOf("key: \"Shift\"", "key: \"Control\"", "eventType: keypress key: \"End\"",
+                 "eventType: keyup key: \"Control\"", "eventType: keyup key: \"Shift\""),
+    )
+    for ((hostKeyStroke, keyboardEventMessages) in keyStrokeCases) {
+      ui.keyboard.pressForModifiers(hostKeyStroke.modifiers)
+      ui.keyboard.pressAndRelease(hostKeyStroke.keyCode)
+      ui.keyboard.releaseForModifiers(hostKeyStroke.modifiers)
+      for (message in keyboardEventMessages) {
+        val call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+        assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+        assertThat(shortDebugString(call.request)).isEqualTo(message)
+      }
+    }
 
     // Ctrl+Tab should be ignored.
     with(ui.keyboard) {
@@ -285,11 +397,6 @@ class EmulatorViewTest {
       pressAndRelease(VK_TAB)
       release(VK_CONTROL)
     }
-
-    ui.keyboard.pressAndRelease(VK_PAGE_DOWN)
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "PageDown"""")
 
     val mockFocusManager: KeyboardFocusManager = mock()
     whenever(mockFocusManager.redispatchEvent(any(Component::class.java), any(KeyEvent::class.java))).thenCallRealMethod()
@@ -709,5 +816,8 @@ class EmulatorViewTest {
     return TestUtils.resolveWorkspacePathUnchecked("${GOLDEN_FILE_PATH}/${name}.png")
   }
 }
+
+private fun getKeyStroke(action: String) =
+  KeymapUtil.getKeyStroke(KeymapUtil.getActiveKeymapShortcuts(action))!!
 
 private const val GOLDEN_FILE_PATH = "tools/adt/idea/streaming/testData/EmulatorViewTest/golden"
