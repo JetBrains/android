@@ -4,6 +4,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.common",
     srcs = ["src"],
+    generate_k2_tests = True,
     iml_files = ["intellij.android.common.iml"],
     lint_baseline = "lint_baseline.xml",
     tags = ["no_test_windows"],
