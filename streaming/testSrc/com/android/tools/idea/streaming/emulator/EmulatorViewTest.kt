@@ -17,7 +17,6 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.emulator.control.FoldedDisplay
 import com.android.emulator.control.ThemingStyle
-import com.android.emulator.control.WheelEventOrBuilder
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
@@ -78,7 +77,6 @@ import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import javax.swing.JScrollPane
-import kotlin.test.assertNotNull
 
 /**
  * Tests for [EmulatorView] and some emulator toolbar actions.
@@ -207,12 +205,62 @@ class EmulatorViewTest {
     ui.mouse.release()
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 1404 y: 2723")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 1404 y: 2723");
+
+    // Check clockwise rotation in a zoomed-in state.
+    view.zoom(ZoomType.IN)
+    ui.layoutAndDispatchEvents()
+    call = getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
+    assertThat(shortDebugString(call.request)).isEqualTo(
+      // Available space is slightly wider on Mac due to a narrower scrollbar.
+      if (SystemInfo.isMac) "format: RGB888 width: 740 height: 360" else "format: RGB888 width: 740 height: 360")
+    assertThat(view.canZoomOut()).isTrue()
+    assertThat(view.canZoomToFit()).isTrue()
+    emulatorViewRule.executeAction("android.device.rotate.right", view)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setPhysicalModel")
+    assertThat(shortDebugString(call.request)).isEqualTo("target: ROTATION value { data: 0.0 data: 0.0 data: 0.0 }")
+    getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
+    ui.layoutAndDispatchEvents()
+    call = getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 454 height: 364")
+    assertThat(view.canZoomOut()).isFalse() // zoom-in mode cancelled by the rotation.
+    assertThat(view.canZoomToFit()).isFalse()
+    assertAppearance(ui, "EmulatorView2")
+
+    // Check mouse input in portrait orientation.
+    ui.mouse.press(82, 7)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 36 y: 44 buttons: 1")
+    ui.mouse.release()
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 36 y: 44")
+
+    // Mouse events outside the display image should be ignored.
+    ui.mouse.press(50, 7)
+    ui.mouse.release()
+
+    // Check hiding the device frame.
+    view.deviceFrameVisible = false
+    call = getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 500 height: 400")
+    assertAppearance(ui, "EmulatorView4")
+  }
+
+  @Test
+  fun testKeyboardInput() {
+    val view = emulatorViewRule.newEmulatorView()
+    val emulator = emulatorViewRule.getFakeEmulator(view)
+
+    val container = createScrollPane(view)
+    val ui = FakeUi(container, 2.0)
 
     // Check keyboard input.
     ui.keyboard.setFocus(view)
     ui.keyboard.type(VK_A)
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""text: "A"""")
 
@@ -258,47 +306,6 @@ class EmulatorViewTest {
     verify(mockFocusManager, atLeast(1)).processKeyEvent(arg1.capture(), arg2.capture())
     val tabEvent = arg2.allValues.firstOrNull { it.id == KEY_PRESSED && it.keyCode == VK_TAB && it.modifiersEx == 0 }
     assertThat(tabEvent).isNotNull()
-
-    // Check clockwise rotation in a zoomed-in state.
-    view.zoom(ZoomType.IN)
-    ui.layoutAndDispatchEvents()
-    call = getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo(
-      // Available space is slightly wider on Mac due to a narrower scrollbar.
-      if (SystemInfo.isMac) "format: RGB888 width: 740 height: 360" else "format: RGB888 width: 740 height: 360")
-    assertThat(view.canZoomOut()).isTrue()
-    assertThat(view.canZoomToFit()).isTrue()
-    emulatorViewRule.executeAction("android.device.rotate.right", view)
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setPhysicalModel")
-    assertThat(shortDebugString(call.request)).isEqualTo("target: ROTATION value { data: 0.0 data: 0.0 data: 0.0 }")
-    getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
-    ui.layoutAndDispatchEvents()
-    call = getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 454 height: 364")
-    assertThat(view.canZoomOut()).isFalse() // zoom-in mode cancelled by the rotation.
-    assertThat(view.canZoomToFit()).isFalse()
-    assertAppearance(ui, "EmulatorView2")
-
-    // Check mouse input in portrait orientation.
-    ui.mouse.press(82, 7)
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 36 y: 44 buttons: 1")
-    ui.mouse.release()
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 36 y: 44")
-
-    // Mouse events outside the display image should be ignored.
-    ui.mouse.press(50, 7)
-    ui.mouse.release()
-
-    // Check hiding the device frame.
-    view.deviceFrameVisible = false
-    call = getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 500 height: 400")
-    assertAppearance(ui, "EmulatorView4")
   }
 
   /** Checks a large container size resulting in a scale greater than 1:1. */
