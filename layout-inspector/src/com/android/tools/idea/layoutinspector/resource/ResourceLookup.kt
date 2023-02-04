@@ -119,7 +119,7 @@ class ResourceLookup(private val project: Project) {
     val facet = ReadAction.compute<AndroidFacet?, RuntimeException> { findFacetFromPackage(project, process.name) } ?: return null
     val theme = appContext.theme.createReference(stringTable)
     val themeStyle = mapReference(facet, theme)?.resourceUrl?.toString() ?: return null
-    val mgr = ConfigurationManager.getOrCreateInstance(facet)
+    val mgr = ConfigurationManager.getOrCreateInstance(facet.module)
     val cache = mgr.resolverCache
     val resourceResolver = ReadAction.compute<ResourceResolver, RuntimeException> {
       cache.getResourceResolver(mgr.target, themeStyle, folderConfig)

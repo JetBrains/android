@@ -64,7 +64,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import javax.swing.JComponent;
@@ -487,10 +486,10 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       return Optional.empty();
     }
 
-    FileEditorProvider[] providers = FileEditorProviderManager.getInstance().getProviders(myProject, file);
+    List<FileEditorProvider> providers = FileEditorProviderManager.getInstance().getProviderList(myProject, file);
 
     // Skip 9 patch editor since nine patch information has been stripped out.
-    return Arrays.stream(providers).filter(
+    return providers.stream().filter(
       fileEditorProvider -> !fileEditorProvider.getClass().getName().equals("com.android.tools.idea.editors.NinePatchEditorProvider")).findFirst();
   }
 }

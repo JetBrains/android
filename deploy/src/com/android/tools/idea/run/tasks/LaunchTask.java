@@ -17,10 +17,10 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.tools.idea.run.ApkInfo;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
-import org.jetbrains.annotations.NotNull;
-
+import com.intellij.execution.ExecutionException;
 import java.util.Collection;
 import java.util.Collections;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A step in launching a run configuration on device, for example installing an APK or unlocking
@@ -57,11 +57,9 @@ public interface LaunchTask {
    * Runs this LaunchTask. This method is an entry point of this launch task and is called by
    * {@link org.jetbrains.ide.PooledThreadExecutor} so you can perform expensive operations here.
    *
-   *
    * @param launchContext additional parameters shared amongst all {@link LaunchTask}s
-   * @return the result of this task
    */
-  LaunchResult run(@NotNull LaunchContext launchContext);
+  void run(@NotNull LaunchContext launchContext) throws ExecutionException;
 
   /**
    * Returns an arbitrary identifier string for this task. This ID is recorded in

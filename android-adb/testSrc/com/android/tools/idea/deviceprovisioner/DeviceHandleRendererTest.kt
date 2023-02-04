@@ -23,17 +23,17 @@ import com.android.adblib.testingutils.FakeAdbServerProvider
 import com.android.adblib.testingutils.TestingAdbSessionHost
 import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidVersion
-import com.android.sdklib.deviceprovisioner.Connected
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
+import com.android.sdklib.deviceprovisioner.DeviceState.Connected
 import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlugin
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.SimpleColoredText
-import java.time.Duration
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.takeWhile
 import org.junit.Rule
 import org.junit.Test
+import java.time.Duration
 
 class DeviceHandleRendererTest {
 

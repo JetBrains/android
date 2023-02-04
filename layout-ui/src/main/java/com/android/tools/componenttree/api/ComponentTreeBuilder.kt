@@ -15,17 +15,11 @@
  */
 package com.android.tools.componenttree.api
 
-import com.android.tools.componenttree.impl.ComponentTreeModelImpl
-import com.android.tools.componenttree.impl.ComponentTreeSelectionModelImpl
-import com.android.tools.componenttree.impl.TreeImpl
 import com.android.tools.componenttree.treetable.TreeTableImpl
 import com.android.tools.componenttree.treetable.TreeTableModelImpl
 import com.android.tools.componenttree.treetable.UpperRightCorner
-import com.android.tools.idea.flags.StudioFlags
-import com.intellij.designer.componentTree.ComponentTreeBuilder
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.tree.ui.Control
 import com.intellij.ui.treeStructure.Tree
@@ -63,7 +57,6 @@ class ComponentTreeBuilder {
   private var headerRenderer: TableCellRenderer? = null
   private var contextPopup: ContextPopupHandler = { _, _, _, _ -> }
   private var doubleClick: DoubleClickHandler = { }
-  private val badges = mutableListOf<BadgeItem>()
   private val columns = mutableListOf<ColumnInfo>()
   private var selectionMode = SINGLE_TREE_SELECTION
   private var invokeLater: (Runnable) -> Unit = SwingUtilities::invokeLater
@@ -136,8 +129,7 @@ class ComponentTreeBuilder {
   /**
    * Add a badge column to the right of the tree node item.
    */
-  fun withBadgeSupport(badge: BadgeItem) =
-    if (StudioFlags.USE_COMPONENT_TREE_TABLE.get()) apply { columns.add(badge) } else apply { badges.add(badge) }
+  fun withBadgeSupport(badge: BadgeItem) = apply { columns.add(badge) }
 
   /**
    * Add Copy, Cut, Paste & Delete support (works of the current selection)
@@ -199,28 +191,7 @@ class ComponentTreeBuilder {
   /**
    * Build the tree component and return it with the tree model.
    */
-  fun build(): ComponentTreeBuildResult =
-    if (StudioFlags.USE_COMPONENT_TREE_TABLE.get()) buildTreeTable() else buildTree()
-
-  private fun buildTree(): ComponentTreeBuildResult {
-    if (columns.isNotEmpty()) {
-      Logger.getInstance(ComponentTreeBuilder::class.java).warn("Columns are not supported with the Tree implementations")
-    }
-    val model = ComponentTreeModelImpl(nodeTypeMap, invokeLater)
-    val selectionModel = ComponentTreeSelectionModelImpl(model, selectionMode)
-    val tree = TreeImpl(model, contextPopup, doubleClick, badges, componentName, painter, installKeyboardActions, selectionModel,
-                        autoScroll, installTreeSearch)
-    tree.toggleClickCount = toggleClickCount
-    tree.isRootVisible = isRootVisible
-    tree.showsRootHandles = !isRootVisible || showRootHandles
-    dataProvider?.let { DataManager.registerDataProvider(tree, it) }
-    val horizontalPolicy = if (horizontalScrollbar) HORIZONTAL_SCROLLBAR_AS_NEEDED else HORIZONTAL_SCROLLBAR_NEVER
-    val scrollPane = ScrollPaneFactory.createScrollPane(tree, VERTICAL_SCROLLBAR_AS_NEEDED, horizontalPolicy)
-    scrollPane.border = JBUI.Borders.empty()
-    return ComponentTreeBuildResult(scrollPane, tree, tree, model, selectionModel, NoOpTableVisibility())
-  }
-
-  private fun buildTreeTable(): ComponentTreeBuildResult {
+  fun build(): ComponentTreeBuildResult {
     val model = TreeTableModelImpl(columns, nodeTypeMap, invokeLater)
     val table = TreeTableImpl(model, contextPopup, doubleClick, painter, installKeyboardActions, selectionMode, autoScroll,
                               installTreeSearch, expandAllOnRootChange, headerRenderer)
@@ -255,8 +226,7 @@ class ComponentTreeBuildResult(
    * The component that has focus in the component tree.
    *
    * Note: This will be:
-   * - the [tree] component if [StudioFlags.USE_COMPONENT_TREE_TABLE] is false
-   * - the TreeTable component if [StudioFlags.USE_COMPONENT_TREE_TABLE] is true
+   * - the TreeTable component
    */
   val focusComponent: JComponent,
 

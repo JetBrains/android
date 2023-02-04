@@ -45,6 +45,7 @@ import com.android.emulator.control.TouchEvent
 import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.Velocity
 import com.android.emulator.control.VmRunState
+import com.android.emulator.control.WheelEvent
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.io.writeImage
 import com.android.testutils.TestUtils
@@ -68,6 +69,7 @@ import com.android.tools.idea.protobuf.MessageOrBuilder
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.interpolate
+import com.google.common.base.Predicates.alwaysTrue
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -289,20 +291,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
    */
   @UiThread
   @Throws(TimeoutException::class)
-  fun getNextGrpcCall(timeout: Long, unit: TimeUnit, filter: Predicate<GrpcCallRecord> = defaultCallFilter): GrpcCallRecord {
-    val timeoutMillis = unit.toMillis(timeout)
-    val deadline = System.currentTimeMillis() + timeoutMillis
-    var waitUnit = ((timeoutMillis + 9) / 10).coerceAtMost(10)
-    while (waitUnit > 0) {
-      UIUtil.dispatchAllInvocationEvents()
-      val call = grpcCallLog.poll(waitUnit, TimeUnit.MILLISECONDS)
-      if (call != null && filter.test(call)) {
-        return call
-      }
-      waitUnit = waitUnit.coerceAtMost(deadline - System.currentTimeMillis())
-    }
-    throw TimeoutException()
-  }
+  fun getNextGrpcCall(timeout: Long, unit: TimeUnit, filter: Predicate<GrpcCallRecord> = defaultCallFilter): GrpcCallRecord
+    = grpcCallLog.get(timeout, unit, filter)
 
   /**
    * Clears the gRPC call log.
@@ -578,6 +568,16 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       }
     }
 
+    override fun injectWheel(responseObserver: StreamObserver<Empty>): StreamObserver<WheelEvent> {
+      return object : EmptyStreamObserver<WheelEvent>() {
+        override fun onCompleted() {
+          executor.execute {
+            sendEmptyResponse(responseObserver)
+          }
+        }
+      }
+    }
+
     override fun getVmState(request: Empty, responseObserver: StreamObserver<VmRunState>) {
       executor.execute {
         val response = VmRunState.newBuilder()
@@ -807,6 +807,15 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         // Expected.
       }
     }
+
+    /**
+     * Waits for the next gRPC request while dispatching UI events. Returns the next gRPC request and removes
+     * it from the queue of recorded requests. Throws TimeoutException if the request does not arrive within
+     * the specified timeout.
+     */
+    @UiThread
+    @Throws(TimeoutException::class)
+    fun getNextRequest(timeout: Long, unit: TimeUnit): MessageOrBuilder = requestMessages.get(timeout, unit)
 
     override fun toString(): String {
       return "$methodName(${shortDebugString(request)})"
@@ -1502,6 +1511,28 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
     @JvmStatic
     fun grpcServerName(port: Int) = "FakeEmulator@${port}"
+
+    /**
+     * Waits for the next queued item while dispatching UI events. Returns the next item and removes
+     * it from the queue of recorded items. Throws TimeoutException if the specified waiting time
+     * elapses before an element is available.
+     */
+    @UiThread
+    @Throws(TimeoutException::class)
+    private fun <T> LinkedBlockingDeque<T>.get(timeout: Long, unit: TimeUnit, filter: Predicate<T> = alwaysTrue()): T {
+      val timeoutMillis = unit.toMillis(timeout)
+      val deadline = System.currentTimeMillis() + timeoutMillis
+      var waitUnit = ((timeoutMillis + 9) / 10).coerceAtMost(10)
+      while (waitUnit > 0) {
+        UIUtil.dispatchAllInvocationEvents()
+        val call = poll(waitUnit, TimeUnit.MILLISECONDS)
+        if (call != null && filter.test(call)) {
+          return call
+        }
+        waitUnit = waitUnit.coerceAtMost(deadline - System.currentTimeMillis())
+      }
+      throw TimeoutException()
+    }
 
     @JvmStatic
     val defaultCallFilter = CallFilter("android.emulation.control.EmulatorController/getVmState",

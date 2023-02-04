@@ -15,17 +15,22 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.plugins;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
 
-public class PluginsDslElement extends GradleDslBlockElement {
+public class PluginsDslElement extends GradleDslElementList {
   public static final PropertiesElementDescription<PluginsDslElement> PLUGINS =
     new PropertiesElementDescription<>("plugins", PluginsDslElement.class, PluginsDslElement::new);
 
   public PluginsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
+  }
+
+  @Override
+  public boolean isBlockElement() {
+    return true;
   }
 }

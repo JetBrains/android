@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
-public class DependenciesDslElement extends GradleDslBlockElement implements DescribedGradlePropertiesDslElement<DependenciesDslElement> {
+public class DependenciesDslElement extends GradleDslElementList implements DescribedGradlePropertiesDslElement<DependenciesDslElement> {
   public static final PropertiesElementDescription<DependenciesDslElement> DEPENDENCIES =
     new PropertiesElementDescription<>("dependencies", DependenciesDslElement.class, DependenciesDslElement::new);
 
@@ -176,5 +176,10 @@ public class DependenciesDslElement extends GradleDslBlockElement implements Des
       }
     }
     addNewElementAt(i, newElement);
+  }
+
+  @Override
+  public boolean isBlockElement() {
+    return true;
   }
 }

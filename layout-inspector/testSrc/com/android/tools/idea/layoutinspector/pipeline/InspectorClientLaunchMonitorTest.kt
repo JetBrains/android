@@ -38,7 +38,7 @@ import com.android.tools.idea.util.ListenerCollection
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.debugger.engine.JavaDebugProcess
@@ -70,28 +70,31 @@ class InspectorClientLaunchMonitorTest {
     val project = projectRule.project
     val scheduler = VirtualTimeScheduler()
     val banner = InspectorBannerService.getInstance(project) ?: error("no banner")
+    val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
     run {
-      val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), scheduler)
+      val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
       val client = mock<InspectorClient>()
       monitor.start(client)
       scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
       assertThat(banner.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+      assertThat(stats.currentProgress).isEqualTo(AttachErrorState.NOT_STARTED)
       banner.clear()
     }
     run {
-      val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), scheduler)
+      val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
       val client = mock<InspectorClient>()
       monitor.start(client)
       scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS - 1, TimeUnit.SECONDS)
-      monitor.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.START_REQUEST_SENT)
+      monitor.updateProgress(AttachErrorState.START_REQUEST_SENT)
       scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS - 1, TimeUnit.SECONDS)
       assertThat(banner.notifications).isEmpty()
+      assertThat(stats.currentProgress).isEqualTo(AttachErrorState.START_REQUEST_SENT)
       scheduler.advanceBy(2, TimeUnit.SECONDS)
       assertThat(banner.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
       banner.clear()
     }
     run {
-      val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), scheduler)
+      val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
       monitor.updateProgress(CONNECTED_STATE)
       scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
       assertThat(banner.notifications).isEmpty()
@@ -100,14 +103,16 @@ class InspectorClientLaunchMonitorTest {
 
   @Test
   fun attachErrorStateListenersAreCalled() {
-    val listeners = ListenerCollection.createWithDirectExecutor<(DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit>()
-    val mockListener = mock<(DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit>()
+    val listeners = ListenerCollection.createWithDirectExecutor<(AttachErrorState) -> Unit>()
+    val mockListener = mock<(AttachErrorState) -> Unit>()
     listeners.add(mockListener)
 
-    val monitor = InspectorClientLaunchMonitor(projectRule.project, listeners)
-    monitor.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
+    val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
+    val monitor = InspectorClientLaunchMonitor(projectRule.project, listeners, stats)
+    monitor.updateProgress(AttachErrorState.ADB_PING)
 
-    verify(mockListener).invoke(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
+    verify(mockListener).invoke(AttachErrorState.ADB_PING)
+    assertThat(stats.currentProgress).isEqualTo(AttachErrorState.ADB_PING)
   }
 
   @Test
@@ -133,7 +138,8 @@ class InspectorClientLaunchMonitorTest {
 
     val banner = InspectorBannerService.getInstance(project) ?: error("no banner")
     val scheduler = VirtualTimeScheduler()
-    val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), scheduler)
+    val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
+    val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
     monitor.start(client)
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
     verify(client, never()).disconnect()
@@ -180,7 +186,8 @@ class InspectorClientLaunchMonitorTest {
 
     val banner = InspectorBannerService.getInstance(project) ?: error("no banner")
     val scheduler = VirtualTimeScheduler()
-    val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), scheduler)
+    val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
+    val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
     val client = mock<InspectorClient>()
     monitor.start(client)
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
@@ -192,6 +199,7 @@ class InspectorClientLaunchMonitorTest {
 
     monitor.updateProgress(CONNECTED_STATE)
     assertThat(banner.notifications).isEmpty()
+    assertThat(stats.currentProgress).isEqualTo(AttachErrorState.MODEL_UPDATED)
   }
 
   @Test
@@ -204,13 +212,15 @@ class InspectorClientLaunchMonitorTest {
 
     val banner = InspectorBannerService.getInstance(project) ?: error("no banner")
     val scheduler = VirtualTimeScheduler()
-    val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), scheduler)
+    val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
+    val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
     val client = mock<InspectorClient>()
     monitor.start(client)
     monitor.stop()
-    monitor.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
+    monitor.updateProgress(AttachErrorState.ADB_PING)
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
     assertThat(banner.notifications).isEmpty()
+    assertThat(stats.currentProgress).isEqualTo(AttachErrorState.ADB_PING)
   }
 
   @Test
@@ -219,8 +229,9 @@ class InspectorClientLaunchMonitorTest {
     val project = projectRule.project
     val scheduler = VirtualTimeScheduler()
     val banner = InspectorBannerService.getInstance(project) ?: error("no banner")
+    val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
     run {
-      val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), scheduler)
+      val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
       monitor.start(client)
       scheduler.advanceBy(DEBUGGER_CHECK_SECONDS + 1, TimeUnit.SECONDS)
       assertThat(banner.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
@@ -251,8 +262,9 @@ class InspectorClientLaunchMonitorTest {
     val project = projectRule.project
     val scheduler = VirtualTimeScheduler()
     val banner = InspectorBannerService.getInstance(project) ?: error("no banner")
+    val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
     run {
-      val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), scheduler)
+      val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
       monitor.start(client)
       scheduler.advanceBy(DEBUGGER_CHECK_SECONDS + 1, TimeUnit.SECONDS)
       assertThat(banner.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))

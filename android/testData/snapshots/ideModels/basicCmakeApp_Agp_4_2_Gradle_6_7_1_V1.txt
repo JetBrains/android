@@ -455,9 +455,9 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:app-MAIN
+                        module                        : <ROOT>-:app-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:app-MAIN
+                        module                        : <ROOT>-:app-MAIN
                 ApplicationId                 : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -482,9 +482,9 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:app-MAIN
+                        module                        : <ROOT>-:app-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:app-MAIN
+                        module                        : <ROOT>-:app-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/android.jar
     SelectedVariantName           : debug
     SelectedAbiName               : x86

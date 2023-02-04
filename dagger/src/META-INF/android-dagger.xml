@@ -27,5 +27,7 @@
     <projectService
         serviceInterface="com.android.tools.idea.dagger.DaggerAnalyticsTracker"
         serviceImplementation="com.android.tools.idea.dagger.DaggerAnalyticsTrackerImpl"/>
+    <!-- TODO(b/265846405): Enable indexing when feature is ready for use. -->
+    <!-- <fileBasedIndex implementation="com.android.tools.idea.dagger.index.DaggerIndex"/> -->
   </extensions>
 </idea-plugin>

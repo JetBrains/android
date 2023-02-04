@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.dynamicapp
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.help.AndroidWebHelpProvider
-import com.android.tools.idea.npw.labelFor
+import com.android.tools.idea.npw.contextLabel
 import com.android.tools.idea.npw.validator.ProjectNameValidator
 import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ListenerManager
@@ -33,20 +33,20 @@ import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.ui.BrowserHyperlinkListener
 import com.intellij.ui.ContextHelpLabel
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
-import com.intellij.ui.layout.panel
-import com.intellij.util.ui.SwingHelper
-import com.intellij.util.ui.UIUtil
+import com.intellij.ui.dsl.builder.LabelPosition
+import com.intellij.ui.dsl.builder.RightGap
+import com.intellij.ui.dsl.builder.TopGap
+import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import org.jetbrains.android.util.AndroidBundle
 import java.util.Optional
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
 import javax.swing.JComponent
-import javax.swing.JEditorPane
 import javax.swing.JTextField
 
 class ConfigureModuleDownloadOptionsStep(
@@ -55,14 +55,6 @@ class ConfigureModuleDownloadOptionsStep(
   private val bindings = BindingsManager()
   private val listeners = ListenerManager()
 
-  private val headerInfo: JEditorPane = SwingHelper.createHtmlViewer(false, null, null, null).apply {
-    addHyperlinkListener(BrowserHyperlinkListener.INSTANCE)
-    SwingHelper.setHtml(
-      this, "Dynamic feature modules can be delivered on-demand, included at install time," +
-            " or included conditionally based on device features or user country." +
-            " <a href='https://developer.android.com/studio/projects/dynamic-delivery/overview'>Learn more</a>",
-      UIUtil.getLabelForeground())
-  }
   private val featureTitle: JTextField = JBTextField()
   private val installationOptionCombo: JComboBox<DownloadInstallKind> = ComboBox(DefaultComboBoxModel(DownloadInstallKind.values()))
   private val downloadConditionsForm: ModuleDownloadConditions = ModuleDownloadConditions().apply {
@@ -72,51 +64,42 @@ class ConfigureModuleDownloadOptionsStep(
 
   val panel: DialogPanel = panel {
     row {
-      headerInfo()
+      text("Dynamic feature modules can be delivered on-demand, included at install time," +
+           "<br>or included conditionally based on device features or user country." +
+           " <a href='https://developer.android.com/studio/projects/dynamic-delivery/overview'>Learn more</a>")
     }
 
     row {
-      labelFor(
-        "Module title (this may be visible to users)",
-        featureTitle,
-        "The platform uses this title to identify the module to users when," +
-        " for example, confirming whether the user wants to download the module."
-      )
+      cell(featureTitle)
+        .horizontalAlign(HorizontalAlign.FILL)
+        .label(contextLabel(
+          "Module title (this may be visible to users)",
+          "The platform uses this title to identify the module to users when," +
+          " for example, confirming whether the user wants to download the module."), LabelPosition.TOP)
     }
 
     row {
-      featureTitle()
+      cell(installationOptionCombo)
+        .label(contextLabel("Install-time inclusion",
+                            "Specify whether to include this module at install-time unconditionally, or based on device features."),
+               LabelPosition.TOP)
     }
 
     row {
-      labelFor(
-        "Install-time inclusion",
-        installationOptionCombo,
-        "Specify whether to include this module at install-time unconditionally, or based on device features."
-      )
+      cell(downloadConditionsForm.myRootPanel).horizontalAlign(HorizontalAlign.FILL)
     }
 
     row {
-      installationOptionCombo()
+      cell(fusingCheckbox).gap(RightGap.SMALL)
+      cell(ContextHelpLabel.createWithLink(
+        null, "Enable Fusing if you want this module to be available to devices running Android 4.4 (API level 20) and lower.",
+        "Learn more"
+      ) { BrowserUtil.browse(linkUrl) })
     }
 
     row {
-      downloadConditionsForm.myRootPanel()
-    }
-
-    row {
-      cell {
-        fusingCheckbox()
-        ContextHelpLabel.createWithLink(
-          null, "Enable Fusing if you want this module to be available to devices running Android 4.4 (API level 20) and lower.", "Learn more"
-        ) { BrowserUtil.browse(linkUrl) }()
-      }
-    }
-
-    row {
-      label("Pre-Lollipop devices do not support on-demand modules", style = UIUtil.ComponentStyle.SMALL,
-            fontColor = UIUtil.FontColor.BRIGHTER)
-    }
+      text("Pre-Lollipop devices do not support on-demand modules")
+    }.topGap(TopGap.SMALL)
   }
 
   private val validatorPanel = ValidatorPanel(this, wrapWithVScroll(panel))

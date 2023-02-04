@@ -23,40 +23,39 @@ import com.android.tools.idea.diagnostics.jfr.JfrReportManager
 import com.android.tools.idea.diagnostics.report.FreezeReport
 import com.intellij.diagnostic.IdePerformanceListener
 import com.intellij.diagnostic.ThreadDumper
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.registry.Registry
 import jdk.jfr.consumer.RecordedEvent
 import java.io.File
 
-class JfrFreezeReports {
-  companion object {
-    const val REPORT_TYPE = "JFR-Freeze"
-    private const val CALL_TREES_FIELD = "callTrees"
-    val FIELDS = listOf(CALL_TREES_FIELD, StudioExceptionReport.KEY_EXCEPTION_INFO)
+object JfrFreezeReports {
+  private const val CALL_TREES_FIELD = "callTrees"
+  private const val EXCEPTION_TYPE = "com.android.ApplicationNotResponding"
+  private val EMPTY_ANR_STACKTRACE = "$EXCEPTION_TYPE: \n\tat ${FreezeReport::class.java.name}.missingEdtStack(Unknown source)"
+  internal const val REPORT_TYPE = "JFR-Freeze"
+  val FIELDS = listOf(CALL_TREES_FIELD, StudioExceptionReport.KEY_EXCEPTION_INFO)
 
-    private const val EXCEPTION_TYPE = "com.android.ApplicationNotResponding"
-    private val EMPTY_ANR_STACKTRACE = EXCEPTION_TYPE + ": \n" +
-                                       "\tat " + FreezeReport::class.java.name + ".missingEdtStack(Unknown source)"
+  fun createFreezeReportManager(parentDisposable: Disposable) =
+    JfrReportManager.create(::JfrFreezeReportGenerator, null) {
+      val listener = object : IdePerformanceListener {
+        override fun uiFreezeStarted() {
+          startCapture()
+          currentReportGenerator!!.edtStackForCrash =
+            ThreadDumper.getEdtStackForCrash(ThreadDumper.dumpThreadsToString(), EXCEPTION_TYPE) ?: EMPTY_ANR_STACKTRACE
+        }
 
-    fun createFreezeReportManager() =
-      JfrReportManager.create(::JfrFreezeReportGenerator, null) {
-        val application = ApplicationManager.getApplication()
-        application.messageBus.connect(application).subscribe(IdePerformanceListener.TOPIC, object : IdePerformanceListener {
-          override fun uiFreezeStarted() {
-            startCapture()
-            currentReportGenerator!!.edtStackForCrash =
-              ThreadDumper.getEdtStackForCrash(ThreadDumper.dumpThreadsToString(), EXCEPTION_TYPE) ?: EMPTY_ANR_STACKTRACE
-          }
-
-          override fun uiFreezeFinished(durationMs: Long, reportDir: File?) {
-            stopCapture()
-          }
-        })
+        override fun uiFreezeFinished(durationMs: Long, reportDir: File?) {
+          stopCapture()
+        }
       }
-  }
+      ApplicationManager.getApplication().messageBus.connect(parentDisposable).subscribe(IdePerformanceListener.TOPIC, listener)
+    }
 
-  class JfrFreezeReportGenerator : JfrReportGenerator(REPORT_TYPE, EventFilter.CPU_SAMPLES,
-                                                      -Registry.intValue("performance.watcher.unresponsive.interval.ms", 0)) {
+  class JfrFreezeReportGenerator : JfrReportGenerator(
+    REPORT_TYPE,
+    EventFilter.CPU_SAMPLES,
+    -Registry.intValue("performance.watcher.unresponsive.interval.ms", 0).toLong()) {
     private val callTreeAggregator = CallTreeAggregator(CallTreeAggregator.THREAD_FILTER_ALL)
     var edtStackForCrash: String = EMPTY_ANR_STACKTRACE
 

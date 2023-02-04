@@ -89,6 +89,10 @@ open class ViewNode(
   open val hasUnmergedSemantics: Boolean
     get() = false
 
+  /** Returns true if this [ViewNode] represent an inlined composable function */
+  open val isInlined: Boolean
+    get() = false
+
   /**
    * Return the closest unfiltered node
    *

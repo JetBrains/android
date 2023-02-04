@@ -22,19 +22,18 @@ import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.ide.ui.RecentProcess
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
+import com.android.tools.idea.layoutinspector.pipeline.TransportErrorListener
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetectionInitializer
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessListener
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
-import com.android.tools.idea.layoutinspector.pipeline.TransportErrorListener
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.stopInspector
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
@@ -112,75 +111,72 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
     TransportErrorListener(project, LayoutInspectorMetrics, toolWindow.disposable)
 
-    workbench.showLoading("Initializing ADB")
-    AndroidExecutors.getInstance().workerThreadExecutor.execute {
-      edtExecutor.execute {
-        workbench.hideLoading()
-
-        val processesModel = createProcessesModel(project, AppInspectionDiscoveryService.instance.apiServices.processDiscovery, edtExecutor)
-        Disposer.register(workbench, processesModel)
-        val executor = Executors.newScheduledThreadPool(1)
-        Disposer.register(workbench) {
-          executor.shutdown()
-          executor.awaitTermination(3, TimeUnit.SECONDS)
-        }
-        val model = InspectorModel(project, executor)
-        model.setProcessModel(processesModel)
-
-        processesModel.addSelectedProcessListeners {
-          // Reset notification bar every time active process changes, since otherwise we might leave up stale notifications from an error
-          // encountered during a previous run.
-          InspectorBannerService.getInstance(project)?.clear()
-        }
-
-        lateinit var launcher: InspectorClientLauncher
-        val treeSettings = InspectorTreeSettings { launcher.activeClient }
-        val metrics = LayoutInspectorSessionMetrics(project, null)
-        launcher = InspectorClientLauncher.createDefaultLauncher(
-          processesModel,
-          model,
-          metrics,
-          treeSettings,
-          inspectorClientSettings,
-          layoutInspectorCoroutineScope,
-          workbench
-        )
-        val layoutInspector = LayoutInspector(launcher, model, treeSettings)
-
-        val deviceModel = DeviceModel(workbench, processesModel)
-        val foregroundProcessDetection = createForegroundProcessDetection(
-          project, processesModel, deviceModel, layoutInspectorCoroutineScope
-        )
-
-        val deviceViewPanel = DeviceViewPanel(
-          coroutineScope = layoutInspectorCoroutineScope,
-          processesModel = processesModel,
-          deviceModel = deviceModel,
-          onDeviceSelected = { newDevice -> foregroundProcessDetection?.startPollingDevice(newDevice) },
-          onProcessSelected = { newProcess -> processesModel.selectedProcess = newProcess },
-          onStopInspector = { stopInspector(project, deviceModel, processesModel, foregroundProcessDetection) },
-          layoutInspector = layoutInspector,
-          viewSettings = viewSettings,
-          inspectorClientSettings = inspectorClientSettings,
-          disposableParent = workbench
-        )
-
-        // notify DeviceViewPanel that a new foreground process showed up
-        foregroundProcessDetection?.foregroundProcessListeners?.add(object : ForegroundProcessListener {
-          override fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess) {
-            deviceViewPanel.onNewForegroundProcess(foregroundProcess)
-          }
-        })
-
-        DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector, deviceViewPanel))
-        workbench.init(deviceViewPanel, layoutInspector, listOf(
-          LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
-
-        project.messageBus.connect(workbench).subscribe(ToolWindowManagerListener.TOPIC,
-                                                        LayoutInspectorToolWindowManagerListener(project, toolWindow, deviceViewPanel,
-                                                                                                 launcher))
-      }
+    val processesModel = createProcessesModel(project, AppInspectionDiscoveryService.instance.apiServices.processDiscovery, edtExecutor)
+    Disposer.register(workbench, processesModel)
+    val executor = Executors.newScheduledThreadPool(1)
+    Disposer.register(workbench) {
+      executor.shutdown()
+      executor.awaitTermination(3, TimeUnit.SECONDS)
     }
+    val model = InspectorModel(project, executor)
+    model.setProcessModel(processesModel)
+
+    processesModel.addSelectedProcessListeners {
+      // Reset notification bar every time active process changes, since otherwise we might leave up stale notifications from an error
+      // encountered during a previous run.
+      InspectorBannerService.getInstance(project)?.clear()
+    }
+
+    lateinit var launcher: InspectorClientLauncher
+    val treeSettings = InspectorTreeSettings { launcher.activeClient }
+    val metrics = LayoutInspectorSessionMetrics(project, null)
+    launcher = InspectorClientLauncher.createDefaultLauncher(
+      processesModel,
+      model,
+      metrics,
+      treeSettings,
+      inspectorClientSettings,
+      layoutInspectorCoroutineScope,
+      workbench
+    )
+    val layoutInspector = LayoutInspector(launcher, model, treeSettings)
+
+    val deviceModel = DeviceModel(workbench, processesModel)
+    val foregroundProcessDetection = createForegroundProcessDetection(
+      project, processesModel, deviceModel, layoutInspectorCoroutineScope
+    )
+
+    val deviceViewPanel = DeviceViewPanel(
+      coroutineScope = layoutInspectorCoroutineScope,
+      processesModel = processesModel,
+      deviceModel = deviceModel,
+      onDeviceSelected = { newDevice -> foregroundProcessDetection?.startPollingDevice(newDevice) },
+      onProcessSelected = { newProcess -> processesModel.selectedProcess = newProcess },
+      onStopInspector = { stopInspector(project, deviceModel, processesModel, foregroundProcessDetection) },
+      layoutInspector = layoutInspector,
+      viewSettings = viewSettings,
+      inspectorClientSettings = inspectorClientSettings,
+      disposableParent = workbench
+    )
+
+    // notify DeviceViewPanel that a new foreground process showed up
+    foregroundProcessDetection?.foregroundProcessListeners?.add(object : ForegroundProcessListener {
+      override fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess) {
+        deviceViewPanel.onNewForegroundProcess(foregroundProcess)
+      }
+    })
+
+    DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector, deviceViewPanel))
+    workbench.init(
+      deviceViewPanel,
+      layoutInspector,
+      listOf(LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()),
+      false
+    )
+
+    project.messageBus
+      .connect(workbench)
+      .subscribe(ToolWindowManagerListener.TOPIC, LayoutInspectorToolWindowManagerListener(project, toolWindow, deviceViewPanel, launcher))
   }
 
   private fun createForegroundProcessDetection(

@@ -501,7 +501,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   public interface ModelProvider {
 
     ModelProvider defaultModelProvider = (disposable, project, facet, componentRegistrar, file) -> {
-      Configuration configuration = FileTypeUtilsKt.getConfiguration(file, ConfigurationManager.getOrCreateInstance(facet));
+      Configuration configuration = FileTypeUtilsKt.getConfiguration(file, ConfigurationManager.getOrCreateInstance(facet.getModule()));
       NlModel model = NlModel.builder(facet, file, configuration)
         .withParentDisposable(disposable)
         .withComponentRegistrar(componentRegistrar)

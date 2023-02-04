@@ -26,7 +26,6 @@ import com.android.tools.componenttree.api.ComponentTreeSelectionModel
 import com.android.tools.componenttree.api.IconColumn
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.DataManagerImpl
 import com.intellij.ide.ui.IdeUiService
@@ -79,7 +78,6 @@ object ComponentTreeManualTest {
     startTestApplication()
     IconLoader.activate()
     invokeLater {
-      StudioFlags.USE_COMPONENT_TREE_TABLE.override(true)
       val test = ComponentTreeTest()
       test.start()
     }

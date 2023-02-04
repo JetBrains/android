@@ -579,7 +579,7 @@ class ComposableCallCheckerTest {
       """
           import androidx.compose.runtime.*
 
-          fun composeInto(l: @Composable ()->Unit) { print(<error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but Any? was expected">l</error>) }
+          fun composeInto(l: @Composable ()->Unit) { print(l) }
 
           fun Foo() {
               composeInto {

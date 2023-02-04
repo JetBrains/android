@@ -52,15 +52,20 @@ import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowMo
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.UpgradeSyncFailed
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.UpgradeSyncSucceeded
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion
+import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.GradleSyncStats
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.projectRoots.ProjectJdkTable
+import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
 import com.intellij.openapi.roots.ui.configuration.SdkListItem
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
@@ -107,6 +112,12 @@ class ContentManagerImplTest {
       }
     }
     ideComponents.replaceApplicationService(GradleSyncInvoker::class.java, fakeSyncInvoker)
+
+    IdeSdks.getInstance().jdk?.let {
+      Disposer.register(projectRule.testRootDisposable) {
+        SdkConfigurationUtil.removeSdk(it)
+      }
+    }
   }
 
   private fun addMinimalBuildGradleToProject(): PsiFile {

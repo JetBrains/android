@@ -20,6 +20,7 @@ import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorView
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorViewListener
 import com.android.tools.idea.device.explorer.monitor.ProcessTreeNode
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorViewImpl
+import com.android.tools.idea.device.explorer.monitor.ui.menu.item.DebugMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.ForceStopMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.MenuContext
 import javax.swing.JComponent
@@ -52,6 +53,8 @@ class MockDeviceMonitorView(model: DeviceMonitorModel): DeviceMonitorView {
     menuItem.run(processList)
   }
 
-  private fun getThrowableMessage(t: Throwable): String =
-    if (t.message == null) "" else ": ${t.message}"
+  fun debugNodes(processList: List<ProcessTreeNode>) {
+    val menuItem = DebugMenuItem(viewImpl, MenuContext.Popup)
+    menuItem.run(processList)
   }
+}

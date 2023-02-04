@@ -72,7 +72,7 @@ public class CpuUsageView extends JBPanel<CpuUsageView> {
   private JComponent createAxisPanel() {
     final JPanel axisPanel = new JBPanel<>(new BorderLayout());
     axisPanel.setOpaque(false);
-    final AxisComponent leftAxis = new AxisComponent(myStage.getCpuUsageAxis(), AxisComponent.AxisOrientation.RIGHT);
+    final AxisComponent leftAxis = new AxisComponent(myStage.getCpuUsageAxis(), AxisComponent.AxisOrientation.RIGHT, true);
     leftAxis.setShowAxisLine(false);
     leftAxis.setShowMax(true);
     leftAxis.setOnlyShowUnitAtMax(false);
@@ -81,7 +81,7 @@ public class CpuUsageView extends JBPanel<CpuUsageView> {
     leftAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(leftAxis, BorderLayout.WEST);
 
-    final AxisComponent rightAxis = new AxisComponent(myStage.getThreadCountAxis(), AxisComponent.AxisOrientation.LEFT);
+    final AxisComponent rightAxis = new AxisComponent(myStage.getThreadCountAxis(), AxisComponent.AxisOrientation.LEFT, true);
     rightAxis.setShowAxisLine(false);
     rightAxis.setShowMax(true);
     rightAxis.setOnlyShowUnitAtMax(true);

@@ -285,6 +285,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     }
     else {
       startActivityFlagsProvider = new DefaultStartActivityFlagsProvider(
+        getProject(),
         waitForDebugger,
         extraFlags);
     }

@@ -60,7 +60,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val modelsProvider = CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
     val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
-    val config = ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(file.virtualFile)
+    val config = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file.virtualFile)
 
     assertSize(1, nlModels)
     assertEquals(config, nlModels[0].configuration)
@@ -72,7 +72,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
     val listener = Mockito.mock(ConfigurationSetListener::class.java)
 
     val modelsProvider = CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
-    val configurationManager = ConfigurationManager.getOrCreateInstance(myFacet)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(myModule)
     val defaultConfig = configurationManager.getConfiguration(file.virtualFile)
 
     val attributes = CustomConfigurationAttribute("Preview",
@@ -107,7 +107,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
     val listener = Mockito.mock(ConfigurationSetListener::class.java)
 
     val modelsProvider = CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
-    val configurationManager = ConfigurationManager.getOrCreateInstance(myFacet)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(myModule)
     val defaultConfig = configurationManager.getConfiguration(defaultFile.virtualFile)
 
     val attributes = CustomConfigurationAttribute("Preview",
@@ -135,7 +135,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
 
     val modelsProvider = CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
-    val configurationManager = ConfigurationManager.getOrCreateInstance(myFacet)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(myModule)
     val defaultConfig = configurationManager.getConfiguration(defaultFile.virtualFile)
 
     val attributes = CustomConfigurationAttribute("Preview",
@@ -160,7 +160,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
     myFixture.addFileToProject("/res/layout-fr/test.xml", LAYOUT_FILE_CONTENT)
     myFixture.addFileToProject("/res/layout-jp/test.xml", LAYOUT_FILE_CONTENT)
 
-    val manager = ConfigurationManager.getOrCreateInstance(myFacet)
+    val manager = ConfigurationManager.getOrCreateInstance(myModule)
     val sourceConfig = manager.getConfiguration(file.virtualFile)
 
     val listener = Mockito.mock(ConfigurationSetListener::class.java)

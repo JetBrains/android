@@ -43,6 +43,7 @@ import com.android.emulator.control.TouchEvent
 import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.Velocity
 import com.android.emulator.control.VmRunState
+import com.android.emulator.control.WheelEvent
 import com.android.ide.common.util.Cancelable
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS
@@ -390,6 +391,19 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       LOG.info("sendTouch(${shortDebugString(touchEvent)})")
     }
     emulatorControllerStub.sendTouch(touchEvent, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSendTouchMethod()))
+  }
+
+  /**
+   * Pushes mouse wheel events to the emulator virtio device.
+   *
+   * @param streamObserver a client stream observer to handle events
+   * @return a StreamObserver that can be used to trigger the push
+   */
+  fun injectWheel(streamObserver: StreamObserver<Empty> = getEmptyObserver()) : StreamObserver<WheelEvent>{
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("injectWheel()")
+    }
+    return emulatorControllerStub.injectWheel(DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getInjectWheelMethod()))
   }
 
   /**
@@ -875,10 +889,4 @@ private val EMPTY_REGISTRY = ExtensionRegistryLite.getEmptyRegistry()
 private val AUTHORIZATION_METADATA_KEY = Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER)
 private val KEEP_ALIVE_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(2)
 private val LOG = Logger.getInstance(EmulatorController::class.java)
-private val EMPTY_OBSERVER = EmptyStreamObserver<Any>()
 private val EMPTY_PROTO = Empty.getDefaultInstance()
-
-@Suppress("UNCHECKED_CAST")
-fun <T> getEmptyObserver(): StreamObserver<T> {
-  return EMPTY_OBSERVER as StreamObserver<T>
-}

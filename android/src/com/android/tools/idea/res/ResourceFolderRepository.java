@@ -1065,7 +1065,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       if (myFacet.isDisposed()) {
         return;
       }
-      ConfigurationManager configurationManager = ConfigurationManager.findExistingInstance(myFacet);
+      ConfigurationManager configurationManager = ConfigurationManager.findExistingInstance(myFacet.getModule());
       if (configurationManager == null) {
         return;
       }

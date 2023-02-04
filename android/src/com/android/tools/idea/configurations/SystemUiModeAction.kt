@@ -117,10 +117,7 @@ class SystemUiModeAction(private val renderContext: ConfigurationHolder)
     }
     menu.add(separator, gbc)
 
-    val wallpaperTitle = TitleItem("Dynamic Color").apply {
-      toolTipText = "Apply dynamic color to the preview based on the selected wallpaper"
-      icon = StudioIcons.Common.HELP
-    }
+    val wallpaperTitle = TitleItem("Dynamic Color")
     gbc.gridy += 1
     menu.add(wallpaperTitle, gbc)
 
@@ -195,6 +192,7 @@ private class ActionItem(action: AnAction, dataContext: DataContext) : JBMenuIte
       selectedIcon = EmptyIcon.ICON_16
     }
 
+    iconTextGap = 0
     border = JBUI.Borders.empty(2, sideBorderWidth.unscaled.toInt())
 
     addActionListener {

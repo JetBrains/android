@@ -71,7 +71,7 @@ class AssertOnDiskConfig(
   private val syncedProject: Project,
   private val expect: Expect
 ) {
-  fun assertGradleJdk(expectedJdkName: String) {
+  fun assertGradleJdk(expectedJdkName: String?) {
     val projectFile = File(syncedProject.basePath.orEmpty())
     val currentGradleJdkName = ProjectJdkUtils.getGradleRootJdkNameFromIdeaGradleXmlFile(projectFile, "")
     expect.that(currentGradleJdkName).isEqualTo(expectedJdkName)

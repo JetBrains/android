@@ -16,19 +16,20 @@
 package com.android.tools.idea.run
 
 import com.android.ddmlib.IDevice
+import com.android.tools.deployer.DeployerException
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.ApplicationTerminator
-import com.android.tools.idea.execution.common.RunConfigurationNotifier.notifyError
-import com.android.tools.idea.execution.common.RunConfigurationNotifier.notifyWarning
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.ShowLogcatListener.Companion.getShowLogcatLinkText
 import com.android.tools.idea.run.applychanges.findExistingSessionAndMaybeDetachForColdSwap
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
+import com.android.tools.idea.run.configuration.execution.ConsoleViewToConsolePrinter
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
+import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.tasks.LaunchContext
-import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTasksProvider
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus
@@ -36,7 +37,6 @@ import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.stats.RunStats
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.configurations.RunProfile
@@ -46,7 +46,6 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.execution.ui.RunContentManager
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.runBlockingCancellable
@@ -62,8 +61,6 @@ import org.jetbrains.kotlin.utils.keysToMap
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 
 class LaunchTaskRunner(
   private val consoleProvider: ConsoleProvider,
@@ -74,7 +71,6 @@ class LaunchTaskRunner(
 ) : AndroidConfigurationExecutor {
 
   val project = myEnv.project
-  private val myOnFinished = ArrayList<Runnable>()
   override val configuration = myEnv.runProfile as RunConfiguration
   private val LOG = Logger.getInstance(this::class.java)
 
@@ -97,7 +93,7 @@ class LaunchTaskRunner(
 
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
     findExistingSessionAndMaybeDetachForColdSwap(myEnv)
-    val devices = waitForDevices(indicator)
+    val devices = getDevices(project, indicator, deployTarget, RunStats.from(myEnv))
 
     waitPreviousProcessTermination(devices, applicationIdProvider.packageName, indicator)
 
@@ -109,7 +105,7 @@ class LaunchTaskRunner(
     )
 
     val console = createConsole(processHandler)
-    doRun(devices, processHandler, indicator)
+    doRun(devices, processHandler, indicator, console)
 
     devices.forEach { device ->
       processHandler.addTargetDevice(device)
@@ -123,13 +119,16 @@ class LaunchTaskRunner(
     createRunContentDescriptor(processHandler, console, myEnv)
   }
 
-  private suspend fun doRun(devices: List<IDevice>, processHandler: ProcessHandler, indicator: ProgressIndicator) = coroutineScope {
+  private suspend fun doRun(devices: List<IDevice>,
+                            processHandler: ProcessHandler,
+                            indicator: ProgressIndicator,
+                            console: ConsoleView) = coroutineScope {
     val applicationId = applicationIdProvider.packageName
     val stat = RunStats.from(myEnv).apply { setPackage(applicationId) }
     stat.beginLaunchTasks()
     try {
       val launchStatus = ProcessHandlerLaunchStatus(processHandler)
-      val consolePrinter = ProcessHandlerConsolePrinter(processHandler)
+      val consolePrinter = ConsoleViewToConsolePrinter(console)
 
       printLaunchTaskStartedMessage(consolePrinter)
       myLaunchTasksProvider.fillStats(stat)
@@ -154,10 +153,6 @@ class LaunchTaskRunner(
           }
         }
       }.awaitAll()
-
-      for (runnable in myOnFinished) {
-        ApplicationManager.getApplication().invokeLater(runnable)
-      }
     }
     finally {
       stat.endLaunchTasks()
@@ -181,7 +176,8 @@ class LaunchTaskRunner(
   override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
     val applicationId = applicationIdProvider.packageName
 
-    val devices = waitForDevices(indicator)
+    val devices = getDevices(project, indicator, deployTarget, RunStats.from(myEnv))
+
     if (devices.size != 1) {
       throw ExecutionException("Cannot launch a debug session on more than 1 device.")
     }
@@ -191,7 +187,7 @@ class LaunchTaskRunner(
 
     val processHandler = NopProcessHandler()
     val console = createConsole(processHandler)
-    doRun(devices, processHandler, indicator)
+    doRun(devices, processHandler, indicator, console)
 
     val device = devices.single()
     val debuggerTask = myLaunchTasksProvider.connectDebuggerTask
@@ -203,8 +199,7 @@ class LaunchTaskRunner(
   }
 
   override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
-    val listenableDeviceFutures = deployTarget.getDevices(project)?.get() ?: throw ExecutionException("No devices found")
-    val devices = listenableDeviceFutures.map { deviceFuture -> waitForDevice(deviceFuture, indicator) }
+    val devices = getDevices(project, indicator, deployTarget, RunStats.from(myEnv))
     val oldSession = findExistingSessionAndMaybeDetachForColdSwap(myEnv)
     val processHandler = oldSession.processHandler ?: AndroidProcessHandler(
       project,
@@ -215,7 +210,7 @@ class LaunchTaskRunner(
 
     val console = oldSession.executionConsole as? ConsoleView ?: createConsole(processHandler)
 
-    doRun(devices, processHandler, indicator)
+    doRun(devices, processHandler, indicator, console)
 
     if (oldSession.processHandler == null && processHandler is AndroidProcessHandler) {
       devices.forEach { device ->
@@ -249,31 +244,20 @@ class LaunchTaskRunner(
   }
 
   private fun runLaunchTasks(launchTasks: List<LaunchTask>, launchContext: LaunchContext) {
-    // Update the indicator progress.
     val stat = RunStats.from(myEnv)
     for (task in launchTasks) {
       if (task.shouldRun(launchContext)) {
         val details = stat.beginLaunchTask(task)
-        val launchResult = task.run(launchContext)
-        myOnFinished.addAll(launchResult.onFinishedCallbacks())
-
-        when (launchResult.result) {
-          LaunchResult.Result.SUCCESS -> stat.endLaunchTask(task, details, true)
-          LaunchResult.Result.ERROR -> {
-            stat.endLaunchTask(task, details, false)
-            if (launchResult.message.isNotEmpty()) {
-              notifyError(project, configuration.name, launchResult.message)
-            }
-            stat.setErrorId(launchResult.errorId)
-            throw ExecutionException(launchResult.message)
+        try {
+          task.run(launchContext)
+          stat.endLaunchTask(task, details, true)
+        }
+        catch (e: Exception) {
+          stat.endLaunchTask(task, details, false)
+          if (e is DeployerException) {
+            throw AndroidExecutionException(e.id, e.message)
           }
-
-          LaunchResult.Result.WARNING -> {
-            stat.endLaunchTask(task, details, false)
-            if (launchResult.message.isNotEmpty()) {
-              notifyWarning(project, configuration.name, launchResult.message)
-            }
-          }
+          throw e
         }
       }
     }
@@ -308,33 +292,5 @@ class LaunchTaskRunner(
     }
     launchString.append(".")
     consolePrinter.stdout(launchString.toString())
-  }
-
-  private fun waitForDevices(indicator: ProgressIndicator): List<IDevice> {
-    val listenableDeviceFutures = deployTarget.getDevices(project)?.get() ?: throw ExecutionException("No devices found")
-    return listenableDeviceFutures.map { deviceFuture -> waitForDevice(deviceFuture, indicator) }
-  }
-
-  private fun waitForDevice(deviceFuture: ListenableFuture<IDevice>, indicator: ProgressIndicator): IDevice {
-    indicator.text = "Waiting for devices to come online"
-    val stat = RunStats.from(myEnv)
-    stat.beginWaitForDevice()
-    while (!indicator.isCanceled) {
-      try {
-        val device = deviceFuture[1, TimeUnit.SECONDS]
-        stat.endWaitForDevice(device)
-        return device
-      }
-      catch (ignored: TimeoutException) {
-        // Let's check the cancellation request then continue to wait for a device again.
-      }
-      catch (e: InterruptedException) {
-        throw ExecutionException("Interrupted while waiting for device")
-      }
-      catch (e: java.util.concurrent.ExecutionException) {
-        throw ExecutionException("Error while waiting for device: " + e.cause!!.message)
-      }
-    }
-    throw ExecutionException("Device is not launched")
   }
 }

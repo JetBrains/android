@@ -308,7 +308,9 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.5.2",
+        "@maven//:org.jetbrains.markdown_0.2.1",
     ],
 )
 
@@ -321,6 +323,8 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.0-Beta",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.0-Beta",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.0-Beta",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
+        "@maven//:org.jetbrains.markdown_0.2.1",
     ],
 )
 
@@ -427,6 +431,8 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.0-Beta",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.0-Beta",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.0-Beta",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
+        "@maven//:org.jetbrains.markdown_0.2.1",
     ],
     visibility = ["//visibility:public"],
 )
@@ -451,6 +457,8 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
+        "@maven//:org.jetbrains.markdown_0.2.1",
     ],
 )
 
@@ -488,7 +496,9 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core-jvm_1.5.2",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.5.2",
+        "@maven//:org.jetbrains.markdown_0.2.1",
     ],
 )
 

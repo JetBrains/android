@@ -23,11 +23,12 @@ import com.android.tools.idea.device.explorer.monitor.processes.ProcessInfo
 import com.android.tools.idea.device.explorer.monitor.processes.isPidOnly
 import com.android.tools.idea.device.explorer.monitor.processes.safeProcessName
 import com.intellij.openapi.diagnostic.thisLogger
-import java.util.ArrayList
+import com.intellij.openapi.project.Project
 import java.util.function.Consumer
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.DefaultTreeSelectionModel
 import javax.swing.tree.MutableTreeNode
+
 
 @UiThread
 class DeviceMonitorModel(private val processService: DeviceProcessService) {
@@ -84,6 +85,14 @@ class DeviceMonitorModel(private val processService: DeviceProcessService) {
     invokeOnProcessInfo(nodes) { processInfo ->
       activeDevice?.let {
         processService.forceStopProcess(processInfo, it.device)
+      }
+    }
+  }
+
+  suspend fun debugNodesInvoked(project: Project, nodes: List<ProcessTreeNode>) {
+    invokeOnProcessInfo(nodes) { processInfo ->
+      activeDevice?.let {
+        processService.debugProcess(project, processInfo, it.device)
       }
     }
   }

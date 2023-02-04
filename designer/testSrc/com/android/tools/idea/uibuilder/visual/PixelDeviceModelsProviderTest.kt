@@ -60,7 +60,7 @@ class PixelDeviceModelsProviderTest : LayoutTestCase() {
   fun testDisposedConfigurationManagerShouldCleanTheCached() {
     val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT);
     val modelsProvider = PixelDeviceModelsProvider
-    val manager = ConfigurationManager.getOrCreateInstance(myFacet)
+    val manager = ConfigurationManager.getOrCreateInstance(myModule)
     modelsProvider.createNlModels(testRootDisposable, file, myFacet)
     TestCase.assertTrue(modelsProvider.deviceCaches.containsKey(manager))
     Disposer.dispose(manager)
@@ -92,7 +92,7 @@ class PixelDeviceModelsProviderTest : LayoutTestCase() {
     myFixture.addFileToProject("/res/layout-fr/test.xml", LAYOUT_FILE_CONTENT)
     myFixture.addFileToProject("/res/layout-jp/test.xml", LAYOUT_FILE_CONTENT)
 
-    val manager = ConfigurationManager.getOrCreateInstance(myFacet)
+    val manager = ConfigurationManager.getOrCreateInstance(myModule)
     val sourceConfig = manager.getConfiguration(file.virtualFile)
 
     val modelsProvider = PixelDeviceModelsProvider

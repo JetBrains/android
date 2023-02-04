@@ -228,7 +228,7 @@ class NetworkInspectorView(
   private fun buildTimeAxis(axis: ResizingAxisComponentModel): JComponent {
     val axisPanel = JPanel(BorderLayout())
     axisPanel.background = DEFAULT_BACKGROUND
-    val timeAxis = AxisComponent(axis, AxisComponent.AxisOrientation.BOTTOM)
+    val timeAxis = AxisComponent(axis, AxisComponent.AxisOrientation.BOTTOM, true)
     timeAxis.setShowAxisLine(false)
     timeAxis.minimumSize = Dimension(0, TIME_AXIS_HEIGHT)
     timeAxis.preferredSize = Dimension(Int.MAX_VALUE, TIME_AXIS_HEIGHT)
@@ -329,7 +329,7 @@ class NetworkInspectorView(
     lineChartPanel.add(lineChart, BorderLayout.CENTER)
     val axisPanel = JBPanel<Nothing>(BorderLayout())
     axisPanel.isOpaque = false
-    val leftAxis = AxisComponent(model.trafficAxis, AxisComponent.AxisOrientation.RIGHT)
+    val leftAxis = AxisComponent(model.trafficAxis, AxisComponent.AxisOrientation.RIGHT, true)
     leftAxis.setShowAxisLine(false)
     leftAxis.setShowMax(true)
     leftAxis.setOnlyShowUnitAtMax(true)

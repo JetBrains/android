@@ -119,7 +119,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
                              facet: AndroidFacet,
                              componentRegistrar: Consumer<NlComponent>,
                              file: VirtualFile): NlModel {
-      val config = ConfigurationManager.getOrCreateInstance(facet).getPreviewConfig()
+      val config = ConfigurationManager.getOrCreateInstance(facet.module).getPreviewConfig()
       animatedSelectorModel = WriteCommandAction.runWriteCommandAction(project, Computable {
         AnimatedSelectorModel(file, parentDisposable, project, facet, componentRegistrar, config)
       })

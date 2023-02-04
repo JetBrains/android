@@ -70,7 +70,6 @@ PROJECT                       : kotlinMultiPlatform
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -190,7 +189,6 @@ PROJECT                       : kotlinMultiPlatform
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
             Scope                         : Test
@@ -399,7 +397,6 @@ PROJECT                       : kotlinMultiPlatform
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
         LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
@@ -556,7 +553,6 @@ PROJECT                       : kotlinMultiPlatform
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
             Scope                         : Test
@@ -720,7 +716,6 @@ PROJECT                       : kotlinMultiPlatform
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -860,7 +855,6 @@ PROJECT                       : kotlinMultiPlatform
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: com.android.support.test:monitor:<VERSION>@aar [=]
             Scope                         : Test
@@ -1348,7 +1342,6 @@ PROJECT                       : kotlinMultiPlatform
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
@@ -1502,7 +1495,6 @@ PROJECT                       : kotlinMultiPlatform
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: com.android.support.test:monitor:<VERSION>@aar [=]
             Scope                         : Test

@@ -169,7 +169,6 @@ internal class FakeScreenSharingAgentRule : TestRule {
   ) {
     val agent: FakeScreenSharingAgent = FakeScreenSharingAgent(displaySize, deviceState, roundDisplay = roundDisplay)
     var hostPort: Int? = null
-    val properties: Map<String, String>
-      get() = deviceState.properties
+    val configuration: DeviceConfiguration = createDeviceConfiguration(deviceState.properties)
   }
 }

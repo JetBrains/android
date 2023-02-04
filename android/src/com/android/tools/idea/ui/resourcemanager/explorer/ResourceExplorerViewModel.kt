@@ -448,7 +448,7 @@ private class ViewModelStateSaveParams(
  */
 private fun getConfiguration(facet: AndroidFacet, contextFile: VirtualFile? = null): CompletableFuture<Configuration?> =
   CompletableFuture.supplyAsync(Supplier {
-    val configManager = ConfigurationManager.getOrCreateInstance(facet)
+    val configManager = ConfigurationManager.getOrCreateInstance(facet.module)
     var configuration: Configuration? = null
     contextFile?.let {
       configuration = configManager.getConfiguration(contextFile)
@@ -474,7 +474,7 @@ private fun getResourceResolver(
 ): CompletableFuture<ResourceResolver> {
   return configurationFuture.thenApplyAsync<ResourceResolver>(Function { configuration ->
     configuration?.let { return@Function it.resourceResolver }
-    val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
     val theme = getApplicationTheme(facet)
     val target = configurationManager.highestApiTarget?.let { StudioEmbeddedRenderTarget.getCompatibilityTarget(it) }
     return@Function configurationManager.resolverCache.getResourceResolver(target, theme, FolderConfiguration.createDefault())

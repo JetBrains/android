@@ -70,7 +70,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -170,7 +169,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : project.app.main
             Scope                         : Test
@@ -276,7 +274,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/classes
@@ -375,7 +372,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : project.app.main
             Scope                         : Test

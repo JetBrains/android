@@ -19,6 +19,7 @@ package com.android.tools.idea.ui.resourcemanager.qualifiers
 import com.android.ide.common.resources.configuration.CountryCodeQualifier
 import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.ide.common.resources.configuration.GrammaticalGenderQualifier
 import com.android.ide.common.resources.configuration.HighDynamicRangeQualifier
 import com.android.ide.common.resources.configuration.KeyboardStateQualifier
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier
@@ -79,7 +80,8 @@ class QualifierConfigurationViewModelTest {
     TouchScreenQualifier(),
     UiModeQualifier(),
     VersionQualifier(),
-    WideGamutColorQualifier()
+    WideGamutColorQualifier(),
+    GrammaticalGenderQualifier(),
   )
 
   @Test

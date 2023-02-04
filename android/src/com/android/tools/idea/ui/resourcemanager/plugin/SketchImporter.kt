@@ -59,7 +59,7 @@ class SketchImporter : ResourceImporter {
       val imageCache = ImageCache.createImageCache(disposable)
       // FIXME(b/140494768): Currently unused, get the ResourceResolver asynchronously to use this class.
       val resourceResolver = facet.module.project.projectFile?.let {
-        ConfigurationManager.getOrCreateInstance(facet).getConfiguration(it).resourceResolver
+        ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(it).resourceResolver
       }?: return
       val assetPreviewManager = AssetPreviewManagerImpl(facet, imageCache, resourceResolver)
       view.presenter = SketchImporterPresenter(view, sketchFile, DesignAssetImporter(), facet, assetPreviewManager)

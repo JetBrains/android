@@ -15,6 +15,7 @@
  */
 package com.android.tools.compose
 
+import androidx.compose.compiler.plugins.kotlin.ComposeFqNames
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.psi.util.parentOfType

@@ -555,6 +555,7 @@
     <option name="record" path="ActionManager" hit="Record a video of the device display" />
     <option name="the" path="ActionManager" hit="Record a video of the device display" />
     <option name="video" path="ActionManager" hit="Record a video of the device display" />
+    <option name="refresh" path="ActionManager" hit="Refresh" />
     <option name="c" path="ActionManager" hit="Refresh Linked C++ Projects" />
     <option name="linked" path="ActionManager" hit="Refresh Linked C++ Projects" />
     <option name="projects" path="ActionManager" hit="Refresh Linked C++ Projects" />
@@ -623,6 +624,8 @@
     <option name="manager" path="ActionManager" hit="Show In Resource Manager" />
     <option name="resource" path="ActionManager" hit="Show In Resource Manager" />
     <option name="show" path="ActionManager" hit="Show In Resource Manager" />
+    <option name="logcat" path="ActionManager" hit="Show Logcat" />
+    <option name="show" path="ActionManager" hit="Show Logcat" />
     <option name="analysis" path="ActionManager" hit="Show Results Analysis of Previous Builds" />
     <option name="builds" path="ActionManager" hit="Show Results Analysis of Previous Builds" />
     <option name="of" path="ActionManager" hit="Show Results Analysis of Previous Builds" />

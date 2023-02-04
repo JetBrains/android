@@ -653,12 +653,14 @@ class AgpUpgradeRefactoringProcessor(
   }
 }
 
-internal fun notifyCancelledUpgrade(project: Project) {
+internal fun notifyCancelledUpgrade(project: Project, current: AgpVersion) {
   // TODO(xof): this is now only called from the forced upgrade flow, where this notification is probably not the right one: we should
   //  probably re-show the forced upgrade modal dialog instead.
   val notification = UpgradeSuggestion(
     AndroidBundle.message("project.upgrade.notifyCancelledUpgrade.title"),
-    AndroidBundle.message("project.upgrade.notifyCancelledUpgrade.body")
+    AndroidBundle.message("project.upgrade.notifyCancelledUpgrade.body"),
+    project,
+    current
   )
   notification.notify(project)
 }

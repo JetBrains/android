@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.tasks;
 
+import static com.android.tools.idea.run.tasks.LaunchTaskDurations.DEPLOY_INSTANT_APP;
+
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
@@ -22,26 +24,24 @@ import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
+import com.google.android.instantapps.sdk.api.ExtendedSdk;
 import com.google.android.instantapps.sdk.api.HandlerResult;
 import com.google.android.instantapps.sdk.api.ProgressIndicator;
 import com.google.android.instantapps.sdk.api.ResultStream;
 import com.google.android.instantapps.sdk.api.StatusCode;
 import com.google.common.collect.ImmutableList;
+import com.intellij.execution.ExecutionException;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.google.android.instantapps.sdk.api.ExtendedSdk;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import static com.android.tools.idea.run.tasks.LaunchTaskDurations.DEPLOY_INSTANT_APP;
 
 public class RunInstantAppTask implements LaunchTask {
   private static final String ID = "RUN_INSTANT_APP";
@@ -74,26 +74,22 @@ public class RunInstantAppTask implements LaunchTask {
   }
 
   @Override
-  public LaunchResult run(@NotNull LaunchContext launchContext) {
+  public void run(@NotNull LaunchContext launchContext) throws ExecutionException {
     ConsolePrinter printer = launchContext.getConsolePrinter();
-    if (launchContext.getLaunchStatus().isLaunchTerminated()) {
-      return LaunchResult.error("", getDescription());
-    }
 
     // We expect exactly one zip file per Instant App that will contain the apk-splits for the
     // Instant App
     if (myPackages.size() != 1) {
-      printer.stderr("Package not found or not unique.");
-      return LaunchResult.error("", getDescription());
+      throw new ExecutionException(getDescription() + ": Package not found or not unique");
     }
 
     URL url = null;
     if (myDeepLink != null && !myDeepLink.isEmpty()) {
       try {
         url = new URL(myDeepLink);
-      } catch (MalformedURLException e) {
-        printer.stderr("Invalid launch URL: " + myDeepLink);
-        return LaunchResult.error("", getDescription());
+      }
+      catch (MalformedURLException e) {
+        throw new ExecutionException(getDescription() + ": Invalid launch URL: " + myDeepLink);
       }
     }
 
@@ -112,7 +108,7 @@ public class RunInstantAppTask implements LaunchTask {
       }
     };
 
-    try {
+
       IDevice device = launchContext.getDevice();
       ExtendedSdk aiaSdk = mySdk.loadLibrary();
 
@@ -136,8 +132,8 @@ public class RunInstantAppTask implements LaunchTask {
           artifactFiles.stream()
                        // Remove disabled APKs
                        .filter((apkFileUnit) -> (DynamicAppUtils.isFeatureEnabled(myDisabledFeatures, apkFileUnit)))
-                       .map(ApkFileUnit::getApkFile)
-                       .collect(ImmutableList.toImmutableList()),
+            .map(ApkFileUnit::getApkFile)
+            .collect(ImmutableList.toImmutableList()),
           url,
           AndroidDebugBridge.getSocketAddress(),
           device.getSerialNumber(),
@@ -146,11 +142,8 @@ public class RunInstantAppTask implements LaunchTask {
           new NullProgressIndicator());
       }
 
-      return status == StatusCode.SUCCESS ? LaunchResult.success() : LaunchResult.error("", getDescription());
-    } catch (Exception e) {
-      printer.stderr(e.toString());
-      getLogger().error(new RunInstantAppException(e));
-      return LaunchResult.error("", getDescription());
+    if (status != StatusCode.SUCCESS) {
+      throw new ExecutionException("Instant app deployment failed");
     }
   }
 

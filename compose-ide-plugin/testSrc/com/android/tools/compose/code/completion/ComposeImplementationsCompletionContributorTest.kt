@@ -15,7 +15,7 @@
  */
 package com.android.tools.compose.code.completion
 
-import com.android.tools.compose.ComposeFqNames
+import com.android.tools.compose.COMPOSABLE_FQ_NAMES_ROOT
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -43,7 +43,7 @@ class ComposeImplementationsCompletionContributorTest {
   @Before
   fun setUp() {
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.stubComposableAnnotation(ComposeFqNames.root)
+    myFixture.stubComposableAnnotation(COMPOSABLE_FQ_NAMES_ROOT)
 
     myFixture.addFileToProject(
       "/src/androidx/compose/ui/Alignment.kt",

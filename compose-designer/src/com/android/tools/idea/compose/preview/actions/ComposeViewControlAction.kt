@@ -21,6 +21,7 @@ import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.actions.SetColorBlindModeAction
+import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
@@ -34,6 +35,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.util.IconLoader
 import org.assertj.core.util.VisibleForTesting
 
 class ComposeViewControlAction(
@@ -44,8 +46,23 @@ class ComposeViewControlAction(
   DropDownAction(
     message("action.scene.view.control.title"),
     message("action.scene.view.control.description"),
-    AllIcons.Debugger.RestoreLayout
+    null
   ) {
+
+  init {
+    // When using [AllIcons.Debugger.RestoreLayout] as the icon, this action is considered as a
+    // multi-choice group, even
+    // Presentation.setMultiChoice() sets to false. (See
+    // [com.intellij.openapi.actionSystem.impl.Utils.isMultiChoiceGroup])
+    //
+    // We clone the icon here so we can control the multi-choice state of this action ourselves.
+    templatePresentation.icon = IconLoader.copy(AllIcons.Debugger.RestoreLayout, null, true)
+  }
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    e.presentation.isEnabled = !isAnyPreviewRefreshing(e.dataContext)
+  }
 
   @VisibleForTesting
   public override fun updateActions(context: DataContext): Boolean {
@@ -56,7 +73,10 @@ class ComposeViewControlAction(
           layoutManagers,
           isSurfaceLayoutActionEnabled
         )
-        .apply { isPopup = false }
+        .apply {
+          isPopup = false
+          templatePresentation.isMultiChoice = false
+        }
     )
     addSeparator()
     add(WrappedZoomAction(ZoomInAction.getInstance(), context))
@@ -85,7 +105,7 @@ class ComposeViewControlAction(
     return true
   }
 
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   /**
    * Zoom actions have the icons, which we don't want to display in [ComposeViewControlAction]. We

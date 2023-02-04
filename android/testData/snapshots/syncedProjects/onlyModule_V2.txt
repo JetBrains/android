@@ -70,7 +70,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -170,7 +169,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : project.app.main
             Scope                         : Test
@@ -270,7 +268,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -365,7 +362,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: junit:junit:4.12 [=]
             Scope                         : Test
@@ -449,7 +445,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -535,7 +530,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
         LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
@@ -651,7 +645,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -737,7 +730,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
         LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
@@ -853,7 +845,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -939,7 +930,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
         LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar [=]

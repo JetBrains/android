@@ -52,6 +52,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ToolWindowType
@@ -117,7 +118,7 @@ class StreamingToolWindowManagerTest {
 
   @After
   fun tearDown() {
-    toolWindow.hide()
+    Disposer.dispose(toolWindow.disposable)
     dispatchAllEventsInIdeEventQueue() // Finish asynchronous processing triggered by hiding the tool window.
     deviceMirroringSettings.loadState(DeviceMirroringSettings()) // Reset device mirroring settings to defaults.
   }

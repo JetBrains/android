@@ -10,7 +10,8 @@
     <orderEntry type="library" name="studio-plugin-gradle" level="project" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="truth" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="intellij.android.testFramework" />
     <orderEntry type="module" module-name="android.sdktools.testutils" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" />
@@ -22,4 +23,5 @@
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
   </component>
+  <component name="TestModuleProperties" production-module="intellij.android.dagger" />
 </module>

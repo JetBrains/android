@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.project.importing.withAfterCreate
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.testing.AgpIntegrationTestUtil.maybeCreateJdkOverride
 import com.android.tools.idea.util.androidFacet
-import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project

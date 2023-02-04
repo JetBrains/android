@@ -21,10 +21,9 @@ import com.android.adblib.testingutils.CloseablesRule
 import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
 import com.android.adblib.testingutils.FakeAdbServerProvider
 import com.android.adblib.testingutils.TestingAdbSessionHost
-import com.android.sdklib.deviceprovisioner.Connected
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
+import com.android.sdklib.deviceprovisioner.DeviceState.Connected
 import com.android.sdklib.deviceprovisioner.OfflineDeviceProperties
-import com.android.sdklib.deviceprovisioner.isOnline
 import com.android.sdklib.deviceprovisioner.receiveUntilPassing
 import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlugin
 import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystem
@@ -32,7 +31,6 @@ import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceState
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.junit.Rule
 import org.junit.Test

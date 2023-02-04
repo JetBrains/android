@@ -102,6 +102,6 @@ constructor(
 
 private fun getConfigurationFuture(facet: AndroidFacet, file: VirtualFile): CompletableFuture<Configuration> {
   return CompletableFuture.supplyAsync(Supplier {
-    ConfigurationManager.getOrCreateInstance(facet).getConfiguration(file)
+    ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(file)
   }, PooledThreadExecutor.INSTANCE)
 }

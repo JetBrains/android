@@ -14,6 +14,7 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
+  <depends>org.jetbrains.plugins.gradle</depends>
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceInterface="com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager"
                     serviceImplementation="com.android.build.attribution.BuildAttributionManagerImpl"/>
@@ -31,8 +32,14 @@
     <projectService  serviceInterface = "com.android.build.attribution.BuildAnalyzerStorageManager"
         serviceImplementation="com.android.build.attribution.BuildAnalyzerStorageManagerImpl"/>
 
+    <projectService serviceInterface="com.android.tools.idea.gradle.project.sync.SyncAnalyzerManager"
+                    serviceImplementation="com.android.sync.analyzer.SyncAnalyzerManagerImpl"/>
+
     <fileEditorProvider implementation="com.android.build.attribution.ui.BuildReportEditorProvider"/>
     <notificationGroup id="Build Analyzer" displayType="TOOL_WINDOW" toolWindowId="Build"/>
+  </extensions>
+  <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
+    <operationHelperExtension implementation="com.android.sync.analyzer.SyncAnalyzerOperationHelperExtension"/>
   </extensions>
   <actions>
     <action id = "com.android.build.attribution.ui.OpenBuildAnalyzerAction"

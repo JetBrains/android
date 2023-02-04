@@ -238,12 +238,22 @@ public class PropertyUtil {
   /**
    * Requires READ_ACCESS.
    */
+  static boolean isModelElementModified(@NotNull GradleDslElement oldRawElement,
+                                        @NotNull GradleDslElement newRawElement,
+                                        @NotNull GradleDslElement oldTransformedElement,
+                                        @NotNull GradleDslElement newTransformedElement) {
+    return checkForModifiedValue(oldTransformedElement, newTransformedElement) || checkForModifiedName(oldRawElement, newRawElement);
+  }
+
+  /**
+   * Requires READ_ACCESS.
+   */
   @Nullable
   public static GradleDslElement findOriginalElement(@NotNull GradleDslElement parent, @NotNull GradleDslElement element) {
     GradlePropertiesDslElement holder = parent instanceof GradleDslMethodCall ? ((GradleDslMethodCall)parent).getArgumentsElement() :
                                         (GradlePropertiesDslElement)parent;
 
-    if (holder instanceof GradleDslExpressionList) {
+    if (holder instanceof GradleDslExpressionList || holder instanceof GradleDslElementList) {
       // get all elements that are loaded from file
       List<GradleDslElement> originalElements = holder.getOriginalElements();
       // get all effective elements (with new and without deleted)

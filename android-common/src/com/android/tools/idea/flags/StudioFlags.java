@@ -206,9 +206,6 @@ public final class StudioFlags {
     DESIGN_TOOLS, "power.save.support", "Enable previews support for PowerSave mode",
     "If enabled, the the Layout Editor and Compose Preview will respect the Power Save mode and avoid auto-refresh, reduce FPS, etc.",
     true);
-  public static final Flag<Boolean> USE_COMPONENT_TREE_TABLE = Flag.create(
-    DESIGN_TOOLS, "design.component.tree.table", "Enable TreeTable implementation of component tree",
-    "Use a TreeTable for displaying the component tree in the LayoutInspector and the Nav editor.", true);
   //endregion
 
   //region Layout Editor
@@ -357,7 +354,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_NEW_COMPONENT_TREE = Flag.create(
     NELE, "use.component.tree.builder", "Use the Component Tree builder",
     "If enabled, use the Component Tree builder for the Nele component tree",
-    false);
+    true);
   //endregion
 
   //region Navigation Editor
@@ -549,7 +546,7 @@ public final class StudioFlags {
     "Use adblib to track device processes (Client)",
     "Use adblib instead of ddmlib to track processes (Client) on devices and handle debug sessions. " +
     "Note: Changing the value of this flag requires restarting Android Studio.",
-    true);
+    false);
 
   public static final Flag<Boolean> JDWP_TRACER = Flag.create(
     RUNDEBUG,
@@ -596,6 +593,14 @@ public final class StudioFlags {
     "debug.device.sdk.sources.enable",
     "Enable SDK source resolution using debug device API level.",
     "Enable SDK source resolution using debug device API level and related fallbacks.",
+    true
+  );
+
+  public static final Flag<Boolean> DEBUG_ATTEMPT_SUSPENDED_START = Flag.create(
+    RUNDEBUG,
+    "debug.app.suspend.upon.start.enable",
+    "Start activity suspended when debugging.",
+    "Start activity suspended when debugging. This reduce the amount of time 'Waiting for Debugger' panel is shown on device",
     true
   );
 
@@ -969,6 +974,13 @@ public final class StudioFlags {
     EDITOR, "dagger.built.in.search.enabled",
     "Enable using the built in annotation search for dagger",
     "If enabled, uses the built in annotation search for dagger usages rather than the custom DaggerAnnotatedElementsSearch",
+    false
+  );
+
+  public static final Flag<Boolean> DAGGER_USING_INDEX_ENABLED = Flag.create(
+    EDITOR, "dagger.index.enabled",
+    "Enable the dagger index",
+    "If enabled, the dagger index is used for gutter icon and find usages support.",
     false
   );
 

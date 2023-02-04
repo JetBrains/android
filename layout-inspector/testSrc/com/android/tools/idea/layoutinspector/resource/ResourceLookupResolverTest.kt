@@ -72,7 +72,7 @@ class ResourceLookupResolverTest {
     }
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val folderConfiguration = FolderConfiguration.getConfigFromQualifiers(listOf(*qualifiers))!!
-    val mgr = ConfigurationManager.getOrCreateInstance(facet)
+    val mgr = ConfigurationManager.getOrCreateInstance(facet.module)
     val cache = mgr.resolverCache
     val resourceResolver = cache.getResourceResolver(mgr.target, theme, folderConfiguration)
 

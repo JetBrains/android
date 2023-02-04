@@ -243,7 +243,7 @@ public abstract class ChartDetailsView extends CaptureDetailsView {
     private static AxisComponent createAxis(@NotNull Range range, @NotNull Range globalRange) {
       AxisComponentModel axisModel =
         new ResizingAxisComponentModel.Builder(range, new TimeAxisFormatter(1, 10, 1)).setGlobalRange(globalRange).build();
-      AxisComponent axis = new AxisComponent(axisModel, AxisComponent.AxisOrientation.BOTTOM);
+      AxisComponent axis = new AxisComponent(axisModel, AxisComponent.AxisOrientation.BOTTOM, true);
       axis.setShowAxisLine(false);
       axis.setMarkerColor(ProfilerColors.CPU_AXIS_GUIDE_COLOR);
       axis.addComponentListener(new ComponentAdapter() {

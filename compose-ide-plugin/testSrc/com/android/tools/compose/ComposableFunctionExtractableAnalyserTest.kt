@@ -49,7 +49,7 @@ class ComposableFunctionExtractableAnalyserTest {
   @Before
   fun setUp() {
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.stubComposableAnnotation(ComposeFqNames.root)
+    myFixture.stubComposableAnnotation(COMPOSABLE_FQ_NAMES_ROOT)
     StudioFlags.COMPOSE_FUNCTION_EXTRACTION.override(true)
   }
 

@@ -451,7 +451,7 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testConfiguration() {
-    val defaultConfigurationManager = ConfigurationManager.getOrCreateInstance(myFacet)
+    val defaultConfigurationManager = ConfigurationManager.getOrCreateInstance(myModule)
     val navConfigurationManager = NavDesignSurface(project, project).getConfigurationManager(myFacet)
     assertNotEquals(defaultConfigurationManager, navConfigurationManager)
 

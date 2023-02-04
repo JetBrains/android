@@ -52,7 +52,7 @@ public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
     JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
 
-    AxisComponent leftAxis = new AxisComponent(getMonitor().getMemoryAxis(), AxisComponent.AxisOrientation.RIGHT);
+    AxisComponent leftAxis = new AxisComponent(getMonitor().getMemoryAxis(), AxisComponent.AxisOrientation.RIGHT, true);
     leftAxis.setShowAxisLine(false);
     leftAxis.setShowMax(true);
     leftAxis.setOnlyShowUnitAtMax(false);

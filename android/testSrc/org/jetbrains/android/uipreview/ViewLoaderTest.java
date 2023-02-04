@@ -59,7 +59,7 @@ public class ViewLoaderTest extends AndroidTestCase {
     Module module = myFacet.getModule();
     AndroidPlatform platform = AndroidPlatform.getInstance(module);
     assertNotNull(platform);
-    ConfigurationManager manager = new ConfigurationManager(module);
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(module);
     myLayoutLib = RenderService.getLayoutLibrary(module, StudioEmbeddedRenderTarget.getCompatibilityTarget(manager.getHighestApiTarget()));
     assertNotNull(myLayoutLib);
     myClassLoader = ModuleClassLoaderManager.get().getShared(myLayoutLib.getClassLoader(), ModuleRenderContext.forModule(myModule), this);

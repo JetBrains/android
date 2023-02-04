@@ -96,7 +96,7 @@ final class CpuThreadsView {
   @NotNull
   private HideablePanel createHideablePanel() {
     // Add AxisComponent only to scrollable section of threads list.
-    AxisComponent axisComponent = new AxisComponent(myStage.getTimeAxisGuide(), AxisComponent.AxisOrientation.BOTTOM);
+    AxisComponent axisComponent = new AxisComponent(myStage.getTimeAxisGuide(), AxisComponent.AxisOrientation.BOTTOM, true);
     axisComponent.setShowAxisLine(false);
     axisComponent.setShowLabels(false);
     axisComponent.setHideTickAtMin(true);

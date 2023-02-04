@@ -16,7 +16,6 @@
 package com.android.tools.componenttree.treetable
 
 import com.android.SdkConstants
-import com.android.flags.junit.FlagRule
 import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
@@ -29,7 +28,6 @@ import com.android.tools.componenttree.api.ComponentTreeBuilder
 import com.android.tools.componenttree.api.IconColumn
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
-import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.dnd.DnDAction
 import com.intellij.ide.dnd.DnDEvent
@@ -74,8 +72,7 @@ class TreeTableDropTargetHandlerTest {
 
   @get:Rule
   val chain = RuleChain
-    .outerRule(FlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true))
-    .around(MockitoCleanerRule())
+    .outerRule(MockitoCleanerRule())
     .around(IconLoaderRule())
     .around(EdtRule())!!
 
@@ -88,7 +85,7 @@ class TreeTableDropTargetHandlerTest {
   private val item7 = Item(SdkConstants.FQCN_TEXT_VIEW)
 
   private val badgeItem = object : IconColumn("Badge") {
-    override fun getIcon(item: Any): Icon? = when (item) {
+    override fun getIcon(item: Any): Icon = when (item) {
       item1 -> StudioIcons.Common.ERROR
       item2 -> StudioIcons.Common.FILTER
       else -> StudioIcons.Common.CLOSE

@@ -60,7 +60,7 @@ private val unsignedTypesSuffixes = listOf("-w2LRezQ", "-pVg5ArA", "-s-VKNKU", "
  * @param callback callback when a new constant has been initialized. Called with the literal key and the value.
  */
 private class LiveLiteralsConstructorVisitor(delegate: MethodVisitor, private val callback: (String, Any?) -> Unit) : MethodVisitor(
-  Opcodes.ASM7, delegate) {
+  Opcodes.ASM9, delegate) {
   /**
    * Last constant pushed into the stack.
    */
@@ -135,7 +135,7 @@ fun isLiveLiteralsClassName(className: String) = className.substringAfterLast('/
  * The [callback] first parameter contains the annotation name and the second a key/value map with the parameter name and value.
  */
 private class RecordAnnotationVisitor(
-  val name: String, private val callback: (String, Map<String, String>) -> Unit) : AnnotationVisitor(Opcodes.ASM7) {
+  val name: String, private val callback: (String, Map<String, String>) -> Unit) : AnnotationVisitor(Opcodes.ASM9) {
   private val parameters = mutableMapOf<String, String>()
 
   override fun visit(name: String?, value: Any?) {
@@ -169,7 +169,7 @@ abstract class LiveLiteralsFinder @JvmOverloads constructor(
   delegate: ClassVisitor?,
   private val fileInfoAnnotationName: String = FILE_INFO_ANNOTATION,
   private val infoAnnotationName: String = INFO_ANNOTATION) : ClassVisitor(
-  Opcodes.ASM7, delegate) {
+  Opcodes.ASM9, delegate) {
   private val LOG = Logger.getInstance(LiveLiteralsFinder::class.java)
 
   /**
@@ -248,7 +248,7 @@ abstract class LiveLiteralsFinder @JvmOverloads constructor(
 
   override fun visitField(access: Int, name: String?, descriptor: String?, signature: String?, value: Any?): FieldVisitor =
     if (liveLiteralsClass) {
-      object : FieldVisitor(Opcodes.ASM7, super.visitField(access, name, descriptor, signature, value)) {
+      object : FieldVisitor(Opcodes.ASM9, super.visitField(access, name, descriptor, signature, value)) {
         override fun visitAnnotation(descriptor: String?, visible: Boolean): AnnotationVisitor? {
           return this@LiveLiteralsFinder.visitAnnotation(descriptor, super.visitAnnotation(descriptor, visible))
         }
@@ -264,7 +264,7 @@ abstract class LiveLiteralsFinder @JvmOverloads constructor(
     // We define this as a lambda to only invoke it when needed. This avoids generating
     // the visitCode output when we are removing the method.
     val delegate = {
-      super.visitMethod(access, name, descriptor, signature, exceptions) ?: object : MethodVisitor(Opcodes.ASM7) {}
+      super.visitMethod(access, name, descriptor, signature, exceptions) ?: object : MethodVisitor(Opcodes.ASM9) {}
     }
     return if (liveLiteralsClass) {
       LOG.debug("visitMethod $name $descriptor")
@@ -272,7 +272,7 @@ abstract class LiveLiteralsFinder @JvmOverloads constructor(
         "<clinit>" -> LiveLiteralsConstructorVisitor(delegate(), this::visitFieldLoad)
         "<init>" -> delegate()
         // Any other method gets removed
-        else -> object : MethodVisitor(Opcodes.ASM7) {
+        else -> object : MethodVisitor(Opcodes.ASM9) {
           override fun visitAnnotation(descriptor: String?, visible: Boolean): AnnotationVisitor? {
             return this@LiveLiteralsFinder.visitAnnotation(descriptor, super.visitAnnotation(descriptor, visible))
           }

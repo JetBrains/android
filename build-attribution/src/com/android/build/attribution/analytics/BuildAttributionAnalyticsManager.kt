@@ -292,23 +292,7 @@ class BuildAttributionAnalyticsManager(
       .build()
 
   private fun transformDownloadsAnalyzerData(downloadsAnalyzerResult: DownloadsAnalyzer.ActiveResult): BuildDownloadsAnalysisData =
-    BuildDownloadsAnalysisData.newBuilder().apply {
-      addAllRepositories(downloadsAnalyzerResult.repositoryResults.map { repoResult ->
-        BuildDownloadsAnalysisData.RepositoryStats.newBuilder().apply {
-          repositoryType = repoResult.repository.analyticsType
-          successRequestsCount = repoResult.successRequestsCount
-          successRequestsTotalTimeMs = repoResult.successRequestsTimeMs
-          successRequestsTotalBytesDownloaded = repoResult.successRequestsBytesDownloaded
-          failedRequestsCount = repoResult.failedRequestsCount
-          failedRequestsTotalTimeMs = repoResult.failedRequestsTimeMs
-          failedRequestsTotalBytesDownloaded = repoResult.failedRequestsBytesDownloaded
-          missedRequestsCount = repoResult.missedRequestsCount
-          missedRequestsTotalTimeMs = repoResult.missedRequestsTimeMs
-        }
-          .build()
-      })
-    }
-      .build()
+    transformDownloadsAnalyzerData(downloadsAnalyzerResult.repositoryResults)
 
   private fun transformTaskCategoryIssue(issue: TaskCategoryIssue): TaskCategoryIssuesData.TaskCategoryIssue? =
     when (issue) {
@@ -344,3 +328,22 @@ class BuildAttributionAnalyticsManager(
   }
 
 }
+
+fun transformDownloadsAnalyzerData(repositoryResults: List<DownloadsAnalyzer.RepositoryResult>): BuildDownloadsAnalysisData =
+  BuildDownloadsAnalysisData.newBuilder().apply {
+    addAllRepositories(repositoryResults.map { repoResult ->
+      BuildDownloadsAnalysisData.RepositoryStats.newBuilder().apply {
+        repositoryType = repoResult.repository.analyticsType
+        successRequestsCount = repoResult.successRequestsCount
+        successRequestsTotalTimeMs = repoResult.successRequestsTimeMs
+        successRequestsTotalBytesDownloaded = repoResult.successRequestsBytesDownloaded
+        failedRequestsCount = repoResult.failedRequestsCount
+        failedRequestsTotalTimeMs = repoResult.failedRequestsTimeMs
+        failedRequestsTotalBytesDownloaded = repoResult.failedRequestsBytesDownloaded
+        missedRequestsCount = repoResult.missedRequestsCount
+        missedRequestsTotalTimeMs = repoResult.missedRequestsTimeMs
+      }
+        .build()
+    })
+  }
+    .build()

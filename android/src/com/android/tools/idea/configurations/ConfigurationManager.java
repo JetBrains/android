@@ -43,7 +43,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidTargetData;
@@ -75,40 +74,18 @@ public class ConfigurationManager implements Disposable {
   private ResourceResolverCache myResolverCache;
 
   @NotNull
-  public static ConfigurationManager getOrCreateInstance(@NotNull AndroidFacet androidFacet) {
-    return findConfigurationManager(androidFacet, true /* create if necessary */);
-  }
-
-  @Nullable
-  public static ConfigurationManager findExistingInstance(@NotNull AndroidFacet androidFacet) {
-    return findConfigurationManager(androidFacet, false);
-  }
-
-  // TODO: Migrate to use the version that takes an AndroidFacet
-  @NotNull
   public static ConfigurationManager getOrCreateInstance(@NotNull Module module) {
-    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    if (androidFacet == null) {
-      throw new IllegalArgumentException("Module '" + module.getName() + "' is not an Android module");
-    }
-    return findConfigurationManager(androidFacet, true /* create if necessary */);
+    return findConfigurationManager(module, true /* create if necessary */);
   }
 
-  // TODO: Migrate to use a version that takes an AndroidFacet
   @Nullable
   public static ConfigurationManager findExistingInstance(@NotNull Module module) {
-    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    if (androidFacet == null) {
-      throw new IllegalArgumentException("Module '" + module.getName() + "' is not an Android module");
-    }
-    return findConfigurationManager(androidFacet, false /* do not create if not found */);
+    return findConfigurationManager(module, false /* do not create if not found */);
   }
 
   @Contract("_, true -> !null")
   @Nullable
-  private static ConfigurationManager findConfigurationManager(@NotNull AndroidFacet androidFacet, boolean createIfNecessary) {
-    Module module = androidFacet.getModule();
-
+  private static ConfigurationManager findConfigurationManager(@NotNull Module module, boolean createIfNecessary) {
     ConfigurationManager configurationManager = module.getUserData(KEY);
     if (configurationManager == null && createIfNecessary) {
       configurationManager = new ConfigurationManager(module);
@@ -134,7 +111,7 @@ public class ConfigurationManager implements Disposable {
     return configurationManager.getConfiguration(projectFile);
   }
 
-  public ConfigurationManager(@NotNull Module module) {
+  protected ConfigurationManager(@NotNull Module module) {
     myModule = module;
     Disposer.register(myModule, this);
   }

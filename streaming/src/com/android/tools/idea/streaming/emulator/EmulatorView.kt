@@ -30,6 +30,7 @@ import com.android.emulator.control.RotationRadian
 import com.android.emulator.control.Touch
 import com.android.emulator.control.Touch.EventExpiration.NEVER_EXPIRE
 import com.android.emulator.control.TouchEvent
+import com.android.emulator.control.WheelEvent
 import com.android.ide.common.util.Cancelable
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtUiCursorType
@@ -39,16 +40,15 @@ import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
+import com.android.tools.idea.io.grpc.stub.StreamObserver
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.AbstractDisplayView
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.RUNNING_DEVICES_NOTIFICATION_GROUP
-import com.android.tools.idea.streaming.createHardwareKeyEvent
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.DisplayMode
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
-import com.android.tools.idea.streaming.getEmulatorUiTheme
 import com.android.tools.idea.streaming.isSameAspectRatio
 import com.android.tools.idea.streaming.rotatedByQuadrants
 import com.android.tools.idea.streaming.scaled
@@ -121,6 +121,8 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseEvent.BUTTON2
 import java.awt.event.MouseEvent.BUTTON3
+import java.awt.event.MouseWheelEvent
+import java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL
 import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
 import java.awt.image.DataBuffer
@@ -129,6 +131,9 @@ import java.awt.image.DirectColorModel
 import java.awt.image.Raster
 import java.awt.image.SinglePixelPackedSampleModel
 import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.min
@@ -192,6 +197,8 @@ class EmulatorView(
   private var notificationFeed: Cancelable? = null
   @Volatile
   private var notificationReceiver: NotificationReceiver? = null
+
+  private var mouseWheelSender: StreamObserver<WheelEvent>? = null
 
   private val displayConfigurationListeners: MutableList<DisplayConfigurationListener> = ContainerUtil.createLockFreeCopyOnWriteList()
 
@@ -282,6 +289,7 @@ class EmulatorView(
     // Forward mouse & keyboard events.
     addMouseListener(mouseListener)
     addMouseMotionListener(mouseListener)
+    addMouseWheelListener(mouseListener)
 
     addKeyListener(MyKeyListener())
 
@@ -312,6 +320,8 @@ class EmulatorView(
   }
 
   override fun dispose() {
+    mouseWheelSender?.onCompleted()
+    mouseWheelSender = null
     cancelNotificationFeed()
     cancelScreenshotFeed()
     emulator.removeConnectionStateListener(this)
@@ -768,6 +778,18 @@ class EmulatorView(
       if (!virtualSceneCameraOperating && !multiTouchMode) {
         sendMouseEvent(event.x, event.y, 0)
       }
+    }
+
+    override fun mouseWheelMoved(e: MouseWheelEvent) {
+      if (e.wheelRotation == 0 || e.scrollType != WHEEL_UNIT_SCROLL) {
+        return;
+      }
+      // Multiplying wheelRotation by -1 because AWT assigns the opposite sign to Qt/Android.
+      getOrCreateMouseWheelSender().onNext(WheelEvent.newBuilder().setDy(-e.wheelRotation * 120).build())
+    }
+
+    private fun getOrCreateMouseWheelSender(): StreamObserver<WheelEvent> {
+      return mouseWheelSender ?: emulator.injectWheel().also { mouseWheelSender = it }
     }
 
     private fun updateMultiTouchMode(event: MouseEvent) {

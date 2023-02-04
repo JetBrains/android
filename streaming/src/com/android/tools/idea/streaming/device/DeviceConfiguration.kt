@@ -15,47 +15,54 @@
  */
 package com.android.tools.idea.streaming.device
 
-import com.android.adblib.DevicePropertyNames.RO_BOOT_QEMU_AVD_NAME
-import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
-import com.android.adblib.DevicePropertyNames.RO_BUILD_VERSION_SDK
-import com.android.adblib.DevicePropertyNames.RO_KERNEL_QEMU_AVD_NAME
-import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MANUFACTURER
-import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MODEL
 import com.android.sdklib.SdkVersionInfo
+import com.android.sdklib.deviceprovisioner.DeviceProperties
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.intellij.openapi.util.text.StringUtil
 
 /**
  * Characteristics of a mirrored Android device.
  */
-class DeviceConfiguration(deviceProperties: Map<String, String>) {
+class DeviceConfiguration(private val deviceProperties: DeviceProperties, useTitleAsName: Boolean = false) {
 
-  val apiLevel: Int = deviceProperties[RO_BUILD_VERSION_SDK]?.toInt() ?: SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
+  val apiLevel: Int
+    get() = deviceProperties.androidVersion?.apiLevel ?: SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 
-  val featureLevel: Int = if (deviceProperties["ro.build.version.codename"] == null) apiLevel else apiLevel + 1
+  val featureLevel: Int
+    get() = deviceProperties.androidVersion?.featureLevel ?: SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 
-  val avdName: String? = deviceProperties[RO_BOOT_QEMU_AVD_NAME] ?: deviceProperties[RO_KERNEL_QEMU_AVD_NAME]
+  val deviceModel: String?
+    get() = deviceProperties.model
 
-  val deviceModel: String? = deviceProperties[RO_PRODUCT_MODEL]
+  val isWatch: Boolean
+    get() = deviceProperties.deviceType == DeviceType.WEAR
 
-  val isWatch: Boolean = deviceProperties[RO_BUILD_CHARACTERISTICS]?.contains("watch") ?: false
-
-  val isAutomotive: Boolean = deviceProperties[RO_BUILD_CHARACTERISTICS]?.contains("automotive") ?: false
+  val isAutomotive: Boolean
+    get() = deviceProperties.deviceType == DeviceType.AUTOMOTIVE
 
   val deviceName: String?
 
   init {
-    var name = avdName?.replace('_', ' ')
-    if (name == null) {
-      name = deviceModel
-      if (name != null && !name.startsWith("Pixel")) {
-        val manufacturer = deviceProperties[RO_PRODUCT_MANUFACTURER]
-        if (!manufacturer.isNullOrBlank() && manufacturer != "unknown") {
-          name = "${StringUtil.capitalize(manufacturer)} $name"
+    deviceName = if (useTitleAsName) {
+      deviceProperties.title
+    } else {
+      val name = StringBuilder()
+      val model = deviceModel
+      if (!model.isNullOrBlank()) {
+        if (!model.startsWith("Pixel")) {
+          val manufacturer = deviceProperties.manufacturer
+          if (!manufacturer.isNullOrBlank() && manufacturer != "unknown") {
+            name.append(StringUtil.capitalize(manufacturer)).append(' ')
+          }
         }
+        name.append(deviceModel)
       }
-      name += " API $apiLevel"
+      else {
+        name.append("unknown")
+      }
+      name.append(" API ").append(apiLevel)
+      name.toString()
     }
-    deviceName = name
   }
 
   val hasOrientationSensors: Boolean = true // TODO Obtain sensor info from the device.

@@ -1916,7 +1916,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
   @NotNull
   public ConfigurationManager getConfigurationManager(@NotNull AndroidFacet facet) {
-    return ConfigurationManager.getOrCreateInstance(facet);
+    return ConfigurationManager.getOrCreateInstance(facet.getModule());
   }
 
   @Override

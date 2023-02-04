@@ -33,6 +33,7 @@ import com.android.tools.idea.compose.preview.Preview.DeviceSpec.OPERATOR
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_CHIN_SIZE
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_DPI
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_HEIGHT
+import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_ID
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_IS_ROUND
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_ORIENTATION
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_PARENT
@@ -41,6 +42,10 @@ import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_UNIT
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_WIDTH
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.SEPARATOR
 import com.android.tools.idea.compose.preview.util.device.convertToDeviceSpecDimension
+import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_DESKTOP_ID
+import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_FOLDABLE_ID
+import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_PHONE_ID
+import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_TABLET_ID
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.enumValueOfOrNull
 import com.android.utils.HashCodes
@@ -51,19 +56,46 @@ import kotlin.reflect.KProperty
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 
 /**
+ * List of the definitions of reference devices in `Device.kt` in the `ui-tooling` library. The
+ * devices do not have a consistent device id used in their definitions so this patches the device
+ * id so it shows correctly in our metrics.
+ */
+private val referenceDeviceIds =
+  mapOf(
+    "spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420" to
+      DEVICE_CLASS_PHONE_ID,
+    "spec:shape=Normal,width=673,height=841,unit=dp,dpi=480" to DEVICE_CLASS_FOLDABLE_ID,
+    "spec:shape=Normal,width=1280,height=800,unit=dp,dpi=420" to DEVICE_CLASS_TABLET_ID,
+    "spec:shape=Normal,width=1920,height=1080,unit=dp,dpi=420" to DEVICE_CLASS_DESKTOP_ID
+  )
+
+/**
+ * Map linking reference device ids to their real density, so that it can be used when displaying
+ * the preview in
+ */
+private val referenceDeviceRealDensities =
+  mapOf(
+    DEVICE_CLASS_PHONE_ID to 420,
+    DEVICE_CLASS_FOLDABLE_ID to 420,
+    DEVICE_CLASS_TABLET_ID to 240,
+    DEVICE_CLASS_DESKTOP_ID to 160
+  )
+
+/**
  * Defines some hardware parameters of a Device. Can be encoded using [deviceSpec] and decoded using
  * [DeviceConfig.toDeviceConfigOrNull].
  *
+ * @param deviceId The device ID if any.
  * @param dimUnit Determines the unit of the given [width] and [height]. Ie: For [DimUnit.px] they
  * will be considered as pixels.
  * @param shape Shape of the device screen, may affect how the screen behaves, or it may add a
  * cutout (like with wearables).
  * @param chinSize For round devices only, defines the height of the flat surface on a screen,
  * measured from the bottom.
- * @param backingDeviceId ID of the device this configuration represents, null if it's a custom
- * device
+ * @param parentDeviceId ID of the parent device used as template for this configuration.
  */
 internal open class DeviceConfig(
+  val deviceId: String? = null,
   open val width: Float = DEFAULT_WIDTH_DP.toFloat(),
   open val height: Float = DEFAULT_HEIGHT_DP.toFloat(),
   open val dimUnit: DimUnit = DEFAULT_UNIT,
@@ -71,7 +103,7 @@ internal open class DeviceConfig(
   open val shape: Shape = DEFAULT_SHAPE,
   open val chinSize: Float = DEFAULT_CHIN_SIZE_ZERO.toFloat(),
   open val orientation: Orientation = DEFAULT_ORIENTATION,
-  open val backingDeviceId: String? = null
+  open val parentDeviceId: String? = null
 ) {
   /**
    * String representation of the width as it is used in DeviceSpec Language.
@@ -125,10 +157,10 @@ internal open class DeviceConfig(
       builder.appendParamValue(PARAMETER_DPI, dpi.toString())
       return builder.toString()
     } else {
-      if (backingDeviceId != null) {
+      if (parentDeviceId != null) {
         // When there's a backing Device ID, only print the parameters that are not inherent to a
         // device, e.g: orientation
-        builder.appendParamValue(PARAMETER_PARENT, backingDeviceId.toString())
+        builder.appendParamValue(PARAMETER_PARENT, parentDeviceId.toString())
         builder.addOrientationIfNeeded()
         return builder.toString()
       }
@@ -184,7 +216,7 @@ internal open class DeviceConfig(
       chinSize.hashCode(),
       isRound.hashCode(),
       orientation.hashCode(),
-      backingDeviceId.hashCode()
+      parentDeviceId.hashCode()
     )
   }
 
@@ -216,16 +248,20 @@ internal open class DeviceConfig(
     ): DeviceConfig? {
       if (serialized == null || !serialized.startsWith(DEVICE_BY_SPEC_PREFIX)) return null
       val configString = serialized.substringAfter(DEVICE_BY_SPEC_PREFIX)
+      // Find if the given spec belongs to a reference device and if it does, use that as device id.
+      val referenceDeviceId = referenceDeviceIds[serialized]
+      val deviceIdMap = referenceDeviceId?.let { mapOf(PARAMETER_ID to it) } ?: emptyMap()
       val paramsMap =
-        configString
-          .split(SEPARATOR)
-          .filter { it.length >= 3 && it.contains(OPERATOR) }
-          .associate { paramString ->
-            Pair(
-              paramString.substringBefore(OPERATOR).trim(),
-              paramString.substringAfter(OPERATOR).trim()
-            )
-          }
+        deviceIdMap +
+          configString
+            .split(SEPARATOR)
+            .filter { it.length >= 3 && it.contains(OPERATOR) }
+            .associate { paramString ->
+              Pair(
+                paramString.substringBefore(OPERATOR).trim(),
+                paramString.substringAfter(OPERATOR).trim()
+              )
+            }
 
       if (!paramsMap.containsKey(PARAMETER_SHAPE) &&
           StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.get()
@@ -246,8 +282,14 @@ internal open class DeviceConfig(
           paramsMap.getOrDefault(PARAMETER_UNIT, "").toLowerCaseAsciiOnly()
         )
           ?: return null
-      val dpi = paramsMap.getOrDefault(PARAMETER_DPI, "").toIntOrNull() ?: return null
+      val dpi =
+        if (StudioFlags.NELE_DP_SIZED_PREVIEW.get() && referenceDeviceId != null) {
+          referenceDeviceRealDensities[referenceDeviceId]!!
+        } else {
+          paramsMap.getOrDefault(PARAMETER_DPI, "").toIntOrNull() ?: return null
+        }
       return DeviceConfig(
+        deviceId = referenceDeviceId,
         width = width.toFloat(),
         height = height.toFloat(),
         dimUnit = dimUnit,
@@ -360,6 +402,7 @@ internal open class DeviceConfig(
           }
         }
       return DeviceConfig(
+        deviceId = params[PARAMETER_ID],
         width = width.value,
         height = height.value,
         dimUnit = dimUnit,
@@ -367,7 +410,7 @@ internal open class DeviceConfig(
         shape = if (isRound || chinSizeValue > 0) Shape.Round else Shape.Normal,
         chinSize = chinSizeValue,
         orientation = orientation,
-        backingDeviceId =
+        parentDeviceId =
           null // Not supported when explicitly declaring width, height, dpi, shape, chinSize
       )
     }
@@ -381,6 +424,7 @@ internal open class DeviceConfig(
  * change the width and height values.
  */
 internal class MutableDeviceConfig(
+  id: String = "",
   initialWidth: Float = DEFAULT_WIDTH_DP.toFloat(),
   initialHeight: Float = DEFAULT_HEIGHT_DP.toFloat(),
   initialDimUnit: DimUnit = DEFAULT_UNIT,
@@ -389,28 +433,28 @@ internal class MutableDeviceConfig(
   initialChinSize: Float = DEFAULT_CHIN_SIZE_ZERO.toFloat(),
   initialOrientation: Orientation = DEFAULT_ORIENTATION,
   initialBackingDeviceId: String? = null
-) : DeviceConfig(initialWidth, initialHeight, initialDimUnit, initialDpi, initialShape) {
+) : DeviceConfig(id, initialWidth, initialHeight, initialDimUnit, initialDpi, initialShape) {
 
   /**
    * ID of the device this configuration represents, null if it's a custom device.
    *
    * This means that changes on other device properties may nullify this property.
    */
-  override var backingDeviceId: String? = initialBackingDeviceId
+  override var parentDeviceId: String? = initialBackingDeviceId
 
-  /** Changes to this property nullifies [backingDeviceId]. */
+  /** Changes to this property nullifies [parentDeviceId]. */
   override var width: Float by invalidateIdOnPropertyChangeDelegate(initialWidth)
 
-  /** Changes to this property nullifies [backingDeviceId]. */
+  /** Changes to this property nullifies [parentDeviceId]. */
   override var height: Float by invalidateIdOnPropertyChangeDelegate(initialHeight)
 
-  /** Changes to this property nullifies [backingDeviceId]. */
+  /** Changes to this property nullifies [parentDeviceId]. */
   override var chinSize: Float by invalidateIdOnPropertyChangeDelegate(initialChinSize)
 
-  /** Changes to this property nullifies [backingDeviceId]. */
+  /** Changes to this property nullifies [parentDeviceId]. */
   override var dpi: Int by invalidateIdOnPropertyChangeDelegate(initialDpi)
 
-  /** Changes to this property nullifies [backingDeviceId]. */
+  /** Changes to this property nullifies [parentDeviceId]. */
   override var shape: Shape by invalidateIdOnPropertyChangeDelegate(initialShape)
 
   /**
@@ -436,14 +480,14 @@ internal class MutableDeviceConfig(
   override var orientation: Orientation = initialOrientation
 
   /**
-   * Returns a property delegate that nullifies the [backingDeviceId] whenever the property sees a
+   * Returns a property delegate that nullifies the [parentDeviceId] whenever the property sees a
    * different value.
    */
   private fun <T> invalidateIdOnPropertyChangeDelegate(initialValue: T) =
     object : ObservableProperty<T>(initialValue) {
       override fun afterChange(property: KProperty<*>, oldValue: T, newValue: T) {
         if (newValue != oldValue) {
-          backingDeviceId = null
+          parentDeviceId = null
         }
       }
     }
@@ -458,7 +502,7 @@ internal fun MutableDeviceConfig.toImmutableConfig(): DeviceConfig =
     dimUnit = this.dimUnit,
     dpi = this.dpi,
     orientation = this.orientation,
-    backingDeviceId = this.backingDeviceId
+    parentDeviceId = this.parentDeviceId
   )
 
 /** Returns a mutable copy of this [DeviceConfig] instance. */
@@ -471,7 +515,7 @@ internal fun DeviceConfig.toMutableConfig(): MutableDeviceConfig =
     initialDpi = this.dpi,
     initialChinSize = this.chinSize,
     initialOrientation = this.orientation,
-    initialBackingDeviceId = this.backingDeviceId
+    initialBackingDeviceId = this.parentDeviceId
   )
 
 /** Convenience class to define an Android dimension by its number [value] and [unit]. */

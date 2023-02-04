@@ -564,7 +564,21 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       }
 
       GradleDslElement originalElement = findOriginalElement(myPropertyHolder, element);
-      return originalElement == null || isElementModified(originalElement, element);
+      if (originalElement == null) return true;
+      GradleDslElement transformedElement = getElement();
+      if (transformedElement == null) return true;
+      // There are two distinct ways that a model element (after transform) can correspond to an original transformed element.
+      // The first is that myElement holds properties (at some depth), and that the original transformed element has been replaced
+      // in that properties element...
+      GradleDslElement transformedOriginalElement = findOriginalElement(getHolder(), transformedElement);
+      if (transformedOriginalElement == null) {
+        // ... while the second is that the element has been replaced wholesale in its own holder, for example because of a change
+        // of syntactic form (from method call to literal, or from literal to infix expression).  In that case we must look for the
+        // original transformed element in our original element.
+        transformedOriginalElement = getTransformFor(originalElement).transform(originalElement);
+      }
+      if (transformedOriginalElement == null) return true;
+      return PropertyUtil.isModelElementModified(originalElement, element, transformedOriginalElement, transformedElement);
     }
 
     GradlePropertiesDslElement holder;
@@ -843,6 +857,15 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   protected PropertyTransform getTransform() {
     for (PropertyTransform transform : myTransforms) {
       if (transform.test(myElement, myPropertyHolder)) {
+        return transform;
+      }
+    }
+    return DEFAULT_TRANSFORM;
+  }
+
+  protected PropertyTransform getTransformFor(@Nullable GradleDslElement element) {
+    for (PropertyTransform transform : myTransforms) {
+      if (transform.test(element, myPropertyHolder)) {
         return transform;
       }
     }

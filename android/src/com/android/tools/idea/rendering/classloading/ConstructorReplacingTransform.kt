@@ -49,7 +49,7 @@ open class ConstructorAndSuperclassReplacingTransform(
 private class ConstructorReplacingMethodVisitor(
   delegate: MethodVisitor,
   val replaceeFqcn: String,
-  val replacementFqcn: String) : MethodVisitor(Opcodes.ASM7, delegate) {
+  val replacementFqcn: String) : MethodVisitor(Opcodes.ASM9, delegate) {
 
   override fun visitMethodInsn(opcode: Int, owner: String?, name: String?, descriptor: String?, isInterface: Boolean) {
     val newOwner = if (owner == replaceeFqcn && name == "<init>") replacementFqcn else owner

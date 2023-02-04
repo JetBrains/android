@@ -53,9 +53,9 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.ColoredTreeCellRenderer;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.PlatformIcons;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
@@ -102,6 +102,8 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
   private static final String HELP_TIP_HEADER_EXPLICIT_CAPTURE = "Selected capture has no contents";
   private static final String HELP_TIP_DESCRIPTION_EXPLICIT_CAPTURE = "There are no allocations in the selected capture.";
   private static final String HELP_TIP_HEADER_FILTER_NO_MATCH = "Selected filters have no match";
+  private static final String HELP_TIP_HEADER_FILTER_NO_RESULTS = "The filter term provided returned no results";
+  private static final String HELP_TIP_DESCRIPTION_FILTER_NO_RESULTS = "You can modify your filter term or filter settings to try again.";
 
   @NotNull private final MemoryCaptureSelection mySelection;
 
@@ -433,7 +435,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
       new TextInstruction(UIUtilities.getFontMetrics(myClassifierPanel, ProfilerFonts.H3_FONT), header),
       new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
       new TextInstruction(UIUtilities.getFontMetrics(myClassifierPanel, ProfilerFonts.STANDARD_FONT), desc))
-      .setColors(JBColor.foreground(), null)
+      .setColors(UIUtil.getInactiveTextColor(), null)
       .build();
   }
 
@@ -471,6 +473,10 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
                                    filterNames.size() > 1 ? "s" : "",
                                    String.join(", ", filterNames));
         myClassifierPanel.add(makeInstructionsPanel(HELP_TIP_HEADER_FILTER_NO_MATCH, msg), BorderLayout.CENTER);
+      }
+      else if (myHeapSet != null && myHeapSet.isFiltered()) {
+        myClassifierPanel.add(makeInstructionsPanel(HELP_TIP_HEADER_FILTER_NO_RESULTS, HELP_TIP_DESCRIPTION_FILTER_NO_RESULTS),
+                              BorderLayout.CENTER);
       }
       else {
         myClassifierPanel.add(myHelpTipPanel, BorderLayout.CENTER);

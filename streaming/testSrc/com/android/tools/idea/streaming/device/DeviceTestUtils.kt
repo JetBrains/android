@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.intellij.openapi.util.SystemInfo
 
 /**
@@ -23,3 +24,14 @@ import com.intellij.openapi.util.SystemInfo
  * "UnsatisfiedLinkError: no jniavcodec in java.library.path".
  */
 internal fun isFFmpegAvailableToTest(): Boolean = !SystemInfo.isWindows
+
+/**
+ * Creates a [DeviceConfiguration] for testing purposes.
+ */
+internal fun createDeviceConfiguration(propertyMap: Map<String, String>): DeviceConfiguration {
+  val properties = DeviceProperties.Builder()
+  properties.readCommonProperties(propertyMap)
+  return DeviceConfiguration(properties.buildBase())
+}
+
+internal val emptyDeviceConfiguration: DeviceConfiguration = createDeviceConfiguration(mapOf())

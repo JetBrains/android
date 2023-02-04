@@ -30,7 +30,9 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import org.jetbrains.android.UndisposedAndroidObjectsCheckerRule
 import org.jetbrains.kotlin.utils.keysToMap
 import org.junit.Before
 import org.junit.Ignore
@@ -43,8 +45,11 @@ class BuildAnalyzerComboBoxViewTest {
   @get:Rule
   val applicationRule: ApplicationRule = ApplicationRule()
 
+  private val disposableRule: DisposableRule = DisposableRule()
+  private val undisposedAndroidObjectsCheckerRule = UndisposedAndroidObjectsCheckerRule()
+
   @get:Rule
-  val disposableRule: DisposableRule = DisposableRule()
+  val disposableRuleChain = RuleChain(undisposedAndroidObjectsCheckerRule, disposableRule)
 
   @get:Rule
   val edtRule = EdtRule()
@@ -58,7 +63,7 @@ class BuildAnalyzerComboBoxViewTest {
     view = BuildAnalyzerComboBoxView(model, mockHandlers).apply {
       wholePanel.size = Dimension(600, 200)
     }
-    disposableRule.register { view }
+    Disposer.register(disposableRule.disposable, view)
   }
 
   @Test

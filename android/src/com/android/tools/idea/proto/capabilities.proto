@@ -1,0 +1,17 @@
+// This is a copy of the proto declaration found in Android OS
+// framework/base/proto/src/am_capabilities.proto which is what
+// am use to generate its outputs in protocol buffer mode
+// (am capabilities --protobuf)
+
+syntax = "proto3";
+
+package com.android.server.am;
+option java_multiple_files = true;
+
+message Capability {
+  string name = 1;
+}
+
+message Capabilities {
+  repeated Capability values = 1;
+}

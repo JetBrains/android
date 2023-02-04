@@ -337,7 +337,7 @@ class CustomViewPreviewRepresentation(
       LOG.warn("No facet for PsiFile $psiFile")
       return@launch
     }
-    val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
     val className = fqcn2name(selectedClass)
 
     val model = if (surface.models.isEmpty()) {

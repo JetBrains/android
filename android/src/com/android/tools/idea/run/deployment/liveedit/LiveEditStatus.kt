@@ -17,7 +17,8 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.compose.ComposeStatus
-import com.android.tools.idea.editors.literals.LiveEditService
+import com.android.tools.idea.editors.liveedit.ui.MANUAL_LIVE_EDIT_ACTION_ID
+import com.android.tools.idea.editors.liveedit.ui.SHOW_LOGCAT_ACTION_ID
 import com.android.tools.idea.run.deployment.liveedit.LiveEditBundle.message
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.DEFAULT
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.LOWEST
@@ -66,6 +67,17 @@ open class LiveEditStatus(
       )
     }
 
+    // A composition error that is not recoverable.
+    @JvmStatic
+    fun createRecomposeErrorStatus(message: String): LiveEditStatus {
+      return LiveEditStatus(
+        AllIcons.General.Warning,
+        message("le.status.error.recompose.title"),
+        message,
+        UNRECOVERABLE_ERROR,
+      )
+    }
+
     @JvmStatic
     fun createComposeVersionError(message: String): LiveEditStatus {
       return LiveEditStatus(
@@ -82,8 +94,7 @@ open class LiveEditStatus(
         AllIcons.General.InspectionsPause,
         "Paused",
         message,
-        RECOVERABLE_ERROR,
-        hasRefreshIcon = true
+        RECOVERABLE_ERROR
       )
     }
   }
@@ -114,7 +125,7 @@ open class LiveEditStatus(
       message("le.status.recompose_needed.title"),
       message("le.status.recompose_needed.description"),
       UNRECOVERABLE_ERROR,
-      actionId = "android.deploy.livedit.recompose",
+      actionId = "Run",
       hasRefreshIcon = true
     )
 
@@ -123,7 +134,8 @@ open class LiveEditStatus(
       AllIcons.General.Warning,
       message("le.status.error.recompose.title"),
       message("le.status.error.recompose.description"),
-      UNRECOVERABLE_ERROR,
+      RECOVERABLE_ERROR,
+      actionId = SHOW_LOGCAT_ACTION_ID
     )
 
   object OutOfDate :
@@ -132,7 +144,7 @@ open class LiveEditStatus(
       message("le.status.out_of_date.title"),
       message("le.status.out_of_date.description"),
       REFRESH_NEEDED,
-      actionId = LiveEditService.PIGGYBACK_ACTION_ID,
+      actionId = MANUAL_LIVE_EDIT_ACTION_ID,
       hasRefreshIcon = true
     )
 

@@ -33,9 +33,8 @@ public class DismissKeyguardTask implements LaunchTask {
   }
 
   @Override
-  public LaunchResult run(@NotNull LaunchContext launchContext) {
+  public void run(@NotNull LaunchContext launchContext) {
     LaunchUtils.initiateDismissKeyguard(launchContext.getDevice());
-    return LaunchResult.success();
   }
 
   @NotNull

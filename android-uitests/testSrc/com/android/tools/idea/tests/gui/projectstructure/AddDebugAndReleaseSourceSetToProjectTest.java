@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.projectstructure;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.NewJavaClassDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewFolderWizardFixture;
@@ -28,6 +29,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.awt.event.KeyEvent;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Rule;
@@ -132,6 +134,18 @@ public class AddDebugAndReleaseSourceSetToProjectTest {
     guiTest.robot().waitForIdle();
     TimeUnit.SECONDS.sleep(5);
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, KeyEvent.ALT_MASK);
+    guiTest.waitForBackgroundTasks();
+    guiTest.robot().waitForIdle();
+    List<String> options = editor.moreActionsOptions();
+
+    assertEquals("Import class", options.get(0));
+    assertEquals("Create class 'BuildVariantDebugClass'", options.get(1));
+    assertEquals("Create interface 'BuildVariantDebugClass'", options.get(2));
+    assertEquals("Create enum 'BuildVariantDebugClass'", options.get(3));
+    assertEquals("Create inner class 'BuildVariantDebugClass'", options.get(4));
+    assertEquals("Create type parameter 'BuildVariantDebugClass'", options.get(5));
+
+    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     assertThat(editor.getCurrentFileContents()).contains("import " + DEBUG_IMPORT_CLASS_NAME + ";");
 

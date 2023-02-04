@@ -30,7 +30,6 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.EdtTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTestBase
 

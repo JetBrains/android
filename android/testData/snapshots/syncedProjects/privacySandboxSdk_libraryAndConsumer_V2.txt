@@ -97,7 +97,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -209,7 +208,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.3.0 [=]
             Scope                         : Test
@@ -335,7 +333,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.3.0 [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
@@ -454,7 +451,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.3.0 [=]
             Scope                         : Test
@@ -542,7 +538,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -622,7 +617,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -742,7 +736,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified [=]
             Scope                         : Test
@@ -961,7 +954,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified [=]
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4@aar [=]
@@ -1118,7 +1110,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified [=]
             Scope                         : Test
@@ -1314,7 +1305,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified [=]
             Scope                         : Test
@@ -1531,7 +1521,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified [=]
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4@aar [=]
@@ -1688,7 +1677,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified [=]
             Scope                         : Test
@@ -1844,7 +1832,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -1960,7 +1947,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
             Scope                         : Test
@@ -2088,7 +2074,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
@@ -2210,7 +2195,6 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
             Scope                         : Test

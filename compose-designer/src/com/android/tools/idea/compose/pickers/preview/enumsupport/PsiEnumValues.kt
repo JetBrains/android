@@ -185,3 +185,22 @@ internal enum class FontScale(scaleValue: Float, visibleName: String) : EnumValu
     return true
   }
 }
+
+/**
+ * Predefined options for Wallpaper settings that correspond to what is available from
+ * androidx.compose.ui.tooling.preview.Wallpapers.
+ */
+internal enum class Wallpaper(
+  override val classConstant: String,
+  override val display: String,
+  override val resolvedValue: String
+) : ClassConstantEnumValue {
+  NONE("NONE", "None", "-1"),
+  RED("RED_DOMINATED_EXAMPLE", "Red dominated", "0"),
+  GREEN("GREEN_DOMINATED_EXAMPLE", "Green dominated", "1"),
+  BLUE("BLUE_DOMINATED_EXAMPLE", "Blue dominated", "2"),
+  YELLOW("YELLOW_DOMINATED_EXAMPLE", "Yellow dominated", "3");
+
+  override val fqClass: String = "androidx.compose.ui.tooling.preview.Wallpapers"
+  override val trackableValue: PreviewPickerValue = PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
+}

@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.fakeadbserver.DeviceState
-import com.android.flags.junit.FlagRule
 import com.android.repository.Revision
 import com.android.repository.api.LocalPackage
 import com.android.repository.api.RemotePackage
@@ -66,6 +65,7 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
@@ -134,7 +134,6 @@ class AppInspectionInspectorClientTest {
 
   private lateinit var inspectorClientSettings: InspectorClientSettings
 
-  private val treeRule = FlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true)
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val inspectionRule = AppInspectionInspectorRule(projectRule)
   private val inspectorRule = LayoutInspectorRule(
@@ -148,7 +147,6 @@ class AppInspectionInspectorClientTest {
   val ruleChain = RuleChain.outerRule(projectRule)
     .around(inspectionRule)
     .around(inspectorRule)
-    .around(treeRule)
     .around(usageRule)!!
 
   @Before
@@ -1234,8 +1232,8 @@ class AppInspectionInspectorClientWithFailingClientTest {
   private val inspectionRule = AppInspectionInspectorRule(projectRule)
   private var throwOnState: AttachErrorState = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
   private var exceptionToThrow: Exception = RuntimeException("expected")
-  private val getMonitor: () -> InspectorClientLaunchMonitor = {
-    spy(InspectorClientLaunchMonitor(projectRule.project, ListenerCollection.createWithDirectExecutor())).also {
+  private val getMonitor: (AbstractInspectorClient) -> InspectorClientLaunchMonitor = { client ->
+    spy(InspectorClientLaunchMonitor(projectRule.project, ListenerCollection.createWithDirectExecutor(), client.stats)).also {
       doAnswer { invocation ->
         val state = invocation.arguments[0] as AttachErrorState
         if (state == throwOnState) {

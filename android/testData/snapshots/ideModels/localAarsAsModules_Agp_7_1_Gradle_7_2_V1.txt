@@ -587,9 +587,9 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : artifacts:library-debug:unspecified@jar
+                        androidLibrary                : artifacts:library-debug:unspecified@jar
                     runtimeClasspath
-                        library                       : artifacts:library-debug:unspecified@jar
+                        androidLibrary                : artifacts:library-debug:unspecified@jar
                 ApplicationId                 : com.android.test.localaarsasmodules
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -617,10 +617,10 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : artifacts:library-debug:unspecified@jar
-                        library                       : <ROOT>-:app-MAIN
+                        androidLibrary                : artifacts:library-debug:unspecified@jar
+                        module                        : <ROOT>-:app-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:app-MAIN
+                        module                        : <ROOT>-:app-MAIN
                 ProvidedDependencies
                     - provided                    : artifacts:library-debug:unspecified
                 ApplicationId                 : com.android.test.localaarsasmodules.test
@@ -646,11 +646,11 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : artifacts:library-debug:unspecified@jar
-                        library                       : <ROOT>-:app-MAIN
+                        androidLibrary                : artifacts:library-debug:unspecified@jar
+                        module                        : <ROOT>-:app-MAIN
                     runtimeClasspath
-                        library                       : artifacts:library-debug:unspecified@jar
-                        library                       : <ROOT>-:app-MAIN
+                        androidLibrary                : artifacts:library-debug:unspecified@jar
+                        module                        : <ROOT>-:app-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : project.app.androidTest
@@ -957,9 +957,9 @@ MODULE                        : project.library
                 ClassesFolder                 : <ROOT>/library/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:library-MAIN
+                        module                        : <ROOT>-:library-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:library-MAIN
+                        module                        : <ROOT>-:library-MAIN
                 ApplicationId                 : com.android.test.library.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -983,9 +983,9 @@ MODULE                        : project.library
                 ClassesFolder                 : <ROOT>/library/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
                     compileClasspath
-                        library                       : <ROOT>-:library-MAIN
+                        module                        : <ROOT>-:library-MAIN
                     runtimeClasspath
-                        library                       : <ROOT>-:library-MAIN
+                        module                        : <ROOT>-:library-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :library (DefaultExternalProject) (*seen*)
 MODULE                        : project.library-debug

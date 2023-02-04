@@ -31,7 +31,7 @@ import kotlin.collections.Map.Entry
  *  The node looks something like this:
  *
  *  ```
- *  + Recomposition State = Arguments: Different: [arg1] Same: [arg2, this]
+ *  + Recomposition State = Composable fun FunctionName(): Arguments: Different: ["arg1"] Same: ["arg2", "this"]
  *    + arg1 = Different
  *      + value = <value of arg1>
  *    + arg2 = Same
@@ -45,18 +45,22 @@ import kotlin.collections.Map.Entry
 internal class ComposeStateNode(
   private val evaluationContext: EvaluationContextImpl,
   private val forced: Boolean,
+  private val description: String,
   private val stateObjects: List<StateObject>,
 ) : XNamedValue(ComposeBundle.message("recomposition.state.label")) {
   // Create the child nodes early because we are known to be on the correct thread.
   private val childNodes = stateObjects.map { it.toXValue(evaluationContext) }
 
   override fun computePresentation(node: XValueNode, place: XValuePlace) {
-    val summary = when {
-      forced -> ComposeBundle.message("recomposition.state.forced")
-      stateObjects.isEmpty() -> ComposeBundle.message("recomposition.state.composing")
-      else -> getStateSummary()
+    val text = buildString {
+      append("$description: ")
+      when {
+        forced -> append(ComposeBundle.message("recomposition.state.forced"))
+        stateObjects.isEmpty() -> append(ComposeBundle.message("recomposition.state.composing"))
+        else -> append(getStateSummary())
+      }
     }
-    node.setPresentation(StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION, null, summary, true)
+    node.setPresentation(StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION, null, text, true)
   }
 
   override fun computeChildren(node: XCompositeNode) {
@@ -66,7 +70,7 @@ internal class ComposeStateNode(
   }
 
   private fun getStateSummary(): String {
-    fun Entry<ParamState, List<StateObject>>.toSummary() = "${key.name}: [${value.joinToString { it.name }}]"
+    fun Entry<ParamState, List<StateObject>>.toSummary() = "${key.name}: [${value.joinToString { """"${it.name}"""" }}]"
 
     val summary = stateObjects.groupBy { it.state }.entries.joinToString { it.toSummary() }
     return ComposeBundle.message("recomposition.state.summary", summary)

@@ -56,7 +56,6 @@ import org.jetbrains.annotations.Nullable;
  * Tests for {@link SdksCleanupStep}.
  */
 public class SdksCleanupStepTest extends PlatformTestCase {
-  @Nullable private Sdk myJdk;
   @Nullable private Sdk mySdk;
 
   public void testUpdateSdkWithMissingDocumentation() {
@@ -200,15 +199,12 @@ public class SdksCleanupStepTest extends PlatformTestCase {
     Sdks.allowAccessToSdk(getTestRootDisposable());
     IAndroidTarget target = findLatestAndroidTarget(sdkPath);
 
-    myJdk = IdeSdks.getInstance().getJdk();
-
-    mySdk = AndroidSdks.getInstance().create(target, sdkPath, "Test SDK", myJdk, true /* add roots */);
+    mySdk = AndroidSdks.getInstance().create(target, sdkPath, "Test SDK", true /* add roots */);
     assertNotNull(mySdk);
     IdeSdks.removeJdksOn(getTestRootDisposable());
   }
 
   private void removeSdk() {
-    ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().removeJdk(myJdk));
     ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().removeJdk(mySdk));
   }
 

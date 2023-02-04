@@ -23,6 +23,7 @@ java_library(
         ["src/**/*.java"],
     ),
     resources = glob(["resources/**"]),
+    visibility = ["//visibility:public"],
     deps = [
         "//prebuilts/tools/common/lint-psi/intellij-core",
         "//tools/base/common:tools.common",

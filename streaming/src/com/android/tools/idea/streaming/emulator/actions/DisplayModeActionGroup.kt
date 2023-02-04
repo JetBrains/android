@@ -20,6 +20,7 @@ import com.android.tools.idea.streaming.emulator.EMULATOR_MAIN_TOOLBAR_ID
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionButtonComponent
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -66,6 +67,7 @@ internal class DisplayModeActionGroup : DefaultActionGroup() {
     presentation.isVisible = hasDisplayModes
     if (hasDisplayModes) {
       presentation.isEnabled = isEmulatorConnected(event)
+      presentation.isPerformGroup = true
       presentation.icon = when (getCurrentDisplayMode(event)) {
         DisplayModeValue.DESKTOP -> StudioIcons.Emulator.Menu.MODE_DESKTOP
         DisplayModeValue.FOLDABLE -> StudioIcons.Emulator.Menu.MODE_FOLDABLE
@@ -74,5 +76,9 @@ internal class DisplayModeActionGroup : DefaultActionGroup() {
         else -> AllIcons.Toolbar.Unknown
       }
     }
+  }
+
+  override fun getActionUpdateThread(): ActionUpdateThread {
+    return ActionUpdateThread.EDT
   }
 }

@@ -70,7 +70,6 @@ PROJECT                       : MainActivity
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -239,7 +238,6 @@ PROJECT                       : MainActivity
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
             Scope                         : Test
@@ -480,7 +478,6 @@ PROJECT                       : MainActivity
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
         LIBRARY                       : Gradle: androidx.arch.core:core-common:2.0.0 [=]
@@ -669,7 +666,6 @@ PROJECT                       : MainActivity
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
             Scope                         : Test
@@ -1041,7 +1037,6 @@ PROJECT                       : MainActivity
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -1179,7 +1174,6 @@ PROJECT                       : MainActivity
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
             Scope                         : Test
@@ -1389,7 +1383,6 @@ PROJECT                       : MainActivity
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.0.2@aar [=]
@@ -1558,7 +1551,6 @@ PROJECT                       : MainActivity
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
             Scope                         : Test

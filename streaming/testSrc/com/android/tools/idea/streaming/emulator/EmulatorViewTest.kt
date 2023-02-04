@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.emulator.control.FoldedDisplay
 import com.android.emulator.control.ThemingStyle
+import com.android.emulator.control.WheelEventOrBuilder
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
@@ -77,6 +78,7 @@ import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import javax.swing.JScrollPane
+import kotlin.test.assertNotNull
 
 /**
  * Tests for [EmulatorView] and some emulator toolbar actions.
@@ -487,7 +489,7 @@ class EmulatorViewTest {
     emulatorViewRule.executeAction("android.device.home.button", view, place = ActionPlaces.KEYBOARD_SHORTCUT)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Home"""")
+    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "GoHome"""")
 
     // Check EmulatorOverviewButtonAction.
     emulatorViewRule.executeAction("android.device.overview.button", view, place = ActionPlaces.MOUSE_SHORTCUT)
@@ -641,6 +643,29 @@ class EmulatorViewTest {
     emulator.getNextGrpcCall(2, TimeUnit.SECONDS).let {
       assertThat(it.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
       assertThat(shortDebugString(it.request)).doesNotContain("button") // No button should be pressed
+    }
+  }
+
+  @Test
+  fun testMouseWheel() {
+    val view = emulatorViewRule.newEmulatorView()
+    val emulator = emulatorViewRule.getFakeEmulator(view)
+    val container = createScrollPane(view)
+    val ui = FakeUi(container)
+
+    container.size = Dimension(200, 300)
+    ui.layoutAndDispatchEvents()
+    getStreamScreenshotCallAndWaitForFrame(ui, view, 1)
+    ui.render()
+
+    var call: GrpcCallRecord? = null
+    for (rotation in listOf(1, 1, -1, -1)) {
+      ui.mouse.wheel(100, 100, rotation)
+      val call = call ?: emulator.getNextGrpcCall(2, TimeUnit.SECONDS).also {
+        assertThat(it.methodName).isEqualTo("android.emulation.control.EmulatorController/injectWheel")
+        call = it
+      }
+      assertThat(shortDebugString(call.getNextRequest(2, TimeUnit.SECONDS))).isEqualTo("dy: ${-rotation * 120}")
     }
   }
 

@@ -64,6 +64,7 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<
     val attributeSections = setOf(PropertySection.DEFAULT, PropertySection.DECLARED, PropertySection.LAYOUT)
     val tab = addTab("")
     tab.builders.add(DimensionBuilder)
+    tab.builders.add(InlineNotificationBuilder(model))
     tab.builders.add(InspectorTableBuilder("Declared Attributes", { it.section == PropertySection.DECLARED },
                                            model, enumSupportProvider, controlTypeProvider))
     tab.builders.add(InspectorTableBuilder("Layout", { it.section == PropertySection.LAYOUT },

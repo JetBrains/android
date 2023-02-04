@@ -32,6 +32,7 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ComponentTreeFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WorkBenchLoadingPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.IssuePanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.MorphDialogFixture;
@@ -59,6 +60,7 @@ import java.awt.event.KeyEvent;
 import java.util.List;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JTable;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import org.fest.swing.core.ComponentDragAndDrop;
@@ -513,7 +515,8 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
     return HostPanelFixture.Companion.create(robot());
   }
 
-  public ComponentTreeFixture<NlComponent> navComponentTree() {
-    return ComponentTreeFixture.Companion.create("navComponentTree", robot());
+  public ComponentTreeFixture navComponentTree() {
+    JTable table = GuiTests.waitUntilShowing(robot(), Matchers.byName(JTable.class, "navComponentTree"));
+    return new ComponentTreeFixture(robot(), table);
   }
 }

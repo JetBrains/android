@@ -8,7 +8,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="intellij-core" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
+    <orderEntry type="module" module-name="android.sdktools.base.sdk-common-base" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="android.sdktools.base.layoutlib-api-base" />
     <orderEntry type="module" module-name="android.sdktools.base.sdklib-base" />

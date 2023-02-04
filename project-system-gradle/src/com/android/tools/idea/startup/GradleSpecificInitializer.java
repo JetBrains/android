@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.startup;
 
-import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
 
 import com.android.sdklib.IAndroidTarget;
@@ -54,7 +53,6 @@ import java.io.File;
 import java.util.List;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -187,17 +185,6 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
           SdkModificator sdkModificator = sdk1.getSdkModificator();
           sdkModificator.setName(sdkNamePrefix + sdk1.getName().substring(sdkNamePrefix.length()));
           sdkModificator.commitChanges();
-
-          // Rename the JDK that goes along with this SDK.
-          AndroidSdkAdditionalData additionalData = AndroidSdks.getInstance().getAndroidSdkAdditionalData(sdk1);
-          if (additionalData != null) {
-            Sdk jdk = additionalData.getJavaSdk();
-            if (jdk != null) {
-              sdkModificator = jdk.getSdkModificator();
-              sdkModificator.setName(DEFAULT_JDK_NAME);
-              sdkModificator.commitChanges();
-            }
-          }
 
           // Fill out any missing build APIs for this new SDK.
           ideSdks.createAndroidSdkPerAndroidTarget(androidSdkPath);

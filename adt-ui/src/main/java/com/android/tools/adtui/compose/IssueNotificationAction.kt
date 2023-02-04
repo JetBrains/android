@@ -156,19 +156,6 @@ open class IssueNotificationAction(
 
     override fun mouseExited(me: MouseEvent) {
       popupAlarm.cancelAllRequests()
-
-      // When the mouse leaves the button, we schedule an alarm to close the popup.
-      scheduleClosePopup(popupAlarm)
-    }
-  }
-
-  fun scheduleClosePopup(alarm: Alarm) {
-    popup?.let { informationPopup ->
-      alarm.addRequest(
-        { informationPopup.hidePopup() },
-        // Adding initial delay value as used in the IntelliJ TrafficLightPop
-        Registry.intValue("ide.tooltip.initialDelay.highlighter")
-      )
     }
   }
 

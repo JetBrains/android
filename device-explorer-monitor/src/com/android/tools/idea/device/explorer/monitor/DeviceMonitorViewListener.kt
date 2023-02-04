@@ -22,4 +22,5 @@ interface DeviceMonitorViewListener {
   fun refreshInvoked()
   fun killNodesInvoked(nodes: List<ProcessTreeNode>)
   fun forceStopNodesInvoked(nodes: List<ProcessTreeNode>)
+  fun debugNodes(nodes: List<ProcessTreeNode>)
 }

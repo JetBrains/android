@@ -647,8 +647,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
     return model;
   }
 
-  public void testNonNlComponentDrop() throws Exception {
-    if (StudioFlags.NELE_NEW_COMPONENT_TREE.get() && StudioFlags.USE_COMPONENT_TREE_TABLE.get()) {
+  public void testNonNlComponentDrop() {
+    if (StudioFlags.NELE_NEW_COMPONENT_TREE.get()) {
       return;
     }
     SyncNlModel model = createModelWithBarriers();
@@ -699,8 +699,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(pathForRow5.getLastPathComponent()).isEqualTo("button2");
   }
 
-  public void testDeleteBarrier() throws Exception {
-    if (StudioFlags.NELE_NEW_COMPONENT_TREE.get() && StudioFlags.USE_COMPONENT_TREE_TABLE.get()) {
+  public void testDeleteBarrier() {
+    if (StudioFlags.NELE_NEW_COMPONENT_TREE.get()) {
       return;
     }
     SyncNlModel model = createModelWithBarriers();

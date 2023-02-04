@@ -77,7 +77,7 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
     mTimeGlobalRangeUs = new Range(0, 0);
 
     mAxisModel = new ResizingAxisComponentModel.Builder(mTimeGlobalRangeUs, TimeAxisFormatter.DEFAULT).build();
-    mAxis = new AxisComponent(mAxisModel, AxisComponent.AxisOrientation.BOTTOM);
+    mAxis = new AxisComponent(mAxisModel, AxisComponent.AxisOrientation.BOTTOM, true);
 
     mTimeSelectionRangeUs = new Range(0, 0);
 

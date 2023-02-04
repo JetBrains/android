@@ -17,6 +17,7 @@ import com.android.tools.idea.projectsystem.DependencyManagementException
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.toReason
+import com.android.tools.idea.sdk.IdeSdks
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_LANGUAGE_KOTLIN_CONFIGURED
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE
@@ -30,8 +31,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ModuleRootManager
+import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.refactoring.isAndroidx
+import org.jetbrains.android.sdk.AndroidSdkType
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.idea.compiler.configuration.IdeKotlinVersion
 import org.jetbrains.kotlin.idea.configuration.BuildSystemType
@@ -210,7 +213,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         val project = module.project
         val projectBuildModel = ProjectBuildModel.get(project)
         val moduleBuildModel = projectBuildModel.getModuleBuildModel(module) ?: error("Build model for module $module not found")
-        val sdk = ModuleRootManager.getInstance(module).sdk
+        val sdk = getFirstValidJavaSdkFromModule(module)
         val jvmTarget = getJvmTarget(sdk, originalVersion)
 
         if (isTopLevelProjectFile) {
@@ -351,6 +354,15 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
             val ktxIds = ktxLibrary.split(":")
             getDependencyVersion(module, ids[0], ids[1])?.let { addDependency(moduleBuildModel, ktxIds[0], ktxIds[1], it) }
         }
+    }
+
+    private fun getFirstValidJavaSdkFromModule(module: Module) = listOf(
+      { ModuleRootManager.getInstance(module).sdk },
+      { ProjectRootManager.getInstance(module.project).projectSdk },
+      { IdeSdks.getInstance().jdk }
+    ).firstNotNullOfOrNull {
+        val sdk = it.invoke()
+        if (sdk?.sdkType is AndroidSdkType) null else sdk
     }
 
     override fun changeGeneralFeatureConfiguration(

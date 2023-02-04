@@ -7,6 +7,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.sdklib" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.device" scope="TEST" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>

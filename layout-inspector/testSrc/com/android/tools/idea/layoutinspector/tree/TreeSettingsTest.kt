@@ -53,9 +53,6 @@ class InspectorTreeSettingsTest {
     FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS, true)
 
   @get:Rule
-  val treeTableFlagRule = FlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true)
-
-  @get:Rule
   val disposableRule = DisposableRule()
 
   private val client: InspectorClient = mock()
@@ -106,10 +103,6 @@ class InspectorTreeSettingsTest {
     settings.showRecompositions = true
     assertThat(settings.showRecompositions).isTrue()
 
-    StudioFlags.USE_COMPONENT_TREE_TABLE.override(false)
-    assertThat(settings.showRecompositions).isFalse()
-
-    StudioFlags.USE_COMPONENT_TREE_TABLE.override(true)
     StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.override(false)
     assertThat(settings.showRecompositions).isFalse()
   }

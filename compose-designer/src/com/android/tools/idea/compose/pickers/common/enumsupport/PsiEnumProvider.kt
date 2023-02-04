@@ -22,6 +22,7 @@ import com.android.tools.idea.compose.pickers.preview.enumsupport.UI_MODE_NIGHT_
 import com.android.tools.idea.compose.pickers.preview.enumsupport.UI_MODE_TYPE_MASK
 import com.android.tools.idea.compose.pickers.preview.enumsupport.UiMode
 import com.android.tools.idea.compose.pickers.preview.enumsupport.UiModeWithNightMaskEnumValue
+import com.android.tools.idea.compose.pickers.preview.enumsupport.Wallpaper
 import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.DensityEnumSupport
 import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.DimensionUnitEnumSupport
 import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.OrientationEnumSupport
@@ -36,6 +37,7 @@ import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DIM_UNIT
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_ORIENTATION
 import com.android.tools.idea.compose.preview.PARAMETER_LOCALE
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
+import com.android.tools.idea.compose.preview.PARAMETER_WALLPAPER
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.api.EnumValue
@@ -91,6 +93,10 @@ class PsiEnumProvider(private val enumSupportValuesProvider: EnumSupportValuesPr
       PARAMETER_HARDWARE_DIM_UNIT -> DimensionUnitEnumSupport
       PARAMETER_HARDWARE_DENSITY -> DensityEnumSupport
       PARAMETER_HARDWARE_ORIENTATION -> OrientationEnumSupport
+      PARAMETER_WALLPAPER ->
+        EnumSupportWithConstantData(enumSupportValuesProvider, property.name) {
+          Wallpaper.values()[Integer.parseInt(it) + 1]
+        }
       else -> EnumSupport.simple(emptyList())
     }
 }

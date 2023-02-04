@@ -23,6 +23,9 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
+import com.android.tools.idea.gradle.model.IdeModuleLibrary
+import com.android.tools.idea.gradle.model.IdeUnknownLibrary
+import com.android.tools.idea.gradle.model.IdeUnresolvedModuleLibrary
 import com.android.tools.idea.gradle.model.projectPath
 import com.android.tools.idea.gradle.model.variant
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
@@ -108,20 +111,27 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
     val resolvedArtifact = artifact.resolvedModel ?: return
     val dependencies = resolvedArtifact.compileClasspath
 
-    for (androidLibrary in dependencies.androidLibraries) {
-      addLibrary(androidLibrary.target, artifact)
-    }
-
-    for (moduleLibrary in dependencies.moduleDependencies) {
-      val gradlePath = moduleLibrary.projectPath
-      val module = artifact.parent.parent.parent.findModuleByGradlePath(gradlePath)
-      // TODO(solodkyy): Support not yet resolved modules.
-      if (module != null) {
-        addModule(module, artifact, moduleLibrary.variant)
+    dependencies.unresolvedDependencies.forEach { unresolvedDependency ->
+      val libraries = dependencies.resolver.resolve(unresolvedDependency)
+      libraries.forEach { library ->
+        when (library) {
+          is IdeAndroidLibrary -> {
+            addLibrary(library, artifact)
+          }
+          is IdeJavaLibrary -> {
+            addLibrary(library, artifact)
+          }
+          is IdeModuleLibrary -> {
+            val gradlePath = library.projectPath
+            val module = artifact.parent.parent.parent.findModuleByGradlePath(gradlePath)
+            // TODO(solodkyy): Support not yet resolved modules.
+            if (module != null) {
+              addModule(module, artifact, library.variant)
+            }
+          }
+          is IdeUnknownLibrary -> Unit // Not Handled
+        }
       }
-    }
-    for (javaLibrary in dependencies.javaLibraries) {
-      addLibrary(javaLibrary.target, artifact)
     }
   }
 
@@ -145,7 +155,6 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
     val libraryArtifactFile = when (library) {
       is IdeAndroidLibrary -> library.artifact
       is IdeJavaLibrary -> library.artifact
-      else -> error("Unsupported IdeArtifactLibrary instance.")
     }
     // TODO(solodkyy): Inverse the process and match parsed dependencies with resolved instead. (See other TODOs).
     val parsedDependencies = parent.dependencies

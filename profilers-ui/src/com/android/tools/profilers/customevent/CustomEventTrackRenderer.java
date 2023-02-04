@@ -78,7 +78,8 @@ public class CustomEventTrackRenderer implements TrackRenderer<CustomEventTrackM
     // Axis Panel
     final JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
-    AxisComponent leftAxis = new AxisComponent(trackModel.getDataModel().getAxisComponentModel(), AxisComponent.AxisOrientation.RIGHT);
+    AxisComponent leftAxis =
+      new AxisComponent(trackModel.getDataModel().getAxisComponentModel(), AxisComponent.AxisOrientation.RIGHT, true);
     leftAxis.setShowAxisLine(false);
     leftAxis.setOnlyShowUnitAtMax(true);
     leftAxis.setHideTickAtMin(true);

@@ -313,6 +313,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
    * Common code to (re)set state once the sync has completed, all successful/failed/skipped syncs should run through this method.
    */
   private fun syncFinished(newState: LastSyncState) {
+    project.getService(SyncAnalyzerManager::class.java)?.onSyncFinished(externalSystemTaskId)
 
     state.set {
       copy(state = newState, externalSystemTaskId = null, lastSyncFinishedTimeStamp = System.currentTimeMillis())
@@ -372,7 +373,9 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     // an error.
     if (project.isDisposed) return
 
-    val event = eventLogger.generateSyncEvent(project, rootProjectPath, kind)
+    val event = eventLogger.generateSyncEvent(project, rootProjectPath, kind) {
+      project.getService(SyncAnalyzerManager::class.java)?.updateSyncStatsData(externalSystemTaskId, this)
+    }
 
     UsageTracker.log(event)
   }

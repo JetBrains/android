@@ -31,6 +31,7 @@ import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.buildAndWait
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -55,6 +56,7 @@ class DownloadsAnalyzerTest {
 
   private lateinit var server1: HttpServerWrapper
   private lateinit var server2: HttpServerWrapper
+  private val tracker = TestUsageTracker(VirtualTimeScheduler())
 
   @After
   fun cleanUp() {
@@ -63,7 +65,6 @@ class DownloadsAnalyzerTest {
 
   @Test
   fun testRunningBuildWithDownloadsFromLocalServers() {
-    val tracker = TestUsageTracker(VirtualTimeScheduler())
     UsageTracker.setWriterForTest(tracker)
 
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.BUILD_ANALYZER_CHECK_ANALYZERS)
@@ -75,6 +76,7 @@ class DownloadsAnalyzerTest {
     server2 = HttpServerWrapper("Server2", projectRule.testRootDisposable)
     setupServerFiles()
     addBuildFileContent(preparedProject)
+    addBuildSrcFileContent(preparedProject)
 
     preparedProject.runTest {
       if (!TestUtils.runningFromBazel()) {
@@ -88,6 +90,8 @@ class DownloadsAnalyzerTest {
           }
         }
       }
+
+      verifyDownloadsInformationOnSyncOutput()
 
       // Clear any requests happened on sync.
       HttpServerWrapper.detectedHttpRequests.clear()
@@ -124,6 +128,52 @@ class DownloadsAnalyzerTest {
     }
   }
 
+  private fun verifyDownloadsInformationOnSyncOutput() {
+    println(HttpServerWrapper.detectedHttpRequests.joinToString(separator = "\n", prefix = "==All Detected requests to local servers on Sync:\n", postfix = "\n===="))
+    // Verify interaction with server was as expected.
+    // Sometimes requests can change the order so compare without order.
+    // There will be many failed requests for all dependencies, but we should check that expected ones are here.
+    // `C` is part of project dependency, `D` is part of buildSrc dependency. Both should be requested on Sync.
+    // For `-sources` and `-javadoc`:
+    //  - android model builder requests both thus we should see both requests for C.
+    //  - platform model builder requests only sources by default for buildscript thus we should see only sources for D.
+    Truth.assertThat(HttpServerWrapper.detectedHttpRequests.filter { it.contains("/example/") }).containsExactlyElementsIn("""
+      Server1: GET on /example/C/1.0/C-1.0.pom - return error 404
+      Server1: HEAD on /example/C/1.0/C-1.0.jar - return error 404
+      Server2: GET on /example/C/1.0/C-1.0.pom - OK
+      Server2: GET on /example/C/1.0/C-1.0.jar - OK
+      Server2: GET on /example/D/1.0/D-1.0.pom - OK
+      Server2: GET on /example/D/1.0/D-1.0.jar - OK
+      Server2: HEAD on /example/C/1.0/C-1.0-sources.jar - return error 404
+      Server2: HEAD on /example/C/1.0/C-1.0-javadoc.jar - return error 404
+      Server2: HEAD on /example/D/1.0/D-1.0-sources.jar - return error 404
+    """.trimIndent().split("\n"))
+
+    // Verify metrics sent on Sync
+    val syncSetupStartedEvent = tracker.usages.single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_SETUP_STARTED }.studioEvent.gradleSyncStats
+    val syncEndedEvent = tracker.usages.single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED }.studioEvent.gradleSyncStats
+    // In case of any failures with metrics check below consult with the content printed from here.
+    println("==GRADLE_SYNC_SETUP_STARTED content:")
+    println(syncSetupStartedEvent.toString())
+    println("==GRADLE_SYNC_ENDED content:")
+    println(syncEndedEvent.toString())
+    // There are requests to 3 repos, Server1 & Server2 defined below and 'repo.gradle.org'
+    Truth.assertThat(syncSetupStartedEvent.downloadsData.repositoriesList).hasSize(3)
+    Truth.assertThat(syncSetupStartedEvent.downloadsData.repositoriesList.filter {
+    // Looking for content expected for Server2
+      it.successRequestsCount == 4 &&
+      it.missedRequestsCount == 3 &&
+      it.failedRequestsCount == 0
+    }).hasSize(1)
+    Truth.assertThat(syncSetupStartedEvent.downloadsData.repositoriesList.filter {
+      // Looking for content expected for Server1
+      it.successRequestsCount == 0 &&
+      it.missedRequestsCount == 4 &&
+      it.failedRequestsCount == 0
+    }).hasSize(1)
+    Truth.assertThat(syncSetupStartedEvent.downloadsData).isEqualTo(syncEndedEvent.downloadsData)
+  }
+
   fun addBuildFileContent(preparedProject: PreparedTestProject) {
     FileUtils.join(preparedProject.root, "app", SdkConstants.FN_BUILD_GRADLE).let { file ->
       val newContent = file.readText()
@@ -151,6 +201,9 @@ class DownloadsAnalyzerTest {
               myExtraDependencies
           }
           dependencies {
+              //Should be requested during sync
+              api 'example:C:1.0'
+              //Should be requested during build
               myExtraDependencies 'example:A:1.0'
           }
           tasks.register('myTestTask') {
@@ -158,6 +211,31 @@ class DownloadsAnalyzerTest {
               doLast {
                   println "classpath = ${'$'}{configurations.myExtraDependencies.collect { File file -> file.name }}"
               }
+          }
+        """.trimIndent()
+        )
+      FileUtil.writeToFile(file, newContent)
+    }
+  }
+
+  fun addBuildSrcFileContent(preparedProject: PreparedTestProject) {
+    FileUtils.join(preparedProject.root, "buildSrc", SdkConstants.FN_BUILD_GRADLE).let { file ->
+      val newContent = file.readText()
+        .plus("\n\n")
+        .plus("""
+          repositories {
+              maven {
+                  url "${server2.url}"
+                  allowInsecureProtocol = true
+                  metadataSources() {
+                      mavenPom()
+                      artifact()
+                  }
+              }
+          }
+          dependencies {
+              //Should be requested during sync
+              api 'example:D:1.0'
           }
         """.trimIndent()
         )
@@ -202,6 +280,34 @@ class DownloadsAnalyzerTest {
         </dependencies>
       </project>
     """.trimIndent().encodeToByteArray()
+    val cPomBytes = """
+      <?xml version="1.0" encoding="UTF-8"?>
+      <project
+          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+          xmlns="http://maven.apache.org/POM/4.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>example</groupId>
+        <artifactId>C</artifactId>
+        <version>1.0</version>
+        <dependencies>
+        </dependencies>
+      </project>
+    """.trimIndent().encodeToByteArray()
+    val dPomBytes = """
+      <?xml version="1.0" encoding="UTF-8"?>
+      <project
+          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+          xmlns="http://maven.apache.org/POM/4.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>example</groupId>
+        <artifactId>D</artifactId>
+        <version>1.0</version>
+        <dependencies>
+        </dependencies>
+      </project>
+    """.trimIndent().encodeToByteArray()
     server2.createFileContext(FileRequest(
       path = "/example/A/1.0/A-1.0.jar",
       mime = "application/java-archive",
@@ -221,6 +327,26 @@ class DownloadsAnalyzerTest {
       path = "/example/B/1.0/B-1.0.pom",
       mime = "application/xml",
       bytes = bPomBytes
+    ))
+    server2.createFileContext(FileRequest(
+      path = "/example/C/1.0/C-1.0.jar",
+      mime = "application/java-archive",
+      bytes = emptyJarBytes
+    ))
+    server2.createFileContext(FileRequest(
+      path = "/example/C/1.0/C-1.0.pom",
+      mime = "application/xml",
+      bytes = cPomBytes
+    ))
+    server2.createFileContext(FileRequest(
+      path = "/example/D/1.0/D-1.0.jar",
+      mime = "application/java-archive",
+      bytes = emptyJarBytes
+    ))
+    server2.createFileContext(FileRequest(
+      path = "/example/D/1.0/D-1.0.pom",
+      mime = "application/xml",
+      bytes = dPomBytes
     ))
     server1.createErrorContext("/example/B/1.0/", 403, "Forbidden")
   }

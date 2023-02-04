@@ -134,6 +134,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.4.31",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.6.21",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
 )

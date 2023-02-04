@@ -397,7 +397,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     JPanel axisPanel = new JPanel(new TabularLayout(Track.COL_SIZES));
     axisPanel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     AxisComponent timeAxis = new AxisComponent(new ResizingAxisComponentModel.Builder(range, TimeAxisFormatter.DEFAULT).build(),
-                                               AxisComponent.AxisOrientation.BOTTOM);
+                                               AxisComponent.AxisOrientation.BOTTOM, true);
     timeAxis.setMinimumSize(new Dimension(0, ProfilerLayout.TIME_AXIS_HEIGHT));
     timeAxis.setPreferredSize(new Dimension(Integer.MAX_VALUE, ProfilerLayout.TIME_AXIS_HEIGHT));
     // Align with track content.

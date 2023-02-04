@@ -52,7 +52,7 @@ class ResourcesCompatTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.AS
     return mv;
   }
 
-  private class LoadFontVisitor(delegate: MethodVisitor) : MethodVisitor(Opcodes.ASM7, delegate) {
+  private class LoadFontVisitor(delegate: MethodVisitor) : MethodVisitor(Opcodes.ASM9, delegate) {
     override fun visitMethodInsn(opcode: Int, owner: String?, name: String?, descriptor: String?, isInterface: Boolean) {
       if ("startsWith" == name) {
         super.visitMethodInsn(opcode, owner, "contains", "(Ljava/lang/CharSequence;)Z", isInterface)

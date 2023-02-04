@@ -29,6 +29,7 @@ import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.playback.commands.ActionCommand;
 import javax.swing.JComponent;
@@ -61,7 +62,7 @@ public class KillAndRestartAppLaunchTask implements LaunchTask {
   }
 
   @Override
-  public LaunchResult run(@NotNull LaunchContext launchContext) {
+  public void run(@NotNull LaunchContext launchContext) throws ExecutionException {
     boolean terminateApp;
 
     ProcessHandler handler = launchContext.getProcessHandler();
@@ -81,30 +82,21 @@ public class KillAndRestartAppLaunchTask implements LaunchTask {
     }
 
     if (!terminateApp) {
-      return LaunchResult.success();
+      return;
     }
 
     // Ensure the app is killed (otherwise launch won't work).
     ApplicationTerminator appTerminator = new ApplicationTerminator(device, myPackageName);
-    try {
-      if (!appTerminator.killApp()) {
-        return LaunchResult.error("", "trying to terminate app prior to restarting.");
-      }
+    if (!appTerminator.killApp()) {
+      throw new ExecutionException("Fail to terminate app prior to restarting.");
     }
-    catch (ExecutionException e) {
-      return LaunchResult.error("", e.getMessage());
-    }
+
     if (device.isOnline() && handler instanceof AndroidProcessHandler) {
       // Add the device back to the existing process handler.
       ((AndroidProcessHandler)launchContext.getProcessHandler()).addTargetDevice(device);
     }
     else {
-      LaunchResult result = new LaunchResult();
-      result.setResult(LaunchResult.Result.ERROR);
-      result.setErrorId("");
-      result.setMessage("Swap failed, need to rerun.");
-      result.setConsoleMessage("Swap failed, need to rerun.");
-      result.addOnFinishedCallback(() -> {
+      ApplicationManager.getApplication().invokeLater(() -> {
         ActionManager manager = ActionManager.getInstance();
         String id;
         if (DefaultRunExecutor.getRunExecutorInstance().getId().equals(launchContext.getExecutor().getId())) {
@@ -131,10 +123,8 @@ public class KillAndRestartAppLaunchTask implements LaunchTask {
         DataManager.registerDataProvider(contextComponent, new RerunDataProvider(project));
         manager.tryToExecute(action, ActionCommand.getInputEvent(id), contextComponent, ActionPlaces.UNKNOWN, true);
       });
-      return result;
+      throw new ExecutionException("Swap failed, need to rerun.");
     }
-
-    return LaunchResult.success();
   }
 
   @NotNull

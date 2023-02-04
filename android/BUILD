@@ -347,6 +347,7 @@ iml_module(
         "//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin[module, test]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-coverage[test]",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
     ],
 )
 
@@ -499,6 +500,7 @@ maven_repository(
         "@maven//:androidx.core.core_1.5.0-rc02",
         "@maven//:androidx.legacy.legacy-support-v4_1.0.0",
         "@maven//:androidx.lifecycle.lifecycle-common-java8_2.4.0",
+        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.5.1",
         "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.3.1",
         "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.4.0",
         "@maven//:androidx.lifecycle.lifecycle-runtime_2.4.0",

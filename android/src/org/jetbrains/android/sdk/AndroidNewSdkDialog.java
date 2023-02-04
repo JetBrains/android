@@ -11,17 +11,13 @@ import java.util.List;
 
 public class AndroidNewSdkDialog extends DialogWrapper {
   private JPanel myContentPanel;
-  private JComboBox myInternalJdkComboBox;
   private JComboBox myBuildTargetComboBox;
 
   protected AndroidNewSdkDialog(@Nullable Project project,
-                                @NotNull List<String> javaSdkNames,
-                                @NotNull String selectedJavaSdkName,
                                 @NotNull List<String> targetNames,
                                 @NotNull String selectedTargetName) {
     super(project);
     setTitle("Create New Android SDK");
-    myInternalJdkComboBox.setModel(new CollectionComboBoxModel(javaSdkNames, selectedJavaSdkName));
     myBuildTargetComboBox.setModel(new CollectionComboBoxModel(targetNames, selectedTargetName));
 
     init();
@@ -31,10 +27,6 @@ public class AndroidNewSdkDialog extends DialogWrapper {
   @Override
   protected JComponent createCenterPanel() {
     return myContentPanel;
-  }
-
-  public int getSelectedJavaSdkIndex() {
-    return myInternalJdkComboBox.getSelectedIndex();
   }
 
   public int getSelectedTargetIndex() {

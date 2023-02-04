@@ -20,8 +20,7 @@ import com.android.testutils.ImageDiffUtil
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.common.ColoredIconGenerator.deEmphasize
 import com.android.tools.adtui.swing.IconLoaderRule
-import com.android.tools.componenttree.common.ViewTreeCellRenderer
-import com.android.tools.componenttree.common.ViewTreeCellRenderer.ColoredViewRenderer
+import com.android.tools.componenttree.treetable.ViewTreeCellRenderer.ColoredViewRenderer
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
 import com.google.common.truth.Truth.assertThat

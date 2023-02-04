@@ -18,4 +18,4 @@ package com.android.tools.idea.streaming.emulator.actions
 /**
  * Simulates pressing the Home button on an Android virtual device.
  */
-class EmulatorHomeButtonAction : EmulatorPushButtonAction("Home", configFilter = { !it.isWearOs || it.api < 28 })
+class EmulatorHomeButtonAction : EmulatorPushButtonAction("GoHome", configFilter = { !it.isWearOs || it.api < 28 })

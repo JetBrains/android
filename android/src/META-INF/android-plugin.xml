@@ -27,7 +27,6 @@
 
   <depends optional="true" config-file="android-plugin-androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <depends optional="true" config-file="android-plugin-idea.xml">com.intellij.modules.idea</depends>
-  <depends optional="true" config-file="database-support.xml">com.intellij.database</depends>
 
   <xi:include href="android-kotlin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/org/jetbrains/android/dom/android-xml.xml" xpointer="xpointer(/idea-plugin/*)"/>
@@ -229,6 +228,9 @@
         text="Toggle Live Literals Highlights"
         description="Switches the Live Literals highlights on/off">
     </action>
+
+    <action id="Compose.Live.Edit.ManualLiveEdit" class="com.android.tools.idea.editors.liveedit.ui.ManualLiveEditAction"/>
+    <action id="Compose.Live.Edit.ShowLogcat" class="com.android.tools.idea.editors.liveedit.ui.ShowLogcatAction"/>
   </actions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">

@@ -20,7 +20,6 @@ import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.tasks.LaunchContext
-import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTaskDurations
 import com.intellij.execution.Executor
@@ -46,10 +45,9 @@ class AppInspectionLaunchTaskContributor : AndroidLaunchTaskContributor {
     override fun getId() = APP_INSPECTION_ID
     override fun getDescription() = AppInspectionBundle.message("launch.app.inspection.tool.window")
     override fun getDuration() = LaunchTaskDurations.LAUNCH_ACTIVITY
-    override fun run(launchContext: LaunchContext): LaunchResult {
+    override fun run(launchContext: LaunchContext) {
       storeRecentProcess(launchContext)
       displayStripeButton(launchContext)
-      return LaunchResult.success()
     }
 
     private fun displayStripeButton(launchContext: LaunchContext) {

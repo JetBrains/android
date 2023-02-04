@@ -59,7 +59,7 @@ object LocaleModelsProvider: VisualizationModelsProvider {
     //    locale resources. This is same as runtime behaviour.
 
     val currentFile = file.virtualFile ?: return emptyList()
-    val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
     // Note that the current file may not be default config. (e.g. the current file is in layout-en-rGB file)
     val currentFileConfig = configurationManager.getConfiguration(currentFile)
 

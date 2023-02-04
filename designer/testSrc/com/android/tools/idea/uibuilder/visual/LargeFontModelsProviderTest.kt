@@ -46,7 +46,7 @@ class LargeFontModelsProviderTest : LayoutTestCase() {
     myFixture.addFileToProject("/res/layout-fr/test.xml", LAYOUT_FILE_CONTENT)
     myFixture.addFileToProject("/res/layout-jp/test.xml", LAYOUT_FILE_CONTENT)
 
-    val manager = ConfigurationManager.getOrCreateInstance(myFacet)
+    val manager = ConfigurationManager.getOrCreateInstance(myModule)
     val sourceConfig = manager.getConfiguration(file.virtualFile)
 
     val modelsProvider = LargeFontModelsProvider

@@ -17,7 +17,6 @@
 package org.jetbrains.android.sdk;
 
 import static com.android.SdkConstants.FN_ADB;
-import static com.intellij.openapi.roots.ModuleRootModificationUtil.setModuleSdk;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -34,7 +33,6 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.intellij.CommonBundle;
 import com.intellij.facet.ProjectFacetManager;
@@ -70,12 +68,10 @@ import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 public final class AndroidSdkUtils {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.sdk.AndroidSdkUtils");
 
-  public static final String DEFAULT_JDK_NAME = "JDK";
   public static final String ADB_PATH_PROPERTY = "android.adb.path";
 
   private AndroidSdkUtils() {
@@ -89,20 +85,18 @@ public final class AndroidSdkUtils {
    */
   @Nullable
   public static Sdk createNewAndroidPlatform(@Nullable String sdkPath, boolean promptUser) {
-    Sdk jdk = IdeSdks.getInstance().getJdk();
-    if (sdkPath != null && jdk != null) {
+    if (sdkPath != null) {
       sdkPath = toSystemIndependentName(sdkPath);
       IAndroidTarget target = findBestTarget(sdkPath);
       if (target != null) {
         Sdk sdk =
-          AndroidSdks.getInstance().create(target, new File(sdkPath), AndroidSdks.getInstance().chooseNameForNewLibrary(target), jdk, true);
+          AndroidSdks.getInstance().create(target, new File(sdkPath), AndroidSdks.getInstance().chooseNameForNewLibrary(target), true);
         if (sdk != null) {
           return sdk;
         }
       }
     }
-    String jdkPath = jdk == null ? null : jdk.getHomePath();
-    return promptUser ? promptUserForSdkCreation(null, sdkPath, jdkPath) : null;
+    return promptUser ? promptUserForSdkCreation(null, sdkPath) : null;
   }
 
   @Nullable
@@ -160,14 +154,13 @@ public final class AndroidSdkUtils {
 
   @Nullable
   private static Sdk promptUserForSdkCreation(@Nullable IAndroidTarget target,
-                                              @Nullable String androidSdkPath,
-                                              @Nullable String jdkPath) {
+                                              @Nullable String androidSdkPath) {
     Ref<Sdk> sdkRef = new Ref<>();
     Runnable task = () -> {
-      SelectSdkDialog dlg = new SelectSdkDialog(jdkPath, androidSdkPath);
+      SelectSdkDialog dlg = new SelectSdkDialog(null, androidSdkPath);
       dlg.setModal(true);
       if (dlg.showAndGet()) {
-        Sdk sdk = createNewAndroidPlatform(target, dlg.getAndroidHome(), dlg.getJdkHome());
+        Sdk sdk = createNewAndroidPlatform(target, dlg.getAndroidHome());
         sdkRef.set(sdk);
         if (sdk != null) {
           IdeSdks.updateWelcomeRunAndroidSdkAction();
@@ -184,20 +177,14 @@ public final class AndroidSdkUtils {
   }
 
   @Nullable
-  private static Sdk createNewAndroidPlatform(@Nullable IAndroidTarget target, @NotNull String androidSdkPath, @NotNull String jdkPath) {
-    if (isNotEmpty(jdkPath)) {
-      jdkPath = toSystemIndependentName(jdkPath);
-      Sdk jdk = Jdks.getInstance().createJdk(jdkPath);
-      if (jdk != null) {
-        androidSdkPath = toSystemIndependentName(androidSdkPath);
-        if (target == null) {
-          target = findBestTarget(androidSdkPath);
-        }
-        if (target != null) {
-          return AndroidSdks.getInstance()
-            .create(target, new File(androidSdkPath), AndroidSdks.getInstance().chooseNameForNewLibrary(target), jdk, true);
-        }
-      }
+  private static Sdk createNewAndroidPlatform(@Nullable IAndroidTarget target, @NotNull String androidSdkPath) {
+    androidSdkPath = toSystemIndependentName(androidSdkPath);
+    if (target == null) {
+      target = findBestTarget(androidSdkPath);
+    }
+    if (target != null) {
+      return AndroidSdks.getInstance()
+        .create(target, new File(androidSdkPath), AndroidSdks.getInstance().chooseNameForNewLibrary(target), true);
     }
     return null;
   }

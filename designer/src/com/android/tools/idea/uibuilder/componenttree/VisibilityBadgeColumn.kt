@@ -201,6 +201,7 @@ private class VisibilityPanel(item: NlComponent, private val badgeUpdated: () ->
 
     init {
       border = JBUI.Borders.empty(6, 6)
+      toolTipText = visibility.value ?: "Remove attribute"
       addMouseListener(object : MouseAdapter() {
         override fun mouseEntered(event: MouseEvent) {
           isHovering = true

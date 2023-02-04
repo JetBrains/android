@@ -41,8 +41,13 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.isActive
 import org.jetbrains.concurrency.await
+import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.base.KtConstantValue
+import org.jetbrains.kotlin.analysis.api.components.KtConstantEvaluationMode
 import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.refactoring.getLineNumber
 import org.jetbrains.kotlin.name.FqName
@@ -177,15 +182,34 @@ interface ConstantEvaluator {
   fun range(expression: PsiElement): TextRange = expression.textRange ?: TextRange.EMPTY_RANGE
 }
 
-/**
- * [ConstantEvaluator] for Kotlin.
- */
-object KotlinConstantEvaluator : ConstantEvaluator {
-  override fun evaluate(expression: PsiElement): Any? {
-    require(expression is KtExpression)
+/** Abstract [ConstantEvaluator] for Kotlin expressions. */
+abstract class KotlinConstantEvaluator : ConstantEvaluator {
+  abstract fun evaluate(expression: KtExpression): Any?
 
-    return ConstantExpressionEvaluator.getConstant(expression, expression.analyze())?.getValue(TypeUtils.NO_EXPECTED_TYPE)
+  final override fun evaluate(expression: PsiElement): Any? {
+    require(expression is KtExpression) { "Unexpected non-Kotlin expression" }
+    return evaluate(expression as KtExpression)
   }
+}
+
+/**
+ * [ConstantEvaluator] for Kotlin (K1 compiler/FE1.0).
+ */
+object KotlinFe10ConstantEvaluator : KotlinConstantEvaluator() {
+  override fun evaluate(expression: KtExpression): Any? =
+    ConstantExpressionEvaluator.getConstant(expression, expression.analyze())?.getValue(TypeUtils.NO_EXPECTED_TYPE)
+}
+
+/**
+ * [ConstantEvaluator] for Kotlin (K2 compiler/Analysis API).
+ */
+object KotlinAnalysisApiConstantEvaluator : KotlinConstantEvaluator() {
+  override fun evaluate(expression: KtExpression): Any? =
+    analyze(expression) {
+      expression.evaluate(KtConstantEvaluationMode.CONSTANT_LIKE_EXPRESSION_EVALUATION)
+        ?.takeUnless { it is KtConstantValue.KtErrorConstantValue }
+        ?.value
+    }
 }
 
 /**
@@ -504,7 +528,8 @@ class LiteralsManager(
    */
   suspend fun findLiterals(root: PsiElement): FindResult =
     if (root.language == KotlinLanguage.INSTANCE) {
-      findLiterals(root, literalsTypes, KotlinConstantEvaluator) {
+      val evaluator = if (isK2Plugin()) KotlinAnalysisApiConstantEvaluator else KotlinFe10ConstantEvaluator
+      findLiterals(root, literalsTypes, evaluator) {
         it !is KtAnnotationEntry // Exclude annotations since we do not process literals in them.
         && it !is KtSimpleNameExpression // Exclude variable constants.
       }

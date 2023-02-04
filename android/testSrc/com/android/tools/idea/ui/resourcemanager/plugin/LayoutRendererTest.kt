@@ -62,7 +62,7 @@ class LayoutRendererTest {
     val psiFile = createLayoutFile()
     val facet = rule.module.androidFacet!!
     val layoutRenderer = LayoutRenderer(facet, ::createRenderTaskForTest, ImageFuturesManager())
-    val configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(psiFile.virtualFile)
+    val configuration = ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(psiFile.virtualFile)
     val layoutRender = layoutRenderer.getLayoutRender(psiFile, configuration)
     val image = layoutRender.get(5, TimeUnit.SECONDS)!!
 

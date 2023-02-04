@@ -72,11 +72,7 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
         "--es composable com.mycomposeapp.SomeClass.SomeComposable" +
         " --es parameterProviderClassName com.mycomposeapp.ProviderClass" +
         " --ei parameterProviderIndex 3",
-      task.getStartActivityCommand(
-        mock(IDevice::class.java),
-        status,
-        mock(ConsolePrinter::class.java)
-      )
+      task.getStartActivityCommand(mock(IDevice::class.java), mock(ConsolePrinter::class.java))
     )
   }
 

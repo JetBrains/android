@@ -61,7 +61,6 @@ import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
@@ -83,7 +82,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
@@ -347,7 +345,6 @@ public class IdeSdks {
             // Unlikely to happen
             throw new IllegalStateException("Failed to create IDEA JDK from '" + path + "'");
           }
-          setJdkOfAndroidSdks(chosenJdk);
         }
         else {
           throw new IllegalStateException("The resolved path '" + canonicalPath + "' was not found");
@@ -371,22 +368,6 @@ public class IdeSdks {
         }
       }
     });
-  }
-
-  /**
-   * Iterates through all Android SDKs and makes them point to the given JDK.
-   */
-  private void setJdkOfAndroidSdks(@NotNull Sdk jdk) {
-    for (Sdk sdk : myAndroidSdks.getAllAndroidSdks()) {
-      AndroidSdkAdditionalData oldData = myAndroidSdks.getAndroidSdkAdditionalData(sdk);
-      if (oldData == null) {
-        continue;
-      }
-      oldData.setJavaSdk(jdk);
-      SdkModificator modificator = sdk.getSdkModificator();
-      modificator.setSdkAdditionalData(oldData);
-      modificator.commitChanges();
-    }
   }
 
   @NotNull
@@ -504,15 +485,12 @@ public class IdeSdks {
       return Collections.emptyList();
     }
     List<Sdk> sdks = new ArrayList<>();
-    Sdk ideJdk = javaSdk != null ? javaSdk : getJdk();
-    if (ideJdk != null) {
-      for (IAndroidTarget target : targets) {
-        if (target.isPlatform() && !doesIdeAndroidSdkExist(target)) {
-          String name = myAndroidSdks.chooseNameForNewLibrary(target);
-          Sdk sdk = myAndroidSdks.create(target, sdkData.getLocationFile(), name, ideJdk, true);
-          if (sdk != null) {
-            sdks.add(sdk);
-          }
+    for (IAndroidTarget target : targets) {
+      if (target.isPlatform() && !doesIdeAndroidSdkExist(target)) {
+        String name = myAndroidSdks.chooseNameForNewLibrary(target);
+        Sdk sdk = myAndroidSdks.create(target, sdkData.getLocationFile(), name, true);
+        if (sdk != null) {
+          sdks.add(sdk);
         }
       }
     }
@@ -705,18 +683,7 @@ public class IdeSdks {
 
   @Nullable
   private Sdk getExistingJdk(@Nullable JavaSdkVersion preferredVersion) {
-    List<Sdk> androidSdks = getEligibleAndroidSdks();
-    if (!androidSdks.isEmpty()) {
-      Sdk androidSdk = androidSdks.get(0);
-      AndroidSdkAdditionalData data = myAndroidSdks.getAndroidSdkAdditionalData(androidSdk);
-      assert data != null;
-      Sdk jdk = data.getJavaSdk();
-      if (isJdkCompatible(jdk, preferredVersion)) {
-        return jdk;
-      }
-    }
     JavaSdk javaSdk = JavaSdk.getInstance();
-
     List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(javaSdk);
     if (!jdks.isEmpty()) {
       for (Sdk jdk : jdks) {

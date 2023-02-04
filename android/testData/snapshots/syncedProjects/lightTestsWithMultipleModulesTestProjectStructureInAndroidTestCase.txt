@@ -17,7 +17,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -67,7 +66,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -164,7 +162,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase.app.main
             Scope                         : Test
@@ -265,7 +262,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase.lib.main
         BUILD_TASKS
@@ -358,7 +354,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase.app.main
             Scope                         : Test
@@ -440,7 +435,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -537,7 +531,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase.lib.main
             Scope                         : Test
@@ -636,7 +629,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -728,7 +720,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase.lib.main
             Scope                         : Test

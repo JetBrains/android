@@ -56,7 +56,6 @@ import org.mockito.Mock;
 public class AndroidSdksTest extends PlatformTestCase {
   @Mock IdeInfo myIdeInfo;
 
-  private Sdk myJdk;
   private AndroidSdks myAndroidSdks;
   private File mySdkPath;
 
@@ -69,9 +68,6 @@ public class AndroidSdksTest extends PlatformTestCase {
     mySdkPath = getSdk().toFile();
 
     Sdks.allowAccessToSdk(getTestRootDisposable());
-
-    myJdk = IdeSdks.getInstance().getJdk();
-    assertNotNull(myJdk);
 
     myAndroidSdks = new AndroidSdks(myIdeInfo);
     IdeSdks.removeJdksOn(getTestRootDisposable());
@@ -93,15 +89,13 @@ public class AndroidSdksTest extends PlatformTestCase {
     IAndroidTarget target = findLatestAndroidTarget(mySdkPath);
     String name = "testSdk";
 
-    Sdk sdk = myAndroidSdks.create(target, mySdkPath, name, myJdk, true /* add roots */);
+    Sdk sdk = myAndroidSdks.create(target, mySdkPath, name, true /* add roots */);
     assertNotNull(sdk);
 
     assertEquals(name, sdk.getName());
     verifyCorrectPath(sdk);
 
     AndroidSdkAdditionalData androidData = getAndroidSdkAdditionalData(sdk);
-    assertSame(myJdk, androidData.getJavaSdk());
-
     AndroidPlatform androidPlatform = androidData.getAndroidPlatform();
     assertNotNull(androidPlatform);
     assertSame(target, androidPlatform.getTarget());
@@ -144,15 +138,13 @@ public class AndroidSdksTest extends PlatformTestCase {
     IAndroidTarget target = findLatestAndroidTarget(mySdkPath);
     String name = "testSdk";
 
-    Sdk sdk = myAndroidSdks.create(target, mySdkPath, name, myJdk, false /* do *not* add roots */);
+    Sdk sdk = myAndroidSdks.create(target, mySdkPath, name, false /* do *not* add roots */);
     assertNotNull(sdk);
 
     assertEquals(name, sdk.getName());
     verifyCorrectPath(sdk);
 
     AndroidSdkAdditionalData androidData = getAndroidSdkAdditionalData(sdk);
-    assertSame(myJdk, androidData.getJavaSdk());
-
     AndroidPlatform androidPlatform = androidData.getAndroidPlatform();
     assertNotNull(androidPlatform);
     assertSame(target, androidPlatform.getTarget());
@@ -168,15 +160,13 @@ public class AndroidSdksTest extends PlatformTestCase {
     IAndroidTarget target = findLatestAndroidTarget(mySdkPath);
     String name = "testSdk";
 
-    Sdk sdk = myAndroidSdks.create(target, mySdkPath, name, myJdk, true /* add roots */);
+    Sdk sdk = myAndroidSdks.create(target, mySdkPath, name, true /* add roots */);
     assertNotNull(sdk);
 
     assertEquals(name, sdk.getName());
     verifyCorrectPath(sdk);
 
     AndroidSdkAdditionalData androidData = getAndroidSdkAdditionalData(sdk);
-    assertSame(myJdk, androidData.getJavaSdk());
-
     AndroidPlatform androidPlatform = androidData.getAndroidPlatform();
     assertNotNull(androidPlatform);
     assertSame(target, androidPlatform.getTarget());
@@ -188,34 +178,10 @@ public class AndroidSdksTest extends PlatformTestCase {
     assertThat(sourcesRoots).isNotEmpty();
   }
 
-  public void testCreateSdkWithoutSpecifyingJdk() {
-    Sdk sdk = myAndroidSdks.create(findLatestAndroidTarget(mySdkPath), mySdkPath, true);
-
-    assertNotNull(sdk);
-    verifyCorrectPath(sdk);
-
-    AndroidSdkAdditionalData androidData = getAndroidSdkAdditionalData(sdk);
-    Sdk jdk = androidData.getJavaSdk();
-    assertNotNull(jdk);
-    assertEquals(myJdk.getHomePath(), jdk.getHomePath());
-  }
-
   private void verifyCorrectPath(@NotNull Sdk androidSdk) {
     String sdkHomePath = androidSdk.getHomePath();
     assertNotNull(sdkHomePath);
     assertAbout(file()).that(new File(sdkHomePath)).isEquivalentAccordingToCompareTo(mySdkPath);
-  }
-
-  public void testCreateSdkWithNullJdk() {
-    myAndroidSdks = new AndroidSdks(myIdeInfo){
-      @Override
-      Sdk getJdk() {
-        return null;
-      }
-    };
-
-    Sdk sdk = myAndroidSdks.create(findLatestAndroidTarget(mySdkPath), mySdkPath, true);
-    assertNull(sdk);
   }
 
   public void testCreateSdkForAddonCreatesItsParent() {
@@ -227,7 +193,7 @@ public class AndroidSdksTest extends PlatformTestCase {
     when(addonTarget.getAdditionalLibraries()).thenReturn(Collections.singletonList(new LibraryType()));
 
     assertNull(myAndroidSdks.findSuitableAndroidSdk(parentHash)); // Parent SDK doesn't exists
-    assertNull(myAndroidSdks.create(addonTarget, mySdkPath, myJdk, false)); // Addon sdk is not created
+    assertNull(myAndroidSdks.create(addonTarget, mySdkPath, false)); // Addon sdk is not created
     assertNotNull(myAndroidSdks.findSuitableAndroidSdk(parentHash)); // Parent SDK is now created
   }
 
@@ -246,14 +212,14 @@ public class AndroidSdksTest extends PlatformTestCase {
   }
 
   public void testTryToChooseAndroidSdk() {
-    myAndroidSdks.create(findLatestAndroidTarget(mySdkPath), mySdkPath, myJdk, false /* do *not* add roots */);
+    myAndroidSdks.create(findLatestAndroidTarget(mySdkPath), mySdkPath, false /* do *not* add roots */);
 
     AndroidSdkData sdkData = myAndroidSdks.tryToChooseAndroidSdk();
     assertSame(getSdkData(mySdkPath), sdkData);
   }
 
   public void testTryToChooseSdkHandler() {
-    myAndroidSdks.create(findLatestAndroidTarget(mySdkPath), mySdkPath, myJdk, false /* do *not* add roots */);
+    myAndroidSdks.create(findLatestAndroidTarget(mySdkPath), mySdkPath, false /* do *not* add roots */);
 
     AndroidSdkHandler sdkHandler = myAndroidSdks.tryToChooseSdkHandler();
     AndroidSdkData sdkData = getSdkData(mySdkPath);
@@ -262,7 +228,7 @@ public class AndroidSdksTest extends PlatformTestCase {
   }
 
   public void testReplaceLibraries() {
-    Sdk sdk = myAndroidSdks.create(findLatestAndroidTarget(mySdkPath), mySdkPath, myJdk, true /* add roots */);
+    Sdk sdk = myAndroidSdks.create(findLatestAndroidTarget(mySdkPath), mySdkPath, true /* add roots */);
     assertNotNull(sdk);
 
     VirtualFile[] currentLibraries = sdk.getRootProvider().getFiles(CLASSES);
@@ -280,7 +246,7 @@ public class AndroidSdksTest extends PlatformTestCase {
 
   public void testFindSuitableAndroidSdk() {
     IAndroidTarget target = findLatestAndroidTarget(mySdkPath);
-    Sdk sdk = myAndroidSdks.create(target, mySdkPath, myJdk, false /* do *not* add roots */);
+    Sdk sdk = myAndroidSdks.create(target, mySdkPath, false /* do *not* add roots */);
     assertNotNull(sdk);
 
     String hash = getTargetHashString(target);

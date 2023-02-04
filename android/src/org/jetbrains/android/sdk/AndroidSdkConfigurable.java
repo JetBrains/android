@@ -15,11 +15,11 @@
  */
 package org.jetbrains.android.sdk;
 
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.projectRoots.*;
-import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -28,42 +28,9 @@ public class AndroidSdkConfigurable implements AdditionalDataConfigurable {
   private final AndroidSdkConfigurableForm myForm;
 
   private Sdk mySdk;
-  private final SdkModel.Listener myListener;
-  private final SdkModel mySdkModel;
 
-  public AndroidSdkConfigurable(@NotNull SdkModel sdkModel, @NotNull SdkModificator sdkModificator) {
-    mySdkModel = sdkModel;
-    myForm = new AndroidSdkConfigurableForm(sdkModel, sdkModificator);
-    myListener = new SdkModel.Listener() {
-      @Override
-      public void sdkAdded(@NotNull Sdk sdk) {
-        if (sdk.getSdkType().equals(JavaSdk.getInstance())) {
-          myForm.addJavaSdk(sdk);
-        }
-      }
-
-      @Override
-      public void beforeSdkRemove(@NotNull Sdk sdk) {
-        if (sdk.getSdkType().equals(JavaSdk.getInstance())) {
-          myForm.removeJavaSdk(sdk);
-        }
-      }
-
-      @Override
-      public void sdkChanged(@NotNull Sdk sdk, String previousName) {
-        if (sdk.getSdkType().equals(JavaSdk.getInstance())) {
-          myForm.updateJdks(sdk, previousName);
-        }
-      }
-
-      @Override
-      public void sdkHomeSelected(@NotNull Sdk sdk, @NotNull String newSdkHome) {
-        if (sdk != null && AndroidSdks.getInstance().isAndroidSdk(sdk)) {
-          myForm.internalJdkUpdate(sdk);
-        }
-      }
-    };
-    mySdkModel.addListener(myListener);
+  public AndroidSdkConfigurable(@NotNull SdkModificator sdkModificator) {
+    myForm = new AndroidSdkConfigurableForm(sdkModificator);
   }
 
   @Override
@@ -79,20 +46,17 @@ public class AndroidSdkConfigurable implements AdditionalDataConfigurable {
   @Override
   public boolean isModified() {
     AndroidSdkAdditionalData data = AndroidSdks.getInstance().getAndroidSdkAdditionalData(mySdk);
-    Sdk javaSdk = data != null ? data.getJavaSdk() : null;
-    String javaSdkHomePath = javaSdk != null ? javaSdk.getHomePath() : null;
-    Sdk selectedSdk = myForm.getSelectedSdk();
-    String selectedSdkHomePath = selectedSdk != null ? selectedSdk.getHomePath() : null;
-    return !FileUtil.pathsEqual(javaSdkHomePath, selectedSdkHomePath);
+    AndroidPlatform currentAndroidPlatform = data != null ? data.getAndroidPlatform() : null;
+    IAndroidTarget currentAndroidTarget = currentAndroidPlatform != null ? currentAndroidPlatform.getTarget() : null;
+    IAndroidTarget selectedBuildTarget = myForm.getSelectedBuildTarget();
+    return selectedBuildTarget != null && !selectedBuildTarget.equals(currentAndroidTarget);
   }
 
   @Override
   public void apply() throws ConfigurationException {
-    Sdk javaSdk = myForm.getSelectedSdk();
-    AndroidSdkAdditionalData newData = new AndroidSdkAdditionalData(mySdk, javaSdk);
+    AndroidSdkAdditionalData newData = new AndroidSdkAdditionalData(mySdk);
     newData.setBuildTarget(myForm.getSelectedBuildTarget());
     SdkModificator modificator = mySdk.getSdkModificator();
-    modificator.setVersionString(javaSdk != null ? javaSdk.getVersionString() : null);
     modificator.setSdkAdditionalData(newData);
     ApplicationManager.getApplication().runWriteAction(modificator::commitChanges);
   }
@@ -107,11 +71,6 @@ public class AndroidSdkConfigurable implements AdditionalDataConfigurable {
       return;
     }
     AndroidPlatform platform = data.getAndroidPlatform();
-    myForm.init(data.getJavaSdk(), mySdk, platform != null ? data.getBuildTarget(platform.getSdkData()) : null);
-  }
-
-  @Override
-  public void disposeUIResources() {
-    mySdkModel.removeListener(myListener);
+    myForm.init(mySdk, platform != null ? data.getBuildTarget(platform.getSdkData()) : null);
   }
 }

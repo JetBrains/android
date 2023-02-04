@@ -16,6 +16,7 @@
 
 package com.android.tools.compose
 
+import androidx.compose.compiler.plugins.kotlin.isComposableInvocation
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.roots.ProjectFileIndex

@@ -67,7 +67,7 @@ class DrawableAssetRenderer : DesignAssetRenderer {
       return@Supplier if (contextFile == null) {
         DrawableRenderer(facet)
       } else {
-        val configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(contextFile)
+        val configuration = ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(contextFile)
         DrawableRenderer(facet, configuration)
       }
     }, AppExecutorUtil.getAppExecutorService())

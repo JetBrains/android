@@ -1089,7 +1089,7 @@ public class CommonActions {
       }
 
       private void resolveResValue(String resourceRef) {
-        ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myComponent.getModel().getFacet());
+        ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myComponent.getModel().getModule());
         XmlTag tag = myComponent.getBackend().getTag();
         assert tag != null;
         ResourceResolver resolver = configurationManager.getConfiguration(tag.getContainingFile().getVirtualFile()).getResourceResolver();

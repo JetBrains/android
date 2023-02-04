@@ -57,11 +57,10 @@ import javax.swing.SwingUtilities
 
 class NlComponentTreeDefinitionTest {
   private val treeRule = FlagRule(StudioFlags.NELE_NEW_COMPONENT_TREE, true)
-  private val treeTableRule = FlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true)
   private val projectRule = AndroidProjectRule.withSdk()
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(treeRule).around(treeTableRule).around(EdtRule())!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(treeRule).around(EdtRule())!!
 
   @RunsInEdt
   @Test

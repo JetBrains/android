@@ -68,24 +68,34 @@ class ComposeViewNodeTest {
     val model = model {
       view(ROOT) {
         compose(VIEW1, "MyApplicationTheme") {
-          compose(VIEW2, "Text", composeFlags = FLAG_HAS_MERGED_SEMANTICS, composePackageHash = EXAMPLE) {
-            compose(VIEW3, "Text", composeFlags = FLAG_HAS_UNMERGED_SEMANTICS, composePackageHash = EXAMPLE) {
-              compose(VIEW4, "CoreText", composeFlags = FLAG_SYSTEM_DEFINED, composePackageHash = EXAMPLE)
+          compose(VIEW2, "Column", composeFlags = FLAG_IS_INLINED, composePackageHash = EXAMPLE) {
+            compose(VIEW3, "Text", composeFlags = FLAG_HAS_MERGED_SEMANTICS, composePackageHash = EXAMPLE) {
+              compose(VIEW4, "Text", composeFlags = FLAG_HAS_UNMERGED_SEMANTICS, composePackageHash = EXAMPLE) {
+                compose(VIEW5, "CoreText", composeFlags = FLAG_SYSTEM_DEFINED, composePackageHash = EXAMPLE)
+              }
             }
           }
         }
       }
     }
+    assertThat(model[VIEW2]?.isInlined).isTrue()
     assertThat(model[VIEW2]?.isSystemNode).isFalse()
-    assertThat(model[VIEW2]?.hasMergedSemantics).isTrue()
+    assertThat(model[VIEW2]?.hasMergedSemantics).isFalse()
     assertThat(model[VIEW2]?.hasUnmergedSemantics).isFalse()
 
-    assertThat(model[VIEW3]?.hasMergedSemantics).isFalse()
-    assertThat(model[VIEW3]?.hasUnmergedSemantics).isTrue()
+    assertThat(model[VIEW3]?.isInlined).isFalse()
     assertThat(model[VIEW3]?.isSystemNode).isFalse()
+    assertThat(model[VIEW3]?.hasMergedSemantics).isTrue()
+    assertThat(model[VIEW3]?.hasUnmergedSemantics).isFalse()
 
+    assertThat(model[VIEW4]?.isInlined).isFalse()
     assertThat(model[VIEW4]?.hasMergedSemantics).isFalse()
-    assertThat(model[VIEW4]?.hasUnmergedSemantics).isFalse()
-    assertThat(model[VIEW4]?.isSystemNode).isTrue()
+    assertThat(model[VIEW4]?.hasUnmergedSemantics).isTrue()
+    assertThat(model[VIEW4]?.isSystemNode).isFalse()
+
+    assertThat(model[VIEW5]?.isInlined).isFalse()
+    assertThat(model[VIEW5]?.hasMergedSemantics).isFalse()
+    assertThat(model[VIEW5]?.hasUnmergedSemantics).isFalse()
+    assertThat(model[VIEW5]?.isSystemNode).isTrue()
   }
 }

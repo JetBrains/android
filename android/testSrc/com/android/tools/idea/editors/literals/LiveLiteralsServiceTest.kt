@@ -25,6 +25,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -177,6 +178,14 @@ internal class LiveLiteralsServiceTest {
     // Wait for the modification to be notified
     latch.await(5, TimeUnit.SECONDS)
     assertEquals(2, modifications.size)
+    for (modification in modifications) {
+      val expectedNewValue: Any = when (modification.initialConstantValue) {
+        "ClassHello" -> "ClassBye"
+        999f -> 555f
+        else -> fail("Unexpected modified constant ${modification.initialConstantValue}")
+      }
+      assertEquals(expectedNewValue, modification.constantValue)
+    }
   }
 
   @Test

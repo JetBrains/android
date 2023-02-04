@@ -292,7 +292,7 @@ private object DisconnectedSessionStatistics : SessionStatistics {
   override fun updateRecompositionStats(recompositions: RecompositionData, maxHighlight: Float) {}
   override fun resetRecompositionCountsClick() {}
   override fun attachSuccess() {}
-  override fun attachError(errorState: AttachErrorState?, errorCode: AttachErrorCode) {}
+  override fun attachError(errorCode: AttachErrorCode) {}
   override fun composeAttachError(errorCode: AttachErrorCode) {}
   override fun frameReceived() {}
   override fun debuggerInUse(isPaused: Boolean) {}
@@ -302,4 +302,5 @@ private object DisconnectedSessionStatistics : SessionStatistics {
   override var hideSystemNodes: Boolean = true
   override var showRecompositions: Boolean = false
   override var recompositionHighlightColor: Int = HIGHLIGHT_COLOR_RED
+  override var currentProgress = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
 }

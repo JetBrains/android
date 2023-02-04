@@ -51,7 +51,7 @@ class RequestExecutorTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.AS
     return mv
   }
 
-  class NoOpMethodVisitor(val mv: MethodVisitor?) : MethodVisitor(Opcodes.ASM7, null) {
+  class NoOpMethodVisitor(val mv: MethodVisitor?) : MethodVisitor(Opcodes.ASM9, null) {
     override fun visitCode() {
       mv.visitInsn(Opcodes.RETURN)
       mv.visitEnd()

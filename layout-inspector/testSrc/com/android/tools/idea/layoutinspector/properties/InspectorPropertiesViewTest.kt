@@ -20,7 +20,15 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.FLAG_IS_INLINED
+import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.ROOT
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
+import com.android.tools.idea.layoutinspector.model.VIEW1
+import com.android.tools.idea.layoutinspector.model.VIEW2
+import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.model.packageNameHash
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection.DECLARED
@@ -51,6 +59,9 @@ import com.intellij.testFramework.ApplicationRule
 import org.junit.ClassRule
 import org.junit.Test
 import java.awt.Component
+import javax.swing.JTextArea
+
+private val EXAMPLE = packageNameHash("com.example.myexampleapp")
 
 class InspectorPropertiesViewTest {
   companion object {
@@ -122,7 +133,7 @@ class InspectorPropertiesViewTest {
     var inspector = FakeInspectorPanel()
     val tab = propertiesView.tabs.single()
 
-    // Check that all sections are available including the Recomposition setion
+    // Check that all sections are available including the Recomposition section
     tab.attachToInspector(inspector)
     assertThat(inspector.lines).hasSize(15)
     checkStandardSections(inspector, text, width, alpha, param, semantic1, semantic2)
@@ -145,6 +156,33 @@ class InspectorPropertiesViewTest {
     tab.attachToInspector(inspector)
     assertThat(inspector.lines).hasSize(13)
     checkStandardSections(inspector, text, width, alpha, param, semantic1, semantic2)
+  }
+
+  @Test
+  fun testInlinedComposable() {
+    val model = model {
+      view(ROOT) {
+        compose(VIEW1, "MyApplicationTheme") {
+          compose(VIEW2, "Column", composeFlags = FLAG_IS_INLINED, composePackageHash = EXAMPLE) {
+            compose(VIEW3, "Text", composePackageHash = EXAMPLE)
+          }
+        }
+      }
+    }
+    model.setSelection(model[VIEW2], SelectionOrigin.INTERNAL)
+    val x = InspectorPropertyItem(NAMESPACE_INTERNAL, "x", DIMENSION, "0", PropertySection.DIMENSION, null, VIEW2, model)
+    val y = InspectorPropertyItem(NAMESPACE_INTERNAL, "y", DIMENSION, "0", PropertySection.DIMENSION, null, VIEW2, model)
+    val propertiesView = createView(listOf(x, y), model = model)
+    val inspector = FakeInspectorPanel()
+    val tab = propertiesView.tabs.single()
+
+    // Check that only the dimensions and the empty Parameters section is available
+    tab.attachToInspector(inspector)
+    assertThat(inspector.lines).hasSize(3)
+    assertThat(inspector.lines[1].title).isEqualTo("Parameters")
+    val component = inspector.lines[2].component as? JTextArea
+    assertThat(component?.text).isEqualTo(
+      "The selected composable is inlined. Parameters are not available at this time for inline composables in the Layout Inspector.")
   }
 
   private fun checkStandardSections(
@@ -172,13 +210,19 @@ class InspectorPropertiesViewTest {
 
   private fun createView(
     properties: List<InspectorPropertyItem>,
-    customize: (InspectorPropertiesModel) -> Unit = {}
+    customize: (InspectorPropertiesModel) -> Unit = {},
+    model: InspectorModel = model {}
   ): InspectorPropertiesView {
     val table = HashBasedTable.create<String, String, InspectorPropertyItem>()
     properties.forEach { table.addProperty(it) }
     val propertiesModel = InspectorPropertiesModel()
     val propertiesView = InspectorPropertiesView(propertiesModel)
     propertiesModel.properties = PropertiesTable.create(table)
+    val settings = FakeTreeSettings()
+    val client: InspectorClient = mock()
+    whenever(client.stats).thenReturn(mock())
+    val layoutInspector = LayoutInspector(client, model, settings)
+    propertiesModel.layoutInspector = layoutInspector
     customize(propertiesModel)
     return propertiesView
   }
@@ -195,14 +239,10 @@ class InspectorPropertiesViewTest {
   }
 
   private fun showRecompositions(propertiesModel: InspectorPropertiesModel) {
-    val model = model {}
-    val settings = FakeTreeSettings()
-    val client: InspectorClient = mock()
-    whenever(client.stats).thenReturn(mock())
-    val layoutInspector = LayoutInspector(client, model, settings)
+    val model = propertiesModel.layoutInspector!!.layoutInspectorModel
     model.maxRecomposition.count = 7
     model.maxRecomposition.skips = 14
-    propertiesModel.layoutInspector = layoutInspector
+    val settings = propertiesModel.layoutInspector!!.treeSettings
     settings.showRecompositions = true
   }
 

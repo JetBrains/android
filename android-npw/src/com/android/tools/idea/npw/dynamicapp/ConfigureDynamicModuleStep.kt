@@ -19,11 +19,10 @@ import com.android.AndroidProjectTypes
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.npw.labelFor
+import com.android.tools.idea.npw.contextLabel
 import com.android.tools.idea.npw.module.ConfigureModuleStep
 import com.android.tools.idea.npw.template.components.ModuleComboProvider
 import com.android.tools.idea.npw.validator.ModuleSelectedValidator
-import com.android.tools.idea.npw.verticalGap
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.SelectedProperty
@@ -34,7 +33,9 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
-import com.intellij.ui.layout.panel
+import com.intellij.ui.dsl.builder.TopGap
+import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle
 import javax.swing.JCheckBox
@@ -55,47 +56,39 @@ class ConfigureDynamicModuleStep(
   private val fusingCheckbox: JCheckBox = JBCheckBox("Fusing (install module on pre-Lollipop devices)")
 
   override fun createMainPanel(): DialogPanel = panel {
-    row {
-      labelFor("Base Application Module", baseApplication)
-      baseApplication(growX)
+    row("Base Application Module") {
+      cell(baseApplication).horizontalAlign(HorizontalAlign.FILL)
     }
 
-    row {
-      labelFor("Module name", moduleName, AndroidBundle.message("android.wizard.module.help.name"))
-      moduleName(pushX)
+    row(contextLabel("Module name", AndroidBundle.message("android.wizard.module.help.name"))) {
+      cell(moduleName).horizontalAlign(HorizontalAlign.FILL)
     }
 
-    row {
-      labelFor("Package name", packageName)
-      packageName(pushX)
+    row("Package name") {
+      cell(packageName).horizontalAlign(HorizontalAlign.FILL)
     }
 
-    row {
-      labelFor("Language", languageCombo)
-      languageCombo(growX)
+    row("Language") {
+      cell(languageCombo).horizontalAlign(HorizontalAlign.FILL)
     }
 
-    row {
-      labelFor("Minimum SDK", apiLevelCombo)
-      apiLevelCombo(growX)
+    row("Minimum SDK") {
+      cell(apiLevelCombo).horizontalAlign(HorizontalAlign.FILL)
     }
 
     if (model.isInstant) {
-      row {
-        labelFor("Module title", moduleTitle, "This may be visible to users")
-        moduleTitle()
+      row(contextLabel("Module title", "This may be visible to users")) {
+        cell(moduleTitle).horizontalAlign(HorizontalAlign.FILL)
       }
     }
 
-    verticalGap()
-
     row {
-      fusingCheckbox()
-    }
+      cell(fusingCheckbox)
+    }.topGap(TopGap.SMALL)
 
     if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()  || model.useGradleKts.get()) {
       row {
-        gradleKtsCheck()
+        cell(gradleKtsCheck)
       }
     }
   }.withBorder(empty(6))

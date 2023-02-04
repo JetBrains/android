@@ -26,6 +26,32 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
 
+/**
+ * To verify component selection reflects from design view to xml in split view
+ * <p>
+ * This is run to qualify releases. Please involve the test team in substantial
+ * changes.
+ * <p>
+ * TT ID: a35f03d0-5763-40f9-a129-5023ad8a21b2
+ * <pre>
+ *   Test Steps:
+ *   1. Launch Android Studio.
+ *   2. Create a new project using the Empty Activity template.
+ *   3. Under the layout resource directory, open the activity_main.xml file and wait for sync to finish.
+ *   4. Click the "Split" mode button from the top-right corner (middle button).
+ *   5. In the Palette panel, select Buttons and drag a Button to the surface, so the layout contains a TextView and a Button.
+ *   6. On the Text view of the editor, select &lt;TextView /&gt; tag. (Verify 1)
+ *   7. On the Text view of the editor, select &lt;Button /&gt; tag. (Verify 2)
+ *   8. On the Visual view of the editor, click the TextView. (Verify 3)
+ *   9. On the Visual view of the editor, click the Button. (Verify 4)
+ *   Verification:
+ *   1. The TextView is selected in the Visual view editor.
+ *   2. The Button is selected in the Visual view editor.
+ *   3. The "TextView" tag gets highlighted in the Text view editor.
+ *   4. The  "Button" tag gets highlighted in the Text view editor.
+ * </pre>
+ *
+ */
 @RunWith(GuiTestRemoteRunner::class)
 class ComponentSelectionSplitViewTest {
   @JvmField

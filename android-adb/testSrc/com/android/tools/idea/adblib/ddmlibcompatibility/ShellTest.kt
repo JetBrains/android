@@ -60,6 +60,7 @@ class ShellTest {
 [ro.product.cpu.abi]: [arm64-v8a]
 [ro.product.manufacturer]: [Google]
 [ro.product.model]: [Pix3l]
+[ro.serialno]: [42]
 """
     assertThat(receiver.lines.joinToString("\n")).isEqualTo(expected)
     TestLoggerFactory.dumpLogToStdout("foo")

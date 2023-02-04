@@ -77,6 +77,16 @@ internal open class TestClockWithTransitions : TestClock() {
  * break when the test tries to call them via reflection.
  */
 internal open class TestClock {
+
+  @JvmInline
+  internal value class AnimatedVisibilityState private constructor(val value: String) {
+    override fun toString() = value
+
+    companion object {
+      val Enter = AnimatedVisibilityState("Enter")
+      val Exit = AnimatedVisibilityState("Exit")
+    }
+  }
   open fun getAnimatedProperties(animation: Any) =
     listOf<ComposeAnimatedProperty>(
       ComposeAnimatedProperty("Int", 1),
@@ -90,8 +100,8 @@ internal open class TestClock {
   fun updateAnimationStates() {}
   fun updateSeekableAnimation(animation: Any, fromState: Any, toState: Any) {}
   fun setClockTime(time: Long) {}
-  fun updateAnimatedVisibilityState(animation: Any, state: Any) {}
-  fun `getAnimatedVisibilityState-xga21d`(animation: Any) = "Enter"
+  open fun updateAnimatedVisibilityState(animation: Any, state: Any) {}
+  open fun `getAnimatedVisibilityState-xga21d`(animation: Any): Any = "Enter"
 
   open fun updateFromAndToStates(animation: ComposeAnimation, fromState: Any, toState: Any) {}
 }

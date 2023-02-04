@@ -19,6 +19,7 @@ import com.android.tools.idea.device.explorer.monitor.DeviceMonitorModel
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorModelListener
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorViewListener
 import com.android.tools.idea.device.explorer.monitor.ProcessTreeNode
+import com.android.tools.idea.device.explorer.monitor.ui.menu.item.DebugMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.ForceStopMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.KillMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.MenuContext
@@ -76,6 +77,9 @@ class DeviceMonitorViewImpl(model: DeviceMonitorModel): DeviceMonitorView, Devic
     listeners.forEach(Consumer { it.forceStopNodesInvoked(treeNodes) })
   }
 
+  override fun debugNodes(treeNodes: List<ProcessTreeNode>) {
+    listeners.forEach(Consumer { it.debugNodes(treeNodes) })
+  }
 
   private fun createTreePopupMenu() {
     ComponentPopupMenu(panel.tree).apply {
@@ -89,6 +93,7 @@ class DeviceMonitorViewImpl(model: DeviceMonitorModel): DeviceMonitorView, Devic
     createToolbarSubSection(DefaultActionGroup().apply {
       add(KillMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
       add(ForceStopMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
+      add(DebugMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
       add(RefreshMenuItem(this@DeviceMonitorViewImpl).action) }
     )
   }

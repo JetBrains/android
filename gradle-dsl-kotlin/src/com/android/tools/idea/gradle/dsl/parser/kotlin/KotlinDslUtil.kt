@@ -27,6 +27,8 @@ import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElem
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression
@@ -334,7 +336,7 @@ internal fun getParentPsi(dslElement : GradleDslElement) : PsiElement? {
 internal fun GradleDslElement.getBlockParent() : GradleDslElement? {
   when (val parent = this.parent ?: return null) {
     is ExtDslElement -> return parent.getBlockParent()
-    is GradleDslBlockElement, is GradleDslFile -> return parent
+    is GradleDslElementList, is GradleDslElementMap, is GradleDslBlockElement, is GradleDslFile -> return parent
     else -> return parent.getBlockParent()
   }
 }

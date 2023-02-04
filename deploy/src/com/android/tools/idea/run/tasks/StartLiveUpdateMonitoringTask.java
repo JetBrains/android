@@ -16,8 +16,8 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.log.LogWrapper;
-import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.notification.NotificationGroupManager;
+import com.intellij.notification.NotificationType;
 import java.util.concurrent.Callable;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,18 +45,17 @@ public class StartLiveUpdateMonitoringTask implements LaunchTask {
   }
 
   @Override
-  public LaunchResult run(@NotNull LaunchContext launchContext) {
+  public void run(@NotNull LaunchContext launchContext) {
     if (myStartLiveUpdate != null) {
       try {
         myStartLiveUpdate.call();
       }
       catch (Exception e) {
-        // TODO: better error handling and decide what to do with the remainder of the launch
-        Logger.getInstance(StartLiveUpdateMonitoringTask.class).warn("Error starting live edit", e);
+        NotificationGroupManager.getInstance().getNotificationGroup("Deploy")
+          .createNotification("Error starting live edit.\n" + e, NotificationType.WARNING);
+        // Monitoring should always start successfully start.
       }
     }
-    // Monitoring should always successfully starts.
-    return LaunchResult.success();
   }
 
   @Override

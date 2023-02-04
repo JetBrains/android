@@ -275,8 +275,7 @@ class DeviceToolWindowPanelTest {
   }
 
   private fun createToolWindowPanel(): DeviceToolWindowPanel {
-    val deviceClient =
-        DeviceClient(testRootDisposable, device.serialNumber, DeviceConfiguration(device.properties), device.deviceState.cpuAbi, project)
+    val deviceClient = DeviceClient(testRootDisposable, device.serialNumber, device.configuration, device.deviceState.cpuAbi, project)
     val panel = DeviceToolWindowPanel(project, deviceClient)
     // The panel has to be destroyed before disposal of DeviceClient.
     val disposable = Disposer.newDisposable()
