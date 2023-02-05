@@ -237,10 +237,9 @@ fun createRenderResult(model: NlModel, requireRender: Boolean): CompletableFutur
   val renderService = RenderService.getInstance(model.project)
   val logger = renderService.createLogger(model.facet.module)
 
-  return renderService.taskBuilder(model.facet, model.configuration)
+  return renderService.taskBuilder(model.facet, model.configuration, logger)
     .withPsiFile(model.file)
     .withLayoutScanner(requireRender)
-    .withLogger(logger)
     .withPriority(RenderAsyncActionExecutor.RenderingPriority.LOW)
     .withMinDownscalingFactor(0.25f)
     .withQuality(0f)

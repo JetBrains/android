@@ -21,8 +21,13 @@ import org.jetbrains.android.facet.AndroidFacet
 
 // Disable security manager during tests (for bazel)
 class NoSecurityManagerRenderService(project: Project) : RenderService(project) {
-  override fun taskBuilder(facet: AndroidFacet, configuration: Configuration): RenderService.RenderTaskBuilder {
+  override fun taskBuilder(facet: AndroidFacet, configuration: Configuration): RenderTaskBuilder {
     return super.taskBuilder(facet, configuration)
+      .disableSecurityManager()
+  }
+
+  override fun taskBuilder(facet: AndroidFacet, configuration: Configuration, logger: RenderLogger): RenderTaskBuilder {
+    return super.taskBuilder(facet, configuration, logger)
       .disableSecurityManager()
   }
 }

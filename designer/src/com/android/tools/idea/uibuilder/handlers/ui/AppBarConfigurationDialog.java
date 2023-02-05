@@ -598,8 +598,7 @@ public class AppBarConfigurationDialog extends JDialog {
     AndroidFacet facet = myModel.getFacet();
     RenderService renderService = RenderService.getInstance(getProject());
     RenderLogger logger = renderService.createLogger(facet.getModule());
-    final CompletableFuture<RenderTask> taskFuture = renderService.taskBuilder(facet, myModel.getConfiguration())
-      .withLogger(logger)
+    final CompletableFuture<RenderTask> taskFuture = renderService.taskBuilder(facet, myModel.getConfiguration(), logger)
       .withPsiFile(xmlFile)
       .build();
     return taskFuture.thenCompose(task -> {

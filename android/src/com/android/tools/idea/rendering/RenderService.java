@@ -203,8 +203,18 @@ public class RenderService implements Disposable {
    */
   @NotNull
   public RenderTaskBuilder taskBuilder(@NotNull AndroidFacet facet,
+                                       @NotNull Configuration configuration,
+                                       @NotNull RenderLogger logger) {
+    return new RenderTaskBuilder(facet, configuration, myImagePool, myCredential, logger);
+  }
+
+  /**
+   * Returns a {@link RenderTaskBuilder} that can be used to build a new {@link RenderTask}
+   */
+  @NotNull
+  public RenderTaskBuilder taskBuilder(@NotNull AndroidFacet facet,
                                        @NotNull Configuration configuration) {
-    return new RenderTaskBuilder(this, facet, configuration, myImagePool, myCredential);
+    return taskBuilder(facet, configuration, this.createLogger(facet.getModule()));
   }
 
   @Override
@@ -354,13 +364,12 @@ public class RenderService implements Disposable {
   }
 
   public static class RenderTaskBuilder {
-    private final RenderService myService;
     private final AndroidFacet myFacet;
     private final Configuration myConfiguration;
     private final Object myCredential;
     @NotNull private ImagePool myImagePool;
     @Nullable private PsiFile myPsiFile;
-    @Nullable private RenderLogger myLogger;
+    @NotNull private final RenderLogger myLogger;
     @Nullable private ILayoutPullParserFactory myParserFactory;
     private boolean isSecurityManagerEnabled = true;
     private float myQuality = 1f;
@@ -434,16 +443,16 @@ public class RenderService implements Disposable {
     @NotNull private RenderingPriority myPriority = DEFAULT_RENDERING_PRIORITY;
     private float myMinDownscalingFactor = 0.5f;
 
-    private RenderTaskBuilder(@NotNull RenderService service,
-                              @NotNull AndroidFacet facet,
+    private RenderTaskBuilder(@NotNull AndroidFacet facet,
                               @NotNull Configuration configuration,
                               @NotNull ImagePool defaultImagePool,
-                              @NotNull Object credential) {
-      myService = service;
+                              @NotNull Object credential,
+                              @NotNull RenderLogger logger) {
       myFacet = facet;
       myConfiguration = configuration;
       myImagePool = defaultImagePool;
       myCredential = credential;
+      myLogger = logger;
     }
 
 
@@ -468,12 +477,6 @@ public class RenderService implements Disposable {
     @NotNull
     public RenderTaskBuilder withPsiFile(@NotNull PsiFile psiFile) {
       this.myPsiFile = psiFile;
-      return this;
-    }
-
-    @NotNull
-    public RenderTaskBuilder withLogger(@NotNull RenderLogger logger) {
-      this.myLogger = logger;
       return this;
     }
 
@@ -638,10 +641,6 @@ public class RenderService implements Disposable {
      */
     @NotNull
     public CompletableFuture<RenderTask> build() {
-      if (myLogger == null) {
-        withLogger(myService.createLogger(myFacet.getModule()));
-      }
-
       StackTraceCapture stackTraceCaptureElement = RenderTaskAllocationTrackerKt.captureAllocationStackTrace();
 
       return CompletableFuture.supplyAsync(() -> {

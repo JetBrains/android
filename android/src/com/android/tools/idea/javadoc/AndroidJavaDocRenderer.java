@@ -1051,9 +1051,7 @@ public class AndroidJavaDocRenderer {
           assert facet != null;
           final RenderService service = RenderService.getInstance(myModule.getProject());
           RenderLogger logger = new RenderLogger("AndroidJavaDocRendererLogger", null);
-          CompletableFuture<RenderTask> renderTaskFuture = service.taskBuilder(facet, myConfiguration)
-            .withLogger(logger)
-            .build();
+          CompletableFuture<RenderTask> renderTaskFuture = service.taskBuilder(facet, myConfiguration, logger).build();
           CompletableFuture<BufferedImage> future = renderTaskFuture.thenCompose(renderTask -> {
             if (renderTask == null) {
               return CompletableFuture.completedFuture(null);

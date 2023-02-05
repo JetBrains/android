@@ -26,6 +26,7 @@ import com.android.testutils.TestUtils;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
@@ -159,8 +160,8 @@ public class PreviewProviderTest extends LayoutTestCase {
 
     @Override
     @NotNull
-    public RenderTaskBuilder taskBuilder(@NotNull AndroidFacet facet, @NotNull Configuration configuration) {
-      return super.taskBuilder(facet, configuration)
+    public RenderTaskBuilder taskBuilder(@NotNull AndroidFacet facet, @NotNull Configuration configuration, @NotNull RenderLogger logger) {
+      return super.taskBuilder(facet, configuration, logger)
         .disableSecurityManager();
     }
   }

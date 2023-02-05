@@ -1113,10 +1113,9 @@ public class LayoutlibSceneManager extends SceneManager {
 
     RenderService renderService = RenderService.getInstance(getModel().getProject());
     RenderLogger logger = myLogRenderErrors ? renderService.createLogger(facet.getModule()) : renderService.getNopLogger();
-    RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(facet, configuration)
+    RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(facet, configuration, logger)
       .withPsiFile(getModel().getFile())
-      .withLayoutScanner(myLayoutScannerConfig.isLayoutScannerEnabled())
-      .withLogger(logger);
+      .withLayoutScanner(myLayoutScannerConfig.isLayoutScannerEnabled());
     return setupRenderTaskBuilder(renderTaskBuilder).build()
       .thenCompose(newTask -> {
         if (newTask != null) {

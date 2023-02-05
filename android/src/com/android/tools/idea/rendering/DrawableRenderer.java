@@ -85,8 +85,7 @@ public class DrawableRenderer implements Disposable {
     // The ThemeEditorUtils.getConfigurationForModule and RenderService.createTask calls are pretty expensive.
     // Executing them off the UI thread.
     RenderService service = RenderService.getInstance(module.getProject());
-    myRenderTaskFuture = service.taskBuilder(facet, configuration)
-      .withLogger(logger)
+    myRenderTaskFuture = service.taskBuilder(facet, configuration, logger)
       .withParserFactory(myParserFactory)
       .build()
       .whenComplete((task, ex) -> {

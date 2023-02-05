@@ -165,8 +165,7 @@ public class RenderTestUtil {
     PsiFile psiFile = ReadAction.compute(() -> PsiManager.getInstance(module.getProject()).findFile(file));
     assertNotNull(psiFile);
     RenderService renderService = RenderService.getInstance(module.getProject());
-    final CompletableFuture<RenderTask> taskFuture = renderService.taskBuilder(facet, configuration)
-      .withLogger(logger)
+    final CompletableFuture<RenderTask> taskFuture = renderService.taskBuilder(facet, configuration, logger)
       .withPsiFile(psiFile)
       .disableSecurityManager()
       .withPriority(priority)
