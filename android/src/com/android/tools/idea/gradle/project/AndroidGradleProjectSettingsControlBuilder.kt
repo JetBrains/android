@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project
 
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.ui.GradleJdkComboBox
+import com.android.tools.idea.gradle.util.GradleJdkComboBoxUtil
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME
 import com.intellij.ide.util.projectWizard.WizardContext
@@ -33,7 +34,6 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
 import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable
-import com.intellij.openapi.roots.ui.configuration.SdkComboBoxModel
 import com.intellij.openapi.roots.ui.configuration.SdkLookupProvider.SdkInfo
 import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel
 import com.intellij.openapi.util.text.StringUtil
@@ -187,7 +187,7 @@ class AndroidGradleProjectSettingsControlBuilder(
     }
     val projectJdk = sdksModel.projectSdk
     sdksModel.projectSdk = null
-    val boxModel = SdkComboBoxModel.createJdkComboBoxModel(project, sdksModel)
+    val boxModel = GradleJdkComboBoxUtil.createBoxModel(project, sdksModel)
     sdksModel.projectSdk = projectJdk
 
     // TODO: Remove, used only for debug
