@@ -28,6 +28,7 @@ import com.intellij.execution.util.ExecUtil;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import org.junit.AssumptionViolatedException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,23 +50,8 @@ public final class WindowsPerformanceHintsCheckerTest {
   @Test
   public void excludedPathsMatches() {
     AssumeUtil.assumeWindows();
-
-    // Not guaranteed to work on test machines, so skip the test if that's the case
-    try {
-      ProcessOutput output = ExecUtil.execAndGetOutput(new GeneralCommandLine(
-        "powershell", "-inputformat", "none", "-outputformat", "text", "-NonInteractive", "-Command",
-        "Get-MpPreference"), POWERSHELL_COMMAND_TIMEOUT_MS);
-      if (output.getExitCode() != 0) {
-        System.out.println("Skipping excludedPathsMatches test. Exit code = " + output.getExitCode());
-        return;
-      }
-    }
-    catch (ExecutionException e) {
-      System.out.println("Skipping excludedPathsMatches test.");
-      e.printStackTrace(System.out);
-      return;
-    }
-    System.out.println("Get-MpPreference exists");
+    System.out.println("Checking assumptions for excludedPathsMatches");
+    assumePowershellGetMpPreferenceExists();
 
     try {
       List<String> powershellPaths = myPowerShellStatusProvider.getExcludedPaths();
@@ -83,23 +69,8 @@ public final class WindowsPerformanceHintsCheckerTest {
   @Test
   public void realtimeScanningEnabledMatches() {
     AssumeUtil.assumeWindows();
-
-    // Not guaranteed to work on test machines, so skip the test if that's the case
-    try {
-      ProcessOutput output = ExecUtil.execAndGetOutput(new GeneralCommandLine(
-        "powershell", "-inputformat", "none", "-outputformat", "text", "-NonInteractive", "-Command",
-        "Get-MpPreference"), POWERSHELL_COMMAND_TIMEOUT_MS);
-      if (output.getExitCode() != 0) {
-        System.out.println("Skipping realtimeScanningEnabledMatches test. Exit code = " + output.getExitCode());
-        return;
-      }
-    }
-    catch (ExecutionException e) {
-      System.out.println("Skipping realtimeScanningEnabledMatches test.");
-      e.printStackTrace(System.out);
-      return;
-    }
-    System.out.println("Get-MpPreference exists");
+    System.out.println("Checking assumptions for realtimeScanningEnabledMatches");
+    assumePowershellGetMpPreferenceExists();
 
     try {
       assertEquals(myPowerShellStatusProvider.getRealtimeScanningStatus(), myRegistryStatusProvider.getRealtimeScanningStatus());
@@ -108,5 +79,24 @@ public final class WindowsPerformanceHintsCheckerTest {
       e.printStackTrace();
       fail();
     }
+  }
+
+  private void assumePowershellGetMpPreferenceExists() {
+    // Not guaranteed to work on test machines, so skip the test if that's the case
+    try {
+      ProcessOutput output = ExecUtil.execAndGetOutput(new GeneralCommandLine(
+        "powershell", "-inputformat", "none", "-outputformat", "text", "-NonInteractive", "-Command",
+        "Get-MpPreference"), POWERSHELL_COMMAND_TIMEOUT_MS);
+      if (output.getExitCode() != 0) {
+        System.out.println("Skipping test. Exit code = " + output.getExitCode());
+        throw new AssumptionViolatedException("Skipping test. Exit code = " + output.getExitCode());
+      }
+    }
+    catch (ExecutionException e) {
+      System.out.println("Skipping test.");
+      e.printStackTrace(System.out);
+      throw new AssumptionViolatedException("Skipping test.", e);
+    }
+    System.out.println("Get-MpPreference exists");
   }
 }
