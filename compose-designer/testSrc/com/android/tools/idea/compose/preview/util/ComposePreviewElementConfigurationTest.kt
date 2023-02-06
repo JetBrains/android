@@ -71,6 +71,7 @@ private fun buildState(
 private fun buildDevice(
   name: String,
   id: String = name,
+  tagId: String? = null,
   manufacturer: String = "Google",
   software: List<Software> = listOf(Software()),
   states: List<State> = listOf(buildState("default", 1000, 2000).apply { isDefaultState = true })
@@ -78,6 +79,7 @@ private fun buildDevice(
   Device.Builder()
     .apply {
       setId(id)
+      setTagId(tagId)
       setName(name)
       setManufacturer(manufacturer)
       addAllSoftware(software)
@@ -93,11 +95,11 @@ private val roundWearOsDevice =
   buildDevice(
     "Wear OS Round Device",
     "wearos_round",
+    "android-wear",
     states =
       listOf(
         buildState("default", 1000, 100, screenRound = ScreenRound.ROUND).apply {
           isDefaultState = true
-          hardware = Hardware()
         }
       )
   )
@@ -205,6 +207,47 @@ class ComposePreviewElementConfigurationTest() {
         val screenSize = configuration.device!!.getScreenSize(ScreenOrientation.PORTRAIT)!!
         assertEquals(1000, screenSize.width)
         assertEquals(2000, screenSize.height)
+      }
+  }
+
+  @Test
+  fun `setting a device might set the theme as well`() {
+    val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
+    val configuration =
+      Configuration.create(configManager, null, FolderConfiguration.createDefault())
+
+    SingleComposePreviewElementInstance(
+        "WearOs",
+        PreviewDisplaySettings("Name", null, false, false, null),
+        null,
+        null,
+        PreviewConfiguration.cleanAndGet(null, null, 100, 100, null, null, null, null)
+      )
+      .let { previewElement ->
+        previewElement.applyConfigurationForTest(
+          configuration,
+          highestApiTarget = { null },
+          devicesProvider = deviceProvider,
+          defaultDeviceProvider = { roundWearOsDevice }
+        )
+        assertEquals("@android:style/Theme.DeviceDefault", configuration.theme)
+      }
+
+    SingleComposePreviewElementInstance(
+        "Pixel",
+        PreviewDisplaySettings("Name", null, false, false, null),
+        null,
+        null,
+        PreviewConfiguration.cleanAndGet(null, null, 100, 100, null, null, null, null)
+      )
+      .let { previewElement ->
+        previewElement.applyConfigurationForTest(
+          configuration,
+          highestApiTarget = { null },
+          devicesProvider = deviceProvider,
+          defaultDeviceProvider = { pixel4Device }
+        )
+        assertEquals("@android:style/Theme", configuration.theme)
       }
   }
 

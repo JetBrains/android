@@ -276,6 +276,12 @@ private fun PreviewConfiguration.applyTo(
     // If the user is not using the device frame, we never want to use the round frame around. See
     // b/215362733
     renderConfiguration.setDevice(device, false)
+    // If there is no application theme set, we might need to change the theme when changing the
+    // device, because different devices might
+    // have different default themes.
+    renderConfiguration.setTheme(
+      renderConfiguration.configurationManager.computePreferredTheme(renderConfiguration)
+    )
   }
 
   customSize?.let {
