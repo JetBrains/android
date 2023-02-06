@@ -36,6 +36,7 @@ import com.android.tools.idea.res.FrameworkResourceRepositoryManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.intellij.internal.statistic.analytics.StudioCrashDetails;
 import com.intellij.internal.statistic.analytics.StudioCrashDetection;
 import com.intellij.openapi.diagnostic.Logger;
@@ -46,6 +47,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.reference.SoftReference;
 import com.intellij.util.xml.NanoXmlBuilder;
 import com.intellij.util.xml.NanoXmlUtil;
 import gnu.trove.TIntObjectHashMap;
@@ -63,6 +65,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
 import org.jetbrains.android.resourceManagers.FilteredAttributeDefinitions;
@@ -89,6 +92,7 @@ public class AndroidTargetData {
 
   private volatile MyStaticConstantsData myStaticConstantsData;
 
+  @VisibleForTesting
   public AndroidTargetData(@NotNull AndroidSdkData sdkData, @NotNull IAndroidTarget target) {
     mySdkData = sdkData;
     myTarget = target;
@@ -188,7 +192,7 @@ public class AndroidTargetData {
     if (myLayoutLibrary == null || myLayoutLibrary.isDisposed()) {
       if (myTarget instanceof CompatibilityRenderTarget) {
         IAndroidTarget target = ((CompatibilityRenderTarget)myTarget).getRenderTarget();
-        AndroidTargetData targetData = mySdkData.getTargetData(target);
+        AndroidTargetData targetData = AndroidTargetData.get(mySdkData, target);
         if (targetData != this) {
           myLayoutLibrary = targetData.getLayoutLibrary(project);
           return myLayoutLibrary;
@@ -305,7 +309,7 @@ public class AndroidTargetData {
   @Nullable
   public static AndroidTargetData getTargetData(@NotNull IAndroidTarget target, @NotNull Module module) {
     AndroidPlatform platform = AndroidPlatform.getInstance(module);
-    return platform != null ? platform.getSdkData().getTargetData(target) : null;
+    return platform != null ? AndroidTargetData.get(platform.getSdkData(), target) : null;
   }
 
   private class PublicAttributeDefinitions extends FilteredAttributeDefinitions {
@@ -442,5 +446,19 @@ public class AndroidTargetData {
         return null;
       }
     }
+  }
+
+  private static final Map<AndroidSdkData, Map<String, SoftReference<AndroidTargetData>>> myTargetDataCache = new WeakHashMap<>();
+
+  public static AndroidTargetData get(@NotNull AndroidSdkData sdk, @NotNull IAndroidTarget target) {
+    Map<String, SoftReference<AndroidTargetData>> targetDataByTarget = myTargetDataCache.computeIfAbsent(sdk, s -> Maps.newHashMap());
+    String key = target.hashString();
+    final SoftReference<AndroidTargetData> targetDataRef = targetDataByTarget.get(key);
+    AndroidTargetData targetData = targetDataRef != null ? targetDataRef.get() : null;
+    if (targetData == null) {
+      targetData = new AndroidTargetData(sdk, target);
+      targetDataByTarget.put(key, new SoftReference<>(targetData));
+    }
+    return targetData;
   }
 }

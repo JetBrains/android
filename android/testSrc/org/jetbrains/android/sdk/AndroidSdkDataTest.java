@@ -77,12 +77,12 @@ public class AndroidSdkDataTest extends AndroidTestCase {
   }
 
   public void testGetSdkDataByProject() throws Exception {
-    AndroidSdkData sdkFromProject = AndroidSdkData.getSdkData(getProject());
+    AndroidSdkData sdkFromProject = StudioAndroidSdkData.getSdkData(getProject());
     assertEquals(sdkData, sdkFromProject);
   }
 
   public void testGetSdkDataByModule() throws Exception {
-    AndroidSdkData actual = AndroidSdkData.getSdkData(myModule);
+    AndroidSdkData actual = StudioAndroidSdkData.getSdkData(myModule);
     assertEquals(sdkData, actual);
   }
 
@@ -90,6 +90,6 @@ public class AndroidSdkDataTest extends AndroidTestCase {
     Sdk sdk = mock(Sdk.class);
     when(sdk.getHomePath()).thenReturn(TestUtils.getSdk().toString());
 
-    assertEquals(sdkData, AndroidSdkData.getSdkData(sdk));
+    assertEquals(sdkData, StudioAndroidSdkData.getSdkData(sdk));
   }
 }

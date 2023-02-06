@@ -22,6 +22,8 @@ import com.intellij.openapi.project.Project;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.StudioAndroidSdkData;
+import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,7 +63,7 @@ public class ProjectResourceIdResolver implements ResourceIdResolver {
       }
     }
 
-    AndroidSdkData sdkData = facet == null ? null : AndroidSdkData.getSdkData(facet);
+    AndroidSdkData sdkData = facet == null ? null : StudioAndroidSdkData.getSdkData(facet);
     if (sdkData == null) {
       return null;
     }
@@ -71,6 +73,6 @@ public class ProjectResourceIdResolver implements ResourceIdResolver {
       return null;
     }
 
-    return sdkData.getTargetData(targets[targets.length - 1]).getPublicIdMap();
+    return AndroidTargetData.get(sdkData, targets[targets.length - 1]).getPublicIdMap();
   }
 }

@@ -28,23 +28,14 @@ import com.android.tools.idea.sdk.IdeDeviceManagers;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Key;
-import com.intellij.reference.SoftReference;
+import java.lang.ref.SoftReference;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 import static com.android.SdkConstants.FD_PLATFORM_TOOLS;
@@ -53,25 +44,9 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.targetHasId;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.parsePackageRevision;
 
 public class AndroidSdkData {
-  private final Map<String, SoftReference<AndroidTargetData>> myTargetDataByTarget = Maps.newHashMap();
-
   private final DeviceManager myDeviceManager;
-
-  private final int myPlatformToolsRevision;
-
   private static final ConcurrentMap<String/* sdk path */, SoftReference<AndroidSdkData>> ourCache = Maps.newConcurrentMap();
   private final AndroidSdkHandler mySdkHandler;
-
-
-  @Nullable
-  public static AndroidSdkData getSdkData(@NotNull AndroidFacet facet) {
-    return ModuleSdkDataHolder.getInstance(facet).getSdkData();
-  }
-
-  @NotNull
-  public static AndroidSdkHandler getSdkHolder(@NotNull AndroidFacet facet) {
-    return ModuleSdkDataHolder.getInstance(facet).getSdkHandler();
-  }
 
   @Nullable
   public static AndroidSdkData getSdkData(@NotNull File sdkLocation) {
@@ -111,34 +86,10 @@ public class AndroidSdkData {
     return getSdkData(FilePaths.stringToFile(sdkPath));
   }
 
-  @Nullable
-  public static AndroidSdkData getSdkData(@NotNull Sdk sdk) {
-    String sdkHomePath = sdk.getHomePath();
-    if (sdkHomePath != null) {
-      return getSdkData(sdk.getHomePath());
-    }
-    return null;
-  }
-
-  @Nullable
-  public static AndroidSdkData getSdkData(@NotNull Project project) {
-    Sdk sdk = ProjectRootManager.getInstance(project).getProjectSdk();
-    if (sdk != null) {
-      return getSdkData(sdk);
-    }
-    return null;
-  }
-
-  @Nullable
-  public static AndroidSdkData getSdkData(@NotNull Module module) {
-    return getSdkData(module.getProject());
-  }
-
   private AndroidSdkData(@NotNull File localSdk) {
     mySdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, localSdk.toPath());
     String locationPath = getLocation().toString();
     Revision platformToolsRevision = parsePackageRevision(locationPath, FD_PLATFORM_TOOLS);
-    myPlatformToolsRevision = platformToolsRevision == null ? -1 : platformToolsRevision.getMajor();
     myDeviceManager = IdeDeviceManagers.getDeviceManager(mySdkHandler);
   }
 
@@ -211,10 +162,6 @@ public class AndroidSdkData {
     return mySdkHandler.getAndroidTargetManager(progress).getTargetFromHashString(hashString, progress);
   }
 
-  public int getPlatformToolsRevision() {
-    return myPlatformToolsRevision;
-  }
-
   @Override
   public boolean equals(Object obj) {
     if (obj == null) return false;
@@ -234,70 +181,7 @@ public class AndroidSdkData {
   }
 
   @NotNull
-  public AndroidTargetData getTargetData(@NotNull IAndroidTarget target) {
-    String key = target.hashString();
-    final SoftReference<AndroidTargetData> targetDataRef = myTargetDataByTarget.get(key);
-    AndroidTargetData targetData = targetDataRef != null ? targetDataRef.get() : null;
-    if (targetData == null) {
-      targetData = new AndroidTargetData(this, target);
-      myTargetDataByTarget.put(key, new SoftReference<>(targetData));
-    }
-    return targetData;
-  }
-
-  @NotNull
   public AndroidSdkHandler getSdkHandler() {
     return mySdkHandler;
-  }
-
-  private static class ModuleSdkDataHolder implements Disposable {
-    private static final Key<ModuleSdkDataHolder> KEY = Key.create(ModuleSdkDataHolder.class.getName());
-
-    private AndroidFacet myFacet;
-
-    @NotNull private final AndroidSdkHandler mySdkHandler;
-
-    @Nullable private final AndroidSdkData mySdkData;
-
-    @NotNull
-    static ModuleSdkDataHolder getInstance(@NotNull AndroidFacet facet) {
-      ModuleSdkDataHolder sdkDataHolder = facet.getUserData(KEY);
-      if (sdkDataHolder == null) {
-        sdkDataHolder = new ModuleSdkDataHolder(facet);
-        facet.putUserData(KEY, sdkDataHolder);
-      }
-      return sdkDataHolder;
-    }
-
-    ModuleSdkDataHolder(@NotNull AndroidFacet facet) {
-      myFacet = facet;
-      Disposer.register(facet, this);
-
-      AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
-      if (platform != null) {
-        mySdkData = platform.getSdkData();
-        mySdkHandler = mySdkData.getSdkHandler();
-      }
-      else {
-        mySdkData = null;
-        mySdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, null);
-      }
-    }
-
-    @Nullable
-    AndroidSdkData getSdkData() {
-      return mySdkData;
-    }
-
-    @NotNull
-    AndroidSdkHandler getSdkHandler() {
-      return mySdkHandler;
-    }
-
-    @Override
-    public void dispose() {
-      myFacet.putUserData(KEY, null);
-      myFacet = null;
-    }
   }
 }

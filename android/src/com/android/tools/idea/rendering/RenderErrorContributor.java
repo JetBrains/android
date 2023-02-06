@@ -672,7 +672,7 @@ public class RenderErrorContributor {
     if (platform == null) {
       return false;
     }
-    AndroidTargetData targetData = platform.getSdkData().getTargetData(target);
+    AndroidTargetData targetData = AndroidTargetData.get(platform.getSdkData(), target);
     AttributeDefinitions definitionLookup = targetData.getPublicAttrDefs(mySourceFile.getProject());
     String attributeName = strings[0];
     String currentValue = strings[1];

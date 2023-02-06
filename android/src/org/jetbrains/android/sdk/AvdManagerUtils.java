@@ -27,7 +27,7 @@ public final class AvdManagerUtils {
 
   public static @Nullable AvdManager getAvdManager(@NotNull AndroidFacet facet) {
     try {
-      return IdeAvdManagers.INSTANCE.getAvdManager(AndroidSdkData.getSdkHolder(facet));
+      return IdeAvdManagers.INSTANCE.getAvdManager(StudioAndroidSdkData.getSdkHolder(facet));
     }
     catch (AndroidLocationsException exception) {
       return null;

@@ -40,7 +40,7 @@ import com.intellij.openapi.module.Module
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.sdk.AndroidSdkData
+import org.jetbrains.android.sdk.StudioAndroidSdkData
 
 /** Prefix used by device specs to find devices by id. */
 internal const val DEVICE_BY_ID_PREFIX = "id:"
@@ -219,7 +219,7 @@ internal fun Collection<Device>.findByIdOrName(
  */
 internal fun getSdkDevices(module: Module): List<Device> {
   return AndroidFacet.getInstance(module)?.let { facet ->
-    AndroidSdkData.getSdkData(facet)
+    StudioAndroidSdkData.getSdkData(facet)
       ?.deviceManager
       ?.getDevices(DeviceManager.ALL_DEVICES)
       ?.filter { !it.isDeprecated }

@@ -91,7 +91,7 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
     @Override
     @NotNull
     protected PsiField[] doGetFields() {
-      AndroidTargetData targetData = myPlatform.getSdkData().getTargetData(myPlatform.getTarget());
+      AndroidTargetData targetData = AndroidTargetData.get(myPlatform.getSdkData(), myPlatform.getTarget());
       ResourceRepository repository = targetData.getFrameworkResources(ImmutableSet.of());
       if (repository == null) {
         return PsiField.EMPTY_ARRAY;

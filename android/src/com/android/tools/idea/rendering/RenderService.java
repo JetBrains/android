@@ -70,6 +70,7 @@ import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -173,7 +174,7 @@ public class RenderService implements Disposable {
     AndroidPlatform platform = AndroidPlatform.getInstance(module);
     if (platform != null) {
       try {
-        return platform.getSdkData().getTargetData(target).getLayoutLibrary(project);
+        return AndroidTargetData.get(platform.getSdkData(), target).getLayoutLibrary(project);
       }
       catch (RenderingException e) {
         // Ignore.
@@ -662,7 +663,7 @@ public class RenderService implements Disposable {
         }
         LayoutLibrary layoutLib;
         try {
-          layoutLib = platform.getSdkData().getTargetData(target).getLayoutLibrary(module.getProject());
+          layoutLib = AndroidTargetData.get(platform.getSdkData(), target).getLayoutLibrary(module.getProject());
         }
         catch (UnsupportedJavaRuntimeException e) {
           RenderProblem.Html javaVersionProblem = RenderProblem.create(ERROR);

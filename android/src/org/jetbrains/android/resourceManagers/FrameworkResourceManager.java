@@ -30,6 +30,7 @@ import java.util.Collection;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -69,7 +70,7 @@ public class FrameworkResourceManager extends ResourceManager {
     if (platform == null) {
       return null;
     }
-    return platform.getSdkData().getTargetData(platform.getTarget()).getPublicAttrDefs(myProject);
+    return AndroidTargetData.get(platform.getSdkData(), platform.getTarget()).getPublicAttrDefs(myProject);
   }
 
   @Override

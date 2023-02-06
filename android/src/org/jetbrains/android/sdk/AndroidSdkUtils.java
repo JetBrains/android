@@ -31,7 +31,6 @@ import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.google.common.base.Strings;
 import com.intellij.CommonBundle;

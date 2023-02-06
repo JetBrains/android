@@ -83,6 +83,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.StudioAndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -223,7 +224,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        AndroidSdkData sdkData = AndroidSdkData.getSdkData(facet);
+        AndroidSdkData sdkData = StudioAndroidSdkData.getSdkData(facet);
         if (sdkData != null) {
           return sdkData.getSdkHandler();
         }
