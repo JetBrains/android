@@ -27,7 +27,7 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.androidManifestXml as testAndroidManifestXml
 
-private const val minRev = "1.1.0-beta04"
+private const val minRev = "1.1.1"
 private const val exampleBenchmarkName = "ExampleBenchmark"
 
 fun RecipeExecutor.generateBenchmarkModule(
