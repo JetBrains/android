@@ -166,10 +166,6 @@ class LaunchTaskRunner(
     }
   }
 
-  override fun runAsInstantApp(indicator: ProgressIndicator): RunContentDescriptor {
-    return run(indicator)
-  }
-
   override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
     val applicationId = applicationIdProvider.packageName
 

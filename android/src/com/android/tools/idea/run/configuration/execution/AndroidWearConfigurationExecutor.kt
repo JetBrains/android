@@ -38,9 +38,6 @@ abstract class AndroidWearConfigurationExecutor(environment: ExecutionEnvironmen
                                                                                                              appRunSettings,
                                                                                                              applicationIdProvider,
                                                                                                              apkProvider) {
-  override fun runAsInstantApp(indicator: ProgressIndicator): RunContentDescriptor {
-    throw RuntimeException("Unsupported operation")
-  }
 
   override fun applyCodeChanges(indicator: ProgressIndicator): RunContentDescriptor {
     throw RuntimeException("Unsupported operation")

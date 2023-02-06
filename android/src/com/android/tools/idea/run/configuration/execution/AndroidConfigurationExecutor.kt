@@ -30,7 +30,6 @@ interface AndroidConfigurationExecutor {
   val deployTarget: DeployTarget
 
   fun run(indicator: ProgressIndicator): RunContentDescriptor
-  fun runAsInstantApp(indicator: ProgressIndicator): RunContentDescriptor
   fun debug(indicator: ProgressIndicator): RunContentDescriptor
   fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor
   fun applyCodeChanges(indicator: ProgressIndicator): RunContentDescriptor
