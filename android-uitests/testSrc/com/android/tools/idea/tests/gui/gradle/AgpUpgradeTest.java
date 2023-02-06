@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
+import static com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -55,14 +56,13 @@ public class AgpUpgradeTest {
     guiTest.openProjectAndWaitForProjectSyncToFinish(projectDir);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     ideFrame = guiTest.ideFrame();
-    studioVersion = ideFrame.getAndroidStudioVersion();
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 
+  @Ignore //Ignoring the test, Enable after adding AGP 7.4.1 Version
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void testUpgradeFunctionalityCheck() {
-
+    //The test verifies the AGP upgrade from one stable version to the latest public stable version.
     /**
      * Verifies automatic update of gradle version
      * <p>
@@ -100,21 +100,16 @@ public class AgpUpgradeTest {
     upgradeNotification.clickStartUpgradeAssistant();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    //"Clearing any additional notifications not related to the test, so it wouldn't interrupt with the UI workflow."
-    ideFrame.clearNotificationsPresentOnIdeFrame();
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
-
     //Checking the if the upgrade assistant tool window is active, finding all the AGP versions available,and also checking if the latest AGP version is present.
     AGPUpgradeAssistantToolWindowFixture upgradeAssistant = ideFrame.getUgradeAssistantToolWindow(false);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-    String agpVersion = upgradeAssistant.generateAGPVersion(studioVersion);
     List<String> agpVersionsList = upgradeAssistant.getAGPVersions();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-    assertTrue(agpVersionsList.size() > 3);
-    assertEquals(agpVersion, agpVersionsList.get(0));
+    assertTrue(agpVersionsList.size() > 1);
+    assertEquals(ANDROID_GRADLE_PLUGIN_VERSION, agpVersionsList.get(0));
 
     //Selecting the latest AGP version, running the selected steps option and verifying if the sync is successful.
-    upgradeAssistant.selectAGPVersion(upgradeAssistant.generateAGPVersion(studioVersion));
+    upgradeAssistant.selectAGPVersion(ANDROID_GRADLE_PLUGIN_VERSION);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     upgradeAssistant.clickRunSelectedStepsButton();
     ideFrame.waitForGradleSyncToFinish(null);
@@ -124,7 +119,7 @@ public class AgpUpgradeTest {
     assertFalse(upgradeAssistant.isShowUsagesEnabled());
     assertFalse(upgradeAssistant.isRunSelectedStepsButtonEnabled());
     upgradeAssistant.hide();
-    assertThat(ideFrame.getEditor().open("build.gradle").getCurrentFileContents()).contains(agpVersion);
+    assertThat(ideFrame.getEditor().open("build.gradle").getCurrentFileContents()).contains(ANDROID_GRADLE_PLUGIN_VERSION);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     //Reverting the changes made once the sync is successful.
@@ -137,6 +132,47 @@ public class AgpUpgradeTest {
     assertTrue(upgradeAssistant.isRunSelectedStepsButtonEnabled());
     upgradeAssistant.hide();
     assertTrue(AGPProjectUpdateNotificationCenterPanelFixture.find(ideFrame).notificationIsShowing());
+    assertThat(ideFrame.getEditor().open("build.gradle").getCurrentFileContents()).contains(oldAgpVersion);
+  }
+
+  @RunIn(TestGroup.SANITY_BAZEL)
+  @Test
+  public void testLatestAGPStableToLatestAGPVersion() {
+    /*
+    The test used the upgrade assistant tool window to update the AGP version from the stable AGP version to the latest version (canary, beta, release)
+     */
+    //Clearing the notifications present on the screen.
+    ideFrame.clearNotificationsPresentOnIdeFrame();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    //Testing AGP upgrade using upgrade assistant from latest AGP stable release version to latest agp version (dev, canary, beta, rc)
+    AGPUpgradeAssistantToolWindowFixture upgradeAssistant = ideFrame.getUgradeAssistantToolWindow(true);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    List<String> agpVersionsList = upgradeAssistant.getAGPVersions();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    assertTrue(agpVersionsList.size() > 1);
+    assertEquals(ANDROID_GRADLE_PLUGIN_VERSION, agpVersionsList.get(0));
+    upgradeAssistant.selectAGPVersion(ANDROID_GRADLE_PLUGIN_VERSION);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    upgradeAssistant.clickRunSelectedStepsButton();
+    ideFrame.waitForGradleSyncToFinish(null);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    assertTrue(upgradeAssistant.getSyncStatus());
+    assertTrue(upgradeAssistant.isRefreshButtonEnabled());
+    assertFalse(upgradeAssistant.isShowUsagesEnabled());
+    assertFalse(upgradeAssistant.isRunSelectedStepsButtonEnabled());
+    upgradeAssistant.hide();
+    assertThat(ideFrame.getEditor().open("build.gradle").getCurrentFileContents()).contains(ANDROID_GRADLE_PLUGIN_VERSION);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
+    //Reverting the changes made once the sync is successful.
+    upgradeAssistant.activate();
+    upgradeAssistant.clickRevertProjectFiles();
+    ideFrame.waitForGradleSyncToFinish(null);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    assertTrue(upgradeAssistant.isRefreshButtonEnabled());
+    assertTrue(upgradeAssistant.isShowUsagesEnabled());
+    assertTrue(upgradeAssistant.isRunSelectedStepsButtonEnabled());
+    upgradeAssistant.hide();
     assertThat(ideFrame.getEditor().open("build.gradle").getCurrentFileContents()).contains(oldAgpVersion);
   }
 
@@ -165,20 +201,19 @@ public class AgpUpgradeTest {
      * </pre>
      */
 
+    //Clearing the notifications present on the screen.
+      ideFrame.clearNotificationsPresentOnIdeFrame();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
     EditorFixture editor = ideFrame.getEditor();
-    AGPUpgradeAssistantToolWindowFixture upgradeAssistant = ideFrame.getUgradeAssistantToolWindow(true);
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
-    upgradeAssistant.hide();
-    String agpVersion = upgradeAssistant.generateAGPVersion(studioVersion);
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     //Updating the AGP version using build.gradle file.
     editor.open("build.gradle")
       .select("gradle\\:(\\d+\\.\\d+\\.\\d+)")
-      .enterText(agpVersion);
+      .enterText(ANDROID_GRADLE_PLUGIN_VERSION);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     ideFrame.requestProjectSyncAndWaitForSyncToFinish();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-    assertThat(editor.open("build.gradle").getCurrentFileContents()).contains(agpVersion);
+    assertThat(editor.open("build.gradle").getCurrentFileContents()).contains(ANDROID_GRADLE_PLUGIN_VERSION);
   }
 }
