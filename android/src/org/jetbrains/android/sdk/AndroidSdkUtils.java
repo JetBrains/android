@@ -133,10 +133,6 @@ public final class AndroidSdkUtils {
     return target.isPlatform() ? target.getName() : target.getName() + " (" + target.getVersionName() + ')';
   }
 
-  public static boolean targetHasId(@NotNull IAndroidTarget target, @NotNull String id) {
-    return id.equals(target.getVersion().getApiString()) || id.equals(target.getVersionName());
-  }
-
   /**
    * Reload SDK information and update the source root of the SDK.
    */

@@ -40,7 +40,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import static com.android.SdkConstants.FD_PLATFORM_TOOLS;
 import static com.intellij.openapi.util.io.FileUtil.*;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.targetHasId;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.parsePackageRevision;
 
 public class AndroidSdkData {
@@ -144,6 +143,10 @@ public class AndroidSdkData {
       result.addAll(targets);
     }
     return result.toArray(new IAndroidTarget[0]);
+  }
+
+  private static boolean targetHasId(@NotNull IAndroidTarget target, @NotNull String id) {
+    return id.equals(target.getVersion().getApiString()) || id.equals(target.getVersionName());
   }
 
   @Nullable
