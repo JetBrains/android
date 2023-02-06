@@ -26,7 +26,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectCloseListener
-import com.intellij.openapi.startup.ProjectPostStartupActivity
+import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.util.application
 import java.util.Collections
@@ -42,7 +42,7 @@ class ProjectMetricsService {
 }
 
 class ProjectMetricsInitializer : ProjectCloseListener {
-  class MyStartupActivity : ProjectPostStartupActivity {
+  class MyStartupActivity : ProjectActivity {
     override suspend fun execute(project: Project) {
       // Need to set up ToolWindowTrackerService here after project is initialized so service can be retrieved.
       val service = ToolWindowTrackerService.getInstance(project)

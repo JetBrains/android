@@ -15,13 +15,13 @@ import com.intellij.openapi.extensions.ExtensionNotApplicableException
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.ProjectPostStartupActivity
+import com.intellij.openapi.startup.ProjectActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 
-class AndroidStartupManager : ProjectPostStartupActivity {
+class AndroidStartupManager : ProjectActivity {
 
   // A project level service to be used as a parent disposable. Future implementation may reduce the life-time of such disposable to the
   // moment when the last Android facet is removed (from a non-Gradle project).
