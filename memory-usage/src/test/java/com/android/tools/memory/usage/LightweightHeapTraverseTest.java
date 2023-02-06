@@ -20,15 +20,34 @@ import org.junit.Test;
 
 public class LightweightHeapTraverseTest {
   @Test
-  public void testSimpleComponents() {
-    LightweightTraverseResult result = LightweightHeapTraverse.collectReport(new LightweightHeapTraverseConfig());
+  public void testTotalAndStrongReferencedMemory() {
+    LightweightTraverseResult result = LightweightHeapTraverse.collectReport(new LightweightHeapTraverseConfig(true, true, true));
     Assert.assertTrue(result.getTotalObjectsSizeBytes() > 0);
     Assert.assertTrue(result.getTotalObjectsNumber() > 0);
+
+    Assert.assertTrue(result.getTotalReachableObjectsNumber() > 0);
+    Assert.assertTrue(result.getTotalReachableObjectsSizeBytes() > 0);
 
     Assert.assertTrue(result.getTotalStrongReferencedObjectsSizeBytes() > 0);
     Assert.assertTrue(result.getTotalStrongReferencedObjectsNumber() > 0);
 
-    Assert.assertTrue(result.getTotalStrongReferencedObjectsSizeBytes() < result.getTotalObjectsSizeBytes());
-    Assert.assertTrue(result.getTotalStrongReferencedObjectsNumber() < result.getTotalObjectsNumber());
+    Assert.assertTrue(result.getTotalReachableObjectsSizeBytes() < result.getTotalObjectsSizeBytes());
+    Assert.assertTrue(result.getTotalReachableObjectsNumber() < result.getTotalObjectsNumber());
+
+    Assert.assertTrue(result.getTotalStrongReferencedObjectsSizeBytes() < result.getTotalReachableObjectsSizeBytes());
+    Assert.assertTrue(result.getTotalStrongReferencedObjectsNumber() < result.getTotalReachableObjectsNumber());
+  }
+
+  @Test
+  public void testStrongReferencedMemoryCollectionDisabled() {
+    LightweightTraverseResult result = LightweightHeapTraverse.collectReport(new LightweightHeapTraverseConfig(true, true, false));
+    Assert.assertTrue(result.getTotalObjectsSizeBytes() > 0);
+    Assert.assertTrue(result.getTotalObjectsNumber() > 0);
+
+    Assert.assertTrue(result.getTotalObjectsSizeBytes() > 0);
+    Assert.assertTrue(result.getTotalObjectsNumber() > 0);
+
+    Assert.assertEquals(0, result.getTotalStrongReferencedObjectsSizeBytes());
+    Assert.assertEquals(0, result.getTotalStrongReferencedObjectsNumber());
   }
 }

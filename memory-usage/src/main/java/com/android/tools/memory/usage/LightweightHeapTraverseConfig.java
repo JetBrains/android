@@ -16,4 +16,27 @@
 package com.android.tools.memory.usage;
 
 public class LightweightHeapTraverseConfig {
+  private final boolean collectHeapObjectInfo;
+  private final boolean collectReachableObjectsInfo;
+  private final boolean collectStrongReferencedObjectsInfo;
+
+  public LightweightHeapTraverseConfig(boolean collectHeapObjectInfo,
+                                       boolean collectReachableObjectsInfo,
+                                       boolean collectStrongReferencedObjectsInfo) {
+    this.collectHeapObjectInfo = collectHeapObjectInfo;
+    this.collectReachableObjectsInfo = collectReachableObjectsInfo;
+    this.collectStrongReferencedObjectsInfo = collectStrongReferencedObjectsInfo;
+  }
+
+  public boolean shouldCollectStrongReferencedObjectsInfo() {
+    return collectStrongReferencedObjectsInfo;
+  }
+
+  public boolean shouldCollectHeapObjectInfo() {
+    return collectHeapObjectInfo;
+  }
+
+  public boolean shouldCollectReachableObjectsInfo() {
+    return collectReachableObjectsInfo;
+  }
 }

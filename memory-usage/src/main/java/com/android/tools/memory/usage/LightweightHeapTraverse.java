@@ -18,8 +18,11 @@ package com.android.tools.memory.usage;
 public class LightweightHeapTraverse {
 
   public static LightweightTraverseResult collectReport(LightweightHeapTraverseConfig config) {
-    return collectReport();
+    return collectReport(config.shouldCollectHeapObjectInfo(), config.shouldCollectReachableObjectsInfo(),
+                         config.shouldCollectStrongReferencedObjectsInfo());
   }
 
-  private static native LightweightTraverseResult collectReport();
+  private static native LightweightTraverseResult collectReport(boolean collectHeapObjectInfo,
+                                                                boolean collectReachableObjectsInfo,
+                                                                boolean collectStrongReferencedObjectsInfo);
 }

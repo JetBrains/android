@@ -109,14 +109,14 @@ abstract class AbstractGradleSyncMemoryUsageTestCase : IdeaTestSuiteBase() {
       var result : LightweightTraverseResult?
 
       val elapsedTimeAfterSync = measureTimeMillis {
-        result = LightweightHeapTraverse.collectReport(LightweightHeapTraverseConfig())
+        result = LightweightHeapTraverse.collectReport(LightweightHeapTraverseConfig(false, true, true))
       }
       println("Heap traversal for IDE after sync finished in $elapsedTimeAfterSync milliseconds")
 
-      metricIdeAfterSyncTotal.addSamples(BENCHMARK, MetricSample(currentTime, result!!.totalObjectsSizeBytes))
+      metricIdeAfterSyncTotal.addSamples(BENCHMARK, MetricSample(currentTime, result!!.totalReachableObjectsSizeBytes))
       metricIdeAfterSync.addSamples(BENCHMARK, MetricSample(currentTime, result!!.totalStrongReferencedObjectsSizeBytes))
-      println("IDE total size MBs: ${result!!.totalObjectsSizeBytes shr 20} ")
-      println("IDE total object count: ${result!!.totalObjectsNumber} ")
+      println("IDE total size MBs: ${result!!.totalReachableObjectsSizeBytes shr 20} ")
+      println("IDE total object count: ${result!!.totalReachableObjectsNumber} ")
       println("IDE strong size MBs: ${result!!.totalStrongReferencedObjectsSizeBytes shr 20} ")
       println("IDE strong object count: ${result!!.totalStrongReferencedObjectsNumber} ")
 
