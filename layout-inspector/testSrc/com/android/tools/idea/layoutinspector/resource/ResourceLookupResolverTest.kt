@@ -45,7 +45,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import java.awt.Rectangle
-import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
+import com.android.tools.idea.layoutinspector.properties.PropertyType
 
 @RunsInEdt
 class ResourceLookupResolverTest {
@@ -256,7 +256,7 @@ class ResourceLookupResolverTest {
     val data = Data()
     val resolver = createResourceLookupResolver(data.theme)
     val background = InspectorPropertyItem(
-      ANDROID_URI, ATTR_BACKGROUND, ATTR_BACKGROUND, Type.COLOR, "", PropertySection.DECLARED, data.demo, data.button.drawId, data.context)
+      ANDROID_URI, ATTR_BACKGROUND, ATTR_BACKGROUND, PropertyType.COLOR, "", PropertySection.DECLARED, data.demo, data.button.drawId, data.context)
     val locations = resolver.findFileLocations(background, data.button, data.demo, 10)
     checkLocation(locations[0], "demo.xml:27", "framework:background=\"@color/textBlue\"")
     checkLocation(locations[1], "colors.xml:7", "<color name=\"textBlue\">#2122F8</color>")
@@ -329,23 +329,23 @@ class ResourceLookupResolverTest {
         }
     }
     val textColor = InspectorPropertyItem(
-      ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, "", PropertySection.DECLARED, demo, title.drawId, context)
+      ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, PropertyType.COLOR, "", PropertySection.DECLARED, demo, title.drawId, context)
     val background = InspectorPropertyItem(
-      ANDROID_URI, ATTR_BACKGROUND, ATTR_BACKGROUND, Type.DRAWABLE, "", PropertySection.DECLARED, demo, title.drawId, context)
+      ANDROID_URI, ATTR_BACKGROUND, ATTR_BACKGROUND, PropertyType.DRAWABLE, "", PropertySection.DECLARED, demo, title.drawId, context)
     val backgroundTint = InspectorPropertyItem(
-      ANDROID_URI, ATTR_BACKGROUND_TINT, ATTR_BACKGROUND_TINT, Type.DRAWABLE, "", PropertySection.DECLARED, demo, title.drawId, context)
+      ANDROID_URI, ATTR_BACKGROUND_TINT, ATTR_BACKGROUND_TINT, PropertyType.DRAWABLE, "", PropertySection.DECLARED, demo, title.drawId, context)
     val drawableLeft = InspectorPropertyItem(
-      ANDROID_URI, ATTR_DRAWABLE_LEFT, ATTR_DRAWABLE_LEFT, Type.DRAWABLE, "", PropertySection.DECLARED, demo, title.drawId, context)
+      ANDROID_URI, ATTR_DRAWABLE_LEFT, ATTR_DRAWABLE_LEFT, PropertyType.DRAWABLE, "", PropertySection.DECLARED, demo, title.drawId, context)
     val drawableRight = InspectorPropertyItem(
-      ANDROID_URI, ATTR_DRAWABLE_RIGHT, ATTR_DRAWABLE_RIGHT, Type.DRAWABLE, "", PropertySection.DECLARED, demo, title.drawId, context)
+      ANDROID_URI, ATTR_DRAWABLE_RIGHT, ATTR_DRAWABLE_RIGHT, PropertyType.DRAWABLE, "", PropertySection.DECLARED, demo, title.drawId, context)
     val text1 = InspectorPropertyItem(
-      ANDROID_URI, ATTR_TEXT, ATTR_TEXT, Type.STRING, "", PropertySection.DECLARED, demo, textView1.drawId, context)
+      ANDROID_URI, ATTR_TEXT, ATTR_TEXT, PropertyType.STRING, "", PropertySection.DECLARED, demo, textView1.drawId, context)
     val text2 = InspectorPropertyItem(
-      ANDROID_URI, ATTR_TEXT, ATTR_TEXT, Type.STRING, "", PropertySection.DECLARED, demo, textView2.drawId, context)
+      ANDROID_URI, ATTR_TEXT, ATTR_TEXT, PropertyType.STRING, "", PropertySection.DECLARED, demo, textView2.drawId, context)
     val text3 = InspectorPropertyItem(
-      ANDROID_URI, ATTR_TEXT, ATTR_TEXT, Type.STRING, "", PropertySection.DECLARED, designText, singleTextView.drawId, context)
+      ANDROID_URI, ATTR_TEXT, ATTR_TEXT, PropertyType.STRING, "", PropertySection.DECLARED, designText, singleTextView.drawId, context)
     val supportBackgroundTint = InspectorPropertyItem(
-      exampleNS.xmlNamespaceUri, ATTR_BACKGROUND_TINT, ATTR_BACKGROUND_TINT, Type.DRAWABLE, "",
+      exampleNS.xmlNamespaceUri, ATTR_BACKGROUND_TINT, ATTR_BACKGROUND_TINT, PropertyType.DRAWABLE, "",
       PropertySection.DECLARED, demo, title.drawId, context)
 
     init {

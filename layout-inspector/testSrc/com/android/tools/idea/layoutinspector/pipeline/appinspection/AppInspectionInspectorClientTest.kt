@@ -102,6 +102,7 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
@@ -118,8 +119,6 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 import javax.swing.JTable
 import kotlin.collections.set
-import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 private val OTHER_MODERN_PROCESS = MODERN_DEVICE.createProcess(name = "com.other", streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
@@ -291,7 +290,7 @@ class AppInspectionInspectorClientTest {
     }
 
     // Initial fetch additionally triggers requests for composables
-    val composeCommands = ArrayBlockingQueue<ComposeProtocol.Command>(2)
+    val composeCommands = ArrayBlockingQueue<LayoutInspectorComposeProtocol.Command>(2)
     inspectionRule.composeInspector.listenWhen({ true }) { command ->
       composeCommands.add(command)
     }
@@ -303,20 +302,20 @@ class AppInspectionInspectorClientTest {
 
     // View Inspector layout event -> Compose Inspector update settings command
     composeCommands.take().let { command ->
-      assertThat(command.specializedCase).isEqualTo(ComposeProtocol.Command.SpecializedCase.UPDATE_SETTINGS_COMMAND)
+      assertThat(command.specializedCase).isEqualTo(LayoutInspectorComposeProtocol.Command.SpecializedCase.UPDATE_SETTINGS_COMMAND)
       assertThat(command.updateSettingsCommand.includeRecomposeCounts).isFalse()
       assertThat(command.updateSettingsCommand.delayParameterExtractions).isTrue()
     }
     // View Inspector layout event -> Compose Inspector get composables commands
     composeCommands.take().let { command ->
-      assertThat(command.specializedCase).isEqualTo(ComposeProtocol.Command.SpecializedCase.GET_COMPOSABLES_COMMAND)
+      assertThat(command.specializedCase).isEqualTo(LayoutInspectorComposeProtocol.Command.SpecializedCase.GET_COMPOSABLES_COMMAND)
     }
 
     inspectorRule.inspector.treeSettings.showRecompositions = true
     (inspectorRule.inspectorClient as AppInspectionInspectorClient).updateRecompositionCountSettings()
 
     composeCommands.take().let { command ->
-      assertThat(command.specializedCase).isEqualTo(ComposeProtocol.Command.SpecializedCase.UPDATE_SETTINGS_COMMAND)
+      assertThat(command.specializedCase).isEqualTo(LayoutInspectorComposeProtocol.Command.SpecializedCase.UPDATE_SETTINGS_COMMAND)
       assertThat(command.updateSettingsCommand.includeRecomposeCounts).isTrue()
       assertThat(command.updateSettingsCommand.delayParameterExtractions).isTrue()
     }
@@ -378,7 +377,7 @@ class AppInspectionInspectorClientTest {
     }
 
     // Initial fetch additionally triggers requests for composables
-    val composeCommands = ArrayBlockingQueue<ComposeProtocol.Command>(2)
+    val composeCommands = ArrayBlockingQueue<LayoutInspectorComposeProtocol.Command>(2)
     inspectionRule.composeInspector.listenWhen({ true }) { command ->
       composeCommands.add(command)
     }
@@ -390,13 +389,13 @@ class AppInspectionInspectorClientTest {
 
     // View Inspector layout event -> Compose Inspector update settings command
     composeCommands.take().let { command ->
-      assertThat(command.specializedCase).isEqualTo(ComposeProtocol.Command.SpecializedCase.UPDATE_SETTINGS_COMMAND)
+      assertThat(command.specializedCase).isEqualTo(LayoutInspectorComposeProtocol.Command.SpecializedCase.UPDATE_SETTINGS_COMMAND)
       assertThat(command.updateSettingsCommand.includeRecomposeCounts).isTrue()
       assertThat(command.updateSettingsCommand.delayParameterExtractions).isTrue()
     }
     // View Inspector layout event -> Compose Inspector get composables commands
     composeCommands.take().let { command ->
-      assertThat(command.specializedCase).isEqualTo(ComposeProtocol.Command.SpecializedCase.GET_COMPOSABLES_COMMAND)
+      assertThat(command.specializedCase).isEqualTo(LayoutInspectorComposeProtocol.Command.SpecializedCase.GET_COMPOSABLES_COMMAND)
     }
   }
 
@@ -411,7 +410,7 @@ class AppInspectionInspectorClientTest {
     }
 
     // Initial fetch additionally triggers requests for composables
-    val composeCommands = ArrayBlockingQueue<ComposeProtocol.Command>(3)
+    val composeCommands = ArrayBlockingQueue<LayoutInspectorComposeProtocol.Command>(3)
     inspectionRule.composeInspector.listenWhen({ true }) { command ->
       composeCommands.add(command)
     }
@@ -422,15 +421,15 @@ class AppInspectionInspectorClientTest {
 
     // View Inspector layout event -> Compose Inspector get update settings command
     composeCommands.take().let { command ->
-      assertThat(command.specializedCase).isEqualTo(ComposeProtocol.Command.SpecializedCase.UPDATE_SETTINGS_COMMAND)
+      assertThat(command.specializedCase).isEqualTo(LayoutInspectorComposeProtocol.Command.SpecializedCase.UPDATE_SETTINGS_COMMAND)
     }
     // View Inspector layout event -> Compose Inspector get composables command
     composeCommands.take().let { command ->
-      assertThat(command.specializedCase).isEqualTo(ComposeProtocol.Command.SpecializedCase.GET_COMPOSABLES_COMMAND)
+      assertThat(command.specializedCase).isEqualTo(LayoutInspectorComposeProtocol.Command.SpecializedCase.GET_COMPOSABLES_COMMAND)
     }
     // View Inspector properties event -> Compose Inspector get all parameters
     composeCommands.take().let { command ->
-      assertThat(command.specializedCase).isEqualTo(ComposeProtocol.Command.SpecializedCase.GET_ALL_PARAMETERS_COMMAND)
+      assertThat(command.specializedCase).isEqualTo(LayoutInspectorComposeProtocol.Command.SpecializedCase.GET_ALL_PARAMETERS_COMMAND)
     }
   }
 
@@ -562,7 +561,7 @@ class AppInspectionInspectorClientTest {
         }
       }
 
-      ViewProtocol.Response.newBuilder().setStartFetchResponse(ViewProtocol.StartFetchResponse.getDefaultInstance()).build()
+      LayoutInspectorViewProtocol.Response.newBuilder().setStartFetchResponse(LayoutInspectorViewProtocol.StartFetchResponse.getDefaultInstance()).build()
     }
 
     val error = CompletableDeferred<String>()
@@ -617,7 +616,7 @@ class AppInspectionInspectorClientTest {
   fun inspectorTreeEventIncludesUpdateScreenshotTypeCallback() {
     val screenshotTypeUpdated = ReportingCountDownLatch(1)
     inspectionRule.viewInspector.listenWhen({ it.hasUpdateScreenshotTypeCommand() }) { command ->
-      assertThat(command.updateScreenshotTypeCommand.type).isEqualTo(ViewProtocol.Screenshot.Type.BITMAP)
+      assertThat(command.updateScreenshotTypeCommand.type).isEqualTo(LayoutInspectorViewProtocol.Screenshot.Type.BITMAP)
       assertThat(command.updateScreenshotTypeCommand.scale).isEqualTo(1.0f)
       screenshotTypeUpdated.countDown()
     }
@@ -659,7 +658,7 @@ class AppInspectionInspectorClientTest {
         }
       }
 
-      ViewProtocol.Response.newBuilder().setStartFetchResponse(ViewProtocol.StartFetchResponse.getDefaultInstance()).build()
+      LayoutInspectorViewProtocol.Response.newBuilder().setStartFetchResponse(LayoutInspectorViewProtocol.StartFetchResponse.getDefaultInstance()).build()
     }
 
     inspectionRule.viewInspector.interceptWhen({ it.hasStopFetchCommand() }) {
@@ -678,7 +677,7 @@ class AppInspectionInspectorClientTest {
         }
       }
 
-      ViewProtocol.Response.newBuilder().setStopFetchResponse(ViewProtocol.StopFetchResponse.getDefaultInstance()).build()
+      LayoutInspectorViewProtocol.Response.newBuilder().setStopFetchResponse(LayoutInspectorViewProtocol.StopFetchResponse.getDefaultInstance()).build()
     }
 
     var sawInitialFirstBatchEvent = false

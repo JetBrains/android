@@ -41,7 +41,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
 import java.awt.Rectangle
-import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
+import com.android.tools.idea.layoutinspector.properties.PropertyType
 
 class ResourceLookupTest {
 
@@ -83,7 +83,7 @@ class ResourceLookupTest {
       override fun get(id: Long): ViewNode = title
       override val selection: ViewNode? = null
     }
-    val property = InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, "#CC0000",
+    val property = InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, PropertyType.COLOR, "#CC0000",
                                          PropertySection.DECLARED, null, title.drawId, context)
     val icon = context.resourceLookup.resolveAsIcon(property, title)
     assertThat(icon).isEqualTo(JBUIScale.scaleIcon(ColorIcon(RESOURCE_ICON_SIZE, Color(0xCC0000), false)))
