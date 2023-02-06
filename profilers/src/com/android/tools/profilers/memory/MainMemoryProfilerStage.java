@@ -327,6 +327,10 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
    */
   @VisibleForTesting
   void nativeAllocationTrackingStop(@NotNull Trace.TraceStopStatus status) {
+    // Whether the stop was successful or resulted in failure, call setFinished() to indicate
+    // that the recording has stopped so that the user is able to start a new capture.
+    myRecordingOptionsModel.setFinished();
+
     switch (status.getStatus()) {
       case SUCCESS:
         // stop allocation tracing

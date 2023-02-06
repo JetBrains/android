@@ -415,6 +415,9 @@ public class CpuProfilerStage extends StreamingStage {
   }
 
   private void stopCapturingCallback(@NotNull Trace.TraceStopStatus status) {
+    // Whether the stop was successful or resulted in failure, call setFinished() to indicate
+    // that the recording has stopped so that the user is able to start a new capture.
+    myRecordingOptionsModel.setFinished();
     if (status.getStatus().equals(Trace.TraceStopStatus.Status.UNSPECIFIED)) {
       // Daemon reports a matching ongoing recording has been found. Stopping is in progress. Do nothing.
       // When the stopping is done, a CPU_TRACE event will be generated, and it will be tracked via the InProgressTraceHandler.
