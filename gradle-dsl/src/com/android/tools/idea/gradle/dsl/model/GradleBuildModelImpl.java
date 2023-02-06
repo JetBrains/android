@@ -435,4 +435,11 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
       return null;
     }
   }
+
+  @Override
+  public @NotNull GradleDslElement getRawPropertyHolder() {
+    // This implementation is needed here essentially because we do not model plugins { ... } as a block, which itself is because
+    // historically plugins have been declared in multiple ways (in apply statements / blocks as well as in a plugins block).
+    return myGradleBuildFile;
+  }
 }
