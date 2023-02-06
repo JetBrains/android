@@ -23,6 +23,7 @@ import com.android.tools.idea.run.editor.NoApksProvider;
 import com.android.tools.idea.run.tasks.ActivityLaunchTask;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.ui.ConsoleView;
 import com.intellij.util.ReflectionUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.AndroidTestCase;
@@ -57,7 +58,7 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
   public void testContributorsAmStartOptionsIsInlinedWithAmStartCommand() throws ExecutionException {
     myRunConfiguration.setLaunchActivity("MyActivity");
 
-    ConsolePrinter consolePrinter = Mockito.mock(ConsolePrinter.class);
+    ConsoleView consolePrinter = Mockito.mock(ConsoleView.class);
     IDevice device = Mockito.mock(IDevice.class);
     when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.S_V2));
     ActivityLaunchTask task = (ActivityLaunchTask)myRunConfiguration.getApplicationLaunchTask(new FakeApplicationIdProvider(),
@@ -65,17 +66,17 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
                                                                                               "--start-profiling",
                                                                                               false,
                                                                                               new NoApksProvider(),
-                                                                                              consolePrinter, device);
+                                                                                              device);
 
     assertEquals("am start -n \"com.example.mypackage/MyActivity\" " +
                  "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER " +
-                 "--start-profiling", task.getStartActivityCommand(myDevice, Mockito.mock(ConsolePrinter.class)));
+                 "--start-profiling", task.getStartActivityCommand(myDevice, Mockito.mock(ConsoleView.class)));
   }
 
   public void testEmptyContributorsAmStartOptions() throws ExecutionException {
     myRunConfiguration.setLaunchActivity("MyActivity");
 
-    ConsolePrinter consolePrinter = Mockito.mock(ConsolePrinter.class);
+    ConsoleView consolePrinter = Mockito.mock(ConsoleView.class);
     IDevice device = Mockito.mock(IDevice.class);
     when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.S_V2));
     ActivityLaunchTask task = (ActivityLaunchTask)myRunConfiguration.getApplicationLaunchTask(new FakeApplicationIdProvider(),
@@ -83,10 +84,10 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
                                                                                               "",
                                                                                               false,
                                                                                               new NoApksProvider(),
-                                                                                              consolePrinter, device);
+                                                                                              device);
     assertEquals("am start -n \"com.example.mypackage/MyActivity\" " +
                  "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER",
-                 task.getStartActivityCommand(myDevice, Mockito.mock(ConsolePrinter.class)));
+                 task.getStartActivityCommand(myDevice, Mockito.mock(ConsoleView.class)));
 
     when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.TIRAMISU));
     task = (ActivityLaunchTask)myRunConfiguration.getApplicationLaunchTask(new FakeApplicationIdProvider(),
@@ -94,10 +95,10 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
                                                                            "",
                                                                            false,
                                                                            new NoApksProvider(),
-                                                                           consolePrinter, device);
+                                                                           device);
     assertEquals("am start -n \"com.example.mypackage/MyActivity\" " +
                  "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER --splashscreen-show-icon",
-                 task.getStartActivityCommand(myDevice, Mockito.mock(ConsolePrinter.class)));
+                 task.getStartActivityCommand(myDevice, Mockito.mock(ConsoleView.class)));
   }
 
   private static class FakeApplicationIdProvider implements ApplicationIdProvider {

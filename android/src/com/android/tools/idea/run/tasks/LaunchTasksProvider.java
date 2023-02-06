@@ -19,7 +19,6 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ApplicationIdProvider;
-import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.stats.RunStats;
 import com.intellij.execution.ExecutionException;
@@ -48,7 +47,7 @@ public interface LaunchTasksProvider {
   }
 
   @NotNull
-  List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull ConsolePrinter consolePrinter)
+  List<LaunchTask> getTasks(@NotNull IDevice device)
     throws ExecutionException;
 
   @Nullable

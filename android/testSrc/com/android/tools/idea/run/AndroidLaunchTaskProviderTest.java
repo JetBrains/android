@@ -21,7 +21,6 @@ import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectS
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.MakeBeforeRunTaskProviderTestUtilKt.mockDeviceFor;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.devices.Abi;
@@ -111,10 +110,8 @@ public class AndroidLaunchTaskProviderTest {
         apkProvider,
         launchOptions);
 
-      ConsolePrinter consolePrinter = mock(ConsolePrinter.class);
-
       // Act
-      List<LaunchTask> launchTasks = provider.getTasks(device, consolePrinter);
+      List<LaunchTask> launchTasks = provider.getTasks(device);
 
       // Assert
       launchTasks.forEach(task -> Logger.getInstance(this.getClass()).info("LaunchTask: " + task));

@@ -216,7 +216,7 @@ class LayoutInspectorLaunchTaskContributorTest {
 
     val adb = AdbUtils.getAdbFuture(project).get()!!
     val iDevice = adb.findDevice(device)!!
-    val tasks = launchTaskProvider.getTasks(iDevice, mock())
+    val tasks = launchTaskProvider.getTasks(iDevice)
       .filterIsInstance(LayoutInspectorLaunchTask::class.java)
 
     // Make sure the LayoutInspectorLaunchTaskContributor is registered.

@@ -25,9 +25,9 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.ShowLogcatListener.Companion.getShowLogcatLinkText
 import com.android.tools.idea.run.applychanges.findExistingSessionAndMaybeDetachForColdSwap
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
-import com.android.tools.idea.run.configuration.execution.ConsoleViewToConsolePrinter
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.configuration.execution.getDevices
+import com.android.tools.idea.run.configuration.execution.println
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchTask
@@ -126,21 +126,20 @@ class LaunchTaskRunner(
     val stat = RunStats.from(myEnv).apply { setPackage(applicationId) }
     stat.beginLaunchTasks()
     try {
-      val consolePrinter = ConsoleViewToConsolePrinter(console)
 
-      printLaunchTaskStartedMessage(consolePrinter)
+      printLaunchTaskStartedMessage(console)
       myLaunchTasksProvider.fillStats(stat)
 
       // Create launch tasks for each device.
       indicator.text = "Getting task for devices"
-      val launchTaskMap = devices.keysToMap { myLaunchTasksProvider.getTasks(it, consolePrinter) }
+      val launchTaskMap = devices.keysToMap { myLaunchTasksProvider.getTasks(it) }
 
       // A list of devices that we have launched application successfully.
       indicator.text = "Launching on devices"
       launchTaskMap.entries.map { (device, tasks) ->
         async {
           LOG.info("Launching on device ${device.name}")
-          val launchContext = LaunchContext(myEnv, device, consolePrinter, processHandler, indicator)
+          val launchContext = LaunchContext(myEnv, device, console, processHandler, indicator)
           runLaunchTasks(tasks, launchContext)
           // Notify listeners of the deployment.
           if (isLaunchingTest()) {
@@ -273,7 +272,7 @@ class LaunchTaskRunner(
     return myEnv.runProfile !is AndroidTestRunConfiguration
   }
 
-  private fun printLaunchTaskStartedMessage(consolePrinter: ConsolePrinter) {
+  private fun printLaunchTaskStartedMessage(consolePrinter: ConsoleView) {
     val launchString = StringBuilder("\n")
     val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT)
     launchString.append(dateFormat.format(Date())).append(": ")
@@ -289,6 +288,6 @@ class LaunchTaskRunner(
       launchString.append(myEnv.executionTarget.displayName)
     }
     launchString.append(".")
-    consolePrinter.stdout(launchString.toString())
+    consolePrinter.println(launchString.toString())
   }
 }

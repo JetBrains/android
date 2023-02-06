@@ -20,12 +20,12 @@ import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.editor.NoApksProvider
 import com.android.tools.idea.run.tasks.ActivityLaunchTask
 import com.android.tools.idea.run.tasks.AppLaunchTask
 import com.google.wireless.android.sdk.stats.ComposeDeployEvent
 import com.intellij.execution.configurations.ConfigurationFactory
+import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.JDOMUtil
 import org.jdom.Element
@@ -48,7 +48,6 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
     runConfiguration.providerClassFqn = "com.mycomposeapp.ProviderClass"
     runConfiguration.providerIndex = 3
 
-    val consolePrinter = mock(ConsolePrinter::class.java)
     val device = mock(IDevice::class.java)
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.S_V2))
     val noApksProvider = NoApksProvider()
@@ -59,7 +58,6 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
         "",
         false,
         noApksProvider,
-        consolePrinter,
         device
       ) as
         ActivityLaunchTask
@@ -69,7 +67,7 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
         "--es composable com.mycomposeapp.SomeClass.SomeComposable" +
         " --es parameterProviderClassName com.mycomposeapp.ProviderClass" +
         " --ei parameterProviderIndex 3",
-      task.getStartActivityCommand(mock(IDevice::class.java), mock(ConsolePrinter::class.java))
+      task.getStartActivityCommand(mock(IDevice::class.java), mock(ConsoleView::class.java))
     )
   }
 
@@ -140,7 +138,6 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
       contributorsAmStartOptions: String,
       waitForDebugger: Boolean,
       apkProvider: ApkProvider,
-      consolePrinter: ConsolePrinter,
       device: IDevice
     ): AppLaunchTask? {
       return super.getApplicationLaunchTask(
@@ -149,7 +146,6 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
         contributorsAmStartOptions,
         waitForDebugger,
         apkProvider,
-        consolePrinter,
         device
       )
     }

@@ -21,13 +21,13 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.NotificationRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.Executor
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.testFramework.RuleChain
 import org.junit.Before
@@ -44,7 +44,7 @@ import kotlin.test.fail
  */
 class ClearAppStorageTaskTest {
   val executor = mock<Executor>()
-  val printer = mock<ConsolePrinter>()
+  val printer = mock<ConsoleView>()
   val handler = mock<ProcessHandler>()
   val indicator = mock<ProgressIndicator>()
   val env = mock<ExecutionEnvironment>()

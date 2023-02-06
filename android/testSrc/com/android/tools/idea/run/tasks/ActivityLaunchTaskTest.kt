@@ -18,13 +18,13 @@ package com.android.tools.idea.run.tasks
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.execution.common.AndroidExecutionException
-import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.Executor
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import org.junit.Test
@@ -40,9 +40,12 @@ import kotlin.test.fail
 class ActivityLaunchTaskTest {
   @Mock lateinit var project: Project
   @Mock lateinit var device: IDevice
-  @Mock lateinit var executor: Executor
-  @Mock lateinit var printer: ConsolePrinter
-  @Mock lateinit var handler: ProcessHandler
+  @Mock
+  lateinit var executor: Executor
+  @Mock
+  lateinit var console: ConsoleView
+  @Mock
+  lateinit var handler: ProcessHandler
   @Mock
   lateinit var indicator: ProgressIndicator
   @Mock
@@ -61,7 +64,7 @@ class ActivityLaunchTaskTest {
       activity = "com.app.Activity",
       description = "test launching activity"
     ) { }
-    launchTask.run(LaunchContext(env, device, printer, handler, indicator))
+    launchTask.run(LaunchContext(env, device, console, handler, indicator))
   }
 
   @Test
@@ -72,7 +75,7 @@ class ActivityLaunchTaskTest {
       description = "test launching activity"
     ) { }
     try {
-      launchTask.run(LaunchContext(env, device, printer, handler, indicator))
+      launchTask.run(LaunchContext(env, device, console, handler, indicator))
       fail("Run should fail")
     }
     catch (e: AndroidExecutionException) {
@@ -92,7 +95,7 @@ class ActivityLaunchTaskTest {
       it.addOutput(output, 0, output.size)
     }
     try {
-      launchTask.run(LaunchContext(env, device, printer, handler, indicator))
+      launchTask.run(LaunchContext(env, device, console, handler, indicator))
       fail("Run should fail")
     }
     catch (e: AndroidExecutionException) {
@@ -109,7 +112,7 @@ class ActivityLaunchTaskTest {
       description = "test launching activity"
     ) { throw ExecutionException("Something bad happened while launching Activity class {com.app.debug/com.app.Version2Activity}.") }
     try {
-      launchTask.run(LaunchContext(env, device, printer, handler, indicator))
+      launchTask.run(LaunchContext(env, device, console, handler, indicator))
       fail("Run should fail")
     }
     catch (e: ExecutionException) {
@@ -128,12 +131,12 @@ class TestActivityLaunchTask(
   private val description: String,
   private val testExecuteShellCommand: (collectingOutputReceiver: CollectingOutputReceiver) -> Unit
 ) : ActivityLaunchTask(applicationId, StubStartActivityFlagsProvider) {
-  override fun getQualifiedActivityName(device: IDevice, printer: ConsolePrinter) = activity
+  override fun getQualifiedActivityName(device: IDevice, consoleView: ConsoleView) = activity
   override fun getId() = "TEST_LAUNCH"
   override fun getDescription() = description
 
   override fun executeShellCommand(launchContext: LaunchContext,
-                                   printer: ConsolePrinter?,
+                                   printer: ConsoleView?,
                                    device: IDevice?,
                                    command: String?,
                                    collectingOutputReceiver: CollectingOutputReceiver) {

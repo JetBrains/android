@@ -24,9 +24,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.deployer.model.component.ComponentType;
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.android.tools.idea.execution.common.AppRunConfiguration;
-import com.android.tools.idea.execution.common.AppRunSettings;
-import com.android.tools.idea.execution.common.ComponentLaunchOptions;
-import com.android.tools.idea.execution.common.DeployOptions;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
@@ -36,7 +33,6 @@ import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
 import com.android.tools.idea.run.activity.launch.DefaultActivityLaunch;
 import com.android.tools.idea.run.activity.launch.NoLaunch;
 import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch;
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.ApplicationRunParameters;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
@@ -59,12 +55,10 @@ import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.junit.RefactoringListeners;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
@@ -261,7 +255,6 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
                                                    @NotNull String contributorsAmStartOptions,
                                                    boolean waitForDebugger,
                                                    @NotNull ApkProvider apkProvider,
-                                                   @NotNull ConsolePrinter consolePrinter,
                                                    @NotNull IDevice device) throws ExecutionException {
     ActivityLaunchOptionState state = getLaunchOptionState(MODE);
     assert state != null;

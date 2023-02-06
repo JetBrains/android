@@ -85,7 +85,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
   @NotNull
   @Override
-  public List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull ConsolePrinter consolePrinter) throws ExecutionException {
+  public List<LaunchTask> getTasks(@NotNull IDevice device) throws ExecutionException {
     final List<LaunchTask> launchTasks = new ArrayList<>();
 
     if (myLaunchOptions.isClearLogcatBeforeStart()) {
@@ -119,7 +119,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         AppLaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
                                                                            amStartOptions.toString(),
                                                                            myLaunchOptions.isDebug(), myApkProvider,
-                                                                           consolePrinter, device);
+                                                                           device);
 
         if (appLaunchTask != null) {
           // Apply (Code) Changes needs additional control over killing/restarting the app.

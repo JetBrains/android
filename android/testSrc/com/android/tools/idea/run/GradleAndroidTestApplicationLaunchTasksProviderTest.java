@@ -47,9 +47,8 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 public class GradleAndroidTestApplicationLaunchTasksProviderTest extends AndroidGradleTestCase {
-  private ConsolePrinter mockConsolePrinter = mock(ConsolePrinter.class);
-  private IDevice mockDevice = mock(IDevice.class);
-  private ProgramRunner runner = new DefaultStudioProgramRunner();
+  private final IDevice mockDevice = mock(IDevice.class);
+  private final ProgramRunner runner = new DefaultStudioProgramRunner();
 
   @Override
   public void setUp() throws Exception {
@@ -106,7 +105,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       "TEST_NAME_REGEX",
       new RetentionConfiguration());
 
-    List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockConsolePrinter);
+    List<LaunchTask> launchTasks = provider.getTasks(mockDevice);
     ConnectDebuggerTask connectDebuggerTask = provider.getConnectDebuggerTask();
 
     launchTasks.forEach(task -> {
@@ -150,7 +149,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       "TEST_NAME_REGEX",
       new RetentionConfiguration());
 
-    List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockConsolePrinter);
+    List<LaunchTask> launchTasks = provider.getTasks(mockDevice);
     ConnectDebuggerTask connectDebuggerTask = provider.getConnectDebuggerTask();
 
     launchTasks.forEach(task -> {
@@ -191,7 +190,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       "TEST_NAME_REGEX",
       new RetentionConfiguration());
 
-    List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockConsolePrinter);
+    List<LaunchTask> launchTasks = provider.getTasks(mockDevice);
 
     launchTasks.forEach(task -> {
       Logger.getInstance(this.getClass()).info("LaunchTask: " + task);
@@ -230,7 +229,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       "TEST_NAME_REGEX",
       new RetentionConfiguration());
 
-    List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockConsolePrinter);
+    List<LaunchTask> launchTasks = provider.getTasks(mockDevice);
 
     launchTasks.forEach(task -> {
       Logger.getInstance(this.getClass()).info("LaunchTask: " + task);
@@ -272,7 +271,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       new RetentionConfiguration());
 
     try {
-      provider.getTasks(mockDevice, mockConsolePrinter);
+      provider.getTasks(mockDevice);
       fail();
     }
     catch (ExecutionException e) {
@@ -314,7 +313,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       new RetentionConfiguration());
 
     try {
-      provider.getTasks(mockDevice, mockConsolePrinter);
+      provider.getTasks(mockDevice);
       fail();
     }
     catch (ExecutionException e) {

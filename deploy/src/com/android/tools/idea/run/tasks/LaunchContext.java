@@ -16,16 +16,16 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.ConsolePrinter;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.progress.ProgressIndicator;
 import org.jetbrains.annotations.NotNull;
 
 public class LaunchContext {
   private final ExecutionEnvironment env;
   private final IDevice device;
-  private final ConsolePrinter consolePrinter;
+  private final ConsoleView consolePrinter;
 
   private final ProcessHandler processHandler;
   private final ProgressIndicator progressIndicator;
@@ -40,12 +40,12 @@ public class LaunchContext {
    */
   public LaunchContext(@NotNull ExecutionEnvironment env,
                        @NotNull IDevice device,
-                       @NotNull ConsolePrinter consolePrinter,
+                       @NotNull ConsoleView consoleView,
                        @NotNull ProcessHandler processHandler,
                        @NotNull ProgressIndicator progressIndicator) {
     this.env = env;
     this.device = device;
-    this.consolePrinter = consolePrinter;
+    this.consolePrinter = consoleView;
     this.processHandler = processHandler;
     this.progressIndicator = progressIndicator;
   }
@@ -56,7 +56,7 @@ public class LaunchContext {
   }
 
   @NotNull
-  public ConsolePrinter getConsolePrinter() {
+  public ConsoleView getConsoleView() {
     return consolePrinter;
   }
 

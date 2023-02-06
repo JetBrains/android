@@ -24,13 +24,15 @@ import com.intellij.openapi.project.Project
  * Provides any information to user in balloon while user starts configuration(deploy/launch/connect debugger).
  */
 object RunConfigurationNotifier {
+
+  const val ID = "Run Configuration"
   fun notifyWarning(
     project: Project,
     configurationName: String,
     text: String
   ) {
     NotificationGroupManager.getInstance()
-      .getNotificationGroup("Run Configuration")
+      .getNotificationGroup(ID)
       .createNotification(title = "Run $configurationName", text, NotificationType.WARNING)
       .notify(project)
   }
@@ -41,7 +43,7 @@ object RunConfigurationNotifier {
     text: String
   ) {
     NotificationGroupManager.getInstance()
-      .getNotificationGroup("Run Configuration")
+      .getNotificationGroup(ID)
       .createNotification(title = "Run $configurationName", text, NotificationType.INFORMATION)
       .notify(project)
   }
@@ -52,7 +54,7 @@ object RunConfigurationNotifier {
     text: String
   ) {
     NotificationGroupManager.getInstance()
-      .getNotificationGroup("Run Configuration")
+      .getNotificationGroup(ID)
       .createNotification(title = "Run $configurationName", text, NotificationType.ERROR)
       .notify(project)
   }
@@ -64,7 +66,7 @@ object RunConfigurationNotifier {
     action: NotificationAction
   ) {
     NotificationGroupManager.getInstance()
-      .getNotificationGroup("Run Configuration")
+      .getNotificationGroup(ID)
       .createNotification(title = "Run $configurationName", text, NotificationType.ERROR)
       .addAction(action)
       .notify(project)

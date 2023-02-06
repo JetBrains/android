@@ -64,7 +64,7 @@ class AppInspectionLaunchTaskContributorTest {
       val launchTaskProvider = AndroidLaunchTasksProvider(env.runProfile as AndroidRunConfigurationBase, env, androidFacet,
                                                           applicationIdProvider, mock(), launchOptions)
 
-      val task1 = launchTaskProvider.getTasks(device, mock()).filterIsInstance(AppInspectionLaunchTask::class.java).single()
+      val task1 = launchTaskProvider.getTasks(device).filterIsInstance(AppInspectionLaunchTask::class.java).single()
 
       val launchContext1 = LaunchContext(env, device, mock(), handler1, mock())
       task1.run(launchContext1)
@@ -85,7 +85,7 @@ class AppInspectionLaunchTaskContributorTest {
       }
       val launchTaskProvider2 = AndroidLaunchTasksProvider(env.runProfile as AndroidRunConfigurationBase, env, androidFacet,
                                                            applicationIdProvider, mock(), launchOptions)
-      val task2 = launchTaskProvider2.getTasks(device, mock()).filterIsInstance(AppInspectionLaunchTask::class.java).single()
+      val task2 = launchTaskProvider2.getTasks(device).filterIsInstance(AppInspectionLaunchTask::class.java).single()
 
       val handler2 = AndroidProcessHandler(project, "com.example.p2")
       val launchContext2 = LaunchContext(env, device, mock(), handler2, mock())

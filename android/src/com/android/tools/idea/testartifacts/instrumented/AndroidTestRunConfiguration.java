@@ -34,7 +34,6 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
-import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.ConsoleProvider;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.ValidationError;
@@ -360,7 +359,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                    @NotNull String contributorsAmStartOptions,
                                                    boolean waitForDebugger,
                                                    @NotNull ApkProvider apkProvider,
-                                                   @NotNull ConsolePrinter consolePrinter,
                                                    @NotNull IDevice device) throws ExecutionException {
     String runner = INSTRUMENTATION_RUNNER_CLASS;
     if (isEmptyOrSpaces(runner)) {
@@ -395,7 +393,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                                 instrumentationOptions,
                                                                 testLibrariesInUse,
                                                                 testExecutionOption,
-                                                                consolePrinter,
                                                                 device);
 
       case TEST_ALL_IN_PACKAGE:
@@ -405,7 +402,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                                  instrumentationOptions,
                                                                  testLibrariesInUse,
                                                                  testExecutionOption,
-                                                                 consolePrinter,
                                                                  device,
                                                                  PACKAGE_NAME);
 
@@ -416,7 +412,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                           instrumentationOptions,
                                                           testLibrariesInUse,
                                                           testExecutionOption,
-                                                          consolePrinter,
                                                           device,
                                                           CLASS_NAME);
 
@@ -427,7 +422,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                            instrumentationOptions,
                                                            testLibrariesInUse,
                                                            testExecutionOption,
-                                                           consolePrinter,
                                                            device,
                                                            CLASS_NAME,
                                                            METHOD_NAME);

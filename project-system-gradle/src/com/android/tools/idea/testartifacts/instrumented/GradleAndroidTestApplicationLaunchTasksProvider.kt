@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.LaunchOptions
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask
@@ -76,7 +75,7 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
   private val myLogger: Logger = Logger.getInstance(GradleAndroidTestApplicationLaunchTasksProvider::class.java)
 
   @Throws(ExecutionException::class)
-  override fun getTasks(device: IDevice, consolePrinter: ConsolePrinter): List<LaunchTask> {
+  override fun getTasks(device: IDevice): List<LaunchTask> {
     val launchTasks: MutableList<LaunchTask> = Lists.newArrayList()
 
     val testAppId: String? = try {
@@ -97,7 +96,6 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
           requireNotNull(GradleAndroidModel.get(myFacet)),
           testAppId,
           myLaunchOptions.isDebug,
-          consolePrinter,
           device,
           testRegex,
           myGradleConnectedAndroidTestInvoker,
@@ -111,7 +109,6 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
           requireNotNull(GradleAndroidModel.get(myFacet)),
           testAppId,
           myLaunchOptions.isDebug,
-          consolePrinter,
           device,
           myPackageName,
           myGradleConnectedAndroidTestInvoker,
@@ -125,7 +122,6 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
           requireNotNull(GradleAndroidModel.get(myFacet)),
           testAppId,
           myLaunchOptions.isDebug,
-          consolePrinter,
           device,
           myClassName,
           myGradleConnectedAndroidTestInvoker,
@@ -139,7 +135,6 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
           requireNotNull(GradleAndroidModel.get(myFacet)),
           testAppId,
           myLaunchOptions.isDebug,
-          consolePrinter,
           device,
           myClassName,
           myMethodName,

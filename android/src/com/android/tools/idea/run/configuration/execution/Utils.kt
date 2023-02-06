@@ -28,7 +28,6 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.model.component.WearComponent
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.stats.RunStats
@@ -50,7 +49,7 @@ import org.jetbrains.android.util.AndroidBundle
 import java.util.concurrent.TimeUnit
 
 
-internal fun ConsolePrinter.printShellCommand(command: String) = stdout("$ adb shell $command \n")
+fun ConsoleView.printShellCommand(command: String) = println("$ adb shell $command \n")
 
 fun ConsoleView.println(text: String) {
   print(text + "\n", ConsoleViewContentType.NORMAL_OUTPUT)
@@ -64,25 +63,14 @@ const val TARGET_REGEX = "\\berror\\b"
 
 val errorPattern = Regex(TARGET_REGEX, RegexOption.IGNORE_CASE)
 
-class ConsoleViewToConsolePrinter(val console: ConsoleView) : ConsolePrinter {
-  override fun stdout(message: String) = console.println(message + "\n")
-  override fun stderr(message: String) = console.printlnError(message + "\n")
-}
-
-@Throws(ExecutionException::class)
-internal fun IDevice.executeShellCommand(command: String, console: ConsoleView, receiver: IShellOutputReceiver = NullOutputReceiver(),
-                                         timeOut: Long = 5, timeOutUnits: TimeUnit = TimeUnit.SECONDS, indicator: ProgressIndicator?) {
-  executeShellCommand(command, ConsoleViewToConsolePrinter(console), receiver, timeOut, timeOutUnits, indicator)
-}
-
 @WorkerThread
 @Throws(ExecutionException::class)
 @JvmOverloads
-fun IDevice.executeShellCommand(command: String, consolePrinter: ConsolePrinter, receiver: IShellOutputReceiver = NullOutputReceiver(),
+fun IDevice.executeShellCommand(command: String, consoleView: ConsoleView, receiver: IShellOutputReceiver = NullOutputReceiver(),
                                 timeOut: Long = 5, timeOutUnits: TimeUnit = TimeUnit.SECONDS, indicator: ProgressIndicator?) {
   ApplicationManager.getApplication().assertIsNonDispatchThread()
-  consolePrinter.printShellCommand(command)
-  val consoleReceiver = ConsoleOutputReceiver({ indicator?.isCanceled == true }, consolePrinter)
+  consoleView.printShellCommand(command)
+  val consoleReceiver = ConsoleOutputReceiver({ indicator?.isCanceled == true }, consoleView)
   val collectingOutputReceiver = CollectingOutputReceiver()
   try {
     executeShellCommand(command, MultiReceiver(receiver, consoleReceiver, collectingOutputReceiver), timeOut, timeOutUnits)

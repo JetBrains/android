@@ -26,7 +26,6 @@ import com.android.ddmlib.testrunner.AndroidTestOrchestratorRemoteAndroidTestRun
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.ApplicationIdProvider;
-import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.editor.NoApksProvider;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration;
@@ -105,7 +104,6 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
   private RemoteAndroidTestRunner createRemoteAndroidTestRunner(AndroidTestRunConfiguration config) {
     IDevice mockDevice = mock(IDevice.class);
     when(mockDevice.getVersion()).thenReturn(new AndroidVersion(26));
-    ConsolePrinter mockPrinter = mock(ConsolePrinter.class);
 
     ApplicationIdProvider applicationIdProvider =
       getProjectSystem(myAndroidFacet.getModule().getProject()).getApplicationIdProvider(config);
@@ -113,7 +111,7 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     LaunchTask task = null;
     try {
       task = config.getApplicationLaunchTask(
-        applicationIdProvider, myAndroidFacet, "", false, new NoApksProvider(), mockPrinter, mockDevice);
+        applicationIdProvider, myAndroidFacet, "", false, new NoApksProvider(), mockDevice);
     }
     catch (ExecutionException e) {
       fail(e.getMessage());

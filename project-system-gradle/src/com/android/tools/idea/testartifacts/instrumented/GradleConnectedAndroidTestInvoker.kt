@@ -29,8 +29,8 @@ import com.android.tools.idea.gradle.task.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHO
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
 import com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty
 import com.android.tools.idea.gradle.util.GradleUtil
-import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.run.configuration.execution.println
 import com.android.tools.idea.run.editor.AndroidTestExtraParam.Companion.parseFromString
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
@@ -46,6 +46,7 @@ import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
@@ -55,7 +56,6 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
-import org.jetbrains.android.refactoring.getProjectProperties
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
@@ -98,7 +98,7 @@ class GradleConnectedAndroidTestInvoker(
   fun schedule(project: Project,
                taskId: String,
                processHandler: ProcessHandler,
-               consolePrinter: ConsolePrinter,
+               consolePrinter: ConsoleView,
                androidModuleModel: GradleAndroidModel,
                waitForDebugger: Boolean,
                testPackageName: String,
@@ -132,7 +132,7 @@ class GradleConnectedAndroidTestInvoker(
     project: Project,
     taskId: String,
     processHandler: ProcessHandler,
-    consolePrinter: ConsolePrinter,
+    consolePrinter: ConsoleView,
     androidModuleModel: GradleAndroidModel,
     waitForDebugger: Boolean,
     testPackageName: String,
@@ -142,7 +142,7 @@ class GradleConnectedAndroidTestInvoker(
     retentionConfiguration: RetentionConfiguration,
     extraInstrumentationOptions: String
   ) {
-    consolePrinter.stdout("Running tests\n")
+    consolePrinter.println("Running tests")
 
     val androidTestResultListener = processHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)
     val adapters = scheduledDeviceList.associate {
@@ -160,7 +160,7 @@ class GradleConnectedAndroidTestInvoker(
         override fun processLine(line: String) {
           val processedText = taskOutputProcessor.process(line)
           if (!(processedText.isBlank() && line != processedText)) {
-            consolePrinter.stdout(processedText)
+            consolePrinter.println(processedText)
           }
         }
       })

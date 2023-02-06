@@ -400,7 +400,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                                             @NotNull String contributorsAmStartOptions,
                                                             boolean waitForDebugger,
                                                             @NotNull ApkProvider apkProvider,
-                                                            @NotNull ConsolePrinter consolePrinter,
                                                             @NotNull IDevice device) throws ExecutionException;
 
   public void updateExtraRunStats(RunStats runStats) {

@@ -18,10 +18,10 @@ package com.android.tools.idea.testartifacts.instrumented
 import com.android.ddmlib.IDevice
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import org.junit.Before
@@ -44,9 +44,12 @@ class GradleAndroidTestApplicationLaunchTaskTest {
   val mockitoJunitRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
 
   @Mock lateinit var mockProject: Project
-  @Mock lateinit var mockHandler: ProcessHandler
   @Mock
-  lateinit var mockPrinter: ConsolePrinter
+  lateinit var mockHandler: ProcessHandler
+
+  @Mock
+  lateinit var mockPrinter: ConsoleView
+
   @Mock
   lateinit var mockAndroidModuleModel: GradleAndroidModel
   @Mock
@@ -72,7 +75,6 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockAndroidModuleModel,
       "taskId",
       /*waitForDebugger*/false,
-      mockPrinter,
       mockDevice,
       "testRegex",
       mockGradleConnectedAndroidTestInvoker,
@@ -106,7 +108,6 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockAndroidModuleModel,
       "taskId",
       /*waitForDebugger*/false,
-      mockPrinter,
       mockDevice,
       "com.example.test",
       mockGradleConnectedAndroidTestInvoker,
@@ -139,7 +140,6 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockAndroidModuleModel,
       "taskId",
       /*waitForDebugger*/false,
-      mockPrinter,
       mockDevice,
       "com.example.test.TestClass",
       mockGradleConnectedAndroidTestInvoker,
@@ -173,7 +173,6 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockAndroidModuleModel,
       "taskId",
       /*waitForDebugger*/false,
-      mockPrinter,
       mockDevice,
       "com.example.test.TestClass",
       "testMethod",
@@ -208,7 +207,6 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockAndroidModuleModel,
       "taskId",
       /*waitForDebugger*/false,
-      mockPrinter,
       mockDevice,
       "",
       mockGradleConnectedAndroidTestInvoker,
@@ -241,7 +239,6 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockAndroidModuleModel,
       "taskId",
       /*waitForDebugger*/false,
-      mockPrinter,
       mockDevice,
       "com.example.test",
       mockGradleConnectedAndroidTestInvoker,

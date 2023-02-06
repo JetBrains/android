@@ -18,12 +18,12 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.CollectingOutputReceiver;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.AndroidExecutionException;
-import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.activity.AndroidActivityLauncher;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.configuration.execution.ExecutionUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.ExecutionException;
+import com.intellij.execution.ui.ConsoleView;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -60,8 +60,8 @@ public abstract class ActivityLaunchTask extends AppLaunchTask {
   private static final Pattern activityDoesNotExistPattern = Pattern.compile(ACTIVITY_DOES_NOT_EXIST_REGEX);
 
   @VisibleForTesting
-  public String getStartActivityCommand(@NotNull IDevice device, @NotNull ConsolePrinter printer) throws ExecutionException {
-    String activityName = getQualifiedActivityName(device, printer);
+  public String getStartActivityCommand(@NotNull IDevice device, @NotNull ConsoleView consoleView) throws ExecutionException {
+    String activityName = getQualifiedActivityName(device, consoleView);
     if (activityName == null) {
       throw new AndroidExecutionException(UNABLE_TO_DETERMINE_LAUNCH_ACTIVITY, "Unable to determine activity name");
     }
@@ -70,17 +70,17 @@ public abstract class ActivityLaunchTask extends AppLaunchTask {
   }
 
   @Nullable
-  protected abstract String getQualifiedActivityName(@NotNull IDevice device, @NotNull ConsolePrinter printer);
+  protected abstract String getQualifiedActivityName(@NotNull IDevice device, @NotNull ConsoleView consoleView);
 
   @Override
   public void run(@NotNull LaunchContext launchContext) throws ExecutionException {
-    ConsolePrinter printer = launchContext.getConsolePrinter();
+    ConsoleView console = launchContext.getConsoleView();
     IDevice device = launchContext.getDevice();
 
-    String command = getStartActivityCommand(device, printer);
+    String command = getStartActivityCommand(device, console);
     CollectingOutputReceiver collectingOutputReceiver = new CollectingOutputReceiver();
 
-    executeShellCommand(launchContext, printer, device, command, collectingOutputReceiver);
+    executeShellCommand(launchContext, console, device, command, collectingOutputReceiver);
     final Matcher matcher = activityDoesNotExistPattern.matcher(collectingOutputReceiver.getOutput());
     if (matcher.find()) {
       throw new AndroidExecutionException(ACTIVITY_DOES_NOT_EXIST, matcher.group());
@@ -89,12 +89,12 @@ public abstract class ActivityLaunchTask extends AppLaunchTask {
 
   @VisibleForTesting
   protected void executeShellCommand(@NotNull LaunchContext launchContext,
-                                     ConsolePrinter printer,
+                                     ConsoleView console,
                                      IDevice device,
                                      String command,
                                      CollectingOutputReceiver collectingOutputReceiver) throws ExecutionException {
     // The timeout is quite large to accommodate ARM emulators.
-    ExecutionUtils.executeShellCommand(device, command, printer, collectingOutputReceiver, 15, TimeUnit.SECONDS,
+    ExecutionUtils.executeShellCommand(device, command, console, collectingOutputReceiver, 15, TimeUnit.SECONDS,
                                        launchContext.getProgressIndicator());
   }
 }
