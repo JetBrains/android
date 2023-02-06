@@ -20,12 +20,23 @@ import com.android.tools.idea.dagger.index.DaggerConceptIndexers
 import com.android.tools.idea.dagger.index.IndexEntries
 import com.android.tools.idea.dagger.index.IndexValue
 import com.android.tools.idea.dagger.index.concepts.DaggerAttributes.INJECT
+import com.android.tools.idea.dagger.index.concepts.DaggerElement.Type
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexMethodWrapper
+import com.android.tools.idea.kotlin.hasAnnotation
+import com.intellij.openapi.project.Project
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiParameter
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.parentOfType
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.core.util.readString
 import org.jetbrains.kotlin.idea.core.util.writeString
+import org.jetbrains.kotlin.psi.KtConstructor
+import org.jetbrains.kotlin.psi.KtParameter
 import java.io.DataInput
 import java.io.DataOutput
-import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Represents an injected constructor in Dagger.
@@ -45,6 +56,8 @@ import org.jetbrains.annotations.VisibleForTesting
 internal object InjectedConstructorDaggerConcept : DaggerConcept {
   override val indexers = DaggerConceptIndexers(methodIndexers = listOf(InjectedConstructorIndexer))
   override val indexValueReaders = listOf(InjectedConstructorIndexValue.Reader, InjectedConstructorParameterIndexValue.Reader)
+  override val daggerElementIdentifiers = DaggerElementIdentifiers.of(InjectedConstructorIndexValue.identifiers,
+                                                                      InjectedConstructorParameterIndexValue.identifiers)
 }
 
 private object InjectedConstructorIndexer : DaggerConceptIndexer<DaggerIndexMethodWrapper> {
@@ -73,6 +86,25 @@ internal data class InjectedConstructorIndexValue(val classFqName: String) : Ind
     override val supportedType = DataType.INJECTED_CONSTRUCTOR
     override fun read(input: DataInput) = InjectedConstructorIndexValue(input.readString())
   }
+
+  companion object {
+    private val identifyInjectedConstructorKotlin = DaggerElementIdentifier<KtConstructor<*>> {
+      if (it.hasAnnotation(INJECT)) DaggerElement(it, Type.PROVIDER) else null
+    }
+
+    private val identifyInjectedConstructorJava = DaggerElementIdentifier<PsiMethod> {
+      if (it.isConstructor && it.hasAnnotation(INJECT)) DaggerElement(it, Type.PROVIDER) else null
+    }
+
+    internal val identifiers = DaggerElementIdentifiers(
+      ktConstructorIdentifiers = listOf(identifyInjectedConstructorKotlin),
+      psiMethodIdentifiers = listOf(identifyInjectedConstructorJava))
+  }
+
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> =
+    JavaPsiFacade.getInstance(project).findClass(classFqName, scope)?.constructors?.toList() ?: emptyList()
+
+  override val daggerElementIdentifiers = identifiers
 }
 
 @VisibleForTesting
@@ -87,4 +119,28 @@ internal data class InjectedConstructorParameterIndexValue(val classFqName: Stri
     override val supportedType = DataType.INJECTED_CONSTRUCTOR_PARAMETER
     override fun read(input: DataInput) = InjectedConstructorParameterIndexValue(input.readString(), input.readString())
   }
+
+  companion object {
+    private val identifyInjectedConstructorParameterKotlin = DaggerElementIdentifier<KtParameter> { psiElement ->
+      val parent = psiElement.parentOfType<KtConstructor<*>>() ?: return@DaggerElementIdentifier null
+      if (parent.hasAnnotation(INJECT)) DaggerElement(psiElement, Type.CONSUMER) else null
+    }
+
+    private val identifyInjectedConstructorParameterJava = DaggerElementIdentifier<PsiParameter> { psiElement ->
+      val parent = psiElement.parentOfType<PsiMethod>() ?: return@DaggerElementIdentifier null
+      if (parent.isConstructor && parent.hasAnnotation(INJECT)) DaggerElement(psiElement, Type.CONSUMER) else null
+    }
+
+    internal val identifiers = DaggerElementIdentifiers(
+      ktParameterIdentifiers = listOf(identifyInjectedConstructorParameterKotlin),
+      psiParameterIdentifiers = listOf(identifyInjectedConstructorParameterJava))
+  }
+
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
+    val psiClass = JavaPsiFacade.getInstance(project).findClass(classFqName, scope) ?: return emptyList()
+    return psiClass.constructors
+      .flatMap { it.parameterList.parameters.filter { p -> p.name == parameterName } }
+  }
+
+  override val daggerElementIdentifiers = identifiers
 }

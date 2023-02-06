@@ -29,11 +29,15 @@ object AllConcepts : DaggerConcept {
     ProvidesMethodDaggerConcept,
   )
 
-  override val indexers = CONCEPTS.map(DaggerConcept::indexers).let { indexersList ->
-    DaggerConceptIndexers(
-      indexersList.flatMap(DaggerConceptIndexers::fieldIndexers),
-      indexersList.flatMap(DaggerConceptIndexers::methodIndexers))
-  }
+  override val indexers =
+    CONCEPTS.map(DaggerConcept::indexers).let { indexersList ->
+      DaggerConceptIndexers(
+        indexersList.flatMap(DaggerConceptIndexers::fieldIndexers),
+        indexersList.flatMap(DaggerConceptIndexers::methodIndexers))
+    }
 
   override val indexValueReaders: List<IndexValue.Reader> = CONCEPTS.flatMap(DaggerConcept::indexValueReaders)
+
+  override val daggerElementIdentifiers: DaggerElementIdentifiers =
+    DaggerElementIdentifiers.of(CONCEPTS.map(DaggerConcept::daggerElementIdentifiers))
 }

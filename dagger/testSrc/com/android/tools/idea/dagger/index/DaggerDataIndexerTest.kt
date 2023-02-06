@@ -31,7 +31,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.io.DataOutput
 
 @RunWith(JUnit4::class)
 @RunsInEdt
@@ -42,10 +41,7 @@ class DaggerDataIndexerTest {
 
   private lateinit var myFixture: CodeInsightTestFixture
 
-  private val fakeIndexValue: IndexValue =
-    object : IndexValue(DataType.INJECTED_CONSTRUCTOR) {
-      override fun save(output: DataOutput) = throw NotImplementedError()
-    }
+  private val fakeIndexValue: IndexValue = mock()
 
   @Before
   fun setup() {

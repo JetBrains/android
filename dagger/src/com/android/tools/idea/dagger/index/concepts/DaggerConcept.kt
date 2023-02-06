@@ -28,4 +28,7 @@ interface DaggerConcept {
 
   /** [IndexValue.Reader]s for any [IndexValue]s that this concept uses. */
   val indexValueReaders: List<IndexValue.Reader>
+
+  /** [DaggerElementIdentifier]s that can identify any Dagger items handled by this concept. */
+  val daggerElementIdentifiers: DaggerElementIdentifiers
 }

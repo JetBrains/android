@@ -20,12 +20,21 @@ import com.android.tools.idea.dagger.index.DaggerConceptIndexers
 import com.android.tools.idea.dagger.index.IndexEntries
 import com.android.tools.idea.dagger.index.IndexValue
 import com.android.tools.idea.dagger.index.concepts.DaggerAttributes.INJECT
+import com.android.tools.idea.dagger.index.concepts.DaggerElement.Type
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexFieldWrapper
+import com.android.tools.idea.kotlin.hasAnnotation
+import com.intellij.openapi.project.Project
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiField
+import com.intellij.psi.search.GlobalSearchScope
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.core.util.readString
 import org.jetbrains.kotlin.idea.core.util.writeString
+import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 import java.io.DataInput
 import java.io.DataOutput
-import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Represents an injected field in Dagger.
@@ -45,6 +54,7 @@ import org.jetbrains.annotations.VisibleForTesting
 internal object InjectedFieldDaggerConcept : DaggerConcept {
   override val indexers = DaggerConceptIndexers(fieldIndexers = listOf(InjectedFieldIndexer))
   override val indexValueReaders: List<IndexValue.Reader> = listOf(InjectedFieldIndexValue.Reader)
+  override val daggerElementIdentifiers = InjectedFieldIndexValue.identifiers
 }
 
 private object InjectedFieldIndexer : DaggerConceptIndexer<DaggerIndexFieldWrapper> {
@@ -69,4 +79,25 @@ internal data class InjectedFieldIndexValue(val classFqName: String, val fieldNa
     override val supportedType = DataType.INJECTED_FIELD
     override fun read(input: DataInput) = InjectedFieldIndexValue(input.readString(), input.readString())
   }
+
+  companion object {
+    private val identifyInjectedFieldKotlin = DaggerElementIdentifier<KtProperty> {
+      if (it.containingClassOrObject != null && it.hasAnnotation(INJECT)) DaggerElement(it, Type.CONSUMER) else null
+    }
+
+    private val identifyInjectedFieldJava = DaggerElementIdentifier<PsiField> {
+      if (it.hasAnnotation(INJECT)) DaggerElement(it, Type.CONSUMER) else null
+    }
+
+    internal val identifiers = DaggerElementIdentifiers(
+      ktPropertyIdentifiers = listOf(identifyInjectedFieldKotlin),
+      psiFieldIdentifiers = listOf(identifyInjectedFieldJava))
+  }
+
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
+    val psiClass = JavaPsiFacade.getInstance(project).findClass(classFqName, scope) ?: return emptyList()
+    return psiClass.fields.filter { it.name == fieldName }
+  }
+
+  override val daggerElementIdentifiers = identifiers
 }
