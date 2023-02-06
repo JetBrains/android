@@ -95,7 +95,7 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
       countLabel?.border = if (countLabel?.text.isNullOrEmpty()) emptyBorders else textBorders
       val extraPanel = extraPanel ?: return
       myRendererComponent.add(mySeparatorComponent, BorderLayout.NORTH)
-      extraPanel.add(getItemComponent(), BorderLayout.CENTER)
+      extraPanel.add(myComponent, BorderLayout.CENTER)
       extraPanel.add(countLabel, BorderLayout.EAST)
       myRendererComponent.add(this.extraPanel, BorderLayout.CENTER)
     }

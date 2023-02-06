@@ -50,6 +50,7 @@
     <orderEntry type="library" name="swingx" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="fastutil-min" level="project" />
+    <orderEntry type="library" name="kotlinx-coroutines-jdk8" level="project" />
     <orderEntry type="library" name="rd-core" level="project" />
     <orderEntry type="library" name="grpc-core" level="project" />
     <orderEntry type="library" name="org.codehaus.groovy:groovy" level="project" />

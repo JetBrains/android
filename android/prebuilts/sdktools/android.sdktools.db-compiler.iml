@@ -4,9 +4,9 @@
     <exclude-output />
     <orderEntry type="module-library">
       <library name="compilerCommon.antlr_runtime.shaded" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:compilerCommon.antlr_runtime.shaded_jar:221.0.12.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:compilerCommon.antlr_runtime.shaded_jar:221.0.19.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compilerCommon.antlr_runtime.shaded_jar/221.0.12.0/compilerCommon.antlr_runtime.shaded_jar-221.0.12.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compilerCommon.antlr_runtime.shaded_jar/221.0.19.0/compilerCommon.antlr_runtime.shaded_jar-221.0.19.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -14,9 +14,9 @@
     </orderEntry>
     <orderEntry type="module-library">
       <library name="compilerCommon.antlr.shaded" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:compilerCommon.antlr.shaded_jar:221.0.12.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:compilerCommon.antlr.shaded_jar:221.0.19.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compilerCommon.antlr.shaded_jar/221.0.12.0/compilerCommon.antlr.shaded_jar-221.0.12.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compilerCommon.antlr.shaded_jar/221.0.19.0/compilerCommon.antlr.shaded_jar-221.0.19.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -74,9 +74,9 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-db-compiler" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.compiler:221.0.12.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.compiler:221.0.19.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compiler/221.0.12.0/studio.compiler-221.0.12.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compiler/221.0.19.0/studio.compiler-221.0.19.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -84,9 +84,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-db-compiler-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.compiler_test:221.0.12.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.compiler_test:221.0.19.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compiler_test/221.0.12.0/studio.compiler_test-221.0.12.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compiler_test/221.0.19.0/studio.compiler_test-221.0.19.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

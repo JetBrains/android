@@ -14,9 +14,9 @@
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="module-library">
       <library name="background-inspector-proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:backgroundtask_inspector_java_proto:221.0.12.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:backgroundtask_inspector_java_proto:221.0.19.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/backgroundtask_inspector_java_proto/221.0.12.0/backgroundtask_inspector_java_proto-221.0.12.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/backgroundtask_inspector_java_proto/221.0.19.0/backgroundtask_inspector_java_proto-221.0.19.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -24,9 +24,9 @@
     </orderEntry>
     <orderEntry type="module-library">
       <library name="workmanager-inspector-proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:workmanager_inspector_proto:221.0.12.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:workmanager_inspector_proto:221.0.19.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/workmanager_inspector_proto/221.0.12.0/workmanager_inspector_proto-221.0.12.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/workmanager_inspector_proto/221.0.19.0/workmanager_inspector_proto-221.0.19.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

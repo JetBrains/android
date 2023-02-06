@@ -13,9 +13,9 @@
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-analytics-testing" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:android.sdktools.analytics-testing:221.0.12.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:android.sdktools.analytics-testing:221.0.19.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/android.sdktools.analytics-testing/221.0.12.0/android.sdktools.analytics-testing-221.0.12.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/android.sdktools.analytics-testing/221.0.19.0/android.sdktools.analytics-testing-221.0.19.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -23,9 +23,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-analytics-testing-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:android.sdktools.analytics-testing_test:221.0.12.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:android.sdktools.analytics-testing_test:221.0.19.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/android.sdktools.analytics-testing_test/221.0.12.0/android.sdktools.analytics-testing_test-221.0.12.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/android.sdktools.analytics-testing_test/221.0.19.0/android.sdktools.analytics-testing_test-221.0.19.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
