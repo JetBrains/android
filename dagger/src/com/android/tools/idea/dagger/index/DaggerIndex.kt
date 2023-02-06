@@ -16,6 +16,7 @@
 package com.android.tools.idea.dagger.index
 
 import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.indexing.DataIndexer
 import com.intellij.util.indexing.DefaultFileTypeSpecificInputFilter
@@ -27,13 +28,38 @@ import com.intellij.util.io.DataExternalizer
 import com.intellij.util.io.EnumeratorStringDescriptor
 import com.intellij.util.io.KeyDescriptor
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.idea.stubindex.KotlinTypeAliasByExpansionShortNameIndex
 
 class DaggerIndex : FileBasedIndexExtension<String, Set<IndexValue>>() {
   companion object {
     private val NAME: ID<String, Set<IndexValue>> = ID.create("com.android.tools.idea.dagger.index.DaggerIndex")
 
-    fun getValues(key: String, scope: GlobalSearchScope): Set<IndexValue> {
+    internal fun getValues(key: String, scope: GlobalSearchScope): Set<IndexValue> {
       return FileBasedIndex.getInstance().getValues(NAME, key, scope).flatten().toSet()
+    }
+
+    /**
+     * Returns the list of index keys to search for a given type in priority order.
+     *
+     * The index stores values using the type name as the key, but that type might be fully-qualified, just a simple name, or in some cases
+     * the "unknown" type represented by an empty string. Additionally, Kotlin allows type aliases that need to be looked at as well.
+     */
+    internal fun getIndexKeys(fqName: String, project: Project, scope: GlobalSearchScope): List<String> {
+      val simpleName = fqName.substringAfterLast(".")
+      val aliasFqNames = KotlinTypeAliasByExpansionShortNameIndex.get(simpleName, project, scope).mapNotNull { it.fqName?.asString() }
+
+      return buildList {
+        // All fully-qualified names should go first, since they're most specific.
+        add(fqName)
+        addAll(aliasFqNames)
+
+        // All simple names next.
+        add(simpleName)
+        addAll(aliasFqNames.map { it.substringAfterLast(".") })
+
+        // The unknown type last, since it's most generic.
+        add("")
+      }.distinct()
     }
   }
 

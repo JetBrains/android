@@ -16,6 +16,7 @@
 package com.android.tools.idea.dagger.concepts
 
 import com.android.tools.idea.AndroidPsiUtils
+import com.android.tools.idea.dagger.index.DaggerIndex
 import com.android.tools.idea.dagger.unboxed
 import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
@@ -25,6 +26,7 @@ import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
+import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFunction
@@ -39,6 +41,23 @@ data class DaggerElement internal constructor(val psiElement: PsiElement, val da
   enum class Type {
     PROVIDER,
     CONSUMER
+  }
+
+  /** Look up related Dagger items using [DaggerIndex]. */
+  fun getRelatedDaggerItems(relatedItemTypes: Set<Type>, scope: GlobalSearchScope): List<DaggerElement> {
+    return DaggerIndex
+      // Get index keys
+      .getIndexKeys(psiType.canonicalText, psiElement.project, scope)
+      // Look up the keys in the index
+      .flatMap { DaggerIndex.getValues(it, scope) }
+      // Remove types we aren't interested in before resolving
+      .filter { it.dataType.daggerElementType in relatedItemTypes }
+      // Ensure there are no duplicate index values (which can happen if two different keys have identical values)
+      .distinct()
+      // Resolve index values
+      .flatMap { it.resolveToDaggerElements(psiType, psiElement.project, scope) }
+      // Ensure there are no duplicate resolved values
+      .distinct()
   }
 }
 
@@ -75,6 +94,7 @@ class DaggerElementIdentifiers(
       is KtFunction ->
         (psiElement as? KtConstructor<*>)?.let { ktConstructorIdentifiers.getFirstDaggerElement(psiElement) }
         ?: ktFunctionIdentifiers.getFirstDaggerElement(psiElement)
+
       is KtParameter -> ktParameterIdentifiers.getFirstDaggerElement(psiElement)
       is KtProperty -> ktPropertyIdentifiers.getFirstDaggerElement(psiElement)
       is PsiField -> psiFieldIdentifiers.getFirstDaggerElement(psiElement)
@@ -102,6 +122,7 @@ internal fun PsiElement.getPsiType(): PsiType =
     is KtFunction ->
       if (this is KtConstructor<*>) containingClass()?.toPsiType()
       else psiType
+
     is KtParameter -> psiType
     is KtProperty -> psiType
     is PsiClass -> AndroidPsiUtils.toPsiType(this)
@@ -109,6 +130,7 @@ internal fun PsiElement.getPsiType(): PsiType =
     is PsiMethod ->
       if (isConstructor) containingClass!!.getPsiType()
       else returnType
+
     is PsiParameter -> type
     else -> throw IllegalArgumentException("Unknown element type ${this::class.java}")
   }!!.unboxed
