@@ -661,14 +661,24 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     expression.psiElement?.also { return it }
 
     val parentPsi = expression.parent?.create() ?: return null
-    val firstLiteral = expression.currentElements[0] as? GradleDslLiteral ?: return null
-
-    expression.psiElement = parentPsi
-    val literalPsi = createDslElement(firstLiteral)
-    expression.psiElement = literalPsi
-    applyDslLiteral(firstLiteral)
-    firstLiteral.reset()
-    firstLiteral.commit()
+    when (val firstElement = expression.currentElements[0]) {
+      is GradleDslLiteral -> {
+        expression.psiElement = parentPsi
+        val literalPsi = createDslElement(firstElement)
+        expression.psiElement = literalPsi
+        applyDslLiteral(firstElement)
+        firstElement.reset()
+        firstElement.commit()
+      }
+      is GradleDslMethodCall -> {
+        expression.psiElement = parentPsi
+        val methodCallPsi = createDslMethodCall(firstElement)
+        expression.psiElement = methodCallPsi
+        applyDslMethodCall(firstElement)
+        firstElement.commit()
+      }
+      else -> return null
+    }
     return expression.psiElement
   }
 
