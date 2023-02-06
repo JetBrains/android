@@ -98,8 +98,7 @@ internal class PreviewIssueNotificationActionTest {
 
     composePreviewManager.currentStatus = originStatus.copy(isOutOfDate = true)
     action.update(event)
-    // When FastPreview is enabled, the preview is never out of date.
-    assertEquals("Up-to-date (The preview is up to date)", event.presentation.toString())
+    assertEquals("Out of date (The preview is out of date)", event.presentation.toString())
     try {
       FastPreviewManager.getInstance(projectRule.project).disable(ManualDisabledReason)
       action.update(event)
@@ -227,11 +226,10 @@ internal class PreviewIssueNotificationActionTest {
       assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
     }
 
-    // Even the status is out of date, we do not report it when fast preview is enabled
     run {
       composePreviewManager.currentStatus = originStatus.copy(isOutOfDate = true)
       val popup = defaultCreateInformationPopup(projectRule.project, context)!!
-      assertEquals("The preview is up to date", popup.labelsDescription())
+      assertEquals("The preview is out of date", popup.labelsDescription())
       assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
     }
 

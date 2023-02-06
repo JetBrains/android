@@ -88,8 +88,6 @@ class ComposePreviewRepresentationTest {
     Logger.getInstance(ComposePreviewRepresentation::class.java).setLevel(LogLevel.ALL)
     Logger.getInstance(FastPreviewManager::class.java).setLevel(LogLevel.ALL)
     Logger.getInstance(ProjectStatus::class.java).setLevel(LogLevel.ALL)
-    Logger.getInstance("#com.android.tools.idea.projectsystem.CodeOutOfDateTrackerImpl")
-      .setLevel(LogLevel.ALL)
     logger.info("setup")
     val testProjectSystem = TestProjectSystem(project)
     runInEdtAndWait { testProjectSystem.useInTests() }

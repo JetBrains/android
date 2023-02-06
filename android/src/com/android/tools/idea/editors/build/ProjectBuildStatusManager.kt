@@ -21,30 +21,28 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
+import com.android.tools.idea.editors.fast.isSuccess
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.hasExistingClassFile
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
-import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion
-import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.ModificationTracker
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.idea.util.application.runReadAction
-import org.jetbrains.kotlin.idea.util.module
+import org.jetbrains.kotlin.idea.util.projectStructure.module
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -142,12 +140,6 @@ interface ProjectBuildStatusManagerForTests {
   fun getResourcesListenerForTest(): ResourceChangeListener
 }
 
-private object NopPsiFileChangeDetector : PsiFileChangeDetector {
-  override fun hasFileChanged(file: PsiFile?, updateOnCheck: Boolean): Boolean = false
-  override fun markFileAsUpToDate(file: PsiFile?) {}
-  override fun clearMarks(file: PsiFile?) {}
-}
-
 private class ProjectBuildStatusManagerImpl(
   parentDisposable: Disposable,
   psiFile: PsiFile,
@@ -161,15 +153,6 @@ private class ProjectBuildStatusManagerImpl(
     get() = runReadAction { editorFilePtr.element }
 
   private val project: Project = psiFile.project
-  private val psiFileChangeDetector = PsiFileChangeDetector.getInstance()
-  private val fileChangeDetector: PsiFileChangeDetector
-    get() =
-      // When Live Edit is disabled, we do not do any tracking of the file since it will never be out of date.
-      if (FastPreviewManager.getInstance(project).isEnabled)
-        NopPsiFileChangeDetector
-      else
-        psiFileChangeDetector
-
   private val projectBuildStatusLock = ReentrantReadWriteLock()
 
   @GuardedBy("projectBuildStatusLock")
@@ -209,9 +192,15 @@ private class ProjectBuildStatusManagerImpl(
       ProjectSystemService.getInstance(project).projectSystem.getBuildManager().isBuilding ||
       FastPreviewManager.getInstance(project).isCompiling
 
+  private val psiCodeFileChangeDetector = PsiCodeFileChangeDetectorService.getInstance(project)
   private val buildListener = object : ProjectSystemBuildManager.BuildListener {
+    private val buildCounter = AtomicInteger(0)
+    private val outOfDateFilesBeforeBuild = mutableSetOf<PsiFile>()
+
     override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {
-      LOG.debug("buildStarted $mode")
+      val buildCount = buildCounter.incrementAndGet()
+      LOG.debug("buildStarted $mode, buildCount = $buildCount")
+      outOfDateFilesBeforeBuild.addAll(psiCodeFileChangeDetector.outOfDateFiles)
       if (mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
         projectBuildStatusLock.write {
           projectBuildStatus = ProjectBuildStatus.NeedsBuild
@@ -220,15 +209,21 @@ private class ProjectBuildStatusManagerImpl(
     }
 
     override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
-      LOG.debug("buildFinished $result")
+      val buildCount = buildCounter.getAndUpdate { if (it > 0) it - 1 else 0 }
+      LOG.debug("buildFinished $result, buildCount = $buildCount")
+      if (buildCount > 1) {
+        // More builds are still pending
+        return
+      }
+      val outOfDateFilesToClear = outOfDateFilesBeforeBuild.toSet() // Create a copy
+      outOfDateFilesBeforeBuild.clear()
       if (result.mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
-        onSuccessfulBuild()
         return
       }
       val newProjectBuildStatus = if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
+        psiCodeFileChangeDetector.markAsUpToDate(outOfDateFilesToClear)
         // Clear the resources out of date flag
         areResourcesOutOfDate.set(false)
-        onSuccessfulBuild()
         ProjectBuildStatus.Built
       }
       else {
@@ -254,18 +249,18 @@ private class ProjectBuildStatusManagerImpl(
     }
   }
 
-  private fun onSuccessfulBuild() {
-    fileChangeDetector.markFileAsUpToDate(editorFile)
-  }
-
   init {
-    Disposer.register(parentDisposable) {
-      fileChangeDetector.clearMarks(editorFile)
-    }
-
     LOG.debug("setup build listener")
     ProjectSystemService.getInstance(project).projectSystem.getBuildManager()
       .addBuildListener(parentDisposable, buildListener)
+    FastPreviewManager.getInstance(project)
+      .addListener(parentDisposable, object : FastPreviewManager.Companion.FastPreviewManagerListener {
+        override fun onCompilationStarted(files: Collection<PsiFile>) {}
+
+        override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {
+          if (result.isSuccess) psiCodeFileChangeDetector.markAsUpToDate(files)
+        }
+      })
 
     // Register listener
     LOG.debug("setup notification change listener")
@@ -288,8 +283,6 @@ private class ProjectBuildStatusManagerImpl(
 
     LOG.debug("waiting for smart and synced")
     project.runWhenSmartAndSyncedOnEdt(parentDisposable, {
-      fileChangeDetector.markFileAsUpToDate(editorFile)
-
       scope.launch {
         if (projectBuildStatusLock.read { projectBuildStatus } === ProjectBuildStatus.NotReady) {
           // Check in the background the state of the build (hasBeenBuiltSuccessfully is a slow method).
@@ -306,39 +299,9 @@ private class ProjectBuildStatusManagerImpl(
         onReady(status)
       }
     })
-
-    if (FastPreviewManager.getInstance(project).isAvailable) {
-      FastPreviewManager.getInstance(project)
-        .addListener(
-          parentDisposable,
-          object : FastPreviewManager.Companion.FastPreviewManagerListener {
-            var lastCompilationResult: CompilationResult = CompilationResult.Success
-
-            override fun onCompilationStarted(files: Collection<PsiFile>) {}
-
-            override fun onCompilationComplete(
-              result: CompilationResult,
-              files: Collection<PsiFile>
-            ) {
-              val file = editorFile ?: return
-              lastCompilationResult = result
-              val isAllFileCompiledWithSuccess = (result == CompilationResult.Success) && (files.any { it.isEquivalentTo(file) })
-              if (isAllFileCompiledWithSuccess) {
-                onSuccessfulBuild()
-              }
-            }
-
-            override fun onFastPreviewStatusChanged(isFastPreviewEnabled: Boolean) {
-              // When Fast Preview is disabled, the fileChangeDetector will be restored. This will automatically mark the file as out of date.
-              // This check, verifies if the last fast build was successful and, only in that case, will mark the file as being up to date.
-              if (!isFastPreviewEnabled && lastCompilationResult == CompilationResult.Success) onSuccessfulBuild()
-            }
-          }
-        )
-    }
   }
 
-  private fun isCodeOutOfDate() = fileChangeDetector.hasFileChanged(editorFile)
+  private fun isCodeOutOfDate() = PsiCodeFileChangeDetectorService.getInstance(project).outOfDateFiles.isNotEmpty()
 
 
   @TestOnly

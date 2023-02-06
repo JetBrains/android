@@ -39,10 +39,6 @@ class TestComposePreviewManager(
     }
   override fun status(): ComposePreviewManager.Status = currentStatus
 
-  override fun invalidateSavedBuildStatus() {
-    // do nothing
-  }
-
   override val availableGroups: Collection<PreviewGroup> = emptyList()
   override var groupFilter: PreviewGroup = PreviewGroup.ALL_PREVIEW_GROUP
   override var interactivePreviewElementInstance: ComposePreviewElementInstance? = null
@@ -57,6 +53,8 @@ class TestComposePreviewManager(
   override fun stopInteractivePreview() {
     interactivePreviewElementInstance = null
   }
+
+  override fun invalidate() {}
 
   override var isInspectionTooltipEnabled: Boolean = false
 

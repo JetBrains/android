@@ -58,16 +58,14 @@ import java.lang.ref.WeakReference
 import kotlin.reflect.KFunction0
 import org.jetbrains.annotations.VisibleForTesting
 
-@VisibleForTesting
-internal fun getStatusInfo(project: Project, dataContext: DataContext): PreviewStatus? {
-  val composePreviewManager = dataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return null
-  val previewStatus = composePreviewManager.status()
-  val fastPreviewEnabled = project.fastPreviewManager.isEnabled
-  return when {
+/** Returns the status when Fast Preview is disabled. */
+private fun getStatus(project: Project, previewStatus: ComposePreviewManager.Status) =
+  when {
+    previewStatus.isRefreshing -> PreviewStatus.Refreshing()
+
     // No Fast Preview and Preview is out of date (only when is user disabled)
-    !fastPreviewEnabled &&
-      !project.fastPreviewManager.isAutoDisabled &&
-      previewStatus.isOutOfDate -> PreviewStatus.OutOfDate
+    !project.fastPreviewManager.isAutoDisabled && previewStatus.isOutOfDate ->
+      PreviewStatus.OutOfDate
 
     // Resources are out of date. FastPreview does not help with this.
     previewStatus.areResourcesOutOfDate -> PreviewStatus.OutOfDate
@@ -77,7 +75,6 @@ internal fun getStatusInfo(project: Project, dataContext: DataContext): PreviewS
       PreviewStatus.Refreshing(message("notification.interactive.preview.starting"))
     previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STOPPING ->
       PreviewStatus.Refreshing(message("notification.interactive.preview.stopping"))
-    previewStatus.isRefreshing -> PreviewStatus.Refreshing()
 
     // Build/Syntax/Render errors
     project.needsBuild -> PreviewStatus.NeedsBuild
@@ -85,14 +82,47 @@ internal fun getStatusInfo(project: Project, dataContext: DataContext): PreviewS
     previewStatus.hasRuntimeErrors -> PreviewStatus.RenderIssues
 
     // Fast preview refresh/failures
-    !fastPreviewEnabled && project.fastPreviewManager.isAutoDisabled ->
-      PreviewStatus.FastPreviewFailed
-    fastPreviewEnabled && project.fastPreviewManager.isCompiling ->
-      PreviewStatus.FastPreviewCompiling
+    project.fastPreviewManager.isAutoDisabled -> PreviewStatus.FastPreviewFailed
+    project.fastPreviewManager.isCompiling -> PreviewStatus.FastPreviewCompiling
 
     // Up-to-date
     else -> PreviewStatus.UpToDate
   }
+
+/** Returns the status when Fast Preview is enabled. */
+private fun getStatusForFastPreview(project: Project, previewStatus: ComposePreviewManager.Status) =
+  when {
+    previewStatus.isRefreshing -> PreviewStatus.Refreshing()
+
+    // Syntax errors take precedence
+    previewStatus.hasSyntaxErrors -> PreviewStatus.SyntaxError
+
+    // Code is out of date
+    previewStatus.isOutOfDate -> PreviewStatus.OutOfDate
+
+    // Resources are out of date. FastPreview does not help with this.
+    previewStatus.areResourcesOutOfDate -> PreviewStatus.OutOfDate
+
+    // Refresh status
+    previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STARTING ->
+      PreviewStatus.Refreshing(message("notification.interactive.preview.starting"))
+    previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STOPPING ->
+      PreviewStatus.Refreshing(message("notification.interactive.preview.stopping"))
+    project.needsBuild -> PreviewStatus.NeedsBuild
+    previewStatus.hasRuntimeErrors -> PreviewStatus.RenderIssues
+    project.fastPreviewManager.isCompiling -> PreviewStatus.FastPreviewCompiling
+
+    // Up-to-date
+    else -> PreviewStatus.UpToDate
+  }
+
+@VisibleForTesting
+internal fun getStatusInfo(project: Project, dataContext: DataContext): PreviewStatus? {
+  val composePreviewManager = dataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return null
+  val previewStatus = composePreviewManager.status()
+  val fastPreviewEnabled = project.fastPreviewManager.isEnabled
+  return if (fastPreviewEnabled) getStatusForFastPreview(project, previewStatus)
+  else getStatus(project, previewStatus)
 }
 
 private class ComposePreviewManagerFileProvider(dataContext: DataContext) : () -> PsiFile? {
@@ -245,11 +275,13 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
       e.presentation.isEnabledAndVisible = false
       return
     }
+
     // Each ComposePreviewManager will avoid refreshing the corresponding previews if it detects
     // that nothing has changed. But we want to always force a refresh when this button is pressed
     findComposePreviewManagersForContext(e.dataContext).forEach { composePreviewManager ->
-      composePreviewManager.invalidateSavedBuildStatus()
+      composePreviewManager.invalidate()
     }
+
     if (!requestBuildForSurface(surface)) {
       // If there are no models in the surface, we can not infer which models we should trigger
       // the build for. The fallback is to find the virtual file for the editor and trigger that.

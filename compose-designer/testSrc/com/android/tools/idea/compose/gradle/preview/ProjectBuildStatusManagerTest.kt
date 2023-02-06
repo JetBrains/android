@@ -38,11 +38,10 @@ import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
-import org.hamcrest.CoreMatchers
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -108,16 +107,18 @@ class ProjectBuildStatusManagerTest {
     projectRule.buildAndAssertIsSuccessful()
     assertEquals(ProjectStatus.Ready, newStatusManager.status)
 
-    // Status should change to OutOfDate when introducing a change, only for the manager of the
-    // modified file
+    // Modifying a separate file should make both status managers out of date
     val documentManager = PsiDocumentManager.getInstance(projectRule.project)
     WriteCommandAction.runWriteCommandAction(project) {
-      documentManager.getDocument(projectRule.fixture.file)!!.insertString(0, "// A change")
+      documentManager.getDocument(projectRule.fixture.file)!!.insertString(
+        0,
+        "\n\nfun method() {}\n\n"
+      )
       documentManager.commitAllDocuments()
     }
     FileDocumentManager.getInstance().saveAllDocuments()
-    assertThat(statusManager.status, CoreMatchers.instanceOf(ProjectStatus.OutOfDate::class.java))
-    assertEquals(ProjectStatus.Ready, newStatusManager.status)
+    assertThat(statusManager.status).isInstanceOf(ProjectStatus.OutOfDate::class.java)
+    assertThat(newStatusManager.status).isInstanceOf(ProjectStatus.OutOfDate::class.java)
 
     // Status should change to NeedsBuild for all managers after a build clean
     projectRule.clean()

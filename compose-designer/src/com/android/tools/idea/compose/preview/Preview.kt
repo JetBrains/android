@@ -42,9 +42,11 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.concurrency.disposableCallbackFlow
 import com.android.tools.idea.concurrency.launchWithProgress
+import com.android.tools.idea.concurrency.psiFileChangeFlow
 import com.android.tools.idea.concurrency.smartModeFlow
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
+import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
 import com.android.tools.idea.editors.documentChangeFlow
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
@@ -62,7 +64,6 @@ import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.BuildListener
-import com.android.tools.idea.projectsystem.CodeOutOfDateTracker
 import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.rendering.RenderService
@@ -88,6 +89,7 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.project.DumbService
@@ -122,13 +124,17 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.util.module
+import org.jetbrains.kotlin.psi.KtFile
 
 /** Background color for the surface while "Interactive" is enabled. */
 private val INTERACTIVE_BACKGROUND_COLOR = MEUI.ourInteractiveBackgroundColor
@@ -330,12 +336,6 @@ class ComposePreviewRepresentation(
 
   /** Whether the preview needs a full refresh or not. */
   private val invalidated = AtomicBoolean(true)
-
-  private val previewFreshnessTracker =
-    CodeOutOfDateTracker.create(module, this) {
-      invalidate()
-      requestRefresh()
-    }
 
   private val previewElementProvider =
     PreviewFilters(
@@ -627,6 +627,9 @@ class ComposePreviewRepresentation(
       Duration.ofMillis(5)
     )
 
+  private val psiCodeFileChangeDetectorService =
+    PsiCodeFileChangeDetectorService.getInstance(project)
+
   private val lifecycleManager =
     PreviewLifecycleManager(
       project,
@@ -657,20 +660,13 @@ class ComposePreviewRepresentation(
   override val component: JComponent
     get() = composeWorkBench.component
 
-  private data class RefreshRequest(val quickRefresh: Boolean) {
-    val requestId = UUID.randomUUID().toString().substring(0, 5)
-  }
+  private data class RefreshRequest(
+    val quickRefresh: Boolean,
+    val requestSource: Throwable?,
+    val requestId: String = UUID.randomUUID().toString().substring(0, 5)
+  )
 
   // region Lifecycle handling
-  @TestOnly
-  fun needsRefreshOnSuccessfulBuild() = previewFreshnessTracker.needsRefreshOnSuccessfulBuild()
-
-  @TestOnly fun buildWillTriggerRefresh() = previewFreshnessTracker.buildWillTriggerRefresh()
-
-  override fun invalidateSavedBuildStatus() {
-    previewFreshnessTracker.invalidateSavedBuildStatus()
-  }
-
   /**
    * Completes the initialization of the preview. This method is only called once after the first
    * [onActivate] happens.
@@ -686,6 +682,12 @@ class ComposePreviewRepresentation(
     setupBuildListener(
       project,
       object : BuildListener {
+        /**
+         * True if the project had files out of date before the build had triggered. This means we
+         * will need a refresh after the build has completed.
+         */
+        private var hadOutOfDateFiles = false
+
         override fun buildSucceeded() {
           LOG.debug("buildSucceeded")
           module?.let {
@@ -705,13 +707,13 @@ class ComposePreviewRepresentation(
             FastPreviewManager.getInstance(project).preStartDaemon(module)
           }
 
-          afterBuildComplete(true)
+          afterBuildComplete(isSuccessful = true, needsRefresh = hadOutOfDateFiles)
         }
 
         override fun buildFailed() {
           LOG.debug("buildFailed")
 
-          afterBuildComplete(false)
+          afterBuildComplete(isSuccessful = false, needsRefresh = false)
         }
 
         override fun buildCleaned() {
@@ -722,6 +724,8 @@ class ComposePreviewRepresentation(
 
         override fun buildStarted() {
           LOG.debug("buildStarted")
+          hadOutOfDateFiles =
+            PsiCodeFileChangeDetectorService.getInstance(project).outOfDateFiles.isNotEmpty()
 
           composeWorkBench.updateProgress(message("panel.building"))
           afterBuildStarted()
@@ -745,16 +749,26 @@ class ComposePreviewRepresentation(
             files: Collection<PsiFile>
           ) {
             psiFilePointer.element?.let { editorFile ->
-              if (files.any { it.isEquivalentTo(editorFile) })
-                afterBuildComplete(result == CompilationResult.Success)
+              if (files.any { it.isEquivalentTo(editorFile) }) {
+                // Fast Preview builds are only triggered when there were out of date files so we
+                // always pass needsRefresh to true.
+                afterBuildComplete(result == CompilationResult.Success, true)
+              }
             }
           }
         }
       )
   }
 
-  private fun afterBuildComplete(isSuccessful: Boolean) {
-    requestVisibilityAndNotificationsUpdate()
+  /**
+   * Called after a project build has completed. If [needsRefresh] is true, the project contained
+   * changes before the build that now require a preview refresh.
+   */
+  private fun afterBuildComplete(isSuccessful: Boolean, needsRefresh: Boolean) {
+    if (isSuccessful && needsRefresh) {
+      invalidate()
+      requestRefresh()
+    } else requestVisibilityAndNotificationsUpdate()
   }
 
   private fun afterBuildStarted() {
@@ -819,6 +833,20 @@ class ComposePreviewRepresentation(
         }
       }
 
+      launch(workerThread) {
+        psiFileChangeFlow(psiFilePointer.project, this@ComposePreviewRepresentation)
+          // filter only for the file we care about
+          .filter { it.language == KotlinLanguage.INSTANCE }
+          .collect {
+            // Invalidate the preview to detect for changes in any annotation. We do not refresh. If
+            // the change is in
+            // the preview file currently opened, the document change flow will detect the
+            // modification and trigger a refresh
+            // if needed.
+            invalidate()
+          }
+      }
+
       // Flow handling file changes and syntax error changes.
       launch(workerThread) {
         val psiFile = psiFilePointer.element ?: return@launch
@@ -854,13 +882,7 @@ class ComposePreviewRepresentation(
           .collect {
             if (FastPreviewManager.getInstance(project).isEnabled) {
               try {
-                requestFastPreviewRefreshAndTrack(
-                  this@ComposePreviewRepresentation,
-                  psiFilePointer.element ?: return@collect,
-                  status(),
-                  fastPreviewCompilationLauncher,
-                  ::forceRefresh
-                )
+                requestFastPreviewRefreshAndTrack()
               } catch (_: Throwable) {
                 // Ignore any cancellation exceptions
               }
@@ -894,6 +916,12 @@ class ComposePreviewRepresentation(
 
     if (interactiveMode.isStartingOrReady()) {
       resumeInteractivePreview()
+    }
+
+    if (FastPreviewManager.getInstance(project).isEnabled &&
+        psiCodeFileChangeDetectorService.outOfDateFiles.any { it is KtFile }
+    ) {
+      launch { requestFastPreviewRefreshAndTrack() }
     }
   }
 
@@ -976,7 +1004,9 @@ class ComposePreviewRepresentation(
       ComposePreviewManager.Status(
         !isRefreshing && hasErrorsAndNeedsBuild(),
         !isRefreshing && hasSyntaxErrors(),
-        !isRefreshing && projectBuildStatusManager.status is ProjectStatus.OutOfDate,
+        !isRefreshing &&
+          (projectBuildStatusManager.status is ProjectStatus.OutOfDate ||
+            projectBuildStatusManager.status is ProjectStatus.NeedsBuild),
         !isRefreshing &&
           (projectBuildStatusManager.status as? ProjectStatus.OutOfDate)?.areResourcesOutOfDate
             ?: false,
@@ -1082,9 +1112,9 @@ class ComposePreviewRepresentation(
     }
   }
 
-  private fun requestRefresh(quickRefresh: Boolean = false) {
-    if (LOG.isDebugEnabled) LOG.debug("requestRefresh", Throwable())
-    launch(workerThread) { refreshFlow.emit(RefreshRequest(quickRefresh)) }
+  internal fun requestRefresh(quickRefresh: Boolean = false) {
+    val refreshRequest = RefreshRequest(quickRefresh = quickRefresh, requestSource = Throwable())
+    launch(workerThread) { refreshFlow.emit(refreshRequest) }
   }
 
   private fun requestVisibilityAndNotificationsUpdate() {
@@ -1100,7 +1130,7 @@ class ComposePreviewRepresentation(
   private fun refresh(refreshRequest: RefreshRequest): Job? {
     val requestLogger = LoggerWithFixedInfo(LOG, mapOf("requestId" to refreshRequest.requestId))
     requestLogger.debug("Refresh triggered. quickRefresh: ${refreshRequest.quickRefresh}")
-    val refreshTrigger: Throwable? = if (LOG.isDebugEnabled) Throwable() else null
+    val refreshTrigger: Throwable? = refreshRequest.requestSource
     val startTime = System.nanoTime()
     // Start a progress indicator so users are aware that a long task is running. Stop it by calling
     // processFinish() if returning early.
@@ -1252,13 +1282,13 @@ class ComposePreviewRepresentation(
   private fun usePrivateClassLoader() =
     interactiveMode.isStartingOrReady() || animationInspection.get() || shouldQuickRefresh()
 
-  private fun invalidate() {
+  override fun invalidate() {
     invalidated.set(true)
   }
 
   internal fun forceRefresh(quickRefresh: Boolean = false): Job? {
     invalidate()
-    return refresh(RefreshRequest(quickRefresh))
+    return refresh(RefreshRequest(quickRefresh = quickRefresh, requestSource = Throwable()))
   }
 
   override fun registerShortcuts(applicableTo: JComponent) {
@@ -1274,18 +1304,52 @@ class ComposePreviewRepresentation(
    */
   private fun shouldQuickRefresh() = renderedElements.count() == 1
 
-  override fun requestFastPreviewRefreshAsync(): Deferred<CompilationResult> =
-    lifecycleManager.executeIfActive {
-      async {
-        requestFastPreviewRefreshAndTrack(
-          this@ComposePreviewRepresentation,
-          psiFilePointer.element
-            ?: return@async CompilationResult.CompilationError(Throwable("File has been removed")),
-          status(),
-          fastPreviewCompilationLauncher,
-          ::forceRefresh
+  private suspend fun requestFastPreviewRefreshAndTrack(): CompilationResult {
+    val previewFile =
+      psiFilePointer.element
+        ?: return CompilationResult.RequestException(
+          IllegalStateException("Preview File is no valid")
         )
-      }
-    }
+    val previewFileModule =
+      previewFile.module
+        ?: return CompilationResult.RequestException(
+          IllegalStateException("Preview File does not have a valid module")
+        )
+    val outOfDateFiles =
+      psiCodeFileChangeDetectorService
+        .outOfDateFiles
+        .filterIsInstance<KtFile>()
+        .filter { modifiedFile ->
+          if (modifiedFile.isEquivalentTo(previewFile)) return@filter true
+          val modifiedFileModule = modifiedFile.module ?: return@filter false
+
+          // Keep the file if the file is from this module or from a module we depend on
+          modifiedFileModule == previewFileModule ||
+            ModuleManager.getInstance(project)
+              .isModuleDependent(previewFileModule, modifiedFileModule)
+        }
+        .toSet()
+
+    // Nothing to compile
+    if (outOfDateFiles.isEmpty()) return CompilationResult.Success
+
+    return requestFastPreviewRefreshAndTrack(
+      this@ComposePreviewRepresentation,
+      previewFileModule,
+      outOfDateFiles,
+      status(),
+      fastPreviewCompilationLauncher,
+      ::forceRefresh
+    )
+  }
+
+  override fun requestFastPreviewRefreshAsync(): Deferred<CompilationResult> =
+    lifecycleManager.executeIfActive { async { requestFastPreviewRefreshAndTrack() } }
       ?: CompletableDeferred(CompilationResult.CompilationAborted())
+
+  /** Waits for any preview to be populated. */
+  @TestOnly
+  suspend fun waitForAnyPreviewToBeAvailable() {
+    previewElementsFlow.filter { it.isNotEmpty() }.take(1).collect()
+  }
 }

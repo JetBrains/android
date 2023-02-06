@@ -91,11 +91,6 @@ interface ComposePreviewManager : Disposable {
   fun status(): Status
 
   /**
-   * Mark the preview as stale, so that a refresh is enforced when the next successful build happens
-   */
-  fun invalidateSavedBuildStatus()
-
-  /**
    * List of available groups in this preview. The editor can contain multiple groups and only will
    * be displayed at a given time.
    */
@@ -142,6 +137,12 @@ interface ComposePreviewManager : Disposable {
 
   /** Stops the interactive preview. */
   fun stopInteractivePreview()
+
+  /**
+   * Invalidates the cached preview status. This ensures that the @Preview annotations lookup
+   * happens again to find any possible new annotations.
+   */
+  fun invalidate()
 }
 
 val ComposePreviewManager.isInStaticAndNonAnimationMode: Boolean
