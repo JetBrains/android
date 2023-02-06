@@ -73,6 +73,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.util.text.Strings;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
@@ -392,7 +393,7 @@ public class Configuration implements Disposable, ModificationTracker {
    */
   @Nullable
   public String getActivity() {
-    if (myActivity == NO_ACTIVITY) {
+    if (Strings.areSameInstance(myActivity, NO_ACTIVITY)) {
       return null;
     } else if (myActivity == null && myFile != null) {
       myActivity = ApplicationManager.getApplication().runReadAction((Computable<String>)() -> {

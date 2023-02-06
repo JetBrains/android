@@ -64,7 +64,7 @@ public final class SwingUtil {
     @Override
     public void actionPerformed(ActionEvent e) {
       String key = (String)getValue(Action.NAME);
-      if (key == DOWN) {
+      if (DOWN.equals(key)) {
         if (comboBox.isShowing()) {
           if (comboBox.isPopupVisible()) {
             if (comboBox.getUI() != null) {
@@ -76,7 +76,7 @@ public final class SwingUtil {
           }
         }
       }
-      else if (key == UP) {
+      else if (UP.equals(key)) {
         if (comboBox.getUI() != null) {
           if (comboBox.isPopupVisible()) {
             selectPreviousPossibleValue();

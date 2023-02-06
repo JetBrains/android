@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator.nodes.ndk.includes.utils;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.util.text.Strings;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.util.ArrayList;
@@ -110,7 +111,7 @@ public class IncludeSet {
       for (IncludeFlags test : IncludeFlags.values()) {
         String analysis = analyzeFlagPattern(compilerFlag, test);
         // Intentionally comparing instances instead of value because it is a sentinel value returned by analyzeFlagPattern
-        if (analysis == TAKE_NEXT_SENTINEL) {
+        if (Strings.areSameInstance(analysis, TAKE_NEXT_SENTINEL)) {
           useNextFlagAsInclude = true;
           appendUsrInclude = test.myAppendUsrInclude;
           break;

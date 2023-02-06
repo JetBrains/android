@@ -83,10 +83,10 @@ public final class ConstraintUtilities {
   static int getMargin(@NotNull NlComponent component, @NotNull String attr) {
     String margin = component.getLiveAttribute(SdkConstants.ANDROID_URI, attr);
     if (margin == null) {
-      if (attr == SdkConstants.ATTR_LAYOUT_MARGIN_START) {
+      if (attr.equals(SdkConstants.ATTR_LAYOUT_MARGIN_START)) {
         margin = component.getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
       }
-      else if (attr == SdkConstants.ATTR_LAYOUT_MARGIN_END) {
+      else if (attr.equals(SdkConstants.ATTR_LAYOUT_MARGIN_END)) {
         margin = component.getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
       }
     }

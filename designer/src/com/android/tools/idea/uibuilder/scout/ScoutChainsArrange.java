@@ -180,7 +180,7 @@ public class ScoutChainsArrange {
       transactions.add(connect(component, previousConnectString, previousIdString));
       transactions.add(connect(component, attr_b_to_a, after));
       transactions.add(connect(after, attr_a_to_b, component));
-      if (attr_a_to_b != previousConnectString) {
+      if (!attr_a_to_b.equals(previousConnectString)) {
         transactions.add(disconnect(after, previousConnectString));
       }
     }
@@ -194,7 +194,7 @@ public class ScoutChainsArrange {
       transactions.add(connect(component, nextConnectString, nextIdString));
       transactions.add(connect(before, attr_b_to_a, component));
       transactions.add(connect(component, attr_a_to_b, before));
-      if (attr_b_to_a != nextConnectString) {
+      if (!attr_b_to_a.equals(nextConnectString)) {
         transactions.add(disconnect(before, nextConnectString));
       }
     }
@@ -243,12 +243,12 @@ public class ScoutChainsArrange {
     if (k > 0) {
       NlComponent before = myChain.get(k - 1);
       transactions.add(connect(before, nextConnectString, nextIdString));
-      transactions.add(disconnect(before, myVertical, nextConnectString == attr_b_to_b ? attr_b_to_a : attr_b_to_b));
+      transactions.add(disconnect(before, myVertical, attr_b_to_b.equals(nextConnectString) ? attr_b_to_a : attr_b_to_b));
     }
     if (k + 1 < myChain.size()) {
       NlComponent after = myChain.get(k + 1);
       transactions.add(connect(after, previousConnectString, previousIdString));
-      transactions.add(disconnect(after, myVertical, previousConnectString == attr_a_to_a ? attr_a_to_b : attr_a_to_a));
+      transactions.add(disconnect(after, myVertical, attr_a_to_a.equals(previousConnectString) ? attr_a_to_b : attr_a_to_a));
     }
     transactions.add(disconnect(component, myVertical, attr_a_to_a,
                                 attr_a_to_b,

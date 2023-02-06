@@ -50,7 +50,7 @@ public class MotionDefaultPropertyValueProvider implements DefaultPropertyValueP
     if (attr == null) {
       return null;
     }
-    if (attr.isCustomAttribute() != (getSubTag(property) == CUSTOM_ATTRIBUTE)) {
+    if (attr.isCustomAttribute() != (CUSTOM_ATTRIBUTE.equals(getSubTag(property)))) {
       return null;
     }
     return attr.getValue();

@@ -138,7 +138,7 @@ public class IssueView extends JPanel {
 
     myErrorTitle.setText(issue.getSummary());
     String displayText = issue.getSource().getDisplayText();
-    if (displayText != "") {
+    if (!displayText.isEmpty()) {
       mySourceLabel.setText(displayText);
     }
   }
