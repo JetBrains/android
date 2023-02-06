@@ -625,6 +625,42 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testVersionCatalogPluginsDslApplyPluginByReference() {
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile(TestFile.VERSION_CATALOG_BUILD_FILE)
+      writeToVersionCatalogFile(TestFile.VERSION_CATALOG_PLUGINS_NOTATION)
+
+      val pbm = projectBuildModel
+      val buildModel = pbm.projectBuildModel!!
+      val app = pbm.versionCatalogsModel.plugins("libs").findProperty("app")
+      buildModel.applyPlugin(ReferenceTo(app, buildModel), null).also { pluginModel ->
+        assertEquals("com.android.application", pluginModel.name().forceString())
+        assertEquals("7.1.0", pluginModel.version().forceString())
+        assertMissingProperty(pluginModel.apply())
+      }
+      val lib = pbm.versionCatalogsModel.plugins("libs").findProperty("lib")
+      buildModel.applyPlugin(ReferenceTo(lib, buildModel), true).also { pluginModel ->
+        assertEquals("com.android.library", pluginModel.name().forceString())
+        assertEquals("7.1.0", pluginModel.version().forceString())
+        assertEquals("true", pluginModel.apply().forceString())
+      }
+      val com = pbm.versionCatalogsModel.plugins("libs").findProperty("com")
+      buildModel.applyPlugin(ReferenceTo(com, buildModel), false).also { pluginModel ->
+        assertEquals("com.android.dynamic-feature", pluginModel.name().forceString())
+        assertEquals("7.1.0", pluginModel.version().forceString())
+        assertEquals("false", pluginModel.apply().forceString())
+      }
+      applyChangesAndReparse(pbm)
+      verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_BUILD_FILE_PLUGINS_REFERENCE_EXPECTED)
+      verifyVersionCatalogFileContents(myVersionCatalogFile, TestFile.VERSION_CATALOG_PLUGINS_NOTATION)
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
+  @Test
   fun testVersionCatalogBundlesDsl() {
     writeToBuildFile(TestFile.VERSION_CATALOG_BUNDLE_BUILD_FILE)
     writeToVersionCatalogFile(TestFile.VERSION_CATALOG_BUNDLES_COMPACT_NOTATION)
@@ -1881,6 +1917,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     BUILD_SRC_ANDROID_GRADLE_PLUGIN_DEPENDENCY_EXPECTED("buildSrcAndroidGradlePluginDependencyExpected"),
     CONTEXT_AGP_VERSION("contextAgpVersion"),
     VERSION_CATALOG_BUILD_FILE("versionCatalogBuildFile"),
+    VERSION_CATALOG_BUILD_FILE_PLUGINS_REFERENCE_EXPECTED("versionCatalogBuildFilePluginsReferenceExpected"),
     VERSION_CATALOG_ALIAS_MAPPING_BUILD_FILE("versionCatalogAliasMappingBuildFile"),
     VERSION_CATALOG_PLUGINS_DSL_BUILD_FILE("versionCatalogPluginsDslBuildFile"),
     VERSION_CATALOG_BUNDLE_BUILD_FILE("versionCatalogBundleBuildFile"),

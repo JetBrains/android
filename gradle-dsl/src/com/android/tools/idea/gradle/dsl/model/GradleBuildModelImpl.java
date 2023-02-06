@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
+import static com.android.tools.idea.gradle.dsl.model.PluginModelImpl.ALIAS;
 import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID;
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT;
@@ -43,6 +44,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
@@ -64,6 +66,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
@@ -223,6 +226,35 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     pluginsElement.setNewElement(expression);
 
     return new PluginModelImpl(expression);
+  }
+
+  @Override
+  public @NotNull PluginModel applyPlugin(@NotNull ReferenceTo reference, @Nullable Boolean apply) {
+    int at = 0;
+    List<GradleDslElement> elements = myGradleDslFile.getCurrentElements();
+    if (elements.size() > 0 && elements.get(0) instanceof BuildScriptDslElement) {
+      at += 1;
+    }
+    PluginsDslElement pluginsElement = myGradleDslFile.ensurePropertyElementAt(PLUGINS, at);
+
+    // not: reparented if apply is non-null
+    GradleDslMethodCall alias = new GradleDslMethodCall(pluginsElement, GradleNameElement.empty(), ALIAS);
+    GradleDslLiteral target = new GradleDslLiteral(alias.getArgumentsElement(), GradleNameElement.empty());
+    target.setValue(reference);
+    alias.addNewArgument(target);
+    if (apply != null) {
+      GradleDslInfixExpression expression = new GradleDslInfixExpression(pluginsElement, null);
+      alias.setParent(expression);
+      expression.setNewElement(alias);
+      expression.setNewLiteral(APPLY, apply);
+      pluginsElement.setNewElement(expression);
+      return new PluginModelImpl(expression);
+    }
+    else {
+      pluginsElement.setNewElement(alias);
+      return new PluginModelImpl(alias);
+    }
+
   }
 
   @Override
