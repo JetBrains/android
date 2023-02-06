@@ -58,6 +58,18 @@ class GradleNameElementTest : UsefulTestCase() {
     assertThat(GradleNameElement.split("ab \t \n é Å £ € \u1234")).isEqualTo(listOf("ab \t \n é Å £ € \u1234"))
   }
 
+  fun testSplitDotBeforeBackslash() {
+    assertThat(GradleNameElement.split("""ab.\de""")).isEqualTo(listOf("ab", "de"))
+  }
+
+  fun testSplitDotBeforeEscapedBackslash() {
+    assertThat(GradleNameElement.split("""ab.\\de""")).isEqualTo(listOf("ab", "\\de"))
+  }
+
+  fun testSplit() {
+    assertThat(GradleNameElement.split("project(':project:module:sub-module').projectDir")).isEqualTo(listOf("project(':project:module:sub-module')", "projectDir"))
+  }
+
   fun testJoinNoDots() {
     assertThat(GradleNameElement.join(listOf("abcde"))).isEqualTo("abcde")
   }

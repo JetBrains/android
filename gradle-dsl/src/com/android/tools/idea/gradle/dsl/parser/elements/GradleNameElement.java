@@ -309,24 +309,30 @@ public class GradleNameElement {
 
   @NotNull
   public static List<String> split(@NotNull String name) {
-    StringBuilder buf = new StringBuilder();
-    List<String> result = new ArrayList<>();
-    for (int i = 0; i < name.length(); i++) {
-      char c = name.charAt(i);
-      if (c == '\\') {
-        assert i < name.length() - 1;
-        buf.append(name.charAt(++i));
+    if (name.contains(".") || name.contains("\\")) {
+      StringBuilder buf = new StringBuilder();
+      List<String> result = new ArrayList<>();
+      for (int i = 0; i < name.length(); i++) {
+        char c = name.charAt(i);
+        if (c == '\\') {
+          assert i < name.length() - 1;
+          buf.append(name.charAt(++i));
+        }
+        else if (c == '.') {
+          result.add(buf.toString());
+          buf.setLength(0);
+        }
+        else {
+          buf.append(name.charAt(i));
+        }
       }
-      else if (c == '.') {
-        result.add(buf.toString());
-        buf.setLength(0);
-      }
-      else {
-        buf.append(name.charAt(i));
-      }
+      result.add(buf.toString());
+      buf.setLength(0);
+      return result;
     }
-    result.add(buf.toString());
-    return result;
+    else {
+      return List.of(name);
+    }
   }
 
   /**
