@@ -34,7 +34,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.ProjectPostStartupActivity
+import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileEvent
@@ -168,7 +168,7 @@ class MergedManifestModificationListener(
    * Service responsible for ensuring that a [Project] has a [MergedManifestModificationListener]
    * subscribed to listen for both VFS and Document changes once the initial project sync has completed.
    */
-  private class SubscriptionStartupActivity : ProjectPostStartupActivity {
+  private class SubscriptionStartupActivity : ProjectActivity {
     override suspend fun execute(project: Project) {
       project.getService(SubscriptionService::class.java).onProjectOpened()
     }

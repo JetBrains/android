@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project
 
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.ProjectPostStartupActivity
+import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.removeUserData
 
@@ -27,7 +27,7 @@ import com.intellij.openapi.util.removeUserData
  * It is intended to be used to populate the project's directory with content while the project hasn't been yet completely loaded
  * and Android and other plugins haven't yet seen the project.
  */
-class AndroidNewProjectInitializationStartupActivity : ProjectPostStartupActivity {
+class AndroidNewProjectInitializationStartupActivity : ProjectActivity {
   override suspend fun execute(project: Project) {
     val initializationRunnable = project.getUserData(INITIALIZER_KEY)
     if (initializationRunnable != null) {

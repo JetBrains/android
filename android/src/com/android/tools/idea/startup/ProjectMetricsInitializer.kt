@@ -21,8 +21,11 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.StudioProjectChange
 import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.project.*
-import com.intellij.openapi.startup.ProjectPostStartupActivity
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectCloseListener
+import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.util.application
 import java.util.Collections
 import java.util.concurrent.Future
@@ -37,7 +40,7 @@ class ProjectMetricsService {
 }
 
 private class ProjectMetricsInitializer : ProjectCloseListener {
-  class MyStartupActivity : ProjectPostStartupActivity {
+  class MyStartupActivity : ProjectActivity {
     override suspend fun execute(project: Project) {
       // don't include current project to be consistent with projectClosed
       val projectsOpen = ProjectManager.getInstance().openProjects.size - 1

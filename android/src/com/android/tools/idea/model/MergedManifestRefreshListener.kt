@@ -29,7 +29,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.ProjectPostStartupActivity
+import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -118,7 +118,7 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
    * [StartupActivity.DumbAware] responsible for ensuring that a [Project] has a [MergedManifestRefreshListener]
    * subscribed to listen for VFS changes once the initial project sync has completed.
    */
-  private class SubscriptionStartupActivity : ProjectPostStartupActivity {
+  private class SubscriptionStartupActivity : ProjectActivity {
     override suspend fun execute(project: Project) {
       project.listenUntilNextSync(listener = object : SyncResultListener {
         override fun syncEnded(result: SyncResult) = project.getService(Subscriber::class.java).ensureSubscribed()

@@ -27,7 +27,7 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.ProjectPostStartupActivity
+import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeAdapter
@@ -95,7 +95,7 @@ internal class ComposeNewPreviewNotificationManager : Disposable {
   override fun dispose() {
   }
 
-  class MyStartupActivity : ProjectPostStartupActivity {
+  class MyStartupActivity : ProjectActivity {
     override suspend fun execute(project: Project) {
       project.service<ComposeNewPreviewNotificationManager>().projectOpened(project)
     }

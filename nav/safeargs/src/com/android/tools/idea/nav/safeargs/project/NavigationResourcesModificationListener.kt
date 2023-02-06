@@ -39,7 +39,7 @@ import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.ProjectPostStartupActivity
+import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
@@ -119,7 +119,7 @@ class NavigationResourcesModificationListener(
    * [StartupActivity] responsible for ensuring that a [Project] has a [NavigationResourcesModificationListener]
    * subscribed to listen for both VFS and Document changes when opening projects.
    */
-  internal class SubscriptionStartupActivity : ProjectPostStartupActivity {
+  internal class SubscriptionStartupActivity : ProjectActivity {
     override suspend fun execute(project: Project) {
       val resourceListener = NavigationResourcesModificationListener(project)
       project.listenUntilNextSync(listener = object : SyncResultListener {
