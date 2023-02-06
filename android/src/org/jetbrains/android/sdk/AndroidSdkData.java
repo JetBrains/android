@@ -23,8 +23,8 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.io.FilePaths;
+import com.android.tools.idea.sdk.AndroidSdkPath;
 import com.android.tools.idea.sdk.IdeDeviceManagers;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Maps;
 import java.lang.ref.SoftReference;
@@ -68,7 +68,7 @@ public class AndroidSdkData {
     }
 
     File canonicalLocation = new File(canonicalPath);
-    if (!IdeSdks.getInstance().isValidAndroidSdkPath(canonicalLocation)) {
+    if (!AndroidSdkPath.isValid(canonicalLocation)) {
       return null;
     }
 

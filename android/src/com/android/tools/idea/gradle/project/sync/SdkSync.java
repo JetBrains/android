@@ -23,6 +23,7 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.sdk.AndroidSdkPath;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.SelectSdkDialog;
@@ -98,7 +99,7 @@ public class SdkSync {
   private void setIdeSdkFromProjectSdk(@NotNull LocalProperties localProperties,
                                        @NotNull FindValidSdkPathTask findSdkPathTask,
                                        @NotNull File projectAndroidSdkPath) {
-    if (IdeSdks.getInstance().isValidAndroidSdkPath(projectAndroidSdkPath)) {
+    if (AndroidSdkPath.isValid(projectAndroidSdkPath)) {
       setIdeSdk(localProperties, projectAndroidSdkPath);
     }
     else {
@@ -294,7 +295,7 @@ public class SdkSync {
         return;
       }
       File path = new File(dialog.getAndroidHome());
-      if (!IdeSdks.getInstance().isValidAndroidSdkPath(path)) {
+      if (!AndroidSdkPath.isValid(path)) {
         String format = "The path\n'%1$s'\ndoes not refer to a valid Android SDK. Would you like to try again?";
         if (MessageDialogBuilder.yesNo(ERROR_DIALOG_TITLE, String.format(format, path.getPath())).ask((Project)null)) {
           findValidSdkPath(pathRef);

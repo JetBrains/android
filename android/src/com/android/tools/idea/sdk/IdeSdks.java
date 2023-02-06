@@ -158,7 +158,7 @@ public class IdeSdks {
     Path sdkPath = AndroidSdkPathStore.getInstance().getAndroidSdkPath();
     if (sdkPath != null) {
       File candidate = sdkPath.toFile();
-      if (isValidAndroidSdkPath(candidate)) {
+      if (AndroidSdkPath.isValid(candidate)) {
         return candidate;
       }
     }
@@ -378,7 +378,7 @@ public class IdeSdks {
    */
   @NotNull
   public List<Sdk> setAndroidSdkPath(@NotNull File path) {
-    if (isValidAndroidSdkPath(path)) {
+    if (AndroidSdkPath.isValid(path)) {
       ApplicationManager.getApplication().assertWriteAccessAllowed();
 
       // Store default sdk path for the application as well in order to be able to re-use it for other ide projects if necessary.
@@ -436,13 +436,6 @@ public class IdeSdks {
         listener.afterSdkPathChange(androidSdkPath, project);
       }
     }
-  }
-
-  /**
-   * Returns true if the given Android SDK path points to a valid Android SDK.
-   */
-  public boolean isValidAndroidSdkPath(@NotNull File path) {
-    return validateAndroidSdk(path, false).success;
   }
 
   public static void updateWelcomeRunAndroidSdkAction() {

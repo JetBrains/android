@@ -43,6 +43,7 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.progress.StudioProgressRunner;
+import com.android.tools.idea.sdk.AndroidSdkPath;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
@@ -705,7 +706,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     IdeSdks ideSdks = IdeSdks.getInstance();
 
     boolean validJdk = ideSdks.isUsingEmbeddedJdk() || (!jdkPath.isEmpty() && checkForJdk(Paths.get(jdkPath)));
-    boolean validSdk = !sdkPath.isEmpty() && ideSdks.isValidAndroidSdkPath(new File(sdkPath));
+    boolean validSdk = !sdkPath.isEmpty() && AndroidSdkPath.isValid(new File(sdkPath));
 
     return !validJdk || !validSdk;
   }
