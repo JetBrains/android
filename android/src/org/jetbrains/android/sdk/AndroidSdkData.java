@@ -17,7 +17,6 @@
 package org.jetbrains.android.sdk;
 
 import com.android.prefs.AndroidLocationsSingleton;
-import com.android.repository.Revision;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
@@ -38,9 +37,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentMap;
 
-import static com.android.SdkConstants.FD_PLATFORM_TOOLS;
 import static com.intellij.openapi.util.io.FileUtil.*;
-import static org.jetbrains.android.util.AndroidBuildCommonUtils.parsePackageRevision;
 
 public class AndroidSdkData {
   private final DeviceManager myDeviceManager;
@@ -87,8 +84,6 @@ public class AndroidSdkData {
 
   private AndroidSdkData(@NotNull File localSdk) {
     mySdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, localSdk.toPath());
-    String locationPath = getLocation().toString();
-    Revision platformToolsRevision = parsePackageRevision(locationPath, FD_PLATFORM_TOOLS);
     myDeviceManager = IdeDeviceManagers.getDeviceManager(mySdkHandler);
   }
 
