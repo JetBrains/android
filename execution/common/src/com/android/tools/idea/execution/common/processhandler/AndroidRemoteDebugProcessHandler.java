@@ -16,7 +16,6 @@
 package com.android.tools.idea.execution.common.processhandler;
 
 
-import com.android.annotations.NonNull;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
@@ -30,7 +29,6 @@ import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.concurrency.AppExecutorUtil;
@@ -38,8 +36,6 @@ import java.io.OutputStream;
 import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import kotlin.Unit;
-import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,29 +55,17 @@ final public class AndroidRemoteDebugProcessHandler extends ProcessHandler imple
   private final Project myProject;
   private final Client myClient;
   private final boolean myDetachIsDefault;
-  private final Function1<IDevice, Unit> myFinishAndroidProcessCallback;
 
   public AndroidRemoteDebugProcessHandler(Project project,
                                           Client client,
-                                          boolean detachIsDefault,
-                                          @NonNull Function1<IDevice, Unit> finishAndroidProcessCallback) {
+                                          boolean detachIsDefault) {
     myProject = project;
     myClient = client;
     myDetachIsDefault = detachIsDefault;
-    myFinishAndroidProcessCallback = finishAndroidProcessCallback;
 
     putCopyableUserData(SwappableProcessHandler.EXTENSION_KEY, this);
   }
 
-  public AndroidRemoteDebugProcessHandler(Project project, Client client, boolean detachIsDefault) {
-    this(project, client, detachIsDefault, (device) -> {
-      String processName = client.getClientData().getClientDescription();
-      if (processName != null) {
-        device.forceStop(processName);
-      }
-      return Unit.INSTANCE;
-    });
-  }
 
   // This is partially copied from com.intellij.debugger.engine.RemoteDebugProcessHandler#startNotify.
   @Override
@@ -111,12 +95,6 @@ final public class AndroidRemoteDebugProcessHandler extends ProcessHandler imple
     }
   }
 
-  /**
-   * Terminates the process when ProcessHandler is stopped via {@link ProcessHandler#destroyProcess()} instead of shutting down target vm.
-   */
-  private void terminateAndroidProcess() {
-    ApplicationManager.getApplication().executeOnPooledThread(() -> myFinishAndroidProcessCallback.invoke(myClient.getDevice()));
-  }
 
   @Override
   protected void destroyProcessImpl() {
@@ -125,7 +103,6 @@ final public class AndroidRemoteDebugProcessHandler extends ProcessHandler imple
       // killing target debug VM doesn't work nice with all Android processes, invoke terminateAndroidProcess instead.
       debugProcess.stop(/*forceTerminate*/false);
     }
-    terminateAndroidProcess();
     notifyProcessTerminated(0);
   }
 
