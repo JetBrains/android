@@ -246,7 +246,8 @@ public final class LocalProperties {
   }
 
   @NotNull
-  private static String getHeaderComment() {
+  @VisibleForTesting
+  public static String getHeaderComment() {
     String[] lines = {
       "# This file must *NOT* be checked into Version Control Systems,",
       "# as it contains information specific to your local configuration.",

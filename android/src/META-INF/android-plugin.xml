@@ -643,7 +643,8 @@
                                     implementationClass="org.jetbrains.android.AndroidGotoRelatedLineMarkerProvider"/>
     <codeInsight.lineMarkerProvider language="XML"
                                     implementationClass="org.jetbrains.android.AndroidGotoRelatedLineMarkerProvider"/>
-
+    <codeInsight.lineMarkerProvider language="Properties"
+                                    implementationClass="org.jetbrains.android.AndroidPropertiesLineMarkerProvider"/>
     <implicitUsageProvider implementation="org.jetbrains.android.AndroidClassMembersImplicitUsagesProvider"/>
     <spellchecker.support language="TEXT" implementationClass="org.jetbrains.android.spellchecker.AndroidTextSpellcheckingStrategy" order="first"/>
     <spellchecker.support language="Properties" implementationClass="org.jetbrains.android.spellchecker.AndroidTextSpellcheckingStrategy" order="first"/>
