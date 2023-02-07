@@ -26,23 +26,42 @@ import java.util.function.Predicate
 /**
  * Simulates pressing and releasing a button on an Android virtual device.
  *
+ * @param keyName the name of the button to press
+ * @param modifierKeyName if not null, the name of the second button that is pressed before
+ *     the first and released after it
  * @param configFilter determines the types of devices the action is applicable to
  */
 open class EmulatorPushButtonAction(
   private val keyName: String,
+  private val modifierKeyName: String? = null,
   configFilter: Predicate<EmulatorConfiguration>? = null,
 ) : AbstractEmulatorAction(configFilter = configFilter), PushButtonAction {
 
   final override fun buttonPressed(event: AnActionEvent) {
-    getEmulatorController(event)?.sendKey(createKeyboardEvent(keyName, eventType = KeyboardEvent.KeyEventType.keydown))
+    val emulatorController = getEmulatorController(event) ?: return
+    if (modifierKeyName != null) {
+      emulatorController.sendKey(createKeyboardEvent(modifierKeyName, eventType = KeyboardEvent.KeyEventType.keydown))
+    }
+    emulatorController.sendKey(createKeyboardEvent(keyName, eventType = KeyboardEvent.KeyEventType.keydown))
   }
 
   final override fun buttonReleased(event: AnActionEvent) {
-    getEmulatorController(event)?.sendKey(createKeyboardEvent(keyName, eventType = KeyboardEvent.KeyEventType.keyup))
+    val emulatorController = getEmulatorController(event) ?: return
+    emulatorController.sendKey(createKeyboardEvent(keyName, eventType = KeyboardEvent.KeyEventType.keyup))
+    if (modifierKeyName != null) {
+      emulatorController.sendKey(createKeyboardEvent(modifierKeyName, eventType = KeyboardEvent.KeyEventType.keyup))
+    }
   }
 
   final override fun buttonPressedAndReleased(event: AnActionEvent) {
-    getEmulatorController(event)?.sendKey(createKeyboardEvent(keyName, eventType = KeyboardEvent.KeyEventType.keypress))
+    val emulatorController = getEmulatorController(event) ?: return
+    if (modifierKeyName != null) {
+      emulatorController.sendKey(createKeyboardEvent(modifierKeyName, eventType = KeyboardEvent.KeyEventType.keydown))
+    }
+    emulatorController.sendKey(createKeyboardEvent(keyName, eventType = KeyboardEvent.KeyEventType.keypress))
+    if (modifierKeyName != null) {
+      emulatorController.sendKey(createKeyboardEvent(modifierKeyName, eventType = KeyboardEvent.KeyEventType.keyup))
+    }
   }
 
   final override fun actionPerformed(event: AnActionEvent) {

@@ -482,6 +482,10 @@
     <option name="palm" path="ActionManager" hit="Palm" />
     <option name="phone" path="ActionManager" hit="Phone" />
     <option name="power" path="ActionManager" hit="Power" />
+    <option name="menu" path="ActionManager" hit="Power + Volume Up (Power Menu)" />
+    <option name="power" path="ActionManager" hit="Power + Volume Up (Power Menu)" />
+    <option name="up" path="ActionManager" hit="Power + Volume Up (Power Menu)" />
+    <option name="volume" path="ActionManager" hit="Power + Volume Up (Power Menu)" />
     <option name="back" path="ActionManager" hit="Press the Back button of the device" />
     <option name="button" path="ActionManager" hit="Press the Back button of the device" />
     <option name="device" path="ActionManager" hit="Press the Back button of the device" />
@@ -500,6 +504,16 @@
     <option name="overview" path="ActionManager" hit="Press the Overview button of the device" />
     <option name="press" path="ActionManager" hit="Press the Overview button of the device" />
     <option name="the" path="ActionManager" hit="Press the Overview button of the device" />
+    <option name="and" path="ActionManager" hit="Press the Power and Volume Up buttons together of the device" />
+    <option name="buttons" path="ActionManager" hit="Press the Power and Volume Up buttons together of the device" />
+    <option name="device" path="ActionManager" hit="Press the Power and Volume Up buttons together of the device" />
+    <option name="of" path="ActionManager" hit="Press the Power and Volume Up buttons together of the device" />
+    <option name="power" path="ActionManager" hit="Press the Power and Volume Up buttons together of the device" />
+    <option name="press" path="ActionManager" hit="Press the Power and Volume Up buttons together of the device" />
+    <option name="the" path="ActionManager" hit="Press the Power and Volume Up buttons together of the device" />
+    <option name="together" path="ActionManager" hit="Press the Power and Volume Up buttons together of the device" />
+    <option name="up" path="ActionManager" hit="Press the Power and Volume Up buttons together of the device" />
+    <option name="volume" path="ActionManager" hit="Press the Power and Volume Up buttons together of the device" />
     <option name="button" path="ActionManager" hit="Press the Power button of the device" />
     <option name="device" path="ActionManager" hit="Press the Power button of the device" />
     <option name="of" path="ActionManager" hit="Press the Power button of the device" />
