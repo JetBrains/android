@@ -16,33 +16,21 @@
 package com.android.tools.idea.concurrency
 
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.Service
-import com.intellij.util.concurrency.AppExecutorUtil.createBoundedApplicationPoolExecutor
-import com.intellij.util.indexing.UnindexedFilesUpdater
 import java.util.concurrent.ExecutorService
 
-@Service
-class AndroidIoManager {
+/**
+ * Interface for service responsible for running Disk IO operations.
+ */
+interface AndroidIoManager {
   companion object {
-    private const val NAME = "Android IO tasks"
-
     @JvmStatic
     fun getInstance(): AndroidIoManager = ApplicationManager.getApplication().getService(AndroidIoManager::class.java)!!
   }
-
-  /**
-   * Maximum number of threads performing IO in parallel.
-   *
-   * First approximation based on what indexing is using.
-   */
-  private val threadCount = UnindexedFilesUpdater.getNumberOfIndexingThreads()
-
-  private val boundedExecutor = createBoundedApplicationPoolExecutor(NAME, threadCount)
 
   /**
    * Returns the [ExecutorService] to use for doing parallel disk IO. The returned [ExecutorService] will limit the total number of threads
    * dedicated to Android-related disk IO across the entire application. Since the platform doesn't provide a similar API, the bound is
    * only applicable to Android-related code.
    */
-  fun getBackgroundDiskIoExecutor(): ExecutorService = boundedExecutor
+  fun getBackgroundDiskIoExecutor(): ExecutorService
 }

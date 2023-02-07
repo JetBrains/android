@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (C) 2017 The Android Open Source Project
+  ~ Copyright (C) 2023 The Android Open Source Project
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,11 +13,9 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-  <name>Android Run/Debug Tests</name>
-  <id>com.android.tools.idea.adb.tests</id>
-  <depends>com.intellij.modules.platform</depends>
-
-  <xi:include href="/META-INF/android-adb.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-common.xml" xpointer="xpointer(/idea-plugin/*)"/>
+<idea-plugin>
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceInterface="com.android.tools.idea.concurrency.AndroidIoManager"
+                        serviceImplementation="com.android.tools.idea.concurrency.StudioIoManager"/>
+  </extensions>
 </idea-plugin>

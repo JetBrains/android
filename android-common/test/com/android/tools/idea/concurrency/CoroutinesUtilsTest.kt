@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.concurrency
 
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.registerServiceInstance
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -29,6 +31,7 @@ import kotlinx.coroutines.test.runBlockingTest
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.yield
 import org.junit.Assert
+import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -44,6 +47,11 @@ class CoroutinesUtilsTest {
   @JvmField
   @Rule
   var exceptionRule: ExpectedException = ExpectedException.none()
+
+  @Before
+  fun setUp() {
+    ApplicationManager.getApplication().registerServiceInstance(AndroidIoManager::class.java, StudioIoManager())
+  }
 
   @Test
   fun androidCoroutineScopeIsCancelledOnDispose() {
