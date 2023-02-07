@@ -3,9 +3,9 @@ android {
     applicationId = "com.example.myapplication-1"
     dimension = "efgh"
     maxSdk = 24
-    minSdkVersion("16")
+    minSdkPreview = "C"
     multiDexEnabled = false
-    targetSdkVersion("23")
+    targetSdkPreview = "J"
     testApplicationId = "com.example.myapplication-1.test"
     testFunctionalTest = true
     testHandleProfiling = false

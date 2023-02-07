@@ -1,6 +1,6 @@
 android {
   buildToolsVersion '24.0.0'
-  compileSdkVersion '24'
+  compileSdkVersion 'android-K'
   defaultPublishConfig 'release'
   generatePureSplits false
   namespace 'com.my.namespace2'

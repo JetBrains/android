@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.createBas
 
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo;
+import com.android.tools.idea.gradle.dsl.parser.android.FakeSdkElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
@@ -76,6 +77,10 @@ public class SdkOrPreviewTransform extends PropertyTransform {
   @Override
   public @Nullable GradleDslElement transform(@Nullable GradleDslElement e) {
     if (e == null) return null;
+    if (e instanceof GradleDslSimpleExpression && previewSetter.equals(e.getNameElement().getLocalName())) {
+      GradleDslSimpleExpression expression = (GradleDslSimpleExpression) e;
+      return new FakeSdkElement(expression.getParent(), GradleNameElement.copy(expression.getNameElement()), expression, true);
+    }
     return e;
   }
 
