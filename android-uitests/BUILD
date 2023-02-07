@@ -201,6 +201,7 @@ maven_repository(
         "@maven//:com.android.tools.build.gradle_7.1.0",
         "@maven//:com.android.tools.build.gradle_7.2.0",
         "@maven//:com.android.tools.build.gradle_7.3.1",
+        "@maven//:com.android.tools.build.gradle_7.4.1",
         "@maven//:com.android.tools.desugar_jdk_libs_1.0.5",
         "@maven//:com.android.tools.lint.lint-checks_26.5.0",
         "@maven//:com.github.bumptech.glide.glide_4.11.0",

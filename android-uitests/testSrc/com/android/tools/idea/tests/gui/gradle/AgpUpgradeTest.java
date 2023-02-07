@@ -47,7 +47,7 @@ public class AgpUpgradeTest {
   private String studioVersion;
   private IdeFrameFixture ideFrame;
   private String projectName = "SimpleApplication";
-  private String oldAgpVersion = "7.3.1";
+  private String oldAgpVersion = "7.4.1";
 
   @Before
   public void setUp() throws Exception {
@@ -58,7 +58,7 @@ public class AgpUpgradeTest {
     ideFrame = guiTest.ideFrame();
   }
 
-  @Ignore //Ignoring the test, Enable after adding AGP 7.4.1 Version
+ @Ignore //Ignoring the test, Enable after adding AGP 8.1.0 Canary Version
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void testUpgradeFunctionalityCheck() {
