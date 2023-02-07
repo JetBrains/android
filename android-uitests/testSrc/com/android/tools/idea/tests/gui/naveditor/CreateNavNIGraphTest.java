@@ -41,7 +41,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateNavNIGraphTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
   private IdeFrameFixture ideFrame = null;
   private NlEditorFixture editorFixture = null;
 
@@ -54,8 +54,8 @@ public class CreateNavNIGraphTest {
 
   @Before
   public void setUp() throws Exception{
-    guiTest.importSimpleApplication()
-      .getProjectView()
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
+    guiTest.ideFrame().getProjectView()
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app")
       .openFromContextualMenu(CreateResourceFileDialogFixture::find, "New", "Android Resource File")
@@ -140,14 +140,16 @@ public class CreateNavNIGraphTest {
     myDragAndDrop.drag(mySurface, sceneComponentFragment2.getRightCenterPoint());
     myDragAndDrop.drop(mySurface, sceneComponentFragment2.getMidPoint());
     pause(SceneComponent.ANIMATION_DURATION);
-    Wait.seconds(5);
+    Wait.seconds(10);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     // Create an action from fragment 2 to fragment1
     sceneComponentFragment2.click();
     myDragAndDrop.drag(mySurface, sceneComponentFragment2.getRightCenterPoint());
     myDragAndDrop.drop(mySurface, sceneComponentFragment1.getBottomCenterPoint());
     pause(SceneComponent.ANIMATION_DURATION);
-    Wait.seconds(5);
+    Wait.seconds(10);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     //Verify the "Set As Destination" and newly added actions are updated in the XML file.
     String layoutText = ideFrame.getEditor()
