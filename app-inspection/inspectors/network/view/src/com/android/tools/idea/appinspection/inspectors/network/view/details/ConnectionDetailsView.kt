@@ -21,7 +21,6 @@ import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.Ht
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.STANDARD_FONT
 import org.jetbrains.annotations.VisibleForTesting
-import java.util.function.Consumer
 
 class ConnectionDetailsView(
   private val inspectorView: NetworkInspectorView,
@@ -46,9 +45,9 @@ class ConnectionDetailsView(
   }
 
   private fun populateTabs() {
-    tabs.add(OverviewTabContent(inspectorView.componentsProvider))
-    tabs.add(ResponseTabContent(inspectorView.componentsProvider))
-    tabs.add(RequestTabContent(inspectorView.componentsProvider))
+    tabs.add(OverviewTabContent())
+    tabs.add(ResponseTabContent())
+    tabs.add(RequestTabContent())
     tabs.add(
       CallStackTabContent(
         inspectorView.componentsProvider.createStackView(inspectorView.model.stackTraceModel)
@@ -61,6 +60,7 @@ class ConnectionDetailsView(
    * Updates the view to show given data.
    */
   fun setHttpData(httpData: HttpData) {
-    tabs.forEach(Consumer { tab: TabContent -> tab.populateFor(httpData) })
+    val httpDataComponentFactory = HttpDataComponentFactory(httpData, inspectorView.componentsProvider)
+    tabs.forEach { it.populateFor(httpData, httpDataComponentFactory) }
   }
 }

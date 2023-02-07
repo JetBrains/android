@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.inspectors.network.view.details
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
+import javax.swing.JTabbedPane
 
 /**
  * Base class for all tabs shown in the [ConnectionDetailsView]. To use, construct
@@ -40,7 +41,7 @@ abstract class TabContent {
    * Populates the contents of this tab with information from the target `data`. This value
    * might possibly be `null`, if the user cleared the current selection.
    */
-  abstract fun populateFor(data: HttpData?)
+  abstract fun populateFor(data: HttpData?, httpDataComponentFactory: HttpDataComponentFactory)
 
   /**
    * The subclass should create a panel that will populate a tab.

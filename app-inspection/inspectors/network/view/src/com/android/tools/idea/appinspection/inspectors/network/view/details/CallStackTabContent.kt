@@ -33,7 +33,7 @@ class CallStackTabContent(@VisibleForTesting val stackTraceView: StackTraceView)
     return stackTraceView.component
   }
 
-  override fun populateFor(data: HttpData?) {
+  override fun populateFor(data: HttpData?, httpDataComponentFactory: HttpDataComponentFactory) {
     if (data != null) {
       stackTraceView.model.setStackFrames(ThreadId.INVALID_THREAD_ID, data.codeLocations())
     }
