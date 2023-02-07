@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.dagger.index
 
-import com.android.tools.idea.dagger.index.concepts.AllConcepts
-import com.android.tools.idea.dagger.index.concepts.DaggerConcept
+import com.android.tools.idea.dagger.concepts.AllConcepts
+import com.android.tools.idea.dagger.concepts.DaggerConcept
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexFieldWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexMethodWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexPsiWrapper

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.dagger.index
 
-import com.android.tools.idea.dagger.index.concepts.InjectedConstructorIndexValue
-import com.android.tools.idea.dagger.index.concepts.InjectedConstructorParameterIndexValue
-import com.android.tools.idea.dagger.index.concepts.ProvidesMethodIndexValue
+import com.android.tools.idea.dagger.concepts.InjectedConstructorIndexValue
+import com.android.tools.idea.dagger.concepts.InjectedConstructorParameterIndexValue
+import com.android.tools.idea.dagger.concepts.ProvidesMethodIndexValue
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType

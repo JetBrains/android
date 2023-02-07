@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.dagger.index.concepts
+package com.android.tools.idea.dagger.concepts
 
 /** Shared definitions of attribute names used when building the Dagger index. */
 object DaggerAttributes {

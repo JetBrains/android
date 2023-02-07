@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.dagger.index.concepts
+package com.android.tools.idea.dagger.concepts
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock

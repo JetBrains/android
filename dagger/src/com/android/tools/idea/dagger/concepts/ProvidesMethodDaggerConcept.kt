@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.dagger.index.concepts
+package com.android.tools.idea.dagger.concepts
 
 import com.android.tools.idea.dagger.index.DaggerConceptIndexer
 import com.android.tools.idea.dagger.index.DaggerConceptIndexers
 import com.android.tools.idea.dagger.index.IndexEntries
 import com.android.tools.idea.dagger.index.IndexValue
-import com.android.tools.idea.dagger.index.concepts.DaggerAttributes.MODULE
-import com.android.tools.idea.dagger.index.concepts.DaggerAttributes.PROVIDES
-import com.android.tools.idea.dagger.index.concepts.DaggerElement.Type
+import com.android.tools.idea.dagger.concepts.DaggerAttributes.MODULE
+import com.android.tools.idea.dagger.concepts.DaggerAttributes.PROVIDES
+import com.android.tools.idea.dagger.concepts.DaggerElement.Type
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexMethodWrapper
 import com.android.tools.idea.kotlin.hasAnnotation
 import com.intellij.openapi.project.Project

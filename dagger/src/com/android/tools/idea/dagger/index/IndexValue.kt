@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.dagger.index
 
-import com.android.tools.idea.dagger.index.concepts.AllConcepts
-import com.android.tools.idea.dagger.index.concepts.DaggerConcept
-import com.android.tools.idea.dagger.index.concepts.DaggerElement
-import com.android.tools.idea.dagger.index.concepts.DaggerElementIdentifiers
-import com.android.tools.idea.dagger.index.concepts.getPsiType
+import com.android.tools.idea.dagger.concepts.AllConcepts
+import com.android.tools.idea.dagger.concepts.DaggerConcept
+import com.android.tools.idea.dagger.concepts.DaggerElement
+import com.android.tools.idea.dagger.concepts.DaggerElementIdentifiers
+import com.android.tools.idea.dagger.concepts.getPsiType
 import com.android.tools.idea.dagger.unboxed
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
