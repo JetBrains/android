@@ -212,7 +212,7 @@ categories: {
     package_names: "com.intellij.psi"
   }
   components: {
-    label: "inspections"
+    label: "intellij_inspections"
     package_names: "com.intellij.codeInspection"
   }
   components: {
