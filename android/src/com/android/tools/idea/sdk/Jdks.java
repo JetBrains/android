@@ -76,7 +76,7 @@ public class Jdks {
   }
 
   @Nullable
-  private static JavaSdkVersion getVersion(@NotNull String jdkRoot) {
+  public JavaSdkVersion getVersion(@NotNull String jdkRoot) {
     String version = JavaSdk.getInstance().getVersionString(jdkRoot);
     return isEmpty(version) ? null : JavaSdkVersion.fromVersionString(version);
   }
