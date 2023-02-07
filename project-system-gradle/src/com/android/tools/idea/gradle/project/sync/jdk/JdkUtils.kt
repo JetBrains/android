@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.jdk
 
 import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
+import com.android.tools.idea.sdk.GradleDefaultJdkPathStore
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.Jdks
 import com.android.tools.idea.sdk.extensions.isEqualTo
@@ -140,6 +141,18 @@ object JdkUtils {
    */
   fun setProjectGradleJvmToUseEmbeddedJdk(project: Project, gradleRootPath: @SystemIndependent String): String? {
     return IdeSdks.getInstance().embeddedJdkPath.absolutePathString().let {
+      setProjectGradleJdk(project, gradleRootPath, it)
+    }
+  }
+
+  /**
+   * Configure given a gradle root project the [GradleProjectSettings.setGradleJvm] to use the Default JDK
+   * @param project Project to be modified
+   * @param gradleRootPath Gradle project root absolute path
+   * @return The jdkTable entry created for the Default jdk
+   */
+  fun setProjectGradleJvmToUseDefaultJdk(project: Project, gradleRootPath: @SystemIndependent String): String? {
+    return GradleDefaultJdkPathStore.jdkPath?.let {
       setProjectGradleJdk(project, gradleRootPath, it)
     }
   }

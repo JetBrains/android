@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.config
 
 import com.android.tools.idea.gradle.util.GradleConfigProperties
+import com.android.tools.idea.sdk.GradleDefaultJdkPathStore
 import com.android.tools.idea.sdk.IdeSdks
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import java.io.File
 
 /**
@@ -28,8 +30,13 @@ object GradleConfigManager {
   fun initializeJavaHome(gradleRootPath: File) {
     val configProperties = GradleConfigProperties(gradleRootPath)
     if (configProperties.javaHome != null) return
-    IdeSdks.getInstance().embeddedJdkPath.let { jdkPath ->
-      configProperties.javaHome = jdkPath.toFile()
+
+    val jdkPathCandidatesSortedByPriority = listOfNotNull(
+      GradleDefaultJdkPathStore.jdkPath,
+      IdeSdks.getInstance().embeddedJdkPath.toString()
+    ).filter { it.isNotEmpty() && ExternalSystemJdkUtil.isValidJdk(it) }
+    jdkPathCandidatesSortedByPriority.firstOrNull()?.let { jdkPath ->
+      configProperties.javaHome = File(jdkPath)
       configProperties.save()
     }
   }

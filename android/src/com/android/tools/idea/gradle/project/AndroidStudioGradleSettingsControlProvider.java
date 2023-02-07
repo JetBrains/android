@@ -16,9 +16,15 @@ public class AndroidStudioGradleSettingsControlProvider extends GradleSettingsCo
 
   @Override
   public GradleSystemSettingsControlBuilder getSystemSettingsControlBuilder(@NotNull GradleSettings initialSettings) {
-    return new IdeaGradleSystemSettingsControlBuilder(initialSettings)
-      .dropVmOptions()
-      .dropDefaultProjectSettings();
+    if (initialSettings.getProject().isDefault()) {
+      return new AndroidDefaultGradleSystemSettingsControlBuilder(initialSettings)
+        .dropVmOptions()
+        .dropDefaultProjectSettings();
+    } else {
+      return new IdeaGradleSystemSettingsControlBuilder(initialSettings)
+        .dropVmOptions()
+        .dropDefaultProjectSettings();
+    }
   }
 
   @Override
