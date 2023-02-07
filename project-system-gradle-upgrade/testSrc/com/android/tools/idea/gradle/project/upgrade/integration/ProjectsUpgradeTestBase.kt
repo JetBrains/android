@@ -48,6 +48,7 @@ import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.CustomAgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.IdeComponents
+import com.android.tools.idea.testing.JdkUtils
 import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.resolve
 import com.android.tools.idea.testing.withGradle
@@ -171,11 +172,13 @@ open class ProjectsUpgradeTestBase {
       // this project, we just need its source files for comparison.
       // So set existing gradle version here and change it to expected one after project is prepared.
       val baseGradleVersion = OldAgpSuite.GRADLE_VERSION?.takeIf { it != "LATEST" }
+      val resolvedAgpVersion = expectedProjectState.agpVersionDef().withGradle(baseGradleVersion).resolve()
       AndroidGradleTests.defaultPatchPreparedProject(
         projectRoot,
-        expectedProjectState.agpVersionDef().withGradle(baseGradleVersion).resolve(),
+        resolvedAgpVersion,
         expectedProjectState.ndkVersion()
       )
+      JdkUtils.overrideProjectGradleJdkPathWithVersion(projectRoot, resolvedAgpVersion.jdkVersion)
       // Patch base project with files expected to change.
       // Note: one could think that we only need to check these files instead of comparing all files recursively
       // but checking all project files allows us to make sure no unexpected changes were made to any other not listed files.

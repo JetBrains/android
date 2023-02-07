@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.util;
 
 import static com.android.SdkConstants.CMAKE_DIR_PROPERTY;
 import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
-import static com.android.SdkConstants.GRADLE_JDK_DIR_PROPERTY;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
 import static com.android.SdkConstants.SDK_DIR_PROPERTY;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
@@ -50,9 +49,6 @@ public final class LocalProperties {
   @Nullable private File myNewAndroidSdkPath;
   private boolean myAndroidSdkPathModified;
 
-  @Nullable private File myNewGradleJdkPath;
-  private boolean myGradleJdkPathModified;
-
   @Nullable private File myNewAndroidNdkPath;
   private boolean myAndroidNdkPathModified;
 
@@ -82,17 +78,6 @@ public final class LocalProperties {
       return myNewAndroidSdkPath;
     }
     return getAndroidSdkPathFromFile();
-  }
-
-  /**
-   * @return the path of the Gradle JDK specified in this local.properties file; or {@code null} if such property is not specified.
-   */
-  @Nullable
-  public File getGradleJdkPath() {
-    if (myGradleJdkPathModified) {
-      return myNewGradleJdkPath;
-    }
-    return getGradleJdkPathFromFile();
   }
 
   /**
@@ -132,15 +117,6 @@ public final class LocalProperties {
     myAndroidSdkPathModified = true;
   }
 
-  public void setGradleJdkPath(@NotNull String gradleJdkPath) {
-    setGradleJdkPath(FilePaths.stringToFile(gradleJdkPath));
-  }
-
-  public void setGradleJdkPath(@NotNull File gradleJdkPath) {
-    myNewGradleJdkPath = gradleJdkPath;
-    myGradleJdkPathModified = true;
-  }
-
   public void setAndroidNdkPath(@NotNull String androidNdkPath) {
     setAndroidNdkPath(FilePaths.stringToFile(androidNdkPath));
   }
@@ -170,16 +146,15 @@ public final class LocalProperties {
    */
   public void save() throws IOException {
     setPathIfApplicable(myAndroidSdkPathModified, SDK_DIR_PROPERTY, getAndroidSdkPathFromFile(), myNewAndroidSdkPath);
-    setPathIfApplicable(myGradleJdkPathModified, GRADLE_JDK_DIR_PROPERTY, getGradleJdkPathFromFile(), myNewGradleJdkPath);
     setPathIfApplicable(myAndroidNdkPathModified, NDK_DIR_PROPERTY, getAndroidNdkPathFromFile(), myNewAndroidNdkPath);
     setPathIfApplicable(myAndroidCmakePathModified, CMAKE_DIR_PROPERTY, getAndroidCmakePathFromFile(), myNewAndroidCmakePath);
 
-    if (myAndroidSdkPathModified || myGradleJdkPathModified || myAndroidNdkPathModified || myAndroidCmakePathModified) {
+    if (myAndroidSdkPathModified || myAndroidNdkPathModified || myAndroidCmakePathModified) {
       savePropertiesToFile(myProperties, myPropertiesFilePath, getHeaderComment());
     }
     // reset "modified" state.
-    myNewAndroidCmakePath = myNewAndroidSdkPath = myNewGradleJdkPath = myNewAndroidNdkPath = null;
-    myAndroidCmakePathModified = myAndroidSdkPathModified = myGradleJdkPathModified = myAndroidNdkPathModified = false;
+    myNewAndroidCmakePath = myNewAndroidSdkPath = myNewAndroidNdkPath = null;
+    myAndroidCmakePathModified = myAndroidSdkPathModified = myAndroidNdkPathModified = false;
   }
 
   private void setPathIfApplicable(boolean pathModified, @NotNull String propertyName, @Nullable File currentPath, @Nullable File newPath) {
@@ -197,11 +172,6 @@ public final class LocalProperties {
   @Nullable
   private File getAndroidSdkPathFromFile() {
     return getPath(SDK_DIR_PROPERTY);
-  }
-
-  @Nullable
-  private File getGradleJdkPathFromFile() {
-    return getPath(GRADLE_JDK_DIR_PROPERTY);
   }
 
   @Nullable

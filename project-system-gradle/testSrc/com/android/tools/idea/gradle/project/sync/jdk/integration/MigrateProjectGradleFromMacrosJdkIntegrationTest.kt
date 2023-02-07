@@ -17,13 +17,7 @@ package com.android.tools.idea.gradle.project.sync.jdk.integration
 
 import com.android.testutils.junit4.OldAgpTest
 import com.android.testutils.junit4.SeparateOldAgpTestsRule
-import com.android.tools.idea.gradle.project.sync.constants.JDK_11
-import com.android.tools.idea.gradle.project.sync.constants.JDK_11_PATH
-import com.android.tools.idea.gradle.project.sync.constants.JDK_17
-import com.android.tools.idea.gradle.project.sync.constants.JDK_17_PATH
-import com.android.tools.idea.gradle.project.sync.constants.JDK_EMBEDDED
-import com.android.tools.idea.gradle.project.sync.constants.JDK_EMBEDDED_PATH
-import com.android.tools.idea.gradle.project.sync.constants.JDK_INVALID_PATH
+import com.android.tools.idea.gradle.project.sync.model.ExpectedGradleRoot
 import com.android.tools.idea.gradle.project.sync.model.GradleRoot
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest.TestEnvironment
@@ -33,6 +27,13 @@ import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils.Jdk
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_74
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
+import com.android.tools.idea.testing.JdkConstants.JDK_11
+import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_17
+import com.android.tools.idea.testing.JdkConstants.JDK_17_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED
+import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_INVALID_PATH
 import com.google.common.truth.Expect
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_PROJECT_JDK
 import com.intellij.testFramework.RunsInEdt
@@ -65,7 +66,7 @@ class MigrateProjectGradleFromMacrosJdkIntegrationTest {
       syncWithAssertion(
         expectedGradleJdkName = JDK_EMBEDDED,
         expectedProjectJdkName = JDK_EMBEDDED,
-        expectedJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH
       )
     }
 
@@ -79,7 +80,7 @@ class MigrateProjectGradleFromMacrosJdkIntegrationTest {
       syncWithAssertion(
         expectedGradleJdkName = JDK_EMBEDDED,
         expectedProjectJdkName = JDK_EMBEDDED,
-        expectedJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH
       )
     }
 
@@ -96,7 +97,7 @@ class MigrateProjectGradleFromMacrosJdkIntegrationTest {
       syncWithAssertion(
         expectedGradleJdkName = JDK_EMBEDDED,
         expectedProjectJdkName = JDK_EMBEDDED,
-        expectedJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH
       )
     }
 
@@ -113,7 +114,7 @@ class MigrateProjectGradleFromMacrosJdkIntegrationTest {
       syncWithAssertion(
         expectedGradleJdkName = JDK_17,
         expectedProjectJdkName = JDK_17,
-        expectedJdkPath = JDK_17_PATH
+        expectedProjectJdkPath = JDK_17_PATH
       )
     }
 
@@ -127,7 +128,7 @@ class MigrateProjectGradleFromMacrosJdkIntegrationTest {
       syncWithAssertion(
         expectedGradleJdkName = JDK_EMBEDDED,
         expectedProjectJdkName = JDK_EMBEDDED,
-        expectedJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH
       )
     }
 
@@ -142,7 +143,7 @@ class MigrateProjectGradleFromMacrosJdkIntegrationTest {
       syncWithAssertion(
         expectedGradleJdkName = JDK_EMBEDDED,
         expectedProjectJdkName = JDK_EMBEDDED,
-        expectedJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH
       )
     }
 
@@ -160,7 +161,7 @@ class MigrateProjectGradleFromMacrosJdkIntegrationTest {
       syncWithAssertion(
         expectedGradleJdkName = JDK_EMBEDDED,
         expectedProjectJdkName = JDK_EMBEDDED,
-        expectedJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH
       )
     }
 
@@ -180,7 +181,7 @@ class MigrateProjectGradleFromMacrosJdkIntegrationTest {
       syncWithAssertion(
         expectedGradleJdkName = JDK_11,
         expectedProjectJdkName = JDK_11,
-        expectedJdkPath = JDK_11_PATH
+        expectedProjectJdkPath = JDK_11_PATH
       )
     }
 
@@ -195,12 +196,12 @@ class MigrateProjectGradleFromMacrosJdkIntegrationTest {
       )
     ) {
       syncWithAssertion(
-        expectedGradleRootsJdkName = mapOf(
-          "project_root1" to JDK_EMBEDDED,
-          "project_root2" to JDK_EMBEDDED
+        expectedGradleRoots = mapOf(
+          "project_root1" to ExpectedGradleRoot(JDK_EMBEDDED, JDK_EMBEDDED_PATH),
+          "project_root2" to ExpectedGradleRoot(JDK_EMBEDDED, JDK_EMBEDDED_PATH)
         ),
         expectedProjectJdkName = JDK_EMBEDDED,
-        expectedJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH
       )
     }
 
@@ -216,12 +217,12 @@ class MigrateProjectGradleFromMacrosJdkIntegrationTest {
       )
     ) {
       syncWithAssertion(
-        expectedGradleRootsJdkName = mapOf(
-          "project_root1" to JDK_EMBEDDED,
-          "project_root2" to JDK_EMBEDDED
+        expectedGradleRoots = mapOf(
+          "project_root1" to ExpectedGradleRoot(JDK_EMBEDDED, JDK_EMBEDDED_PATH),
+          "project_root2" to ExpectedGradleRoot(JDK_EMBEDDED, JDK_EMBEDDED_PATH)
         ),
         expectedProjectJdkName = JDK_EMBEDDED,
-        expectedJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH
       )
     }
 
@@ -240,12 +241,12 @@ class MigrateProjectGradleFromMacrosJdkIntegrationTest {
       )
     ) {
       syncWithAssertion(
-        expectedGradleRootsJdkName = mapOf(
-          "project_root1" to JDK_EMBEDDED,
-          "project_root2" to JDK_EMBEDDED
+        expectedGradleRoots = mapOf(
+          "project_root1" to ExpectedGradleRoot(JDK_EMBEDDED, JDK_EMBEDDED_PATH),
+          "project_root2" to ExpectedGradleRoot(JDK_EMBEDDED, JDK_EMBEDDED_PATH)
         ),
         expectedProjectJdkName = JDK_EMBEDDED,
-        expectedJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH
       )
     }
 
@@ -266,12 +267,12 @@ class MigrateProjectGradleFromMacrosJdkIntegrationTest {
       ),
     ) {
       syncWithAssertion(
-        expectedGradleRootsJdkName = mapOf(
-          "project_root1" to JDK_11,
-          "project_root2" to JDK_11
+        expectedGradleRoots = mapOf(
+          "project_root1" to ExpectedGradleRoot(JDK_11, JDK_11_PATH),
+          "project_root2" to ExpectedGradleRoot(JDK_11, JDK_11_PATH)
         ),
         expectedProjectJdkName = JDK_11,
-        expectedJdkPath = JDK_11_PATH
+        expectedProjectJdkPath = JDK_11_PATH
       )
     }
 }

@@ -20,7 +20,6 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.JDK_LOCATION_WARNING_NOTIFICATION_GROUP
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
@@ -342,10 +341,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     // Using the IdeSdks requires us to be on the dispatch thread
     ApplicationManager.getApplication().assertIsDispatchThread()
 
-    val gradleInstallation = (GradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager)
-    if (gradleInstallation.isUsingJavaHomeJdk(project)) {
-      return
-    }
+    if (IdeSdks.getInstance().isUsingJavaHomeJdk(project)) return
     val hyperlinkUrl = AndroidBundle.message("project.sync.warning.multiple.gradle.daemons.url")
     val quickFixes = mutableListOf<NotificationHyperlink>(OpenUrlHyperlink(hyperlinkUrl, "More info..."))
     val selectJdkHyperlink = SelectJdkFromFileSystemHyperlink.create(project)
@@ -354,7 +350,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
 
     val message = AndroidBundle.message("project.sync.warning.multiple.gradle.daemons.message",
       project.name,
-      gradleInstallation.getGradleJvmPath(project, project.basePath.orEmpty()) ?: "Undefined",
+      GradleInstallationManager.getInstance().getGradleJvmPath(project, project.basePath.orEmpty()) ?: "Undefined",
       IdeSdks.getJdkFromJavaHome() ?: "Undefined"
     )
     addToEventLog(JDK_LOCATION_WARNING_NOTIFICATION_GROUP, message, MessageType.WARNING, quickFixes)

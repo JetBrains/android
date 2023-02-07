@@ -43,9 +43,10 @@ class ProjectJdkUpdateService : AbstractProjectDataService<ProjectJdkUpdateData,
   ) {
     if (toImport.isEmpty() || projectData == null) return
     require(toImport.size == 1) { "Expected to get a single project but got ${toImport.size}: $toImport" }
-    application.invokeLater(
-      { runWriteAction { JdkUtils.updateProjectJdkWithPath(project, toImport.single().data.jdkPath) } },
-      project.disposed
-    )
+    application.invokeAndWait {
+      // This method ends up configuring the project JDK, this is a critic moment since different parts require it like KMP
+      // setup for this reason we should wait for its execution, to avoid flaky tests and unexpected behaviour.
+      runWriteAction { JdkUtils.updateProjectJdkWithPath(project, toImport.single().data.jdkPath) }
+    }
   }
 }

@@ -209,8 +209,9 @@ public class AndroidGradleTests {
         createGradleWrapper(path, gradleVersion);
       }
       for (File child : notNullize(path.listFiles())) {
-        internalUpdateToolingVersionsAndPaths(child, false, gradleVersion, pluginVersion, kotlinVersion, compileSdkVersion, ndkVersion,
-                                              localRepos);
+        internalUpdateToolingVersionsAndPaths(
+          child, false, gradleVersion, pluginVersion, kotlinVersion, compileSdkVersion, ndkVersion, localRepos
+        );
       }
     }
     else if (fileAttributes.isRegularFile()) {
@@ -351,7 +352,7 @@ public class AndroidGradleTests {
   public static void updateLocalProperties(@NotNull File projectRoot, @NotNull File sdkPath) throws IOException {
     LocalProperties localProperties = new LocalProperties(projectRoot);
     assertAbout(file()).that(sdkPath).named("Android SDK path").isDirectory();
-    localProperties.setAndroidSdkPath(sdkPath.getPath());
+    localProperties.setAndroidSdkPath(sdkPath);
     localProperties.save();
   }
 

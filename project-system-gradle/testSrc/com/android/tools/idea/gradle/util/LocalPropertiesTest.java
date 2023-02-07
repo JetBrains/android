@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import static com.android.SdkConstants.GRADLE_JDK_DIR_PROPERTY;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
 import static com.android.SdkConstants.SDK_DIR_PROPERTY;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
@@ -92,19 +91,6 @@ public class LocalPropertiesTest {
   }
 
   @Test
-  public void testGetGradleJdkPathWithSeparatorDifferentThanPlatformOne() throws IOException {
-    if (!SystemInfo.isWindows) {
-      String path = Joiner.on('\\').join("C:", "dir", "file");
-      myLocalProperties.properties().setProperty(GRADLE_JDK_DIR_PROPERTY, path);
-      myLocalProperties.save();
-
-      File actual = myLocalProperties.getGradleJdkPath();
-      assertNotNull(actual);
-      assertEquals(path, actual.getPath());
-    }
-  }
-
-  @Test
   public void testCreateFileOnSave() throws Exception {
     myLocalProperties.setAndroidSdkPath("~/sdk");
     myLocalProperties.save();
@@ -145,28 +131,6 @@ public class LocalPropertiesTest {
     File actual = myLocalProperties.getAndroidSdkPath();
     assertNotNull(actual);
     assertEquals(toCanonicalPath(androidSdkPath), toCanonicalPath(actual.getPath()));
-  }
-
-  @Test
-  public void testSetGradleJdkPathWithString() throws Exception {
-    String gradleJdkPath = toSystemDependentName("/home/jdk");
-    myLocalProperties.setGradleJdkPath(gradleJdkPath);
-    myLocalProperties.save();
-
-    File actual = myLocalProperties.getGradleJdkPath();
-    assertNotNull(actual);
-    assertEquals(toCanonicalPath(gradleJdkPath), toCanonicalPath(actual.getPath()));
-  }
-
-  @Test
-  public void testSetGradleJdkPathWithFile() throws Exception {
-    String gradleJdkPath = toSystemDependentName("/home/jdk");
-    myLocalProperties.setGradleJdkPath(new File(gradleJdkPath));
-    myLocalProperties.save();
-
-    File actual = myLocalProperties.getGradleJdkPath();
-    assertNotNull(actual);
-    assertEquals(toCanonicalPath(gradleJdkPath), toCanonicalPath(actual.getPath()));
   }
 
   @Test

@@ -25,7 +25,7 @@ import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
-import com.android.tools.idea.gradle.project.sync.constants.JDK_11_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT

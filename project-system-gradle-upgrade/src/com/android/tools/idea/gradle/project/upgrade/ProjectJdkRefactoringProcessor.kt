@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.AgpCompatibleJdkVersion
-import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
+import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdk
@@ -169,7 +169,7 @@ class UpdateJdkUsageInfo(
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     fun setJdkAsProjectJdk(path: String) {
       // we are within a write action both during refactoring and during Undo.
-      AndroidStudioGradleInstallationManager.setJdkAsProjectJdk(processor.project, path)
+      JdkUtils.setProjectGradleJdkWithSingleGradleRoot(processor.project, path)
     }
     setJdkAsProjectJdk(newJdkPath)
     UndoHook(

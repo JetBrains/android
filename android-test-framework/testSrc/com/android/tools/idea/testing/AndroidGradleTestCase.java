@@ -431,7 +431,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
   protected final void importProject(@NotNull JavaSdkVersion jdkVersion) {
     Project project = getProject();
-    AgpIntegrationTestUtil.importProject(project, jdkVersion, getTestRootDisposable());
+    AgpIntegrationTestUtil.importProject(project, jdkVersion);
   }
 
   @NotNull

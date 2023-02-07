@@ -17,11 +17,6 @@ package com.android.tools.idea.gradle.project.sync.jdk.integration
 
 import com.android.testutils.junit4.OldAgpTest
 import com.android.testutils.junit4.SeparateOldAgpTestsRule
-import com.android.tools.idea.gradle.project.sync.constants.JDK_11
-import com.android.tools.idea.gradle.project.sync.constants.JDK_11_PATH
-import com.android.tools.idea.gradle.project.sync.constants.JDK_17
-import com.android.tools.idea.gradle.project.sync.constants.JDK_17_PATH
-import com.android.tools.idea.gradle.project.sync.constants.JDK_INVALID_PATH
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest.TestEnvironment
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkTestProject.SimpleApplication
@@ -30,6 +25,11 @@ import com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_74
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
+import com.android.tools.idea.testing.JdkConstants.JDK_11
+import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_17
+import com.android.tools.idea.testing.JdkConstants.JDK_17_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_INVALID_PATH
 import com.google.common.truth.Expect
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkException
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.JAVA_HOME
@@ -76,7 +76,7 @@ class GradleSyncJdkIntegrationTest {
     jdkIntegrationTest.run(
       project = SimpleApplication(
         ideaGradleJdk = USE_GRADLE_JAVA_HOME,
-        gradlePropertiesJdkPath = "/invalid/jdk/path"
+        gradlePropertiesJavaHomePath = "/invalid/jdk/path"
       )
     ) {
       sync()
@@ -97,7 +97,7 @@ class GradleSyncJdkIntegrationTest {
       syncWithAssertion(
         expectedGradleJdkName = JDK_17,
         expectedProjectJdkName = JDK_17,
-        expectedJdkPath = JDK_17_PATH
+        expectedProjectJdkPath = JDK_17_PATH
       )
     }
   }
@@ -118,7 +118,7 @@ class GradleSyncJdkIntegrationTest {
       syncWithAssertion(
         expectedGradleJdkName = JDK_17,
         expectedProjectJdkName = JDK_11,
-        expectedJdkPath = JDK_11_PATH
+        expectedProjectJdkPath = JDK_11_PATH
       )
     }
 
@@ -137,7 +137,7 @@ class GradleSyncJdkIntegrationTest {
       syncWithAssertion(
         expectedGradleJdkName = USE_JAVA_HOME,
         expectedProjectJdkName = JDK_17,
-        expectedJdkPath = JDK_17_PATH
+        expectedProjectJdkPath = JDK_17_PATH
       )
     }
 

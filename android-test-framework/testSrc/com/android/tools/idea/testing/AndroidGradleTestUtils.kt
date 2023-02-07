@@ -27,6 +27,7 @@ import com.android.testutils.TestUtils.getLatestAndroidPlatform
 import com.android.testutils.TestUtils.getSdk
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.gradle.LibraryFilePaths
+import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
@@ -153,7 +154,6 @@ import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -179,9 +179,7 @@ import com.intellij.openapi.progress.blockingContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ex.ProjectEx
-import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.AdditionalLibraryRootsProvider
-import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.toCanonicalPath
@@ -1237,11 +1235,10 @@ fun setupTestProjectFromAndroidModel(
       "Add `JavaModuleModelBuilder.rootModuleBuilder` to add a default one."
     )
   }
-  if (IdeSdks.getInstance().androidSdkPath === null) {
+  if (IdeSdks.getInstance().androidSdkPath != getSdk()) {
     AndroidGradleTests.setUpSdks(project, project, getSdk().toFile())
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }
-
   GradleProjectImporter.configureNewProject(project)
 
   val moduleManager = ModuleManager.getInstance(project)
@@ -2133,8 +2130,8 @@ data class OpenPreparedProjectOptions @JvmOverloads constructor(
   val syncViewEventHandler: (BuildEvent) -> Unit = {},
   val subscribe: (MessageBusConnection) -> Unit = {},
   val disableKtsRelatedIndexing: Boolean = false,
-  val overrideProjectJdk: Sdk? = null,
-  val reportProjectSizeUsage: Boolean = false
+  val reportProjectSizeUsage: Boolean = false,
+  val overrideProjectGradleJdkPath: File? = null
 )
 
 fun OpenPreparedProjectOptions.withoutKtsRelatedIndexing(): OpenPreparedProjectOptions = copy(disableKtsRelatedIndexing = true)
@@ -2203,9 +2200,10 @@ private fun <T> openPreparedProject(
           }
           afterCreateCalled = true
 
-          options.overrideProjectJdk?.let { overrideProjectJdk ->
-            runWriteActionAndWait {
-              ProjectRootManager.getInstance(project).projectSdk = overrideProjectJdk
+          options.overrideProjectGradleJdkPath?.let { jdkPath ->
+            GradleConfigProperties(projectPath).apply {
+              javaHome = jdkPath
+              save()
             }
           }
 

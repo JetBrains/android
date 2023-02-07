@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.jdk.integration
 
-import com.android.tools.idea.gradle.project.sync.constants.JDK_11_PATH
-import com.android.tools.idea.gradle.project.sync.constants.JDK_17
-import com.android.tools.idea.gradle.project.sync.constants.JDK_17_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_17
+import com.android.tools.idea.testing.JdkConstants.JDK_17_PATH
+import com.android.tools.idea.gradle.project.sync.model.ExpectedGradleRoot
 import com.android.tools.idea.gradle.project.sync.model.GradleRoot
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest.TestEnvironment
@@ -69,7 +70,7 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
       syncWithAssertion(
         expectedGradleJdkName = JDK_17,
         expectedProjectJdkName = JDK_17,
-        expectedJdkPath = JDK_17_PATH
+        expectedProjectJdkPath = JDK_17_PATH
       )
     }
 
@@ -87,7 +88,7 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
       syncWithAssertion(
         expectedGradleJdkName = JDK_17,
         expectedProjectJdkName = JDK_17,
-        expectedJdkPath = JDK_17_PATH
+        expectedProjectJdkPath = JDK_17_PATH
       )
     }
 
@@ -105,7 +106,7 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
       syncWithAssertion(
         expectedGradleJdkName = JDK_17,
         expectedProjectJdkName = JDK_17,
-        expectedJdkPath = JDK_17_PATH
+        expectedProjectJdkPath = JDK_17_PATH
       )
     }
 
@@ -140,7 +141,7 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
       syncWithAssertion(
         expectedGradleJdkName = JDK_17,
         expectedProjectJdkName = JDK_17,
-        expectedJdkPath = JDK_17_PATH
+        expectedProjectJdkPath = JDK_17_PATH
       )
     }
 
@@ -161,7 +162,7 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
       syncWithAssertion(
         expectedGradleJdkName = USE_JAVA_HOME,
         expectedProjectJdkName = JDK_17,
-        expectedJdkPath = JDK_17_PATH
+        expectedProjectJdkPath = JDK_17_PATH
       )
     }
 
@@ -194,7 +195,7 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
       syncWithAssertion(
         expectedGradleJdkName = USE_JAVA_HOME,
         expectedProjectJdkName = JDK_17,
-        expectedJdkPath = JDK_17_PATH
+        expectedProjectJdkPath = JDK_17_PATH
       )
     }
 
@@ -215,7 +216,7 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
       syncWithAssertion(
         expectedGradleJdkName = JDK_17,
         expectedProjectJdkName = JDK_17,
-        expectedJdkPath = JDK_17_PATH
+        expectedProjectJdkPath = JDK_17_PATH
       )
     }
 
@@ -233,7 +234,7 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
       syncWithAssertion(
         expectedGradleJdkName = JDK_17,
         expectedProjectJdkName = JDK_17,
-        expectedJdkPath = JDK_17_PATH
+        expectedProjectJdkPath = JDK_17_PATH
       )
     }
 
@@ -251,7 +252,7 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
       syncWithAssertion(
         expectedGradleJdkName = JDK_17,
         expectedProjectJdkName = JDK_17,
-        expectedJdkPath = JDK_17_PATH
+        expectedProjectJdkPath = JDK_17_PATH
       )
     }
 
@@ -289,13 +290,13 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
       )
     ) {
       syncWithAssertion(
-        expectedGradleRootsJdkName = mapOf(
-          "project_root1" to JDK_17,
-          "project_root2" to USE_JAVA_HOME,
-          "project_root3" to JDK_17
+        expectedGradleRoots = mapOf(
+          "project_root1" to ExpectedGradleRoot(JDK_17, JDK_17_PATH),
+          "project_root2" to ExpectedGradleRoot(USE_JAVA_HOME, JDK_17_PATH),
+          "project_root3" to ExpectedGradleRoot(JDK_17, JDK_17_PATH)
         ),
         expectedProjectJdkName = JDK_17,
-        expectedJdkPath = JDK_17_PATH
+        expectedProjectJdkPath = JDK_17_PATH
       )
     }
 }

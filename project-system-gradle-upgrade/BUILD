@@ -259,6 +259,7 @@ old_agp_test(
     timeout = "long",
     agp_version = AGP_7_1,
     data = [
+        "//prebuilts/studio/jdk:jdk11",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/project-system-gradle-upgrade/testData",
         "//tools/base/build-system:gradle-distrib-7.2",
@@ -286,6 +287,7 @@ old_agp_test(
     timeout = "long",
     agp_version = AGP_7_2,
     data = [
+        "//prebuilts/studio/jdk:jdk11",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/project-system-gradle-upgrade/testData",
         "//tools/base/build-system:gradle-distrib-7.3.3",

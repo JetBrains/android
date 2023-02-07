@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,16 @@ package com.android.tools.idea.gradle.project.sync.model
 
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 
 /**
- * Project gradle root representation model
- * @param name The gradle root name
+ * Project expected gradle root representation model
  * @param ideaGradleJdk The jdk.table.xml entry name or macro defined on [ExternalSystemJdkUtil] used to configure the gradle java for sync
- * @param gradleLocalJavaHomePath The java.home absolute path located on .gradle/config.properties
- * @param modulesPath A list containing the gradle root modules absolute path
+ * @param gradleExecutionDaemonJdkPath The jdk path used to configure the gradle daemon and trigger sync [GradleInstallationManager.getGradleJvmPath]
+ * @param gradleLocalJavaHome The java.home property located on .gradle/config.properties
  */
-data class GradleRoot(
-  val name: String = "",
+data class ExpectedGradleRoot(
   val ideaGradleJdk: String? = null,
-  val gradleLocalJavaHomePath: @SystemIndependent String? = null,
-  val modulesPath: List<String> = listOf()
+  val gradleExecutionDaemonJdkPath: @SystemIndependent String? = null,
+  val gradleLocalJavaHome: @SystemIndependent String? = null
 )

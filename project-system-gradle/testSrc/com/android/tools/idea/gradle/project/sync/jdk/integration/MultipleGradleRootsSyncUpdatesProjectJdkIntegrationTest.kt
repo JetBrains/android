@@ -17,11 +17,11 @@ package com.android.tools.idea.gradle.project.sync.jdk.integration
 
 import com.android.testutils.junit4.OldAgpTest
 import com.android.testutils.junit4.SeparateOldAgpTestsRule
-import com.android.tools.idea.gradle.project.sync.constants.JDK_11
-import com.android.tools.idea.gradle.project.sync.constants.JDK_11_PATH
-import com.android.tools.idea.gradle.project.sync.constants.JDK_17
-import com.android.tools.idea.gradle.project.sync.constants.JDK_17_PATH
-import com.android.tools.idea.gradle.project.sync.constants.JDK_INVALID_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_11
+import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_17
+import com.android.tools.idea.testing.JdkConstants.JDK_17_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_INVALID_PATH
 import com.android.tools.idea.gradle.project.sync.model.GradleRoot
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest.TestEnvironment

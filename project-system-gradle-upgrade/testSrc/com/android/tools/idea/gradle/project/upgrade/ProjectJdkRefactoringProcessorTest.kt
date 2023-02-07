@@ -19,9 +19,9 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.gradle.project.sync.constants.JDK_11_PATH
-import com.android.tools.idea.gradle.project.sync.constants.JDK_17_PATH
-import com.android.tools.idea.gradle.project.sync.constants.JDK_1_8_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_17_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_1_8_PATH
 import com.android.tools.idea.sdk.Jdks
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runWriteAction

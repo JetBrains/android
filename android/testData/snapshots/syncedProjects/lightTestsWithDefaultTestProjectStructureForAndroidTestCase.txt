@@ -36,7 +36,7 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<TEMP>
-            EXCLUDE_FOLDER                : file://<TEMP>/.gradle [-]
+            EXCLUDE_FOLDER                : file://<TEMP>/.gradle
             EXCLUDE_FOLDER                : file://<TEMP>/build [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false

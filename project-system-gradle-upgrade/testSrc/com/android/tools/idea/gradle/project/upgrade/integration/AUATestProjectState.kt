@@ -66,8 +66,8 @@ enum class TestAGPVersion(
   V_4_1("4.1.0", CompatibleGradleVersion.VERSION_6_5, jdkVersion = JavaSdkVersion.JDK_11),
   V_4_2("4.2.0", CompatibleGradleVersion.VERSION_6_7_1, jdkVersion = JavaSdkVersion.JDK_11),
   V_7_0("7.0.0", CompatibleGradleVersion.VERSION_7_0_2, jdkVersion = JavaSdkVersion.JDK_11),
-  V_7_1("7.1.0", CompatibleGradleVersion.VERSION_7_2),
-  V_7_2("7.2.0", CompatibleGradleVersion.VERSION_7_3_3),
+  V_7_1("7.1.0", CompatibleGradleVersion.VERSION_7_2, jdkVersion = JavaSdkVersion.JDK_11),
+  V_7_2("7.2.0", CompatibleGradleVersion.VERSION_7_3_3, jdkVersion = JavaSdkVersion.JDK_11),
   LATEST(null, CompatibleGradleVersion.VERSION_FOR_DEV, kotlinVersion = "1.6.21"),
 }
 

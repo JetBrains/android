@@ -731,6 +731,12 @@ public final class StudioFlags {
   public static final Flag<Boolean> GRADLE_SYNC_RECREATE_JDK = Flag.create(
     GRADLE_IDE, "gradle.sync.recreate.jdk", "Recreate JDK on sync", "Recreate Gradle JDK when syncing if there are changed roots.", true);
 
+  public static final Flag<Boolean> GRADLE_USES_LOCAL_JAVA_HOME_FOR_NEW_CREATED_PROJECTS = Flag.create(
+    GRADLE_IDE, "gradle.uses.local.java.home.for.new.created.projects",
+    "Gradle uses local java.home for new created projects",
+    "When creating new projects the gradleJvm will be configured with #GRADLE_LOCAL_JAVA_HOME macro, using the java.home value " +
+    "specified under .gradle/config.properties to trigger Gradle sync.", true);
+
   public static final Flag<Boolean> GRADLE_VERSION_CATALOG_DISPLAY_BANNERS =
     Flag.create(GRADLE_IDE, "gradle.version.catalog.banners", "IDE banners if Version Catalogs used",
                 "Display banners in Gradle-related tools when Version Catalogs are in use", false);

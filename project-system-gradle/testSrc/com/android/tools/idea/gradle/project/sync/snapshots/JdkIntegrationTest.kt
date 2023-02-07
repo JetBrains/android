@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 import com.android.tools.idea.gradle.project.sync.assertions.AssertInMemoryConfig
 import com.android.tools.idea.gradle.project.sync.assertions.AssertOnDiskConfig
 import com.android.tools.idea.gradle.project.sync.assertions.AssertOnFailure
+import com.android.tools.idea.gradle.project.sync.model.ExpectedGradleRoot
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.project.sync.utils.EnvironmentUtils
 import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils
@@ -91,7 +92,7 @@ class JdkIntegrationTest(
       val project = preparedProject.open(
         updateOptions = {
           it.copy(
-            overrideProjectJdk = null,
+            overrideProjectGradleJdkPath = null,
             syncExceptionHandler = { exception ->
               capturedException = exception
             },
@@ -111,40 +112,40 @@ class JdkIntegrationTest(
     fun syncWithAssertion(
       expectedGradleJdkName: String,
       expectedProjectJdkName: String,
-      expectedJdkPath: String,
-      expectedLocalPropertiesJdkPath: String? = null,
+      expectedProjectJdkPath: String,
+      expectedGradleLocalJavaHome: String? = null,
       expectedException: KClass<out Exception>? = null,
     ) {
       syncWithAssertion(
-        expectedGradleRootsJdkName = mapOf("" to expectedGradleJdkName),
-        expectedGradleRootsLocalPropertiesJdkPath = expectedLocalPropertiesJdkPath?.let { mapOf("" to it) },
+        expectedGradleRoots = mapOf(
+          "" to ExpectedGradleRoot(
+            ideaGradleJdk = expectedGradleJdkName,
+            gradleExecutionDaemonJdkPath = expectedProjectJdkPath,
+            gradleLocalJavaHome = expectedGradleLocalJavaHome
+          )
+        ),
         expectedProjectJdkName = expectedProjectJdkName,
-        expectedJdkPath = expectedJdkPath,
+        expectedProjectJdkPath = expectedProjectJdkPath,
         expectedException = expectedException
       )
     }
 
     fun syncWithAssertion(
-      expectedGradleRootsJdkName: Map<String, String>,
-      expectedGradleRootsLocalPropertiesJdkPath: Map<String, String>? = null,
+      expectedGradleRoots: Map<String, ExpectedGradleRoot>,
       expectedProjectJdkName: String,
-      expectedJdkPath: String,
+      expectedProjectJdkPath: String,
       expectedException: KClass<out Exception>? = null,
     ) {
       sync(
         assertInMemoryConfig = {
-          assertGradleExecutionDaemon(expectedJdkPath)
-          assertGradleRootsJdk(expectedGradleRootsJdkName)
+          assertGradleRoots(expectedGradleRoots)
           assertProjectJdk(expectedProjectJdkName)
-          assertProjectJdkTablePath(expectedJdkPath)
+          assertProjectJdkTablePath(expectedProjectJdkPath)
           assertProjectJdkTableEntryIsValid(expectedProjectJdkName)
         },
         assertOnDiskConfig = {
-          assertGradleRootsJdk(expectedGradleRootsJdkName)
+          assertGradleRoots(expectedGradleRoots)
           assertProjectJdk(expectedProjectJdkName)
-          expectedGradleRootsLocalPropertiesJdkPath?.let {
-            assertGradleRootsLocalPropertiesJdk(it)
-          }
         },
         assertOnFailure = { syncException ->
           expectedException?.let {

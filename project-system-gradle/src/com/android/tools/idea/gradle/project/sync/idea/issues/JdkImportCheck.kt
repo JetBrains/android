@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.idea.issues
 
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
@@ -50,7 +49,6 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.GradleManager
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
@@ -99,8 +97,7 @@ class JdkImportIssueChecker : GradleIssueChecker {
       if (IdeInfo.getInstance().isAndroidStudio) {
         val ideaProject = fetchIdeaProjectForGradleProject(issueData.projectPath)
         if (ideaProject != null) {
-          val gradleInstallation = (GradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager)
-          if (!gradleInstallation.isUsingJavaHomeJdk(ideaProject)) {
+          if (!IdeSdks.getInstance().isUsingJavaHomeJdk(ideaProject)) {
             addUseJavaHomeQuickFix(this)
           }
         }
