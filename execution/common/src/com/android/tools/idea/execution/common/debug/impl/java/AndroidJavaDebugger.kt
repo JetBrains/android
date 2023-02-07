@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.execution.common.debug.impl.java
 
+import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.Client
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerConfigurable
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
@@ -30,8 +31,6 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.xdebugger.XDebugProcess
 import com.intellij.xdebugger.XDebugProcessStarter
 import com.intellij.xdebugger.XDebugSession
-import org.jetbrains.concurrency.Promise
-import org.jetbrains.concurrency.resolvedPromise
 import java.util.concurrent.TimeUnit
 
 class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
@@ -55,17 +54,18 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
     return true
   }
 
-  override fun attachToClient(project: Project, client: Client, debugState: AndroidDebuggerState?): Promise<XDebugSession> {
+  @WorkerThread
+  override fun attachToClient(project: Project, client: Client, debugState: AndroidDebuggerState?): XDebugSession {
     val debugPort = getClientDebugPort(client)
 
     // Try to find existing debug session
     val existingDebugSession = getExistingDebugSession(debugPort)
     if (existingDebugSession != null) {
       activateDebugSessionWindow(project, existingDebugSession.runContentDescriptor)
-      return resolvedPromise(existingDebugSession)
+      return existingDebugSession
     }
 
-    return resolvedPromise(attachDebuggerToClientAndShowTab(project, client, this, createState()));
+    return attachDebuggerToClientAndShowTab(project, client, this, createState());
   }
 
 

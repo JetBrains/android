@@ -150,7 +150,7 @@ class AndroidJavaDebuggerTest {
 
   @Test
   fun testSessionName() {
-    val session = AndroidJavaDebugger().attachToClient(project, client, null).blockingGet(10, TimeUnit.SECONDS)
+    val session = AndroidJavaDebugger().attachToClient(project, client, null)
     assertThat(session).isNotNull()
     assertThat(client.clientData.pid).isAtLeast(0)
     assertThat(session!!.sessionName).isEqualTo("Java Only (${client.clientData.pid})")
@@ -164,7 +164,7 @@ class AndroidJavaDebuggerTest {
       ExecutionException("Test execution exception in test testCatchError"))
 
     try {
-      AndroidJavaDebugger().attachToClient(project, client, null).blockingGet(30, TimeUnit.SECONDS)
+      AndroidJavaDebugger().attachToClient(project, client, null)
       fail()
     }
     catch (e: Throwable) {
