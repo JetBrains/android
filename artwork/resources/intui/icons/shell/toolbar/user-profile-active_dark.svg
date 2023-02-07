@@ -1,10 +1,1 @@
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="user-profile-active/dark">
-<g id="user">
-<g id="user_2">
-<circle id="Ellipse 564" cx="8" cy="4" r="2.5" stroke="#3574F0"/>
-<path id="Vector 325" d="M8 8.5C3.78905 8.5 2.28717 10.9628 1.76591 12.4315C1.56803 12.989 2.01337 13.5 2.60499 13.5H13.395C13.9866 13.5 14.432 12.989 14.2341 12.4315C13.7128 10.9628 12.211 8.5 8 8.5Z" stroke="#3574F0" stroke-linecap="round"/>
-</g>
-</g>
-</g>
-</svg>
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="4" r="2.5" stroke="#3574F0"/><path d="M8 8.5c-4.211 0-5.713 2.463-6.234 3.931-.198.558.247 1.069.839 1.069h10.79c.592 0 1.037-.511.84-1.069C13.712 10.963 12.21 8.5 8 8.5z" stroke="#3574F0" stroke-linecap="round"/></svg>

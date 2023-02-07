@@ -1,8 +1,1 @@
-<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-<circle cx="9.25" cy="5.75" r="3.25" stroke="#6C707E" stroke-width="1.5"/>
-<mask id="path-2-inside-1_3754_1890" fill="white">
-<rect x="2" y="11" width="7" height="7" rx="0.5"/>
-</mask>
-<rect x="2" y="11" width="7" height="7" rx="0.5" stroke="#6C707E" stroke-width="3" mask="url(#path-2-inside-1_3754_1890)"/>
-<path d="M17.1295 15H11.8705C11.4846 15 11.2442 14.5814 11.4386 14.2481L14.0681 9.74038C14.261 9.40963 14.739 9.40963 14.9319 9.74038L17.5614 14.2481C17.7558 14.5814 17.5154 15 17.1295 15Z" stroke="#6C707E" stroke-width="1.5"/>
-</svg>
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="9.25" cy="5.75" r="3.25" stroke="#6C707E" stroke-width="1.5"/><mask id="a" fill="#fff"><rect x="2" y="11" width="7" height="7" rx=".5"/></mask><rect x="2" y="11" width="7" height="7" rx=".5" stroke="#6C707E" stroke-width="3" mask="url(#a)"/><path d="M17.13 15h-5.26a.5.5 0 0 1-.431-.752l2.63-4.508a.5.5 0 0 1 .863 0l2.63 4.508a.5.5 0 0 1-.433.752z" stroke="#6C707E" stroke-width="1.5"/></svg>

@@ -1,15 +1,1 @@
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="instant-run/light" clip-path="url(#clip0_2_607)">
-<g id="instant-run/dark" clip-path="url(#clip1_2_607)">
-<path id="Path 2" fill-rule="evenodd" clip-rule="evenodd" d="M7.69121 0.999969C7.57403 0.999969 7.4669 1.06619 7.4145 1.17101L3.36168 9.27879C3.1955 9.61124 3.43725 10.0023 3.80892 10.0023H6.50231C6.77855 10.0023 7.00245 10.2264 7.00231 10.5026L7.00016 14.6909C7.00007 14.8616 7.1384 15 7.30908 15V15C7.42609 15 7.53305 14.9339 7.58538 14.8292L11.6382 6.72351C11.8044 6.39106 11.5627 5.99991 11.191 5.99991H8.5083C8.23251 5.99991 8.0088 5.77661 8.0083 5.50083L8.00057 1.30875C8.00025 1.13812 7.86184 0.999969 7.69121 0.999969V0.999969Z" stroke="#6C707E"/>
-</g>
-</g>
-<defs>
-<clipPath id="clip0_2_607">
-<rect width="16" height="16" fill="white"/>
-</clipPath>
-<clipPath id="clip1_2_607">
-<rect width="16" height="16" fill="white"/>
-</clipPath>
-</defs>
-</svg>
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_2_607)"><g clip-path="url(#clip1_2_607)"><path clip-rule="evenodd" d="M7.691 1a.31.31 0 0 0-.276.171L3.362 9.279a.5.5 0 0 0 .447.723h2.693a.5.5 0 0 1 .5.5L7 14.692c0 .17.138.309.31.309v0a.309.309 0 0 0 .275-.17l4.053-8.106A.5.5 0 0 0 11.191 6H8.508a.5.5 0 0 1-.5-.5L8.001 1.31A.31.31 0 0 0 7.69 1v0z" stroke="#6C707E"/></g></g><defs><clipPath id="clip0_2_607"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath><clipPath id="clip1_2_607"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>

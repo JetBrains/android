@@ -1,18 +1,1 @@
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="apply-code-swap/light" clip-path="url(#clip0_2_611)">
-<g id="apply-code-swap/dark">
-<g id="lines">
-<path fill-rule="evenodd" clip-rule="evenodd" d="M14 2.5C14 2.77614 13.7761 3 13.5 3H2C1.72386 3 1.5 2.77614 1.5 2.5C1.5 2.22386 1.72386 2 2 2H13.5C13.7761 2 14 2.22386 14 2.5Z" fill="#6C707E"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M14 5.5C14 5.77614 13.7761 6 13.5 6H2C1.72386 6 1.5 5.77614 1.5 5.5C1.5 5.22386 1.72386 5 2 5H13.5C13.7761 5 14 5.22386 14 5.5Z" fill="#6C707E"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M7 8.5C7 8.77614 6.77614 9 6.5 9H2C1.72386 9 1.5 8.77614 1.5 8.5C1.5 8.22386 1.72386 8 2 8H6.5C6.77614 8 7 8.22386 7 8.5Z" fill="#6C707E"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M8 11.5C8 11.7761 7.77614 12 7.5 12H2C1.72386 12 1.5 11.7761 1.5 11.5C1.5 11.2239 1.72386 11 2 11H7.5C7.77614 11 8 11.2239 8 11.5Z" fill="#6C707E"/>
-</g>
-<path id="arrow" fill-rule="evenodd" clip-rule="evenodd" d="M10.7929 7.00001C10.9882 6.80475 11.3048 6.80475 11.5 7.00001V7.00001C11.6953 7.19527 11.6953 7.51185 11.5 7.70711L10.2071 9.00001H12.5C13.8807 9.00001 15 10.1193 15 11.5C15 12.8807 13.8807 14 12.5 14H9.50002C9.22387 14 9.00002 13.7761 9.00002 13.5V13.5C9.00002 13.2239 9.22387 13 9.50002 13H12.5C13.3284 13 14 12.3284 14 11.5C14 10.6716 13.3284 10 12.5 10H10.2071L11.5 11.2929C11.6953 11.4882 11.6953 11.8047 11.5 12V12C11.3048 12.1953 10.9882 12.1953 10.7929 12L8.29291 9.50001L10.7929 7.00001Z" fill="#3DDC84"/>
-</g>
-</g>
-<defs>
-<clipPath id="clip0_2_611">
-<rect width="16" height="16" fill="white"/>
-</clipPath>
-</defs>
-</svg>
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_2_611)" fill-rule="evenodd" clip-rule="evenodd"><path d="M14 2.5a.5.5 0 0 1-.5.5H2a.5.5 0 1 1 0-1h11.5a.5.5 0 0 1 .5.5zM14 5.5a.5.5 0 0 1-.5.5H2a.5.5 0 1 1 0-1h11.5a.5.5 0 0 1 .5.5zM7 8.5a.5.5 0 0 1-.5.5H2a.5.5 0 1 1 0-1h4.5a.5.5 0 0 1 .5.5zM8 11.5a.5.5 0 0 1-.5.5H2a.5.5 0 1 1 0-1h5.5a.5.5 0 0 1 .5.5z" fill="#6C707E"/><path d="M10.793 7a.5.5 0 1 1 .707.707L10.207 9H12.5a2.5 2.5 0 1 1 0 5h-3a.5.5 0 1 1 0-1h3a1.5 1.5 0 0 0 0-3h-2.293l1.293 1.293a.5.5 0 1 1-.707.707l-2.5-2.5 2.5-2.5z" fill="#3DDC84"/></g><defs><clipPath id="clip0_2_611"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>

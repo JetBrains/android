@@ -1,13 +1,1 @@
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_2_1665)">
-<rect x="2" y="3" width="12" height="1" rx="0.5" fill="#CED0D6"/>
-<rect x="2" y="6" width="9" height="1" rx="0.5" fill="#CED0D6"/>
-<rect x="2" y="9" width="10" height="1" rx="0.5" fill="#CED0D6"/>
-<rect x="2" y="12" width="12" height="1" rx="0.5" fill="#CED0D6"/>
-</g>
-<defs>
-<clipPath id="clip0_2_1665">
-<rect width="16" height="16" fill="white"/>
-</clipPath>
-</defs>
-</svg>
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.793 5.707l1.853-1.853a.5.5 0 0 1 .854.353V10a3 3 0 0 1-3 3h-3a3 3 0 0 1-3-3V4.207a.5.5 0 0 1 .854-.353l1.853 1.853A1 1 0 0 0 8.914 6h2.172a1 1 0 0 0 .707-.293z" stroke="#CED0D6" stroke-linecap="round"/><circle cx="7.75" cy="8.75" r=".75" fill="#CED0D6"/><circle cx="12.25" cy="8.75" r=".75" fill="#CED0D6"/><path d="M10.189 11.282a.25.25 0 0 1-.378 0l-.752-.868A.25.25 0 0 1 9.25 10h1.503a.25.25 0 0 1 .189.414l-.752.868z" fill="#CED0D6"/><path d="M1.5 6h4M2.5 9h3M2.5 12H6" stroke="#CED0D6" stroke-linecap="round"/></svg>

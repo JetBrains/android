@@ -1,16 +1,1 @@
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="sdk-manager/light" clip-path="url(#clip0_2_600)">
-<g id="sdk-manager/dark">
-<path id="Vector 327 (Stroke)" fill-rule="evenodd" clip-rule="evenodd" d="M12 14V8.5C12 8.22386 12.2239 8 12.5 8V8C12.7761 8 13 8.22386 13 8.5V14H12Z" fill="#315FBD"/>
-<path id="Vector 328 (Stroke)" fill-rule="evenodd" clip-rule="evenodd" d="M10 12.7071C9.80475 12.5119 9.80475 12.1953 10 12V12C10.1953 11.8047 10.5119 11.8047 10.7071 12L12.5 13.7929L14.2929 12C14.4882 11.8047 14.8047 11.8047 15 12V12C15.1953 12.1953 15.1953 12.5119 15 12.7071L12.5 15.2071L10 12.7071Z" fill="#315FBD"/>
-<path id="Subtract" fill-rule="evenodd" clip-rule="evenodd" d="M6.19452 1.2619C6.70777 1.03607 7.29224 1.03607 7.80548 1.2619L11.8055 3.0219C12.5314 3.3413 13 4.05946 13 4.85253V7H12V4.85253C12 4.45599 11.7657 4.09692 11.4027 3.93721L7.40274 2.17721C7.14612 2.0643 6.85388 2.0643 6.59726 2.17721L2.59726 3.93721C2.23431 4.09692 2 4.45599 2 4.85253V10.1475C2 10.544 2.23431 10.9031 2.59726 11.0628L6.59726 12.8228C6.85388 12.9357 7.14612 12.9357 7.40274 12.8228L8.14337 12.4969L8.90206 13.2556L7.80548 13.7381C7.29223 13.9639 6.70776 13.9639 6.19452 13.7381L2.19452 11.9781C1.46861 11.6587 1 10.9406 1 10.1475V4.85253C1 4.05945 1.46861 3.3413 2.19452 3.0219L6.19452 1.2619Z" fill="#6C707E"/>
-<path id="Vector 329" d="M1.5 4L7 6.5L12.5 3.99998" stroke="#6C707E"/>
-<path id="Vector 330" d="M7 6.5V13.5" stroke="#6C707E"/>
-</g>
-</g>
-<defs>
-<clipPath id="clip0_2_600">
-<rect width="16" height="16" fill="white"/>
-</clipPath>
-</defs>
-</svg>
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_2_600)"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 14V8.5a.5.5 0 0 1 1 0V14h-1z" fill="#315FBD"/><path fill-rule="evenodd" clip-rule="evenodd" d="M10 12.707a.5.5 0 0 1 .707-.707l1.793 1.793L14.293 12a.5.5 0 1 1 .707.707l-2.5 2.5-2.5-2.5z" fill="#315FBD"/><path fill-rule="evenodd" clip-rule="evenodd" d="M6.195 1.262a2 2 0 0 1 1.61 0l4 1.76A2 2 0 0 1 13 4.852V7h-1V4.853a1 1 0 0 0-.597-.916l-4-1.76a1 1 0 0 0-.806 0l-4 1.76A1 1 0 0 0 2 4.853v5.295a1 1 0 0 0 .597.915l4 1.76a1 1 0 0 0 .806 0l.74-.326.76.759-1.098.482a2 2 0 0 1-1.61 0l-4-1.76A2 2 0 0 1 1 10.148V4.853a2 2 0 0 1 1.195-1.831l4-1.76z" fill="#6C707E"/><path d="M1.5 4L7 6.5 12.5 4M7 6.5v7" stroke="#6C707E"/></g><defs><clipPath id="clip0_2_600"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>

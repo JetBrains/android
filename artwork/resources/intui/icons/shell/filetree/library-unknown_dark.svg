@@ -1,12 +1,1 @@
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_3_824)">
-<path d="M13.5 4.5H10.5C10.2239 4.5 10 4.72386 10 5V13.5H13.5C13.7761 13.5 14 13.2761 14 13V5C14 4.72386 13.7761 4.5 13.5 4.5Z" fill="#43454A" stroke="#CED0D6"/>
-<path d="M9.5 2.5H6.5C6.22386 2.5 6 2.72386 6 3V13.5H10V3C10 2.72386 9.77614 2.5 9.5 2.5Z" fill="#43454A" stroke="#CED0D6"/>
-<path d="M5.5 6.5H2.5C2.22386 6.5 2 6.72386 2 7V13C2 13.2761 2.22386 13.5 2.5 13.5H6V7C6 6.72386 5.77614 6.5 5.5 6.5Z" fill="#43454A" stroke="#CED0D6"/>
-</g>
-<defs>
-<clipPath id="clip0_3_824">
-<rect width="16" height="16" fill="white" transform="matrix(-1 0 0 1 16 0)"/>
-</clipPath>
-</defs>
-</svg>
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_3_824)" fill="#43454A" stroke="#CED0D6"><path d="M14 5a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v8.5h3.5a.5.5 0 0 0 .5-.5V5zM10 3a.5.5 0 0 0-.5-.5h-3A.5.5 0 0 0 6 3v10.5h4V3zM6 7a.5.5 0 0 0-.5-.5h-3A.5.5 0 0 0 2 7v6a.5.5 0 0 0 .5.5H6V7z"/></g><defs><clipPath id="clip0_3_824"><path fill="#fff" transform="matrix(-1 0 0 1 16 0)" d="M0 0h16v16H0z"/></clipPath></defs></svg>
