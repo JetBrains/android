@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.sdk;
 
-import com.android.SdkConstants;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.AttrResourceValue;
@@ -34,7 +33,6 @@ import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.res.FrameworkResourceRepositoryManager;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.intellij.internal.statistic.analytics.StudioCrashDetails;
@@ -45,14 +43,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.reference.SoftReference;
-import com.intellij.util.xml.NanoXmlBuilder;
-import com.intellij.util.xml.NanoXmlUtil;
-import gnu.trove.TIntObjectHashMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -75,8 +66,6 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidTargetData {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.sdk.AndroidTargetData");
 
-  @NotNull private final List<String> myPublicFileNames = ImmutableList.of("public.xml", "public-final.xml", "public-staging.xml");
-
   private final AndroidSdkData mySdkData;
   private final IAndroidTarget myTarget;
 
@@ -85,10 +74,6 @@ public class AndroidTargetData {
   private AttributeDefinitions myAttrDefs;
 
   private LayoutLibrary myLayoutLibrary;
-
-  private final Object myPublicResourceIdMapLock = new Object();
-  @GuardedBy("myPublicResourceIdMapLock")
-  private Int2ObjectMap<String> myPublicResourceIdMap;
 
   private volatile MyStaticConstantsData myStaticConstantsData;
 
@@ -122,17 +107,6 @@ public class AndroidTargetData {
     }
   }
 
-  // TODO: Consider moving this method to FrameworkResourceRepository.
-  @Nullable
-  public Int2ObjectMap<String> getPublicIdMap() {
-    synchronized (myPublicResourceIdMapLock) {
-      if (myPublicResourceIdMap == null) {
-        buildPublicResourceIdMap();
-      }
-      return myPublicResourceIdMap;
-    }
-  }
-
   public boolean isResourcePublic(@NotNull ResourceType type, @NotNull String name) {
     ResourceRepository frameworkResources = getFrameworkResources(Collections.emptySet());
     if (frameworkResources == null) {
@@ -140,35 +114,6 @@ public class AndroidTargetData {
     }
     List<ResourceItem> resources = frameworkResources.getResources(ResourceNamespace.ANDROID, type, name);
     return !resources.isEmpty() && ((ResourceItemWithVisibility)resources.get(0)).getVisibility() == ResourceVisibility.PUBLIC;
-  }
-
-  private void buildPublicResourceIdMap() {
-    Path resDirPath = myTarget.getPath(IAndroidTarget.RESOURCES);
-
-    Int2ObjectMap<String> resourceIdMap = new Int2ObjectOpenHashMap<>();
-
-    for (String fileName : myPublicFileNames) {
-      Path publicXmlPath = resDirPath.resolve(SdkConstants.FD_RES_VALUES).resolve(fileName);
-      VirtualFile publicXml = LocalFileSystem.getInstance().findFileByNioFile(publicXmlPath);
-
-      if (publicXml != null) {
-        try {
-          MyPublicResourceIdMapBuilder builder = new MyPublicResourceIdMapBuilder();
-          NanoXmlUtil.parse(publicXml.getInputStream(), builder);
-
-          builder.getIdMap().forEachEntry((key, value) -> {
-            resourceIdMap.put(key, value);
-            return true;
-          });
-        }
-        catch (IOException e) {
-          LOG.error(e);
-        }
-      }
-    }
-    synchronized (myPublicResourceIdMapLock) {
-      myPublicResourceIdMap = resourceIdMap;
-    }
   }
 
   private static boolean isCrashCausedByLayoutlib(@NotNull StudioCrashDetails crash) {
@@ -322,76 +267,6 @@ public class AndroidTargetData {
       return attr.getNamespace().equals(ResourceNamespace.ANDROID)
              && !attr.getName().startsWith("__removed")
              && isResourcePublic(ResourceType.ATTR, attr.getName());
-    }
-  }
-
-  @VisibleForTesting
-  static class MyPublicResourceIdMapBuilder implements NanoXmlBuilder {
-    private final TIntObjectHashMap<String> myIdMap = new TIntObjectHashMap<>(3000);
-
-    private String myName;
-    private String myType;
-    private int myId;
-    private boolean inGroup;
-
-    @Override
-    public void elementAttributesProcessed(String name, String nsPrefix, String nsURI) {
-      if ("public".equals(name) && myName != null && myType != null) {
-        if (myId != 0) {
-          myIdMap.put(myId, SdkConstants.ANDROID_PREFIX + myType + "/" + myName);
-
-          // Within <public-group> we increase the id based on a given first id.
-          if (inGroup) {
-            myId++;
-          }
-        }
-      }
-    }
-
-    @Override
-    public void addAttribute(String key, String nsPrefix, String nsURI, String value, String type) {
-      switch (key) {
-        case "name":
-          myName = value;
-          break;
-        case "type":
-          myType = value;
-          break;
-        case "first-id":
-        case "id":
-          try {
-            myId = Integer.decode(value);
-          } catch (NumberFormatException e) {
-            myId = 0;
-          }
-          break;
-      }
-    }
-
-    @Override
-    public void startElement(String name, String nsPrefix, String nsURI, String systemID, int lineNr) {
-      if (!inGroup) {
-        // This is a top-level <attr> so clear myType and myId
-        myType = null;
-        myId = 0;
-      }
-
-      if ("public-group".equals(name)) {
-        inGroup = true;
-      }
-
-      myName = null;
-    }
-
-    @Override
-    public void endElement(String name, String nsPrefix, String nsURI) {
-      if ("public-group".equals(name)) {
-        inGroup = false;
-      }
-    }
-
-    public TIntObjectHashMap<String> getIdMap() {
-      return myIdMap;
     }
   }
 
