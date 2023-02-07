@@ -34,7 +34,6 @@ import com.google.common.truth.Expect
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkException
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.JAVA_HOME
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_JAVA_HOME
-import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_PROJECT_JDK
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_JAVA_HOME
 import org.junit.Rule
@@ -142,24 +141,6 @@ class GradleSyncJdkIntegrationTest {
       )
     }
 
-  @Test
-  fun `Given USE_PROJECT_JDK gradleJdk macro When import project Then sync used PROJECT_JDK`() =
-    jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = USE_PROJECT_JDK,
-        ideaProjectJdk = JDK_17
-      ),
-      environment = TestEnvironment(
-        jdkTable = listOf(Jdk(JDK_17, JDK_17_PATH))
-      )
-    ) {
-      syncWithAssertion(
-        expectedGradleJdkName = USE_PROJECT_JDK,
-        expectedProjectJdkName = JDK_17,
-        expectedJdkPath = JDK_17_PATH
-      )
-    }
-
   @Test(expected = ExternalSystemJdkException::class)
   fun `Given USE_GRADLE_JAVA_HOME gradleJdk macro without jdkPath defined When import project Then throw exception`() =
     jdkIntegrationTest.run(
@@ -171,24 +152,6 @@ class GradleSyncJdkIntegrationTest {
       )
     ) {
       sync()
-    }
-
-  @Test
-  fun `Given project without any configuration When import project Then sync used PROJECT_JDK`() =
-    jdkIntegrationTest.run(SimpleApplication()) {
-      sync(
-        assertInMemoryConfig = {
-          assertGradleExecutionDaemon(JDK_17_PATH)
-          assertGradleJdk(USE_PROJECT_JDK)
-          assertProjectJdkAndValidateTableEntry(JDK_17, JDK_17_PATH)
-        },
-        assertOnDiskConfig = {
-          // When gradleJvm isn't specified in .idea/gradle.xml by default is resolved
-          // as #USE_PROJECT_JDK but the file isn't modified
-          assertGradleJdk(null)
-          assertProjectJdk(JDK_17)
-        }
-      )
     }
 
   @Test(expected = ExternalSystemJdkException::class)

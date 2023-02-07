@@ -91,6 +91,7 @@ class JdkIntegrationTest(
       val project = preparedProject.open(
         updateOptions = {
           it.copy(
+            overrideProjectJdk = null,
             syncExceptionHandler = { exception ->
               capturedException = exception
             },
