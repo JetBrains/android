@@ -39,8 +39,8 @@
         implementationClass="com.android.tools.idea.logcat.filters.LogcatFilterSyntaxHighlighterFactory"
     />
 
-    <!-- TODO(b/236246692): Restore this registration when Logcat V2 is mainstream -->
-    <!--    <colorSettingsPage implementation="com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage"/>-->
+    <colorSettingsPage implementation="com.android.tools.idea.logcat.messages.LogcatColorSettingsPage"/>
+    <colorSettingsPage implementation="com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage"/>
 
     <completion.contributor
         language="LogcatFilter"

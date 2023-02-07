@@ -20,14 +20,11 @@ import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.isAndroidEnvironment
-import com.android.tools.idea.logcat.LogcatExperimentalSettings.Companion.getInstance
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Custom
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Preset
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.devices.DeviceFinder
-import com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage
 import com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions
-import com.android.tools.idea.logcat.messages.LogcatColorSettingsPage
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
 import com.android.tools.idea.logcat.util.getDefaultFilter
@@ -37,7 +34,6 @@ import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.EmulatorDeviceIn
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.PhysicalDeviceInfo
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.components.service
-import com.intellij.openapi.options.colors.ColorSettingsPages
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -54,16 +50,6 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
 
   // When ShowLogcatListener is activated, we do not want to create a new Logcat tab if the tool was empty
   private var insideShowLogcatListener = false
-
-  init {
-    // TODO(b/236246692): Register from XML when Logcat V2 is mainstream.
-    if (isLogcatV2Enabled()) {
-      ColorSettingsPages.getInstance().apply {
-        registerPage(LogcatColorSettingsPage())
-        registerPage(LogcatFilterColorSettingsPage())
-      }
-    }
-  }
 
   override fun init(toolWindow: ToolWindow) {
     super.init(toolWindow)
@@ -116,7 +102,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
 
   override fun shouldCreateNewTabWhenEmpty() = !insideShowLogcatListener
 
-  override fun isApplicable(project: Project) = isAndroidEnvironment(project) && isLogcatV2Enabled()
+  override fun isApplicable(project: Project) = isAndroidEnvironment(project)
 
   override fun generateTabName(tabNames: Set<String>) =
     UniqueNameGenerator.generateUniqueName("Logcat", "", "", " (", ")") { !tabNames.contains(it) }
@@ -144,8 +130,6 @@ private fun ToolWindowEx.findTab(name: String): Content? {
   }
   return null
 }
-
-private fun isLogcatV2Enabled() = getInstance().logcatV2Enabled
 
 private fun getDefaultFormattingConfig(): LogcatPanelConfig.FormattingConfig {
   val formattingOptions = AndroidLogcatFormattingOptions.getDefaultOptions()

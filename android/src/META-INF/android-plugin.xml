@@ -347,8 +347,6 @@
     <applicationService serviceInterface="com.android.tools.idea.run.NonGradleAndroidArtifactResolver"
                         serviceImplementation="com.android.tools.idea.run.JpsAndroidArtifactResolver"/>
 
-    <applicationService serviceImplementation="com.android.tools.idea.logcat.LogcatExperimentalSettings"/>
-
     <fileType name="Android 9-Patch"
               implementationClass="com.android.tools.idea.fileTypes.AndroidNinePatchFileType"
               fieldName="INSTANCE"
@@ -500,10 +498,6 @@
     <usageTypeProvider implementation="org.jetbrains.android.refactoring.AndroidResourceReferenceInCodeUsageTypeProvider" order="first" />
     <externalAnnotator language="JAVA" implementationClass="org.jetbrains.android.AndroidJavaResourceExternalAnnotator"/>
 
-    <toolWindow id="Logcat"
-                      anchor="bottom"
-                      icon="StudioIcons.Shell.ToolWindows.LOGCAT"
-                      factoryClass="com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectInfo"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.GradleProjectInfo"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.GradleVersionCatalogDetector"/>

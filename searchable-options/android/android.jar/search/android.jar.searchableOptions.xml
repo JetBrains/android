@@ -759,6 +759,34 @@
     <option name="references" hit="String References" />
     <option name="string" hit="String References" />
   </configurable>
+  <configurable id="reference.settingsdialog.IDE.editor.colors.Android Logcat" configurable_name="Android Logcat">
+    <option name="android" hit="Android Logcat" />
+    <option name="logcat" hit="Android Logcat" />
+    <option name="assert" hit="Assert indicator" />
+    <option name="indicator" hit="Assert indicator" />
+    <option name="assert" hit="Assert message" />
+    <option name="message" hit="Assert message" />
+    <option name="debug" hit="Debug indicator" />
+    <option name="indicator" hit="Debug indicator" />
+    <option name="debug" hit="Debug message" />
+    <option name="message" hit="Debug message" />
+    <option name="error" hit="Error indicator" />
+    <option name="indicator" hit="Error indicator" />
+    <option name="error" hit="Error message" />
+    <option name="message" hit="Error message" />
+    <option name="indicator" hit="Info indicator" />
+    <option name="info" hit="Info indicator" />
+    <option name="info" hit="Info message" />
+    <option name="message" hit="Info message" />
+    <option name="indicator" hit="Verbose indicator" />
+    <option name="verbose" hit="Verbose indicator" />
+    <option name="message" hit="Verbose message" />
+    <option name="verbose" hit="Verbose message" />
+    <option name="indicator" hit="Warn indicator" />
+    <option name="warn" hit="Warn indicator" />
+    <option name="message" hit="Warn message" />
+    <option name="warn" hit="Warn message" />
+  </configurable>
   <configurable id="reference.settingsdialog.IDE.editor.colors.Live Edit of Compose Literals" configurable_name="Live Edit of Compose Literals">
     <option name="compose" hit="Live Edit of Compose Literals" />
     <option name="edit" hit="Live Edit of Compose Literals" />
@@ -767,6 +795,17 @@
     <option name="of" hit="Live Edit of Compose Literals" />
     <option name="decorations" hit="Literals decorations" />
     <option name="literals" hit="Literals decorations" />
+  </configurable>
+  <configurable id="reference.settingsdialog.IDE.editor.colors.Logcat Filter" configurable_name="Logcat Filter">
+    <option name="filter" hit="Logcat Filter" />
+    <option name="logcat" hit="Logcat Filter" />
+    <option name="key" hit="Key" />
+    <option name="regex" hit="Regex value" />
+    <option name="value" hit="Regex value" />
+    <option name="string" hit="String value" />
+    <option name="value" hit="String value" />
+    <option name="text" hit="Text" />
+    <option name="value" hit="Value" />
   </configurable>
   <configurable id="project.propDebugger" configurable_name="Debugger">
     <option name="" hit=" Existing ADB server port:" />
@@ -1394,11 +1433,6 @@
     <option name="enable" hit="Enable @Preview picker" />
     <option name="picker" hit="Enable @Preview picker" />
     <option name="preview" hit="Enable @Preview picker" />
-    <option name="enable" hit="Enable new Logcat tool window" />
-    <option name="logcat" hit="Enable new Logcat tool window" />
-    <option name="new" hit="Enable new Logcat tool window" />
-    <option name="tool" hit="Enable new Logcat tool window" />
-    <option name="window" hit="Enable new Logcat tool window" />
     <option name="enable" hit="Enable parallel Gradle Sync" />
     <option name="gradle" hit="Enable parallel Gradle Sync" />
     <option name="parallel" hit="Enable parallel Gradle Sync" />
@@ -1409,9 +1443,6 @@
     <option name="jetpack" hit="Jetpack Compose" />
     <option name="editor" hit="Layout Editor" />
     <option name="layout" hit="Layout Editor" />
-    <option name="learn" hit="Learn more" />
-    <option name="more" hit="Learn more" />
-    <option name="logcat" hit="Logcat" />
     <option name="during" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
     <option name="generated" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
     <option name="gradle" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />

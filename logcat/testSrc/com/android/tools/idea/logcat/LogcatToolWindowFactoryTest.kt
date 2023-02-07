@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
@@ -27,9 +26,7 @@ import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.devices.DeviceComboBoxDeviceTrackerFactory
 import com.android.tools.idea.logcat.devices.DeviceFinder
 import com.android.tools.idea.logcat.devices.FakeDeviceComboBoxDeviceTracker
-import com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage
 import com.android.tools.idea.logcat.messages.FormattingOptions
-import com.android.tools.idea.logcat.messages.LogcatColorSettingsPage
 import com.android.tools.idea.logcat.messages.TagFormat
 import com.android.tools.idea.logcat.service.LogcatService
 import com.android.tools.idea.run.ShowLogcatListener
@@ -39,7 +36,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.options.colors.ColorSettingsPages
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -52,7 +48,6 @@ import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl.MockToolWindow
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.never
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 import java.util.concurrent.TimeUnit
@@ -74,26 +69,17 @@ class LogcatToolWindowFactoryTest {
 
   private val project get() = projectRule.project
   private val disposable get() = disposableRule.disposable
-  private val settings = LogcatExperimentalSettings()
   private val mockProcessNameMonitor = mock<ProcessNameMonitor>()
   private val fakeLogcatService = FakeLogcatService()
 
   @Before
   fun setUp() {
-    ApplicationManager.getApplication().replaceService(LogcatExperimentalSettings::class.java, settings, disposable)
     project.replaceService(LogcatService::class.java, fakeLogcatService, disposable)
   }
 
   @Test
   fun isApplicable() {
     assertThat(logcatToolWindowFactory().isApplicable(project)).isTrue()
-  }
-
-  @Test
-  fun isApplicable_legacy() {
-    settings.logcatV2Enabled = false
-
-    assertThat(logcatToolWindowFactory().isApplicable(project)).isFalse()
   }
 
   @Test
@@ -147,35 +133,6 @@ class LogcatToolWindowFactoryTest {
 
     assertThat(logcatMainPanel.formattingOptions).isEqualTo(FormattingOptions())
     Disposer.dispose(logcatMainPanel)
-  }
-
-  @Test
-  fun colorSettingsPagesRegistration() {
-    // We have to use a mock because there is no clean way to clean up ColorSettingsPages
-    val mockColorSettingsPages = mock<ColorSettingsPages>()
-    ApplicationManager.getApplication().replaceService(ColorSettingsPages::class.java, mockColorSettingsPages, disposableRule.disposable)
-
-    logcatToolWindowFactory()
-    AndroidLogcatToolWindowFactory()
-
-    verify(mockColorSettingsPages).registerPage(any(LogcatColorSettingsPage::class.java))
-    verify(mockColorSettingsPages).registerPage(any(LogcatFilterColorSettingsPage::class.java))
-    verify(mockColorSettingsPages, never()).registerPage(any(AndroidLogcatColorPage::class.java))
-  }
-
-  @Test
-  fun colorSettingsPagesRegistration_legacy() {
-    // We have to use a mock because there is no clean way to clean up ColorSettingsPages
-    val mockColorSettingsPages = mock<ColorSettingsPages>()
-    ApplicationManager.getApplication().replaceService(ColorSettingsPages::class.java, mockColorSettingsPages, disposableRule.disposable)
-    settings.logcatV2Enabled = false
-
-    logcatToolWindowFactory()
-    AndroidLogcatToolWindowFactory()
-
-    verify(mockColorSettingsPages, never()).registerPage(any(LogcatColorSettingsPage::class.java))
-    verify(mockColorSettingsPages, never()).registerPage(any(LogcatFilterColorSettingsPage::class.java))
-    verify(mockColorSettingsPages).registerPage(any(AndroidLogcatColorPage::class.java))
   }
 
   @Test

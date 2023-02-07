@@ -23,13 +23,10 @@ import com.android.tools.idea.compose.ComposeExperimentalConfiguration;
 import com.android.tools.idea.gradle.dsl.model.GradleDslModelExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil;
-import com.android.tools.idea.logcat.LogcatExperimentalSettings;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUiUtil;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
@@ -38,7 +35,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.ui.components.BrowserLink;
 import java.io.File;
 import java.util.Hashtable;
 import javax.swing.JCheckBox;
@@ -47,7 +43,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,8 +61,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private TextFieldWithBrowseButton myTraceProfilePathField;
   private JCheckBox myPreviewPickerCheckBox;
   private JLabel myPreviewPickerLabel;
-  private JCheckBox myEnableNewLogcatToolCheckBox;
-  private BrowserLink myLogcatLearnMoreBrowserLink;
 
   private JCheckBox myEnableParallelSync;
 
@@ -142,7 +135,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
            mySettings.ENABLE_GRADLE_API_OPTIMIZATION != isGradleApiOptimization() ||
            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
            myPreviewPickerCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled() ||
-           myEnableNewLogcatToolCheckBox.isSelected() != LogcatExperimentalSettings.getInstance().getLogcatV2Enabled() ||
            myEnableVersionCatalogParsing.isSelected() != GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled();
   }
 
@@ -162,21 +154,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     applyTraceSettings();
     ComposeExperimentalConfiguration.getInstance().setPreviewPickerEnabled(myPreviewPickerCheckBox.isSelected());
     GradleDslModelExperimentalSettings.getInstance().setVersionCatalogEnabled(myEnableVersionCatalogParsing.isSelected());
-
-    LogcatExperimentalSettings logcatSettings = LogcatExperimentalSettings.getInstance();
-    if (myEnableNewLogcatToolCheckBox.isSelected() != logcatSettings.getLogcatV2Enabled()) {
-      logcatSettings.setLogcatV2Enabled(myEnableNewLogcatToolCheckBox.isSelected());
-
-      int result = Messages.showYesNoDialog(
-        AndroidBundle.message("android.logcat.enable.v2.restart.needed"),
-        IdeBundle.message("dialog.title.restart.ide"),
-        IdeBundle.message("dialog.action.restart.yes"),
-        AndroidBundle.message("android.logcat.enable.v2.restart.no"),
-        Messages.getWarningIcon());
-      if (result == Messages.YES) {
-        ((ApplicationEx)ApplicationManager.getApplication()).restart(true);
-      }
-    }
   }
 
   @Override
@@ -347,12 +324,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myEnableDeviceApiOptimization.setSelected(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
     updateTraceComponents();
     myPreviewPickerCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled());
-    myEnableNewLogcatToolCheckBox.setSelected(LogcatExperimentalSettings.getInstance().getLogcatV2Enabled());
     myEnableVersionCatalogParsing.setSelected(GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled());
-  }
-
-  private void createUIComponents() {
-    myLogcatLearnMoreBrowserLink = new BrowserLink("Learn more", "https://d.android.com/r/studio-ui/logcat/help");
   }
 
   public enum TraceProfileItem {

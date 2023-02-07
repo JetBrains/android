@@ -32,7 +32,5 @@
     <scrollHandler implementation="com.android.tools.idea.whatsnew.assistant.WhatsNewScrollHandler"/>
     <actionHandler implementation="com.android.tools.idea.whatsnew.assistant.actions.AppInspectionShowAction"/>
     <actionHandler implementation="com.android.tools.idea.whatsnew.assistant.actions.OpenDeviceMirroringSettingsAction"/>
-    <actionHandler implementation="com.android.tools.idea.whatsnew.assistant.actions.LogcatEnableAndRestartAction"/>
-    <actionStateManager implementation="com.android.tools.idea.whatsnew.assistant.actions.LogcatEnableAndRestartActionStateManager"/>
   </extensions>
 </idea-plugin>
