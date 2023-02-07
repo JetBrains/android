@@ -1610,6 +1610,36 @@ class AndroidModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testAddAndApplyStringSdkElements() {
+    writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
+    android.compileSdkVersion().setValue("android-S")
+    // TODO(b/267259672): need to make the model return "android-S" for `compileSdkPreview 'S'`
+    //  assertEquals("compileSdkVersion", "android-S", android.compileSdkVersion())
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_STRING_SDK_ELEMENTS_EXPECTED);
+  }
+
+  @Test
+  fun testAddAndApplyStringSdkElements400() {
+    writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("4.0.0")
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
+    android.compileSdkVersion().setValue("android-S")
+    assertEquals("compileSdkVersion", "android-S", android.compileSdkVersion())
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_STRING_SDK_ELEMENTS_EXPECTED_400);
+  }
+
+  @Test
   fun setCompileSdkVersionToReference() {
     writeToBuildFile(TestFile.SET_COMPILE_SDK_VERSION_TO_REFERENCE)
     val buildModel = gradleBuildModel
@@ -2050,6 +2080,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS("addAndApplyIntegerLiteralElements"),
     ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED("addAndApplyIntegerLiteralElementsExpected"),
     ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED_400("addAndApplyIntegerLiteralElementsExpected400"),
+    ADD_AND_APPLY_STRING_SDK_ELEMENTS_EXPECTED("addAndApplyStringSdkElementsExpected"),
+    ADD_AND_APPLY_STRING_SDK_ELEMENTS_EXPECTED_400("addAndApplyStringSdkElementsExpected400"),
     REPLACE_AND_APPLY_LIST_ELEMENTS("replaceAndApplyListElements"),
     REPLACE_AND_APPLY_LIST_ELEMENTS_EXPECTED("replaceAndApplyListElementsExpected"),
     ADD_AND_APPLY_LIST_ELEMENTS("addAndApplyListElements"),

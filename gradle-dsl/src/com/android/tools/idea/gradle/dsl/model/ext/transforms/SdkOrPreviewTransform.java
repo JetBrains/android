@@ -101,13 +101,20 @@ public class SdkOrPreviewTransform extends PropertyTransform {
                  ? ExternalNameInfo.ExternalNameSyntax.METHOD
                  : ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
       }
-      else if (resolvedValue instanceof String) {
+      else if (value instanceof String && ((String) value).startsWith("android-")) {
+        operatorName = previewSetter;
+        syntax = holder.getDslFile().getWriter() instanceof GroovyDslNameConverter
+                 ? ExternalNameInfo.ExternalNameSyntax.METHOD
+                 : ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
+        value = ((String)value).substring("android-".length());
+      }
+      else if (resolvedValue instanceof String && !((String)resolvedValue).startsWith("android-")) {
         operatorName = previewSetter;
         syntax = holder.getDslFile().getWriter() instanceof GroovyDslNameConverter
                  ? ExternalNameInfo.ExternalNameSyntax.METHOD
                  : ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
       }
-      else { // RawText, ReferenceTo things we can't prove are integer/string
+      else { // RawText, ReferenceTo things we can't prove are integer/string, non-literal strings beginning with android-
         // TODO(xof): when the genericSetter is removed, we will need to guess at this point.
         operatorName = genericSetter;
         syntax = ExternalNameInfo.ExternalNameSyntax.METHOD;
