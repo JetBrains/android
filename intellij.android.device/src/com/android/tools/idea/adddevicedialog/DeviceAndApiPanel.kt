@@ -16,11 +16,11 @@
 package com.android.tools.idea.adddevicedialog
 
 import com.android.sdklib.AndroidVersion
-import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.device.Resolution
 import com.android.tools.idea.grouplayout.GroupLayout.Companion.groupLayout
+import com.android.tools.idea.systemimage.SystemImage
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.SimpleTextAttributes
@@ -29,10 +29,14 @@ import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.scale.JBUIScale
 import java.awt.Component
+import javax.swing.DefaultComboBoxModel
 import javax.swing.GroupLayout
+import javax.swing.JComboBox
 import javax.swing.JList
 
 internal class DeviceAndApiPanel internal constructor() : JBPanel<DeviceAndApiPanel>(null) {
+  private val apiLevelComboBox: JComboBox<AndroidVersion>
+
   init {
     val nameLabel = JBLabel("Name")
     val nameTextField = JBTextField()
@@ -41,7 +45,7 @@ internal class DeviceAndApiPanel internal constructor() : JBPanel<DeviceAndApiPa
     val deviceDefinitionComboBox = initDeviceDefinitionComboBox()
 
     val apiLevelLabel = JBLabel("API level")
-    val apiLevelComboBox = initApiLevelComboBox()
+    apiLevelComboBox = ComboBox()
 
     val servicesLabel = JBLabel("Services")
     val servicesComboBox = ComboBox(arrayOf(Service.ANDROID_OPEN_SOURCE))
@@ -119,10 +123,16 @@ internal class DeviceAndApiPanel internal constructor() : JBPanel<DeviceAndApiPa
     return comboBox
   }
 
-  private fun initApiLevelComboBox(): Component {
-    val comboBox = ComboBox(arrayOf(AndroidVersion(VersionCodes.S)))
+  internal fun setSystemImages(systemImages: Iterable<SystemImage>) {
+    val levels = systemImages.asSequence()
+      .map(SystemImage::apiLevel)
+      .distinct()
+      .sortedDescending()
+      .toList()
 
-    comboBox.renderer = object : ColoredListCellRenderer<AndroidVersion>() {
+    (apiLevelComboBox.model as DefaultComboBoxModel).addAll(levels)
+
+    apiLevelComboBox.renderer = object : ColoredListCellRenderer<AndroidVersion>() {
       override fun customizeCellRenderer(list: JList<out AndroidVersion>,
                                          version: AndroidVersion,
                                          index: Int,
@@ -135,6 +145,6 @@ internal class DeviceAndApiPanel internal constructor() : JBPanel<DeviceAndApiPa
       }
     }
 
-    return comboBox
+    apiLevelComboBox.selectedIndex = 0
   }
 }
