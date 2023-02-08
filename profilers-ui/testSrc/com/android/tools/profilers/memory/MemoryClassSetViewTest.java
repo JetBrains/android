@@ -15,16 +15,6 @@
  */
 package com.android.tools.profilers.memory;
 
-import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CALLSTACK;
-import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CLASS;
-import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_PACKAGE;
-import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetWithName;
-import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildWithPredicate;
-import static com.android.tools.profilers.memory.adapters.MemoryObject.INVALID_VALUE;
-import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.OBJECT;
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertNotNull;
-
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
@@ -32,40 +22,30 @@ import com.android.tools.idea.codenavigation.CodeLocation;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
-import com.android.tools.profilers.FakeIdeProfilerComponents;
-import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.profilers.ProfilerClient;
-import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.StudioProfilersView;
-import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.FakeCaptureObject;
-import com.android.tools.profilers.memory.adapters.FakeFieldObject;
-import com.android.tools.profilers.memory.adapters.FakeInstanceObject;
+import com.android.tools.profilers.*;
+import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject.Builder;
-import com.android.tools.profilers.memory.adapters.FieldObject;
-import com.android.tools.profilers.memory.adapters.InstanceObject;
-import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.intellij.testFramework.ApplicationRule;
-import com.intellij.util.containers.ImmutableList;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Supplier;
-import javax.swing.JScrollPane;
-import javax.swing.JTree;
-import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
+import javax.swing.*;
+import javax.swing.tree.TreePath;
+import java.util.*;
+import java.util.function.Supplier;
+
+import static com.android.tools.profilers.memory.ClassGrouping.*;
+import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetWithName;
+import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildWithPredicate;
+import static com.android.tools.profilers.memory.adapters.MemoryObject.INVALID_VALUE;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.OBJECT;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertNotNull;
 
 public class MemoryClassSetViewTest {
   private static final long MOCK_CLASS_ID = 1;
@@ -140,8 +120,7 @@ public class MemoryClassSetViewTest {
   @Test
   public void testSelectClassSetToShowInClassSetView() {
     assertThat(myClassSetRootNode.getChildCount()).isEqualTo(3);
-    //noinspection unchecked
-    ImmutableList<MemoryObjectTreeNode<MemoryObject>> children = myClassSetRootNode.getChildren();
+    List<MemoryObjectTreeNode<MemoryObject>> children = myClassSetRootNode.getChildren();
     // Verify the ordering is based on retain size.
     assertThat(children.get(0).getAdapter()).isEqualTo(myInstanceObjects.get(2));
     assertThat(children.get(1).getAdapter()).isEqualTo(myInstanceObjects.get(1));
