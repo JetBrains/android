@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run
+package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.DeployerException
@@ -21,26 +21,27 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.ApplicationTerminator
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.run.ShowLogcatListener.Companion.getShowLogcatLinkText
-import com.android.tools.idea.run.applychanges.findExistingSessionAndMaybeDetachForColdSwap
+import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
+import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTasksProvider
-import com.android.tools.idea.run.util.SwapInfo
+import com.android.tools.idea.run.ui.BaseAction
 import com.android.tools.idea.stats.RunStats
+import com.android.tools.idea.testartifacts.instrumented.orchestrator.MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
+import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.intellij.execution.ExecutionException
-import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.process.NopProcessHandler
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
-import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.runBlockingCancellable
@@ -48,12 +49,15 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.utils.keysToMap
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class LaunchTaskRunner(
-  private val consoleProvider: ConsoleProvider,
+/**
+ * Implementation of [AndroidConfigurationExecutor] for [AndroidTestRunConfiguration].
+ */
+class AndroidTestRunConfigurationExecutor(
   private val applicationIdProvider: ApplicationIdProvider,
   private val env: ExecutionEnvironment,
   override val deviceFutures: DeviceFutures,
@@ -61,29 +65,41 @@ class LaunchTaskRunner(
 ) : AndroidConfigurationExecutor {
 
   val project = env.project
-  override val configuration = env.runProfile as RunConfiguration
+  override val configuration = env.runProfile as AndroidTestRunConfiguration
   private val LOG = Logger.getInstance(this::class.java)
 
+  /**
+   * Returns a target Android process ID to be monitored by [AndroidProcessHandler].
+   *
+   * If this run is instrumentation test without test orchestration, the target Android process ID is simply the application name.
+   * Otherwise, we should monitor the test orchestration process because the orchestrator starts and
+   * kills the target application process per test case which confuses AndroidProcessHandler (b/150320657).
+   */
+  private fun getMasterAndroidProcessId(): String {
+    return MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME.getOrDefault(
+      configuration.getTestExecutionOption(AndroidFacet.getInstance(configuration.configurationModule.module!!)),
+      applicationIdProvider.packageName)
+  }
+
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
-    findExistingSessionAndMaybeDetachForColdSwap(env)
+    BaseAction.findRunningProcessHandler(project, configuration, env.executionTarget)?.destroyProcess()
+
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
 
-    val packageName = applicationIdProvider.packageName
-    waitPreviousProcessTermination(devices, packageName, indicator)
+    waitPreviousProcessTermination(devices, getMasterAndroidProcessId(), indicator)
 
-    val processHandler = AndroidProcessHandler(project, packageName, { it.forceStop(packageName) })
+    val processId = getMasterAndroidProcessId()
+    // AndroidProcessHandler should not be closed even if the target application process is killed. During an
+    // instrumentation tests, the target application may be killed in between test cases by test runner. Only test
+    // runner knows when all test run completes.
+    val shouldAutoTerminate = false
+    val processHandler = AndroidProcessHandler(project, processId, { it.forceStop(processId) }, shouldAutoTerminate)
 
-    val console = createConsole(processHandler)
+    val console = createAndroidTestSuiteView()
+    processHandler.putCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY, console)
     doRun(devices, processHandler, indicator, console)
 
-    devices.forEach { device ->
-      processHandler.addTargetDevice(device)
-      if (!StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.get()) {
-        console.printHyperlink(getShowLogcatLinkText(device)) { project ->
-          project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, packageName)
-        }
-      }
-    }
+    devices.forEach { device -> processHandler.addTargetDevice(device) }
 
     createRunContentDescriptor(processHandler, console, env)
   }
@@ -91,12 +107,11 @@ class LaunchTaskRunner(
   private suspend fun doRun(devices: List<IDevice>,
                             processHandler: ProcessHandler,
                             indicator: ProgressIndicator,
-                            console: ConsoleView) = coroutineScope {
+                            console: AndroidTestSuiteView) = coroutineScope {
     val applicationId = applicationIdProvider.packageName
     val stat = RunStats.from(env).apply { setPackage(applicationId) }
     stat.beginLaunchTasks()
     try {
-
       printLaunchTaskStartedMessage(console)
       myLaunchTasksProvider.fillStats(stat)
 
@@ -112,7 +127,7 @@ class LaunchTaskRunner(
           val launchContext = LaunchContext(env, device, console, processHandler, indicator)
           runLaunchTasks(tasks, launchContext)
           // Notify listeners of the deployment.
-          project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device.serialNumber, project)
+          project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(device.serialNumber, project)
         }
       }.awaitAll()
     }
@@ -132,19 +147,19 @@ class LaunchTaskRunner(
   }
 
   override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
-    val applicationId = applicationIdProvider.packageName
+    BaseAction.findRunningProcessHandler(project, configuration, env.executionTarget)?.destroyProcess()
 
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
 
     if (devices.size != 1) {
       throw ExecutionException("Cannot launch a debug session on more than 1 device.")
     }
-    waitPreviousProcessTermination(devices, applicationId, indicator)
+    waitPreviousProcessTermination(devices, getMasterAndroidProcessId(), indicator)
 
-    findExistingSessionAndMaybeDetachForColdSwap(env)
 
     val processHandler = NopProcessHandler()
-    val console = createConsole(processHandler)
+    val console = createAndroidTestSuiteView()
+    processHandler.putCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY, console)
     doRun(devices, processHandler, indicator, console)
 
     val device = devices.single()
@@ -152,50 +167,12 @@ class LaunchTaskRunner(
                        ?: throw RuntimeException(
                          "ConnectDebuggerTask is null for task provider " + myLaunchTasksProvider.javaClass.name)
     indicator.text = "Connecting debugger"
-    val session = debuggerTask.perform(device, applicationId, env, indicator, console)
+    val session = debuggerTask.perform(device, applicationIdProvider.packageName, env, indicator, console)
     session.runContentDescriptor
   }
 
-  override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
-    val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
-
-    val oldSession = findExistingSessionAndMaybeDetachForColdSwap(env)
-    val packageName = applicationIdProvider.packageName
-    val processHandler = oldSession.processHandler ?: AndroidProcessHandler(project, packageName)
-
-    val console = oldSession.executionConsole as? ConsoleView ?: createConsole(processHandler)
-
-    doRun(devices, processHandler, indicator, console)
-
-    if (oldSession.processHandler == null && processHandler is AndroidProcessHandler) {
-      devices.forEach { device ->
-        processHandler.addTargetDevice(device)
-        if (!StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.get()) {
-          console.printHyperlink(getShowLogcatLinkText(device)) { project ->
-            project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, applicationIdProvider.packageName)
-          }
-        }
-      }
-    }
-
-    withContext(uiThread) {
-      val descriptor = RunContentManager.getInstance(project).findContentDescriptor(env.executor, processHandler)
-
-      if (descriptor?.attachedContent == null) {
-        createRunContentDescriptor(processHandler, console, env)
-      }
-      else {
-        descriptor.takeIf { it is HiddenRunContentDescriptor } ?: HiddenRunContentDescriptor(descriptor)
-      }
-    }
-  }
-
-  private suspend fun createConsole(processHandler: ProcessHandler): ConsoleView = withContext(uiThread) {
-    consoleProvider.createAndAttach(project, processHandler, env.executor)
-  }
-
-  override fun applyCodeChanges(indicator: ProgressIndicator): RunContentDescriptor {
-    return applyChanges(indicator)
+  private suspend fun createAndroidTestSuiteView() = withContext(uiThread) {
+    AndroidTestSuiteView(project, project, configuration.configurationModule.androidTestModule, env.executor.toolWindowId, configuration)
   }
 
   private fun runLaunchTasks(launchTasks: List<LaunchTask>, launchContext: LaunchContext) {
@@ -218,13 +195,14 @@ class LaunchTaskRunner(
     }
   }
 
-  private fun printLaunchTaskStartedMessage(consoleView: ConsoleView) {
+  private fun printLaunchTaskStartedMessage(consoleView: AndroidTestSuiteView) {
     val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT)
-    val launchVerb = when (env.getUserData(SwapInfo.SWAP_INFO_KEY)?.type) {
-      SwapInfo.SwapType.APPLY_CHANGES -> "Applying changes to"
-      SwapInfo.SwapType.APPLY_CODE_CHANGES -> "Applying code changes to"
-      else -> "Launching"
-    }
-    consoleView.println("$dateFormat: $launchVerb ${configuration.name} on '${env.executionTarget.displayName}.")
+    consoleView.println("$dateFormat: Launching ${configuration.name} on '${env.executionTarget.displayName}.")
   }
+
+  override fun applyChanges(indicator: ProgressIndicator) = throw UnsupportedOperationException(
+    "Apply Changes are not supported for Instrumented tests")
+
+  override fun applyCodeChanges(indicator: ProgressIndicator) = throw UnsupportedOperationException(
+    "Apply Code Changes are not supported for Instrumented tests")
 }

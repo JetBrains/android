@@ -30,21 +30,24 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestExecutionOption;
 import com.android.tools.idea.model.TestOptions;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.run.AndroidLaunchTasksProvider;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
-import com.android.tools.idea.run.ConsoleProvider;
+import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.ValidationError;
+import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.AndroidTestExtraParam;
 import com.android.tools.idea.run.editor.AndroidTestExtraParamKt;
+import com.android.tools.idea.run.editor.DeployTarget;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
+import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration;
-import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.TestLibraries;
@@ -58,9 +61,10 @@ import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.execution.configurations.RefactoringListenerProvider;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
+import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.junit.JUnitUtil;
+import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.testframework.TestRunnerBundle;
-import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationQuickFix;
 import com.intellij.openapi.options.SettingsEditor;
@@ -155,6 +159,31 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @Override
   public @NotNull List<DeployTargetProvider> getApplicableDeployTargetProviders() {
     return getDeployTargetContext().getApplicableDeployTargetProviders(true);
+  }
+
+  @Override
+  protected AndroidConfigurationExecutor getExecutor(ExecutionEnvironment env, AndroidFacet facet, DeviceFutures deviceFutures)
+    throws ExecutionException {
+    ApplicationIdProvider applicationIdProvider = getApplicationIdProvider();
+    if (applicationIdProvider == null) {
+      throw new RuntimeException("Cannot get ApplicationIdProvider");
+    }
+
+    boolean isDebugging = env.getExecutor() instanceof DefaultDebugExecutor;
+
+    LaunchOptions launchOptions = getLaunchOptions().setDebug(isDebugging).build();
+
+    ApkProvider apkProvider = getApkProvider();
+    if (apkProvider == null) return null;
+
+    Optional<LaunchTasksProvider> provided = LaunchTasksProvider.Provider.EP_NAME.extensions()
+      .map(it -> it.createLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions))
+      .filter(Objects::nonNull)
+      .findFirst();
+    LaunchTasksProvider launchTaskProvider =
+      provided.orElseGet(() -> new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions));
+
+    return new AndroidTestRunConfigurationExecutor(getApplicationIdProvider(), env, deviceFutures, launchTaskProvider);
   }
 
   @Override
@@ -339,17 +368,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       false,
       true,
       moduleSelector -> new TestRunParameters(getProject(), moduleSelector));
-  }
-
-  @NotNull
-  @Override
-  protected ConsoleProvider getConsoleProvider() {
-    return (parent, handler, executor) -> {
-      final ConsoleView consoleView = new AndroidTestSuiteView(parent, getProject(), getConfigurationModule().getAndroidTestModule(),
-                                                               executor.getToolWindowId(), this);
-      consoleView.attachToProcess(handler);
-      return consoleView;
-    };
   }
 
   @Nullable

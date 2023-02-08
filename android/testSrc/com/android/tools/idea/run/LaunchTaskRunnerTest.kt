@@ -21,7 +21,6 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProjects
-import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.project.AndroidRunConfigurations
 import com.android.tools.idea.run.activity.launch.EmptyTestConsoleView
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask
@@ -30,8 +29,6 @@ import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTasksProvider
 import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.stats.RunStats
-import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
-import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.util.androidFacet
@@ -52,7 +49,6 @@ import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.xdebugger.impl.XDebugSessionImpl
-import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -60,8 +56,6 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import kotlin.test.fail
 
-private const val ORCHESTRATOR_APP_ID = "android.support.test.orchestrator"
-private const val ANDROIDX_ORCHESTRATOR_APP_ID = "androidx.test.orchestrator"
 
 /**
  * Unit test for [LaunchTaskRunner].
@@ -220,73 +214,6 @@ class LaunchTaskRunnerTest {
     // TODO: 264666049
     runningProcessHandler.destroyProcess()
     runningProcessHandler.waitFor()
-  }
-
-  @Test
-  fun androidProcessHandlerMonitorsMasterProcessId() {
-    val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
-    val deviceFutures = DeviceFutures.forDevices(listOf(device))
-
-    var executionOptions = TestExecutionOption.HOST
-
-    val testConfiguration = object : AndroidTestRunConfiguration(projectRule.project,
-                                                                 AndroidTestRunConfigurationType.getInstance().factory) {
-      override fun getTestExecutionOption(facet: AndroidFacet?): TestExecutionOption {
-        return executionOptions
-      }
-    }
-    testConfiguration.setModule(projectRule.module)
-
-    val settings = RunManager.getInstance(projectRule.project).createConfiguration(testConfiguration,
-                                                                                   AndroidTestRunConfigurationType.getInstance().factory)
-
-    val env = getExecutionEnvironment(listOf(device), false, settings)
-    val launchTaskProvider = getLaunchTaskProvider()
-    val runner = LaunchTaskRunner(
-      consoleProvider,
-      FakeApplicationIdProvider(),
-      env,
-      deviceFutures,
-      launchTaskProvider
-    )
-
-    run {
-      executionOptions = TestExecutionOption.HOST
-      val runContentDescriptor = runner.run(EmptyProgressIndicator())
-      assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo("applicationId")
-      // TODO: 264666049
-      with(runContentDescriptor.processHandler!!) {
-        startNotify()
-        destroyProcess()
-        waitFor()
-      }
-    }
-
-    run {
-      executionOptions = TestExecutionOption.ANDROID_TEST_ORCHESTRATOR
-      val runContentDescriptor = runner.run(EmptyProgressIndicator())
-      assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(
-        ORCHESTRATOR_APP_ID)
-      // TODO: 264666049
-      with(runContentDescriptor.processHandler!!) {
-        startNotify()
-        destroyProcess()
-        waitFor()
-      }
-    }
-
-    run {
-      executionOptions = TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR
-      val runContentDescriptor = runner.run(EmptyProgressIndicator())
-      assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(
-        ANDROIDX_ORCHESTRATOR_APP_ID)
-      // TODO: 264666049
-      with(runContentDescriptor.processHandler!!) {
-        startNotify()
-        destroyProcess()
-        waitFor()
-      }
-    }
   }
 
 
