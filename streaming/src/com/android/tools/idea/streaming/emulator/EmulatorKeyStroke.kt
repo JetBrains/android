@@ -23,21 +23,7 @@ import java.awt.event.InputEvent.META_DOWN_MASK
 import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 
 /** Defines a sequence of [KeyboardEvent]s. */
-internal class EmulatorKeyStroke private constructor(val keyCode: Int, val keyName: String?, val modifiers: Int) {
-  constructor(keyCode: Int, modifiers: Int = 0) : this(keyCode, null, modifiers)
-  constructor(keyName: String, modifiers: Int = 0) : this(0, keyName, modifiers)
-
-  fun createKeyboardEvent(eventType: KeyEventType): KeyboardEvent {
-    val event = KeyboardEvent.newBuilder().setEventType(eventType)
-    if (keyName != null) {
-      event.setKey(keyName)
-    }
-    else {
-      event.setKeyCode(keyCode)
-    }
-    return event.build()
-  }
-}
+internal data class EmulatorKeyStroke(val keyName: String, val modifiers: Int = 0)
 
 /** Simulates pressing of Emulator keys corresponding to the given [modifiers]. */
 internal fun EmulatorController.pressModifierKeys(modifiers: Int) {

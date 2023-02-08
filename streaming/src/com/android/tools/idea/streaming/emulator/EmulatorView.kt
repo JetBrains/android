@@ -101,7 +101,6 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.CHAR_UNDEFINED
 import java.awt.event.KeyEvent.KEY_PRESSED
-import java.awt.event.KeyEvent.VK_A
 import java.awt.event.KeyEvent.VK_BACK_SPACE
 import java.awt.event.KeyEvent.VK_CONTROL
 import java.awt.event.KeyEvent.VK_DELETE
@@ -752,7 +751,7 @@ class EmulatorView(
       }
       else if (event.id == KEY_PRESSED) {
         emulator.pressModifierKeys(emulatorKeyStroke.modifiers)
-        emulator.sendKey(emulatorKeyStroke.createKeyboardEvent(KeyEventType.keypress))
+        emulator.sendKey(KeyboardEvent.newBuilder().setKey(emulatorKeyStroke.keyName).setEventType(KeyEventType.keypress).build())
         emulator.releaseModifierKeys(emulatorKeyStroke.modifiers)
       }
       event.consume()
@@ -786,7 +785,7 @@ class EmulatorView(
         addKeystrokesForAction(IdeActions.ACTION_CUT, EmulatorKeyStroke("Cut"))
         addKeystrokesForAction(IdeActions.ACTION_COPY, EmulatorKeyStroke("Copy"))
         addKeystrokesForAction(IdeActions.ACTION_PASTE, EmulatorKeyStroke("Paste"))
-        addKeystrokesForAction(IdeActions.ACTION_SELECT_ALL, EmulatorKeyStroke(VK_A, CTRL_DOWN_MASK))
+        addKeystrokesForAction(IdeActions.ACTION_SELECT_ALL, EmulatorKeyStroke("KeyA", CTRL_DOWN_MASK))
         addKeystrokesForAction(IdeActions.ACTION_EDITOR_MOVE_CARET_LEFT, EmulatorKeyStroke("ArrowLeft"))
         addKeystrokesForAction(IdeActions.ACTION_EDITOR_MOVE_CARET_RIGHT, EmulatorKeyStroke("ArrowRight"))
         addKeystrokesForAction(IdeActions.ACTION_EDITOR_MOVE_CARET_LEFT_WITH_SELECTION, EmulatorKeyStroke("ArrowLeft", SHIFT_DOWN_MASK))
