@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectBuildVariantsConfigurable
+import com.android.tools.idea.tests.gui.framework.waitForIdle
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.After
@@ -66,10 +67,12 @@ class FlavorsEditingTest {
         selectProductFlavorsTab().run {
           clickAddFlavorDimension().run {
             type(dimenName)
+            waitForIdle()
             clickOk()
           }
           clickAddProductFlavor().run {
             type(flavor)
+            waitForIdle()
             clickOk()
           }
           minSdkVersion().selectItem("25 (API 25: Android 7.1.1 (Nougat))")

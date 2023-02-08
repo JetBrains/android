@@ -199,6 +199,6 @@ public class AddKotlinTest {
 
     ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish();
 
-    assertThat(ideFrameFixture.invokeProjectMake(Wait.seconds(120)).isBuildSuccessful()).isTrue();
+    assertThat(ideFrameFixture.invokeProjectMake(Wait.seconds(180)).isBuildSuccessful()).isTrue();
   }
 }

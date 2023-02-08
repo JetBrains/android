@@ -93,6 +93,7 @@ public class JavaDepTest {
     AddModuleDependencyDialogFixture addModuleDependencyFixture = dependenciesFixture.findDependenciesPanel().clickAddModuleDependency();
     addModuleDependencyFixture.toggleModule("lib");
     addModuleDependencyFixture.clickOk();
+    guiTest.robot().waitForIdle();
     dialogFixture.clickOk();
 
     guiTest.waitForBackgroundTasks();

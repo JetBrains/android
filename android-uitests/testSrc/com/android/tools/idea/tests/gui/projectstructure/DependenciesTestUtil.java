@@ -43,7 +43,7 @@ import org.junit.Before;
 public class DependenciesTestUtil {
 
   protected static final String APP_NAME = "App";
-  protected static final int MIN_SDK_API = 18;
+  protected static final int MIN_SDK_API = 21;
   protected static final String CLASS_NAME_1 = "ModuleA";
   protected static final String CLASS_NAME_2 = "ModuleB";
 
@@ -56,7 +56,7 @@ public class DependenciesTestUtil {
       .welcomeFrame()
       .createNewProject()
       .getChooseAndroidProjectStep()
-      .chooseActivity("Empty Activity")
+      .chooseActivity("Empty Views Activity")
       .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()
