@@ -45,10 +45,10 @@
     <group id="Streaming">
       <action id="android.device.power.button" class="com.android.tools.idea.streaming.actions.StreamingPowerButtonAction"
               icon="StudioIcons.Emulator.Toolbar.POWER" text="Power" description="Press the Power button of the device"/>
-      <action id="android.device.volume.up.button" class="com.android.tools.idea.streaming.actions.StreamingVolumeUpButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.VOLUME_UP" text="Volume Up" description="Press the Volume Up button of the device"/>
       <action id="android.device.power.and.volume.up.button" class="com.android.tools.idea.streaming.actions.StreamingPowerAndVolumeUpButtonAction"
               text="Power + Volume Up (Power Menu)" description="Press the Power and Volume Up buttons together of the device"/>
+      <action id="android.device.volume.up.button" class="com.android.tools.idea.streaming.actions.StreamingVolumeUpButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.VOLUME_UP" text="Volume Up" description="Press the Volume Up button of the device"/>
       <action id="android.device.volume.down.button" class="com.android.tools.idea.streaming.actions.StreamingVolumeDownButtonAction"
               icon="StudioIcons.Emulator.Toolbar.VOLUME_DOWN" text="Volume Down" description="Press the Volume Down button of the device"/>
       <action id="android.device.rotate.left" class="com.android.tools.idea.streaming.actions.StreamingRotateAction$Left"
