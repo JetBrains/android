@@ -86,7 +86,7 @@ public class ShowLicensesUsedAction extends DumbAwareAction {
         try {
           licenseDialog.show();
         } catch (Exception ex) {
-          Logger.getInstance(ShowLicensesUsedAction.class).error(e);
+          Logger.getInstance(ShowLicensesUsedAction.class).error(ex);
         }
       }
 
