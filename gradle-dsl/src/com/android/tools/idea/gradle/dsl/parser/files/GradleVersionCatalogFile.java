@@ -18,17 +18,22 @@ package com.android.tools.idea.gradle.dsl.parser.files;
 import static com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral.LiteralType.LITERAL;
 import static com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral.LiteralType.REFERENCE;
 
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl;
+import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -133,8 +138,8 @@ public class GradleVersionCatalogFile extends GradleDslFile {
     }
 
     private void setupNewDependency(GradleDslElement targetVersion) {
-      if (getPsiElement() != null) { // cannot create injection for new element
-        GradleReferenceInjection injection = new GradleReferenceInjection(this, targetVersion, getPsiElement(), targetVersion.getName());
+      if (getCurrentElement() != null) { // cannot create injection for new element
+        GradleReferenceInjection injection = new GradleReferenceInjection(this, targetVersion, getCurrentElement(), targetVersion.getName());
         targetVersion.registerDependent(injection);
         addDependency(injection);
       }
@@ -256,4 +261,19 @@ public class GradleVersionCatalogFile extends GradleDslFile {
     bundles.getPropertyElements(GradlePropertiesDslElement.class).forEach(libraryRefReplacer);
   }
 
+  public List<GradleReferenceInjection> getInjection(GradleDslSimpleExpression expression, PsiElement psiElement) {
+    List<GradleReferenceInjection> result = new ArrayList<>();
+    GradleDslExpressionMap versions = getPropertyElement(GradleDslExpressionMap.VERSIONS);
+    if (versions != null && expression.isReference() && expression instanceof GradleDslVersionLiteral) {
+      String targetName = expression.getValue(String.class);
+      if (targetName != null) {
+        GradleDslElement targetProperty = versions.getPropertyElement(targetName);
+        if (targetProperty != null) {
+          GradleReferenceInjection injection = new GradleReferenceInjection(expression, targetProperty, psiElement, targetName);
+          result.add(injection);
+        }
+      }
+    }
+    return result;
+  }
 }

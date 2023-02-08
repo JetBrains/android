@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.api;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
+import com.intellij.openapi.vfs.VirtualFile;
 
 /**
  * Version Catalog Model covers one version catalog.
@@ -35,7 +36,7 @@ public interface GradleVersionCatalogModel {
 
   String catalogName();
 
-  String fileName();
+  VirtualFile getFile();
 
   boolean isDefault();
 }
