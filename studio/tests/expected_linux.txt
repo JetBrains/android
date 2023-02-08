@@ -2636,7 +2636,8 @@ android-studio/plugins/stream-debugger/lib/stream-debugger.jar
 android-studio/plugins/svn4idea/lib/sqlite.jar
 android-studio/plugins/svn4idea/lib/svn4idea.jar
 android-studio/plugins/tasks/lib/tasks-core.jar
-android-studio/plugins/terminal/.zshenv
+android-studio/plugins/terminal/zsh/.zshenv
+android-studio/plugins/terminal/zsh/hooks.zsh
 android-studio/plugins/terminal/fish/init.fish
 android-studio/plugins/terminal/jediterm-bash.in
 android-studio/plugins/terminal/lib/terminal.jar
