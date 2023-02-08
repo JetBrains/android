@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.repositories.search.AndroidSdkRepositories
 import com.android.tools.idea.gradle.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.structure.GradleResolver
+import com.android.tools.idea.gradle.structure.model.android.DependencyResultLocation
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.command.WriteCommandAction
@@ -160,6 +161,11 @@ class PsProjectImpl(
     isModified = true
     gradleVersionModified = true
     newGradleVersion = value
+  }
+
+  override fun findScopeByDependencyLocation(dependencyLocation: DependencyResultLocation): PsVariablesScope? {
+    if (dependencyLocation.matchLocation(parsedModel.projectBuildModel)) return variables
+    return versionCatalogs.find { dependencyLocation.matchLocation(it.parsedModel) }?.variables
   }
 }
 

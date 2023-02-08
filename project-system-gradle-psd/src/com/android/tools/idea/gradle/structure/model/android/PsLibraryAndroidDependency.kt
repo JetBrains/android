@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsResolvedDependency
 import com.android.tools.idea.gradle.structure.model.PsResolvedLibraryDependency
+import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.helpers.dependencyVersionValues
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
@@ -36,6 +37,7 @@ import com.android.tools.idea.gradle.structure.model.meta.asString
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.meta.property
 import com.android.tools.idea.gradle.structure.model.toLibraryKey
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.CaseFormat
 import kotlin.reflect.KProperty
 
@@ -107,10 +109,18 @@ open class PsDeclaredLibraryAndroidDependency(
       setter = { setValue(it) },
       parser = ::parseString,
       knownValuesGetter = ::dependencyVersionValues,
-      variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE
+      variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE,
+      variableScope = { versionScope() },
     )
-
     override val properties: Collection<ModelProperty<PsDeclaredLibraryAndroidDependency, *, *, *>> = listOf(version)
+  }
+
+  @VisibleForTesting
+  fun versionScope(): PsVariablesScope {
+    val dependencyLocation = DependencyResultLocation(parsedModel)
+    // Heading to root project, trying to find build/catalog file our artifact declaration came from.
+    // File we find has the proper variable scope for artifact declaration.
+    return parent.findScopeByDependencyLocation(dependencyLocation) ?: parent.variables
   }
 }
 

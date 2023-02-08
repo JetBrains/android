@@ -191,8 +191,11 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
         UpdatePropertyOutcome.INVALID -> Unit
       }
 
-    private fun getAvailableVariables(): List<Annotated<ParsedValue.Set.Parsed<PropertyT>>>? =
-      variablesScope?.getAvailableVariablesFor(propertyContext)
+    private fun getAvailableVariables(): List<Annotated<ParsedValue.Set.Parsed<PropertyT>>>? {
+      // use property scope as property can be from another build/toml file and has another scope than module
+      val scope: PsVariablesScope? = property.variableScope?.invoke() ?: variablesScope
+      return scope?.getAvailableVariablesFor(propertyContext)
+    }
 
     fun addFocusGainedListener(listener: () -> Unit) {
       val focusListener = object : FocusListener {

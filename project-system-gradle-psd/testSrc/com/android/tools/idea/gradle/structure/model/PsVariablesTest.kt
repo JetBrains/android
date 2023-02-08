@@ -19,17 +19,12 @@ import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProje
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.asParsed
+import com.android.tools.idea.gradle.structure.model.android.psTestWithProject
 import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
-import com.android.tools.idea.gradle.structure.model.meta.Annotated
-import com.android.tools.idea.gradle.structure.model.meta.DslText
-import com.android.tools.idea.gradle.structure.model.meta.KnownValues
-import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
-import com.android.tools.idea.gradle.structure.model.meta.annotateWithError
 import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.testFramework.RunsInEdt
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
@@ -262,23 +257,12 @@ class PsVariablesTest {
 
   @Test
   fun testGetAvailableVariablesForType() {
-    val stringWithDotsProperty: ModelPropertyContext<String> = object : ModelPropertyContext<String> {
-      override fun parse(value: String): Annotated<ParsedValue<String>> = when {
-        value.contains(".") -> ParsedValue.Set.Parsed(value, DslText.Literal).annotated()
-        else -> ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText(value)).annotateWithError("invalid")
-      }
-
-      override fun format(value: String): String = throw UnsupportedOperationException()
-
-      override fun getKnownValues(): ListenableFuture<KnownValues<String>> =
-        throw UnsupportedOperationException()
-    }
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
     preparedProject.open { project ->
       val psProject = PsProjectImpl(project)
       val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
       run {
-        val variables = psAppModule.variables.getAvailableVariablesFor(stringWithDotsProperty).toSet()
+        val variables = psAppModule.variables.getAvailableVariablesFor(TestModelPropertyContext()).toSet()
         assertThat(
           variables,
           equalTo(
@@ -297,6 +281,27 @@ class PsVariablesTest {
           )
         )
       }
+    }
+  }
+
+  @Test
+  fun testGetAvailableVariablesForCatalog() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY_CATALOG)
+    projectRule.psTestWithProject(preparedProject) {
+      val appModule = project.findModuleByName("moduleCatalog") as PsAndroidModule
+
+      val dependency = appModule.dependencies.libraries.first { it.toString() == "com.example.jlib:lib3:0.9.1" }
+      val scope = dependency.versionScope()
+      val variables = scope.getAvailableVariablesFor(TestModelPropertyContext()).toSet()
+      assertThat(
+        variables,
+        equalTo(
+          setOf(
+            ("versions.anotherVersion" to "0.9.2").asParsed().annotated(),
+            ("versions.coreVersion" to "0.9.1").asParsed().annotated()
+          )
+        )
+      )
     }
   }
 

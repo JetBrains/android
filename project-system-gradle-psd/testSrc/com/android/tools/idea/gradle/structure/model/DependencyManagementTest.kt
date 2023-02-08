@@ -36,6 +36,7 @@ import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.CoreMatchers.sameInstance
+import org.hamcrest.MatcherAssert
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
@@ -86,6 +87,51 @@ class DependencyManagementTest {
         val module1 = jLibModule.dependencies.findModuleDependencies(":jModuleL")
         assertThat(module1.testDeclaredScopes(), hasItems("implementation"))
       }
+    }
+  }
+
+  @Test
+  fun testCatalogScopesForVersionVariable() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY_CATALOG)
+    projectRule.psTestWithProject(preparedProject) {
+      val appModule = project.findModuleByName("moduleCatalog") as PsAndroidModule
+
+      val dependency = appModule.dependencies.findLibraryDependency("com.example.jlib:lib3:0.9.1")
+      val scope = dependency!![0].versionScope()
+      MatcherAssert.assertThat(scope.getVariable("coreVersion")?.value, equalTo("0.9.1".asParsed<Any>()))
+      MatcherAssert.assertThat(scope.getVariable("anotherVersion")?.value, equalTo("0.9.2".asParsed<Any>()))
+      MatcherAssert.assertThat(scope.getVariable("wrongVersion")?.value, equalTo("wrongVersion".asParsed<Any>()))
+
+      MatcherAssert.assertThat(
+        scope.map { it.name }.toSet(),
+        equalTo(
+          setOf("coreVersion", "anotherVersion", "wrongVersion")))
+
+      val dependency2 = appModule.dependencies.findLibraryDependency("com.example.jlib:lib4:0.6")
+      val scope2 = dependency2!![0].versionScope()
+      // expecting variables for compact notation as well as we can do literal to map transformation on the fly
+      MatcherAssert.assertThat(
+        scope2.map { it.name }.toSet(),
+        equalTo(
+          setOf("coreVersion", "anotherVersion", "wrongVersion")))
+    }
+  }
+
+  @Test
+  fun testVariablesScopesForDependencyInRoot() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY_CATALOG)
+    projectRule.psTestWithProject(preparedProject) {
+      val appModule = project.findModuleByName("moduleCatalog") as PsAndroidModule
+      val dependency = appModule.dependencies.findLibraryDependency("com.android.support:appcompat-v7:+")
+      val scope = dependency!![0].versionScope()
+      MatcherAssert.assertThat(scope.getVariable("var06")?.value, equalTo("0.6".asParsed<Any>()))
+      MatcherAssert.assertThat(scope.getVariable("var10")?.value, equalTo("1.0".asParsed<Any>()))
+      // this will be filtered out as value is not in set of all possible library versions
+      MatcherAssert.assertThat(scope.getVariable("varLib")?.value, equalTo("com.android.support:appcompat-v7:+".asParsed<Any>()))
+      MatcherAssert.assertThat(
+        scope.map { it.name }.toSet(),
+        equalTo(
+          setOf("var06", "var10", "varLib")))
     }
   }
 
