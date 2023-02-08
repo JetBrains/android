@@ -44,6 +44,7 @@ Android Studio Preview.app/Contents/bin/lldb/helpers/renderers/jb_lldb_declarati
 Android Studio Preview.app/Contents/bin/lldb/helpers/renderers/jb_lldb_declarative_formatters_loaders.py
 Android Studio Preview.app/Contents/bin/lldb/helpers/renderers/jb_lldb_declarative_formatters_manager.py
 Android Studio Preview.app/Contents/bin/lldb/helpers/renderers/jb_lldb_declarative_formatters_options.py
+Android Studio Preview.app/Contents/bin/lldb/helpers/renderers/jb_lldb_format.py
 Android Studio Preview.app/Contents/bin/lldb/helpers/renderers/jb_lldb_format_specs.py
 Android Studio Preview.app/Contents/bin/lldb/helpers/renderers/jb_lldb_logging.py
 Android Studio Preview.app/Contents/bin/lldb/helpers/renderers/jb_lldb_logging_manager.py

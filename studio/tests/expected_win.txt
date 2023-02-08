@@ -44,6 +44,7 @@ android-studio/bin/lldb/helpers/renderers/jb_lldb_declarative_formatters.py
 android-studio/bin/lldb/helpers/renderers/jb_lldb_declarative_formatters_loaders.py
 android-studio/bin/lldb/helpers/renderers/jb_lldb_declarative_formatters_manager.py
 android-studio/bin/lldb/helpers/renderers/jb_lldb_declarative_formatters_options.py
+android-studio/bin/lldb/helpers/renderers/jb_lldb_format.py
 android-studio/bin/lldb/helpers/renderers/jb_lldb_format_specs.py
 android-studio/bin/lldb/helpers/renderers/jb_lldb_logging.py
 android-studio/bin/lldb/helpers/renderers/jb_lldb_logging_manager.py

@@ -39,6 +39,7 @@ android-studio/bin/lldb/helpers/renderers/jb_lldb_declarative_formatters.py
 android-studio/bin/lldb/helpers/renderers/jb_lldb_declarative_formatters_loaders.py
 android-studio/bin/lldb/helpers/renderers/jb_lldb_declarative_formatters_manager.py
 android-studio/bin/lldb/helpers/renderers/jb_lldb_declarative_formatters_options.py
+android-studio/bin/lldb/helpers/renderers/jb_lldb_format.py
 android-studio/bin/lldb/helpers/renderers/jb_lldb_format_specs.py
 android-studio/bin/lldb/helpers/renderers/jb_lldb_logging.py
 android-studio/bin/lldb/helpers/renderers/jb_lldb_logging_manager.py
@@ -444,7 +445,7 @@ android-studio/lib/ant/lib/ant.pom
 android-studio/lib/ant/lib/libraries.properties
 android-studio/lib/ant/src.zip
 android-studio/lib/app.jar
-android-studio/lib/build-marker-AI-223.7571.182.2231.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-223.8214.52.2231.__BUILD_NUMBER__
 android-studio/lib/byte-buddy-agent.jar
 android-studio/lib/cds/classesLogAgent.jar
 android-studio/lib/error-prone-annotations.jar
