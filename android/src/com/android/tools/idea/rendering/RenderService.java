@@ -202,10 +202,29 @@ public class RenderService implements Disposable {
    * Returns a {@link RenderTaskBuilder} that can be used to build a new {@link RenderTask}
    */
   @NotNull
+  public RenderTaskBuilder taskBuilder(@NotNull RenderModelModule module,
+                                       @NotNull Configuration configuration,
+                                       @NotNull RenderLogger logger) {
+    return new RenderTaskBuilder(module, configuration, myImagePool, myCredential, logger);
+  }
+
+  /**
+   * Returns a {@link RenderTaskBuilder} that can be used to build a new {@link RenderTask}
+   */
+  @NotNull
   public RenderTaskBuilder taskBuilder(@NotNull AndroidFacet facet,
                                        @NotNull Configuration configuration,
                                        @NotNull RenderLogger logger) {
-    return new RenderTaskBuilder(facet, configuration, myImagePool, myCredential, logger);
+    Module module = facet.getModule();
+    RenderModelModule renderModule = new DefaultRenderModelModule(
+      module,
+      new AssetRepositoryImpl(facet),
+      ResourceRepositoryManager.getInstance(facet),
+      AndroidModuleInfo.getInstance(facet),
+      AndroidPlatform.getInstance(module),
+      ResourceIdManager.get(module)
+    );
+    return taskBuilder(renderModule, configuration, logger);
   }
 
   /**
@@ -359,8 +378,7 @@ public class RenderService implements Disposable {
   }
 
   public static class RenderTaskBuilder {
-    private final AndroidFacet myFacet;
-    private final Configuration myConfiguration;
+    private final RenderContext myContext;
     private final Object myCredential;
     @NotNull private ImagePool myImagePool;
     @Nullable private PsiFile myPsiFile;
@@ -438,13 +456,12 @@ public class RenderService implements Disposable {
     @NotNull private RenderingPriority myPriority = DEFAULT_RENDERING_PRIORITY;
     private float myMinDownscalingFactor = 0.5f;
 
-    private RenderTaskBuilder(@NotNull AndroidFacet facet,
+    private RenderTaskBuilder(@NotNull RenderModelModule module,
                               @NotNull Configuration configuration,
                               @NotNull ImagePool defaultImagePool,
                               @NotNull Object credential,
                               @NotNull RenderLogger logger) {
-      myFacet = facet;
-      myConfiguration = configuration;
+      myContext = new RenderContext(module, configuration);
       myImagePool = defaultImagePool;
       myCredential = credential;
       myLogger = logger;
@@ -639,19 +656,19 @@ public class RenderService implements Disposable {
       StackTraceCapture stackTraceCaptureElement = RenderTaskAllocationTrackerKt.captureAllocationStackTrace();
 
       return CompletableFuture.supplyAsync(() -> {
-        AndroidPlatform platform = AndroidPlatform.getInstance(myFacet.getModule());
+        AndroidPlatform platform = myContext.getModule().getAndroidPlatform();
         if (platform == null) {
-          reportMissingSdk(myLogger, myFacet.getModule());
+          reportMissingSdk(myLogger, myContext.getModule().getIdeaModule());
           return null;
         }
 
-        IAndroidTarget target = myConfiguration.getTarget();
+        IAndroidTarget target = myContext.getConfiguration().getTarget();
         if (target == null) {
           myLogger.addMessage(RenderProblem.createPlain(ERROR, "No render target was chosen"));
           return null;
         }
 
-        Module module = myFacet.getModule();
+        Module module = myContext.getModule().getIdeaModule();
         if (module.isDisposed()) {
           getLogger().warn("Module was already disposed");
           return null;
@@ -677,16 +694,8 @@ public class RenderService implements Disposable {
         }
 
         try {
-          RenderModelModule renderModule = new DefaultRenderModelModule(
-            module,
-            new AssetRepositoryImpl(myFacet),
-            ResourceRepositoryManager.getInstance(myFacet),
-            AndroidModuleInfo.getInstance(myFacet),
-            AndroidPlatform.getInstance(module),
-            ResourceIdManager.get(module)
-          );
           RenderTask task =
-            new RenderTask(renderModule, StudioModuleClassLoaderManager.get(), myConfiguration, myLogger, layoutLib,
+            new RenderTask(myContext, StudioModuleClassLoaderManager.get(), myLogger, layoutLib,
                            myCredential, StudioCrashReporter.getInstance(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, myManifestProvider,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
