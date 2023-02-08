@@ -61,6 +61,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
@@ -487,9 +488,9 @@ fun smartModeFlow(project: Project, parentDisposable: Disposable, logger: Logger
 /**
  * A [callbackFlow] that produces an element when a [PsiFile] changes.
  */
-fun psiFileChangeFlow(project: Project, parentDisposable: Disposable, logger: Logger? = null, onConnected: (() -> Unit)? = null): Flow<PsiFile> =
+fun psiFileChangeFlow(psiManager: PsiManager, parentDisposable: Disposable, logger: Logger? = null, onConnected: (() -> Unit)? = null): Flow<PsiFile> =
   disposableCallbackFlow<PsiFile>(debugName = "PsiFileChangeFlow", parentDisposable = parentDisposable, logger = logger) {
-    PsiManager.getInstance(project).addPsiTreeChangeListener(
+    psiManager.addPsiTreeChangeListener(
       object : PsiTreeAnyChangeAbstractAdapter() {
         override fun onChange(changedFile: PsiFile?) {
           if (changedFile == null) return
@@ -501,4 +502,8 @@ fun psiFileChangeFlow(project: Project, parentDisposable: Disposable, logger: Lo
 
     onConnected?.let { onConnected -> launch(workerThread) { onConnected() } }
   }
-    .distinctUntilChangedBy { file -> file.modificationStamp }
+    // Avoid repeated change events for no modifications
+    .distinctUntilChangedBy { psiManager.modificationTracker.modificationCount }
+
+fun psiFileChangeFlow(project: Project, parentDisposable: Disposable, logger: Logger? = null, onConnected: (() -> Unit)? = null): Flow<PsiFile> =
+  psiFileChangeFlow(PsiManager.getInstance(project), parentDisposable, logger, onConnected)

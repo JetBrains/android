@@ -70,6 +70,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -765,6 +766,8 @@ suspend fun previewElementFlowForFile(
         PsiManager.getInstance(psiFilePointer.project)
           .areElementsEquivalent(psiFilePointer.element, it)
       }
+      // do not generate events if there has not been modifications to the file since the last time
+      .distinctUntilChangedBy { it.modificationStamp }
       // debounce to avoid many equality comparisons of the set
       .debounce(250)
       .collect { state.update { previewProvider.previewElements().toSet() } }
