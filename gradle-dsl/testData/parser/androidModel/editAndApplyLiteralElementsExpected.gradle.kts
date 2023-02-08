@@ -1,6 +1,6 @@
 android {
   buildToolsVersion("24.0.0")
-  compileSdkPreview = "24"
+  compileSdkVersion("24")
   defaultPublishConfig("release")
   generatePureSplits(false)
   namespace = "com.my.namespace2"
