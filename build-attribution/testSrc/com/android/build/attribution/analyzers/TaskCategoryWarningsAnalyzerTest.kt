@@ -57,7 +57,6 @@ class TaskCategoryWarningsAnalyzerTest {
       ).containsExactly(
         TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
         TaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED,
-        TaskCategoryIssue.RESOURCE_VALIDATION_ENABLED,
         TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD
       )
     }
