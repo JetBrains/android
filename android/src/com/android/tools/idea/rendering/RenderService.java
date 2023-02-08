@@ -223,24 +223,19 @@ public class RenderService implements Disposable {
     myImagePool.dispose();
   }
 
-  @Nullable
-  private static AndroidPlatform getPlatform(@NotNull final Module module, @Nullable RenderLogger logger) {
-    AndroidPlatform platform = AndroidPlatform.getInstance(module);
-    if (platform == null && logger != null) {
-      RenderProblem.Html message = RenderProblem.create(ERROR);
-      logger.addMessage(message);
-      message.getHtmlBuilder().addLink("No Android SDK found. Please ", "configure", " an Android SDK.",
-         logger.getLinkManager().createRunnableLink(() -> {
-           Project project = module.getProject();
-           ProjectSettingsService service = ProjectSettingsService.getInstance(project);
-           if (ProjectSystemUtil.requiresAndroidModel(project) && service instanceof AndroidProjectSettingsService) {
-             ((AndroidProjectSettingsService)service).openSdkSettings();
-             return;
-           }
-           AndroidSdkUtils.openModuleDependenciesConfigurable(module);
-         }));
-    }
-    return platform;
+  private static void reportMissingSdk(@NotNull RenderLogger logger, @NotNull Module module) {
+    RenderProblem.Html message = RenderProblem.create(ERROR);
+    logger.addMessage(message);
+    message.getHtmlBuilder().addLink("No Android SDK found. Please ", "configure", " an Android SDK.",
+      logger.getLinkManager().createRunnableLink(() -> {
+        Project project = module.getProject();
+        ProjectSettingsService service = ProjectSettingsService.getInstance(project);
+        if (ProjectSystemUtil.requiresAndroidModel(project) && service instanceof AndroidProjectSettingsService) {
+          ((AndroidProjectSettingsService)service).openSdkSettings();
+          return;
+        }
+        AndroidSdkUtils.openModuleDependenciesConfigurable(module);
+      }));
   }
 
   /**
@@ -644,8 +639,9 @@ public class RenderService implements Disposable {
       StackTraceCapture stackTraceCaptureElement = RenderTaskAllocationTrackerKt.captureAllocationStackTrace();
 
       return CompletableFuture.supplyAsync(() -> {
-        AndroidPlatform platform = getPlatform(myFacet.getModule(), myLogger);
+        AndroidPlatform platform = AndroidPlatform.getInstance(myFacet.getModule());
         if (platform == null) {
+          reportMissingSdk(myLogger, myFacet.getModule());
           return null;
         }
 
