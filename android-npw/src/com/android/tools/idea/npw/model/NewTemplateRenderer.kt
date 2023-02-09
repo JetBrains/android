@@ -324,7 +324,8 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
     TemplateRenderer.THINGS_MODULE,
     TemplateRenderer.ML_MODEL_BINDING_IMPORT_WIZARD,
     TemplateRenderer.ML_MODEL_BINDING_FEATURE_OFF_NOTIFICATION,
-    TemplateRenderer.ANDROID_NATIVE_MODULE -> throw RuntimeException("Invalid Template Title")
+    TemplateRenderer.ANDROID_NATIVE_MODULE,
+    TemplateRenderer.BASELINE_PROFILES_MODULE -> throw RuntimeException("Invalid Template Title")
   }
 }
 
@@ -342,6 +343,7 @@ fun moduleTemplateRendererToModuleType(moduleTemplateRenderer: TemplateRenderer)
     TemplateRenderer.THINGS_MODULE -> ModuleType.ANDROID_THINGS
     TemplateRenderer.JAVA_LIBRARY -> ModuleType.JAVA_OR_KOTLIN_LIBRARY
     TemplateRenderer.BENCHMARK_LIBRARY_MODULE -> ModuleType.BENCHMARK_LIBRARY
+    TemplateRenderer.BASELINE_PROFILES_MODULE -> ModuleType.BASELINE_PROFILES
     else -> ModuleType.UNKNOWN
 
     // TODO: b/161230278 Some new modules don't render a template. Need to send the event from their Model render.

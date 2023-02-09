@@ -179,6 +179,12 @@
     <option name="object" path="ActionManager" hit="Create a new Android object from the Other category" />
     <option name="other" path="ActionManager" hit="Create a new Android object from the Other category" />
     <option name="the" path="ActionManager" hit="Create a new Android object from the Other category" />
+    <option name="a" path="ActionManager" hit="Create a new Version Catalog file" />
+    <option name="catalog" path="ActionManager" hit="Create a new Version Catalog file" />
+    <option name="create" path="ActionManager" hit="Create a new Version Catalog file" />
+    <option name="file" path="ActionManager" hit="Create a new Version Catalog file" />
+    <option name="new" path="ActionManager" hit="Create a new Version Catalog file" />
+    <option name="version" path="ActionManager" hit="Create a new Version Catalog file" />
     <option name="create" path="ActionManager" hit="Create new resource file" />
     <option name="file" path="ActionManager" hit="Create new resource file" />
     <option name="new" path="ActionManager" hit="Create new resource file" />
@@ -767,6 +773,8 @@
     <option name="where" path="ActionManager" hit="Use Style Where Possible..." />
     <option name="asset" path="ActionManager" hit="Vector Asset" />
     <option name="vector" path="ActionManager" hit="Vector Asset" />
+    <option name="catalog" path="ActionManager" hit="Version Catalog" />
+    <option name="version" path="ActionManager" hit="Version Catalog" />
     <option name="device" path="ActionManager" hit="Virtual Device Manager" />
     <option name="manager" path="ActionManager" hit="Virtual Device Manager" />
     <option name="virtual" path="ActionManager" hit="Virtual Device Manager" />
