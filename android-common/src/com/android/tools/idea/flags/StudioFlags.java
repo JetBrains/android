@@ -1762,5 +1762,13 @@ public final class StudioFlags {
   );
   // endregion
 
+  // region PRIVACY_SANDBOX_SDK
+  private static final FlagGroup PRIVACY_SANDBOX_SDK = new FlagGroup(FLAGS, "privacysandboxsdk", "Privacy Sandbox SDK");
+  public static final Flag<Boolean> LAUNCH_SANDBOX_SDK_PROCESS_WITH_DEBUGGER_ATTACHED_ON_DEBUG = Flag.create(
+    PRIVACY_SANDBOX_SDK, "launch.process.with.debugger.attached.on.debug", "Launch sandbox SDK process with debugger attached on debug",
+    "Whether or not sandbox SDK should launch a process with the debugger attached on debug action.",
+    false);
+  // endregion PRIVACY_SANDBOX_SDK
+
   private StudioFlags() { }
 }

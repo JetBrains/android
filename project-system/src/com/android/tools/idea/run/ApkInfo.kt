@@ -30,16 +30,16 @@ import java.io.File
  */
 
 /**
- * @param files The list of files to deploy for the given [.getApplicationId].
+ *  @param files The list of files to deploy for the given [.getApplicationId].
  *              The APK file(s). Contains at least one element.  */
-
 /** @param applicationId The manifest package name for the APK (the app ID).  */
-
 /** @param requiredInstallOptions A set of required "pm install" options to install this APK.  */
+/** @param isSandboxApk A flag indicating if the APK is the sandbox APK. */
 class ApkInfo @JvmOverloads constructor (
   val files: List<ApkFileUnit>,
   val applicationId: String,
-  val requiredInstallOptions: Set<AppInstallOption> = emptySet()
+  val requiredInstallOptions: Set<AppInstallOption> = emptySet(),
+  val isSandboxApk: Boolean = false
 ) {
   init {
     Preconditions.checkArgument(files.isNotEmpty())
@@ -58,6 +58,7 @@ class ApkInfo @JvmOverloads constructor (
   constructor(
     file: File,
     applicationId: String,
-    requiredInstallOptions: Set<AppInstallOption> = emptySet()
-  ) : this(listOf(ApkFileUnit("", file)), applicationId, requiredInstallOptions)
+    requiredInstallOptions: Set<AppInstallOption> = emptySet(),
+    isSandboxApk: Boolean = false
+  ) : this(listOf(ApkFileUnit("", file)), applicationId, requiredInstallOptions, isSandboxApk)
 }
