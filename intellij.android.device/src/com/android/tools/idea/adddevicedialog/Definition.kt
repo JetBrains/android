@@ -15,11 +15,28 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import com.android.sdklib.devices.Device
+import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.device.Resolution
+import com.ibm.icu.text.Collator
+import com.ibm.icu.util.ULocale
 
-internal class Definition internal constructor(
-  internal val name: String,
-  internal val size: Double,
-  internal val resolution: Resolution,
-  internal val density: Int
-)
+internal class Definition private constructor(device: Device) : Comparable<Definition> {
+  internal val name = device.displayName
+  internal val size = device.defaultHardware.screen.diagonalLength
+  internal val resolution = device.getScreenSize(device.defaultState.orientation)!!.let { Resolution(it.width, it.height) }
+  internal val density = device.defaultHardware.screen.pixelDensity.resourceValue
+
+  override fun compareTo(other: Definition) = COLLATOR.compare(name, other.name)
+
+  internal companion object {
+    private val COLLATOR: Collator = Collator.getInstance(ULocale.ROOT).freeze()
+
+    internal fun getDefinitions(): Collection<Definition> {
+      return DeviceManagerConnection.getDefaultDeviceManagerConnection().devices.asSequence()
+        .filterNot(Device::getIsDeprecated)
+        .map(::Definition)
+        .toList()
+    }
+  }
+}
