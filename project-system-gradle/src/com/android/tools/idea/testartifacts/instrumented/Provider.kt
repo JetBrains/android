@@ -36,29 +36,13 @@ class CreateLaunchTasksProvider : LaunchTasksProvider.Provider {
     apkProvider: ApkProvider,
     launchOptions: LaunchOptions
   ): LaunchTasksProvider? {
-    if (runConfiguration !is AndroidTestRunConfiguration) return null
+    if (env.runProfile !is AndroidTestRunConfiguration) return null
 
     if (getInstance().RUN_ANDROID_TEST_USING_GRADLE && isRunAndroidTestUsingGradleSupported(facet)) {
       // Skip task for instrumentation tests run via UTP/AGP so that Gradle build
       // doesn't run twice per test run.
       env.putUserData(GradleBuilds.BUILD_SHOULD_EXECUTE, false)
-      return GradleAndroidTestApplicationLaunchTasksProvider(
-        runConfiguration,
-        env,
-        facet,
-        applicationIdProvider,
-        launchOptions,
-        runConfiguration.TESTING_TYPE,
-        runConfiguration.PACKAGE_NAME,
-        runConfiguration.CLASS_NAME,
-        runConfiguration.METHOD_NAME,
-        runConfiguration.TEST_NAME_REGEX,
-        RetentionConfiguration(
-          runConfiguration.RETENTION_ENABLED,
-          runConfiguration.RETENTION_MAX_SNAPSHOTS,
-          runConfiguration.RETENTION_COMPRESS_SNAPSHOTS
-        )
-      )
+      return GradleAndroidTestApplicationLaunchTasksProvider(env, facet, applicationIdProvider, launchOptions)
     }
     return null
   }

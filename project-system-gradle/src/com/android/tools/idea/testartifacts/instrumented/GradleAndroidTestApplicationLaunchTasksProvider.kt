@@ -17,7 +17,6 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DeviceFutures
@@ -41,36 +40,35 @@ import org.jetbrains.plugins.gradle.util.GradleUtil
 /**
  * LaunchTasksProvider that provides GradleAndroidTestApplicationLaunchTasks for instrumentation tests
  */
-class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: AndroidRunConfigurationBase,
-                                                      private val myEnv: ExecutionEnvironment,
-                                                      private val facet: AndroidFacet,
-                                                      applicationIdProvider: ApplicationIdProvider,
-                                                      launchOptions: LaunchOptions,
-                                                      testingType: Int,
-                                                      packageName: String,
-                                                      className: String,
-                                                      methodName: String,
-                                                      private val testRegex: String,
-                                                      private val retentionConfiguration: RetentionConfiguration) : LaunchTasksProvider {
-  private val myFacet: AndroidFacet = facet
+class GradleAndroidTestApplicationLaunchTasksProvider(
+  private val myEnv: ExecutionEnvironment,
+  private val facet: AndroidFacet,
+  applicationIdProvider: ApplicationIdProvider,
+  launchOptions: LaunchOptions,
+) : LaunchTasksProvider {
+  private val runConfiguration: AndroidTestRunConfiguration = myEnv.runProfile as AndroidTestRunConfiguration
   private val myApplicationIdProvider: ApplicationIdProvider = applicationIdProvider
   private val myLaunchOptions: LaunchOptions = launchOptions
   private val myProject: Project = facet.module.project
-  private val myExtraInstrumentationOptions: String = if (myRunConfig is AndroidTestRunConfiguration) {
-    myRunConfig.getExtraInstrumentationOptions(facet)
-  } else ""
+  private val myExtraInstrumentationOptions: String = runConfiguration.getExtraInstrumentationOptions(facet)
   private val myGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker =
     GradleConnectedAndroidTestInvoker(
       getNumberOfSelectedDevices(),
       myEnv,
-      requireNotNull(myRunConfig.configurationModule.module?.let {
+      requireNotNull(runConfiguration.configurationModule.module?.let {
         GradleUtil.findGradleModuleData(it)?.data
       })
     )
-  private val myTestingType: Int = testingType
-  private val myPackageName: String = packageName
-  private val myClassName: String = className
-  private val myMethodName: String = methodName
+  private val myTestingType: Int = runConfiguration.TESTING_TYPE
+  private val myPackageName: String = runConfiguration.PACKAGE_NAME
+  private val myClassName: String = runConfiguration.CLASS_NAME
+  private val myMethodName: String = runConfiguration.METHOD_NAME
+  private val testRegex: String = runConfiguration.TEST_NAME_REGEX
+  private val retentionConfiguration: RetentionConfiguration = RetentionConfiguration(
+    runConfiguration.RETENTION_ENABLED,
+    runConfiguration.RETENTION_MAX_SNAPSHOTS,
+    runConfiguration.RETENTION_COMPRESS_SNAPSHOTS
+  )
 
   private val myLogger: Logger = Logger.getInstance(GradleAndroidTestApplicationLaunchTasksProvider::class.java)
 
@@ -93,7 +91,7 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
       TEST_ALL_IN_MODULE -> {
         allInModuleTest(
           myProject,
-          requireNotNull(GradleAndroidModel.get(myFacet)),
+          requireNotNull(GradleAndroidModel.get(facet)),
           testAppId,
           myLaunchOptions.isDebug,
           device,
@@ -106,7 +104,7 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
       TEST_ALL_IN_PACKAGE -> {
         allInPackageTest(
           myProject,
-          requireNotNull(GradleAndroidModel.get(myFacet)),
+          requireNotNull(GradleAndroidModel.get(facet)),
           testAppId,
           myLaunchOptions.isDebug,
           device,
@@ -119,7 +117,7 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
       TEST_CLASS -> {
         classTest(
           myProject,
-          requireNotNull(GradleAndroidModel.get(myFacet)),
+          requireNotNull(GradleAndroidModel.get(facet)),
           testAppId,
           myLaunchOptions.isDebug,
           device,
@@ -132,7 +130,7 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
       TEST_METHOD -> {
         methodTest(
           myProject,
-          requireNotNull(GradleAndroidModel.get(myFacet)),
+          requireNotNull(GradleAndroidModel.get(facet)),
           testAppId,
           myLaunchOptions.isDebug,
           device,
@@ -153,9 +151,9 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
     if (!myLaunchOptions.isDebug) {
       return null
     }
-    val androidDebuggerContext = myRunConfig.androidDebuggerContext
+    val androidDebuggerContext = runConfiguration.androidDebuggerContext
 
-    return getBaseDebuggerTask(androidDebuggerContext, myFacet, myEnv, timeoutSeconds = Int.MAX_VALUE) // No timeout. }
+    return getBaseDebuggerTask(androidDebuggerContext, facet, myEnv, timeoutSeconds = Int.MAX_VALUE) // No timeout. }
   }
 
 

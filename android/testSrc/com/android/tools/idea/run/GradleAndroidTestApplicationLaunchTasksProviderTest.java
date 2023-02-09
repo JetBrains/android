@@ -31,7 +31,6 @@ import com.android.tools.idea.run.tasks.LaunchTaskDurations;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType;
 import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplicationLaunchTasksProvider;
-import com.android.tools.idea.testartifacts.instrumented.RetentionConfiguration;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.ExecutionException;
@@ -78,8 +77,8 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       createConfiguration("debugAllInModuleTest", AndroidTestRunConfigurationType.getInstance().getFactory());
     AndroidTestRunConfiguration config = (AndroidTestRunConfiguration)configSettings.getConfiguration();
     config.setModule(myAndroidFacet.getModule());
-    configSettings.checkSettings();
     config.getAndroidDebuggerContext().setDebuggerType(getDebuggerType());
+    config.TESTING_TYPE = AndroidTestRunConfiguration.TEST_ALL_IN_MODULE;
 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
@@ -93,17 +92,10 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       .build();
 
     GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
-      (AndroidTestRunConfiguration)configSettings.getConfiguration(),
       env,
       myAndroidFacet,
       appIdProvider,
-      launchOptions,
-      /*TESTING_TYPE*/0,
-      "PACKAGE_NAME",
-      "CLASS_NAME",
-      "METHOD_NAME",
-      "TEST_NAME_REGEX",
-      new RetentionConfiguration());
+      launchOptions);
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice);
     ConnectDebuggerTask connectDebuggerTask = provider.getConnectDebuggerTask();
@@ -123,7 +115,8 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       createConfiguration("allInPackageTest", AndroidTestRunConfigurationType.getInstance().getFactory());
     AndroidTestRunConfiguration config = (AndroidTestRunConfiguration)configSettings.getConfiguration();
     config.setModule(myAndroidFacet.getModule());
-    configSettings.checkSettings();
+    config.TESTING_TYPE = AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE;
+
 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
@@ -137,17 +130,10 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       .build();
 
     GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
-      (AndroidTestRunConfiguration)configSettings.getConfiguration(),
       env,
       myAndroidFacet,
       appIdProvider,
-      launchOptions,
-      /*TESTING_TYPE*/1,
-      "PACKAGE_NAME",
-      "CLASS_NAME",
-      "METHOD_NAME",
-      "TEST_NAME_REGEX",
-      new RetentionConfiguration());
+      launchOptions);
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice);
     ConnectDebuggerTask connectDebuggerTask = provider.getConnectDebuggerTask();
@@ -164,7 +150,8 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       createConfiguration("classTest", AndroidTestRunConfigurationType.getInstance().getFactory());
     AndroidTestRunConfiguration config = (AndroidTestRunConfiguration)configSettings.getConfiguration();
     config.setModule(myAndroidFacet.getModule());
-    configSettings.checkSettings();
+    config.TESTING_TYPE = AndroidTestRunConfiguration.TEST_CLASS;
+
 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
@@ -178,17 +165,10 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       .build();
 
     GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
-      (AndroidTestRunConfiguration)configSettings.getConfiguration(),
       env,
       myAndroidFacet,
       appIdProvider,
-      launchOptions,
-      /*TESTING_TYPE*/2,
-      "PACKAGE_NAME",
-      "CLASS_NAME",
-      "METHOD_NAME",
-      "TEST_NAME_REGEX",
-      new RetentionConfiguration());
+      launchOptions);
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice);
 
@@ -203,7 +183,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       createConfiguration("methodTest", AndroidTestRunConfigurationType.getInstance().getFactory());
     AndroidTestRunConfiguration config = (AndroidTestRunConfiguration)configSettings.getConfiguration();
     config.setModule(myAndroidFacet.getModule());
-    configSettings.checkSettings();
+    config.TESTING_TYPE = AndroidTestRunConfiguration.TEST_METHOD;
 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
@@ -217,17 +197,10 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       .build();
 
     GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
-      (AndroidTestRunConfiguration)configSettings.getConfiguration(),
       env,
       myAndroidFacet,
       appIdProvider,
-      launchOptions,
-      /*TESTING_TYPE*/3,
-      "PACKAGE_NAME",
-      "CLASS_NAME",
-      "METHOD_NAME",
-      "TEST_NAME_REGEX",
-      new RetentionConfiguration());
+      launchOptions);
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice);
 
@@ -242,7 +215,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       createConfiguration("methodTest", AndroidTestRunConfigurationType.getInstance().getFactory());
     AndroidTestRunConfiguration config = (AndroidTestRunConfiguration)configSettings.getConfiguration();
     config.setModule(myAndroidFacet.getModule());
-    configSettings.checkSettings();
+
 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
@@ -258,17 +231,10 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       .build();
 
     GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
-      (AndroidTestRunConfiguration)configSettings.getConfiguration(),
       env,
       myAndroidFacet,
       appIdProvider,
-      launchOptions,
-      /*TESTING_TYPE*/0,
-      "PACKAGE_NAME",
-      "CLASS_NAME",
-      "METHOD_NAME",
-      "TEST_NAME_REGEX",
-      new RetentionConfiguration());
+      launchOptions);
 
     try {
       provider.getTasks(mockDevice);
@@ -284,7 +250,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       createConfiguration("methodTest", AndroidTestRunConfigurationType.getInstance().getFactory());
     AndroidTestRunConfiguration config = (AndroidTestRunConfiguration)configSettings.getConfiguration();
     config.setModule(myAndroidFacet.getModule());
-    configSettings.checkSettings();
+
 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
@@ -300,17 +266,10 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       .build();
 
     GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
-      (AndroidTestRunConfiguration)configSettings.getConfiguration(),
       env,
       myAndroidFacet,
       appIdProvider,
-      launchOptions,
-      /*TESTING_TYPE*/0,
-      "PACKAGE_NAME",
-      "CLASS_NAME",
-      "METHOD_NAME",
-      "TEST_NAME_REGEX",
-      new RetentionConfiguration());
+      launchOptions);
 
     try {
       provider.getTasks(mockDevice);
