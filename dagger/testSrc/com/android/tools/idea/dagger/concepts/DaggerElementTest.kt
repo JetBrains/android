@@ -55,19 +55,23 @@ class DaggerElementTest {
 
   private lateinit var myFixture: CodeInsightTestFixture
 
+  private val mockKtClassIdentifier: DaggerElementIdentifier<KtClass> = mock()
   private val mockKtConstructorIdentifier: DaggerElementIdentifier<KtConstructor<*>> = mock()
   private val mockKtFunctionIdentifier: DaggerElementIdentifier<KtFunction> = mock()
   private val mockKtParameterIdentifier: DaggerElementIdentifier<KtParameter> = mock()
   private val mockKtPropertyIdentifier: DaggerElementIdentifier<KtProperty> = mock()
+  private val mockPsiClassIdentifier: DaggerElementIdentifier<PsiClass> = mock()
   private val mockPsiFieldIdentifier: DaggerElementIdentifier<PsiField> = mock()
   private val mockPsiMethodIdentifier: DaggerElementIdentifier<PsiMethod> = mock()
   private val mockPsiParameterIdentifier: DaggerElementIdentifier<PsiParameter> = mock()
 
   private val mockIdentifiers = DaggerElementIdentifiers(
+    listOf(mockKtClassIdentifier),
     listOf(mockKtConstructorIdentifier),
     listOf(mockKtFunctionIdentifier),
     listOf(mockKtParameterIdentifier),
     listOf(mockKtPropertyIdentifier),
+    listOf(mockPsiClassIdentifier),
     listOf(mockPsiFieldIdentifier),
     listOf(mockPsiMethodIdentifier),
     listOf(mockPsiParameterIdentifier),
@@ -248,6 +252,35 @@ class DaggerElementTest {
   }
 
   @Test
+  fun getDaggerElement_ktClass() {
+    myFixture.configureByText(
+      KotlinFileType.INSTANCE,
+      //language=kotlin
+      """
+      package com.example
+
+      class Fo<caret>o
+      """.trimIndent())
+
+    val psiElement = myFixture.elementAtCaret.parentOfType<KtClass>(/* withSelf = */ true)!!
+
+    val mockDaggerElement: DaggerElement = mock()
+    whenever(mockKtClassIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
+
+    assertThat(mockIdentifiers.getDaggerElement(psiElement)).isSameAs(mockDaggerElement)
+
+    verify(mockKtClassIdentifier, times(1)).getDaggerElement(any())
+    verify(mockKtConstructorIdentifier, never()).getDaggerElement(any())
+    verify(mockKtFunctionIdentifier, never()).getDaggerElement(any())
+    verify(mockKtParameterIdentifier, never()).getDaggerElement(any())
+    verify(mockKtPropertyIdentifier, never()).getDaggerElement(any())
+    verify(mockPsiClassIdentifier, never()).getDaggerElement(any())
+    verify(mockPsiFieldIdentifier, never()).getDaggerElement(any())
+    verify(mockPsiMethodIdentifier, never()).getDaggerElement(any())
+    verify(mockPsiParameterIdentifier, never()).getDaggerElement(any())
+  }
+
+  @Test
   fun getDaggerElement_ktFunction() {
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
@@ -267,10 +300,12 @@ class DaggerElementTest {
 
     assertThat(mockIdentifiers.getDaggerElement(psiElement)).isSameAs(mockDaggerElement)
 
+    verify(mockKtClassIdentifier, never()).getDaggerElement(any())
     verify(mockKtConstructorIdentifier, never()).getDaggerElement(any())
     verify(mockKtFunctionIdentifier, times(1)).getDaggerElement(any())
     verify(mockKtParameterIdentifier, never()).getDaggerElement(any())
     verify(mockKtPropertyIdentifier, never()).getDaggerElement(any())
+    verify(mockPsiClassIdentifier, never()).getDaggerElement(any())
     verify(mockPsiFieldIdentifier, never()).getDaggerElement(any())
     verify(mockPsiMethodIdentifier, never()).getDaggerElement(any())
     verify(mockPsiParameterIdentifier, never()).getDaggerElement(any())
@@ -294,10 +329,12 @@ class DaggerElementTest {
 
     assertThat(mockIdentifiers.getDaggerElement(psiElement)).isSameAs(mockDaggerElement)
 
+    verify(mockKtClassIdentifier, never()).getDaggerElement(any())
     verify(mockKtConstructorIdentifier, times(1)).getDaggerElement(any())
     verify(mockKtFunctionIdentifier, never()).getDaggerElement(any())
     verify(mockKtParameterIdentifier, never()).getDaggerElement(any())
     verify(mockKtPropertyIdentifier, never()).getDaggerElement(any())
+    verify(mockPsiClassIdentifier, never()).getDaggerElement(any())
     verify(mockPsiFieldIdentifier, never()).getDaggerElement(any())
     verify(mockPsiMethodIdentifier, never()).getDaggerElement(any())
     verify(mockPsiParameterIdentifier, never()).getDaggerElement(any())
@@ -321,10 +358,12 @@ class DaggerElementTest {
 
     assertThat(mockIdentifiers.getDaggerElement(psiElement)).isSameAs(mockDaggerElement)
 
+    verify(mockKtClassIdentifier, never()).getDaggerElement(any())
     verify(mockKtConstructorIdentifier, times(1)).getDaggerElement(any())
     verify(mockKtFunctionIdentifier, times(1)).getDaggerElement(any())
     verify(mockKtParameterIdentifier, never()).getDaggerElement(any())
     verify(mockKtPropertyIdentifier, never()).getDaggerElement(any())
+    verify(mockPsiClassIdentifier, never()).getDaggerElement(any())
     verify(mockPsiFieldIdentifier, never()).getDaggerElement(any())
     verify(mockPsiMethodIdentifier, never()).getDaggerElement(any())
     verify(mockPsiParameterIdentifier, never()).getDaggerElement(any())
@@ -350,10 +389,12 @@ class DaggerElementTest {
 
     assertThat(mockIdentifiers.getDaggerElement(psiElement)).isSameAs(mockDaggerElement)
 
+    verify(mockKtClassIdentifier, never()).getDaggerElement(any())
     verify(mockKtConstructorIdentifier, never()).getDaggerElement(any())
     verify(mockKtFunctionIdentifier, never()).getDaggerElement(any())
     verify(mockKtParameterIdentifier, times(1)).getDaggerElement(any())
     verify(mockKtPropertyIdentifier, never()).getDaggerElement(any())
+    verify(mockPsiClassIdentifier, never()).getDaggerElement(any())
     verify(mockPsiFieldIdentifier, never()).getDaggerElement(any())
     verify(mockPsiMethodIdentifier, never()).getDaggerElement(any())
     verify(mockPsiParameterIdentifier, never()).getDaggerElement(any())
@@ -381,10 +422,41 @@ class DaggerElementTest {
 
     assertThat(mockIdentifiers.getDaggerElement(psiElement)).isSameAs(mockDaggerElement)
 
+    verify(mockKtClassIdentifier, never()).getDaggerElement(any())
     verify(mockKtConstructorIdentifier, never()).getDaggerElement(any())
     verify(mockKtFunctionIdentifier, never()).getDaggerElement(any())
     verify(mockKtParameterIdentifier, never()).getDaggerElement(any())
     verify(mockKtPropertyIdentifier, times(1)).getDaggerElement(any())
+    verify(mockPsiClassIdentifier, never()).getDaggerElement(any())
+    verify(mockPsiFieldIdentifier, never()).getDaggerElement(any())
+    verify(mockPsiMethodIdentifier, never()).getDaggerElement(any())
+    verify(mockPsiParameterIdentifier, never()).getDaggerElement(any())
+  }
+
+  @Test
+  fun getDaggerElement_psiClass() {
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      //language=java
+      """
+      package com.example;
+
+      public class Fo<caret>o {}
+      """.trimIndent())
+
+    val psiElement = myFixture.elementAtCaret.parentOfType<PsiClass>(/* withSelf = */ true)!!
+
+    val mockDaggerElement: DaggerElement = mock()
+    whenever(mockPsiClassIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
+
+    assertThat(mockIdentifiers.getDaggerElement(psiElement)).isSameAs(mockDaggerElement)
+
+    verify(mockKtClassIdentifier, never()).getDaggerElement(any())
+    verify(mockKtConstructorIdentifier, never()).getDaggerElement(any())
+    verify(mockKtFunctionIdentifier, never()).getDaggerElement(any())
+    verify(mockKtParameterIdentifier, never()).getDaggerElement(any())
+    verify(mockKtPropertyIdentifier, never()).getDaggerElement(any())
+    verify(mockPsiClassIdentifier, times(1)).getDaggerElement(any())
     verify(mockPsiFieldIdentifier, never()).getDaggerElement(any())
     verify(mockPsiMethodIdentifier, never()).getDaggerElement(any())
     verify(mockPsiParameterIdentifier, never()).getDaggerElement(any())
@@ -412,10 +484,12 @@ class DaggerElementTest {
 
     assertThat(mockIdentifiers.getDaggerElement(psiElement)).isSameAs(mockDaggerElement)
 
+    verify(mockKtClassIdentifier, never()).getDaggerElement(any())
     verify(mockKtConstructorIdentifier, never()).getDaggerElement(any())
     verify(mockKtFunctionIdentifier, never()).getDaggerElement(any())
     verify(mockKtParameterIdentifier, never()).getDaggerElement(any())
     verify(mockKtPropertyIdentifier, never()).getDaggerElement(any())
+    verify(mockPsiClassIdentifier, never()).getDaggerElement(any())
     verify(mockPsiFieldIdentifier, times(1)).getDaggerElement(any())
     verify(mockPsiMethodIdentifier, never()).getDaggerElement(any())
     verify(mockPsiParameterIdentifier, never()).getDaggerElement(any())
@@ -443,10 +517,12 @@ class DaggerElementTest {
 
     assertThat(mockIdentifiers.getDaggerElement(psiElement)).isSameAs(mockDaggerElement)
 
+    verify(mockKtClassIdentifier, never()).getDaggerElement(any())
     verify(mockKtConstructorIdentifier, never()).getDaggerElement(any())
     verify(mockKtFunctionIdentifier, never()).getDaggerElement(any())
     verify(mockKtParameterIdentifier, never()).getDaggerElement(any())
     verify(mockKtPropertyIdentifier, never()).getDaggerElement(any())
+    verify(mockPsiClassIdentifier, never()).getDaggerElement(any())
     verify(mockPsiFieldIdentifier, never()).getDaggerElement(any())
     verify(mockPsiMethodIdentifier, times(1)).getDaggerElement(any())
     verify(mockPsiParameterIdentifier, never()).getDaggerElement(any())
@@ -474,10 +550,12 @@ class DaggerElementTest {
 
     assertThat(mockIdentifiers.getDaggerElement(psiElement)).isSameAs(mockDaggerElement)
 
+    verify(mockKtClassIdentifier, never()).getDaggerElement(any())
     verify(mockKtConstructorIdentifier, never()).getDaggerElement(any())
     verify(mockKtFunctionIdentifier, never()).getDaggerElement(any())
     verify(mockKtParameterIdentifier, never()).getDaggerElement(any())
     verify(mockKtPropertyIdentifier, never()).getDaggerElement(any())
+    verify(mockPsiClassIdentifier, never()).getDaggerElement(any())
     verify(mockPsiFieldIdentifier, never()).getDaggerElement(any())
     verify(mockPsiMethodIdentifier, never()).getDaggerElement(any())
     verify(mockPsiParameterIdentifier, times(1)).getDaggerElement(any())
@@ -496,10 +574,12 @@ class DaggerElementTest {
 
     assertThat(mockIdentifiers.getDaggerElement(psiFile)).isNull()
 
+    verify(mockKtClassIdentifier, never()).getDaggerElement(any())
     verify(mockKtConstructorIdentifier, never()).getDaggerElement(any())
     verify(mockKtFunctionIdentifier, never()).getDaggerElement(any())
     verify(mockKtParameterIdentifier, never()).getDaggerElement(any())
     verify(mockKtPropertyIdentifier, never()).getDaggerElement(any())
+    verify(mockPsiClassIdentifier, never()).getDaggerElement(any())
     verify(mockPsiFieldIdentifier, never()).getDaggerElement(any())
     verify(mockPsiMethodIdentifier, never()).getDaggerElement(any())
     verify(mockPsiParameterIdentifier, never()).getDaggerElement(any())

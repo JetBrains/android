@@ -67,10 +67,12 @@ fun interface DaggerElementIdentifier<T : PsiElement> {
 }
 
 class DaggerElementIdentifiers(
+  val ktClassIdentifiers: List<DaggerElementIdentifier<KtClass>> = emptyList(),
   val ktConstructorIdentifiers: List<DaggerElementIdentifier<KtConstructor<*>>> = emptyList(),
   val ktFunctionIdentifiers: List<DaggerElementIdentifier<KtFunction>> = emptyList(),
   val ktParameterIdentifiers: List<DaggerElementIdentifier<KtParameter>> = emptyList(),
   val ktPropertyIdentifiers: List<DaggerElementIdentifier<KtProperty>> = emptyList(),
+  val psiClassIdentifiers: List<DaggerElementIdentifier<PsiClass>> = emptyList(),
   val psiFieldIdentifiers: List<DaggerElementIdentifier<PsiField>> = emptyList(),
   val psiMethodIdentifiers: List<DaggerElementIdentifier<PsiMethod>> = emptyList(),
   val psiParameterIdentifiers: List<DaggerElementIdentifier<PsiParameter>> = emptyList(),
@@ -79,10 +81,12 @@ class DaggerElementIdentifiers(
     internal inline fun of(vararg identifiers: DaggerElementIdentifiers) = of(identifiers.toList())
 
     internal fun of(identifiers: List<DaggerElementIdentifiers>) = DaggerElementIdentifiers(
+      identifiers.flatMap(DaggerElementIdentifiers::ktClassIdentifiers),
       identifiers.flatMap(DaggerElementIdentifiers::ktConstructorIdentifiers),
       identifiers.flatMap(DaggerElementIdentifiers::ktFunctionIdentifiers),
       identifiers.flatMap(DaggerElementIdentifiers::ktParameterIdentifiers),
       identifiers.flatMap(DaggerElementIdentifiers::ktPropertyIdentifiers),
+      identifiers.flatMap(DaggerElementIdentifiers::psiClassIdentifiers),
       identifiers.flatMap(DaggerElementIdentifiers::psiFieldIdentifiers),
       identifiers.flatMap(DaggerElementIdentifiers::psiMethodIdentifiers),
       identifiers.flatMap(DaggerElementIdentifiers::psiParameterIdentifiers),
@@ -91,12 +95,14 @@ class DaggerElementIdentifiers(
 
   fun getDaggerElement(psiElement: PsiElement): DaggerElement? {
     return when (psiElement) {
+      is KtClass -> ktClassIdentifiers.getFirstDaggerElement(psiElement)
       is KtFunction ->
         (psiElement as? KtConstructor<*>)?.let { ktConstructorIdentifiers.getFirstDaggerElement(psiElement) }
         ?: ktFunctionIdentifiers.getFirstDaggerElement(psiElement)
 
       is KtParameter -> ktParameterIdentifiers.getFirstDaggerElement(psiElement)
       is KtProperty -> ktPropertyIdentifiers.getFirstDaggerElement(psiElement)
+      is PsiClass -> psiClassIdentifiers.getFirstDaggerElement(psiElement)
       is PsiField -> psiFieldIdentifiers.getFirstDaggerElement(psiElement)
       is PsiMethod -> psiMethodIdentifiers.getFirstDaggerElement(psiElement)
       is PsiParameter -> psiParameterIdentifiers.getFirstDaggerElement(psiElement)
