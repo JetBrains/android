@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.Display;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -37,6 +38,13 @@ public class SceneLayer extends Layer {
   private boolean myShowOnHover = false;
   private boolean myAlwaysShowSelection;
   private boolean myTemporaryShow = false;
+
+  /**
+   * Filter that affects the value of {@link myShowOnHover}. Such variable
+   * will only be true when {@link mySceneView} is being hovered, and it's
+   * not filtered out by this filter.
+   */
+  private Function<SceneView, Boolean> myShowOnHoverFilter = sceneView -> true;
 
   /**
    * Default constructor
@@ -132,16 +140,17 @@ public class SceneLayer extends Layer {
     myShowOnHover = value;
   }
 
+  public void setShowOnHoverFilter(Function<SceneView, Boolean> filter) {
+    myShowOnHoverFilter = filter;
+  }
+
   public SceneView getSceneView() {
     return mySceneView;
   }
 
   @Override
   public void onHover(@SwingCoordinate int x, @SwingCoordinate int y) {
-    boolean show = false;
-    if (getSceneView() == myDesignSurface.getSceneViewAt(x, y)) {
-      show = true;
-    }
+    boolean show = getSceneView() == myDesignSurface.getSceneViewAt(x, y) && myShowOnHoverFilter.apply(getSceneView());
     if (isShowOnHover() != show) {
       setShowOnHover(show);
       myDesignSurface.repaint();
