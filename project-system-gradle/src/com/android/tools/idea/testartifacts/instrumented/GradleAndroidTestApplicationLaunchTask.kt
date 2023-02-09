@@ -17,13 +17,11 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.run.tasks.AppLaunchTask
 import com.android.tools.idea.run.tasks.LaunchContext
-import com.android.tools.idea.run.tasks.LaunchTaskDurations
 import com.intellij.openapi.project.Project
 
 /**
- * LaunchTask for delegating instrumentation tests to AGP from AS.
+ * Delegates instrumentation tests to AGP from AS.
  */
 class GradleAndroidTestApplicationLaunchTask private constructor(
   private val project: Project,
@@ -37,7 +35,7 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
   private val testRegex: String,
   private val myGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker,
   private val retentionConfiguration: RetentionConfiguration,
-  private val extraInstrumentationOptions: String) : AppLaunchTask() {
+  private val extraInstrumentationOptions: String) {
 
   companion object {
     /**
@@ -122,14 +120,10 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
     }
   }
 
-  override fun run(launchContext: LaunchContext) {
+  fun run(launchContext: LaunchContext) {
     myGradleConnectedAndroidTestInvoker.schedule(
       project, taskId, launchContext.processHandler, launchContext.consoleView, androidModuleModel,
       waitForDebugger, testPackageName, testClassName, testMethodName, testRegex,
       device, retentionConfiguration, extraInstrumentationOptions)
   }
-
-  override fun getId(): String = "GRADLE_ANDROID_TEST_APPLICATION_LAUNCH_TASK"
-  override fun getDescription(): String = "Launching a connectedAndroidTest for selected devices"
-  override fun getDuration(): Int = LaunchTaskDurations.LAUNCH_ACTIVITY
 }

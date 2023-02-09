@@ -24,10 +24,6 @@ import static org.mockito.Mockito.when;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
-import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
-import com.android.tools.idea.run.tasks.DefaultConnectDebuggerTask;
-import com.android.tools.idea.run.tasks.LaunchTask;
-import com.android.tools.idea.run.tasks.LaunchTaskDurations;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType;
 import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplicationLaunchTasksProvider;
@@ -41,8 +37,6 @@ import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
-import com.intellij.openapi.diagnostic.Logger;
-import java.util.List;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
@@ -93,17 +87,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       appIdProvider
     );
 
-    List<LaunchTask> launchTasks = provider.getTasks(mockDevice);
-    ConnectDebuggerTask connectDebuggerTask = provider.getConnectDebuggerTask();
-
-    launchTasks.forEach(task -> {
-      Logger.getInstance(this.getClass()).info("LaunchTask: " + task);
-      assertThat(task.getId()).isEqualTo("GRADLE_ANDROID_TEST_APPLICATION_LAUNCH_TASK");
-      assertThat(task.getDescription()).isEqualTo("Launching a connectedAndroidTest for selected devices");
-      assertThat(task.getDuration()).isEqualTo(LaunchTaskDurations.LAUNCH_ACTIVITY);
-    });
-    assertThat(connectDebuggerTask).isNotNull();
-    assertThat(((DefaultConnectDebuggerTask)connectDebuggerTask).getTimeoutSeconds()).isEqualTo(Integer.MAX_VALUE);
+    assertNotNull(provider.getTask(mockDevice));
   }
 
   public void testLaunchTaskProvidedForAllInPackageTest() throws Exception {
@@ -125,14 +109,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       myAndroidFacet,
       appIdProvider);
 
-    List<LaunchTask> launchTasks = provider.getTasks(mockDevice);
-    ConnectDebuggerTask connectDebuggerTask = provider.getConnectDebuggerTask();
-
-    launchTasks.forEach(task -> {
-      Logger.getInstance(this.getClass()).info("LaunchTask: " + task);
-      assertThat(task.getId()).isEqualTo("GRADLE_ANDROID_TEST_APPLICATION_LAUNCH_TASK");
-    });
-    assertThat(connectDebuggerTask).isNull();
+    assertNotNull(provider.getTask(mockDevice));
   }
 
   public void testLaunchTaskProvidedForClassTest() throws Exception {
@@ -155,12 +132,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       appIdProvider
     );
 
-    List<LaunchTask> launchTasks = provider.getTasks(mockDevice);
-
-    launchTasks.forEach(task -> {
-      Logger.getInstance(this.getClass()).info("LaunchTask: " + task);
-      assertThat(task.getId()).isEqualTo("GRADLE_ANDROID_TEST_APPLICATION_LAUNCH_TASK");
-    });
+    assertNotNull(provider.getTask(mockDevice));
   }
 
   public void testLaunchTaskProvidedForMethodTest() throws Exception {
@@ -186,12 +158,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       myAndroidFacet,
       appIdProvider);
 
-    List<LaunchTask> launchTasks = provider.getTasks(mockDevice);
-
-    launchTasks.forEach(task -> {
-      Logger.getInstance(this.getClass()).info("LaunchTask: " + task);
-      assertThat(task.getId()).isEqualTo("GRADLE_ANDROID_TEST_APPLICATION_LAUNCH_TASK");
-    });
+    assertNotNull(provider.getTask(mockDevice));
   }
 
   public void testNoLaunchTaskProvidedForIndeterminatePackageName() throws Exception {
@@ -208,19 +175,13 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
     ApplicationIdProvider appIdProvider = mock(ApplicationIdProvider.class);
     when(appIdProvider.getTestPackageName()).thenReturn(null);
 
-    LaunchOptions launchOptions = LaunchOptions.builder()
-      .setClearLogcatBeforeStart(false)
-
-      .setDebug(false)
-      .build();
-
     GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
       env,
       myAndroidFacet,
       appIdProvider);
 
     try {
-      provider.getTasks(mockDevice);
+      provider.getTask(mockDevice);
       fail();
     }
     catch (ExecutionException e) {
@@ -242,12 +203,6 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
     ApplicationIdProvider appIdProvider = mock(ApplicationIdProvider.class);
     when(appIdProvider.getTestPackageName()).thenThrow(new ApkProvisionException("unable to determine package name"));
 
-    LaunchOptions launchOptions = LaunchOptions.builder()
-      .setClearLogcatBeforeStart(false)
-
-      .setDebug(false)
-      .build();
-
     GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
       env,
       myAndroidFacet,
@@ -255,7 +210,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
     );
 
     try {
-      provider.getTasks(mockDevice);
+      provider.getTask(mockDevice);
       fail();
     }
     catch (ExecutionException e) {

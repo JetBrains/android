@@ -29,6 +29,7 @@ import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchTask
+import com.android.tools.idea.run.tasks.getBaseDebuggerTask
 import com.android.tools.idea.run.ui.BaseAction
 import com.android.tools.idea.stats.RunStats
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME
@@ -62,7 +63,8 @@ class GradleAndroidTestRunConfigurationExecutor(
   private var applicationIdProvider = configuration.applicationIdProvider ?: throw RuntimeException(
     "Can't get ApplicationIdProvider for AndroidTestRunConfiguration")
   val module = configuration.configurationModule.module!!
-  private val launchTasksProvider = GradleAndroidTestApplicationLaunchTasksProvider(env, module.androidFacet!!, applicationIdProvider)
+  val facet = module.androidFacet ?: throw RuntimeException("GradleAndroidTestRunConfigurationExecutor shouldn't be invoked for module without facet")
+  private val launchTasksProvider = GradleAndroidTestApplicationLaunchTasksProvider(env, facet, applicationIdProvider)
   val project = env.project
   private val LOG = Logger.getInstance(this::class.java)
 
@@ -111,19 +113,17 @@ class GradleAndroidTestRunConfigurationExecutor(
     stat.beginLaunchTasks()
     try {
       printLaunchTaskStartedMessage(console)
-      launchTasksProvider.fillStats(stat)
 
       // Create launch tasks for each device.
       indicator.text = "Getting task for devices"
-      val launchTaskMap = devices.keysToMap { launchTasksProvider.getTasks(it) }
 
       // A list of devices that we have launched application successfully.
       indicator.text = "Launching on devices"
-      launchTaskMap.entries.map { (device, tasks) ->
+      devices.map { device ->
         async {
           LOG.info("Launching on device ${device.name}")
           val launchContext = LaunchContext(env, device, console, processHandler, indicator)
-          runLaunchTasks(tasks, launchContext)
+          launchTasksProvider.getTask(device).run(launchContext)
           // Notify listeners of the deployment.
           project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(device.serialNumber, project)
         }
@@ -161,9 +161,7 @@ class GradleAndroidTestRunConfigurationExecutor(
     doRun(devices, processHandler, indicator, console)
 
     val device = devices.single()
-    val debuggerTask = launchTasksProvider.connectDebuggerTask
-                       ?: throw RuntimeException(
-                         "ConnectDebuggerTask is null for task provider " + launchTasksProvider.javaClass.name)
+    val debuggerTask = getBaseDebuggerTask(configuration.androidDebuggerContext, facet, env, timeoutSeconds = Int.MAX_VALUE)
     indicator.text = "Connecting debugger"
     val session = debuggerTask.perform(device, applicationIdProvider.packageName, env, indicator, console)
     session.runContentDescriptor
@@ -171,26 +169,6 @@ class GradleAndroidTestRunConfigurationExecutor(
 
   private suspend fun createAndroidTestSuiteView() = withContext(AndroidDispatchers.uiThread) {
     AndroidTestSuiteView(project, project, configuration.configurationModule.androidTestModule, env.executor.toolWindowId, configuration)
-  }
-
-  private fun runLaunchTasks(launchTasks: List<LaunchTask>, launchContext: LaunchContext) {
-    val stat = RunStats.from(env)
-    for (task in launchTasks) {
-      if (task.shouldRun(launchContext)) {
-        val details = stat.beginLaunchTask(task)
-        try {
-          task.run(launchContext)
-          stat.endLaunchTask(task, details, true)
-        }
-        catch (e: Exception) {
-          stat.endLaunchTask(task, details, false)
-          if (e is DeployerException) {
-            throw AndroidExecutionException(e.id, e.message)
-          }
-          throw e
-        }
-      }
-    }
   }
 
   private fun printLaunchTaskStartedMessage(consoleView: AndroidTestSuiteView) {
