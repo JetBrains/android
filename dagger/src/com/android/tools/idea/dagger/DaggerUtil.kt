@@ -20,6 +20,7 @@ import com.android.tools.idea.AndroidPsiUtils.toPsiType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
+import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
@@ -689,4 +690,10 @@ internal fun PsiClass.isParentOf(component: PsiClass): Boolean {
  */
 private fun Module.moduleWithDependentsAndDependenciesScope(): GlobalSearchScope {
   return GlobalSearchScope.moduleWithDependentsScope(this).uniteWith(GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(this))
+}
+
+internal fun PsiElement.isDaggerWithIndexEnabled(): Boolean {
+  return StudioFlags.DAGGER_SUPPORT_ENABLED.get() &&
+         StudioFlags.DAGGER_USING_INDEX_ENABLED.get() &&
+         project.service<DaggerDependencyChecker>().isDaggerPresent()
 }

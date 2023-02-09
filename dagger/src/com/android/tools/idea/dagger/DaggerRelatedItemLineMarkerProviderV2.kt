@@ -16,10 +16,29 @@
 package com.android.tools.idea.dagger
 
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.dagger.concepts.DaggerElement
+import com.android.tools.idea.dagger.concepts.getDaggerElement
+import com.android.tools.idea.dagger.localization.DaggerBundle
+import com.google.common.base.Supplier
+import com.google.common.base.Suppliers
+import com.intellij.codeInsight.daemon.GutterIconNavigationHandler
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
+import com.intellij.codeInsight.navigation.NavigationUtil
+import com.intellij.navigation.GotoRelatedItem
+import com.intellij.openapi.editor.markup.GutterIconRenderer
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiIdentifier
+import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.intellij.psi.presentation.java.SymbolPresentationUtil
+import com.intellij.ui.awt.RelativePoint
+import icons.StudioIcons
+import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.kotlin.lexer.KtTokens
+import java.awt.event.MouseEvent
+import javax.swing.Icon
 
 /**
  * Provides [RelatedItemLineMarkerInfo] for Dagger elements.
@@ -27,11 +46,84 @@ import com.intellij.psi.PsiElement
  * Adds gutter icon that allows to navigate between Dagger elements.
  */
 class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
+
   @WorkerThread
   override fun collectNavigationMarkers(element: PsiElement, result: MutableCollection<in RelatedItemLineMarkerInfo<*>>) {
-    if (!StudioFlags.DAGGER_USING_INDEX_ENABLED.get()) return
+    if (!element.isDaggerWithIndexEnabled()) return
 
-    // TODO(b/265846405): Implement
-    return
+    ProgressManager.checkCanceled()
+
+    // Only leaf elements should be given markers; see `LineMarkerProvider.getLineMarkerInfo` for details.
+    if (!element.canReceiveLineMarker()) return
+
+    // Since element is either an identifier or the `constructor` keyword, its parent is the potential Dagger element.
+    val daggerElement = element.parent.getDaggerElement() ?: return
+
+    val gotoTargetsSupplier = Suppliers.memoize { daggerElement.getGotoItems() }
+    val lineMarkerInfo = RelatedItemLineMarkerInfo(
+      element,
+      element.textRange,
+      daggerElement.daggerType.getIcon(),
+      ::tooltipProvider,
+      NavigationHandler(gotoTargetsSupplier),
+      GutterIconRenderer.Alignment.RIGHT,
+      gotoTargetsSupplier::get,
+    )
+
+    result.add(lineMarkerInfo)
+  }
+
+  companion object {
+    /** Tooltip provider for related link marker. */
+    @VisibleForTesting
+    internal fun tooltipProvider(element: PsiElement) = DaggerBundle.message("dependency.related.files.for",
+                                                                             SymbolPresentationUtil.getSymbolPresentableText(element))
+
+    /** Given a [DaggerElement], find its related items. */
+    private fun DaggerElement.getGotoItems(): List<GotoRelatedItem> = getRelatedDaggerItems().map { relatedItem ->
+      GotoRelatedItem(relatedItem.psiElement, relatedItem.daggerType.getGroupName())
+    }
+
+    /**
+     * Returns true if element is Java/Kotlin identifier or kotlin "constructor" keyword.
+     *
+     * Only leaf elements can have a ItemLineMarkerInfo (see [com.intellij.codeInsight.daemon.LineMarkerProvider.getLineMarkerInfo]). For
+     * Dagger, the leaf elements we're interested in are either identifiers or the `constructor` keyword.
+     */
+    @VisibleForTesting
+    internal fun PsiElement.canReceiveLineMarker() = when (this) {
+      is PsiIdentifier -> true
+      is LeafPsiElement -> this.elementType == KtTokens.CONSTRUCTOR_KEYWORD || this.elementType == KtTokens.IDENTIFIER
+      else -> false
+    }
+
+    /** Returns the gutter icon to use for a given Dagger element type. */
+    private fun DaggerElement.Type.getIcon(): Icon = when (this) {
+      DaggerElement.Type.CONSUMER -> StudioIcons.Misc.DEPENDENCY_PROVIDER
+      DaggerElement.Type.PROVIDER -> StudioIcons.Misc.DEPENDENCY_CONSUMER
+    }
+
+    /** Returns the related item group name for a given Dagger element type. */
+    private fun DaggerElement.Type.getGroupName(): String = when (this) {
+      DaggerElement.Type.CONSUMER -> DaggerBundle.message("consumers")
+      DaggerElement.Type.PROVIDER -> DaggerBundle.message("providers")
+    }
+  }
+
+  /**
+   * Navigation handler for when the gutter icon is clicked. Note that this is a bit of a misnomer for our case, in that when [navigate]
+   * is called we actually pop open a menu rather than navigating immediately.
+   */
+  private class NavigationHandler(private val targetsSupplier: Supplier<List<GotoRelatedItem>>) : GutterIconNavigationHandler<PsiElement> {
+    override fun navigate(mouseEvent: MouseEvent, psiElement: PsiElement) {
+      val gotoTargets = targetsSupplier.get()
+      val displayLocation = RelativePoint(mouseEvent)
+      if (gotoTargets.isNotEmpty()) {
+        NavigationUtil.getRelatedItemsPopup(gotoTargets, DaggerBundle.message("dagger.related.items.popup.title")).show(displayLocation)
+      }
+      else {
+        JBPopupFactory.getInstance().createMessage(DaggerBundle.message("dagger.related.items.none.found")).show(displayLocation)
+      }
+    }
   }
 }

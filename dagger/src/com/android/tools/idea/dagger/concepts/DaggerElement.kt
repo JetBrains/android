@@ -26,7 +26,7 @@ import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
-import com.intellij.psi.search.GlobalSearchScope
+import org.jetbrains.kotlin.idea.base.util.projectScope
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFunction
@@ -39,23 +39,36 @@ data class DaggerElement internal constructor(val psiElement: PsiElement, val da
   internal constructor(psiElement: PsiElement, type: Type) : this(psiElement, type, psiElement.getPsiType())
 
   enum class Type {
-    PROVIDER,
-    CONSUMER
+    PROVIDER, CONSUMER;
+
+    companion object {
+      private val CONSUMER_RELATED_TYPES = setOf(PROVIDER)
+      private val PROVIDER_RELATED_TYPES = setOf(CONSUMER)
+    }
+
+    /** Returns types of related Dagger elements should be displayed for the given Dagger element type. */
+    fun getRelatedElementTypes(): Set<Type> = when (this) {
+      CONSUMER -> CONSUMER_RELATED_TYPES
+      PROVIDER -> PROVIDER_RELATED_TYPES
+    }
   }
 
   /** Look up related Dagger items using [DaggerIndex]. */
-  fun getRelatedDaggerItems(relatedItemTypes: Set<Type>, scope: GlobalSearchScope): List<DaggerElement> {
+  fun getRelatedDaggerItems(): List<DaggerElement> {
+    val project = psiElement.project
+    val scope = project.projectScope()
+
     return DaggerIndex
       // Get index keys
-      .getIndexKeys(psiType.canonicalText, psiElement.project, scope)
+      .getIndexKeys(psiType.canonicalText, project, scope)
       // Look up the keys in the index
       .flatMap { DaggerIndex.getValues(it, scope) }
       // Remove types we aren't interested in before resolving
-      .filter { it.dataType.daggerElementType in relatedItemTypes }
+      .filter { it.dataType.daggerElementType in daggerType.getRelatedElementTypes() }
       // Ensure there are no duplicate index values (which can happen if two different keys have identical values)
       .distinct()
       // Resolve index values
-      .flatMap { it.resolveToDaggerElements(psiType, psiElement.project, scope) }
+      .flatMap { it.resolveToDaggerElements(psiType, project, scope) }
       // Ensure there are no duplicate resolved values
       .distinct()
   }
