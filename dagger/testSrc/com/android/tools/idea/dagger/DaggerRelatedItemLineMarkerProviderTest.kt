@@ -48,7 +48,6 @@ import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
-import org.junit.Ignore
 
 abstract class DaggerRelatedItemLineMarkerProviderTestBase(
   private val daggerUsingIndexEnabled: Boolean
@@ -1366,6 +1365,5 @@ abstract class DaggerRelatedItemLineMarkerProviderTestBase(
 class DaggerRelatedItemLineMarkerProviderTestV1 :
   DaggerRelatedItemLineMarkerProviderTestBase(daggerUsingIndexEnabled = false)
 
-@Ignore // TODO(b/265846405): Start running test when index is enabled
 class DaggerRelatedItemLineMarkerProviderTestV2 :
   DaggerRelatedItemLineMarkerProviderTestBase(daggerUsingIndexEnabled = true)

@@ -27,13 +27,11 @@ import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
-@Ignore // TODO(b/265846405): Start running test when index is enabled
 @RunWith(JUnit4::class)
 @RunsInEdt
 class ConsumerDaggerElementTest {

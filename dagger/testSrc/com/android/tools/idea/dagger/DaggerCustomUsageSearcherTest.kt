@@ -33,7 +33,6 @@ import com.intellij.usages.impl.UsageViewImpl
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.junit.Assert
-import org.junit.Ignore
 
 abstract class DaggerCustomUsageSearcherTestBase(private val daggerUsingIndexEnabled: Boolean) :
   DaggerTestCase() {
@@ -1406,7 +1405,6 @@ class DaggerCustomUsageSearcherTestV1 :
   }
 }
 
-@Ignore // TODO(b/265846405): Start running test when index is enabled
 class DaggerCustomUsageSearcherTestV2 :
   DaggerCustomUsageSearcherTestBase(daggerUsingIndexEnabled = true) {
 

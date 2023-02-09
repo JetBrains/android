@@ -36,7 +36,6 @@ import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFile
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -992,7 +991,6 @@ class ComponentAndModuleDaggerConceptTest {
       )
   }
 
-  @Ignore // TODO(b/265846405): Start running test when index is enabled
   @Test
   fun component_getRelatedDaggerElements() {
     addDaggerAndHiltClasses(myFixture)
@@ -1067,7 +1065,6 @@ class ComponentAndModuleDaggerConceptTest {
       )
   }
 
-  @Ignore // TODO(b/265846405): Start running test when index is enabled
   @Test
   fun component_getRelatedDaggerElementsWithClasses() {
     addDaggerAndHiltClasses(myFixture)
@@ -1148,7 +1145,6 @@ class ComponentAndModuleDaggerConceptTest {
       )
   }
 
-  @Ignore // TODO(b/265846405): Start running test when index is enabled
   @Test
   fun component_getRelatedDaggerElementsWithObjects() {
     addDaggerAndHiltClasses(myFixture)
@@ -1229,7 +1225,6 @@ class ComponentAndModuleDaggerConceptTest {
       )
   }
 
-  @Ignore // TODO(b/265846405): Start running test when index is enabled
   @Test
   fun module_getRelatedDaggerElements() {
     addDaggerAndHiltClasses(myFixture)
@@ -1301,7 +1296,6 @@ class ComponentAndModuleDaggerConceptTest {
       )
   }
 
-  @Ignore // TODO(b/265846405): Start running test when index is enabled
   @Test
   fun subcomponent_getRelatedDaggerElements() {
     addDaggerAndHiltClasses(myFixture)
