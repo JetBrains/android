@@ -89,6 +89,20 @@ class StateMachineTest {
   }
 
   @Test
+  fun illegalTransition_usesProvidedHandler_dsl() {
+    val stateMachine =
+      StateMachine.stateMachine(
+        MyGreatFsmState.INITIAL,
+        Config(logger = fakeLogger),
+        StateMachine.IllegalTransitionHandler.warn()
+      ) {}
+
+    stateMachine.state = MyGreatFsmState.AWESOME
+    assertThat(stateMachine.state).isEqualTo(MyGreatFsmState.INITIAL)
+    assertThat(fakeLogger.warnLogs).containsExactly("Illegal state transition from INITIAL to AWESOME!")
+  }
+
+  @Test
   fun illegalTransition_throws() {
     val stateMachine = StateMachine.Builder(MyGreatFsmState.INITIAL).build()
     assertFailsWith<IllegalArgumentException> {
