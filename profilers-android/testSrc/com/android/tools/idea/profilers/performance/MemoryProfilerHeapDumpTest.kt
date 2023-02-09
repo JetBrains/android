@@ -18,19 +18,21 @@ package com.android.tools.idea.profilers.performance
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
+import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.idea.transport.faketransport.TransportServiceTestImpl
 import com.android.tools.perflib.heap.io.InMemoryBuffer
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.FakeCpuService
-import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.MemoryProfiler
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.registerServiceInstance
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -38,14 +40,19 @@ class MemoryProfilerHeapDumpTest {
   private val benchmark = benchmarkMemoryAndTime("Heap Dump", "Load-Capture")
   private val ideServices = FakeIdeProfilerServices()
   private val timer = FakeTimer()
+  private val transportService = FakeTransportService(timer)
 
   @get:Rule
-  val grpcChannel = FakeGrpcChannel(javaClass.simpleName,
-                                    FakeCpuService(),
-                                    FakeTransportService(timer),
-                                    FakeProfilerService(timer),
-                                    FakeMemoryService(),
-                                    FakeEventService())
+  val appRule = ApplicationRule()
+
+  @get:Rule
+  val grpcChannel = FakeGrpcChannel(javaClass.simpleName, transportService)
+
+  @Before
+  fun setUp() {
+    ideServices.enableEventsPipeline(true)
+    ApplicationManager.getApplication().registerServiceInstance(TransportService::class.java, TransportServiceTestImpl(transportService))
+  }
 
   @Test
   fun `measure loading of github heap dump`() {
@@ -61,10 +68,8 @@ class MemoryProfilerHeapDumpTest {
     val file = resolveWorkspacePath("tools/adt/idea/profilers/testData/hprofs/performance/$name.hprof").toFile()
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideServices, timer)
     assertThat(profilers.sessionsManager.importSessionFromFile(file)).isTrue()
-    val dumpInfo =
-      MemoryProfiler.getHeapDumpsForSession(profilers.client, profilers.session, Range(0.0, 1.0), ideServices)[0]
-    val capture =
-      HeapDumpCaptureObject(profilers.client, profilers.session, dumpInfo, null, ideServices.featureTracker, ideServices)
+    val dumpInfo = MemoryProfiler.getHeapDumpsForSession(profilers.client, profilers.session, Range(Double.MIN_VALUE, Double.MAX_VALUE))[0]
+    val capture = HeapDumpCaptureObject(profilers.client, profilers.session, dumpInfo, null, ideServices.featureTracker, ideServices)
     benchmark(name) { capture.load(InMemoryBuffer(file.readBytes())) }
   }
 }

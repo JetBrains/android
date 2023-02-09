@@ -154,7 +154,6 @@ public class LiveAllocationCaptureObjectTest {
     @Override
     public void before() {
       super.before();
-      myIdeProfilerServices.enableEventsPipeline(true);
       myProfilerClient = new ProfilerClient(myGrpcChannel.getChannel());
     }
 

@@ -38,10 +38,10 @@ import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.idea.codenavigation.CodeLocation;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
@@ -87,26 +87,51 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 public class MemoryClassifierViewTest {
+  private static final int CAPTURE_START_TIME = 0;
   private final FakeTimer myTimer = new FakeTimer();
+  private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
   @Rule
-  public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("MEMORY_TEST_CHANNEL", new FakeTransportService(myTimer), new FakeProfilerService(myTimer),
-                        new FakeMemoryService());
-
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MEMORY_TEST_CHANNEL", myTransportService);
   private FakeIdeProfilerComponents myFakeIdeProfilerComponents;
   private MainMemoryProfilerStage myStage;
   private MemoryClassifierView myClassifierView;
+  private StudioProfilers myProfilers;
 
   @Before
   public void before() {
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
     loader.setReturnImmediateFuture(true);
     FakeIdeProfilerServices fakeIdeProfilerServices = new FakeIdeProfilerServices();
+    fakeIdeProfilerServices.enableEventsPipeline(true);
     myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
-    myStage =
-      new MainMemoryProfilerStage(
-        new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), fakeIdeProfilerServices, new FakeTimer()),
-        loader);
+    ProfilerClient profilerClient = new ProfilerClient(myGrpcChannel.getChannel());
+    myProfilers = new StudioProfilers(profilerClient, fakeIdeProfilerServices, myTimer);
+    myStage = new MainMemoryProfilerStage(myProfilers, loader);
+
+    long dataEndTime = TimeUnit.SECONDS.toNanos(9);
+    List<Memory.BatchAllocationContexts> contexts = ProfilersTestData.generateMemoryAllocContext(CAPTURE_START_TIME, dataEndTime);
+    List<Memory.BatchAllocationEvents> allocEvents = ProfilersTestData.generateMemoryAllocEvents(CAPTURE_START_TIME, dataEndTime);
+    List<Memory.BatchJNIGlobalRefEvent> jniEvents = ProfilersTestData.generateMemoryJniRefEvents(CAPTURE_START_TIME, dataEndTime);
+    contexts.forEach(context -> myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
+      .setPid(ProfilersTestData.SESSION_DATA.getPid())
+      .setKind(Common.Event.Kind.MEMORY_ALLOC_CONTEXTS)
+      .setTimestamp(context.getTimestamp())
+      .setMemoryAllocContexts(Memory.MemoryAllocContextsData.newBuilder().setContexts(context))
+      .build()));
+    allocEvents
+      .forEach(events -> myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
+        .setPid(ProfilersTestData.SESSION_DATA.getPid())
+        .setKind(Common.Event.Kind.MEMORY_ALLOC_EVENTS)
+        .setTimestamp(events.getTimestamp())
+        .setMemoryAllocEvents(Memory.MemoryAllocEventsData.newBuilder().setEvents(events))
+        .build()));
+    jniEvents.forEach(jniRefs -> myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
+      .setPid(ProfilersTestData.SESSION_DATA.getPid())
+      .setKind(Common.Event.Kind.MEMORY_JNI_REF_EVENTS)
+      .setTimestamp(jniRefs.getTimestamp())
+      .setMemoryJniRefEvents(Memory.MemoryJniRefData.newBuilder().setEvents(jniRefs))
+      .build()));
+
     myClassifierView = new MemoryClassifierView(myStage.getCaptureSelection(), myFakeIdeProfilerComponents);
   }
 
@@ -943,14 +968,13 @@ public class MemoryClassifierViewTest {
 
   @Test
   public void testCaptureChangedListener() {
-    final int captureStartTime = 0;
     Range selectionRange = myStage.getTimeline().getSelectionRange();
     // LiveAllocationCaptureObject assumes a valid, non-empty range.
     selectionRange.set(0, 0);
 
-    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getChannel()),
+    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilers.getClient(),
                                                                           ProfilersTestData.SESSION_DATA,
-                                                                          captureStartTime,
+                                                                          CAPTURE_START_TIME,
                                                                           MoreExecutors.newDirectExecutorService(),
                                                                           myStage);
     // Bypass the stage's selection logic and manually alter the range selection ourselves.
@@ -976,7 +1000,7 @@ public class MemoryClassifierViewTest {
     assertThat(rootNode.getChildCount()).isEqualTo(0);
 
     // Initial selection from 0 to 4
-    selectionRange.set(captureStartTime, captureStartTime + TimeUnit.SECONDS.toMicros(4));
+    selectionRange.set(CAPTURE_START_TIME, CAPTURE_START_TIME + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_4 = new LinkedList<>();
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 2, 2, 2, 2, 2));
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 1, 1, 1, 2, 1));
@@ -992,7 +1016,7 @@ public class MemoryClassifierViewTest {
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_4, 0);
 
     // Expand right to 8
-    selectionRange.set(captureStartTime, captureStartTime + TimeUnit.SECONDS.toMicros(8));
+    selectionRange.set(CAPTURE_START_TIME, CAPTURE_START_TIME + TimeUnit.SECONDS.toMicros(8));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_8 = new LinkedList<>();
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 8, 6, 2, 2, 2, 2));
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 4, 3, 1, 1, 2, 1));
@@ -1008,7 +1032,7 @@ public class MemoryClassifierViewTest {
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_8, 0);
 
     // Shrink left to 4
-    selectionRange.setMin(captureStartTime + TimeUnit.SECONDS.toMicros(4));
+    selectionRange.setMin(CAPTURE_START_TIME + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_4_to_8 = new LinkedList<>();
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 4, 2, 2, 2));
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 2, 1, 1, 2));
@@ -1024,7 +1048,7 @@ public class MemoryClassifierViewTest {
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_4_to_8, 0);
 
     // Shrink right to 4
-    selectionRange.setMax(captureStartTime + TimeUnit.SECONDS.toMicros(4));
+    selectionRange.setMax(CAPTURE_START_TIME + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_4_to_4 = new LinkedList<>();
     expected_4_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 0, 0, 2, 2, 2));
     expected_4_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 0, 0, 1, 1, 1));
@@ -1038,14 +1062,13 @@ public class MemoryClassifierViewTest {
 
   @Test
   public void testCaptureFilter() {
-    final int captureStartTime = 0;
     Range selectionRange = myStage.getTimeline().getSelectionRange();
     // LiveAllocationCaptureObject assumes a valid, non-empty range.
     selectionRange.set(0, 0);
 
-    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getChannel()),
+    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilers.getClient(),
                                                                           ProfilersTestData.SESSION_DATA,
-                                                                          captureStartTime,
+                                                                          CAPTURE_START_TIME,
                                                                           MoreExecutors.newDirectExecutorService(),
                                                                           myStage);
     // Bypass the stage's selection logic and manually alter the range selection ourselves.
@@ -1071,7 +1094,7 @@ public class MemoryClassifierViewTest {
     assertThat(rootNode.getChildCount()).isEqualTo(0);
 
     // Initial selection from 0 to 4
-    selectionRange.set(captureStartTime, captureStartTime + TimeUnit.SECONDS.toMicros(4));
+    selectionRange.set(CAPTURE_START_TIME, CAPTURE_START_TIME + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_4 = new LinkedList<>();
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 2, 2, 2, 2, 2));
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 1, 1, 1, 2, 1));
@@ -1103,7 +1126,7 @@ public class MemoryClassifierViewTest {
     assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
 
     // Expand right to 8
-    selectionRange.setMax(captureStartTime + TimeUnit.SECONDS.toMicros(8));
+    selectionRange.setMax(CAPTURE_START_TIME + TimeUnit.SECONDS.toMicros(8));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_8 = new LinkedList<>();
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 3, 1, 1, 1, 11));
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 4, 3, 1, 1, 2, 6));
@@ -1116,7 +1139,7 @@ public class MemoryClassifierViewTest {
     assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
 
     // Shrink left to 4
-    selectionRange.setMin(captureStartTime + TimeUnit.SECONDS.toMicros(4));
+    selectionRange.setMin(CAPTURE_START_TIME + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_4_to_8 = new LinkedList<>();
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 2, 2, 1, 1, 1, 16));
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 2, 1, 1, 2, 7));
@@ -1165,14 +1188,13 @@ public class MemoryClassifierViewTest {
 
   @Test
   public void testSelectedClassSetAndInstance() {
-    final int captureStartTime = 0;
     Range selectionRange = myStage.getTimeline().getSelectionRange();
     // LiveAllocationCaptureObject assumes a valid, non-empty range.
     selectionRange.set(0, 0);
 
-    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getChannel()),
+    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilers.getClient(),
                                                                           ProfilersTestData.SESSION_DATA,
-                                                                          captureStartTime,
+                                                                          CAPTURE_START_TIME,
                                                                           MoreExecutors.newDirectExecutorService(),
                                                                           myStage);
     // Bypass the stage's selection logic and manually alter the range selection ourselves.
@@ -1198,7 +1220,7 @@ public class MemoryClassifierViewTest {
     assertThat(rootNode.getChildCount()).isEqualTo(0);
 
     // Initial selection from 0 to 4
-    selectionRange.set(captureStartTime, captureStartTime + TimeUnit.SECONDS.toMicros(4));
+    selectionRange.set(CAPTURE_START_TIME, CAPTURE_START_TIME + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_4 = new LinkedList<>();
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 2, 2, 2, 2, 2));
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 1, 1, 1, 2, 1));
@@ -1229,7 +1251,7 @@ public class MemoryClassifierViewTest {
     assertThat(selectedNode).isEqualTo(childThatIsBar);
 
     // Expand right to 8
-    selectionRange.set(captureStartTime, captureStartTime + TimeUnit.SECONDS.toMicros(8));
+    selectionRange.set(CAPTURE_START_TIME, CAPTURE_START_TIME + TimeUnit.SECONDS.toMicros(8));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_8 = new LinkedList<>();
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 8, 6, 2, 2, 2, 2));
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 4, 3, 1, 1, 2, 1));
@@ -1252,7 +1274,7 @@ public class MemoryClassifierViewTest {
     assertThat(myStage.getCaptureSelection().getSelectedInstanceObject()).isEqualTo(selectedInstance);
 
     // Shrink left to 4
-    selectionRange.setMin(captureStartTime + TimeUnit.SECONDS.toMicros(4));
+    selectionRange.setMin(CAPTURE_START_TIME + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_4_to_8 = new LinkedList<>();
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 4, 2, 2, 2));
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 2, 1, 1, 2));

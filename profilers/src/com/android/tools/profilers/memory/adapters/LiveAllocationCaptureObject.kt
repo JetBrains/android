@@ -26,8 +26,6 @@ import com.android.tools.profiler.proto.Memory.JNIGlobalReferenceEvent
 import com.android.tools.profiler.proto.Memory.NativeBacktrace
 import com.android.tools.profiler.proto.Memory.NativeCallStack
 import com.android.tools.profiler.proto.Memory.NativeCallStack.NativeFrame
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationSnapshotRequest
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest
 import com.android.tools.profilers.ProfilerClient
@@ -97,15 +95,9 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
     override fun getTimestamp(event: AllocationEvent) = event.timestamp
     override fun getEventList(batch: Memory.BatchAllocationEvents) = batch.eventsList
     override fun getBatchEvents(startTimeNs: Long, endTimeNs: Long) =
-      (if (stage.studioProfilers.ideServices.featureConfig.isUnifiedPipelineEnabled)
-        getEvents(startTimeNs, endTimeNs, Common.Event.Kind.MEMORY_ALLOC_EVENTS) {it.memoryAllocEvents.events}
-      else
-        getClient().getAllocationEvents(AllocationSnapshotRequest.newBuilder()
-                                          .setSession(session)
-                                          .setStartTime(startTimeNs - QUERY_BUFFER_NS)
-                                          .setEndTime(endTimeNs + QUERY_BUFFER_NS)
-                                          .build()).eventsList
-      ).apply { updateSeenTimestamp(Memory.BatchAllocationEvents::getTimestamp) }
+      getEvents(startTimeNs, endTimeNs, Common.Event.Kind.MEMORY_ALLOC_EVENTS) { it.memoryAllocEvents.events }.apply {
+        updateSeenTimestamp(Memory.BatchAllocationEvents::getTimestamp)
+    }
   }
 
   private val jniReferenceEventAdapter = object: EventAdapter<Memory.BatchJNIGlobalRefEvent, JNIGlobalReferenceEvent> {
@@ -504,16 +496,9 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
   }
 
   private fun getAllocationContexts(startTimeNs: Long, endTimeNs: Long) =
-    if (stage.studioProfilers.ideServices.featureConfig.isUnifiedPipelineEnabled)
-      client.transportClient.getEventGroups(
-        buildEventGroupRequest(Common.Event.Kind.MEMORY_ALLOC_CONTEXTS, startTimeNs, endTimeNs + QUERY_BUFFER_NS))
-        .getResultList { it.memoryAllocContexts.contexts }
-    else
-      getClient().getAllocationContexts(AllocationContextsRequest.newBuilder()
-                                                         .setSession(session)
-                                                         .setStartTime(startTimeNs)
-                                                         .setEndTime(endTimeNs + QUERY_BUFFER_NS)
-                                                         .build()).contextsList
+    client.transportClient.getEventGroups(
+      buildEventGroupRequest(Common.Event.Kind.MEMORY_ALLOC_CONTEXTS, startTimeNs, endTimeNs + QUERY_BUFFER_NS))
+      .getResultList { it.memoryAllocContexts.contexts }
 
   private fun<T> getEvents(startTimeNs: Long, endTimeNs: Long, event: Common.Event.Kind, extract: (Common.Event) -> T): List<T> =
     client.transportClient.getEventGroups(

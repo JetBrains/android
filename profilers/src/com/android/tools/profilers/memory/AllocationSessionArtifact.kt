@@ -58,7 +58,7 @@ class AllocationSessionArtifact(override val profilers: StudioProfilers,
                             session: Common.Session,
                             sessionMetadata: Common.SessionMetaData): List<SessionArtifact<*>> {
       val rangeUs = Range(session.startTimestamp.nanosToMicros().toDouble(), session.endTimestamp.nanosToMicros().toDouble())
-      return getAllocationInfosForSession(profilers.client, session, rangeUs, profilers.ideServices).mapNotNull { info ->
+      return getAllocationInfosForSession(profilers.client, session, rangeUs).mapNotNull { info ->
         if (info.legacy) {
           LegacyAllocationsSessionArtifact(profilers, session, sessionMetadata, info)
         }

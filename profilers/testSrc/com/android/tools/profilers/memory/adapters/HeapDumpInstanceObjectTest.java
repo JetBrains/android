@@ -33,6 +33,7 @@ import static org.junit.Assert.assertEquals;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.perflib.heap.Instance;
 import com.android.tools.perflib.heap.Type;
 import com.android.tools.profiler.proto.Common;
@@ -43,7 +44,6 @@ import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
-import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import java.util.HashMap;
 import java.util.List;
@@ -57,17 +57,16 @@ import org.junit.Test;
 
 public class HeapDumpInstanceObjectTest {
   private static final String MOCK_CLASS = "MockClass";
-
-  @Rule public final FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryNavigationTestGrpc", new FakeMemoryService());
-
+  private final FakeTimer myTimer = new FakeTimer();
+  @Rule public final FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryNavigationTestGrpc", new FakeTransportService(myTimer));
   private FakeHeapDumpCaptureObject myCaptureObject;
 
   @Before
   public void setup() {
     FakeIdeProfilerServices profilerServices = new FakeIdeProfilerServices();
     ProfilerClient profilerClient = new ProfilerClient(myGrpcChannel.getChannel());
-    StudioProfilers profilers = new StudioProfilers(profilerClient, profilerServices, new FakeTimer());
-    MainMemoryProfilerStage stage = new MainMemoryProfilerStage(new StudioProfilers(profilerClient, profilerServices, new FakeTimer()),
+    StudioProfilers profilers = new StudioProfilers(profilerClient, profilerServices, myTimer);
+    MainMemoryProfilerStage stage = new MainMemoryProfilerStage(new StudioProfilers(profilerClient, profilerServices, myTimer),
                                                                 new FakeCaptureObjectLoader());
     myCaptureObject = new FakeHeapDumpCaptureObject(profilers.getClient(),
                                                     stage.getStudioProfilers().getIdeServices());

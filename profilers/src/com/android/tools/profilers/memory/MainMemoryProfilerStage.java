@@ -21,14 +21,13 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.DurationDataModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import com.android.tools.idea.transport.TransportFileManager;
 import com.android.tools.idea.transport.poller.TransportEventListener;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.AllocationsInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
@@ -44,7 +43,6 @@ import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCapture
 import com.android.tools.profilers.perfetto.config.PerfettoTraceConfigBuilders;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.google.common.annotations.VisibleForTesting;
-import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -384,36 +382,28 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   }
 
   public void requestHeapDump() {
-    if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      assert getStudioProfilers().getProcess() != null;
-      Commands.Command dumpCommand = Commands.Command.newBuilder()
-        .setStreamId(getSessionData().getStreamId())
-        .setPid(getSessionData().getPid())
-        .setType(Commands.Command.CommandType.HEAP_DUMP)
-        .build();
-      CompletableFuture.runAsync(() -> {
-        Transport.ExecuteResponse response = getStudioProfilers().getClient().getTransportClient().execute(
-          Transport.ExecuteRequest.newBuilder().setCommand(dumpCommand).build());
-        TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.MEMORY_HEAP_DUMP_STATUS,
-                                                                           getStudioProfilers().getIdeServices().getMainExecutor(),
-                                                                           event -> event.getCommandId() == response.getCommandId(),
-                                                                           () -> getSessionData().getStreamId(),
-                                                                           () -> getSessionData().getPid(),
-                                                                           event -> {
-                                                                             handleHeapDumpStart(
-                                                                               event.getMemoryHeapdumpStatus().getStatus());
-                                                                             // unregisters the listener.
-                                                                             return true;
-                                                                           });
-        getStudioProfilers().getTransportPoller().registerListener(statusListener);
-      }, getStudioProfilers().getIdeServices().getPoolExecutor());
-    }
-    else {
-      TriggerHeapDumpResponse response =
-        getClient().triggerHeapDump(TriggerHeapDumpRequest.newBuilder().setSession(getSessionData()).build());
-      handleHeapDumpStart(response.getStatus());
-    }
-
+    assert getStudioProfilers().getProcess() != null;
+    Commands.Command dumpCommand = Commands.Command.newBuilder()
+      .setStreamId(getSessionData().getStreamId())
+      .setPid(getSessionData().getPid())
+      .setType(Commands.Command.CommandType.HEAP_DUMP)
+      .build();
+    CompletableFuture.runAsync(() -> {
+      Transport.ExecuteResponse response = getStudioProfilers().getClient().getTransportClient().execute(
+        Transport.ExecuteRequest.newBuilder().setCommand(dumpCommand).build());
+      TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.MEMORY_HEAP_DUMP_STATUS,
+                                                                         getStudioProfilers().getIdeServices().getMainExecutor(),
+                                                                         event -> event.getCommandId() == response.getCommandId(),
+                                                                         () -> getSessionData().getStreamId(),
+                                                                         () -> getSessionData().getPid(),
+                                                                         event -> {
+                                                                           handleHeapDumpStart(
+                                                                             event.getMemoryHeapdumpStatus().getStatus());
+                                                                           // unregisters the listener.
+                                                                           return true;
+                                                                         });
+      getStudioProfilers().getTransportPoller().registerListener(statusListener);
+    }, getStudioProfilers().getIdeServices().getPoolExecutor());
     getTimeline().setStreaming(true);
     getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
   }
@@ -523,8 +513,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   private void updateAllocationTrackingStatus() {
     List<AllocationsInfo> allocationsInfos = MemoryProfiler.getAllocationInfosForSession(getStudioProfilers().getClient(),
                                                                                          getSessionData(),
-                                                                                         new Range(Long.MIN_VALUE, Long.MAX_VALUE),
-                                                                                         getStudioProfilers().getIdeServices());
+                                                                                         new Range(Long.MIN_VALUE, Long.MAX_VALUE));
     AllocationsInfo lastInfo = allocationsInfos.isEmpty() ? null : allocationsInfos.get(allocationsInfos.size() - 1);
     setTrackingAllocations(lastInfo != null && (lastInfo.getLegacy() && lastInfo.getEndTime() == Long.MAX_VALUE));
     if (isTrackingAllocations()) {
