@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.memory.usage.LightweightHeapTraverse
 import com.android.tools.memory.usage.LightweightHeapTraverseConfig
+import com.android.tools.memory.usage.LightweightTraverseResult
 import com.intellij.util.MemoryDumpHelper
 import java.io.File
 import java.time.Instant
@@ -39,17 +40,20 @@ fun captureSnapshot(outputPath: String, name: String) {
 
 fun analyzeCurrentProcessHeap(outputPath: String, name: String) {
   println("Starting heap traversal for $name")
+  var result : LightweightTraverseResult?
   val elapsedTime = measureTimeMillis {
-    val result = LightweightHeapTraverse.collectReport(LightweightHeapTraverseConfig())
-    println("Heap $name total size MBs: ${result.totalObjectsSizeBytes shr 20} ")
-    println("Heap $name strong size MBs: ${result.totalStrongReferencedObjectsSizeBytes shr 20} ")
-
-    val fileStrong = File(outputPath).resolve("${getTimestamp()}_${name}_strong")
-    fileStrong.writeText(result.totalStrongReferencedObjectsSizeBytes.toString())
-    val fileTotal = File(outputPath).resolve("${getTimestamp()}_${name}_total")
-    fileTotal.writeText(result.totalObjectsSizeBytes.toString())
+    result = LightweightHeapTraverse.collectReport(LightweightHeapTraverseConfig())
   }
   println("Heap traversal for $name finished in $elapsedTime milliseconds")
+
+  println("Heap $name total size MBs: ${result!!.totalObjectsSizeBytes shr 20} ")
+  println("Heap $name total object count: ${result!!.totalObjectsNumber} ")
+  println("Heap $name strong size MBs: ${result!!.totalStrongReferencedObjectsSizeBytes shr 20} ")
+  println("Heap $name strong object count: ${result!!.totalStrongReferencedObjectsNumber} ")
+  val fileStrong = File(outputPath).resolve("${getTimestamp()}_${name}_strong")
+  fileStrong.writeText(result!!.totalStrongReferencedObjectsSizeBytes.toString())
+  val fileTotal = File(outputPath).resolve("${getTimestamp()}_${name}_total")
+  fileTotal.writeText(result!!.totalObjectsSizeBytes.toString())
 }
 
 private fun getTimestamp() = DateTimeFormatter
