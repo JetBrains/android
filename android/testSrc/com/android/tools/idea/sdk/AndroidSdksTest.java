@@ -260,12 +260,12 @@ public class AndroidSdksTest extends PlatformTestCase {
 
   public void testNeedsAnnotationsJarInClasspathWithApiLevel15() {
     IAndroidTarget target = createTargetWithApiLevel(15);
-    assertTrue(myAndroidSdks.needsAnnotationsJarInClasspath(target));
+    assertTrue(Annotations.needsAnnotationsJarInClasspath(target));
   }
 
   public void testNeedsAnnotationsJarInClasspathWithApiLevelGreaterThan15() {
     IAndroidTarget target = createTargetWithApiLevel(16);
-    assertFalse(myAndroidSdks.needsAnnotationsJarInClasspath(target));
+    assertFalse(Annotations.needsAnnotationsJarInClasspath(target));
   }
 
   @NotNull

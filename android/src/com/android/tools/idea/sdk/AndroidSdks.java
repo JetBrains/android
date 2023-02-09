@@ -376,7 +376,7 @@ public class AndroidSdks {
     }
 
     // Explicitly add annotations.jar unless the target platform already provides it (API16+).
-    if (sdkPath != null && needsAnnotationsJarInClasspath(target)) {
+    if (sdkPath != null && Annotations.needsAnnotationsJarInClasspath(target)) {
       File annotationsJarPath = new File(sdkPath, toSystemDependentName(ANNOTATIONS_JAR_RELATIVE_PATH));
       VirtualFile annotationsJar = findFileInJarFileSystem(annotationsJarPath.getPath());
       if (annotationsJar != null) {
@@ -484,15 +484,6 @@ public class AndroidSdks {
   public boolean isAndroidSdk(@NotNull Sdk sdk) {
     return sdk.getSdkType() == AndroidSdkType.getInstance();
   }
-
-  /**
-   * Indicates whether annotations.jar needs to be added to the classpath of an Android SDK. annotations.jar is not needed for API 16
-   * or newer. The annotations are already included in android.jar.
-   */
-  public boolean needsAnnotationsJarInClasspath(@NotNull IAndroidTarget target) {
-    return target.getVersion().getApiLevel() <= 15;
-  }
-
 
   /**
    * Refresh the library {@link VirtualFile}s in the given {@link Sdk}.

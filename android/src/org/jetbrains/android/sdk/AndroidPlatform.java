@@ -19,6 +19,7 @@ package org.jetbrains.android.sdk;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.Annotations;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
@@ -99,7 +100,7 @@ public class AndroidPlatform {
   }
 
   public boolean needToAddAnnotationsJarToClasspath() {
-    return AndroidSdks.getInstance().needsAnnotationsJarInClasspath(myTarget);
+    return Annotations.needsAnnotationsJarInClasspath(myTarget);
   }
 
   public int getApiLevel() {
