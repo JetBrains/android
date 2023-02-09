@@ -47,11 +47,17 @@ internal constructor(val psiElement: PsiElement, val daggerType: Type, val psiTy
 
   enum class Type {
     PROVIDER,
-    CONSUMER;
+    CONSUMER,
+    COMPONENT,
+    SUBCOMPONENT,
+    MODULE;
 
     companion object {
       private val CONSUMER_RELATED_TYPES = setOf(PROVIDER)
       private val PROVIDER_RELATED_TYPES = setOf(CONSUMER)
+      private val COMPONENT_RELATED_TYPES = setOf(COMPONENT, SUBCOMPONENT, MODULE)
+      private val SUBCOMPONENT_RELATED_TYPES = setOf(COMPONENT, SUBCOMPONENT, MODULE)
+      private val MODULE_RELATED_TYPES = setOf(COMPONENT, SUBCOMPONENT, MODULE)
     }
 
     /**
@@ -62,6 +68,9 @@ internal constructor(val psiElement: PsiElement, val daggerType: Type, val psiTy
       when (this) {
         CONSUMER -> CONSUMER_RELATED_TYPES
         PROVIDER -> PROVIDER_RELATED_TYPES
+        COMPONENT -> COMPONENT_RELATED_TYPES
+        SUBCOMPONENT -> SUBCOMPONENT_RELATED_TYPES
+        MODULE -> MODULE_RELATED_TYPES
       }
   }
 

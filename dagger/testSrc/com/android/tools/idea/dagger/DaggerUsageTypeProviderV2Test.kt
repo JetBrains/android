@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.dagger
 
+import com.android.tools.idea.dagger.concepts.DaggerElement.Type.COMPONENT
 import com.android.tools.idea.dagger.concepts.DaggerElement.Type.CONSUMER
+import com.android.tools.idea.dagger.concepts.DaggerElement.Type.MODULE
 import com.android.tools.idea.dagger.concepts.DaggerElement.Type.PROVIDER
+import com.android.tools.idea.dagger.concepts.DaggerElement.Type.SUBCOMPONENT
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
@@ -38,5 +41,35 @@ class DaggerUsageTypeProviderV2Test {
     assertThat(DaggerUsageTypeProviderV2.getUsageType(PROVIDER, CONSUMER)?.toString())
       .isEqualTo("Providers")
     assertThat(DaggerUsageTypeProviderV2.getUsageType(PROVIDER, PROVIDER)?.toString()).isNull()
+
+    assertThat(DaggerUsageTypeProviderV2.getUsageType(MODULE, COMPONENT)?.toString())
+      .isEqualTo("Modules included")
+    assertThat(DaggerUsageTypeProviderV2.getUsageType(MODULE, MODULE)?.toString())
+      .isEqualTo("Included in modules")
+    assertThat(DaggerUsageTypeProviderV2.getUsageType(MODULE, SUBCOMPONENT)?.toString())
+      .isEqualTo("Modules included")
+
+    assertThat(DaggerUsageTypeProviderV2.getUsageType(COMPONENT, COMPONENT)?.toString())
+      .isEqualTo("Parent components")
+    assertThat(DaggerUsageTypeProviderV2.getUsageType(COMPONENT, MODULE)?.toString())
+      .isEqualTo("Included in components")
+    assertThat(DaggerUsageTypeProviderV2.getUsageType(COMPONENT, SUBCOMPONENT)?.toString())
+      .isEqualTo("Parent components")
+
+    assertThat(DaggerUsageTypeProviderV2.getUsageType(SUBCOMPONENT, COMPONENT)?.toString())
+      .isEqualTo("Subcomponents")
+    assertThat(DaggerUsageTypeProviderV2.getUsageType(SUBCOMPONENT, SUBCOMPONENT)?.toString())
+      .isEqualTo("Subcomponents")
+  }
+
+  @Test
+  fun getUsageType_returnsSameObject() {
+    // The platform seems to require the same `UsageType` object to be returned in order for usages
+    // to be grouped together; it doesn't automatically group items that have the same string value
+    // for their usage type.
+    val usageType1 = DaggerUsageTypeProviderV2.getUsageType(CONSUMER, PROVIDER)
+    val usageType2 = DaggerUsageTypeProviderV2.getUsageType(CONSUMER, PROVIDER)
+
+    assertThat(usageType2).isSameAs(usageType2)
   }
 }

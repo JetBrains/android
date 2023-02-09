@@ -17,6 +17,11 @@ package com.android.tools.idea.dagger
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.dagger.concepts.DaggerElement
+import com.android.tools.idea.dagger.concepts.DaggerElement.Type.COMPONENT
+import com.android.tools.idea.dagger.concepts.DaggerElement.Type.CONSUMER
+import com.android.tools.idea.dagger.concepts.DaggerElement.Type.MODULE
+import com.android.tools.idea.dagger.concepts.DaggerElement.Type.PROVIDER
+import com.android.tools.idea.dagger.concepts.DaggerElement.Type.SUBCOMPONENT
 import com.android.tools.idea.dagger.concepts.getDaggerElement
 import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.google.common.base.Supplier
@@ -114,15 +119,21 @@ class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
     /** Returns the gutter icon to use for a given Dagger element type. */
     private fun DaggerElement.Type.getIcon(): Icon =
       when (this) {
-        DaggerElement.Type.CONSUMER -> StudioIcons.Misc.DEPENDENCY_PROVIDER
-        DaggerElement.Type.PROVIDER -> StudioIcons.Misc.DEPENDENCY_CONSUMER
+        CONSUMER -> StudioIcons.Misc.DEPENDENCY_PROVIDER
+        PROVIDER,
+        COMPONENT,
+        SUBCOMPONENT,
+        MODULE -> StudioIcons.Misc.DEPENDENCY_CONSUMER
       }
 
     /** Returns the related item group name for a given Dagger element type. */
     private fun DaggerElement.Type.getGroupName(): String =
       when (this) {
-        DaggerElement.Type.CONSUMER -> DaggerBundle.message("consumers")
-        DaggerElement.Type.PROVIDER -> DaggerBundle.message("providers")
+        CONSUMER -> DaggerBundle.message("consumers")
+        PROVIDER -> DaggerBundle.message("providers")
+        COMPONENT -> DaggerBundle.message("parent.components")
+        SUBCOMPONENT -> DaggerBundle.message("subcomponents")
+        MODULE -> DaggerBundle.message("modules.included")
       }
   }
 

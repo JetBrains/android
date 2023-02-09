@@ -16,8 +16,14 @@
 package com.android.tools.idea.dagger
 
 import com.android.tools.idea.dagger.concepts.DaggerElement
+import com.android.tools.idea.dagger.concepts.DaggerElement.Type.COMPONENT
+import com.android.tools.idea.dagger.concepts.DaggerElement.Type.CONSUMER
+import com.android.tools.idea.dagger.concepts.DaggerElement.Type.MODULE
+import com.android.tools.idea.dagger.concepts.DaggerElement.Type.PROVIDER
+import com.android.tools.idea.dagger.concepts.DaggerElement.Type.SUBCOMPONENT
 import com.android.tools.idea.dagger.concepts.getDaggerElement
 import com.android.tools.idea.dagger.localization.DaggerBundle
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiElement
 import com.intellij.usages.PsiElementUsageTarget
 import com.intellij.usages.UsageTarget
@@ -56,6 +62,17 @@ class DaggerUsageTypeProviderV2 : UsageTypeProviderEx {
   companion object {
     private val PROVIDERS_USAGE_TYPE = UsageType { DaggerBundle.message("providers") }
     private val CONSUMERS_USAGE_TYPE = UsageType { DaggerBundle.message("consumers") }
+    private val PARENT_COMPONENTS_USAGE_TYPE = UsageType {
+      DaggerBundle.message("parent.components")
+    }
+    private val SUBCOMPONENTS_USAGE_TYPE = UsageType { DaggerBundle.message("subcomponents") }
+    private val INCLUDED_IN_COMPONENTS_USAGE_TYPE = UsageType {
+      DaggerBundle.message("included.in.components")
+    }
+    private val INCLUDED_IN_MODULES_USAGE_TYPE = UsageType {
+      DaggerBundle.message("included.in.modules")
+    }
+    private val MODULES_USAGE_TYPE = UsageType { DaggerBundle.message("modules.included") }
 
     @VisibleForTesting
     internal fun getUsageType(
@@ -63,11 +80,26 @@ class DaggerUsageTypeProviderV2 : UsageTypeProviderEx {
       targetDaggerType: DaggerElement.Type
     ) =
       when {
-        elementDaggerType == DaggerElement.Type.PROVIDER &&
-          targetDaggerType == DaggerElement.Type.CONSUMER -> PROVIDERS_USAGE_TYPE
-        elementDaggerType == DaggerElement.Type.CONSUMER &&
-          targetDaggerType == DaggerElement.Type.PROVIDER -> CONSUMERS_USAGE_TYPE
-        else -> null
+        elementDaggerType == PROVIDER && targetDaggerType == CONSUMER -> PROVIDERS_USAGE_TYPE
+        elementDaggerType == CONSUMER && targetDaggerType == PROVIDER -> CONSUMERS_USAGE_TYPE
+        elementDaggerType == MODULE && targetDaggerType == MODULE -> INCLUDED_IN_MODULES_USAGE_TYPE
+        elementDaggerType == MODULE && targetDaggerType == COMPONENT -> MODULES_USAGE_TYPE
+        elementDaggerType == MODULE && targetDaggerType == SUBCOMPONENT -> MODULES_USAGE_TYPE
+        elementDaggerType == COMPONENT && targetDaggerType == MODULE ->
+          INCLUDED_IN_COMPONENTS_USAGE_TYPE
+        elementDaggerType == COMPONENT && targetDaggerType == COMPONENT ->
+          PARENT_COMPONENTS_USAGE_TYPE
+        elementDaggerType == COMPONENT && targetDaggerType == SUBCOMPONENT ->
+          PARENT_COMPONENTS_USAGE_TYPE
+        elementDaggerType == SUBCOMPONENT && targetDaggerType == COMPONENT ->
+          SUBCOMPONENTS_USAGE_TYPE
+        elementDaggerType == SUBCOMPONENT && targetDaggerType == SUBCOMPONENT ->
+          SUBCOMPONENTS_USAGE_TYPE
+        else -> {
+          Logger.getInstance(DaggerUsageTypeProviderV2::class.java)
+            .warn("Unknown combination $elementDaggerType -- $targetDaggerType")
+          null
+        }
       }
   }
 }
