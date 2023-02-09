@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
+import com.android.utils.findGradleBuildFile
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
@@ -256,7 +257,6 @@ sealed class AndroidModule constructor(
       return if (this.projectType != IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE) this
       else copy(baseFeature = indexedModels.dynamicFeatureToBaseFeatureMap[moduleId]?.gradlePath)
     }
-
     // For now, use one model cache per module. It is does deliver the smallest memory footprint, but this is what we get after
     // models are deserialized from the DataNode cache anyway. This will be replaced with a model cache per sync when shared libraries
     // are moved out of `IdeAndroidProject` and delivered to the IDE separately.
@@ -264,7 +264,10 @@ sealed class AndroidModule constructor(
       syncedVariant?.name
         ?: allVariants?.map { it.name }?.getDefaultOrFirstItem("debug")
         ?: throw AndroidSyncException(
-          "No variants found for '${gradleProject.path}'. Check build files to ensure at least one variant exists.")
+          "No variants found for '${gradleProject.path}'. Check ${findGradleBuildFile(gradleProject.projectDirectory).absolutePath} to ensure at least one variant exists and address any sync warnings and errors.",
+          gradleProject.projectIdentifier.buildIdentifier.rootDir.path,
+          gradleProject.path,
+          projectSyncIssues)
     return DeliverableAndroidModule(
       gradleProject = gradleProject,
       projectSyncIssues = projectSyncIssues,

@@ -285,6 +285,10 @@ interface IdeSyncIssue {
      */
     const val TYPE_REMOVED_API = 51
 
+    /**
+     * Using an empty flavor dimension.
+     */
+    const val TYPE_EMPTY_FLAVOR_DIMENSION = 52
     // NOTE: When adding a new type here, increment the index by 1. This index may not be consistent
     // with the corresponding value in studio_stats.proto (e.g., it could be lower by 1), because of
     // an indexing issue in the past (see http://issuetracker.google.com/138278313).

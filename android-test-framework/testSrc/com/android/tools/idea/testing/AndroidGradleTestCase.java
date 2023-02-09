@@ -238,33 +238,34 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     return requestSyncAndGetExpectedFailure(requestConfigurator);
   }
 
-  protected void loadSimpleApplication() throws Exception {
-    loadProject(SIMPLE_APPLICATION);
+  protected File loadSimpleApplication() throws Exception {
+    return loadProject(SIMPLE_APPLICATION);
   }
 
-  protected final void loadProject(@NotNull String relativePath) throws Exception {
-    loadProject(relativePath, null, resolveAgpVersionSoftwareEnvironment(AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT), null);
+  protected final File loadProject(@NotNull String relativePath) throws Exception {
+    return loadProject(relativePath, null, resolveAgpVersionSoftwareEnvironment(AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT), null);
   }
 
-  protected final void loadProject(@NotNull String relativePath,
+  protected final File loadProject(@NotNull String relativePath,
                                    @Nullable String chosenModuleName) throws Exception {
-    loadProject(relativePath, chosenModuleName, resolveAgpVersionSoftwareEnvironment(AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT), null);
+    return loadProject(relativePath, chosenModuleName, resolveAgpVersionSoftwareEnvironment(AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT), null);
   }
 
-  protected final void loadProject(@NotNull String relativePath,
+  protected final File loadProject(@NotNull String relativePath,
                                    @Nullable String chosenModuleName,
                                    @NotNull AgpVersionSoftwareEnvironmentDescriptor agpVersion) throws Exception {
-    loadProject(relativePath, chosenModuleName, resolveAgpVersionSoftwareEnvironment(agpVersion), null);
+    return loadProject(relativePath, chosenModuleName, resolveAgpVersionSoftwareEnvironment(agpVersion), null);
   }
 
-  protected final void loadProject(@NotNull String relativePath,
+  protected final File loadProject(@NotNull String relativePath,
                                    @Nullable String chosenModuleName,
                                    @NotNull ResolvedAgpVersionSoftwareEnvironment agpVersion,
                                    @Nullable String ndkVersion) throws Exception {
-    prepareProjectForImport(relativePath, agpVersion, ndkVersion);
+    File projectRoot = prepareProjectForImport(relativePath, agpVersion, ndkVersion);
     importProject(agpVersion.getJdkVersion());
 
     prepareProjectForTest(getProject(), chosenModuleName);
+    return projectRoot;
   }
 
   /**

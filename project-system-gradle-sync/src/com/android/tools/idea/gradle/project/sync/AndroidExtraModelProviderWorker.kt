@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.builder.model.v2.models.Versions
 import com.android.ide.common.repository.AgpVersion
-import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.LegacyV1AgpVersionModel
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
@@ -114,7 +113,12 @@ internal class AndroidExtraModelProviderWorker(
     catch (e: AndroidSyncException) {
       consumer.consume(
         buildInfo.rootBuild,
-        IdeAndroidSyncError(e.message.orEmpty(), e.stackTrace.map { it.toString() }),
+        IdeAndroidSyncError(
+          message = e.message.orEmpty(),
+          stackTrace = e.stackTrace.map { it.toString() },
+          buildPath = e.myBuildPath,
+          modulePath = e.myModulePath,
+          syncIssues = e.mySyncIssues),
         IdeAndroidSyncError::class.java
       )
     }

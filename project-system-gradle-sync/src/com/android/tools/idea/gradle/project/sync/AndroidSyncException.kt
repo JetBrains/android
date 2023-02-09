@@ -18,14 +18,43 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION
 import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.model.IdeSyncIssue
+import org.gradle.tooling.model.ProjectIdentifier
 import java.util.regex.Pattern
 
 /**
  * Marker interface for all exceptions that are triggered via Android specific errors in project import.
  */
 open class AndroidSyncException : RuntimeException {
-  constructor(message: String) : super(message)
-  constructor() : super()
+  /**
+   *  The root directory of the current build where this exception originated.
+   *  For included build in a composite build, this points
+   *  to the root directory(dir that hold settings.gradle) of the included build.
+   *  For root build in a composite build, this points to the root directory of root build.
+   */
+  val myBuildPath: String?
+
+  /**
+   * Path of the module that can be used as an identifier for module within a given build.
+   */
+  val myModulePath: String?
+
+  /**
+   * Issues encountered during the gradle sync.
+   */
+  val mySyncIssues: List<IdeSyncIssue>?
+
+  constructor(message: String, buildPath: String? = null, modulePath: String? = null, syncIssues: List<IdeSyncIssue>? = null) : super(message) {
+    mySyncIssues = syncIssues
+    myModulePath = modulePath
+    myBuildPath = buildPath
+  }
+
+  constructor() : super() {
+    myBuildPath = null
+    myModulePath = null
+    mySyncIssues = null
+  }
 }
 
 class AgpVersionTooOld(agpVersion: AgpVersion) : AndroidSyncException(generateMessage(agpVersion)) {

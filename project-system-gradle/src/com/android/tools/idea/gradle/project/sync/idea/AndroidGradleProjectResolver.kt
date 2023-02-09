@@ -34,13 +34,13 @@ import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl.Comp
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTable
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
-import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelDataImpl.Companion.create
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.V2NdkModel
+import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.GradleSyncEventLogger
 import com.android.tools.idea.gradle.project.sync.IdeAndroidModels
 import com.android.tools.idea.gradle.project.sync.IdeAndroidNativeVariantsModels
@@ -59,6 +59,7 @@ import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanup
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectJdkUpdateData
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.project.sync.idea.issues.validateProjectGradleJdk
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.project.sync.toException
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
@@ -67,8 +68,10 @@ import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.LocalProperties
 import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.projectsystem.gradle.CompositeBuildMap
+import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
+import com.android.tools.idea.projectsystem.gradle.findModule
 import com.android.tools.idea.projectsystem.gradle.toCompositeBuildMap
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.stats.withProjectId
@@ -725,10 +728,30 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
           log(event)
           return ExternalSystemException("The project is using an unsupported version of Gradle.")
         }
-      } else if (rootCause is ZipException) {
+      }
+      else if (rootCause is ZipException) {
         if (msg.startsWith(COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX)) {
           return ExternalSystemException(msg)
         }
+      }
+      else if (rootCause is AndroidSyncException) {
+        val ideSyncIssues = rootCause.mySyncIssues
+        if (ideSyncIssues?.isNotEmpty() == true) {
+          val ideaProject = resolverCtx.models.getModel(IdeaProject::class.java)
+          val ideaModule = ideaProject?.modules?.firstOrNull {
+            it.matchesPath(rootCause.myBuildPath, rootCause.myModulePath)
+          }
+          ideaModule?.let {
+            val maybeModule = project?.findModule(it.getHolderProjectPath())
+            maybeModule?.let { module ->
+              SyncIssuesReporter.getInstance().report(
+                mapOf(module to ideSyncIssues),
+                ExternalSystemApiUtil.getExternalRootProjectPath(module))
+              return ExternalSystemException(rootCause.message)
+            }
+          }
+        }
+        return ExternalSystemException(rootCause.message)
       }
     }
     return super.getUserFriendlyError(buildEnvironment, error, projectPath, buildFilePath)
@@ -1096,6 +1119,17 @@ fun mergeProjectResolvedArtifacts(
         else -> emptySet()
       }
     })
+
+private fun IdeaModule.matchesPath(buildPath: String?, modulePath: String?): Boolean {
+  return projectIdentifier.buildIdentifier.rootDir.path == buildPath
+         && projectIdentifier.projectPath?.equals(modulePath) == true
+}
+
+private fun IdeaModule.getHolderProjectPath(): GradleHolderProjectPath {
+  return GradleHolderProjectPath(
+    projectIdentifier.buildIdentifier.rootDir.path,
+    projectIdentifier.projectPath)
+}
 
 private fun logKmpIncorrectSourceSetsIssue(
   project: Project,
