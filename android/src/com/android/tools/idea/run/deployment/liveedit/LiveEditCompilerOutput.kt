@@ -19,8 +19,6 @@ data class LiveEditCompilerOutput private constructor (val classes: Map<String, 
                                                        val supportClasses: Map<String, ByteArray>,
                                                        val groupIds: List<Int>,
                                                        val resetState: Boolean) {
-  fun hasGroupIds() = groupIds.isNotEmpty()
-
   class Builder(
     var classes: HashMap<String, ByteArray> = HashMap(),
     var supportClasses: HashMap<String, ByteArray> = HashMap(),
