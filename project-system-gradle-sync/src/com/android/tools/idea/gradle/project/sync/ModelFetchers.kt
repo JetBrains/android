@@ -88,7 +88,10 @@ internal fun BuildController.findVariantDependenciesV2Model(
     project,
     VariantDependencies::class.java,
     com.android.builder.model.v2.models.ModelBuilderParameter::class.java
-  ) { it.variantName = variantName }
+  ) {
+    it.variantName = variantName
+    it.dontBuildRuntimeClasspath = false
+  }
 }
 
 internal fun BuildController.findNativeVariantAbiModel(

@@ -502,7 +502,7 @@ internal fun modelCacheV2Impl(
   fun createFromDependencies(
     ownerBuildId: BuildId,
     ownerProjectPath: String,
-    dependencies: List<GraphItem>,
+    dependencies: List<GraphItem>?,
     libraries: Map<String, Library>,
     bootClasspath: Collection<String>,
     androidProjectPathResolver: AndroidProjectPathResolver,
@@ -661,14 +661,14 @@ internal fun modelCacheV2Impl(
     )
 
     fun getTypedLibraries(
-      dependencies: List<LibraryWithDependencies>
+      dependencies: List<LibraryWithDependencies>?
     ): LibrariesByType {
       val androidLibraries: MutableList<LibraryWithDependencies> = mutableListOf()
       val javaLibraries: MutableList<LibraryWithDependencies> = mutableListOf()
       val projectLibraries: MutableList<LibraryWithDependencies> = mutableListOf()
       val unknownLibraries: MutableList<LibraryWithDependencies> = mutableListOf()
 
-      dependencies.forEach { dep ->
+      dependencies?.forEach { dep ->
         when (dep.library.type) {
           LibraryType.ANDROID_LIBRARY -> androidLibraries
           LibraryType.PROJECT -> projectLibraries
@@ -761,7 +761,7 @@ internal fun modelCacheV2Impl(
 
     fun createIdeDependenciesInstance(): IdeDependenciesCoreImpl {
       val seenDependencies = mutableMapOf<String, List<String>>()
-      val dependencyList = dependencies.toFlatLibraryList()
+      val dependencyList = dependencies?.toFlatLibraryList()
       val typedLibraries = getTypedLibraries(dependencyList)
       populateAndroidLibraries(typedLibraries.androidLibraries, seenDependencies)
       populateJavaLibraries(typedLibraries.javaLibraries, seenDependencies)
@@ -780,7 +780,7 @@ internal fun modelCacheV2Impl(
   fun dependenciesFrom(
     ownerBuildId: BuildId,
     ownerProjectPath: String,
-    dependencies: List<GraphItem>,
+    dependencies: List<GraphItem>?,
     libraries: Map<String, Library>,
     bootClasspath: Collection<String>,
     androidProjectPathResolver: AndroidProjectPathResolver,
