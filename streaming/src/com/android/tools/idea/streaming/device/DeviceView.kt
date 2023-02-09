@@ -60,7 +60,9 @@ import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_END_WITH_
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_START
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_START_WITH_SELECTION
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_PASTE
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_REDO
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_SELECT_ALL
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_UNDO
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
@@ -635,6 +637,8 @@ internal class DeviceView(
         addKeyStrokesForAction(ACTION_EDITOR_TEXT_END, AndroidKeyStroke(AKEYCODE_MOVE_END, AMETA_CTRL_ON))
         addKeyStrokesForAction(ACTION_EDITOR_TEXT_START_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_MOVE_HOME, AMETA_CTRL_SHIFT_ON))
         addKeyStrokesForAction(ACTION_EDITOR_TEXT_END_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_MOVE_END, AMETA_CTRL_SHIFT_ON))
+        addKeyStrokesForAction(ACTION_UNDO, AndroidKeyStroke(AKEYCODE_Z, AMETA_CTRL_ON))
+        addKeyStrokesForAction(ACTION_REDO, AndroidKeyStroke(AKEYCODE_Z, AMETA_CTRL_SHIFT_ON))
       }
     }
 

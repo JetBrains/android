@@ -60,7 +60,9 @@ import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_END_WITH_
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_START
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_START_WITH_SELECTION
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_PASTE
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_REDO
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_SELECT_ALL
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_UNDO
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.util.Disposer
@@ -395,6 +397,8 @@ internal class DeviceViewTest {
       Triple(getKeyStroke(ACTION_EDITOR_TEXT_END), AKEYCODE_MOVE_END, AMETA_CTRL_ON),
       Triple(getKeyStroke(ACTION_EDITOR_TEXT_START_WITH_SELECTION), AKEYCODE_MOVE_HOME, AMETA_CTRL_SHIFT_ON),
       Triple(getKeyStroke(ACTION_EDITOR_TEXT_END_WITH_SELECTION), AKEYCODE_MOVE_END, AMETA_CTRL_SHIFT_ON),
+      Triple(getKeyStroke(ACTION_UNDO), AKEYCODE_Z, AMETA_CTRL_ON),
+      Triple(getKeyStroke(ACTION_REDO), AKEYCODE_Z, AMETA_CTRL_SHIFT_ON),
     )
     for ((hostKeyStroke, androidKeyCode, androidMetaState) in keyStrokeCases) {
       fakeUi.keyboard.pressForModifiers(hostKeyStroke.modifiers)
