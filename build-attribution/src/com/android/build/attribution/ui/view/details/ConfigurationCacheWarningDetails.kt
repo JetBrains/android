@@ -49,7 +49,7 @@ class ConfigurationCacheRootWarningDetailsView(
       is AGPUpdateRequired -> this.createAGPUpdateRequiredPanel(uiData, projectConfigurationTime)
       is NoIncompatiblePlugins -> this.createNoIncompatiblePluginsPanel(uiData, projectConfigurationTime)
       is IncompatiblePluginsDetected -> this.createIncompatiblePluginsDetectedPanel(uiData, projectConfigurationTime)
-      is ConfigurationCacheCompatibilityTestFlow -> this.createConfigurationCacheTestFlowPanel()
+      is ConfigurationCacheCompatibilityTestFlow -> this.createConfigurationCacheTestFlowPanel(uiData)
       ConfigurationCachingTurnedOn -> Unit
       ConfigurationCachingTurnedOff -> Unit
       NoDataFromSavedResult -> Unit
@@ -134,7 +134,7 @@ class ConfigurationCacheRootWarningDetailsView(
       add(htmlTextLabelWithFixedLines(unknownPluginsListHtml).alignWithButton())
   }
 
-  private fun JPanel.createConfigurationCacheTestFlowPanel() {
+  private fun JPanel.createConfigurationCacheTestFlowPanel(data: ConfigurationCacheCompatibilityTestFlow) {
     val linksHandler = HtmlLinksHandler(actionHandlers)
     val configurationCacheLink = linksHandler.externalLink("Configuration cache", BuildAnalyzerBrowserLinks.CONFIGURATION_CACHING)
     val contentHtml = """
@@ -144,7 +144,7 @@ class ConfigurationCacheRootWarningDetailsView(
       Gradle successfully serialized the task graph and reused it with Configuration cache on.
       """.trimIndent().insertBRTags()
     val addToPropertiesActionButton = JButton("Turn on Configuration cache in gradle.properties").apply {
-      addActionListener { actionHandlers.turnConfigurationCachingOnInProperties() }
+      addActionListener { actionHandlers.turnConfigurationCachingOnInProperties(data.configurationCacheIsStableFeature) }
     }
     add(htmlTextLabelWithFixedLines(contentHtml, linksHandler).alignWithButton())
     add(addToPropertiesActionButton)

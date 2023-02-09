@@ -108,7 +108,7 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
         arrayOf("Enable Configuration Cache", Messages.getCancelButton()), 0,
         Messages.getInformationIcon(), null
       )
-      if (confirmationResult == Messages.OK) StudioProvidedInfo.turnOnConfigurationCacheInProperties(project)
+      if (confirmationResult == Messages.OK) StudioProvidedInfo.turnOnConfigurationCacheInProperties(project, isFeatureConsideredStable)
     }
   }
 

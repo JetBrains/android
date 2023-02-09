@@ -80,7 +80,8 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
   }
 
   private fun compute(appliedPlugins: List<PluginData>): ConfigurationCachingCompatibilityProjectResult {
-    if (runningConfigurationCacheTestFlow == true) return ConfigurationCacheCompatibilityTestFlow
+    val isFeatureConsideredStable = studioProvidedGradleVersion?.let { it >= minGradleVersionForStableConfigurationCache } ?: false
+    if (runningConfigurationCacheTestFlow == true) return ConfigurationCacheCompatibilityTestFlow(isFeatureConsideredStable)
     if (configurationCacheInBuildState == true) return ConfigurationCachingTurnedOn
     if (configurationCachingGradlePropertiesFlagState != null) return ConfigurationCachingTurnedOff
     if (buildscriptClasspath.isEmpty()) {
@@ -112,7 +113,6 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
       }
     }
     return if (incompatiblePluginWarnings.isEmpty() && upgradePluginWarnings.isEmpty()) {
-      val isFeatureConsideredStable = studioProvidedGradleVersion?.let { it >= minGradleVersionForStableConfigurationCache } ?: false
       NoIncompatiblePlugins(pluginsByPluginInfo[null]?.filterOutInternalPlugins() ?: emptyList(), isFeatureConsideredStable)
     }
     else {
@@ -174,6 +174,8 @@ object ConfigurationCachingTurnedOn : ConfigurationCachingCompatibilityProjectRe
 object ConfigurationCachingTurnedOff : ConfigurationCachingCompatibilityProjectResult()
 
 /** Analyzer result for test CC builds started from Build Analyzer. */
-object ConfigurationCacheCompatibilityTestFlow : ConfigurationCachingCompatibilityProjectResult()
+data class ConfigurationCacheCompatibilityTestFlow(
+  val configurationCacheIsStableFeature: Boolean
+) : ConfigurationCachingCompatibilityProjectResult()
 
 object NoDataFromSavedResult : ConfigurationCachingCompatibilityProjectResult()

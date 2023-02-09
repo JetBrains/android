@@ -43,8 +43,8 @@ data class StudioProvidedInfo(
   val isInConfigurationCacheTestFlow: Boolean get() = buildInvocationType == BuildInvocationType.CONFIGURATION_CACHE_TRIAL
 
   companion object {
-      //TODO(b/243175483): maybe need to update property for stable but it is unclear yet what and when gradle will do
-    private const val CONFIGURATION_CACHE_PROPERTY_NAME = "org.gradle.unsafe.configuration-cache"
+    private const val CONFIGURATION_CACHE_UNSAFE_PROPERTY_NAME = "org.gradle.unsafe.configuration-cache"
+    private const val CONFIGURATION_CACHE_PROPERTY_NAME = "org.gradle.configuration-cache"
 
     fun fromProject(project: Project, buildRequest: BuildRequestHolder, buildInvocationType: BuildInvocationType) = StudioProvidedInfo(
       agpVersion = AndroidPluginInfo.find(project)?.pluginVersion,
@@ -60,11 +60,12 @@ data class StudioProvidedInfo(
       buildRequestHolder = buildRequest
     )
 
-    fun turnOnConfigurationCacheInProperties(project: Project) {
+    fun turnOnConfigurationCacheInProperties(project: Project, useStableFeatureProperty: Boolean) {
       project.getProjectProperties(createIfNotExists = true)?.apply {
+        val propertyName = if (useStableFeatureProperty) CONFIGURATION_CACHE_PROPERTY_NAME else CONFIGURATION_CACHE_UNSAFE_PROPERTY_NAME
         val property = WriteCommandAction.writeCommandAction(project, this.containingFile).compute<IProperty, Throwable> {
-          findPropertyByKey(CONFIGURATION_CACHE_PROPERTY_NAME)?.apply { setValue("true") }
-          ?: addProperty(CONFIGURATION_CACHE_PROPERTY_NAME, "true")
+          findPropertyByKey(propertyName)?.apply { setValue("true") }
+          ?: addProperty(propertyName, "true")
         }
         val propertyOffset = property?.psiElement?.textOffset ?: -1
         OpenFileDescriptor(project, virtualFile, propertyOffset).navigate(true)
@@ -75,10 +76,20 @@ data class StudioProvidedInfo(
       val propertiesFileResult = runCatching {
         PropertiesFiles.getProperties(GradleUtil.getUserGradlePropertiesFile(project))
       }
-      return propertiesFileResult.getOrNull()?.getProperty(CONFIGURATION_CACHE_PROPERTY_NAME)
+      return propertiesFileResult.getOrNull()?.let{ properties ->
+        sequence {
+          yield(properties.getProperty(CONFIGURATION_CACHE_PROPERTY_NAME))
+          yield(properties.getProperty(CONFIGURATION_CACHE_UNSAFE_PROPERTY_NAME))
+        }.filterNotNull().firstOrNull()
+      }
     }
 
     private fun getProjectPropertiesConfigurationCachePropertyState(project: Project) =
-      project.getProjectProperties(createIfNotExists = false)?.findPropertyByKey(CONFIGURATION_CACHE_PROPERTY_NAME)?.value
+      project.getProjectProperties(createIfNotExists = false)?.let { properties ->
+        sequence {
+          yield(properties.findPropertyByKey(CONFIGURATION_CACHE_PROPERTY_NAME))
+          yield(properties.findPropertyByKey(CONFIGURATION_CACHE_UNSAFE_PROPERTY_NAME))
+        }.filterNotNull().map { it.value }.firstOrNull()
+      }
   }
 }

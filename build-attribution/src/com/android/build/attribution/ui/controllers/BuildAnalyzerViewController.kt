@@ -210,8 +210,8 @@ class BuildAnalyzerViewController(
     analytics.rerunBuildWithConfCacheClicked()
   }
 
-  override fun turnConfigurationCachingOnInProperties() {
-    StudioProvidedInfo.turnOnConfigurationCacheInProperties(project)
+  override fun turnConfigurationCachingOnInProperties(isFeatureConsideredStable: Boolean) {
+    StudioProvidedInfo.turnOnConfigurationCacheInProperties(project, isFeatureConsideredStable)
     analytics.turnConfigurationCacheOnInPropertiesClicked()
   }
 

@@ -238,7 +238,7 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
   fun testConfigurationCacheAfterTrialBuildPage() {
     val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers, disposableRule.disposable)
     val nodeDescriptor = ConfigurationCachingRootNodeDescriptor(
-      ConfigurationCacheCompatibilityTestFlow,
+      ConfigurationCacheCompatibilityTestFlow(false),
       TimeWithPercentage(100, 1000)
     )
     val page = factory.createDetailsPage(nodeDescriptor)

@@ -157,7 +157,7 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
   fun testBalloonNotShownOnConfigCacheTrialBuild() {
     val buildSessionId = UUID.randomUUID().toString()
     val result = constructEmptyBuildResultsObject(buildSessionId, Projects.getBaseDirPath(project)).copy(
-      configurationCachingCompatibilityAnalyzerResult = ConfigurationCacheCompatibilityTestFlow
+      configurationCachingCompatibilityAnalyzerResult = ConfigurationCacheCompatibilityTestFlow(false)
     )
     setNewReportData(result)
 

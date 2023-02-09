@@ -514,7 +514,7 @@ class ConfigurationCachingRootNodeDescriptor(
         }
         is NoIncompatiblePlugins -> ""
         ConfigurationCachingTurnedOn -> ""
-        ConfigurationCacheCompatibilityTestFlow -> ""
+        is ConfigurationCacheCompatibilityTestFlow -> ""
         ConfigurationCachingTurnedOff -> ""
         NoDataFromSavedResult -> ""
       },
@@ -555,7 +555,7 @@ private fun ConfigurationCachingCompatibilityProjectResult.warningsCount() = whe
   is AGPUpdateRequired -> 1
   is IncompatiblePluginsDetected -> incompatiblePluginWarnings.size + upgradePluginWarnings.size
   is NoIncompatiblePlugins -> 1
-  ConfigurationCacheCompatibilityTestFlow -> 1
+  is ConfigurationCacheCompatibilityTestFlow -> 1
   ConfigurationCachingTurnedOn -> 0
   ConfigurationCachingTurnedOff -> 0
   NoDataFromSavedResult -> 0

@@ -309,7 +309,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest(
     analyzer.receiveKnownPluginsData(knownPluginsData)
     analyzer.runPostBuildAnalysis(analysisResult, studioProvidedInfo)
 
-    Truth.assertThat(analyzer.result).isEqualTo(ConfigurationCacheCompatibilityTestFlow)
+    Truth.assertThat(analyzer.result).isEqualTo(ConfigurationCacheCompatibilityTestFlow(gradleWithStableConfigurationCache))
   }
 
   private fun binaryPlugin(pluginClassName: String, projectPath: String = ":", displayName: String = pluginClassName) = pluginContainer
