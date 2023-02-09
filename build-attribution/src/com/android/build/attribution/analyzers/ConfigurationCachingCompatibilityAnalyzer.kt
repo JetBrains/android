@@ -23,9 +23,11 @@ import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.AgpVersion
 import kotlinx.collections.immutable.toImmutableMap
+import org.gradle.util.GradleVersion
 
 /** Minimal AGP version that supports configuration caching. */
 private val minAGPVersion = AgpVersion.parse("7.0.0-alpha10")
+private val minGradleVersionForStableConfigurationCache = GradleVersion.version("8.1")
 
 class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCachingCompatibilityProjectResult>(),
     BuildAttributionReportAnalyzer,
@@ -39,6 +41,7 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
   private var configurationCachingGradlePropertiesFlagState: String? = null
   private var configurationCacheInBuildState: Boolean? = null
   private var runningConfigurationCacheTestFlow: Boolean? = null
+  private var studioProvidedGradleVersion: GradleVersion? = null
 
   override fun cleanupTempState() {
     buildscriptClasspath.clear()
@@ -48,6 +51,7 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
     configurationCachingGradlePropertiesFlagState = null
     configurationCacheInBuildState = null
     runningConfigurationCacheTestFlow = null
+    studioProvidedGradleVersion = null
   }
 
   override fun receiveBuildAttributionReport(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData) {
@@ -67,6 +71,7 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
     if (currentAgpVersion == null) currentAgpVersion = studioProvidedInfo.agpVersion
     configurationCachingGradlePropertiesFlagState = studioProvidedInfo.configurationCachingGradlePropertyState
     runningConfigurationCacheTestFlow = studioProvidedInfo.isInConfigurationCacheTestFlow
+    studioProvidedGradleVersion = studioProvidedInfo.gradleVersion
     ensureResultCalculated()
   }
 
@@ -107,7 +112,8 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
       }
     }
     return if (incompatiblePluginWarnings.isEmpty() && upgradePluginWarnings.isEmpty()) {
-      NoIncompatiblePlugins(pluginsByPluginInfo[null]?.filterOutInternalPlugins() ?: emptyList())
+      val isFeatureConsideredStable = studioProvidedGradleVersion?.let { it >= minGradleVersionForStableConfigurationCache } ?: false
+      NoIncompatiblePlugins(pluginsByPluginInfo[null]?.filterOutInternalPlugins() ?: emptyList(), isFeatureConsideredStable)
     }
     else {
       IncompatiblePluginsDetected(incompatiblePluginWarnings, upgradePluginWarnings)
@@ -138,7 +144,8 @@ data class AGPUpdateRequired(
  * There still might be problems in unknown plugins or buildscript and buildSrc plugins.
  */
 data class NoIncompatiblePlugins(
-  val unrecognizedPlugins: List<PluginData>
+  val unrecognizedPlugins: List<PluginData>,
+  val configurationCacheIsStableFeature: Boolean
 ) : ConfigurationCachingCompatibilityProjectResult()
 
 /**

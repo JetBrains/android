@@ -40,13 +40,19 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
     }
   }
 
-  fun startTestBuildsFlow(originalBuildRequestData: GradleBuildInvoker.Request.RequestData) {
-    runFirstConfigurationCacheTestBuildWithConfirmation(originalBuildRequestData)
+  fun startTestBuildsFlow(
+    originalBuildRequestData: GradleBuildInvoker.Request.RequestData,
+    isFeatureConsideredStable: Boolean
+  ) {
+    runFirstConfigurationCacheTestBuildWithConfirmation(originalBuildRequestData, isFeatureConsideredStable)
   }
 
   private val confirmationDialogHeader = "Configuration Cache Compatibility Assessment"
 
-  private fun runFirstConfigurationCacheTestBuildWithConfirmation(originalBuildRequestData: GradleBuildInvoker.Request.RequestData) {
+  private fun runFirstConfigurationCacheTestBuildWithConfirmation(
+    originalBuildRequestData: GradleBuildInvoker.Request.RequestData,
+    isFeatureConsideredStable: Boolean,
+  ) {
     invokeLater(ModalityState.NON_MODAL) {
       val confirmationResult = Messages.showIdeaMessageDialog(
         project,
@@ -67,7 +73,7 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
               firstBuild = false,
               onBuildFailure = this::showFailureMessage
             ) {
-              showFinalSuccessMessage()
+              showFinalSuccessMessage(isFeatureConsideredStable)
             }
           }
         }
@@ -75,17 +81,29 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
     }
   }
 
-  private fun showFinalSuccessMessage() {
+  private fun showFinalSuccessMessage(isFeatureConsideredStable: Boolean) {
     invokeLater(ModalityState.NON_MODAL) {
-      val confirmationResult = Messages.showIdeaMessageDialog(
-        project,
+      val message = if (isFeatureConsideredStable) {
+        """
+        |Both trial builds with Configuration cache on were successful. You can turn on
+        |Configuration cache in gradle.properties.
+        |
+        |Note: We only tested a basic scenario for your build compatibility with Configuration cache,
+        |there may be more hidden incompatibilities with different tasks’ runs in the future.
+        """.trimMargin()
+      }
+      else {
         """
         |Both trial builds with Configuration cache on were successful. You can turn on
         |Configuration cache in gradle.properties.
         |
         |Note: Configuration cache is an experimental feature of Gradle and there may be
         |incompatibilities with different tasks’ runs in the future.
-        """.trimMargin(),
+        """.trimMargin()
+      }
+      val confirmationResult = Messages.showIdeaMessageDialog(
+        project,
+        message,
         confirmationDialogHeader,
         arrayOf("Enable Configuration Cache", Messages.getCancelButton()), 0,
         Messages.getInformationIcon(), null

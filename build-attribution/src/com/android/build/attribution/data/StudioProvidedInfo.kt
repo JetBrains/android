@@ -43,6 +43,7 @@ data class StudioProvidedInfo(
   val isInConfigurationCacheTestFlow: Boolean get() = buildInvocationType == BuildInvocationType.CONFIGURATION_CACHE_TRIAL
 
   companion object {
+      //TODO(b/243175483): maybe need to update property for stable but it is unclear yet what and when gradle will do
     private const val CONFIGURATION_CACHE_PROPERTY_NAME = "org.gradle.unsafe.configuration-cache"
 
     fun fromProject(project: Project, buildRequest: BuildRequestHolder, buildInvocationType: BuildInvocationType) = StudioProvidedInfo(

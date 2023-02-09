@@ -114,10 +114,14 @@ class ConfigurationCacheRootWarningDetailsView(
     val runTestBuildActionButton = JButton("Try Configuration cache in a build").apply {
       addActionListener { actionHandlers.runTestConfigurationCachingBuild() }
     }
-    val unknownPluginsNoteHtml = """
-        Note: <b>Configuration cache is currently an experimental Gradle feature.</b> There could be unknown plugins that aren't compatible and are discovered after
-        you build with Configuration cache turned on.
-        """.trimIndent().insertBRTags()
+    val unknownPluginsNoteHtml = if (uiData.configurationCacheIsStableFeature) """
+      Note: There could be unknown plugins that aren't compatible and are discovered after
+      you build with Configuration cache turned on.
+      """.trimIndent().insertBRTags()
+    else """
+      Note: <b>Configuration cache is currently an experimental Gradle feature.</b> There could be unknown plugins that aren't compatible and are discovered after
+      you build with Configuration cache turned on.
+      """.trimIndent().insertBRTags()
     val unknownPluginsListHtml = uiData.unrecognizedPlugins.joinToString(
       prefix = "<b>List of applied plugins we were not able to recognise:</b><ul>",
       postfix = "</ul>",

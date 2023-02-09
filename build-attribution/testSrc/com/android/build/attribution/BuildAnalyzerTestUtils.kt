@@ -63,7 +63,7 @@ fun constructEmptyBuildResultsObject(buildSessionId: String, projectRoot: File, 
       emptyMap()
     ),
     TasksConfigurationIssuesAnalyzer.Result(emptyList()),
-    NoIncompatiblePlugins(emptyList()),
+    NoIncompatiblePlugins(emptyList(), false),
     JetifierUsageAnalyzerResult(AnalyzerNotRun),
     DownloadsAnalyzer.ActiveResult(repositoryResults = repositoryResults),
     TaskCategoryWarningsAnalyzer.IssuesResult(emptyList()),

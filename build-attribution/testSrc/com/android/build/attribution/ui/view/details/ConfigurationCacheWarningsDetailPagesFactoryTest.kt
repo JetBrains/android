@@ -177,10 +177,10 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
   }
 
   @Test
-  fun testConfigurationCacheNoIncompatiblePluginsPage() {
+  fun testConfigurationCacheNoIncompatiblePluginsPage_IncubatingFeature() {
     val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers, disposableRule.disposable)
     val nodeDescriptor = ConfigurationCachingRootNodeDescriptor(
-      NoIncompatiblePlugins(listOf(pluginA)),
+      NoIncompatiblePlugins(listOf(pluginA), false),
       TimeWithPercentage(100, 1000)
     )
     val page = factory.createDetailsPage(nodeDescriptor)
@@ -193,6 +193,35 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
       }
       htmlPanes[1].text.clearHtml().let { pageHtml ->
         Truth.assertThat(pageHtml).contains("Note: <b>Configuration cache is currently an experimental Gradle feature.</b> There could be unknown plugins that aren't compatible and are discovered after\n" +
+                                            "you build with Configuration cache turned on.")
+      }
+      htmlPanes[2].text.clearHtml().let { pageHtml ->
+        Truth.assertThat(pageHtml).contains("<b>List of applied plugins we were not able to recognise:</b>")
+        Truth.assertThat(pageHtml).contains("my.org.gradle.PluginA")
+      }
+    }
+    TreeWalker(page).descendants().filterIsInstance<JButton>().single().let { button ->
+      Truth.assertThat(button.text).isEqualTo("Try Configuration cache in a build")
+    }
+  }
+
+  @Test
+  fun testConfigurationCacheNoIncompatiblePluginsPage_StableFeature() {
+    val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers, disposableRule.disposable)
+    val nodeDescriptor = ConfigurationCachingRootNodeDescriptor(
+      NoIncompatiblePlugins(listOf(pluginA), true),
+      TimeWithPercentage(100, 1000)
+    )
+    val page = factory.createDetailsPage(nodeDescriptor)
+    TreeWalker(page).descendants().filterIsInstance<JEditorPane>().let { htmlPanes ->
+      Truth.assertThat(htmlPanes).hasSize(3)
+      htmlPanes[0].text.clearHtml().let { pageHtml ->
+        Truth.assertThat(pageHtml).contains("Try to turn Configuration cache on")
+        Truth.assertThat(pageHtml).contains("You could save about 0.1s by")
+        Truth.assertThat(pageHtml).contains("The known plugins applied in this build are compatible with Configuration cache.")
+      }
+      htmlPanes[1].text.clearHtml().let { pageHtml ->
+        Truth.assertThat(pageHtml).contains("Note: There could be unknown plugins that aren't compatible and are discovered after\n" +
                                             "you build with Configuration cache turned on.")
       }
       htmlPanes[2].text.clearHtml().let { pageHtml ->
