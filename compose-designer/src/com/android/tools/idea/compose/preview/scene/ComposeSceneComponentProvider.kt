@@ -68,6 +68,7 @@ class ComposeSceneComponentProvider : SceneManager.SceneComponentHierarchyProvid
             Coordinates.pxToDp(manager, bounds.width),
             Coordinates.pxToDp(manager, bounds.height)
           )
+          it.setPrioritizeSelectedDrawState(false)
           boundsSet.add(bounds)
           children
             .flatMap { child -> child.mapToSceneComponent(manager, component, boundsSet) }

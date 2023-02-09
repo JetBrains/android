@@ -575,10 +575,14 @@ class ComposePreviewRepresentation(
     )
   }
 
-  private val staticPreviewInteractionHandler =
+  @VisibleForTesting
+  val staticPreviewInteractionHandler =
     ComposeNavigationInteractionHandler(
         composeWorkBench.mainSurface,
-        NavigatingInteractionHandler(composeWorkBench.mainSurface)
+        NavigatingInteractionHandler(
+          composeWorkBench.mainSurface,
+          isSelectionEnabled = { StudioFlags.COMPOSE_PREVIEW_SELECTION.get() }
+        )
       )
       .also { delegateInteractionHandler.delegate = it }
   private val interactiveInteractionHandler =

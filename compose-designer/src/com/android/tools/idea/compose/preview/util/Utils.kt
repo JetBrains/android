@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.util
 
+import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.surface.SceneView
 import com.intellij.openapi.util.Segment
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPointerManager
@@ -28,3 +31,19 @@ fun UElement?.toSmartPsiPointer(): SmartPsiElementPointer<PsiElement>? {
 
 fun Segment?.containsOffset(offset: Int) =
   this?.let { it.startOffset <= offset && offset <= it.endOffset } ?: false
+
+/**
+ * For a SceneView that contains a valid Compose Preview, get its root component, that must be a
+ * ComposeViewAdapter.
+ */
+fun SceneView.getRootComponent(): NlComponent? {
+  val root = sceneManager.model.components.firstOrNull()
+  assert(root == null || root.tagName == COMPOSE_VIEW_ADAPTER_FQN) {
+    "Expected the root component of a Compose Preview to be a $COMPOSE_VIEW_ADAPTER_FQN, but found ${root!!.tagName}"
+  }
+  return root
+}
+
+/** Returns true if the ComposeViewAdapter component of this SceneView is currently selected. */
+fun SceneView.isRootComponentSelected() =
+  getRootComponent()?.let { surface.selectionModel.isSelected(it) } == true

@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.compose.gradle.navigation
 
+import com.android.flags.junit.FlagRule
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.activateAndWaitForRender
+import com.android.tools.idea.compose.gradle.clickPreviewImage
+import com.android.tools.idea.compose.gradle.clickPreviewName
 import com.android.tools.idea.compose.gradle.preview.TestComposePreviewView
 import com.android.tools.idea.compose.gradle.preview.displayName
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
@@ -30,6 +33,8 @@ import com.android.tools.idea.compose.preview.navigation.findNavigatableComponen
 import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.util.getRootComponent
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.intellij.openapi.application.ReadAction
@@ -40,12 +45,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiManager
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.util.concurrent.CountDownLatch
-import javax.swing.JLabel
 import javax.swing.JPanel
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -55,19 +60,32 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
-private class TestNavigationHandler(private val expectedInvocations: CountDownLatch) :
-  NavigationHandler {
+private class TestNavigationHandler(expectedInvocations: Int) : NavigationHandler {
+  /**
+   * [CountDownLatch] useful to verify that the suspendable [handleNavigate] methods are invoked as
+   * many times as expected.
+   */
+  var expectedInvocationsCountDownLatch = CountDownLatch(expectedInvocations)
+
+  fun resetExpectedInvocations(newExpectedInvocations: Int) {
+    assertEquals(0, expectedInvocationsCountDownLatch.count)
+    expectedInvocationsCountDownLatch = CountDownLatch(newExpectedInvocations)
+  }
+
   override suspend fun handleNavigate(
     sceneView: SceneView,
     x: Int,
     y: Int,
     requestFocus: Boolean
   ): Boolean {
+    assertTrue(expectedInvocationsCountDownLatch.count > 0)
+    expectedInvocationsCountDownLatch.countDown()
     return true
   }
 
   override suspend fun handleNavigate(sceneView: SceneView, requestFocus: Boolean): Boolean {
-    expectedInvocations.countDown()
+    assertTrue(expectedInvocationsCountDownLatch.count > 0)
+    expectedInvocationsCountDownLatch.countDown()
     return true
   }
 
@@ -77,7 +95,8 @@ private class TestNavigationHandler(private val expectedInvocations: CountDownLa
 class PreviewNavigationTest {
   private val LOG = Logger.getInstance(PreviewNavigationTest::class.java)
 
-  @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
+  private val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
+  @get:Rule val rule = RuleChain(projectRule, FlagRule(StudioFlags.COMPOSE_PREVIEW_SELECTION, true))
   private val project: Project
     get() = projectRule.project
   private val fixture: CodeInsightTestFixture
@@ -210,7 +229,7 @@ class PreviewNavigationTest {
   }
 
   @Test
-  fun testPreviewNameNavigation() {
+  fun testPreviewNavigation_nameLabelInteraction() {
     val mainFile =
       project.guessProjectDir()!!.findFileByRelativePath(
         SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path
@@ -218,13 +237,9 @@ class PreviewNavigationTest {
     val psiMainFile = runReadAction { PsiManager.getInstance(project).findFile(mainFile)!! }
 
     // Create a preview representation with an associated fakeUi
-    val countDownLatch = CountDownLatch(1)
+    val myNavigationHandler = TestNavigationHandler(1)
     val previewView =
-      TestComposePreviewView(
-        fixture.testRootDisposable,
-        project,
-        TestNavigationHandler(countDownLatch)
-      )
+      TestComposePreviewView(fixture.testRootDisposable, project, myNavigationHandler)
     val composePreviewRepresentation =
       ComposePreviewRepresentation(psiMainFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
         previewView
@@ -246,18 +261,136 @@ class PreviewNavigationTest {
     }
     runBlocking { composePreviewRepresentation.activateAndWaitForRender(fakeUi) }
 
-    // Find a name label
     val panels = fakeUi.findAllComponents<SceneViewPeerPanel>()
     val sceneViewPanel = panels.single { it.displayName == "DefaultPreview" }
-    val nameLabel =
-      sceneViewPanel.sceneViewTopPanel.components.single {
-        it is JLabel && it.text == "DefaultPreview"
-      }
 
     // Click the label and verify that navigation was called
-    assertEquals(1, countDownLatch.count)
-    runInEdtAndWait { fakeUi.clickRelativeTo(nameLabel, 1, 1) }
-    countDownLatch.await()
-    assertEquals(0, countDownLatch.count)
+    assertEquals(1, myNavigationHandler.expectedInvocationsCountDownLatch.count)
+    fakeUi.clickPreviewName(sceneViewPanel)
+    myNavigationHandler.expectedInvocationsCountDownLatch.await()
+    assertEquals(0, myNavigationHandler.expectedInvocationsCountDownLatch.count)
+    assertEquals(0, sceneViewPanel.sceneView.surface.selectionModel.selection.size)
+  }
+
+  @Test
+  fun testPreviewNavigation_imageInteraction() {
+    val mainFile =
+      project.guessProjectDir()!!.findFileByRelativePath(
+        SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path
+      )!!
+    val psiMainFile = runReadAction { PsiManager.getInstance(project).findFile(mainFile)!! }
+
+    // Create a preview representation with an associated fakeUi
+    val myNavigationHandler = TestNavigationHandler(1)
+    val previewView =
+      TestComposePreviewView(
+        fixture.testRootDisposable,
+        project,
+        myNavigationHandler,
+      )
+    val composePreviewRepresentation =
+      ComposePreviewRepresentation(psiMainFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
+        previewView
+      }
+    Disposer.register(fixture.testRootDisposable, composePreviewRepresentation)
+
+    lateinit var fakeUi: FakeUi
+    runInEdtAndWait {
+      fakeUi =
+        FakeUi(
+          JPanel().apply {
+            layout = BorderLayout()
+            size = Dimension(1000, 800)
+            add(previewView, BorderLayout.CENTER)
+          },
+          1.0,
+          true
+        )
+      fakeUi.root.validate()
+    }
+
+    // Now modify some parts of the previewView according to the FakeUi and the
+    // PreviewRepresentation
+    previewView.interactionPaneProvider = { fakeUi.root as JPanel }
+    previewView.delegateInteractionHandler.delegate =
+      composePreviewRepresentation.staticPreviewInteractionHandler
+
+    runBlocking { composePreviewRepresentation.activateAndWaitForRender(fakeUi) }
+
+    val panels = fakeUi.findAllComponents<SceneViewPeerPanel>()
+    val sceneViewPanel = panels.single { it.displayName == "DefaultPreview" }
+    val otherSceneViewPanel = panels.single { it.displayName == "TwoElementsPreview" }
+
+    // Left-click on a preview and verify that navigation and selection happened
+    assertEquals(1, myNavigationHandler.expectedInvocationsCountDownLatch.count)
+    assertEquals(0, sceneViewPanel.sceneView.surface.selectionModel.selection.size)
+    fakeUi.clickPreviewImage(sceneViewPanel)
+    myNavigationHandler.expectedInvocationsCountDownLatch.await()
+    assertEquals(
+      sceneViewPanel.sceneView.getRootComponent(),
+      sceneViewPanel.sceneView.surface.selectionModel.selection.single()
+    )
+    assertEquals(0, myNavigationHandler.expectedInvocationsCountDownLatch.count)
+
+    // Left-click on an unselected preview should navigate and should set selection to only that
+    // preview
+    myNavigationHandler.resetExpectedInvocations(1)
+    fakeUi.clickPreviewImage(otherSceneViewPanel)
+    myNavigationHandler.expectedInvocationsCountDownLatch.await()
+    assertEquals(
+      otherSceneViewPanel.sceneView.getRootComponent(),
+      sceneViewPanel.sceneView.surface.selectionModel.selection.single()
+    )
+    assertEquals(0, myNavigationHandler.expectedInvocationsCountDownLatch.count)
+
+    // Shift + Left-click on an unselected Preview shouldn't navigate and should add the preview to
+    // the selections
+    myNavigationHandler.resetExpectedInvocations(0)
+    fakeUi.clickPreviewImage(sceneViewPanel, pressingShift = true)
+    myNavigationHandler.expectedInvocationsCountDownLatch.await()
+    assertEquals(2, sceneViewPanel.sceneView.surface.selectionModel.selection.size)
+    assertEquals(0, myNavigationHandler.expectedInvocationsCountDownLatch.count)
+
+    // Left-click on a selected Preview should navigate and shouldn't affect selections
+    myNavigationHandler.resetExpectedInvocations(1)
+    fakeUi.clickPreviewImage(sceneViewPanel)
+    myNavigationHandler.expectedInvocationsCountDownLatch.await()
+    assertEquals(2, sceneViewPanel.sceneView.surface.selectionModel.selection.size)
+    assertEquals(0, myNavigationHandler.expectedInvocationsCountDownLatch.count)
+
+    // Right-click on a selected Preview shouldn't navigate and shouldn't affect selections
+    myNavigationHandler.resetExpectedInvocations(0)
+    fakeUi.clickPreviewImage(otherSceneViewPanel, rightClick = true)
+    myNavigationHandler.expectedInvocationsCountDownLatch.await()
+    assertEquals(2, sceneViewPanel.sceneView.surface.selectionModel.selection.size)
+    assertEquals(0, myNavigationHandler.expectedInvocationsCountDownLatch.count)
+
+    // Shift + Left-click on a selected Preview shouldn't navigate and should remove the preview
+    // from the selections
+    myNavigationHandler.resetExpectedInvocations(0)
+    fakeUi.clickPreviewImage(sceneViewPanel, pressingShift = true)
+    myNavigationHandler.expectedInvocationsCountDownLatch.await()
+    assertEquals(
+      otherSceneViewPanel.sceneView.getRootComponent(),
+      sceneViewPanel.sceneView.surface.selectionModel.selection.single()
+    )
+    assertEquals(0, myNavigationHandler.expectedInvocationsCountDownLatch.count)
+
+    // Right-click on an unselected Preview shouldn't navigate and should set selection to only that
+    // preview
+    myNavigationHandler.resetExpectedInvocations(0)
+    fakeUi.clickPreviewImage(sceneViewPanel, rightClick = true)
+    myNavigationHandler.expectedInvocationsCountDownLatch.await()
+    assertEquals(
+      sceneViewPanel.sceneView.getRootComponent(),
+      sceneViewPanel.sceneView.surface.selectionModel.selection.single()
+    )
+    assertEquals(0, myNavigationHandler.expectedInvocationsCountDownLatch.count)
+
+    // Finally Left-click on a preview to make sure that the pop-up created due to the previous
+    // right-click is closed before finishing the test (not doing this will cause a Project leak).
+    myNavigationHandler.resetExpectedInvocations(1)
+    fakeUi.clickPreviewImage(otherSceneViewPanel)
+    myNavigationHandler.expectedInvocationsCountDownLatch.await()
   }
 }
