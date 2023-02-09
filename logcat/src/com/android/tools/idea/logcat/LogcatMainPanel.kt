@@ -654,7 +654,7 @@ internal class LogcatMainPanel @TestOnly constructor(
     val device = connectedDevice.get()
     return when (dataId) {
       LOGCAT_PRESENTER_ACTION.name -> this
-      ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name -> device?.let { DeviceArtScreenshotOptions(it.serialNumber, it.sdk, it.model) }
+      ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name -> device?.let { DeviceArtScreenshotOptions(it.serialNumber, it.model) }
       ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name -> device?.let {
         ScreenRecorderAction.Parameters(it.name, it.serialNumber, it.sdk, if (it.isEmulator) it.deviceId else null, this)
       }

@@ -28,7 +28,6 @@ import kotlin.math.min
  */
 class DeviceArtScreenshotOptions(
   override val serialNumber: String,
-  override val apiLevel: Int,
   val deviceModel: String?
 ) : ScreenshotAction.ScreenshotOptions {
 

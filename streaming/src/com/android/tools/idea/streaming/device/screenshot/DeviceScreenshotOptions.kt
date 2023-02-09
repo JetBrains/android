@@ -53,8 +53,6 @@ internal class DeviceScreenshotOptions(
   private val deviceView: DeviceView,
 ) : ScreenshotAction.ScreenshotOptions {
 
-  override val apiLevel: Int = deviceConfiguration.featureLevel
-
   override val screenshotViewerOptions: EnumSet<ScreenshotViewer.Option> = EnumSet.noneOf(ScreenshotViewer.Option::class.java)
 
   override val screenshotPostprocessor: ScreenshotPostprocessor = DeviceScreenshotPostprocessor()
