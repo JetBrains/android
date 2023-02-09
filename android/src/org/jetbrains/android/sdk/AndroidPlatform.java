@@ -16,27 +16,13 @@
 
 package org.jetbrains.android.sdk;
 
-import static com.android.SdkConstants.FD_PLATFORMS;
-import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
-import static com.android.sdklib.IAndroidTarget.ANDROID_JAR;
-import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.util.PathUtil.getCanonicalPath;
-
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.OptionalLibrary;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.vfs.JarFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -86,76 +72,6 @@ public class AndroidPlatform {
         IAndroidTarget target = ((AndroidSdkAdditionalData)data).getBuildTarget(sdkData);
         if (target != null) {
           return new AndroidPlatform(sdkData, target);
-        }
-      }
-    }
-    return null;
-  }
-
-  /** @deprecated Use only for converting. */
-  @Deprecated
-  @Nullable
-  public static AndroidPlatform parse(@NotNull Library library,
-                                      @Nullable Library.ModifiableModel model,
-                                      @Nullable Map<String, AndroidSdkData> parsedSdks) {
-    VirtualFile[] files = model != null ? model.getFiles(CLASSES) : library.getFiles(CLASSES);
-    Set<String> jarPaths = Sets.newHashSet();
-    VirtualFile frameworkLibrary = null;
-    for (VirtualFile file : files) {
-      VirtualFile vFile = JarFileSystem.getInstance().getVirtualFileForJar(file);
-      if (vFile != null) {
-        if (vFile.getName().equals(FN_FRAMEWORK_LIBRARY)) {
-          frameworkLibrary = vFile;
-        }
-        jarPaths.add(vFile.getPath());
-      }
-    }
-    if (frameworkLibrary != null) {
-      VirtualFile sdkDir = frameworkLibrary.getParent();
-      if (sdkDir != null) {
-        VirtualFile platformsDir = sdkDir.getParent();
-        if (platformsDir != null && platformsDir.getName().equals(FD_PLATFORMS)) {
-          sdkDir = platformsDir.getParent();
-          if (sdkDir == null) return null;
-        }
-        String sdkPath = sdkDir.getPath();
-        AndroidSdkData sdkData = parsedSdks != null ? parsedSdks.get(sdkPath) : null;
-        if (sdkData == null) {
-          sdkData = AndroidSdkData.getSdkData(sdkPath);
-          if (sdkData == null) return null;
-          if (parsedSdks != null) {
-            parsedSdks.put(sdkPath, sdkData);
-          }
-        }
-        IAndroidTarget resultTarget = null;
-        for (IAndroidTarget target : sdkData.getTargets()) {
-          String targetsFrameworkLibPath = target.getPath(ANDROID_JAR).normalize().toString();
-          if (frameworkLibrary.getPath().equals(targetsFrameworkLibPath)) {
-            if (target.isPlatform()) {
-              if (resultTarget == null) resultTarget = target;
-            }
-            else {
-              boolean ok = true;
-              List<OptionalLibrary> libraries = target.getAdditionalLibraries();
-              if (libraries.isEmpty()) {
-                // we cannot identify add-on target without optional libraries by classpath
-                ok = false;
-              }
-              else {
-                for (OptionalLibrary optionalLibrary : libraries) {
-                  if (!jarPaths.contains(getCanonicalPath(optionalLibrary.getJar().toAbsolutePath().toString()))) {
-                    ok = false;
-                  }
-                }
-              }
-              if (ok) {
-                resultTarget = target;
-              }
-            }
-          }
-        }
-        if (resultTarget != null) {
-          return new AndroidPlatform(sdkData, resultTarget);
         }
       }
     }
