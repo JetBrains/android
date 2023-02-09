@@ -18,6 +18,7 @@ package com.android.tools.idea.templates.recipe
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.SourceSetType
 import com.android.tools.idea.wizard.template.findResource
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VfsUtil
 import java.io.File
 
@@ -51,6 +52,10 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
   override fun createDirectory(at: File) {}
 
   override fun applyPlugin(plugin: String, revision: String?, minRev: String?) {
+    context.plugins.add(plugin)
+  }
+
+  override fun applyPluginInModule(plugin: String, module: Module, revision: String?, minRev: String?) {
     context.plugins.add(plugin)
   }
 
