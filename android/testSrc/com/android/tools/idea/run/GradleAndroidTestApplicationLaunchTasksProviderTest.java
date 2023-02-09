@@ -38,6 +38,7 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.executors.DefaultDebugExecutor;
+import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.openapi.diagnostic.Logger;
@@ -86,16 +87,11 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
 
     ApplicationIdProvider appIdProvider = getApplicationIdProvider(config);
 
-    LaunchOptions launchOptions = LaunchOptions.builder()
-      .setClearLogcatBeforeStart(false)
-      .setDebug(true)
-      .build();
-
     GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
       env,
       myAndroidFacet,
-      appIdProvider,
-      launchOptions);
+      appIdProvider
+    );
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice);
     ConnectDebuggerTask connectDebuggerTask = provider.getConnectDebuggerTask();
@@ -118,22 +114,16 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
     config.TESTING_TYPE = AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE;
 
 
-    Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
+    Executor ex = DefaultRunExecutor.getRunExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
     env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(ImmutableList.of(mockDevice)));
 
     ApplicationIdProvider appIdProvider = getApplicationIdProvider(config);
 
-    LaunchOptions launchOptions = LaunchOptions.builder()
-      .setClearLogcatBeforeStart(false)
-      .setDebug(false)
-      .build();
-
     GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
       env,
       myAndroidFacet,
-      appIdProvider,
-      launchOptions);
+      appIdProvider);
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice);
     ConnectDebuggerTask connectDebuggerTask = provider.getConnectDebuggerTask();
@@ -159,16 +149,11 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
 
     ApplicationIdProvider appIdProvider = getApplicationIdProvider(config);
 
-    LaunchOptions launchOptions = LaunchOptions.builder()
-      .setClearLogcatBeforeStart(false)
-      .setDebug(false)
-      .build();
-
     GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
       env,
       myAndroidFacet,
-      appIdProvider,
-      launchOptions);
+      appIdProvider
+    );
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice);
 
@@ -199,8 +184,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
     GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
       env,
       myAndroidFacet,
-      appIdProvider,
-      launchOptions);
+      appIdProvider);
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice);
 
@@ -233,8 +217,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
     GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
       env,
       myAndroidFacet,
-      appIdProvider,
-      launchOptions);
+      appIdProvider);
 
     try {
       provider.getTasks(mockDevice);
@@ -268,8 +251,8 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
     GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
       env,
       myAndroidFacet,
-      appIdProvider,
-      launchOptions);
+      appIdProvider
+    );
 
     try {
       provider.getTasks(mockDevice);

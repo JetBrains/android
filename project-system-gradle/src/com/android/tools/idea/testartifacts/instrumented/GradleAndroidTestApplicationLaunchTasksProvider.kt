@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DeviceFutures
-import com.android.tools.idea.run.LaunchOptions
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTasksProvider
@@ -31,6 +30,7 @@ import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplic
 import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplicationLaunchTask.Companion.methodTest
 import com.google.common.collect.Lists
 import com.intellij.execution.ExecutionException
+import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -43,22 +43,13 @@ import org.jetbrains.plugins.gradle.util.GradleUtil
 class GradleAndroidTestApplicationLaunchTasksProvider(
   private val myEnv: ExecutionEnvironment,
   private val facet: AndroidFacet,
-  applicationIdProvider: ApplicationIdProvider,
-  launchOptions: LaunchOptions,
+  applicationIdProvider: ApplicationIdProvider
 ) : LaunchTasksProvider {
   private val runConfiguration: AndroidTestRunConfiguration = myEnv.runProfile as AndroidTestRunConfiguration
+  private val isDebug = myEnv.executor.id == DefaultDebugExecutor.EXECUTOR_ID
   private val myApplicationIdProvider: ApplicationIdProvider = applicationIdProvider
-  private val myLaunchOptions: LaunchOptions = launchOptions
   private val myProject: Project = facet.module.project
   private val myExtraInstrumentationOptions: String = runConfiguration.getExtraInstrumentationOptions(facet)
-  private val myGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker =
-    GradleConnectedAndroidTestInvoker(
-      getNumberOfSelectedDevices(),
-      myEnv,
-      requireNotNull(runConfiguration.configurationModule.module?.let {
-        GradleUtil.findGradleModuleData(it)?.data
-      })
-    )
   private val myTestingType: Int = runConfiguration.TESTING_TYPE
   private val myPackageName: String = runConfiguration.PACKAGE_NAME
   private val myClassName: String = runConfiguration.CLASS_NAME
@@ -74,12 +65,20 @@ class GradleAndroidTestApplicationLaunchTasksProvider(
 
   @Throws(ExecutionException::class)
   override fun getTasks(device: IDevice): List<LaunchTask> {
+    val gradleConnectedAndroidTestInvoker =
+      GradleConnectedAndroidTestInvoker(
+        getNumberOfSelectedDevices(),
+        myEnv,
+        requireNotNull(runConfiguration.configurationModule.module?.let {
+          GradleUtil.findGradleModuleData(it)?.data
+        })
+      )
+
     val launchTasks: MutableList<LaunchTask> = Lists.newArrayList()
 
     val testAppId: String? = try {
       myApplicationIdProvider.testPackageName
-    }
-    catch (e: ApkProvisionException) {
+    } catch (e: ApkProvisionException) {
       throw ExecutionException("Unable to determine test package name")
     }
 
@@ -93,12 +92,13 @@ class GradleAndroidTestApplicationLaunchTasksProvider(
           myProject,
           requireNotNull(GradleAndroidModel.get(facet)),
           testAppId,
-          myLaunchOptions.isDebug,
+          isDebug,
           device,
           testRegex,
-          myGradleConnectedAndroidTestInvoker,
+          gradleConnectedAndroidTestInvoker,
           retentionConfiguration,
-          myExtraInstrumentationOptions)
+          myExtraInstrumentationOptions
+        )
       }
 
       TEST_ALL_IN_PACKAGE -> {
@@ -106,12 +106,13 @@ class GradleAndroidTestApplicationLaunchTasksProvider(
           myProject,
           requireNotNull(GradleAndroidModel.get(facet)),
           testAppId,
-          myLaunchOptions.isDebug,
+          isDebug,
           device,
           myPackageName,
-          myGradleConnectedAndroidTestInvoker,
+          gradleConnectedAndroidTestInvoker,
           retentionConfiguration,
-          myExtraInstrumentationOptions)
+          myExtraInstrumentationOptions
+        )
       }
 
       TEST_CLASS -> {
@@ -119,12 +120,13 @@ class GradleAndroidTestApplicationLaunchTasksProvider(
           myProject,
           requireNotNull(GradleAndroidModel.get(facet)),
           testAppId,
-          myLaunchOptions.isDebug,
+          isDebug,
           device,
           myClassName,
-          myGradleConnectedAndroidTestInvoker,
+          gradleConnectedAndroidTestInvoker,
           retentionConfiguration,
-          myExtraInstrumentationOptions)
+          myExtraInstrumentationOptions
+        )
       }
 
       TEST_METHOD -> {
@@ -132,13 +134,14 @@ class GradleAndroidTestApplicationLaunchTasksProvider(
           myProject,
           requireNotNull(GradleAndroidModel.get(facet)),
           testAppId,
-          myLaunchOptions.isDebug,
+          isDebug,
           device,
           myClassName,
           myMethodName,
-          myGradleConnectedAndroidTestInvoker,
+          gradleConnectedAndroidTestInvoker,
           retentionConfiguration,
-          myExtraInstrumentationOptions)
+          myExtraInstrumentationOptions
+        )
       } else -> {
         throw RuntimeException("Unknown testing type is selected, testing type is $myTestingType")
       }
@@ -148,7 +151,7 @@ class GradleAndroidTestApplicationLaunchTasksProvider(
   }
 
   override fun getConnectDebuggerTask(): ConnectDebuggerTask? {
-    if (!myLaunchOptions.isDebug) {
+    if (!isDebug) {
       return null
     }
     val androidDebuggerContext = runConfiguration.androidDebuggerContext

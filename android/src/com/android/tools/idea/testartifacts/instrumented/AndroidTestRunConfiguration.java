@@ -174,14 +174,12 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     LaunchOptions launchOptions = getLaunchOptions().setDebug(isDebugging).build();
 
     ApkProvider apkProvider = getApkProvider();
-    if (apkProvider == null) return null;
+    if (apkProvider == null) {
+      throw new RuntimeException("Cannot get ApkProvider");
+    }
 
-    Optional<LaunchTasksProvider> provided = LaunchTasksProvider.Provider.EP_NAME.extensions()
-      .map(it -> it.createLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions))
-      .filter(Objects::nonNull)
-      .findFirst();
     LaunchTasksProvider launchTaskProvider =
-      provided.orElseGet(() -> new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions));
+      new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions);
 
     return new AndroidTestRunConfigurationExecutor(getApplicationIdProvider(), env, deviceFutures, launchTaskProvider);
   }

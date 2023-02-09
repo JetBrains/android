@@ -141,7 +141,7 @@ internal fun checkAndroidVersionForWearDebugging(version: AndroidVersion, consol
   }
 }
 
-internal suspend fun createRunContentDescriptor(
+suspend fun createRunContentDescriptor(
   processHandler: ProcessHandler,
   console: ConsoleView,
   environment: ExecutionEnvironment
