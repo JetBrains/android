@@ -71,7 +71,6 @@ public class StartUpTest {
         "com.intellij.dev",
         "Configuration Script",
         "Copyright",
-        "Core of CIDR Test Framework",
         "Eclipse Keymap",
         "EditorConfig",
         "Firebase App Indexing",
