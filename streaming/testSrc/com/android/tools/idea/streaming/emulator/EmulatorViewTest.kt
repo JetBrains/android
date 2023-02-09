@@ -57,7 +57,9 @@ import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_END_WITH_
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_START
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_START_WITH_SELECTION
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_PASTE
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_REDO
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_SELECT_ALL
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_UNDO
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -380,6 +382,11 @@ class EmulatorViewTest {
       getKeyStroke(ACTION_EDITOR_TEXT_END_WITH_SELECTION) to
           listOf("key: \"Shift\"", "key: \"Control\"", "eventType: keypress key: \"End\"",
                  "eventType: keyup key: \"Control\"", "eventType: keyup key: \"Shift\""),
+      getKeyStroke(ACTION_UNDO) to
+          listOf("key: \"Control\"", "eventType: keypress key: \"KeyZ\"", "eventType: keyup key: \"Control\""),
+      getKeyStroke(ACTION_REDO) to
+          listOf("key: \"Shift\"", "key: \"Control\"", "eventType: keypress key: \"KeyZ\"",
+                 "eventType: keyup key: \"Control\"", "eventType: keyup key: \"Shift\"")
     )
     for ((hostKeyStroke, keyboardEventMessages) in keyStrokeCases) {
       ui.keyboard.pressForModifiers(hostKeyStroke.modifiers)

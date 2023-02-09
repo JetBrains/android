@@ -92,7 +92,9 @@ import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_END_WITH_
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_START
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_START_WITH_SELECTION
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_PASTE
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_REDO
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_SELECT_ALL
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_UNDO
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
@@ -837,6 +839,8 @@ class EmulatorView(
         addKeystrokesForAction(ACTION_EDITOR_TEXT_END, EmulatorKeyStroke("End", CTRL_DOWN_MASK))
         addKeystrokesForAction(ACTION_EDITOR_TEXT_START_WITH_SELECTION, EmulatorKeyStroke("Home", CTRL_SHIFT_DOWN_MASK))
         addKeystrokesForAction(ACTION_EDITOR_TEXT_END_WITH_SELECTION, EmulatorKeyStroke("End", CTRL_SHIFT_DOWN_MASK))
+        addKeystrokesForAction(ACTION_UNDO, EmulatorKeyStroke("KeyZ", CTRL_DOWN_MASK))
+        addKeystrokesForAction(ACTION_REDO, EmulatorKeyStroke("KeyZ", CTRL_SHIFT_DOWN_MASK))
       }
     }
 
