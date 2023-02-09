@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.naveditor;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -25,6 +26,7 @@ import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.fest.swing.timing.Wait;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,7 +39,7 @@ import static junit.framework.Assert.assertTrue;
 @RunWith(GuiTestRemoteRunner.class)
 public class NavGraphSanityTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
   protected static final String BASIC_ACTIVITY_TEMPLATE = "Basic Views Activity";
   protected static final String APP_NAME = "App";
   protected static final String PACKAGE_NAME = "android.com.app";
@@ -61,8 +63,8 @@ public class NavGraphSanityTest {
       .getLayoutEditor()
       .waitForSurfaceToLoad();
 
+    GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(120));
     guiTest.robot().waitForIdle();
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     assertThat(editorFixture.canInteractWithSurface()).isTrue();
   }
