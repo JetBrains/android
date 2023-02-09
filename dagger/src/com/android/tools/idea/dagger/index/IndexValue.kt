@@ -74,7 +74,7 @@ abstract class IndexValue {
     return getResolveCandidates(project, scope)
       .filter { resolveCandidate ->
         getMatchingIndexKeyPsiTypes(resolveCandidate).any { type ->
-          type.unboxed == unboxedIndexKeyPsiType
+          unboxedIndexKeyPsiType.isAssignableFrom(type.unboxed)
         }
       }
       .mapNotNull { daggerElementIdentifiers.getDaggerElement(it.navigationElement) }

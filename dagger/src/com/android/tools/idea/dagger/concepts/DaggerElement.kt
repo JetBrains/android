@@ -17,6 +17,7 @@ package com.android.tools.idea.dagger.concepts
 
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.dagger.index.DaggerIndex
+import com.android.tools.idea.dagger.index.getIndexKeys
 import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.android.tools.idea.dagger.unboxed
 import com.android.tools.idea.kotlin.psiType
@@ -64,9 +65,7 @@ internal constructor(val psiElement: PsiElement, val daggerType: Type) {
     val scope = project.projectScope()
     val psiType = psiElement.getPsiType()
 
-    return DaggerIndex
-      // Get index keys
-      .getIndexKeys(psiType.canonicalText, project, scope)
+    return getIndexKeys(psiType, project, scope)
       // Look up the keys in the index
       .flatMap { DaggerIndex.getValues(it, scope) }
       // Remove types we aren't interested in before resolving

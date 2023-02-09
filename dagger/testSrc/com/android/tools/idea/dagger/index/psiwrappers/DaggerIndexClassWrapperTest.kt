@@ -115,6 +115,26 @@ class DaggerIndexClassWrapperTest {
   }
 
   @Test
+  fun kotlinClassWithGeneric() {
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
+      package com.example
+
+      class Foo<A, B> {}
+      """
+          .trimIndent()
+      ) as KtFile
+
+    val element = myFixture.moveCaret("Fo|o").parentOfType<KtClass>()!!
+    val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
+
+    assertThat(wrapper.getFqName()).isEqualTo("com.example.Foo")
+  }
+
+  @Test
   fun javaClassWithPackage() {
     val psiFile =
       myFixture.configureByText(
@@ -178,5 +198,25 @@ class DaggerIndexClassWrapperTest {
     assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation2")).isTrue()
     assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation3")).isTrue()
     assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation4")).isFalse()
+  }
+
+  @Test
+  fun javaClassWithGeneric() {
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
+      package com.example;
+
+      public class Foo<A, B> {}
+      """
+          .trimIndent()
+      ) as PsiJavaFile
+
+    val element = myFixture.moveCaret("Fo|o").parentOfType<PsiClass>()!!
+    val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
+
+    assertThat(wrapper.getFqName()).isEqualTo("com.example.Foo")
   }
 }

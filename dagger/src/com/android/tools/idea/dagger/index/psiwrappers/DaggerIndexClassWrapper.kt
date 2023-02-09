@@ -20,7 +20,11 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
 
 /** A [DaggerIndexPsiWrapper] representing a class. */
 interface DaggerIndexClassWrapper : DaggerIndexAnnotatedWrapper {
-  /** Fully-qualified name of the class. Eg: "com.example.Foo" */
+  /**
+   * Returns the fully-qualified name of the class. Eg: "com.example.Foo"
+   *
+   * If the class has generic type arguments, they are omitted from the returned name.
+   */
   fun getFqName(): String
 }
 
