@@ -55,12 +55,12 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
 
   @Suppress("UNUSED_PARAMETER")
   private fun inspectorChanged(property: KProperty<*>, oldInspector: LayoutInspector?, newInspector: LayoutInspector?) {
-    oldInspector?.layoutInspectorModel?.selectionListeners?.remove(selectionListener)
-    newInspector?.layoutInspectorModel?.selectionListeners?.add(selectionListener)
-    oldInspector?.layoutInspectorModel?.modificationListeners?.remove(modificationListener)
-    newInspector?.layoutInspectorModel?.modificationListeners?.add(modificationListener)
-    oldInspector?.layoutInspectorModel?.connectionListeners?.remove(connectionListener)
-    newInspector?.layoutInspectorModel?.connectionListeners?.add(connectionListener)
+    oldInspector?.inspectorModel?.selectionListeners?.remove(selectionListener)
+    newInspector?.inspectorModel?.selectionListeners?.add(selectionListener)
+    oldInspector?.inspectorModel?.modificationListeners?.remove(modificationListener)
+    newInspector?.inspectorModel?.modificationListeners?.add(modificationListener)
+    oldInspector?.inspectorModel?.connectionListeners?.remove(connectionListener)
+    newInspector?.inspectorModel?.connectionListeners?.add(connectionListener)
   }
 
   override fun deactivate() {
@@ -92,7 +92,7 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
     if (structuralChange) {
       structuralUpdates++
     }
-    handleNewSelection(null, layoutInspector?.layoutInspectorModel?.selection, SelectionOrigin.INTERNAL)
+    handleNewSelection(null, layoutInspector?.inspectorModel?.selection, SelectionOrigin.INTERNAL)
   }
 
   private fun handleConnectionChange(client: InspectorClient?) {
@@ -102,7 +102,7 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
   }
 
   private fun updateProperties(from: PropertiesProvider, view: ViewNode, table: PropertiesTable<InspectorPropertyItem>) {
-    val selectedView = layoutInspector?.layoutInspectorModel?.selection
+    val selectedView = layoutInspector?.inspectorModel?.selection
     if (from != provider || selectedView == null || selectedView.drawId != view.drawId) {
       return
     }

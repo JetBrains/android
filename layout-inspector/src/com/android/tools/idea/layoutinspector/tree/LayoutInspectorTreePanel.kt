@@ -86,7 +86,7 @@ const val COMPONENT_TREE_NAME = "COMPONENT_TREE"
 class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<LayoutInspector> {
   private var layoutInspector: LayoutInspector? = null
   private val inspectorModel: InspectorModel?
-    get() = layoutInspector?.layoutInspectorModel
+    get() = layoutInspector?.inspectorModel
   @VisibleForTesting
   val tree: Tree
   @VisibleForTesting
@@ -271,7 +271,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     val inspector = layoutInspector ?: return
     val client = inspector.currentClient as? AppInspectionInspectorClient
     client?.updateRecompositionCountSettings()
-    inspector.layoutInspectorModel.resetRecompositionCounts()
+    inspector.inspectorModel.resetRecompositionCounts()
     componentTreeModel.columnDataChanged()
   }
 
@@ -368,7 +368,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   private fun matchNode(node: TreeViewNode): Boolean {
     val inspector = layoutInspector ?: return true
-    if (!inspector.layoutInspectorModel.isVisible(node.view)) {
+    if (!inspector.inspectorModel.isVisible(node.view)) {
       return false
     }
     val treeSettings = inspector.treeSettings

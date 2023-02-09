@@ -66,8 +66,6 @@ import javax.swing.event.HyperlinkEvent
 
 const val LAYOUT_INSPECTOR_TOOL_WINDOW_ID = "Layout Inspector"
 
-val LAYOUT_INSPECTOR_DATA_KEY = DataKey.create<LayoutInspector>(LayoutInspector::class.java.name)
-
 /**
  * Create a [DataProvider] for the specified [layoutInspector].
  */

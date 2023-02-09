@@ -122,8 +122,8 @@ fun LegacyClientProvider(
   LegacyClient(
     params.process,
     params.isInstantlyAutoConnected,
-    inspector.layoutInspectorModel,
-    LayoutInspectorSessionMetrics(inspector.layoutInspectorModel.project, params.process),
+    inspector.inspectorModel,
+    LayoutInspectorSessionMetrics(inspector.inspectorModel.project, params.process),
     AndroidCoroutineScope(getDisposable()),
     getDisposable(),
     treeLoaderOverride

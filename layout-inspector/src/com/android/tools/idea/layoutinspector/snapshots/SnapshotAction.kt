@@ -56,7 +56,7 @@ object ExportSnapshotAction : AnAction(
 
   override fun actionPerformed(event: AnActionEvent) {
     val inspector = event.getData(LAYOUT_INSPECTOR_DATA_KEY) ?: return
-    val project = inspector.layoutInspectorModel.project
+    val project = inspector.inspectorModel.project
     val outputDir = VfsUtil.getUserHomeDir()
 
     // Configure title, description and extension
@@ -89,7 +89,7 @@ object ImportSnapshotAction : AnAction(
 ), TooltipDescriptionProvider {
   override fun actionPerformed(event: AnActionEvent) {
     val inspector = event.getData(LAYOUT_INSPECTOR_DATA_KEY) ?: return
-    val project = inspector.layoutInspectorModel.project
+    val project = inspector.inspectorModel.project
 
     // Configure title, description and extension
     val descriptor = FileChooserDescriptorFactory.createSingleFileDescriptor(EXT_LAYOUT_INSPECTOR)

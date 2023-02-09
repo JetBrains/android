@@ -189,7 +189,7 @@ class DeviceViewPanel(
   }
 
   private val contentPanel = DeviceViewContentPanel(
-    inspectorModel = layoutInspector.layoutInspectorModel,
+    inspectorModel = layoutInspector.inspectorModel,
     deviceModel = deviceModel,
     treeSettings = layoutInspector.treeSettings,
     renderSettings = viewSettings,
@@ -359,7 +359,7 @@ class DeviceViewPanel(
     add(toolbarComponent, BorderLayout.NORTH)
     loadingPane.add(layeredPane, BorderLayout.CENTER)
     add(loadingPane, BorderLayout.CENTER)
-    val model = layoutInspector.layoutInspectorModel
+    val model = layoutInspector.inspectorModel
 
     model.attachStageListeners.add { state ->
       val text = when (state) {
@@ -502,7 +502,7 @@ class DeviceViewPanel(
 
   override fun zoom(type: ZoomType): Boolean {
     var newZoom = viewSettings.scalePercent
-    if (layoutInspector.layoutInspectorModel.isEmpty) {
+    if (layoutInspector.inspectorModel.isEmpty) {
       newZoom = 100
       scrollPane.viewport.revalidate()
     }
@@ -540,20 +540,20 @@ class DeviceViewPanel(
     // This will make sure the screen size is correct even if there are windows we don't know about yet.
     // Example: If the initial screen has a dialog open, we may receive the dialog first. We do not want to zoom to fit the dialog size
     // since it is often smaller than the screen size.
-    val size = layoutInspector.layoutInspectorModel.resourceLookup.screenDimension
+    val size = layoutInspector.inspectorModel.resourceLookup.screenDimension
     if (size != null) {
       return size
     }
     // For the legacy inspector and for snapshots loaded from file, we do not have the screen size, but we know that all windows are loaded.
-    val root = layoutInspector.layoutInspectorModel.root
+    val root = layoutInspector.inspectorModel.root
     return Dimension(root.layoutBounds.width, root.layoutBounds.height)
   }
 
-  override fun canZoomIn() = viewSettings.scalePercent < MAX_ZOOM && !layoutInspector.layoutInspectorModel.isEmpty
+  override fun canZoomIn() = viewSettings.scalePercent < MAX_ZOOM && !layoutInspector.inspectorModel.isEmpty
 
-  override fun canZoomOut() = viewSettings.scalePercent > MIN_ZOOM && !layoutInspector.layoutInspectorModel.isEmpty
+  override fun canZoomOut() = viewSettings.scalePercent > MIN_ZOOM && !layoutInspector.inspectorModel.isEmpty
 
-  override fun canZoomToFit() = !layoutInspector.layoutInspectorModel.isEmpty && getFitZoom() != viewSettings.scalePercent
+  override fun canZoomToFit() = !layoutInspector.inspectorModel.isEmpty && getFitZoom() != viewSettings.scalePercent
 
   override fun canZoomToActual() = viewSettings.scalePercent < 100 && canZoomIn() || viewSettings.scalePercent > 100 && canZoomOut()
 

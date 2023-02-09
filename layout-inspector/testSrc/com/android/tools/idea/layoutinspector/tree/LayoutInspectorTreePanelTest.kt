@@ -750,7 +750,7 @@ class LayoutInspectorTreePanelTest {
         treeChangeCount++
       }
     })
-    val model = inspector.layoutInspectorModel
+    val model = inspector.inspectorModel
     model.windows.values.forEach { window -> model.modificationListeners.forEach { it(window, window, false) } }
     assertThat(columnDataChangeCount).isEqualTo(1)
     assertThat(treeChangeCount).isEqualTo(0)
@@ -791,7 +791,7 @@ class LayoutInspectorTreePanelTest {
   fun testResetRecompositionCounts() {
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val inspector = inspectorRule.inspector
-    val model = inspector.layoutInspectorModel
+    val model = inspector.inspectorModel
     val compose1 = model[COMPOSE1] as ComposeViewNode
     val compose2 = model[COMPOSE2] as ComposeViewNode
     var selectionUpdate = 0
@@ -860,7 +860,7 @@ class LayoutInspectorTreePanelTest {
     tree.setToolContext(inspector)
     // Normally the tree would have received structural changes when the mode was loaded.
     // Mimic that here:
-    val model = inspector.layoutInspectorModel
+    val model = inspector.inspectorModel
     model.windows.values.forEach { window -> model.modificationListeners.forEach { it(window, window, true) } }
   }
 

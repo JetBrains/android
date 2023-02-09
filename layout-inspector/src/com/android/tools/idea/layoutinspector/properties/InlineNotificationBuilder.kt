@@ -26,7 +26,7 @@ class InlineNotificationBuilder(private val model: InspectorPropertiesModel) : I
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<InspectorPropertyItem>) {
     if (properties.namespaces.size > 1) return // If we have properties other than the "internal" generated for the dimension builder
-    val node = model.layoutInspector?.layoutInspectorModel?.selection
+    val node = model.layoutInspector?.inspectorModel?.selection
     if (node?.isInlined != true) return
     val titleModel = inspector.addExpandableTitle("Parameters", true)
     val text = JTextArea("The selected composable is inlined. " +
