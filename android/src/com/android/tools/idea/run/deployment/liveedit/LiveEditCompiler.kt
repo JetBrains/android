@@ -293,7 +293,7 @@ class LiveEditCompiler(val project: Project) {
         inlineCandidateCache.computeIfAbsent(name) {
           SourceInlineCandidate(input, it)
         }.setByteCode(primaryClass)
-        liveEditOutput.addClass(name, primaryClass)
+        liveEditOutput.addClass(LiveEditCompiledClass(name, primaryClass, input.module))
         continue
       }
 
@@ -306,7 +306,7 @@ class LiveEditCompiler(val project: Project) {
         inlineCandidateCache.computeIfAbsent(name) {
           SourceInlineCandidate(input, it)
         }.setByteCode(supportClass)
-        liveEditOutput.addSupportClass(name, supportClass)
+        liveEditOutput.addSupportClass(LiveEditCompiledClass(name, supportClass, input.module))
         continue
       }
 

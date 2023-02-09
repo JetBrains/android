@@ -64,7 +64,7 @@ class ComposableCompileTest {
     // Android activity. There are other hosts that we can possibly run as a Compose unit test.
     // We could potentially look into doing that. However, for the purpose of verifying the
     // compose compiler was invoked correctly, we can just check the output's methods.
-    Assert.assertTrue(output.classes["ComposeSimpleKt"]!!.isNotEmpty())
+    Assert.assertTrue(output.classesMap["ComposeSimpleKt"]!!.isNotEmpty())
 
     Assert.assertEquals(1639534479, output.groupIds.first())
 
@@ -96,9 +96,9 @@ class ComposableCompileTest {
       LiveEditCompilerInput(file2!!, findFunction(file2, "composableNested")),
       ))
 
-    Assert.assertEquals(2, output.classes.size)
-    Assert.assertTrue(output.classes.get("ComposeSimpleKt")!!.isNotEmpty())
-    Assert.assertTrue(output.classes.get("ComposeNestedKt")!!.isNotEmpty())
+    Assert.assertEquals(2, output.classesMap.size)
+    Assert.assertTrue(output.classesMap.get("ComposeSimpleKt")!!.isNotEmpty())
+    Assert.assertTrue(output.classesMap.get("ComposeNestedKt")!!.isNotEmpty())
 
     Assert.assertEquals(3, output.groupIds.size)
     Assert.assertTrue("groupids = " + output.groupIds.toString(), output.groupIds.contains(1639534479))
@@ -122,7 +122,7 @@ class ComposableCompileTest {
   @Test
   fun testModuleName() {
     val output = compile(files["HasComposableSingletons.kt"], "hasLambdaA")
-    val singleton = output.supportClasses.get("ComposableSingletons\$HasComposableSingletonsKt");
+    val singleton = output.supportClassesMap.get("ComposableSingletons\$HasComposableSingletonsKt");
     Assert.assertNotNull(singleton)
     val cl = loadClass(output, "ComposableSingletons\$HasComposableSingletonsKt")
     val getLambda = cl.methods.find { it.name.contains("getLambda") }

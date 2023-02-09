@@ -15,23 +15,40 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-data class LiveEditCompilerOutput private constructor (val classes: Map<String, ByteArray>,
-                                                       val supportClasses: Map<String, ByteArray>,
+import com.intellij.openapi.module.Module
+
+class LiveEditCompiledClass(val name: String, val data: ByteArray, val module: Module?)
+
+data class LiveEditCompilerOutput private constructor (val classes: List<LiveEditCompiledClass>,
+                                                       val supportClasses: List<LiveEditCompiledClass>,
                                                        val groupIds: List<Int>,
                                                        val resetState: Boolean) {
+
+  private fun getMap(cls : List<LiveEditCompiledClass>) : Map<String, ByteArray> {
+    val map : MutableMap<String, ByteArray> = HashMap()
+    cls.forEach{
+      map[it.name] = it.data
+    }
+    return map
+  }
+
+  val classesMap by lazy(LazyThreadSafetyMode.NONE) { getMap(classes)}
+  val supportClassesMap by lazy(LazyThreadSafetyMode.NONE) { getMap(supportClasses)}
+
+
   class Builder(
-    var classes: HashMap<String, ByteArray> = HashMap(),
-    var supportClasses: HashMap<String, ByteArray> = HashMap(),
+    var classes: MutableList<LiveEditCompiledClass> = ArrayList(),
+    var supportClasses: MutableList<LiveEditCompiledClass> = ArrayList(),
     var groupIds: ArrayList<Int> = ArrayList(),
     var resetState: Boolean = false) {
 
-    fun addClass(name: String, code: ByteArray) : Builder {
-      classes[name] = code
+    fun addClass(clazz: LiveEditCompiledClass) : Builder {
+      classes.add(clazz)
       return this
     }
 
-    fun addSupportClass(name: String, code: ByteArray): Builder {
-      supportClasses[name] = code
+    fun addSupportClass(clazz: LiveEditCompiledClass): Builder {
+      supportClasses.add(clazz)
       return this
     }
 

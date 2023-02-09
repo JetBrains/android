@@ -504,21 +504,19 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
 
     LiveUpdateDeployer.UpdateLiveEditsParam param =
       new LiveUpdateDeployer.UpdateLiveEditsParam(
-        update.getClasses(),
-        update.getSupportClasses(),
+        update.getClassesMap(),
+        update.getSupportClassesMap(),
         update.getGroupIds(),
         usePartialRecompose,
         useDebugMode);
 
     if (useDebugMode) {
-      for (String className : update.getSupportClasses().keySet()) {
-        byte[] bytecode = update.getSupportClasses().get(className);
-        writeDebugToTmp(className.replaceAll("/", ".") + ".class", bytecode);
+      for (LiveEditCompiledClass clazz : update.getClasses()) {
+        writeDebugToTmp(clazz.getName().replaceAll("/", ".") + ".class", clazz.getData());
       }
 
-      for (String supportClassName : update.getSupportClasses().keySet()) {
-        byte[] bytecode = update.getSupportClasses().get(supportClassName);
-        writeDebugToTmp(supportClassName.replaceAll("/", ".") + ".class", bytecode);
+      for (LiveEditCompiledClass clazz : update.getSupportClasses()) {
+        writeDebugToTmp(clazz.getName().replaceAll("/", ".") + ".class", clazz.getData());
       }
     }
 

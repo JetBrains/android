@@ -163,7 +163,7 @@ class BasicCompileTest {
   @Test
   fun internalVar() {
     var output = compile(files["HasInternalVar.kt"], "getNum")
-    Assert.assertTrue(output.classes["HasInternalVarKt"]!!.isNotEmpty())
+    Assert.assertTrue(output.classesMap["HasInternalVarKt"]!!.isNotEmpty())
     var returnedValue = invokeStatic("getNum", loadClass(output))
     Assert.assertEquals(1, returnedValue)
   }
@@ -181,7 +181,7 @@ class BasicCompileTest {
   @Test
   fun renamedFile() {
     var output = compile(files["RenamedFile.kt"], "T")
-    Assert.assertTrue(output.classes["CustomJvmName"]!!.isNotEmpty())
-    Assert.assertTrue(output.classes["CustomJvmName__RenamedFileKt"]!!.isNotEmpty())
+    Assert.assertTrue(output.classesMap["CustomJvmName"]!!.isNotEmpty())
+    Assert.assertTrue(output.classesMap["CustomJvmName__RenamedFileKt"]!!.isNotEmpty())
   }
 }
