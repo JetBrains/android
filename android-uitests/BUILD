@@ -185,6 +185,8 @@ maven_repository(
         "@maven//:androidx.wear.tiles.tiles_1.1.0",
         "@maven//:androidx.wear.watchface.watchface-complications-data-source-ktx_1.1.1",
         "@maven//:androidx.wear.wear_1.2.0",
+        "@maven//:com.android.application.com.android.application.gradle.plugin_7.2.0",
+        "@maven//:com.android.application.com.android.application.gradle.plugin_7.4.1",
         "@maven//:com.android.support.appcompat-v7_25.4.0",
         "@maven//:com.android.support.appcompat-v7_28.0.0",
         "@maven//:com.android.support.constraint.constraint-layout_1.0.2",
@@ -1225,6 +1227,21 @@ java_test(
     tags = COMMON_TAGS + [
         "qa_smoke",
         "no_windows",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "GradleVersionCatalogTest",
+    size = "enormous",
+    timeout = "long",
+    data = COMMON_DATA + glob([
+        "testData/VersionCatalogProject/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.GradleVersionCatalogTest"],
+    tags = COMMON_TAGS + [
+        "qa_smoke",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
