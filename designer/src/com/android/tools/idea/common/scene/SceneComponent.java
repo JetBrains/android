@@ -71,6 +71,12 @@ public class SceneComponent {
   private boolean myIsHighlighted = false;
   protected boolean myDragging = false;
 
+  /**
+   * When true, then {@link DrawState.SELECTED} will be forced every time {@link myIsSelected} is true.
+   * When false, the value of {@link myIsSelected} won't have any influence over {@link myDrawState}.
+   */
+  private boolean myPrioritizeSelectedDrawState = true;
+
   private AnimatedValue myAnimatedDrawX = new AnimatedValue();
   private AnimatedValue myAnimatedDrawY = new AnimatedValue();
   private AnimatedValue myAnimatedDrawWidth = new AnimatedValue();
@@ -518,12 +524,17 @@ public class SceneComponent {
   public void setDrawState(@NotNull DrawState drawState) {
     DrawState oldState = myDrawState;
     myDrawState = drawState;
-    if (myIsSelected) {
+    if (myIsSelected && myPrioritizeSelectedDrawState) {
       myDrawState = DrawState.SELECTED;
     }
     if (oldState != myDrawState) {
       DecoratorUtilities.setTimeChange(myNlComponent, DecoratorUtilities.VIEW, DecoratorUtilities.mapState(drawState));
     }
+  }
+
+  public void setPrioritizeSelectedDrawState(boolean prioritizeSelected) {
+    myPrioritizeSelectedDrawState = prioritizeSelected;
+    updateDrawStateUsingSelection();
   }
 
   @AndroidDpCoordinate
@@ -541,15 +552,19 @@ public class SceneComponent {
       myShowBaseline = false;
     }
     myIsSelected = selected;
-    if (myIsSelected) {
-      setDrawState(DrawState.SELECTED);
-    }
-    else {
-      setDrawState(DrawState.NORMAL);
-    }
+    updateDrawStateUsingSelection();
 
     synchronized (myTargets) {
       myTargets.forEach(it -> it.componentSelectionChanged(selected));
+    }
+  }
+
+  private void updateDrawStateUsingSelection() {
+    if (myIsSelected && myPrioritizeSelectedDrawState) {
+      setDrawState(DrawState.SELECTED);
+    }
+    else if (getDrawState() == DrawState.SELECTED) {
+      setDrawState(DrawState.NORMAL);
     }
   }
 
