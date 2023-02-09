@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.rendering.classloading.loaders
 
-import com.android.ide.common.util.PathString
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.writeChild
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import org.junit.After
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -42,6 +43,11 @@ private class TestVirtualFile(delegate: VirtualFile) : DelegateVirtualFile(deleg
 class ProjectSystemClassLoaderTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
+
+  @After
+  fun tearDown() {
+    StudioFlags.PROJECT_SYSTEM_CLASS_LOADER_CACHE_LIMIT.clearOverride()
+  }
 
   @Test
   fun `check load from project`() {
@@ -203,5 +209,49 @@ class ProjectSystemClassLoaderTest {
     assertEquals("contents1", String(loader.loadClass("A")!!))
     assertEquals("contents2", String(loader.loadClass("B")!!))
     assertEquals("contents3", String(loader.loadClass("test.package.C")!!))
+  }
+
+  @Test
+  fun `jar is evicted from cache if bigger than maximum size`() {
+    val tempDirectory = VfsUtil.findFileByIoFile(Files.createTempDirectory("out").toFile(), true)!!
+    val outputJar = tempDirectory.toNioPath().resolve("classes.jar")
+
+    val outputJarPath = createJarFile(outputJar, mapOf(
+      "ClassA.class" to "contents1".encodeToByteArray(),
+      "ClassB.class" to "contents2".encodeToByteArray(),
+      "test/package/ClassC.class" to "contents3".encodeToByteArray(),
+    ))
+
+    val classes = mutableMapOf(
+      "A" to VfsUtil.findFileByURL(URL("jar:file:$outputJarPath!/ClassA.class")),
+      "B" to VfsUtil.findFileByURL(URL("jar:file:$outputJarPath!/ClassB.class")),
+      "test.package.C" to VfsUtil.findFileByURL(URL("jar:file:$outputJarPath!/test/package/ClassC.class"))
+    )
+
+    var cacheMissCount = 0
+    // Default maximum weight
+    val loader = ProjectSystemClassLoader {
+      classes[it]
+    }
+    loader.jarManager.cacheMissCallback = { cacheMissCount++ }
+
+    assertEquals("contents1", String(loader.loadClass("A")!!))
+    assertEquals("contents2", String(loader.loadClass("B")!!))
+    assertEquals("contents3", String(loader.loadClass("test.package.C")!!))
+    // We only miss the cache on the first call. Following calls to loadClass rely on the cached value.
+    assertEquals(1, cacheMissCount)
+
+    cacheMissCount = 0
+    StudioFlags.PROJECT_SYSTEM_CLASS_LOADER_CACHE_LIMIT.override(1)
+    val tinyCacheLoader = ProjectSystemClassLoader {
+      classes[it]
+    }
+    tinyCacheLoader.jarManager.cacheMissCallback = { cacheMissCount++ }
+
+    assertEquals("contents1", String(tinyCacheLoader.loadClass("A")!!))
+    assertEquals("contents2", String(tinyCacheLoader.loadClass("B")!!))
+    assertEquals("contents3", String(tinyCacheLoader.loadClass("test.package.C")!!))
+    // We miss the cache on every loadClass call, because the JAR is evicted from the cache for being bigger than its maximum weight.
+    assertEquals(3, cacheMissCount)
   }
 }

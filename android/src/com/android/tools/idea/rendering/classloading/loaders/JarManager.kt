@@ -19,6 +19,7 @@ import com.google.common.cache.AbstractCache
 import com.google.common.cache.Cache
 import com.google.common.io.ByteStreams
 import com.intellij.util.io.URLUtil
+import org.jetbrains.annotations.TestOnly
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -86,6 +87,12 @@ private fun loadFileFromJarOnDisk(jarPath: String, filePath: String): ByteArray 
  * file and add them to the given [jarFileCache] if any.
  */
 class JarManager(private val prefetchAllFiles: Boolean = false, private val jarFileCache: Cache<String, EntryCache> = noCache) {
+
+  /**
+   * Callback to be used in tests when the [jarFileCache] can't find a value corresponding to the given key in the cache.
+   */
+  @TestOnly var cacheMissCallback = {}
+
   /**
    * Loads a file from the given [path] and returns its contents or null if the file does not exist.
    */
@@ -96,6 +103,7 @@ class JarManager(private val prefetchAllFiles: Boolean = false, private val jarF
     val filePath = splitJarPaths.second
 
     val entryCache = jarFileCache.get(jarPath) {
+      cacheMissCallback()
       if (prefetchAllFiles && jarFileCache != noCache) {
         loadAllFilesFromJarOnDisk(jarPath)
       }

@@ -195,6 +195,15 @@ public final class StudioFlags {
     DESIGN_TOOLS, "power.save.support", "Enable previews support for PowerSave mode",
     "If enabled, the the Layout Editor and Compose Preview will respect the Power Save mode and avoid auto-refresh, reduce FPS, etc.",
     true);
+
+  public static final Flag<Integer> PROJECT_SYSTEM_CLASS_LOADER_CACHE_LIMIT = Flag.create(
+    DESIGN_TOOLS,
+    "project.system.class.loader.cache.max.size",
+    "Configure the max size of the cache used by ProjectSystemClassLoader",
+    "Allow configuring the maximum size (in bytes) of the cache used by the ProjectSystemClassLoader to load classes from JAR files. " +
+    "Files larger than the cache limit will cause a file miss and the file will need to be read again.",
+    1_000_000
+  );
   //endregion
 
   //region Layout Editor
