@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.sdk.install.patch;
 
-import com.android.io.CancellableFileIo;
+import static com.android.tools.idea.sdk.install.patch.PatchInstallerUtil.getPatcherFile;
+
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.lang.UrlClassLoader;
 import java.awt.Component;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
@@ -36,11 +37,6 @@ import org.jetbrains.annotations.Nullable;
  * The Studio side of the integration between studio and the IJ patcher.
  */
 public class PatchRunner {
-  /**
-   * Name of the patcher jar file from the patcher package.
-   */
-  private static final String PATCHER_JAR_FN = "patcher.jar";
-
   /**
    * Runner class we'll invoke from the jar.
    */
@@ -65,7 +61,6 @@ public class PatchRunner {
   private final Class<?> myUiBaseClass;
   private final Class<?> myUiClass;
   private final Class<?> myGeneratorClass;
-  private final Path myPatcherJar;
 
   /**
    * Cache of patcher classes. Key is jar file, subkey is class name.
@@ -165,19 +160,11 @@ public class PatchRunner {
     }
   }
 
-  @Nullable
-  private static Path getPatcherFile(@Nullable LocalPackage patcherPackage) {
-    Path patcherFile = patcherPackage == null ? null : patcherPackage.getLocation().resolve(PATCHER_JAR_FN);
-    return patcherFile != null && CancellableFileIo.exists(patcherFile) ? patcherFile : null;
-  }
-
   @VisibleForTesting
-  PatchRunner(@NotNull Path jarFile,
-              @NotNull Class<?> runnerClass,
+  PatchRunner(@NotNull Class<?> runnerClass,
               @NotNull Class<?> uiBaseClass,
               @NotNull Class<?> uiClass,
               @NotNull Class<?> generatorClass) {
-    myPatcherJar = jarFile;
     myRunnerClass = runnerClass;
     myUiBaseClass = uiBaseClass;
     myUiClass = uiClass;
@@ -185,16 +172,29 @@ public class PatchRunner {
   }
 
   /**
-   * Gets a class loader for the given jar.
+   * Class loader that prioritizes classes from the given jar.
    */
-  @NotNull
-  private static ClassLoader getClassLoader(@NotNull Path patcherJar) {
-    return UrlClassLoader.build().files(Collections.singletonList(patcherJar)).parent(PatchInstaller.class.getClassLoader()).get();
-  }
+  private static class PreferentialClassLoader extends UrlClassLoader {
+    public PreferentialClassLoader(Path patcherJar) {
+      super(UrlClassLoader.build().files(Collections.singletonList(patcherJar)).parent(PatchRunner.class.getClassLoader()), null, false);
+    }
 
-  @NotNull
-  public Path getPatcherJar() {
-    return myPatcherJar;
+    @Override
+    public Class<?> loadClass(String name)
+      throws ClassNotFoundException
+    {
+      synchronized (getClassLoadingLock(name)) {
+        Class<?> c = findLoadedClass(name);
+        if (c != null) {
+          return c;
+        }
+        try {
+          return findClass(name);
+        } catch (ClassNotFoundException e) {
+          return getParent().loadClass(name);
+        }
+      }
+    }
   }
 
   public static class RestartRequiredException extends RuntimeException {
@@ -214,19 +214,21 @@ public class PatchRunner {
         return result;
       }
       try {
-        Path patcherFile = getPatcherFile(runnerPackage);
-        if (patcherFile == null) {
-          progress.logWarning("Failed to find patcher JAR!");
-          return null;
-        }
-        ClassLoader loader = getClassLoader(patcherFile);
-        Class<?> runnerClass = Class.forName(RUNNER_CLASS_NAME, true, loader);
-        Class<?> uiBaseClass = Class.forName(UPDATER_UI_CLASS_NAME, true, loader);
-        Class<?> uiClass = Class.forName(REPO_UI_CLASS_NAME, true, loader);
-        Class<?> generatorClass = Class.forName(PATCH_GENERATOR_CLASS_NAME, true, loader);
+        ClassLoader loader = getLoader(runnerPackage, progress);
+        if (loader == null) return null;
+        try {
+          Class<?> runnerClass = Class.forName(RUNNER_CLASS_NAME, true, loader);
+          Class<?> uiBaseClass = Class.forName(UPDATER_UI_CLASS_NAME, true, loader);
+          Class<?> uiClass = Class.forName(REPO_UI_CLASS_NAME, true, loader);
+          Class<?> generatorClass = Class.forName(PATCH_GENERATOR_CLASS_NAME, true, loader);
 
-        result = new PatchRunner(patcherFile, runnerClass, uiBaseClass, uiClass, generatorClass);
-        ourCache.put(runnerPackage, result);
+          result = new PatchRunner(runnerClass, uiBaseClass, uiClass, generatorClass);
+          ourCache.put(runnerPackage, result);
+        }
+        catch (Throwable e) {
+          Logger.getInstance(PatchRunner.class).warn("Patch runner failed", e);
+          throw e;
+        }
         return result;
       }
       catch (ClassNotFoundException e) {
@@ -234,5 +236,15 @@ public class PatchRunner {
         return null;
       }
     }
+  }
+
+  @Nullable
+  static ClassLoader getLoader(@NotNull LocalPackage runnerPackage, @NotNull ProgressIndicator progress) {
+    Path patcherFile = getPatcherFile(runnerPackage);
+    if (patcherFile == null) {
+      progress.logWarning("Failed to find patcher JAR!");
+      return null;
+    }
+    return new PreferentialClassLoader(patcherFile);
   }
 }
