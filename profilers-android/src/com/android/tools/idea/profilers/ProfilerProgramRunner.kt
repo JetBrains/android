@@ -113,7 +113,7 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
     val dialog = object : DialogWrapper(environment.project) {
       override fun createCenterPanel(): JComponent {
         return JPanel(BorderLayout()).apply {
-          add(JBLabel("<html>Profiling with Low Overhead requires Android Gradle Plugin 7.3, a device with API level 29 or higher,<br>" +
+          add(JBLabel("<html>Profiling with Low Overhead requires Android Gradle Plugin 7.3 or higher, a device with API level 29 or higher,<br>" +
                       "and a system that is not debuggable (e.g., a Google Play enabled emulator system image).<br>" +
                       "Do you want to Profile with Complete Data instead?</html>"), BorderLayout.CENTER)
         }
