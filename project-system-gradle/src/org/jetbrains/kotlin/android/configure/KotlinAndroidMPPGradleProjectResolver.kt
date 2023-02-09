@@ -31,7 +31,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemConstants
 import com.intellij.openapi.externalSystem.util.Order
 import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetData
-import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProjectResolver
+import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMppGradleProjectResolver
 import org.jetbrains.kotlin.idea.gradleJava.configuration.getMppModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModelBuilder
@@ -69,7 +69,7 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
     return super.createModule(gradleModule, projectDataNode)!!.also { ideModule ->
       val sourceSetByName = ideModule.sourceSetsByName()
       for ((sourceSetDesc, compilation) in mppModel.androidCompilationsForVariant(selectedVariantName)) {
-        val kotlinSourceSetInfo = KotlinMPPGradleProjectResolver.createSourceSetInfo(mppModel, compilation, gradleModule, resolverCtx) ?: continue
+        val kotlinSourceSetInfo = KotlinMppGradleProjectResolver.createSourceSetInfo(mppModel, compilation, gradleModule, resolverCtx) ?: continue
         val androidGradleSourceSetDataNode = sourceSetByName[sourceSetDesc.sourceSetName] ?: continue
 
         androidGradleSourceSetDataNode.createChild(KotlinSourceSetData.KEY, KotlinSourceSetData(kotlinSourceSetInfo))
