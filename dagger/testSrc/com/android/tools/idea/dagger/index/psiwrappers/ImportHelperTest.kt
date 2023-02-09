@@ -34,8 +34,7 @@ import org.junit.runners.JUnit4
 @RunsInEdt
 class ImportHelperTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   private lateinit var myFixture: CodeInsightTestFixture
 
@@ -46,94 +45,121 @@ class ImportHelperTest {
 
   @Test
   fun kotlin_getPossibleAnnotationText_noImports() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
 
-    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject")).containsExactly("javax.inject.Inject")
-    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject")).containsExactly("com.example.Inject", "Inject")
+    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject"))
+      .containsExactly("javax.inject.Inject")
+    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject"))
+      .containsExactly("com.example.Inject", "Inject")
   }
 
   @Test
   fun kotlin_getPossibleAnnotationText_starImports() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
       import javax.inject.*
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
 
-    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject")).containsExactly("javax.inject.Inject", "Inject")
-    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject")).containsExactly("com.example.Inject", "Inject")
+    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject"))
+      .containsExactly("javax.inject.Inject", "Inject")
+    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject"))
+      .containsExactly("com.example.Inject", "Inject")
   }
 
   @Test
   fun kotlin_getPossibleAnnotationText_directImport() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
       import javax.inject.Inject
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
 
-    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject")).containsExactly("javax.inject.Inject", "Inject")
-    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject")).containsExactly("com.example.Inject", "Inject")
+    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject"))
+      .containsExactly("javax.inject.Inject", "Inject")
+    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject"))
+      .containsExactly("com.example.Inject", "Inject")
   }
 
   @Test
   fun kotlin_getPossibleAnnotationText_importWithAlias() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
       import javax.inject.Inject as OtherInject
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
 
-    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject")).containsExactly("javax.inject.Inject", "OtherInject")
-    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject")).containsExactly("com.example.Inject", "Inject")
+    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject"))
+      .containsExactly("javax.inject.Inject", "OtherInject")
+    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject"))
+      .containsExactly("com.example.Inject", "Inject")
   }
 
   @Test
   fun `kotlin_getPossibleAnnotationText_allTheImports!!!`() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
       import javax.inject.*
       import javax.inject.Inject
       import javax.inject.Inject as OtherInject
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
 
-    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject")).containsExactly("javax.inject.Inject", "Inject",
-                                                                                              "OtherInject")
-    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject")).containsExactly("com.example.Inject", "Inject")
+    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject"))
+      .containsExactly("javax.inject.Inject", "Inject", "OtherInject")
+    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject"))
+      .containsExactly("com.example.Inject", "Inject")
   }
 
   @Test
   fun kotlin_aliasMap_noImports() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
 
@@ -142,16 +168,19 @@ class ImportHelperTest {
 
   @Test
   fun kotlin_aliasMap_noAliases() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
 
       import javax.import.*
       import com.other.Foo
       import java.util.List
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
 
@@ -160,16 +189,19 @@ class ImportHelperTest {
 
   @Test
   fun kotlin_aliasMap_aliases() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
 
       import javax.import.*
       import com.other.Foo as Bar
       import java.util.List as MyList
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
 
@@ -178,65 +210,85 @@ class ImportHelperTest {
 
   @Test
   fun java_getPossibleAnnotationText_noImports() {
-    val psiFile = myFixture.configureByText(
-      JavaFileType.INSTANCE,
-      //language=java
-      """
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
       package com.example;
-      """.trimIndent()) as PsiJavaFile
+      """.trimIndent()
+      ) as
+        PsiJavaFile
 
     val importHelper = JavaImportHelper(psiFile)
 
-    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject")).containsExactly("javax.inject.Inject")
-    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject")).containsExactly("com.example.Inject", "Inject")
+    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject"))
+      .containsExactly("javax.inject.Inject")
+    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject"))
+      .containsExactly("com.example.Inject", "Inject")
   }
 
   @Test
   fun java_getPossibleAnnotationText_starImports() {
-    val psiFile = myFixture.configureByText(
-      JavaFileType.INSTANCE,
-      //language=java
-      """
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
       package com.example;
       import javax.inject.*;
-      """.trimIndent()) as PsiJavaFile
+      """.trimIndent()
+      ) as
+        PsiJavaFile
 
     val importHelper = JavaImportHelper(psiFile)
 
-    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject")).containsExactly("javax.inject.Inject", "Inject")
-    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject")).containsExactly("com.example.Inject", "Inject")
+    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject"))
+      .containsExactly("javax.inject.Inject", "Inject")
+    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject"))
+      .containsExactly("com.example.Inject", "Inject")
   }
 
   @Test
   fun java_getPossibleAnnotationText_directImport() {
-    val psiFile = myFixture.configureByText(
-      JavaFileType.INSTANCE,
-      //language=java
-      """
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
       package com.example;
       import javax.inject.Inject;
-      """.trimIndent()) as PsiJavaFile
+      """.trimIndent()
+      ) as
+        PsiJavaFile
 
     val importHelper = JavaImportHelper(psiFile)
 
-    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject")).containsExactly("javax.inject.Inject", "Inject")
-    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject")).containsExactly("com.example.Inject", "Inject")
+    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject"))
+      .containsExactly("javax.inject.Inject", "Inject")
+    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject"))
+      .containsExactly("com.example.Inject", "Inject")
   }
 
   @Test
   fun java_getPossibleAnnotationText_importedBothWays() {
-    val psiFile = myFixture.configureByText(
-      JavaFileType.INSTANCE,
-      //language=java
-      """
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
       package com.example;
       import javax.inject.*
       import javax.inject.Inject;
-      """.trimIndent()) as PsiJavaFile
+      """.trimIndent()
+      ) as
+        PsiJavaFile
 
     val importHelper = JavaImportHelper(psiFile)
 
-    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject")).containsExactly("javax.inject.Inject", "Inject")
-    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject")).containsExactly("com.example.Inject", "Inject")
+    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject"))
+      .containsExactly("javax.inject.Inject", "Inject")
+    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject"))
+      .containsExactly("com.example.Inject", "Inject")
   }
 }

@@ -26,16 +26,22 @@ interface DaggerIndexClassWrapper : DaggerIndexPsiWrapper {
   fun getIsAnnotatedWith(fqName: String): Boolean
 }
 
-internal class KtClassOrObjectWrapper(private val ktClassOrObject: KtClassOrObject,
-                                      private val importHelper: KotlinImportHelper) : DaggerIndexClassWrapper {
+internal class KtClassOrObjectWrapper(
+  private val ktClassOrObject: KtClassOrObject,
+  private val importHelper: KotlinImportHelper
+) : DaggerIndexClassWrapper {
   override fun getFqName(): String = ktClassOrObject.fqName!!.asString()
 
-  override fun getIsAnnotatedWith(fqName: String) = ktClassOrObject.getIsAnnotatedWith(fqName, importHelper)
+  override fun getIsAnnotatedWith(fqName: String) =
+    ktClassOrObject.getIsAnnotatedWith(fqName, importHelper)
 }
 
-internal class PsiClassWrapper(private val psiClass: PsiClass,
-                               private val importHelper: JavaImportHelper) : DaggerIndexClassWrapper {
+internal class PsiClassWrapper(
+  private val psiClass: PsiClass,
+  private val importHelper: JavaImportHelper
+) : DaggerIndexClassWrapper {
   override fun getFqName(): String = psiClass.qualifiedName!!
 
-  override fun getIsAnnotatedWith(fqName: String) = psiClass.getIsAnnotatedWith(fqName, importHelper)
+  override fun getIsAnnotatedWith(fqName: String) =
+    psiClass.getIsAnnotatedWith(fqName, importHelper)
 }

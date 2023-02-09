@@ -25,10 +25,11 @@ fun serializeAndDeserializeIndexValue(indexValue: IndexValue): IndexValue =
   serializeAndDeserializeIndexValues(setOf(indexValue)).single()
 
 fun serializeAndDeserializeIndexValues(indexValues: Set<IndexValue>): Set<IndexValue> {
-  val bytes = ByteArrayOutputStream().use { baos ->
-    DataOutputStream(baos).use { dos -> IndexValue.Externalizer.save(dos, indexValues) }
-    baos.toByteArray()
-  }
+  val bytes =
+    ByteArrayOutputStream().use { baos ->
+      DataOutputStream(baos).use { dos -> IndexValue.Externalizer.save(dos, indexValues) }
+      baos.toByteArray()
+    }
 
   return ByteArrayInputStream(bytes).use { bais ->
     DataInputStream(bais).use { dis -> IndexValue.Externalizer.read(dis) }

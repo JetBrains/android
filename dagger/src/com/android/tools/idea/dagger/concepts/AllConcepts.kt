@@ -19,24 +19,28 @@ import com.android.tools.idea.dagger.index.DaggerConceptIndexers
 import com.android.tools.idea.dagger.index.IndexValue
 
 /**
- * Collection of all known [DaggerConcept]s. This is effectively the entry point for external consumers of concepts, since they do not need
- * to know about the individual concepts and instead look at the set of all of them together.
+ * Collection of all known [DaggerConcept]s. This is effectively the entry point for external
+ * consumers of concepts, since they do not need to know about the individual concepts and instead
+ * look at the set of all of them together.
  */
 object AllConcepts : DaggerConcept {
-  private val CONCEPTS = listOf(
-    InjectedConstructorDaggerConcept,
-    InjectedFieldDaggerConcept,
-    ProvidesMethodDaggerConcept,
-  )
+  private val CONCEPTS =
+    listOf(
+      InjectedConstructorDaggerConcept,
+      InjectedFieldDaggerConcept,
+      ProvidesMethodDaggerConcept,
+    )
 
   override val indexers =
     CONCEPTS.map(DaggerConcept::indexers).let { indexersList ->
       DaggerConceptIndexers(
         indexersList.flatMap(DaggerConceptIndexers::fieldIndexers),
-        indexersList.flatMap(DaggerConceptIndexers::methodIndexers))
+        indexersList.flatMap(DaggerConceptIndexers::methodIndexers)
+      )
     }
 
-  override val indexValueReaders: List<IndexValue.Reader> = CONCEPTS.flatMap(DaggerConcept::indexValueReaders)
+  override val indexValueReaders: List<IndexValue.Reader> =
+    CONCEPTS.flatMap(DaggerConcept::indexValueReaders)
 
   override val daggerElementIdentifiers: DaggerElementIdentifiers =
     DaggerElementIdentifiers.of(CONCEPTS.map(DaggerConcept::daggerElementIdentifiers))

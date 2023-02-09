@@ -38,8 +38,7 @@ import org.junit.runners.JUnit4
 @RunsInEdt
 class DaggerIndexTypeWrapperTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   private lateinit var myFixture: CodeInsightTestFixture
 
@@ -50,15 +49,18 @@ class DaggerIndexTypeWrapperTest {
 
   @Test
   fun kotlinUnqualifiedType() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
       class Foo {
         fun bar(): Baz {} 
       }
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("Ba|z {}").parentOfType<KtTypeReference>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -68,17 +70,20 @@ class DaggerIndexTypeWrapperTest {
 
   @Test
   fun kotlinUnqualifiedTypeWithImport() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
       import com.other.Baz
 
       class Foo {
         fun bar(): Baz {} 
       }
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("Ba|z {}").parentOfType<KtTypeReference>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -88,17 +93,20 @@ class DaggerIndexTypeWrapperTest {
 
   @Test
   fun kotlinUnqualifiedTypeWithImportAlias() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
       import com.other.Aliased as Baz
 
       class Foo {
         fun bar(): Baz {} 
       }
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("Ba|z {}").parentOfType<KtTypeReference>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -108,16 +116,19 @@ class DaggerIndexTypeWrapperTest {
 
   @Test
   fun kotlinQualifiedType() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
 
       class Foo {
         fun bar(): com.other.Baz {} 
       }
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("Ba|z {}").parentOfType<KtTypeReference>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -127,17 +138,20 @@ class DaggerIndexTypeWrapperTest {
 
   @Test
   fun kotlinInnerClassType() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
       import com.other.Baz
 
       class Foo {
         fun bar(): Baz.InnerClass {} 
       }
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("Ba|z.InnerClass {}").parentOfType<KtTypeReference>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -147,17 +161,20 @@ class DaggerIndexTypeWrapperTest {
 
   @Test
   fun kotlinAliasedInnerClassType() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
       import com.other.Aliased as Baz
 
       class Foo {
         fun bar(): Baz.InnerClass {} 
       }
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("Ba|z.InnerClass {}").parentOfType<KtTypeReference>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -167,17 +184,20 @@ class DaggerIndexTypeWrapperTest {
 
   @Test
   fun kotlinStarImportType() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
       import com.other.*
 
       class Foo {
         fun bar(): Baz {} 
       }
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("Ba|z {}").parentOfType<KtTypeReference>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -187,15 +207,18 @@ class DaggerIndexTypeWrapperTest {
 
   @Test
   fun javaUnqualifiedType() {
-    val psiFile = myFixture.configureByText(
-      JavaFileType.INSTANCE,
-      //language=java
-      """
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
       package com.example;
       public class Foo {
         public Baz bar() {}
       }
-      """.trimIndent()) as PsiJavaFile
+      """.trimIndent()
+      ) as
+        PsiJavaFile
 
     val element = myFixture.moveCaret("Ba|z bar()").parentOfType<PsiTypeElement>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
@@ -205,17 +228,20 @@ class DaggerIndexTypeWrapperTest {
 
   @Test
   fun javaUnqualifiedTypeWithImport() {
-    val psiFile = myFixture.configureByText(
-      JavaFileType.INSTANCE,
-      //language=java
-      """
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
       package com.example;
       import com.other.Baz;
       
       public class Foo {
         public Baz bar() {}
       }
-      """.trimIndent()) as PsiJavaFile
+      """.trimIndent()
+      ) as
+        PsiJavaFile
 
     val element = myFixture.moveCaret("Ba|z bar()").parentOfType<PsiTypeElement>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
@@ -225,15 +251,18 @@ class DaggerIndexTypeWrapperTest {
 
   @Test
   fun javaQualifiedType() {
-    val psiFile = myFixture.configureByText(
-      JavaFileType.INSTANCE,
-      //language=java
-      """
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
       package com.example;
       public class Foo {
         public com.other.Baz bar() {}
       }
-      """.trimIndent()) as PsiJavaFile
+      """.trimIndent()
+      ) as
+        PsiJavaFile
 
     val element = myFixture.moveCaret("Ba|z bar()").parentOfType<PsiTypeElement>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
@@ -243,17 +272,20 @@ class DaggerIndexTypeWrapperTest {
 
   @Test
   fun javaInnerClassType() {
-    val psiFile = myFixture.configureByText(
-      JavaFileType.INSTANCE,
-      //language=java
-      """
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
       package com.example;
       import com.other.Baz;
       
       public class Foo {
         public Baz.InnerClass bar() {}
       }
-      """.trimIndent()) as PsiJavaFile
+      """.trimIndent()
+      ) as
+        PsiJavaFile
 
     val element = myFixture.moveCaret("Ba|z.InnerClass bar()").parentOfType<PsiTypeElement>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
@@ -263,17 +295,20 @@ class DaggerIndexTypeWrapperTest {
 
   @Test
   fun javaStarImportType() {
-    val psiFile = myFixture.configureByText(
-      JavaFileType.INSTANCE,
-      //language=java
-      """
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
       package com.example;
       import com.other.*;
 
       public class Foo {
         public Baz bar() {}
       }
-      """.trimIndent()) as PsiJavaFile
+      """.trimIndent()
+      ) as
+        PsiJavaFile
 
     val element = myFixture.moveCaret("Ba|z bar()").parentOfType<PsiTypeElement>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)

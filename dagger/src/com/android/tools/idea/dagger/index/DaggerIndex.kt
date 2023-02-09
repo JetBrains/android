@@ -32,7 +32,8 @@ import org.jetbrains.kotlin.idea.stubindex.KotlinTypeAliasByExpansionShortNameIn
 
 class DaggerIndex : FileBasedIndexExtension<String, Set<IndexValue>>() {
   companion object {
-    private val NAME: ID<String, Set<IndexValue>> = ID.create("com.android.tools.idea.dagger.index.DaggerIndex")
+    private val NAME: ID<String, Set<IndexValue>> =
+      ID.create("com.android.tools.idea.dagger.index.DaggerIndex")
 
     internal fun getValues(key: String, scope: GlobalSearchScope): Set<IndexValue> {
       return FileBasedIndex.getInstance().getValues(NAME, key, scope).flatten().toSet()
@@ -41,33 +42,44 @@ class DaggerIndex : FileBasedIndexExtension<String, Set<IndexValue>>() {
     /**
      * Returns the list of index keys to search for a given type in priority order.
      *
-     * The index stores values using the type name as the key, but that type might be fully-qualified, just a simple name, or in some cases
-     * the "unknown" type represented by an empty string. Additionally, Kotlin allows type aliases that need to be looked at as well.
+     * The index stores values using the type name as the key, but that type might be
+     * fully-qualified, just a simple name, or in some cases the "unknown" type represented by an
+     * empty string. Additionally, Kotlin allows type aliases that need to be looked at as well.
      */
-    internal fun getIndexKeys(fqName: String, project: Project, scope: GlobalSearchScope): List<String> {
+    internal fun getIndexKeys(
+      fqName: String,
+      project: Project,
+      scope: GlobalSearchScope
+    ): List<String> {
       val simpleName = fqName.substringAfterLast(".")
-      val aliasFqNames = KotlinTypeAliasByExpansionShortNameIndex.get(simpleName, project, scope).mapNotNull { it.fqName?.asString() }
+      val aliasFqNames =
+        KotlinTypeAliasByExpansionShortNameIndex.get(simpleName, project, scope).mapNotNull {
+          it.fqName?.asString()
+        }
 
       return buildList {
-        // All fully-qualified names should go first, since they're most specific.
-        add(fqName)
-        addAll(aliasFqNames)
+          // All fully-qualified names should go first, since they're most specific.
+          add(fqName)
+          addAll(aliasFqNames)
 
-        // All simple names next.
-        add(simpleName)
-        addAll(aliasFqNames.map { it.substringAfterLast(".") })
+          // All simple names next.
+          add(simpleName)
+          addAll(aliasFqNames.map { it.substringAfterLast(".") })
 
-        // The unknown type last, since it's most generic.
-        add("")
-      }.distinct()
+          // The unknown type last, since it's most generic.
+          add("")
+        }
+        .distinct()
     }
   }
 
   override fun getName(): ID<String, Set<IndexValue>> = NAME
   override fun dependsOnFileContent() = true
   override fun getVersion() = 0
-  override fun getInputFilter() = DefaultFileTypeSpecificInputFilter(KotlinFileType.INSTANCE, JavaFileType.INSTANCE)
+  override fun getInputFilter() =
+    DefaultFileTypeSpecificInputFilter(KotlinFileType.INSTANCE, JavaFileType.INSTANCE)
   override fun getKeyDescriptor(): KeyDescriptor<String> = EnumeratorStringDescriptor.INSTANCE
   override fun getValueExternalizer(): DataExternalizer<Set<IndexValue>> = IndexValue.Externalizer
-  override fun getIndexer(): DataIndexer<String, Set<IndexValue>, FileContent> = DaggerDataIndexer.INSTANCE
+  override fun getIndexer(): DataIndexer<String, Set<IndexValue>, FileContent> =
+    DaggerDataIndexer.INSTANCE
 }

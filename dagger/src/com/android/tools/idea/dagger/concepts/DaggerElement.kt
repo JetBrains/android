@@ -34,23 +34,35 @@ import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 
-/** Wrapper around a PsiElement that represents an item in the Dagger graph, along with associated data. */
-data class DaggerElement internal constructor(val psiElement: PsiElement, val daggerType: Type, val psiType: PsiType) {
-  internal constructor(psiElement: PsiElement, type: Type) : this(psiElement, type, psiElement.getPsiType())
+/**
+ * Wrapper around a PsiElement that represents an item in the Dagger graph, along with associated
+ * data.
+ */
+data class DaggerElement
+internal constructor(val psiElement: PsiElement, val daggerType: Type, val psiType: PsiType) {
+  internal constructor(
+    psiElement: PsiElement,
+    type: Type
+  ) : this(psiElement, type, psiElement.getPsiType())
 
   enum class Type {
-    PROVIDER, CONSUMER;
+    PROVIDER,
+    CONSUMER;
 
     companion object {
       private val CONSUMER_RELATED_TYPES = setOf(PROVIDER)
       private val PROVIDER_RELATED_TYPES = setOf(CONSUMER)
     }
 
-    /** Returns types of related Dagger elements should be displayed for the given Dagger element type. */
-    fun getRelatedElementTypes(): Set<Type> = when (this) {
-      CONSUMER -> CONSUMER_RELATED_TYPES
-      PROVIDER -> PROVIDER_RELATED_TYPES
-    }
+    /**
+     * Returns types of related Dagger elements should be displayed for the given Dagger element
+     * type.
+     */
+    fun getRelatedElementTypes(): Set<Type> =
+      when (this) {
+        CONSUMER -> CONSUMER_RELATED_TYPES
+        PROVIDER -> PROVIDER_RELATED_TYPES
+      }
   }
 
   /** Look up related Dagger items using [DaggerIndex]. */
@@ -65,7 +77,8 @@ data class DaggerElement internal constructor(val psiElement: PsiElement, val da
       .flatMap { DaggerIndex.getValues(it, scope) }
       // Remove types we aren't interested in before resolving
       .filter { it.dataType.daggerElementType in daggerType.getRelatedElementTypes() }
-      // Ensure there are no duplicate index values (which can happen if two different keys have identical values)
+      // Ensure there are no duplicate index values (which can happen if two different keys have
+      // identical values)
       .distinct()
       // Resolve index values
       .flatMap { it.resolveToDaggerElements(psiType, project, scope) }
@@ -75,7 +88,10 @@ data class DaggerElement internal constructor(val psiElement: PsiElement, val da
 }
 
 fun interface DaggerElementIdentifier<T : PsiElement> {
-  /** Returns a [DaggerElement] representing the given [PsiElement], iff the element is somehow used in the Dagger graph. */
+  /**
+   * Returns a [DaggerElement] representing the given [PsiElement], iff the element is somehow used
+   * in the Dagger graph.
+   */
   fun getDaggerElement(psiElement: T): DaggerElement?
 }
 
@@ -93,26 +109,28 @@ class DaggerElementIdentifiers(
   companion object {
     internal inline fun of(vararg identifiers: DaggerElementIdentifiers) = of(identifiers.toList())
 
-    internal fun of(identifiers: List<DaggerElementIdentifiers>) = DaggerElementIdentifiers(
-      identifiers.flatMap(DaggerElementIdentifiers::ktClassIdentifiers),
-      identifiers.flatMap(DaggerElementIdentifiers::ktConstructorIdentifiers),
-      identifiers.flatMap(DaggerElementIdentifiers::ktFunctionIdentifiers),
-      identifiers.flatMap(DaggerElementIdentifiers::ktParameterIdentifiers),
-      identifiers.flatMap(DaggerElementIdentifiers::ktPropertyIdentifiers),
-      identifiers.flatMap(DaggerElementIdentifiers::psiClassIdentifiers),
-      identifiers.flatMap(DaggerElementIdentifiers::psiFieldIdentifiers),
-      identifiers.flatMap(DaggerElementIdentifiers::psiMethodIdentifiers),
-      identifiers.flatMap(DaggerElementIdentifiers::psiParameterIdentifiers),
-    )
+    internal fun of(identifiers: List<DaggerElementIdentifiers>) =
+      DaggerElementIdentifiers(
+        identifiers.flatMap(DaggerElementIdentifiers::ktClassIdentifiers),
+        identifiers.flatMap(DaggerElementIdentifiers::ktConstructorIdentifiers),
+        identifiers.flatMap(DaggerElementIdentifiers::ktFunctionIdentifiers),
+        identifiers.flatMap(DaggerElementIdentifiers::ktParameterIdentifiers),
+        identifiers.flatMap(DaggerElementIdentifiers::ktPropertyIdentifiers),
+        identifiers.flatMap(DaggerElementIdentifiers::psiClassIdentifiers),
+        identifiers.flatMap(DaggerElementIdentifiers::psiFieldIdentifiers),
+        identifiers.flatMap(DaggerElementIdentifiers::psiMethodIdentifiers),
+        identifiers.flatMap(DaggerElementIdentifiers::psiParameterIdentifiers),
+      )
   }
 
   fun getDaggerElement(psiElement: PsiElement): DaggerElement? {
     return when (psiElement) {
       is KtClass -> ktClassIdentifiers.getFirstDaggerElement(psiElement)
       is KtFunction ->
-        (psiElement as? KtConstructor<*>)?.let { ktConstructorIdentifiers.getFirstDaggerElement(psiElement) }
-        ?: ktFunctionIdentifiers.getFirstDaggerElement(psiElement)
-
+        (psiElement as? KtConstructor<*>)?.let {
+          ktConstructorIdentifiers.getFirstDaggerElement(psiElement)
+        }
+          ?: ktFunctionIdentifiers.getFirstDaggerElement(psiElement)
       is KtParameter -> ktParameterIdentifiers.getFirstDaggerElement(psiElement)
       is KtProperty -> ktPropertyIdentifiers.getFirstDaggerElement(psiElement)
       is PsiClass -> psiClassIdentifiers.getFirstDaggerElement(psiElement)
@@ -123,33 +141,33 @@ class DaggerElementIdentifiers(
     }
   }
 
-  private fun <T : PsiElement> List<DaggerElementIdentifier<T>>.getFirstDaggerElement(psiElement: T): DaggerElement? =
-    this.firstNotNullOfOrNull { it.getDaggerElement(psiElement) }
+  private fun <T : PsiElement> List<DaggerElementIdentifier<T>>.getFirstDaggerElement(
+    psiElement: T
+  ): DaggerElement? = this.firstNotNullOfOrNull { it.getDaggerElement(psiElement) }
 }
 
-/** Returns a [DaggerElement] representing the given [PsiElement], iff the element is somehow used in the Dagger graph. */
+/**
+ * Returns a [DaggerElement] representing the given [PsiElement], iff the element is somehow used in
+ * the Dagger graph.
+ */
 fun PsiElement.getDaggerElement(): DaggerElement? =
   AllConcepts.daggerElementIdentifiers.getDaggerElement(this)
 
 /**
- * Every Dagger element deals with a specific JVM type by providing it, consuming it, etc. This utility finds the appropriate type for a
- * [PsiElement] based upon what type of Java or Kotlin element it actually is.
+ * Every Dagger element deals with a specific JVM type by providing it, consuming it, etc. This
+ * utility finds the appropriate type for a [PsiElement] based upon what type of Java or Kotlin
+ * element it actually is.
  */
 internal fun PsiElement.getPsiType(): PsiType =
   when (this) {
-    is KtClass -> toPsiType()
-    is KtFunction ->
-      if (this is KtConstructor<*>) containingClass()?.toPsiType()
-      else psiType
-
-    is KtParameter -> psiType
-    is KtProperty -> psiType
-    is PsiClass -> AndroidPsiUtils.toPsiType(this)
-    is PsiField -> type
-    is PsiMethod ->
-      if (isConstructor) containingClass!!.getPsiType()
-      else returnType
-
-    is PsiParameter -> type
-    else -> throw IllegalArgumentException("Unknown element type ${this::class.java}")
-  }!!.unboxed
+      is KtClass -> toPsiType()
+      is KtFunction -> if (this is KtConstructor<*>) containingClass()?.toPsiType() else psiType
+      is KtParameter -> psiType
+      is KtProperty -> psiType
+      is PsiClass -> AndroidPsiUtils.toPsiType(this)
+      is PsiField -> type
+      is PsiMethod -> if (isConstructor) containingClass!!.getPsiType() else returnType
+      is PsiParameter -> type
+      else -> throw IllegalArgumentException("Unknown element type ${this::class.java}")
+    }!!
+    .unboxed

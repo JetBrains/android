@@ -34,17 +34,21 @@ class DaggerUsageTypeProviderV2 : UsageTypeProviderEx {
     // element: the item appearing in the "Find Usages" results
     // targets: the item(s) on which "Find Usages" was invoked
     val elementDaggerType = element.getDaggerElement()?.daggerType ?: return null
-    val targetDaggerType = targets.asSequence()
-                             .filterIsInstance<PsiElementUsageTarget>()
-                             .map { it.element.getDaggerElement() }
-                             .firstOrNull()
-                             ?.daggerType ?: return null
+    val targetDaggerType =
+      targets
+        .asSequence()
+        .filterIsInstance<PsiElementUsageTarget>()
+        .map { it.element.getDaggerElement() }
+        .firstOrNull()
+        ?.daggerType
+        ?: return null
 
     return getUsageType(elementDaggerType, targetDaggerType)
   }
 
   override fun getUsageType(element: PsiElement): UsageType? {
-    // Not needed. Since this is a `UsageTypeProviderEx` instead of just a `UsageTypeProvider`, the platform will call the other overloaded
+    // Not needed. Since this is a `UsageTypeProviderEx` instead of just a `UsageTypeProvider`, the
+    // platform will call the other overloaded
     // method instead of this one. See UsageTypeGroupingRule.java.
     throw UnsupportedOperationException()
   }
@@ -54,10 +58,16 @@ class DaggerUsageTypeProviderV2 : UsageTypeProviderEx {
     private val CONSUMERS_USAGE_TYPE = UsageType { DaggerBundle.message("consumers") }
 
     @VisibleForTesting
-    internal fun getUsageType(elementDaggerType: DaggerElement.Type, targetDaggerType: DaggerElement.Type) = when {
-      elementDaggerType == DaggerElement.Type.PROVIDER && targetDaggerType == DaggerElement.Type.CONSUMER -> PROVIDERS_USAGE_TYPE
-      elementDaggerType == DaggerElement.Type.CONSUMER && targetDaggerType == DaggerElement.Type.PROVIDER -> CONSUMERS_USAGE_TYPE
-      else -> null
-    }
+    internal fun getUsageType(
+      elementDaggerType: DaggerElement.Type,
+      targetDaggerType: DaggerElement.Type
+    ) =
+      when {
+        elementDaggerType == DaggerElement.Type.PROVIDER &&
+          targetDaggerType == DaggerElement.Type.CONSUMER -> PROVIDERS_USAGE_TYPE
+        elementDaggerType == DaggerElement.Type.CONSUMER &&
+          targetDaggerType == DaggerElement.Type.PROVIDER -> CONSUMERS_USAGE_TYPE
+        else -> null
+      }
   }
 }

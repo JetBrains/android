@@ -50,8 +50,7 @@ import org.mockito.Mockito.verify
 @RunsInEdt
 class DaggerElementTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   private lateinit var myFixture: CodeInsightTestFixture
 
@@ -65,17 +64,18 @@ class DaggerElementTest {
   private val mockPsiMethodIdentifier: DaggerElementIdentifier<PsiMethod> = mock()
   private val mockPsiParameterIdentifier: DaggerElementIdentifier<PsiParameter> = mock()
 
-  private val mockIdentifiers = DaggerElementIdentifiers(
-    listOf(mockKtClassIdentifier),
-    listOf(mockKtConstructorIdentifier),
-    listOf(mockKtFunctionIdentifier),
-    listOf(mockKtParameterIdentifier),
-    listOf(mockKtPropertyIdentifier),
-    listOf(mockPsiClassIdentifier),
-    listOf(mockPsiFieldIdentifier),
-    listOf(mockPsiMethodIdentifier),
-    listOf(mockPsiParameterIdentifier),
-  )
+  private val mockIdentifiers =
+    DaggerElementIdentifiers(
+      listOf(mockKtClassIdentifier),
+      listOf(mockKtConstructorIdentifier),
+      listOf(mockKtFunctionIdentifier),
+      listOf(mockKtParameterIdentifier),
+      listOf(mockKtPropertyIdentifier),
+      listOf(mockPsiClassIdentifier),
+      listOf(mockPsiFieldIdentifier),
+      listOf(mockPsiMethodIdentifier),
+      listOf(mockPsiParameterIdentifier),
+    )
 
   @Before
   fun setup() {
@@ -86,14 +86,16 @@ class DaggerElementTest {
   fun getPsiType_ktClass() {
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
-      //language=kotlin
+      // language=kotlin
       """
       package com.example
 
       class Fo<caret>o
-      """.trimIndent())
+      """.trimIndent()
+    )
 
-    val psiType = myFixture.elementAtCaret.parentOfType<KtClass>(/* withSelf = */ true)!!.getPsiType()
+    val psiType =
+      myFixture.elementAtCaret.parentOfType<KtClass>(/* withSelf = */ true)!!.getPsiType()
     assertThat(psiType.canonicalText).isEqualTo("com.example.Foo")
   }
 
@@ -101,16 +103,18 @@ class DaggerElementTest {
   fun getPsiType_ktFunction() {
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
-      //language=kotlin
+      // language=kotlin
       """
       package com.example
 
       class Foo
 
       fun someFun<caret>ction() = Foo()
-      """.trimIndent())
+      """.trimIndent()
+    )
 
-    val psiType = myFixture.elementAtCaret.parentOfType<KtFunction>(/* withSelf = */ true)!!.getPsiType()
+    val psiType =
+      myFixture.elementAtCaret.parentOfType<KtFunction>(/* withSelf = */ true)!!.getPsiType()
     assertThat(psiType.canonicalText).isEqualTo("com.example.Foo")
   }
 
@@ -118,14 +122,16 @@ class DaggerElementTest {
   fun getPsiType_ktConstructor() {
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
-      //language=kotlin
+      // language=kotlin
       """
       package com.example
 
       class Foo constructo<caret>r() {}
-      """.trimIndent())
+      """.trimIndent()
+    )
 
-    val psiType = myFixture.elementAtCaret.parentOfType<KtConstructor<*>>(/* withSelf = */ true)!!.getPsiType()
+    val psiType =
+      myFixture.elementAtCaret.parentOfType<KtConstructor<*>>(/* withSelf = */ true)!!.getPsiType()
     assertThat(psiType.canonicalText).isEqualTo("com.example.Foo")
   }
 
@@ -133,16 +139,18 @@ class DaggerElementTest {
   fun getPsiType_ktParameter() {
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
-      //language=kotlin
+      // language=kotlin
       """
       package com.example
 
       class Foo
 
       fun someFunction(fo<caret>o: Foo) {}
-      """.trimIndent())
+      """.trimIndent()
+    )
 
-    val psiType = myFixture.elementAtCaret.parentOfType<KtParameter>(/* withSelf = */ true)!!.getPsiType()
+    val psiType =
+      myFixture.elementAtCaret.parentOfType<KtParameter>(/* withSelf = */ true)!!.getPsiType()
     assertThat(psiType.canonicalText).isEqualTo("com.example.Foo")
   }
 
@@ -150,7 +158,7 @@ class DaggerElementTest {
   fun getPsiType_ktProperty() {
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
-      //language=kotlin
+      // language=kotlin
       """
       package com.example
 
@@ -159,9 +167,11 @@ class DaggerElementTest {
       class Bar {
         val f<caret>oo: Foo
       }
-      """.trimIndent())
+      """.trimIndent()
+    )
 
-    val psiType = myFixture.elementAtCaret.parentOfType<KtProperty>(/* withSelf = */ true)!!.getPsiType()
+    val psiType =
+      myFixture.elementAtCaret.parentOfType<KtProperty>(/* withSelf = */ true)!!.getPsiType()
     assertThat(psiType.canonicalText).isEqualTo("com.example.Foo")
   }
 
@@ -169,14 +179,16 @@ class DaggerElementTest {
   fun getPsiType_psiClass() {
     myFixture.configureByText(
       JavaFileType.INSTANCE,
-      //language=java
+      // language=java
       """
       package com.example;
 
       public class Fo<caret>o {}
-      """.trimIndent())
+      """.trimIndent()
+    )
 
-    val psiType = myFixture.elementAtCaret.parentOfType<PsiClass>(/* withSelf = */ true)!!.getPsiType()
+    val psiType =
+      myFixture.elementAtCaret.parentOfType<PsiClass>(/* withSelf = */ true)!!.getPsiType()
     assertThat(psiType.canonicalText).isEqualTo("com.example.Foo")
   }
 
@@ -184,7 +196,7 @@ class DaggerElementTest {
   fun getPsiType_psiField() {
     myFixture.configureByText(
       JavaFileType.INSTANCE,
-      //language=java
+      // language=java
       """
       package com.example;
 
@@ -193,9 +205,11 @@ class DaggerElementTest {
       public class Bar {
         public Foo fo<caret>o;
       }
-      """.trimIndent())
+      """.trimIndent()
+    )
 
-    val psiType = myFixture.elementAtCaret.parentOfType<PsiField>(/* withSelf = */ true)!!.getPsiType()
+    val psiType =
+      myFixture.elementAtCaret.parentOfType<PsiField>(/* withSelf = */ true)!!.getPsiType()
     assertThat(psiType.canonicalText).isEqualTo("com.example.Foo")
   }
 
@@ -203,7 +217,7 @@ class DaggerElementTest {
   fun getPsiType_psiMethod() {
     myFixture.configureByText(
       JavaFileType.INSTANCE,
-      //language=java
+      // language=java
       """
       package com.example;
 
@@ -212,9 +226,11 @@ class DaggerElementTest {
       public class Bar {
         public Foo fo<caret>o() { return new Foo(); }
       }
-      """.trimIndent())
+      """.trimIndent()
+    )
 
-    val psiType = myFixture.elementAtCaret.parentOfType<PsiMethod>(/* withSelf = */ true)!!.getPsiType()
+    val psiType =
+      myFixture.elementAtCaret.parentOfType<PsiMethod>(/* withSelf = */ true)!!.getPsiType()
     assertThat(psiType.canonicalText).isEqualTo("com.example.Foo")
   }
 
@@ -222,7 +238,7 @@ class DaggerElementTest {
   fun getPsiType_psiParameter() {
     myFixture.configureByText(
       JavaFileType.INSTANCE,
-      //language=java
+      // language=java
       """
       package com.example;
 
@@ -231,22 +247,26 @@ class DaggerElementTest {
       public class Bar {
         public void foo(Foo f<caret>oo) {}
       }
-      """.trimIndent())
+      """.trimIndent()
+    )
 
-    val psiType = myFixture.elementAtCaret.parentOfType<PsiParameter>(/* withSelf = */ true)!!.getPsiType()
+    val psiType =
+      myFixture.elementAtCaret.parentOfType<PsiParameter>(/* withSelf = */ true)!!.getPsiType()
     assertThat(psiType.canonicalText).isEqualTo("com.example.Foo")
   }
 
   @Test
   fun getPsiType_unknownType() {
-    val psiFile: PsiFile = myFixture.configureByText(
-      JavaFileType.INSTANCE,
-      //language=java
-      """
+    val psiFile: PsiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
       package com.example;
 
       public class Foo {}
-      """.trimIndent())
+      """.trimIndent()
+      )
 
     assertThrows(IllegalArgumentException::class.java) { psiFile.getPsiType() }
   }
@@ -255,12 +275,13 @@ class DaggerElementTest {
   fun getDaggerElement_ktClass() {
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
-      //language=kotlin
+      // language=kotlin
       """
       package com.example
 
       class Fo<caret>o
-      """.trimIndent())
+      """.trimIndent()
+    )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<KtClass>(/* withSelf = */ true)!!
 
@@ -284,14 +305,15 @@ class DaggerElementTest {
   fun getDaggerElement_ktFunction() {
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
-      //language=kotlin
+      // language=kotlin
       """
       package com.example
 
       class Foo
 
       fun someFun<caret>ction() = Foo()
-      """.trimIndent())
+      """.trimIndent()
+    )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<KtFunction>(/* withSelf = */ true)!!
 
@@ -315,14 +337,16 @@ class DaggerElementTest {
   fun getDaggerElement_ktConstructorWithConstructorHandler() {
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
-      //language=kotlin
+      // language=kotlin
       """
       package com.example
 
       class Foo construct<caret>or() {}
-      """.trimIndent())
+      """.trimIndent()
+    )
 
-    val psiElement = myFixture.elementAtCaret.parentOfType<KtConstructor<*>>(/* withSelf = */ true)!!
+    val psiElement =
+      myFixture.elementAtCaret.parentOfType<KtConstructor<*>>(/* withSelf = */ true)!!
 
     val mockDaggerElement: DaggerElement = mock()
     whenever(mockKtConstructorIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
@@ -344,14 +368,16 @@ class DaggerElementTest {
   fun getDaggerElement_ktConstructorWithFunctionHandler() {
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
-      //language=kotlin
+      // language=kotlin
       """
       package com.example
 
       class Foo construct<caret>or() {}
-      """.trimIndent())
+      """.trimIndent()
+    )
 
-    val psiElement = myFixture.elementAtCaret.parentOfType<KtConstructor<*>>(/* withSelf = */ true)!!
+    val psiElement =
+      myFixture.elementAtCaret.parentOfType<KtConstructor<*>>(/* withSelf = */ true)!!
 
     val mockDaggerElement: DaggerElement = mock()
     whenever(mockKtFunctionIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
@@ -373,14 +399,15 @@ class DaggerElementTest {
   fun getDaggerElement_ktParameter() {
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
-      //language=kotlin
+      // language=kotlin
       """
       package com.example
 
       class Foo
 
       fun someFunction(fo<caret>o: Foo) {}
-      """.trimIndent())
+      """.trimIndent()
+    )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<KtParameter>(/* withSelf = */ true)!!
 
@@ -404,7 +431,7 @@ class DaggerElementTest {
   fun getDaggerElement_ktProperty() {
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
-      //language=kotlin
+      // language=kotlin
       """
       package com.example
 
@@ -413,7 +440,8 @@ class DaggerElementTest {
       class Bar {
         val f<caret>oo: Foo
       }
-      """.trimIndent())
+      """.trimIndent()
+    )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<KtProperty>(/* withSelf = */ true)!!
 
@@ -437,12 +465,13 @@ class DaggerElementTest {
   fun getDaggerElement_psiClass() {
     myFixture.configureByText(
       JavaFileType.INSTANCE,
-      //language=java
+      // language=java
       """
       package com.example;
 
       public class Fo<caret>o {}
-      """.trimIndent())
+      """.trimIndent()
+    )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<PsiClass>(/* withSelf = */ true)!!
 
@@ -466,7 +495,7 @@ class DaggerElementTest {
   fun getDaggerElement_psiField() {
     myFixture.configureByText(
       JavaFileType.INSTANCE,
-      //language=java
+      // language=java
       """
       package com.example;
 
@@ -475,7 +504,8 @@ class DaggerElementTest {
       public class Bar {
         public Foo fo<caret>o;
       }
-      """.trimIndent())
+      """.trimIndent()
+    )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<PsiField>(/* withSelf = */ true)!!
 
@@ -499,7 +529,7 @@ class DaggerElementTest {
   fun getDaggerElement_psiMethod() {
     myFixture.configureByText(
       JavaFileType.INSTANCE,
-      //language=java
+      // language=java
       """
       package com.example;
 
@@ -508,7 +538,8 @@ class DaggerElementTest {
       public class Bar {
         public Foo fo<caret>o() { return new Foo(); }
       }
-      """.trimIndent())
+      """.trimIndent()
+    )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<PsiMethod>(/* withSelf = */ true)!!
 
@@ -532,7 +563,7 @@ class DaggerElementTest {
   fun getDaggerElement_psiParameter() {
     myFixture.configureByText(
       JavaFileType.INSTANCE,
-      //language=java
+      // language=java
       """
       package com.example;
 
@@ -541,7 +572,8 @@ class DaggerElementTest {
       public class Bar {
         public void foo(Foo f<caret>oo) {}
       }
-      """.trimIndent())
+      """.trimIndent()
+    )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<PsiParameter>(/* withSelf = */ true)!!
 
@@ -563,14 +595,16 @@ class DaggerElementTest {
 
   @Test
   fun getDaggerElement_unknownType() {
-    val psiFile: PsiFile = myFixture.configureByText(
-      JavaFileType.INSTANCE,
-      //language=java
-      """
+    val psiFile: PsiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
       package com.example;
 
       public class Foo {}
-      """.trimIndent())
+      """.trimIndent()
+      )
 
     assertThat(mockIdentifiers.getDaggerElement(psiFile)).isNull()
 

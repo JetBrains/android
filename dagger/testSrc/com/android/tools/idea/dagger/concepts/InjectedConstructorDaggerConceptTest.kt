@@ -50,8 +50,7 @@ import org.junit.runners.JUnit4
 @RunsInEdt
 class InjectedConstructorDaggerConceptTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   private lateinit var myFixture: CodeInsightTestFixture
 
@@ -62,20 +61,25 @@ class InjectedConstructorDaggerConceptTest {
 
   private fun runIndexer(wrapper: DaggerIndexMethodWrapper): Map<String, Set<IndexValue>> =
     mutableMapOf<String, MutableSet<IndexValue>>().also { indexEntries ->
-      InjectedConstructorDaggerConcept.indexers.methodIndexers.forEach { it.addIndexEntries(wrapper, indexEntries) }
+      InjectedConstructorDaggerConcept.indexers.methodIndexers.forEach {
+        it.addIndexEntries(wrapper, indexEntries)
+      }
     }
 
   @Test
   fun indexer_nonInjectedConstructor() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
 
       class Foo constructor(arg1: Bar, arg2: Baz, arg3: Baz) {
       }
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("construct|or").parentOfType<KtFunction>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
@@ -85,41 +89,52 @@ class InjectedConstructorDaggerConceptTest {
 
   @Test
   fun indexer_injectedConstructor() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
       import javax.inject.Inject
 
       class Foo @Inject constructor(arg1: Bar, arg2: Baz, arg3: Baz) {
       }
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("construct|or").parentOfType<KtFunction>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
-    assertThat(entries).containsExactly(
-      "com.example.Foo", setOf(InjectedConstructorIndexValue("com.example.Foo")),
-      "Bar", setOf(InjectedConstructorParameterIndexValue("com.example.Foo", "arg1")),
-      "Baz",
-      setOf(InjectedConstructorParameterIndexValue("com.example.Foo", "arg2"),
-            InjectedConstructorParameterIndexValue("com.example.Foo", "arg3")),
-    )
+    assertThat(entries)
+      .containsExactly(
+        "com.example.Foo",
+        setOf(InjectedConstructorIndexValue("com.example.Foo")),
+        "Bar",
+        setOf(InjectedConstructorParameterIndexValue("com.example.Foo", "arg1")),
+        "Baz",
+        setOf(
+          InjectedConstructorParameterIndexValue("com.example.Foo", "arg2"),
+          InjectedConstructorParameterIndexValue("com.example.Foo", "arg3")
+        ),
+      )
   }
 
   @Test
   fun indexer_wrongInjectAnnotation() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
       import com.other.Inject
 
       class Foo @Inject constructor(arg1: Bar, arg2: Baz, arg3: Baz) {
       }
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("construct|or").parentOfType<KtFunction>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
@@ -129,10 +144,11 @@ class InjectedConstructorDaggerConceptTest {
 
   @Test
   fun indexer_injectedClassFunctionNotConstructor() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
       import javax.inject.Inject
 
@@ -140,7 +156,9 @@ class InjectedConstructorDaggerConceptTest {
         @Inject
         fun someFunction(arg1: Bar, arg2: Baz, arg3: Baz)
       }
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("someFunc|tion").parentOfType<KtFunction>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
@@ -150,16 +168,19 @@ class InjectedConstructorDaggerConceptTest {
 
   @Test
   fun indexer_injectedPackageFunctionNotConstructor() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
       import javax.inject.Inject
 
       @Inject
       fun someFunction(arg1: Bar, arg2: Baz, arg3: Baz)
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("someFunc|tion").parentOfType<KtFunction>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
@@ -179,7 +200,7 @@ class InjectedConstructorDaggerConceptTest {
 
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
-      //language=kotlin
+      // language=kotlin
       """
       package com.example
       import javax.inject.Inject
@@ -190,22 +211,56 @@ class InjectedConstructorDaggerConceptTest {
       class ClassWithoutInjectedConstructor constructor() {
       }
 
-      """.trimIndent())
+      """.trimIndent()
+    )
 
-    val constructor1Element = myFixture.moveCaret("ClassWithInjectedConstructor @Inject cons|tructor").parentOfType<KtConstructor<*>>()!!
+    val constructor1Element =
+      myFixture
+        .moveCaret("ClassWithInjectedConstructor @Inject cons|tructor")
+        .parentOfType<KtConstructor<*>>()!!
     val indexValue1 = InjectedConstructorIndexValue("com.example.ClassWithInjectedConstructor")
     val expectedPsiType1 = constructor1Element.containingClass()?.toPsiType()!!
 
-    val constructor2Element = myFixture.moveCaret("ClassWithoutInjectedConstructor cons|tructor").parentOfType<KtConstructor<*>>()!!
+    val constructor2Element =
+      myFixture
+        .moveCaret("ClassWithoutInjectedConstructor cons|tructor")
+        .parentOfType<KtConstructor<*>>()!!
     val indexValue2 = InjectedConstructorIndexValue("com.example.ClassWithoutInjectedConstructor")
     val expectedPsiType2 = constructor2Element.containingClass()?.toPsiType()!!
 
-    assertThat(indexValue1.resolveToDaggerElements(expectedPsiType1, myFixture.project, myFixture.project.projectScope())).containsExactly(
-      DaggerElement(constructor1Element, DaggerElement.Type.PROVIDER))
-    assertThat(indexValue1.resolveToDaggerElements(expectedPsiType2, myFixture.project, myFixture.project.projectScope())).isEmpty()
+    assertThat(
+        indexValue1.resolveToDaggerElements(
+          expectedPsiType1,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .containsExactly(DaggerElement(constructor1Element, DaggerElement.Type.PROVIDER))
+    assertThat(
+        indexValue1.resolveToDaggerElements(
+          expectedPsiType2,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
 
-    assertThat(indexValue2.resolveToDaggerElements(expectedPsiType1, myFixture.project, myFixture.project.projectScope())).isEmpty()
-    assertThat(indexValue2.resolveToDaggerElements(expectedPsiType2, myFixture.project, myFixture.project.projectScope())).isEmpty()
+    assertThat(
+        indexValue2.resolveToDaggerElements(
+          expectedPsiType1,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
+    assertThat(
+        indexValue2.resolveToDaggerElements(
+          expectedPsiType2,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
   }
 
   @Test
@@ -214,7 +269,7 @@ class InjectedConstructorDaggerConceptTest {
 
     myFixture.configureByText(
       JavaFileType.INSTANCE,
-      //language=java
+      // language=java
       """
       package com.example;
       import javax.inject.Inject;
@@ -228,22 +283,52 @@ class InjectedConstructorDaggerConceptTest {
         public ClassWithoutInjectedConstructor() {}
       }
 
-      """.trimIndent())
+      """.trimIndent()
+    )
 
-    val constructor1Element = myFixture.moveCaret("ClassWithInjectedConstru|ctor()").parentOfType<PsiMethod>()!!
+    val constructor1Element =
+      myFixture.moveCaret("ClassWithInjectedConstru|ctor()").parentOfType<PsiMethod>()!!
     val indexValue1 = InjectedConstructorIndexValue("com.example.ClassWithInjectedConstructor")
     val expectedPsiType1 = toPsiType(constructor1Element.containingClass!!)!!
 
-    val constructor2Element = myFixture.moveCaret("ClassWithoutInjectedConstru|ctor()").parentOfType<PsiMethod>()!!
+    val constructor2Element =
+      myFixture.moveCaret("ClassWithoutInjectedConstru|ctor()").parentOfType<PsiMethod>()!!
     val indexValue2 = InjectedConstructorIndexValue("com.example.ClassWithoutInjectedConstructor")
     val expectedPsiType2 = toPsiType(constructor2Element.containingClass!!)!!
 
-    assertThat(indexValue1.resolveToDaggerElements(expectedPsiType1, myFixture.project, myFixture.project.projectScope())).containsExactly(
-      DaggerElement(constructor1Element, DaggerElement.Type.PROVIDER))
-    assertThat(indexValue1.resolveToDaggerElements(expectedPsiType2, myFixture.project, myFixture.project.projectScope())).isEmpty()
+    assertThat(
+        indexValue1.resolveToDaggerElements(
+          expectedPsiType1,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .containsExactly(DaggerElement(constructor1Element, DaggerElement.Type.PROVIDER))
+    assertThat(
+        indexValue1.resolveToDaggerElements(
+          expectedPsiType2,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
 
-    assertThat(indexValue2.resolveToDaggerElements(expectedPsiType1, myFixture.project, myFixture.project.projectScope())).isEmpty()
-    assertThat(indexValue2.resolveToDaggerElements(expectedPsiType2, myFixture.project, myFixture.project.projectScope())).isEmpty()
+    assertThat(
+        indexValue2.resolveToDaggerElements(
+          expectedPsiType1,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
+    assertThat(
+        indexValue2.resolveToDaggerElements(
+          expectedPsiType2,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
   }
 
   @Test
@@ -258,7 +343,7 @@ class InjectedConstructorDaggerConceptTest {
 
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
-      //language=kotlin
+      // language=kotlin
       """
       package com.example
       import javax.inject.Inject
@@ -271,22 +356,57 @@ class InjectedConstructorDaggerConceptTest {
       class ClassWithoutInjectedConstructor constructor(bar: Bar) {
       }
 
-      """.trimIndent())
+      """.trimIndent()
+    )
 
     val barPsiType = myFixture.moveCaret("class Ba|r").parentOfType<KtClass>()!!.toPsiType()!!
-    val otherPsiType = myFixture.moveCaret("ClassWithoutInjectedConstructor cons|tructor").parentOfType<KtClass>()!!.toPsiType()!!
+    val otherPsiType =
+      myFixture.moveCaret("ClassWithoutInjectedConstructor cons|tructor").parentOfType<KtClass>()!!
+        .toPsiType()!!
 
-    val parameter1Element = myFixture.moveCaret("ClassWithInjectedConstructor @Inject constructor(b|ar: Bar)").parentOfType<KtParameter>()!!
-    val indexValue1 = InjectedConstructorParameterIndexValue("com.example.ClassWithInjectedConstructor", "bar")
+    val parameter1Element =
+      myFixture
+        .moveCaret("ClassWithInjectedConstructor @Inject constructor(b|ar: Bar)")
+        .parentOfType<KtParameter>()!!
+    val indexValue1 =
+      InjectedConstructorParameterIndexValue("com.example.ClassWithInjectedConstructor", "bar")
 
-    val indexValue2 = InjectedConstructorParameterIndexValue("com.example.ClassWithoutInjectedConstructor", "bar")
+    val indexValue2 =
+      InjectedConstructorParameterIndexValue("com.example.ClassWithoutInjectedConstructor", "bar")
 
-    assertThat(indexValue1.resolveToDaggerElements(barPsiType, myFixture.project, myFixture.project.projectScope())).containsExactly(
-      DaggerElement(parameter1Element, DaggerElement.Type.CONSUMER))
-    assertThat(indexValue1.resolveToDaggerElements(otherPsiType, myFixture.project, myFixture.project.projectScope())).isEmpty()
+    assertThat(
+        indexValue1.resolveToDaggerElements(
+          barPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .containsExactly(DaggerElement(parameter1Element, DaggerElement.Type.CONSUMER))
+    assertThat(
+        indexValue1.resolveToDaggerElements(
+          otherPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
 
-    assertThat(indexValue2.resolveToDaggerElements(barPsiType, myFixture.project, myFixture.project.projectScope())).isEmpty()
-    assertThat(indexValue2.resolveToDaggerElements(otherPsiType, myFixture.project, myFixture.project.projectScope())).isEmpty()
+    assertThat(
+        indexValue2.resolveToDaggerElements(
+          barPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
+    assertThat(
+        indexValue2.resolveToDaggerElements(
+          otherPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
   }
 
   @Test
@@ -295,7 +415,7 @@ class InjectedConstructorDaggerConceptTest {
 
     myFixture.configureByText(
       JavaFileType.INSTANCE,
-      //language=java
+      // language=java
       """
       package com.example;
       import javax.inject.Inject;
@@ -311,21 +431,55 @@ class InjectedConstructorDaggerConceptTest {
         public ClassWithoutInjectedConstructor(Bar bar) {}
       }
 
-      """.trimIndent())
+      """.trimIndent()
+    )
 
     val barPsiType = toPsiType(myFixture.moveCaret("class Ba|r").parentOfType<PsiClass>()!!)!!
-    val otherPsiType = toPsiType(myFixture.moveCaret("ClassWithoutInjectedCons|tructor").parentOfType<PsiClass>()!!)!!
+    val otherPsiType =
+      toPsiType(
+        myFixture.moveCaret("ClassWithoutInjectedCons|tructor").parentOfType<PsiClass>()!!
+      )!!
 
-    val parameter1Element = myFixture.moveCaret("ClassWithInjectedConstructor(Bar ba|r)").parentOfType<PsiParameter>()!!
-    val indexValue1 = InjectedConstructorParameterIndexValue("com.example.ClassWithInjectedConstructor", "bar")
+    val parameter1Element =
+      myFixture.moveCaret("ClassWithInjectedConstructor(Bar ba|r)").parentOfType<PsiParameter>()!!
+    val indexValue1 =
+      InjectedConstructorParameterIndexValue("com.example.ClassWithInjectedConstructor", "bar")
 
-    val indexValue2 = InjectedConstructorParameterIndexValue("com.example.ClassWithoutInjectedConstructor", "bar")
+    val indexValue2 =
+      InjectedConstructorParameterIndexValue("com.example.ClassWithoutInjectedConstructor", "bar")
 
-    assertThat(indexValue1.resolveToDaggerElements(barPsiType, myFixture.project, myFixture.project.projectScope())).containsExactly(
-      DaggerElement(parameter1Element, DaggerElement.Type.CONSUMER))
-    assertThat(indexValue1.resolveToDaggerElements(otherPsiType, myFixture.project, myFixture.project.projectScope())).isEmpty()
+    assertThat(
+        indexValue1.resolveToDaggerElements(
+          barPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .containsExactly(DaggerElement(parameter1Element, DaggerElement.Type.CONSUMER))
+    assertThat(
+        indexValue1.resolveToDaggerElements(
+          otherPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
 
-    assertThat(indexValue2.resolveToDaggerElements(barPsiType, myFixture.project, myFixture.project.projectScope())).isEmpty()
-    assertThat(indexValue2.resolveToDaggerElements(otherPsiType, myFixture.project, myFixture.project.projectScope())).isEmpty()
+    assertThat(
+        indexValue2.resolveToDaggerElements(
+          barPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
+    assertThat(
+        indexValue2.resolveToDaggerElements(
+          otherPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
   }
 }

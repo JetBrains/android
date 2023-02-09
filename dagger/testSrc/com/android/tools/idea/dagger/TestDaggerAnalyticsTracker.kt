@@ -20,9 +20,11 @@ import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 class TestDaggerAnalyticsTracker : DaggerAnalyticsTracker {
   val calledMethods = mutableListOf<String>()
 
-  override fun trackNavigation(context: DaggerEditorEvent.NavigationMetadata.NavigationContext,
-                               fromElement: DaggerEditorEvent.ElementType,
-                               toElement: DaggerEditorEvent.ElementType) {
+  override fun trackNavigation(
+    context: DaggerEditorEvent.NavigationMetadata.NavigationContext,
+    fromElement: DaggerEditorEvent.ElementType,
+    toElement: DaggerEditorEvent.ElementType
+  ) {
     calledMethods.add("trackNavigation $context $fromElement $toElement")
   }
 
@@ -32,7 +34,10 @@ class TestDaggerAnalyticsTracker : DaggerAnalyticsTracker {
     calledMethods.add("trackGutterWasDisplayed owner: $ownerElement time: $time")
   }
 
-  override fun trackFindUsagesNodeWasDisplayed(ownerElement: DaggerEditorEvent.ElementType, time: Long) {
+  override fun trackFindUsagesNodeWasDisplayed(
+    ownerElement: DaggerEditorEvent.ElementType,
+    time: Long
+  ) {
     calledMethods.add("trackFindUsagesNodeWasDisplayed owner: $ownerElement time: $time")
   }
 

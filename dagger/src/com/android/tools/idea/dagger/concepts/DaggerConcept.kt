@@ -19,8 +19,8 @@ import com.android.tools.idea.dagger.index.DaggerConceptIndexers
 import com.android.tools.idea.dagger.index.IndexValue
 
 /**
- * Represents a concept in the Dagger framework that will be indexed and analyzed at runtime. Some examples include "injected constructor",
- * "provides method", and "component".
+ * Represents a concept in the Dagger framework that will be indexed and analyzed at runtime. Some
+ * examples include "injected constructor", "provides method", and "component".
  */
 interface DaggerConcept {
   /** Any indexers required for this concept. */

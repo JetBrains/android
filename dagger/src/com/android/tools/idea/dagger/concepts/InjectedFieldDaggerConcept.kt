@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.dagger.concepts
 
+import com.android.tools.idea.dagger.concepts.DaggerAttributes.INJECT
+import com.android.tools.idea.dagger.concepts.DaggerElement.Type
 import com.android.tools.idea.dagger.index.DaggerConceptIndexer
 import com.android.tools.idea.dagger.index.DaggerConceptIndexers
 import com.android.tools.idea.dagger.index.IndexEntries
 import com.android.tools.idea.dagger.index.IndexValue
-import com.android.tools.idea.dagger.concepts.DaggerAttributes.INJECT
-import com.android.tools.idea.dagger.concepts.DaggerElement.Type
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexFieldWrapper
 import com.android.tools.idea.kotlin.hasAnnotation
 import com.intellij.openapi.project.Project
@@ -28,13 +28,13 @@ import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.search.GlobalSearchScope
+import java.io.DataInput
+import java.io.DataOutput
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.core.util.readString
 import org.jetbrains.kotlin.idea.core.util.writeString
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
-import java.io.DataInput
-import java.io.DataOutput
 
 /**
  * Represents an injected field in Dagger.
@@ -49,7 +49,7 @@ import java.io.DataOutput
  * ```
  *
  * This concept deals with one type of index entry:
- *   1. The injected field (`heater` and `pump`).
+ * 1. The injected field (`heater` and `pump`).
  */
 internal object InjectedFieldDaggerConcept : DaggerConcept {
   override val indexers = DaggerConceptIndexers(fieldIndexers = listOf(InjectedFieldIndexer))
@@ -69,7 +69,8 @@ private object InjectedFieldIndexer : DaggerConceptIndexer<DaggerIndexFieldWrapp
 }
 
 @VisibleForTesting
-internal data class InjectedFieldIndexValue(val classFqName: String, val fieldName: String) : IndexValue(DataType.INJECTED_FIELD) {
+internal data class InjectedFieldIndexValue(val classFqName: String, val fieldName: String) :
+  IndexValue(DataType.INJECTED_FIELD) {
   override fun save(output: DataOutput) {
     output.writeString(classFqName)
     output.writeString(fieldName)
@@ -77,25 +78,33 @@ internal data class InjectedFieldIndexValue(val classFqName: String, val fieldNa
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.INJECTED_FIELD
-    override fun read(input: DataInput) = InjectedFieldIndexValue(input.readString(), input.readString())
+    override fun read(input: DataInput) =
+      InjectedFieldIndexValue(input.readString(), input.readString())
   }
 
   companion object {
-    private val identifyInjectedFieldKotlin = DaggerElementIdentifier<KtProperty> {
-      if (it.containingClassOrObject != null && it.hasAnnotation(INJECT)) DaggerElement(it, Type.CONSUMER) else null
-    }
+    private val identifyInjectedFieldKotlin =
+      DaggerElementIdentifier<KtProperty> {
+        if (it.containingClassOrObject != null && it.hasAnnotation(INJECT))
+          DaggerElement(it, Type.CONSUMER)
+        else null
+      }
 
-    private val identifyInjectedFieldJava = DaggerElementIdentifier<PsiField> {
-      if (it.hasAnnotation(INJECT)) DaggerElement(it, Type.CONSUMER) else null
-    }
+    private val identifyInjectedFieldJava =
+      DaggerElementIdentifier<PsiField> {
+        if (it.hasAnnotation(INJECT)) DaggerElement(it, Type.CONSUMER) else null
+      }
 
-    internal val identifiers = DaggerElementIdentifiers(
-      ktPropertyIdentifiers = listOf(identifyInjectedFieldKotlin),
-      psiFieldIdentifiers = listOf(identifyInjectedFieldJava))
+    internal val identifiers =
+      DaggerElementIdentifiers(
+        ktPropertyIdentifiers = listOf(identifyInjectedFieldKotlin),
+        psiFieldIdentifiers = listOf(identifyInjectedFieldJava)
+      )
   }
 
   override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
-    val psiClass = JavaPsiFacade.getInstance(project).findClass(classFqName, scope) ?: return emptyList()
+    val psiClass =
+      JavaPsiFacade.getInstance(project).findClass(classFqName, scope) ?: return emptyList()
     return psiClass.fields.filter { it.name == fieldName }
   }
 

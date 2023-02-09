@@ -37,8 +37,8 @@ import com.intellij.psi.presentation.java.SymbolPresentationUtil
 import com.intellij.psi.util.parentOfType
 import com.intellij.ui.awt.RelativePoint
 import icons.StudioIcons
-import org.jetbrains.kotlin.lexer.KtTokens
 import javax.swing.Icon
+import org.jetbrains.kotlin.lexer.KtTokens
 
 /**
  * Provides [RelatedItemLineMarkerInfo] for Dagger elements.
@@ -71,8 +71,14 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     private val toElementType = getTypeForMetrics(toElement)
 
     override fun navigate() {
-      element?.project?.service<DaggerAnalyticsTracker>()
-        ?.trackNavigation(DaggerEditorEvent.NavigationMetadata.NavigationContext.CONTEXT_GUTTER, fromElementType, toElementType)
+      element
+        ?.project
+        ?.service<DaggerAnalyticsTracker>()
+        ?.trackNavigation(
+          DaggerEditorEvent.NavigationMetadata.NavigationContext.CONTEXT_GUTTER,
+          fromElementType,
+          toElementType
+        )
       super.navigate()
     }
 
@@ -80,55 +86,68 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
   }
 
   @WorkerThread
-  override fun collectNavigationMarkers(element: PsiElement, result: MutableCollection<in RelatedItemLineMarkerInfo<*>>) {
+  override fun collectNavigationMarkers(
+    element: PsiElement,
+    result: MutableCollection<in RelatedItemLineMarkerInfo<*>>
+  ) {
     if (!StudioFlags.DAGGER_SUPPORT_ENABLED.get() ||
         StudioFlags.DAGGER_USING_INDEX_ENABLED.get() ||
-        !element.project.service<DaggerDependencyChecker>().isDaggerPresent()) return
+        !element.project.service<DaggerDependencyChecker>().isDaggerPresent()
+    )
+      return
 
     val startTimeMs = System.currentTimeMillis()
 
     ProgressManager.checkCanceled()
     if (!element.canBeLineMarkerProvide) return
 
-    // We provide RelatedItemLineMarkerInfo for PsiIdentifier/KtIdentifier (leaf element), not for PsiField/PsiMethod,
-    // that's why we check that `element.parent` is Dagger related element, not `element` itself. See [LineMarkerProvider.getLineMarkerInfo]
+    // We provide RelatedItemLineMarkerInfo for PsiIdentifier/KtIdentifier (leaf element), not for
+    // PsiField/PsiMethod,
+    // that's why we check that `element.parent` is Dagger related element, not `element` itself.
+    // See [LineMarkerProvider.getLineMarkerInfo]
     val parent = element.parent
-    val (icon, gotoTargets) = when {
-      parent.isDaggerConsumer -> getIconAndGoToItemsForConsumer(parent)
-      parent.isDaggerProvider -> getIconAndGoToItemsForProvider(parent)
-      parent.isAssistedInjectedConstructor -> getIconAndGotoItemsForAssistedProvider(parent)
-      parent.isAssistedFactoryMethod -> getIconAndGotoItemsForAssistedFactoryMethod(parent)
-      parent.isDaggerModule -> getIconAndGoToItemsForModule(parent)
-      parent.isDaggerComponent -> getIconAndGoToItemsForComponent(parent)
-      parent.isDaggerSubcomponent -> getIconAndGoToItemsForSubcomponent(parent)
-      parent.isDaggerComponentInstantiationMethod || parent.isDaggerEntryPointInstantiationMethod -> getIconAndGoToItemsForComponentMethod(
-        parent)
-      else -> return
-    }
+    val (icon, gotoTargets) =
+      when {
+        parent.isDaggerConsumer -> getIconAndGoToItemsForConsumer(parent)
+        parent.isDaggerProvider -> getIconAndGoToItemsForProvider(parent)
+        parent.isAssistedInjectedConstructor -> getIconAndGotoItemsForAssistedProvider(parent)
+        parent.isAssistedFactoryMethod -> getIconAndGotoItemsForAssistedFactoryMethod(parent)
+        parent.isDaggerModule -> getIconAndGoToItemsForModule(parent)
+        parent.isDaggerComponent -> getIconAndGoToItemsForComponent(parent)
+        parent.isDaggerSubcomponent -> getIconAndGoToItemsForSubcomponent(parent)
+        parent.isDaggerComponentInstantiationMethod ||
+          parent.isDaggerEntryPointInstantiationMethod ->
+          getIconAndGoToItemsForComponentMethod(parent)
+        else -> return
+      }
 
     if (gotoTargets.isEmpty()) return
 
     val typeForMetrics = getTypeForMetrics(parent)
 
-    val info = RelatedItemLineMarkerInfo<PsiElement>(
-      element,
-      element.textRange,
-      icon,
-      getTooltipProvider(parent, gotoTargets),
-      { mouseEvent, elt ->
-        elt.project.service<DaggerAnalyticsTracker>().trackClickOnGutter(typeForMetrics)
-        if (gotoTargets.size == 1) {
-          gotoTargets.first().navigate()
-        }
-        else {
-          NavigationUtil.getRelatedItemsPopup(gotoTargets, "Go to Related Files").show(RelativePoint(mouseEvent))
-        }
-      },
-      GutterIconRenderer.Alignment.RIGHT,
-      { gotoTargets }
-    )
+    val info =
+      RelatedItemLineMarkerInfo<PsiElement>(
+        element,
+        element.textRange,
+        icon,
+        getTooltipProvider(parent, gotoTargets),
+        { mouseEvent, elt ->
+          elt.project.service<DaggerAnalyticsTracker>().trackClickOnGutter(typeForMetrics)
+          if (gotoTargets.size == 1) {
+            gotoTargets.first().navigate()
+          } else {
+            NavigationUtil.getRelatedItemsPopup(gotoTargets, "Go to Related Files")
+              .show(RelativePoint(mouseEvent))
+          }
+        },
+        GutterIconRenderer.Alignment.RIGHT,
+        { gotoTargets }
+      )
     val calculationTime = System.currentTimeMillis() - startTimeMs
-    element.project.service<DaggerAnalyticsTracker>().trackGutterWasDisplayed(typeForMetrics, calculationTime)
+    element
+      .project
+      .service<DaggerAnalyticsTracker>()
+      .trackGutterWasDisplayed(typeForMetrics, calculationTime)
     result.add(info)
   }
 
@@ -142,122 +161,173 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
       if (gotoTargets.size == 1) {
         with(gotoTargets.single()) {
-          val toElementString = customName ?: SymbolPresentationUtil.getSymbolPresentableText(element!!)
+          val toElementString =
+            customName ?: SymbolPresentationUtil.getSymbolPresentableText(element!!)
 
           when (group) {
-            message("modules.included") -> message("navigate.to.included.module", fromElementString, toElementString)
-            message("providers") -> if (targetElement.isDaggerConsumer) {
-              message("navigate.to.provider", fromElementString, toElementString)
-            }
-            else {
-              message("navigate.to.provider.from.component", fromElementString, toElementString)
-            }
-            message("consumers") -> message("navigate.to.consumer", fromElementString, toElementString)
-            message("exposed.by.components") -> message("navigate.to.component.exposes", fromElementString, toElementString)
-            message("exposed.by.entry.points") -> message("navigate.to.component.exposes", fromElementString, toElementString)
-            message("parent.components") -> message("navigate.to.parent.component", fromElementString, toElementString)
-            message("subcomponents") -> message("navigate.to.subcomponent", fromElementString, toElementString)
-            message("included.in.components") -> message("navigate.to.component.that.include", fromElementString, toElementString)
-            message("included.in.modules") -> message("navigate.to.module.that.include", fromElementString, toElementString)
-            message("assisted.inject") -> message("navigate.to.assisted.inject", fromElementString, toElementString)
-            message("assisted.factory") -> message("navigate.to.assisted.factory", fromElementString, toElementString)
+            message("modules.included") ->
+              message("navigate.to.included.module", fromElementString, toElementString)
+            message("providers") ->
+              if (targetElement.isDaggerConsumer) {
+                message("navigate.to.provider", fromElementString, toElementString)
+              } else {
+                message("navigate.to.provider.from.component", fromElementString, toElementString)
+              }
+            message("consumers") ->
+              message("navigate.to.consumer", fromElementString, toElementString)
+            message("exposed.by.components") ->
+              message("navigate.to.component.exposes", fromElementString, toElementString)
+            message("exposed.by.entry.points") ->
+              message("navigate.to.component.exposes", fromElementString, toElementString)
+            message("parent.components") ->
+              message("navigate.to.parent.component", fromElementString, toElementString)
+            message("subcomponents") ->
+              message("navigate.to.subcomponent", fromElementString, toElementString)
+            message("included.in.components") ->
+              message("navigate.to.component.that.include", fromElementString, toElementString)
+            message("included.in.modules") ->
+              message("navigate.to.module.that.include", fromElementString, toElementString)
+            message("assisted.inject") ->
+              message("navigate.to.assisted.inject", fromElementString, toElementString)
+            message("assisted.factory") ->
+              message("navigate.to.assisted.factory", fromElementString, toElementString)
             else -> error("[Dagger tools] Unknown navigation group: $group")
           }
         }
-      }
-      else {
+      } else {
         message("dependency.related.files.for", fromElementString)
       }
     }
   }
 
-  private fun getIconAndGoToItemsForSubcomponent(subcomponent: PsiElement): Pair<Icon, List<GotoRelatedItem>> {
-    // [subcomponent] is always PsiClass or KtClass or KtObjectDeclaration, see [isDaggerSubcomponent].
+  private fun getIconAndGoToItemsForSubcomponent(
+    subcomponent: PsiElement
+  ): Pair<Icon, List<GotoRelatedItem>> {
+    // [subcomponent] is always PsiClass or KtClass or KtObjectDeclaration, see
+    // [isDaggerSubcomponent].
     val asPsiClass = subcomponent.toPsiClass()!!
 
-    val parents = getDaggerParentComponentsForSubcomponent(asPsiClass)
-      .map { GotoItemWithAnalyticsTracking(subcomponent, it, message("parent.components")) }
+    val parents =
+      getDaggerParentComponentsForSubcomponent(asPsiClass).map {
+        GotoItemWithAnalyticsTracking(subcomponent, it, message("parent.components"))
+      }
 
     ProgressManager.checkCanceled()
-    val modules = getModulesForComponent(asPsiClass).map {
-      GotoItemWithAnalyticsTracking(subcomponent, it, message("modules.included"))
-    }
+    val modules =
+      getModulesForComponent(asPsiClass).map {
+        GotoItemWithAnalyticsTracking(subcomponent, it, message("modules.included"))
+      }
 
     ProgressManager.checkCanceled()
-    val subcomponents = getSubcomponents(asPsiClass).map {
-      GotoItemWithAnalyticsTracking(subcomponent, it, message("subcomponents"))
-    }
+    val subcomponents =
+      getSubcomponents(asPsiClass).map {
+        GotoItemWithAnalyticsTracking(subcomponent, it, message("subcomponents"))
+      }
 
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, parents + modules + subcomponents)
   }
 
-  private fun getIconAndGoToItemsForComponent(component: PsiElement): Pair<Icon, List<GotoRelatedItem>> {
+  private fun getIconAndGoToItemsForComponent(
+    component: PsiElement
+  ): Pair<Icon, List<GotoRelatedItem>> {
     // component is always PsiClass or KtClass, see [isDaggerComponent].
     val componentAsPsiClass = component.toPsiClass()!!
 
-    val components = getDependantComponentsForComponent(componentAsPsiClass)
-      .map { GotoItemWithAnalyticsTracking(component, it, message("parent.components")) }
+    val components =
+      getDependantComponentsForComponent(componentAsPsiClass).map {
+        GotoItemWithAnalyticsTracking(component, it, message("parent.components"))
+      }
 
     ProgressManager.checkCanceled()
-    val subcomponents = getSubcomponents(componentAsPsiClass).map {
-      GotoItemWithAnalyticsTracking(component, it, message("subcomponents"))
-    }
+    val subcomponents =
+      getSubcomponents(componentAsPsiClass).map {
+        GotoItemWithAnalyticsTracking(component, it, message("subcomponents"))
+      }
 
     ProgressManager.checkCanceled()
-    val modules = getModulesForComponent(componentAsPsiClass).map {
-      GotoItemWithAnalyticsTracking(component, it, message("modules.included"))
-    }
+    val modules =
+      getModulesForComponent(componentAsPsiClass).map {
+        GotoItemWithAnalyticsTracking(component, it, message("modules.included"))
+      }
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, components + subcomponents + modules)
   }
 
   private fun getIconAndGoToItemsForModule(module: PsiElement): Pair<Icon, List<GotoRelatedItem>> {
     // [module] is always PsiClass or KtClass, see [isDaggerModule].
-    val gotoTargets = getUsagesForDaggerModule(module.toPsiClass()!!).map {
-      val group = if (it.isDaggerComponent) message("included.in.components") else message("included.in.modules")
-      GotoItemWithAnalyticsTracking(module, it, group)
-    }
+    val gotoTargets =
+      getUsagesForDaggerModule(module.toPsiClass()!!).map {
+        val group =
+          if (it.isDaggerComponent) message("included.in.components")
+          else message("included.in.modules")
+        GotoItemWithAnalyticsTracking(module, it, group)
+      }
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)
   }
 
-  private fun getIconAndGoToItemsForProvider(provider: PsiElement): Pair<Icon, List<GotoRelatedItem>> {
-    val consumers = getDaggerConsumersFor(provider).map {
-      val nameToDisplay = when (it) {
-        is PsiField -> it.parentOfType<PsiClass>()?.name
-        is PsiParameter -> it.parentOfType<PsiMethod>()?.name
-        else -> error("[Dagger editor] invalid consumer type ${it::class}")
+  private fun getIconAndGoToItemsForProvider(
+    provider: PsiElement
+  ): Pair<Icon, List<GotoRelatedItem>> {
+    val consumers =
+      getDaggerConsumersFor(provider).map {
+        val nameToDisplay =
+          when (it) {
+            is PsiField -> it.parentOfType<PsiClass>()?.name
+            is PsiParameter -> it.parentOfType<PsiMethod>()?.name
+            else -> error("[Dagger editor] invalid consumer type ${it::class}")
+          }
+        GotoItemWithAnalyticsTracking(provider, it, message("consumers"), nameToDisplay)
       }
-      GotoItemWithAnalyticsTracking(provider, it, message("consumers"), nameToDisplay)
-    }
 
     ProgressManager.checkCanceled()
-    val components = getDaggerComponentMethodsForProvider(provider).map {
-      GotoItemWithAnalyticsTracking(provider, it, message("exposed.by.components"), it.parentOfType<PsiClass>()?.name)
-    }
+    val components =
+      getDaggerComponentMethodsForProvider(provider).map {
+        GotoItemWithAnalyticsTracking(
+          provider,
+          it,
+          message("exposed.by.components"),
+          it.parentOfType<PsiClass>()?.name
+        )
+      }
 
     ProgressManager.checkCanceled()
-    val entryPoints = getDaggerEntryPointsMethodsForProvider(provider).map {
-      GotoItemWithAnalyticsTracking(provider, it, message("exposed.by.entry.points"), it.parentOfType<PsiClass>()?.name)
-    }
+    val entryPoints =
+      getDaggerEntryPointsMethodsForProvider(provider).map {
+        GotoItemWithAnalyticsTracking(
+          provider,
+          it,
+          message("exposed.by.entry.points"),
+          it.parentOfType<PsiClass>()?.name
+        )
+      }
 
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, consumers + components + entryPoints)
   }
 
-  private fun getIconAndGotoItemsForAssistedProvider(provider: PsiElement): Pair<Icon, List<GotoRelatedItem>> {
-    val consumers = getDaggerAssistedFactoryMethodsForAssistedInjectedConstructor(provider).map {
-      GotoItemWithAnalyticsTracking(provider, it, message("assisted.factory"), it.name)
-    }
+  private fun getIconAndGotoItemsForAssistedProvider(
+    provider: PsiElement
+  ): Pair<Icon, List<GotoRelatedItem>> {
+    val consumers =
+      getDaggerAssistedFactoryMethodsForAssistedInjectedConstructor(provider).map {
+        GotoItemWithAnalyticsTracking(provider, it, message("assisted.factory"), it.name)
+      }
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, consumers)
   }
 
-  private fun getIconAndGotoItemsForAssistedFactoryMethod(provider: PsiElement): Pair<Icon, List<GotoRelatedItem>> {
-    val consumers = getDaggerAssistedInjectConstructorForAssistedFactoryMethod(provider).map {
-      GotoItemWithAnalyticsTracking(provider, it, message("assisted.inject"), it.name)
-    }
+  private fun getIconAndGotoItemsForAssistedFactoryMethod(
+    provider: PsiElement
+  ): Pair<Icon, List<GotoRelatedItem>> {
+    val consumers =
+      getDaggerAssistedInjectConstructorForAssistedFactoryMethod(provider).map {
+        GotoItemWithAnalyticsTracking(provider, it, message("assisted.inject"), it.name)
+      }
     return Pair(StudioIcons.Misc.DEPENDENCY_PROVIDER, consumers)
   }
 
   private fun getProvidersFor(consumer: PsiElement): Pair<Icon, List<GotoRelatedItem>> {
-    val gotoTargets = getDaggerProvidersFor(consumer).map { GotoItemWithAnalyticsTracking(consumer, it, message("providers")) }
+    val gotoTargets =
+      getDaggerProvidersFor(consumer).map {
+        GotoItemWithAnalyticsTracking(consumer, it, message("providers"))
+      }
     return Pair(StudioIcons.Misc.DEPENDENCY_PROVIDER, gotoTargets)
   }
 
@@ -269,14 +339,15 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
 /**
  * Returns true if element is Java/Kotlin identifier or kotlin "constructor" keyword.
  *
- * Only leaf elements are suitable for ItemLineMarkerInfo (see [LineMarkerProvider]),
- * and we return true for those leaf elements that could define Dagger consumer/provider.
+ * Only leaf elements are suitable for ItemLineMarkerInfo (see [LineMarkerProvider]), and we return
+ * true for those leaf elements that could define Dagger consumer/provider.
  */
 private val PsiElement.canBeLineMarkerProvide: Boolean
   get() {
     return when (this) {
       is PsiIdentifier -> true
-      is LeafPsiElement -> this.elementType == KtTokens.CONSTRUCTOR_KEYWORD || this.elementType == KtTokens.IDENTIFIER
+      is LeafPsiElement ->
+        this.elementType == KtTokens.CONSTRUCTOR_KEYWORD || this.elementType == KtTokens.IDENTIFIER
       else -> false
     }
   }

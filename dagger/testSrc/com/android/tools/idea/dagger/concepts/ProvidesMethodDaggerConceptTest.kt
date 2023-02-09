@@ -48,8 +48,7 @@ import org.junit.runners.JUnit4
 @RunsInEdt
 class ProvidesMethodDaggerConceptTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   private lateinit var myFixture: CodeInsightTestFixture
 
@@ -60,15 +59,18 @@ class ProvidesMethodDaggerConceptTest {
 
   private fun runIndexer(wrapper: DaggerIndexMethodWrapper): Map<String, Set<IndexValue>> =
     mutableMapOf<String, MutableSet<IndexValue>>().also { indexEntries ->
-      ProvidesMethodDaggerConcept.indexers.methodIndexers.forEach { it.addIndexEntries(wrapper, indexEntries) }
+      ProvidesMethodDaggerConcept.indexers.methodIndexers.forEach {
+        it.addIndexEntries(wrapper, indexEntries)
+      }
     }
 
   @Test
   fun indexer_moduleMethodWithProvides() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
 
       import dagger.Module
@@ -77,7 +79,9 @@ class ProvidesMethodDaggerConceptTest {
       interface HeaterModule {
         fun provideHeater(electricHeater: ElectricHeater) : Heater {}
       }
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("provide|Heater").parentOfType<KtFunction>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
@@ -87,10 +91,11 @@ class ProvidesMethodDaggerConceptTest {
 
   @Test
   fun indexer_providesMethodWithModule() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
 
       import dagger.Provides
@@ -99,7 +104,9 @@ class ProvidesMethodDaggerConceptTest {
         @Provides
         fun provideHeater(electricHeater: ElectricHeater) : Heater {}
       }
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("provide|Heater").parentOfType<KtFunction>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
@@ -109,17 +116,20 @@ class ProvidesMethodDaggerConceptTest {
 
   @Test
   fun indexer_providesMethodOutsideClass() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
 
       import dagger.Provides
 
       @Provides
       fun provideHeater(electricHeater: ElectricHeater) : Heater {}
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("provide|Heater").parentOfType<KtFunction>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
@@ -129,10 +139,11 @@ class ProvidesMethodDaggerConceptTest {
 
   @Test
   fun indexer_providesMethod() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
 
       import dagger.Module
@@ -143,25 +154,40 @@ class ProvidesMethodDaggerConceptTest {
         @Provides
         fun provideHeater(electricHeater: ElectricHeater, electricHeater2: ElectricHeater) : Heater {}
       }
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("provide|Heater").parentOfType<KtFunction>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
-    assertThat(entries).containsExactly(
-      "Heater", setOf(ProvidesMethodIndexValue("com.example.HeaterModule", "provideHeater")),
-      "ElectricHeater",
-      setOf(ProvidesMethodParameterIndexValue("com.example.HeaterModule", "provideHeater", "electricHeater"),
-            ProvidesMethodParameterIndexValue("com.example.HeaterModule", "provideHeater", "electricHeater2")),
-    )
+    assertThat(entries)
+      .containsExactly(
+        "Heater",
+        setOf(ProvidesMethodIndexValue("com.example.HeaterModule", "provideHeater")),
+        "ElectricHeater",
+        setOf(
+          ProvidesMethodParameterIndexValue(
+            "com.example.HeaterModule",
+            "provideHeater",
+            "electricHeater"
+          ),
+          ProvidesMethodParameterIndexValue(
+            "com.example.HeaterModule",
+            "provideHeater",
+            "electricHeater2"
+          )
+        ),
+      )
   }
 
   @Test
   fun indexer_wrongProvidesAnnotation() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
 
       import dagger.Module
@@ -172,7 +198,9 @@ class ProvidesMethodDaggerConceptTest {
         @Provides
         fun provideHeater(electricHeater: ElectricHeater, electricHeater2: ElectricHeater) : Heater {}
       }
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("provide|Heater").parentOfType<KtFunction>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
@@ -182,10 +210,11 @@ class ProvidesMethodDaggerConceptTest {
 
   @Test
   fun indexer_wrongModuleAnnotation() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
 
       import com.other.Module
@@ -196,7 +225,9 @@ class ProvidesMethodDaggerConceptTest {
         @Provides
         fun provideHeater(electricHeater: ElectricHeater, electricHeater2: ElectricHeater) : Heater {}
       }
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("provide|Heater").parentOfType<KtFunction>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
@@ -216,7 +247,7 @@ class ProvidesMethodDaggerConceptTest {
 
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
-      //language=kotlin
+      // language=kotlin
       """
       package com.example
 
@@ -233,22 +264,53 @@ class ProvidesMethodDaggerConceptTest {
 
         fun dontProvideHeater(electricHeater: ElectricHeater) : Heater {}
       }
-      """.trimIndent())
+      """.trimIndent()
+    )
 
-    val heaterPsiType = myFixture.moveCaret("interface Heat|er {}").parentOfType<KtClass>()!!.toPsiType()!!
-    val otherPsiType = myFixture.moveCaret("interface HeaterM|odule").parentOfType<KtClass>()!!.toPsiType()!!
+    val heaterPsiType =
+      myFixture.moveCaret("interface Heat|er {}").parentOfType<KtClass>()!!.toPsiType()!!
+    val otherPsiType =
+      myFixture.moveCaret("interface HeaterM|odule").parentOfType<KtClass>()!!.toPsiType()!!
 
     val indexValue1 = ProvidesMethodIndexValue("com.example.HeaterModule", "provideHeater")
     val indexValue2 = ProvidesMethodIndexValue("com.example.HeaterModule", "dontProvideHeater")
 
-    val provideHeaterFunction = myFixture.moveCaret("fun provideHe|ater").parentOfType<KtFunction>()!!
+    val provideHeaterFunction =
+      myFixture.moveCaret("fun provideHe|ater").parentOfType<KtFunction>()!!
 
-    assertThat(indexValue1.resolveToDaggerElements(heaterPsiType, myFixture.project, myFixture.project.projectScope())).containsExactly(
-      DaggerElement(provideHeaterFunction, DaggerElement.Type.PROVIDER))
-    assertThat(indexValue1.resolveToDaggerElements(otherPsiType, myFixture.project, myFixture.project.projectScope())).isEmpty()
+    assertThat(
+        indexValue1.resolveToDaggerElements(
+          heaterPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .containsExactly(DaggerElement(provideHeaterFunction, DaggerElement.Type.PROVIDER))
+    assertThat(
+        indexValue1.resolveToDaggerElements(
+          otherPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
 
-    assertThat(indexValue2.resolveToDaggerElements(heaterPsiType, myFixture.project, myFixture.project.projectScope())).isEmpty()
-    assertThat(indexValue2.resolveToDaggerElements(otherPsiType, myFixture.project, myFixture.project.projectScope())).isEmpty()
+    assertThat(
+        indexValue2.resolveToDaggerElements(
+          heaterPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
+    assertThat(
+        indexValue2.resolveToDaggerElements(
+          otherPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
   }
 
   @Test
@@ -257,7 +319,7 @@ class ProvidesMethodDaggerConceptTest {
 
     myFixture.configureByText(
       JavaFileType.INSTANCE,
-      //language=java
+      // language=java
       """
       package com.example;
 
@@ -274,22 +336,53 @@ class ProvidesMethodDaggerConceptTest {
 
         Heater dontProvideHeater(ElectricHeater electricHeater) {}
       }
-      """.trimIndent())
+      """.trimIndent()
+    )
 
-    val heaterPsiType = toPsiType(myFixture.moveCaret("interface Heat|er {}").parentOfType<PsiClass>()!!)!!
-    val otherPsiType = toPsiType(myFixture.moveCaret("interface HeaterM|odule").parentOfType<PsiClass>()!!)!!
+    val heaterPsiType =
+      toPsiType(myFixture.moveCaret("interface Heat|er {}").parentOfType<PsiClass>()!!)!!
+    val otherPsiType =
+      toPsiType(myFixture.moveCaret("interface HeaterM|odule").parentOfType<PsiClass>()!!)!!
 
     val indexValue1 = ProvidesMethodIndexValue("com.example.HeaterModule", "provideHeater")
     val indexValue2 = ProvidesMethodIndexValue("com.example.HeaterModule", "dontProvideHeater")
 
-    val provideHeaterFunction = myFixture.moveCaret("Heater provideHe|ater").parentOfType<PsiMethod>()!!
+    val provideHeaterFunction =
+      myFixture.moveCaret("Heater provideHe|ater").parentOfType<PsiMethod>()!!
 
-    assertThat(indexValue1.resolveToDaggerElements(heaterPsiType, myFixture.project, myFixture.project.projectScope())).containsExactly(
-      DaggerElement(provideHeaterFunction, DaggerElement.Type.PROVIDER))
-    assertThat(indexValue1.resolveToDaggerElements(otherPsiType, myFixture.project, myFixture.project.projectScope())).isEmpty()
+    assertThat(
+        indexValue1.resolveToDaggerElements(
+          heaterPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .containsExactly(DaggerElement(provideHeaterFunction, DaggerElement.Type.PROVIDER))
+    assertThat(
+        indexValue1.resolveToDaggerElements(
+          otherPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
 
-    assertThat(indexValue2.resolveToDaggerElements(heaterPsiType, myFixture.project, myFixture.project.projectScope())).isEmpty()
-    assertThat(indexValue2.resolveToDaggerElements(otherPsiType, myFixture.project, myFixture.project.projectScope())).isEmpty()
+    assertThat(
+        indexValue2.resolveToDaggerElements(
+          heaterPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
+    assertThat(
+        indexValue2.resolveToDaggerElements(
+          otherPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
   }
 
   @Test
@@ -304,7 +397,7 @@ class ProvidesMethodDaggerConceptTest {
 
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
-      //language=kotlin
+      // language=kotlin
       """
       package com.example
 
@@ -321,23 +414,65 @@ class ProvidesMethodDaggerConceptTest {
 
         fun dontProvideHeater(electricHeater: ElectricHeater) : Heater {}
       }
-      """.trimIndent())
+      """.trimIndent()
+    )
 
-    val electricHeaterPsiType = myFixture.moveCaret("class ElectricHea|ter").parentOfType<KtClass>()!!.toPsiType()!!
-    val otherPsiType = myFixture.moveCaret("interface HeaterM|odule").parentOfType<KtClass>()!!.toPsiType()!!
+    val electricHeaterPsiType =
+      myFixture.moveCaret("class ElectricHea|ter").parentOfType<KtClass>()!!.toPsiType()!!
+    val otherPsiType =
+      myFixture.moveCaret("interface HeaterM|odule").parentOfType<KtClass>()!!.toPsiType()!!
 
-    val indexValue1 = ProvidesMethodParameterIndexValue("com.example.HeaterModule", "provideHeater", "electricHeater")
-    val indexValue2 = ProvidesMethodParameterIndexValue("com.example.HeaterModule", "dontProvideHeater", "electricHeater")
+    val indexValue1 =
+      ProvidesMethodParameterIndexValue(
+        "com.example.HeaterModule",
+        "provideHeater",
+        "electricHeater"
+      )
+    val indexValue2 =
+      ProvidesMethodParameterIndexValue(
+        "com.example.HeaterModule",
+        "dontProvideHeater",
+        "electricHeater"
+      )
 
-    val electricHeaterParameter = myFixture.moveCaret("provideHeater(elect|ricHeater: ElectricHeater").parentOfType<KtParameter>()!!
+    val electricHeaterParameter =
+      myFixture
+        .moveCaret("provideHeater(elect|ricHeater: ElectricHeater")
+        .parentOfType<KtParameter>()!!
 
     assertThat(
-      indexValue1.resolveToDaggerElements(electricHeaterPsiType, myFixture.project, myFixture.project.projectScope())).containsExactly(
-      DaggerElement(electricHeaterParameter, DaggerElement.Type.CONSUMER))
-    assertThat(indexValue1.resolveToDaggerElements(otherPsiType, myFixture.project, myFixture.project.projectScope())).isEmpty()
+        indexValue1.resolveToDaggerElements(
+          electricHeaterPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .containsExactly(DaggerElement(electricHeaterParameter, DaggerElement.Type.CONSUMER))
+    assertThat(
+        indexValue1.resolveToDaggerElements(
+          otherPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
 
-    assertThat(indexValue2.resolveToDaggerElements(electricHeaterPsiType, myFixture.project, myFixture.project.projectScope())).isEmpty()
-    assertThat(indexValue2.resolveToDaggerElements(otherPsiType, myFixture.project, myFixture.project.projectScope())).isEmpty()
+    assertThat(
+        indexValue2.resolveToDaggerElements(
+          electricHeaterPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
+    assertThat(
+        indexValue2.resolveToDaggerElements(
+          otherPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
   }
 
   @Test
@@ -346,7 +481,7 @@ class ProvidesMethodDaggerConceptTest {
 
     myFixture.configureByText(
       JavaFileType.INSTANCE,
-      //language=java
+      // language=java
       """
       package com.example;
 
@@ -363,22 +498,64 @@ class ProvidesMethodDaggerConceptTest {
 
         Heater dontProvideHeater(ElectricHeater electricHeater) {}
       }
-      """.trimIndent())
+      """.trimIndent()
+    )
 
-    val electricHeaterPsiType = toPsiType(myFixture.moveCaret("class ElectricHea|ter").parentOfType<PsiClass>()!!)!!
-    val otherPsiType = toPsiType(myFixture.moveCaret("interface HeaterM|odule").parentOfType<PsiClass>()!!)!!
+    val electricHeaterPsiType =
+      toPsiType(myFixture.moveCaret("class ElectricHea|ter").parentOfType<PsiClass>()!!)!!
+    val otherPsiType =
+      toPsiType(myFixture.moveCaret("interface HeaterM|odule").parentOfType<PsiClass>()!!)!!
 
-    val indexValue1 = ProvidesMethodParameterIndexValue("com.example.HeaterModule", "provideHeater", "electricHeater")
-    val indexValue2 = ProvidesMethodParameterIndexValue("com.example.HeaterModule", "dontProvideHeater", "electricHeater")
+    val indexValue1 =
+      ProvidesMethodParameterIndexValue(
+        "com.example.HeaterModule",
+        "provideHeater",
+        "electricHeater"
+      )
+    val indexValue2 =
+      ProvidesMethodParameterIndexValue(
+        "com.example.HeaterModule",
+        "dontProvideHeater",
+        "electricHeater"
+      )
 
-    val electricHeaterParameter = myFixture.moveCaret("provideHeater(ElectricHeater elec|tricHeater").parentOfType<PsiParameter>()!!
+    val electricHeaterParameter =
+      myFixture
+        .moveCaret("provideHeater(ElectricHeater elec|tricHeater")
+        .parentOfType<PsiParameter>()!!
 
     assertThat(
-      indexValue1.resolveToDaggerElements(electricHeaterPsiType, myFixture.project, myFixture.project.projectScope())).containsExactly(
-      DaggerElement(electricHeaterParameter, DaggerElement.Type.CONSUMER))
-    assertThat(indexValue1.resolveToDaggerElements(otherPsiType, myFixture.project, myFixture.project.projectScope())).isEmpty()
+        indexValue1.resolveToDaggerElements(
+          electricHeaterPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .containsExactly(DaggerElement(electricHeaterParameter, DaggerElement.Type.CONSUMER))
+    assertThat(
+        indexValue1.resolveToDaggerElements(
+          otherPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
 
-    assertThat(indexValue2.resolveToDaggerElements(electricHeaterPsiType, myFixture.project, myFixture.project.projectScope())).isEmpty()
-    assertThat(indexValue2.resolveToDaggerElements(otherPsiType, myFixture.project, myFixture.project.projectScope())).isEmpty()
+    assertThat(
+        indexValue2.resolveToDaggerElements(
+          electricHeaterPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
+    assertThat(
+        indexValue2.resolveToDaggerElements(
+          otherPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
   }
 }

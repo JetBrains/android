@@ -40,8 +40,7 @@ import org.junit.runners.JUnit4
 @RunsInEdt
 class DaggerIndexMethodWrapperTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   private lateinit var myFixture: CodeInsightTestFixture
 
@@ -52,16 +51,19 @@ class DaggerIndexMethodWrapperTest {
 
   @Test
   fun kotlinClassFunction() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
 
       class Foo {
         fun bar(arg1: Integer, arg2: Bat = Bat()): Baz {} 
       }
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("b|ar").parentOfType<KtFunction>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -76,16 +78,19 @@ class DaggerIndexMethodWrapperTest {
 
   @Test
   fun kotlinClassFunctionWithNoReturnType() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
 
       class Foo {
         fun bar(arg1: Integer, arg2: Bat) = resultOfSomeFunction
       }
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("b|ar").parentOfType<KtFunction>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -95,10 +100,11 @@ class DaggerIndexMethodWrapperTest {
 
   @Test
   fun kotlinClassFunctionWithAnnotations() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
 
       class Foo {
@@ -107,7 +113,9 @@ class DaggerIndexMethodWrapperTest {
         @Annotation3(true)
         fun bar(arg1: Integer, arg2: Bat = Bat()): Baz {} 
       }
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("b|ar").parentOfType<KtFunction>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -118,17 +126,19 @@ class DaggerIndexMethodWrapperTest {
     assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation4")).isFalse()
   }
 
-
   @Test
   fun kotlinPackageLevelFunction() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
 
       fun bar(arg1: Integer, arg2: Bat): Baz {}
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("b|ar").parentOfType<KtFunction>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -138,14 +148,17 @@ class DaggerIndexMethodWrapperTest {
 
   @Test
   fun kotlinPrimaryConstructor() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
 
       class Foo(arg1: Integer, arg2: Bat) {}
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("Foo(a|rg1").parentOfType<KtPrimaryConstructor>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -160,16 +173,19 @@ class DaggerIndexMethodWrapperTest {
 
   @Test
   fun kotlinSecondaryConstructor() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
 
       class Foo(arg1: Integer, arg2: Bat) {
         constructor(arg1: Integer)
       }
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("constr|uctor").parentOfType<KtSecondaryConstructor>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -184,15 +200,18 @@ class DaggerIndexMethodWrapperTest {
 
   @Test
   fun javaClassMethod() {
-    val psiFile = myFixture.configureByText(
-      JavaFileType.INSTANCE,
-      //language=java
-      """
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
       package com.example;
       public class Foo {
         public Baz bar(int arg1, Bat arg2) {}
       }
-      """.trimIndent()) as PsiJavaFile
+      """.trimIndent()
+      ) as
+        PsiJavaFile
 
     val element = myFixture.moveCaret("b|ar").parentOfType<PsiMethod>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
@@ -207,10 +226,11 @@ class DaggerIndexMethodWrapperTest {
 
   @Test
   fun javaClassMethodWithAnnotations() {
-    val psiFile = myFixture.configureByText(
-      JavaFileType.INSTANCE,
-      //language=java
-      """
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
       package com.example;
       public class Foo {
         @Annotation1
@@ -218,7 +238,9 @@ class DaggerIndexMethodWrapperTest {
         @Annotation3(true)
         public Baz bar(int arg1, Bat arg2) {}
       }
-      """.trimIndent()) as PsiJavaFile
+      """.trimIndent()
+      ) as
+        PsiJavaFile
 
     val element = myFixture.moveCaret("b|ar").parentOfType<PsiMethod>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
@@ -231,15 +253,18 @@ class DaggerIndexMethodWrapperTest {
 
   @Test
   fun javaConstructor() {
-    val psiFile = myFixture.configureByText(
-      JavaFileType.INSTANCE,
-      //language=java
-      """
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
       package com.example;
       public class Foo {
         public Foo(int arg1, Bat arg2) {}
       }
-      """.trimIndent()) as PsiJavaFile
+      """.trimIndent()
+      ) as
+        PsiJavaFile
 
     val element = myFixture.moveCaret("Fo|o(int").parentOfType<PsiMethod>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)

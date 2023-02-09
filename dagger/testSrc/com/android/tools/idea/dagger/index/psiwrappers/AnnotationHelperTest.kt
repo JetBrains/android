@@ -38,8 +38,7 @@ import org.junit.runners.JUnit4
 @RunsInEdt
 class AnnotationHelperTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   private lateinit var myFixture: CodeInsightTestFixture
 
@@ -50,17 +49,20 @@ class AnnotationHelperTest {
 
   @Test
   fun kotlinAnnotation() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
 
       import com.other.*
 
       @Annotation
       class Foo {}
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("Fo|o").parentOfType<KtClass>()!!
     val importHelper = KotlinImportHelper(psiFile)
@@ -73,17 +75,20 @@ class AnnotationHelperTest {
 
   @Test
   fun kotlinFullyQualifiedAnnotation() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
 
       import com.other.*
 
       @com.qualified.Annotation
       class Foo {}
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("Fo|o").parentOfType<KtClass>()!!
     val importHelper = KotlinImportHelper(psiFile)
@@ -96,17 +101,20 @@ class AnnotationHelperTest {
 
   @Test
   fun kotlinAnnotationWithAlias() {
-    val psiFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
 
       import com.aliased.Annotation as Bar
 
       @Bar
       class Foo {}
-      """.trimIndent()) as KtFile
+      """.trimIndent()
+      ) as
+        KtFile
 
     val element = myFixture.moveCaret("Fo|o").parentOfType<KtClass>()!!
     val importHelper = KotlinImportHelper(psiFile)
@@ -116,17 +124,20 @@ class AnnotationHelperTest {
 
   @Test
   fun javaAnnotation() {
-    val psiFile = myFixture.configureByText(
-      JavaFileType.INSTANCE,
-      //language=java
-      """
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
       package com.example;
 
       import com.other.*;
 
       @Annotation
       class Foo {}
-      """.trimIndent()) as PsiJavaFile
+      """.trimIndent()
+      ) as
+        PsiJavaFile
 
     val element = myFixture.moveCaret("Fo|o").parentOfType<PsiClass>()!!
     val importHelper = JavaImportHelper(psiFile)
@@ -139,17 +150,20 @@ class AnnotationHelperTest {
 
   @Test
   fun javaFullyQualifiedAnnotation() {
-    val psiFile = myFixture.configureByText(
-      JavaFileType.INSTANCE,
-      //language=java
-      """
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
       package com.example;
 
       import com.other.*;
 
       @com.qualified.Annotation
       class Foo {}
-      """.trimIndent()) as PsiJavaFile
+      """.trimIndent()
+      ) as
+        PsiJavaFile
 
     val element = myFixture.moveCaret("Fo|o").parentOfType<PsiClass>()!!
     val importHelper = JavaImportHelper(psiFile)

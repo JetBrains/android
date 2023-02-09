@@ -19,29 +19,45 @@ import com.intellij.psi.PsiModifierListOwner
 import org.jetbrains.kotlin.psi.KtAnnotated
 
 /**
- * Returns whether the element might be annotated by the given type (specified by fully-qualified name).
+ * Returns whether the element might be annotated by the given type (specified by fully-qualified
+ * name).
  *
- * For example, given an element with the annotation "@Inject", `getIsAnnotatedWith("javax.inject.Inject", ...)` would return true as long
- * as the file has appropriate import statements.
+ * For example, given an element with the annotation "@Inject",
+ * `getIsAnnotatedWith("javax.inject.Inject", ...)` would return true as long as the file has
+ * appropriate import statements.
  *
- * Because this evaluation is happening at index time, it's not possible to say that the type actually matches. This function indicates at
- * best that an annotation *may* be of the given type. A return value of `false` means that it definitively will not be of that type.
+ * Because this evaluation is happening at index time, it's not possible to say that the type
+ * actually matches. This function indicates at best that an annotation *may* be of the given type.
+ * A return value of `false` means that it definitively will not be of that type.
  */
-internal fun KtAnnotated.getIsAnnotatedWith(fqName: String, importHelper: KotlinImportHelper): Boolean =
+internal fun KtAnnotated.getIsAnnotatedWith(
+  fqName: String,
+  importHelper: KotlinImportHelper
+): Boolean =
   annotationEntries.any { annotationEntry ->
-    annotationEntry.typeReference?.text?.let { text -> importHelper.getPossibleAnnotationText(fqName).contains(text) } == true
+    annotationEntry.typeReference?.text?.let { text ->
+      importHelper.getPossibleAnnotationText(fqName).contains(text)
+    } == true
   }
 
 /**
- * Returns whether the element might be annotated by the given type (specified by fully-qualified name).
+ * Returns whether the element might be annotated by the given type (specified by fully-qualified
+ * name).
  *
- * For example, given an element with the annotation "@Inject", `getIsAnnotatedWith("javax.inject.Inject", ...)` would return true as long
- * as the file has appropriate import statements.
+ * For example, given an element with the annotation "@Inject",
+ * `getIsAnnotatedWith("javax.inject.Inject", ...)` would return true as long as the file has
+ * appropriate import statements.
  *
- * Because this evaluation is happening at index time, it's not possible to say that the type actually matches. This function indicates at
- * best that an annotation *may* be of the given type. A return value of `false` means that it definitively will not be of that type.
+ * Because this evaluation is happening at index time, it's not possible to say that the type
+ * actually matches. This function indicates at best that an annotation *may* be of the given type.
+ * A return value of `false` means that it definitively will not be of that type.
  */
-internal fun PsiModifierListOwner.getIsAnnotatedWith(fqName: String, importHelper: JavaImportHelper): Boolean =
+internal fun PsiModifierListOwner.getIsAnnotatedWith(
+  fqName: String,
+  importHelper: JavaImportHelper
+): Boolean =
   annotations.any { annotation ->
-    annotation.nameReferenceElement?.text?.let { text -> importHelper.getPossibleAnnotationText(fqName).contains(text) } == true
+    annotation.nameReferenceElement?.text?.let { text ->
+      importHelper.getPossibleAnnotationText(fqName).contains(text)
+    } == true
   }

@@ -29,7 +29,11 @@ import com.intellij.util.Processor
 /** Adds custom usages for Dagger-related classes to a find usages window. */
 class DaggerCustomUsageSearcherV2 : CustomUsageSearcher() {
   @WorkerThread
-  override fun processElementUsages(element: PsiElement, processor: Processor<in Usage>, options: FindUsagesOptions) {
+  override fun processElementUsages(
+    element: PsiElement,
+    processor: Processor<in Usage>,
+    options: FindUsagesOptions
+  ) {
     if (!element.isDaggerWithIndexEnabled()) return
 
     val relatedDaggerItems = runReadAction { element.getDaggerElement()?.getRelatedDaggerItems() }

@@ -24,13 +24,16 @@ interface DaggerIndexTypeWrapper : DaggerIndexPsiWrapper {
   fun getSimpleName(): String
 }
 
-internal class KtTypeReferenceWrapper(private val ktTypeReference: KtTypeReference,
-                                      private val importHelper: KotlinImportHelper) : DaggerIndexTypeWrapper {
+internal class KtTypeReferenceWrapper(
+  private val ktTypeReference: KtTypeReference,
+  private val importHelper: KotlinImportHelper
+) : DaggerIndexTypeWrapper {
   override fun getSimpleName(): String {
     val typeReferenceText = ktTypeReference.text
     val simpleNameInCode = typeReferenceText.substringAfterLast(".")
 
-    // If the type has any "." characters in it, then the only part that can be aliased is at the beginning. Therefore, the alias isn't
+    // If the type has any "." characters in it, then the only part that can be aliased is at the
+    // beginning. Therefore, the alias isn't
     // part of the simple name, and we can just return here.
     if (typeReferenceText != simpleNameInCode) return simpleNameInCode
 
@@ -38,9 +41,9 @@ internal class KtTypeReferenceWrapper(private val ktTypeReference: KtTypeReferen
     // Look for any imports that might have an alias for this type.
     return importHelper.aliasMap[simpleNameInCode] ?: simpleNameInCode
   }
-
 }
 
-internal class PsiTypeElementWrapper(private val psiTypeElement: PsiTypeElement) : DaggerIndexTypeWrapper {
+internal class PsiTypeElementWrapper(private val psiTypeElement: PsiTypeElement) :
+  DaggerIndexTypeWrapper {
   override fun getSimpleName(): String = psiTypeElement.text.substringAfterLast(".")
 }

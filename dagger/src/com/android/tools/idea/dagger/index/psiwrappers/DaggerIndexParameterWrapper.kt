@@ -25,14 +25,18 @@ interface DaggerIndexParameterWrapper : DaggerIndexPsiWrapper {
   fun getType(): DaggerIndexTypeWrapper
 }
 
-internal class KtParameterWrapper(private val ktParameter: KtParameter,
-                                  private val importHelper: KotlinImportHelper) : DaggerIndexParameterWrapper {
+internal class KtParameterWrapper(
+  private val ktParameter: KtParameter,
+  private val importHelper: KotlinImportHelper
+) : DaggerIndexParameterWrapper {
   override fun getSimpleName(): String = ktParameter.name!!
 
-  override fun getType(): DaggerIndexTypeWrapper = KtTypeReferenceWrapper(ktParameter.typeReference!!, importHelper)
+  override fun getType(): DaggerIndexTypeWrapper =
+    KtTypeReferenceWrapper(ktParameter.typeReference!!, importHelper)
 }
 
-internal class PsiParameterWrapper(private val psiParameter: PsiParameter): DaggerIndexParameterWrapper {
+internal class PsiParameterWrapper(private val psiParameter: PsiParameter) :
+  DaggerIndexParameterWrapper {
   override fun getSimpleName(): String = psiParameter.name
 
   override fun getType(): DaggerIndexTypeWrapper = PsiTypeElementWrapper(psiParameter.typeElement!!)

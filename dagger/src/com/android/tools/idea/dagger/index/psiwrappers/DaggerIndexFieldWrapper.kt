@@ -29,24 +29,34 @@ interface DaggerIndexFieldWrapper : DaggerIndexPsiWrapper {
   fun getIsAnnotatedWith(fqName: String): Boolean
 }
 
-internal class KtPropertyWrapper(private val ktProperty: KtProperty,
-                                 private val importHelper: KotlinImportHelper) : DaggerIndexFieldWrapper {
+internal class KtPropertyWrapper(
+  private val ktProperty: KtProperty,
+  private val importHelper: KotlinImportHelper
+) : DaggerIndexFieldWrapper {
   override fun getSimpleName() = ktProperty.name!!
 
-  override fun getType(): DaggerIndexTypeWrapper? = ktProperty.typeReference?.let { KtTypeReferenceWrapper(it, importHelper) }
+  override fun getType(): DaggerIndexTypeWrapper? =
+    ktProperty.typeReference?.let { KtTypeReferenceWrapper(it, importHelper) }
 
-  override fun getContainingClass(): DaggerIndexClassWrapper = KtClassOrObjectWrapper(ktProperty.containingClassOrObject!!, importHelper)
+  override fun getContainingClass(): DaggerIndexClassWrapper =
+    KtClassOrObjectWrapper(ktProperty.containingClassOrObject!!, importHelper)
 
-  override fun getIsAnnotatedWith(fqName: String) = ktProperty.getIsAnnotatedWith(fqName, importHelper)
+  override fun getIsAnnotatedWith(fqName: String) =
+    ktProperty.getIsAnnotatedWith(fqName, importHelper)
 }
 
-internal class PsiFieldWrapper(private val psiField: PsiField,
-                               private val importHelper: JavaImportHelper) : DaggerIndexFieldWrapper {
+internal class PsiFieldWrapper(
+  private val psiField: PsiField,
+  private val importHelper: JavaImportHelper
+) : DaggerIndexFieldWrapper {
   override fun getSimpleName() = psiField.name
 
-  override fun getType(): DaggerIndexTypeWrapper? = psiField.typeElement?.let { PsiTypeElementWrapper(it) }
+  override fun getType(): DaggerIndexTypeWrapper? =
+    psiField.typeElement?.let { PsiTypeElementWrapper(it) }
 
-  override fun getContainingClass(): DaggerIndexClassWrapper = PsiClassWrapper(psiField.containingClass!!, importHelper)
+  override fun getContainingClass(): DaggerIndexClassWrapper =
+    PsiClassWrapper(psiField.containingClass!!, importHelper)
 
-  override fun getIsAnnotatedWith(fqName: String) = psiField.getIsAnnotatedWith(fqName, importHelper)
+  override fun getIsAnnotatedWith(fqName: String) =
+    psiField.getIsAnnotatedWith(fqName, importHelper)
 }

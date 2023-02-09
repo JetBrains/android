@@ -27,15 +27,16 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class DaggerUsageTypeProviderV2Test {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun getUsageType_daggerElementTypes() {
     assertThat(DaggerUsageTypeProviderV2.getUsageType(CONSUMER, CONSUMER)?.toString()).isNull()
-    assertThat(DaggerUsageTypeProviderV2.getUsageType(CONSUMER, PROVIDER)?.toString()).isEqualTo("Consumers")
+    assertThat(DaggerUsageTypeProviderV2.getUsageType(CONSUMER, PROVIDER)?.toString())
+      .isEqualTo("Consumers")
 
-    assertThat(DaggerUsageTypeProviderV2.getUsageType(PROVIDER, CONSUMER)?.toString()).isEqualTo("Providers")
+    assertThat(DaggerUsageTypeProviderV2.getUsageType(PROVIDER, CONSUMER)?.toString())
+      .isEqualTo("Providers")
     assertThat(DaggerUsageTypeProviderV2.getUsageType(PROVIDER, PROVIDER)?.toString()).isNull()
   }
 }

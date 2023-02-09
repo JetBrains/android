@@ -34,14 +34,13 @@ class DaggerDependencyCheckerTest : UsefulTestCase() {
   private lateinit var daggerLib: Module
   private lateinit var appModule: Module
 
-  /**
-   * Set up with to modules where mySecondModule depends on myFirstModule.
-   */
+  /** Set up with to modules where mySecondModule depends on myFirstModule. */
   override fun setUp() {
     super.setUp()
 
     val projectBuilder = JavaTestFixtureFactory.createFixtureBuilder(name)
-    myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.fixture)
+    myFixture =
+      JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.fixture)
 
     val daggerLibFixture = newModule(projectBuilder, "DaggerDependencyCheckerTest_dagger")
     val appModuleFixture = newModule(projectBuilder, "DaggerDependencyCheckerTest_app")
@@ -62,7 +61,10 @@ class DaggerDependencyCheckerTest : UsefulTestCase() {
     }
   }
 
-  private fun newModule(projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>, contentRoot: String): ModuleFixture {
+  private fun newModule(
+    projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
+    contentRoot: String
+  ): ModuleFixture {
     val firstProjectBuilder = projectBuilder.addModule(JavaModuleFixtureBuilder::class.java)
     val tempDirPath = myFixture.tempDirPath
 
@@ -71,36 +73,36 @@ class DaggerDependencyCheckerTest : UsefulTestCase() {
     File(contentRootPath).mkdir()
 
     // Call the builder
-    return firstProjectBuilder
-      .addContentRoot(contentRootPath)
-      .addSourceRoot("src")
-      .fixture
+    return firstProjectBuilder.addContentRoot(contentRootPath).addSourceRoot("src").fixture
   }
 
   fun test() {
-    val appFile = myFixture.addFileToProject("DaggerDependencyCheckerTest_app/src/test/MyClass.java",
-      // language=JAVA
-                                             """
+    val appFile =
+      myFixture.addFileToProject(
+        "DaggerDependencyCheckerTest_app/src/test/MyClass.java",
+        // language=JAVA
+        """
       package test;
 
       public class MyClass {}
       """.trimIndent()
-    )
+      )
 
     assertThat(appFile.project.service<DaggerDependencyChecker>().isDaggerPresent()).isFalse()
 
     // Make dagger module actually dagger by adding dagger.Module interface
-    myFixture.addFileToProject("DaggerDependencyCheckerTest_dagger/src/dagger/Module.java",
+    myFixture.addFileToProject(
+      "DaggerDependencyCheckerTest_dagger/src/dagger/Module.java",
       // language=JAVA
-                               """
+      """
       package dagger;
 
       public @interface Module {}
       """.trimIndent()
     )
 
-    // We are not using a Dagger module in an App module, but isDaggerPresent checks for the project.
+    // We are not using a Dagger module in an App module, but isDaggerPresent checks for the
+    // project.
     assertThat(appFile.project.service<DaggerDependencyChecker>().isDaggerPresent()).isTrue()
-
   }
 }
