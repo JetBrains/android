@@ -534,7 +534,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/surface/BorderLayer.kt"
-            line="52"/>
+            line="58"/>
     </issue>
 
     <issue

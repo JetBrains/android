@@ -28,7 +28,8 @@ import java.awt.RadialGradientPaint
 import java.awt.RenderingHints
 
 class BorderLayer @JvmOverloads constructor(private val myScreenView: SceneView,
-                                            private val myMustPaintBorder: Boolean = false) : Layer() {
+                                            private val myMustPaintBorder: Boolean = false,
+                                            private val shouldPaintAsSelected: (SceneView) -> Boolean = { false }) : Layer() {
   override fun paint(g2d: Graphics2D) {
     val screenShape = myScreenView.screenShape
     if (!myMustPaintBorder && screenShape != null) {
@@ -44,22 +45,49 @@ class BorderLayer @JvmOverloads constructor(private val myScreenView: SceneView,
         return
       }
     }
-    BorderPainter.paint(g2d, myScreenView)
+    BorderPainter.paint(g2d, myScreenView, getColorIndex())
   }
+
+  private fun getColorIndex(): Int = if (shouldPaintAsSelected(myScreenView)) 1 else 0
 }
 
 private object BorderPainter {
   private val SHADOW_SIZE = JBUI.scale(4)
-  private val COLOR_OUTSIDE = UIUtil.TRANSPARENT_COLOR
-  private val COLOR_INSIDE: Color = JBColor.namedColor("ScreenView.borderColor", JBColor(Color(0, 0, 0, 40), Color(0, 0, 0, 80)))
-  private val GRAD_LEFT: Paint = GradientPaint(0f, 0f, COLOR_OUTSIDE, SHADOW_SIZE.toFloat(), 0f, COLOR_INSIDE)
-  private val GRAD_TOP: Paint = GradientPaint(0f, 0f, COLOR_OUTSIDE, 0f, SHADOW_SIZE.toFloat(), COLOR_INSIDE)
-  private val GRAD_RIGHT: Paint = GradientPaint(0f, 0f, COLOR_INSIDE, SHADOW_SIZE.toFloat(), 0f, COLOR_OUTSIDE)
-  private val GRAD_BOTTOM: Paint = GradientPaint(0f, 0f, COLOR_INSIDE, 0f, SHADOW_SIZE.toFloat(), COLOR_OUTSIDE)
-  private val GRAD_CORNER: Paint = RadialGradientPaint(SHADOW_SIZE.toFloat(), SHADOW_SIZE.toFloat(), SHADOW_SIZE.toFloat(),
-                                                       floatArrayOf(0f, 1f), arrayOf(COLOR_INSIDE, COLOR_OUTSIDE))
+  private val COLOR_OUTSIDE = listOf(
+    UIUtil.TRANSPARENT_COLOR,
+    JBColor.namedColor(
+      "ScreenView.selectedBorderColorOutside",
+      JBColor(Color(0x35, 0x73, 0xf0, 100), Color(0x54, 0x8a, 0xf7, 100))
+    )
+  )
+  private val COLOR_INSIDE = listOf(
+    JBColor.namedColor(
+      "ScreenView.borderColor",
+      JBColor(Color(0, 0, 0, 40), Color(0, 0, 0, 80))
+    ),
+    JBColor.namedColor(
+      "ScreenView.selectedBorderColorInside",
+      JBColor(Color(0x35, 0x73, 0xf0, 100), Color(0x54, 0x8a, 0xf7, 100))
+    )
+  )
+  private val GRAD_LEFT: List<Paint> = COLOR_INSIDE.mapIndexed { index, it ->
+    GradientPaint (0f, 0f, COLOR_OUTSIDE[index], SHADOW_SIZE.toFloat(), 0f, it)
+  }
+  private val GRAD_TOP: List<Paint> = COLOR_INSIDE.mapIndexed { index, it ->
+    GradientPaint(0f, 0f, COLOR_OUTSIDE[index], 0f, SHADOW_SIZE.toFloat(), it)
+  }
+  private val GRAD_RIGHT: List<Paint> = COLOR_INSIDE.mapIndexed { index, it ->
+    GradientPaint(0f, 0f, it, SHADOW_SIZE.toFloat(), 0f, COLOR_OUTSIDE[index])
+  }
+  private val GRAD_BOTTOM: List<Paint> = COLOR_INSIDE.mapIndexed { index, it ->
+    GradientPaint(0f, 0f, it, 0f, SHADOW_SIZE.toFloat(), COLOR_OUTSIDE[index])
+  }
+  private val GRAD_CORNER: List<Paint> = COLOR_INSIDE.mapIndexed { index, it ->
+    RadialGradientPaint(SHADOW_SIZE.toFloat(), SHADOW_SIZE.toFloat(), SHADOW_SIZE.toFloat(),
+                        floatArrayOf(0f, 1f), arrayOf(it, COLOR_OUTSIDE[index]))
+  }
 
-  fun paint(g2d: Graphics2D, screenView: SceneView) {
+  fun paint(g2d: Graphics2D, screenView: SceneView, colorIndex: Int) {
     val size = screenView.scaledContentSize
     val x = screenView.x
     val y = screenView.y
@@ -70,12 +98,12 @@ private object BorderPainter {
     // Left
     g2d.translate(x - SHADOW_SIZE, y)
     g2d.scale(1.0, size.height / SHADOW_SIZE.toDouble())
-    g2d.paint = GRAD_LEFT
+    g2d.paint = GRAD_LEFT[colorIndex]
     g2d.fillRect(0, 0, SHADOW_SIZE, SHADOW_SIZE)
 
     // Right
     g2d.translate(size.width + SHADOW_SIZE, 0)
-    g2d.paint = GRAD_RIGHT
+    g2d.paint = GRAD_RIGHT[colorIndex]
     g2d.fillRect(0, 0, SHADOW_SIZE, SHADOW_SIZE)
 
     // Reset transform scale and translate to upper left corner
@@ -85,12 +113,12 @@ private object BorderPainter {
     // Top
     g2d.translate(0, -SHADOW_SIZE)
     g2d.scale(size.width / SHADOW_SIZE.toDouble(), 1.0)
-    g2d.paint = GRAD_TOP
+    g2d.paint = GRAD_TOP[colorIndex]
     g2d.fillRect(0, 0, SHADOW_SIZE, SHADOW_SIZE)
 
     // Bottom
     g2d.translate(0, size.height + SHADOW_SIZE)
-    g2d.paint = GRAD_BOTTOM
+    g2d.paint = GRAD_BOTTOM[colorIndex]
     g2d.fillRect(0, 0, SHADOW_SIZE, SHADOW_SIZE)
 
     // Reset the transform
@@ -101,7 +129,7 @@ private object BorderPainter {
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 
     // Paint the corner shadows
-    g2d.paint = GRAD_CORNER
+    g2d.paint = GRAD_CORNER[colorIndex]
     // Top Left
     g2d.translate(x - SHADOW_SIZE, y - SHADOW_SIZE)
     g2d.fillArc(0, 0, SHADOW_SIZE * 2, SHADOW_SIZE * 2, 90, 90)
