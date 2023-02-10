@@ -153,6 +153,7 @@ string GetVideoEncoderDetails(const string& codec_name, const string& mime_type,
   Jni jni = Jvm::GetJni();
   JClass clazz = jni.GetClass("com/android/tools/screensharing/CodecInfo");
   jmethodID method = clazz.GetStaticMethodId("getVideoEncoderDetails", "(Ljava/lang/String;Ljava/lang/String;II)Ljava/lang/String;");
+  Log::V("%s:%d", __FILE__, __LINE__);
   return clazz.CallStaticObjectMethod(method, JString(jni, codec_name).ref(), JString(jni, mime_type).ref(), width, height).ToString();
 }
 

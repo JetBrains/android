@@ -24,6 +24,7 @@ namespace screensharing {
 
 InputManager::InputManager(Jni jni)
     : input_manager_(ServiceManager::GetServiceAsInterface(jni, "input", "android/hardware/input/IInputManager")) {
+  Log::V("%s:%d", __FILE__, __LINE__);
   JClass input_manager_class = input_manager_.GetClass();
   inject_input_event_method_ = input_manager_class.GetMethodId("injectInputEvent", "(Landroid/view/InputEvent;I)Z");
   input_manager_.MakeGlobal();

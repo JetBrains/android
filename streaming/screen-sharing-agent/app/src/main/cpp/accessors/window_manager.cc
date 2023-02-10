@@ -35,6 +35,7 @@ WindowManager::WindowManager(Jni jni)
     : window_manager_(ServiceManager::GetServiceAsInterface(jni, "window", "android/view/IWindowManager")),
       rotation_(),
       rotation_watchers_(new set<RotationWatcher*>()) {
+  Log::V("%s:%d", __FILE__, __LINE__);
   JClass window_manager_class(window_manager_.GetClass());
   int api_level = android_get_device_api_level();
   // The getDefaultDisplayRotation method was called getRotation before API 26.
@@ -60,6 +61,7 @@ WindowManager::WindowManager(Jni jni)
 
 WindowManager::~WindowManager() {
   Jni jni = Jvm::GetJni();
+  Log::V("%s:%d", __FILE__, __LINE__);
   JClass window_manager_class(window_manager_.GetClass(jni));
   jmethodID remove_rotation_watcher_method =
       window_manager_class.GetMethodId("removeRotationWatcher", "(Landroid/view/IRotationWatcher;)V");
