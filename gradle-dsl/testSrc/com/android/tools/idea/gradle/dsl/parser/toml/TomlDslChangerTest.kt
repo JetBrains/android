@@ -51,6 +51,17 @@ class TomlDslChangerTest : PlatformTestCase() {
   }
 
   @Test
+  fun testRenameSingleLiteral() {
+    val toml = """
+      foo = "bar"
+    """.trimIndent()
+    val expected = """
+      foo_updated = "bar"
+    """.trimIndent()
+    doTest(toml, expected) { children.first().rename("foo_updated") }
+  }
+
+  @Test
   fun testDeleteMiddleLiteral() {
     val toml = """
       one = "one"
@@ -62,6 +73,21 @@ class TomlDslChangerTest : PlatformTestCase() {
       three = "three"
     """.trimIndent()
     doTest(toml, expected) { removeProperty("two") }
+  }
+
+  @Test
+  fun testRenameMiddleLiteral() {
+    val toml = """
+      one = "one"
+      two = "two"
+      three = "three"
+    """.trimIndent()
+    val expected = """
+      one = "one"
+      two_updated = "two"
+      three = "three"
+    """.trimIndent()
+    doTest(toml, expected) { elements["two"]?.rename("two_updated") }
   }
 
   @Test
@@ -78,6 +104,22 @@ class TomlDslChangerTest : PlatformTestCase() {
   }
 
   @Test
+  fun testRenameSingleLiteralInTable() {
+    val toml = """
+      [table]
+      foo = "bar"
+    """.trimIndent()
+    val expected = """
+      [table]
+      foo_updated = "bar"
+    """.trimIndent()
+    doTest(toml, expected) {
+      val table = (getPropertyElement("table") as? GradleDslExpressionMap)
+      table?.elements?.get("foo")?.rename("foo_updated")
+    }
+  }
+
+  @Test
   fun testDeleteSingleLiteralInInlineTable() {
     val toml = """
       foo = { bar = "baz" }
@@ -86,6 +128,19 @@ class TomlDslChangerTest : PlatformTestCase() {
       foo = { }
     """.trimIndent()
     doTest(toml, expected) { (getPropertyElement("foo") as? GradleDslExpressionMap)?.removeProperty("bar") }
+  }
+
+  @Test
+  fun testRenameInInlineTable() {
+    val toml = """
+      foo = { bar = "baz" }
+    """.trimIndent()
+    val expected = """
+      foo_updated = { bar = "baz" }
+    """.trimIndent()
+    doTest(toml, expected) {
+      elements?.get("foo")?.rename("foo_updated")
+    }
   }
 
   @Test
@@ -181,6 +236,15 @@ class TomlDslChangerTest : PlatformTestCase() {
     """.trimIndent()
     val expected = ""
     doTest(toml, expected) { removeProperty("foo") }
+  }
+
+  @Test
+  fun testRenameArray() {
+    val toml = """
+      foo = [1, 2, 3]
+    """.trimIndent()
+    val expected = "foo_updated = [1, 2, 3]"
+    doTest(toml, expected) { children.first().rename("foo_updated") }
   }
 
   @Test
