@@ -30,6 +30,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleTypeId;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectType;
+import com.intellij.openapi.project.ProjectTypeService;
 import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
@@ -180,6 +182,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     myIdeComponents = new IdeComponents(myFixture);
 
     IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
+    ProjectTypeService.setProjectType(getProject(), new ProjectType("Android"));
   }
 
   private void setupJdk(Path path) {

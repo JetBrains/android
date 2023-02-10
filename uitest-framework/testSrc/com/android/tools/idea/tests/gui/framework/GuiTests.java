@@ -172,7 +172,7 @@ public final class GuiTests {
           ApplicationManager.getApplication().runWriteAction(
             () -> {
               System.out.println(String.format("Setting Android SDK: '%1$s'", androidSdkPath.getPath()));
-              ideSdks.setAndroidSdkPath(androidSdkPath, null);
+              ideSdks.setAndroidSdkPath(androidSdkPath);
 
               if (!ideSdks.isUsingEnvVariableJdk()) {
                 ideSdks.setUseEmbeddedJdk();

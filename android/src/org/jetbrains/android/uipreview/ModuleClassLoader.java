@@ -7,6 +7,7 @@ import static com.android.tools.idea.rendering.classloading.UtilKt.toClassTransf
 import static org.jetbrains.android.uipreview.ModuleClassLoaderUtil.INTERNAL_PACKAGE;
 
 import com.android.layoutlib.reflection.TrackingThreadLocal;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
@@ -14,6 +15,7 @@ import com.android.tools.idea.rendering.classloading.CooperativeInterruptTransfo
 import com.android.tools.idea.rendering.classloading.FilteringClassLoader;
 import com.android.tools.idea.rendering.classloading.FirewalledResourcesClassLoader;
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform;
+import com.android.tools.idea.rendering.classloading.RenderActionAllocationLimiterTransform;
 import com.android.tools.idea.rendering.classloading.RepackageTransform;
 import com.android.tools.idea.rendering.classloading.RequestExecutorTransform;
 import com.android.tools.idea.rendering.classloading.ResourcesCompatTransform;
@@ -96,6 +98,10 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
     ThreadLocalTrackingTransform::new,
     ThreadControllingTransform::new,
     CooperativeInterruptTransform::new,
+    visitor ->
+      StudioFlags.COMPOSE_ALLOCATION_LIMITER.get() ?
+        new RenderActionAllocationLimiterTransform(visitor) :
+        visitor, // Do not apply if the allocation limiter is disabled
     // Leave this transformation as last so the rest of the transformations operate on the regular names.
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
   );

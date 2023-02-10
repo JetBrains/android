@@ -2,6 +2,7 @@ package com.android.tools.idea.actions;
 
 import com.android.tools.idea.model.AndroidModel;
 import com.intellij.ide.IdeView;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -32,6 +33,11 @@ public class LegacyNewAndroidComponentAction extends AnAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     e.getPresentation().setVisible(isAvailable(e.getDataContext()));
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   private static boolean isAvailable(DataContext dataContext) {

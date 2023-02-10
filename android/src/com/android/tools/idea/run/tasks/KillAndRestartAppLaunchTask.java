@@ -99,10 +99,10 @@ public class KillAndRestartAppLaunchTask implements LaunchTask {
       ApplicationManager.getApplication().invokeLater(() -> {
         ActionManager manager = ActionManager.getInstance();
         String id;
-        if (DefaultRunExecutor.getRunExecutorInstance().getId().equals(launchContext.getExecutor().getId())) {
+        if (DefaultRunExecutor.getRunExecutorInstance().getId().equals(launchContext.getEnv().getExecutor().getId())) {
           id = DeployAction.RunWithoutBuildAction.ID;
         }
-        else if (DefaultDebugExecutor.getDebugExecutorInstance().getId().equals(launchContext.getExecutor().getId())) {
+        else if (DefaultDebugExecutor.getDebugExecutorInstance().getId().equals(launchContext.getEnv().getExecutor().getId())) {
           id = DeployAction.DebugWithoutBuildAction.ID;
         }
         else {
@@ -115,8 +115,9 @@ public class KillAndRestartAppLaunchTask implements LaunchTask {
           return;
         }
 
-        Project project = launchContext.getProject();
-        JComponent contextComponent = new JComponent() {};
+        Project project = launchContext.getEnv().getProject();
+        JComponent contextComponent = new JComponent() {
+        };
         contextComponent.setVisible(true);
         contextComponent.setEnabled(true);
         contextComponent.addNotify();

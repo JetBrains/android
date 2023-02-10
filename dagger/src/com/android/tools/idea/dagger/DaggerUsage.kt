@@ -17,6 +17,7 @@ package com.android.tools.idea.dagger
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.dagger.localization.DaggerBundle.message
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.DAGGER_SUPPORT_ENABLED
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.find.findUsages.CustomUsageSearcher
@@ -51,6 +52,8 @@ private val ASSISTED_FACTORY_METHOD_USAGE_TYPE = UsageType { message("assisted.f
  */
 class DaggerUsageTypeProvider : UsageTypeProviderEx {
   override fun getUsageType(element: PsiElement?, targets: Array<UsageTarget>): UsageType? {
+    if (StudioFlags.DAGGER_USING_INDEX_ENABLED.get()) return null
+
     val target = (targets.firstOrNull() as? PsiElementUsageTarget)?.element ?: return null
     return when {
       !DAGGER_SUPPORT_ENABLED.get() -> null
@@ -104,6 +107,8 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
 
   @WorkerThread
   override fun processElementUsages(element: PsiElement, processor: Processor<in Usage>, options: FindUsagesOptions) {
+    if (StudioFlags.DAGGER_USING_INDEX_ENABLED.get()) return
+
     runReadAction {
       val startTimeMs = System.currentTimeMillis()
       val usages: Collection<PsiElement> = when {

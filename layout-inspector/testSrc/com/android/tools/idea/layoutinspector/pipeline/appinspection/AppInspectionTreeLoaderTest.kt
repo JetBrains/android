@@ -57,8 +57,8 @@ import org.junit.Rule
 import org.junit.Test
 import java.awt.Image
 import java.awt.Polygon
-import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 
 class AppInspectionTreeLoaderTest {
 
@@ -73,12 +73,12 @@ class AppInspectionTreeLoaderTest {
    * generating trees.
    */
   private fun createFakeData(
-    screenshotType: ViewProtocol.Screenshot.Type = ViewProtocol.Screenshot.Type.SKP,
+    screenshotType: LayoutInspectorViewProtocol.Screenshot.Type = LayoutInspectorViewProtocol.Screenshot.Type.SKP,
     bitmapType: BitmapType = BitmapType.RGB_565,
     pendingRecompositionCountReset: Boolean = true,
     hasScreenshot: Boolean = true
   ): ViewLayoutInspectorClient.Data {
-    val viewLayoutEvent = ViewProtocol.LayoutEvent.newBuilder().apply {
+    val viewLayoutEvent = LayoutInspectorViewProtocol.LayoutEvent.newBuilder().apply {
       ViewString(1, "en-us")
       ViewString(2, "com.example")
       ViewString(3, "MyViewClass1")
@@ -140,7 +140,7 @@ class AppInspectionTreeLoaderTest {
       }
     }.build()
 
-    val composablesResponse = ComposeProtocol.GetComposablesResponse.newBuilder().apply {
+    val composablesResponse = LayoutInspectorComposeProtocol.GetComposablesResponse.newBuilder().apply {
       ComposableString(1, "com.example")
       ComposableString(2, "File1.kt")
       ComposableString(3, "File2.kt")

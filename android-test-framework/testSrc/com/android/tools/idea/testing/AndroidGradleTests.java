@@ -22,8 +22,6 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT;
@@ -39,19 +37,16 @@ import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.util.io.FileUtil.copyDir;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.util.text.StringUtil.replace;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static java.util.Collections.emptyList;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import com.android.Version;
 import com.android.builder.model.SyncIssue;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
-import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
@@ -79,7 +74,6 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.util.ThrowableConsumer;
@@ -101,7 +95,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import junit.framework.TestCase;
 import kotlin.Unit;
-import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -567,7 +560,7 @@ public class AndroidGradleTests {
       }
 
       Sdks.allowAccessToSdk(projectDisposable);
-      ideSdks.setAndroidSdkPath(androidSdkPath, project);
+      ideSdks.setAndroidSdkPath(androidSdkPath);
       IdeSdks.removeJdksOn(projectDisposable);
 
       LOG.info("Set IDE Sdk Path to " + androidSdkPath);

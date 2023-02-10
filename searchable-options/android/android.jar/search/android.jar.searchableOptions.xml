@@ -133,6 +133,16 @@
     <option name="profile" path="ActionManager" hit="Choose and profile configuration" />
     <option name="clean" path="ActionManager" hit="Clean Project" />
     <option name="project" path="ActionManager" hit="Clean Project" />
+    <option name="and" path="ActionManager" hit="Collect Logs and Diagnostic Data" />
+    <option name="collect" path="ActionManager" hit="Collect Logs and Diagnostic Data" />
+    <option name="data" path="ActionManager" hit="Collect Logs and Diagnostic Data" />
+    <option name="diagnostic" path="ActionManager" hit="Collect Logs and Diagnostic Data" />
+    <option name="logs" path="ActionManager" hit="Collect Logs and Diagnostic Data" />
+    <option name="and" path="ActionManager" hit="Collect logs and diagnostic data" />
+    <option name="collect" path="ActionManager" hit="Collect logs and diagnostic data" />
+    <option name="data" path="ActionManager" hit="Collect logs and diagnostic data" />
+    <option name="diagnostic" path="ActionManager" hit="Collect logs and diagnostic data" />
+    <option name="logs" path="ActionManager" hit="Collect logs and diagnostic data" />
     <option name="convert" path="ActionManager" hit="Convert to PNG..." />
     <option name="png" path="ActionManager" hit="Convert to PNG..." />
     <option name="to" path="ActionManager" hit="Convert to PNG..." />
@@ -472,6 +482,10 @@
     <option name="palm" path="ActionManager" hit="Palm" />
     <option name="phone" path="ActionManager" hit="Phone" />
     <option name="power" path="ActionManager" hit="Power" />
+    <option name="menu" path="ActionManager" hit="Power + Volume Up (Power Menu)" />
+    <option name="power" path="ActionManager" hit="Power + Volume Up (Power Menu)" />
+    <option name="up" path="ActionManager" hit="Power + Volume Up (Power Menu)" />
+    <option name="volume" path="ActionManager" hit="Power + Volume Up (Power Menu)" />
     <option name="back" path="ActionManager" hit="Press the Back button of the device" />
     <option name="button" path="ActionManager" hit="Press the Back button of the device" />
     <option name="device" path="ActionManager" hit="Press the Back button of the device" />
@@ -490,6 +504,16 @@
     <option name="overview" path="ActionManager" hit="Press the Overview button of the device" />
     <option name="press" path="ActionManager" hit="Press the Overview button of the device" />
     <option name="the" path="ActionManager" hit="Press the Overview button of the device" />
+    <option name="and" path="ActionManager" hit="Press the Power and Volume Up buttons together of the device" />
+    <option name="buttons" path="ActionManager" hit="Press the Power and Volume Up buttons together of the device" />
+    <option name="device" path="ActionManager" hit="Press the Power and Volume Up buttons together of the device" />
+    <option name="of" path="ActionManager" hit="Press the Power and Volume Up buttons together of the device" />
+    <option name="power" path="ActionManager" hit="Press the Power and Volume Up buttons together of the device" />
+    <option name="press" path="ActionManager" hit="Press the Power and Volume Up buttons together of the device" />
+    <option name="the" path="ActionManager" hit="Press the Power and Volume Up buttons together of the device" />
+    <option name="together" path="ActionManager" hit="Press the Power and Volume Up buttons together of the device" />
+    <option name="up" path="ActionManager" hit="Press the Power and Volume Up buttons together of the device" />
+    <option name="volume" path="ActionManager" hit="Press the Power and Volume Up buttons together of the device" />
     <option name="button" path="ActionManager" hit="Press the Power button of the device" />
     <option name="device" path="ActionManager" hit="Press the Power button of the device" />
     <option name="of" path="ActionManager" hit="Press the Power button of the device" />
@@ -1400,6 +1424,16 @@
     <option name="tasks" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
     <option name="test" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
     <option name="the" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
+    <option name="api" hit="Optimise/build app for the target device API level only" />
+    <option name="app" hit="Optimise/build app for the target device API level only" />
+    <option name="build" hit="Optimise/build app for the target device API level only" />
+    <option name="device" hit="Optimise/build app for the target device API level only" />
+    <option name="for" hit="Optimise/build app for the target device API level only" />
+    <option name="level" hit="Optimise/build app for the target device API level only" />
+    <option name="only" hit="Optimise/build app for the target device API level only" />
+    <option name="optimise" hit="Optimise/build app for the target device API level only" />
+    <option name="target" hit="Optimise/build app for the target device API level only" />
+    <option name="the" hit="Optimise/build app for the target device API level only" />
     <option name="and" hit="Parse and write to Version Catalog files" />
     <option name="catalog" hit="Parse and write to Version Catalog files" />
     <option name="files" hit="Parse and write to Version Catalog files" />

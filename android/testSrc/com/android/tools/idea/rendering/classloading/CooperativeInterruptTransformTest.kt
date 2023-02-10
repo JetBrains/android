@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.rendering.classloading
 
-import junit.framework.Assert.*
+import junit.framework.Assert.assertEquals
+import junit.framework.Assert.assertTrue
+import junit.framework.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestWatcher
@@ -32,13 +34,14 @@ interface LoopTestInterface {
   fun call(livenessCheck: () -> Unit)
 }
 
-class LoopTestClass: LoopTestInterface {
+class LoopTestClass : LoopTestInterface {
   var counter = 0
 
   fun methodCall() {
     if (Random.nextBoolean()) {
       counter--
-    } else {
+    }
+    else {
       counter++
     }
   }
@@ -84,10 +87,11 @@ class CooperativeInterruptTransformTest {
 
   @Test
   fun `check cooperative interrupt`() {
-    val testClassLoader = setupTestClassLoaderWithTransformation(mapOf("Test" to LoopTestClass::class.java), beforeTransformTrace, afterTransformTrace) {
-      visitor -> CooperativeInterruptTransform(visitor, 100)
+    val testClassLoader = setupTestClassLoaderWithTransformation(mapOf("Test" to LoopTestClass::class.java), beforeTransformTrace,
+                                                                 afterTransformTrace) { visitor ->
+      CooperativeInterruptTransform(visitor, 100)
     }
-    val loopTestInstance = testClassLoader.loadClass("Test").newInstance() as LoopTestInterface
+    val loopTestInstance = testClassLoader.loadClass("Test").getDeclaredConstructor().newInstance() as LoopTestInterface
     // The alivenessCheck will be automatically set to true by the thread in every loop iteration.
     // This way, we can check the thread is working and not just blocked in an invalid bytecode sequence.
     val alivenessCheck = AtomicBoolean(false)
@@ -102,9 +106,11 @@ class CooperativeInterruptTransformTest {
         threadLock.lock()
         threadStartLatch.countDown()
         loopTestInstance.call { alivenessCheck.set(true) }
-      } catch (_: InterruptedException) {
-      } finally {
-          threadLock.unlock()
+      }
+      catch (_: InterruptedException) {
+      }
+      finally {
+        threadLock.unlock()
       }
     }
 
@@ -126,8 +132,9 @@ class CooperativeInterruptTransformTest {
   @Test
   fun `check class does not instrument all methods`() {
     val instrumentedChecks = mutableSetOf<String>()
-    val testClassLoader = setupTestClassLoaderWithTransformation(mapOf("Test" to LoopTestClass::class.java), beforeTransformTrace, afterTransformTrace) {
-      visitor -> CooperativeInterruptTransform(visitor, 100) { className, methodName ->
+    val testClassLoader = setupTestClassLoaderWithTransformation(mapOf("Test" to LoopTestClass::class.java), beforeTransformTrace,
+                                                                 afterTransformTrace) { visitor ->
+      CooperativeInterruptTransform(visitor, 100) { className, methodName ->
         instrumentedChecks.add("$className.$methodName")
         // We do not instrument any of the methods for this test
         false
@@ -154,8 +161,10 @@ class CooperativeInterruptTransformTest {
           if (manualStopSwitch.get()) throw InterruptedException("Interrupted manually")
           alivenessCheck.set(true)
         }
-      } catch (_: InterruptedException) {
-      } finally {
+      }
+      catch (_: InterruptedException) {
+      }
+      finally {
         threadLock.unlock()
       }
     }

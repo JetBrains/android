@@ -21,14 +21,11 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.legend.FixedLegend
 import com.android.tools.adtui.model.legend.LegendComponentModel
-import com.android.tools.adtui.stdui.ContentType
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData.Companion.getUrlName
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.NO_STATUS_CODE
 import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionsStateChart
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkState
-import com.android.tools.idea.appinspection.inspectors.network.view.UiComponentsProvider
-import com.android.tools.inspectors.common.ui.dataviewer.DataViewer
 import com.android.tools.inspectors.common.ui.dataviewer.ImageDataViewer
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.BrowserUtil
@@ -64,7 +61,7 @@ import javax.swing.SwingConstants
  *
  * This tab will be the first one shown to the user when they first select a request.
  */
-class OverviewTabContent(private val componentsProvider: UiComponentsProvider) : TabContent() {
+class OverviewTabContent : TabContent() {
   private lateinit var contentPanel: JPanel
   override val title = "Overview"
 
@@ -86,16 +83,12 @@ class OverviewTabContent(private val componentsProvider: UiComponentsProvider) :
     return overviewScroll
   }
 
-  override fun populateFor(data: HttpData?) {
+  override fun populateFor(data: HttpData?, httpDataComponentFactory: HttpDataComponentFactory) {
     contentPanel.removeAll()
     if (data == null) {
       return
     }
-    val mimeType = data.responseHeader.contentType.mimeType
-    val payloadViewer = componentsProvider.createDataViewer(
-      data.responsePayload.toByteArray(), ContentType.fromMimeType(mimeType),
-      DataViewer.Style.PRETTY
-    )
+    val payloadViewer = httpDataComponentFactory.createDataViewer(HttpDataComponentFactory.ConnectionType.RESPONSE)
     val responsePayloadComponent: JComponent = payloadViewer.component
     responsePayloadComponent.name = ID_RESPONSE_PAYLOAD_VIEWER
     contentPanel.add(responsePayloadComponent, TabularLayout.Constraint(0, 0))

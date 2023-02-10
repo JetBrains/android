@@ -31,7 +31,6 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ColorIcon
 import java.text.DecimalFormat
 import javax.swing.Icon
-import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 
 private const val DEFAULT_DENSITY = 160  // Same as Density.MEDIUM.dpiValue
 private const val DEFAULT_DENSITY_FLOAT = 160.0f
@@ -51,7 +50,7 @@ open class InspectorPropertyItem(
   override val name: String,
 
   /** The type of the attribute */
-  initialType: Type,
+  initialType: PropertyType,
 
   /** The value of the attribute when the snapshot was taken */
   val initialValue: String?,
@@ -70,7 +69,7 @@ open class InspectorPropertyItem(
 
 ) : PropertyItem {
 
-  constructor(namespace: String, attrName: String, type: Type, value: String?, group: PropertySection,
+  constructor(namespace: String, attrName: String, type: PropertyType, value: String?, group: PropertySection,
               source: ResourceReference?, viewId: Long, lookup: ViewNodeAndResourceLookup) :
     this(namespace, attrName, attrName, type, value, group, source, viewId, lookup)
 
@@ -93,22 +92,22 @@ open class InspectorPropertyItem(
   var dimensionValue: Int = computeDimensionValue(initialType)
     private set
 
-  private fun computeDimensionValue(type: Type): Int = when (type) {
-    Type.DIMENSION -> initialValue?.toIntOrNull() ?: -1
-    Type.DIMENSION_EM,
-    Type.DIMENSION_DP,
-    Type.DIMENSION_FLOAT,
-    Type.DIMENSION_SP -> (initialValue?.toFloatOrNull() ?: Float.NaN).toRawBits()
+  private fun computeDimensionValue(type: PropertyType): Int = when (type) {
+    PropertyType.DIMENSION -> initialValue?.toIntOrNull() ?: -1
+    PropertyType.DIMENSION_EM,
+    PropertyType.DIMENSION_DP,
+    PropertyType.DIMENSION_FLOAT,
+    PropertyType.DIMENSION_SP -> (initialValue?.toFloatOrNull() ?: Float.NaN).toRawBits()
     else -> -1
   }
 
   override var value: String?
     get() = when (type) {
-      Type.DIMENSION -> formatDimension(dimensionValue)
-      Type.DIMENSION_DP -> formatDimensionFloatDp(Float.fromBits(dimensionValue))
-      Type.DIMENSION_EM -> formatDimensionFloatAsEm(Float.fromBits(dimensionValue))
-      Type.DIMENSION_FLOAT -> formatDimensionFloat(Float.fromBits(dimensionValue))
-      Type.DIMENSION_SP -> formatDimensionFloatAsSp(Float.fromBits(dimensionValue))
+      PropertyType.DIMENSION -> formatDimension(dimensionValue)
+      PropertyType.DIMENSION_DP -> formatDimensionFloatDp(Float.fromBits(dimensionValue))
+      PropertyType.DIMENSION_EM -> formatDimensionFloatAsEm(Float.fromBits(dimensionValue))
+      PropertyType.DIMENSION_FLOAT -> formatDimensionFloat(Float.fromBits(dimensionValue))
+      PropertyType.DIMENSION_SP -> formatDimensionFloatAsSp(Float.fromBits(dimensionValue))
       else -> initialValue
     }
     set(_) {}
@@ -210,15 +209,15 @@ open class InspectorPropertyItem(
 
   private fun createColorButton(): ActionIconButton? =
     when (type) {
-      Type.COLOR,
-      Type.DRAWABLE -> value?.let { ColorActionIconButton(this) }
+      PropertyType.COLOR,
+      PropertyType.DRAWABLE -> value?.let { ColorActionIconButton(this) }
       else -> null
     }
 
   @Slow
   fun resolveDimensionType(view: ViewNode) {
-    if ((type == Type.INT32 || type == Type.FLOAT) && lookup.resourceLookup.isDimension(view, name)) {
-      type = if (type == Type.INT32) Type.DIMENSION else Type.DIMENSION_FLOAT
+    if ((type == PropertyType.INT32 || type == PropertyType.FLOAT) && lookup.resourceLookup.isDimension(view, name)) {
+      type = if (type == PropertyType.INT32) PropertyType.DIMENSION else PropertyType.DIMENSION_FLOAT
     }
   }
 

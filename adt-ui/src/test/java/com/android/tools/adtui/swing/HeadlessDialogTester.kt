@@ -85,6 +85,7 @@ import kotlin.concurrent.withLock
 
 /**
  * Enables showing of dialogs in a headless test environment.
+ * Don't call this function directly, prefer [HeadlessDialogRule].
  */
 fun enableHeadlessDialogs(disposable: Disposable) {
   Disposer.register(disposable) {

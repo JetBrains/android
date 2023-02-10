@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model.dependencies;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyConfigurationModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.FakeElementTransform;
@@ -141,6 +142,17 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     versionCatalogDependency = true;
   }
 
+  static void createNew(@NotNull GradlePropertiesDslElement parent,
+                        @NotNull String configurationName,
+                        @NotNull ReferenceTo reference,
+                        @NotNull List<ArtifactDependencySpec> excludes) {
+    GradleNameElement name = GradleNameElement.create(configurationName);
+    GradleDslLiteral literal = new GradleDslLiteral(parent, name);
+    literal.setElementType(REGULAR);
+    literal.setValue(reference);
+    addExcludes(literal, excludes);
+    parent.setNewElement(literal);
+  }
 
   static void createNew(@NotNull GradlePropertiesDslElement parent,
                         @NotNull String configurationName,
@@ -150,9 +162,13 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     GradleDslLiteral literal = new GradleDslLiteral(parent, name);
     literal.setElementType(REGULAR);
     literal.setValue(createCompactNotationForLiterals(literal, dependency));
+    addExcludes(literal, excludes);
+    parent.setNewElement(literal);
+  }
 
+  private static void addExcludes(@NotNull GradleDslLiteral literal, @NotNull List<ArtifactDependencySpec> excludes) {
     if (!excludes.isEmpty()) {
-      GradleDslClosure closure = new GradleDslClosure(parent, null, name);
+      GradleDslClosure closure = new GradleDslClosure(literal.getParent(), null, literal.getNameElement());
       for (ArtifactDependencySpec exclude : excludes) {
         GradleDslExpressionMap map = new GradleDslExpressionMap(closure, GradleNameElement.create(EXCLUDE));
         String group = exclude.getGroup();
@@ -169,8 +185,6 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
       }
       literal.setNewClosureElement(closure);
     }
-
-    parent.setNewElement(literal);
   }
 
   /**
@@ -205,21 +219,19 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
                                                       : segment;
           // If we have a simple value (i.e. one word) then we don't need to use {} for the injection.
           if (Pattern.compile("([a-zA-Z0-9_]\\w*)").matcher(value).matches()) {
-            compactNotation.append("$" + value);
+            compactNotation.append("$").append(value);
           } else if (WRAPPED_VARIABLE_FORM.matcher(value).matches() || UNWRAPPED_VARIABLE_FORM.matcher(value).matches()) {
             //  The value is already interpolated, should be written as is.
             compactNotation.append(value);
           } else {
-            compactNotation.append("${" + value + "}");
+            compactNotation.append("${").append(value).append("}");
           }
           continue;
         }
         compactNotation.append(segment);
       }
     }
-    ArtifactDependencySpec dependencySpec = ArtifactDependencySpecImpl.create(compactNotation.toString());
-
-    return shouldInterpolate ? iStr(dependencySpec.compactNotation()) : dependencySpec.compactNotation();
+    return shouldInterpolate ? iStr(compactNotation.toString()) : compactNotation.toString();
   }
 
   static class MapNotation extends ArtifactDependencyModelImpl {

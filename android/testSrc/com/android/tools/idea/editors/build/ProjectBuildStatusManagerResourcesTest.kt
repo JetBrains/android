@@ -46,11 +46,9 @@ class ProjectBuildStatusManagerResourcesTest {
   @Test
   fun testResourcesMakeTheProjectOutOfDate() {
     val psiFile = projectRule.fixture.addFileToProject("/src/a/Test.kt", "fun a() {}")
-    val fileFilter = ProjectBuildStatusManagerTest.TestFilter()
     val statusManager = ProjectBuildStatusManager.create(
       projectRule.fixture.testRootDisposable,
       psiFile,
-      fileFilter,
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
 
     // Simulate a successful build

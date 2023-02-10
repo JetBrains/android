@@ -63,6 +63,6 @@ public class CreateBasicKotlinProjectTest {
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
     assertThat(KOTLIN_FILE).isEqualTo(ideFrameFixture.getEditor().getCurrentFileName());
 
-    assertThat(ideFrameFixture.invokeProjectMake(Wait.seconds(120)).isBuildSuccessful()).isTrue();
+    assertThat(ideFrameFixture.invokeProjectMake(Wait.seconds(180)).isBuildSuccessful()).isTrue();
   }
 }

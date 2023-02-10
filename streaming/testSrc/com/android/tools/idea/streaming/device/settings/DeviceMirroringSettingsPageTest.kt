@@ -38,7 +38,7 @@ import javax.swing.JTextField
 @RunsInEdt
 class DeviceMirroringSettingsPageTest {
   @get:Rule
-  val ruleChain = RuleChain(AndroidProjectRule.inMemory(), HeadlessDialogRule(), EdtRule())
+  val ruleChain = RuleChain(AndroidProjectRule.inMemory(), EdtRule(), HeadlessDialogRule())
 
   private val settings by lazy { DeviceMirroringSettings.getInstance() }
 

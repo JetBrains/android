@@ -1311,7 +1311,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
         projectType = getProjectType(project, parsedModelVersion),
         isBaseSplit = isBaseSplit,
         agpFlags = agpFlags,
-        isKaptEnabled = false
+        isKaptEnabled = false,
+        desugarLibraryConfigFiles = listOf(),
       )
     }
   }

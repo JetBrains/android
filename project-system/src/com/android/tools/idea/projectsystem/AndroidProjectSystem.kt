@@ -36,6 +36,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFinder
 import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.facet.AndroidFacet
+import java.io.File
 import java.nio.file.Path
 
 /**
@@ -142,6 +143,11 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
    * @return true if the project's build system supports building the app with a profiling mode flag (profileable, debuggable, etc.).
    */
   fun supportsProfilingMode() = false
+
+  /**
+   * @return the desugar library config files in json format.
+   */
+  fun desugarLibraryConfigFiles(project: Project): List<File>
 }
 
 val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")

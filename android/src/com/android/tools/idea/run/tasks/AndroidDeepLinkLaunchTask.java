@@ -17,13 +17,13 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.configuration.execution.ExecutionUtils;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
 import com.intellij.execution.ExecutionException;
+import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,22 +53,22 @@ public class AndroidDeepLinkLaunchTask extends AppLaunchTask {
 
   @Override
   public void run(@NotNull LaunchContext launchContext) throws ExecutionException {
-    ConsolePrinter printer = launchContext.getConsolePrinter();
     IDevice device = launchContext.getDevice();
 
     final String text = "Launching deeplink: " + myDeepLink + ".\n";
-    printer.stdout("Launching deeplink: " + myDeepLink + ".\n");
+    final ConsoleView console = launchContext.getConsoleView();
+    ExecutionUtils.println(console, "Launching deeplink: " + myDeepLink + ".\n");
     Logger.getInstance(this.getClass()).info(text);
 
     UsageTracker.log(AndroidStudioEvent.newBuilder()
                        .setCategory(EventCategory.APP_INDEXING)
                        .setKind(EventKind.APP_INDEXING_DEEP_LINK_LAUNCHED));
     // Enable AppIndexing API log
-    ExecutionUtils.executeShellCommand(device, "setprop log.tag.AppIndexApi VERBOSE", printer, launchContext.getProgressIndicator());
+    ExecutionUtils.executeShellCommand(device, "setprop log.tag.AppIndexApi VERBOSE", console, launchContext.getProgressIndicator());
 
     // Launch deeplink
     String command = getLaunchDeepLinkCommand(myDeepLink, myStartActivityFlagsProvider.getFlags(device));
-    ExecutionUtils.executeShellCommand(device, command, printer, launchContext.getProgressIndicator());
+    ExecutionUtils.executeShellCommand(device, command, console, launchContext.getProgressIndicator());
   }
 
   @NotNull

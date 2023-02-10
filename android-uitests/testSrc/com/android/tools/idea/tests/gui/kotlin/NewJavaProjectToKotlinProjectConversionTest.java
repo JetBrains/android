@@ -49,7 +49,7 @@ public class NewJavaProjectToKotlinProjectConversionTest {
 
   private static final Logger logger = Logger.getInstance(NewJavaProjectToKotlinProjectConversionTest.class);
 
-  protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Activity";
+  protected static final String EMPTY_VIEWS_ACTIVITY_TEMPLATE = "Empty Views Activity";
   protected static final String BASIC_ACTIVITY_TEMPLATE = "Basic Views Activity";
   protected static final String APP_NAME = "App";
   protected static final String PACKAGE_NAME = "android.com.app";
@@ -81,7 +81,7 @@ public class NewJavaProjectToKotlinProjectConversionTest {
   @Test
   public void testNewEmptyActivityJavaProjectToKotlinProjectConversion() throws Exception {
 
-    WizardUtils.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Java);
+    WizardUtils.createNewProject(guiTest, EMPTY_VIEWS_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Java);
 
     ConversionTestUtil.convertJavaToKotlin(guiTest);
 

@@ -36,6 +36,12 @@ public class ExtendedReportStatistics {
 
   @NotNull final Long2ObjectMap<ClassNameHistogram> sharedClustersHistograms;
 
+  private int totalNumberOfDisposedButReferencedObjects = 0;
+  private int totalDisposerTreeSize = 0;
+
+  @NotNull
+  private final Map<String, ObjectsStatistics> disposedButReferencedObjectsClasses = Maps.newHashMap();
+
   public ExtendedReportStatistics(@NotNull final HeapTraverseConfig config) {
     this.componentHistograms = Lists.newArrayList();
     this.categoryHistograms = Lists.newArrayList();
@@ -86,9 +92,28 @@ public class ExtendedReportStatistics {
     sharedClustersHistograms.get(sharedClusterStatistics.componentsMask).print(writer);
   }
 
+  public void addDisposedButReferencedObject(long size, String className) {
+    totalNumberOfDisposedButReferencedObjects++;
+    disposedButReferencedObjectsClasses.putIfAbsent(className, new ObjectsStatistics());
+    disposedButReferencedObjectsClasses.get(className).addObject(size);
+  }
+
+  public void setDisposerTreeSize(int size) {
+    totalDisposerTreeSize = size;
+  }
+
+  public void logDisposerTreeReport(@NotNull Consumer<String> writer) {
+    writer.accept("Disposer tree size: " + totalDisposerTreeSize);
+    writer.accept("Total number of disposed but strong referenced objects: " + totalNumberOfDisposedButReferencedObjects);
+    for (String className : disposedButReferencedObjectsClasses.keySet()) {
+      writer.accept(
+        HeapTraverseUtil.getObjectsStatsPresentation(disposedButReferencedObjectsClasses.get(className), OPTIMAL_UNITS) + " " + className);
+    }
+  }
+
   static class ClassNameHistogram {
 
-    private final static int HISTOGRAM_PRINT_LIMIT = 20;
+    private final static int HISTOGRAM_PRINT_LIMIT = 50;
 
     @NotNull final Map<String, ObjectsStatistics> histogram =
       Maps.newHashMap();
@@ -100,9 +125,9 @@ public class ExtendedReportStatistics {
 
     private boolean classNameIsStudioSource(@NotNull final String className) {
       return className.startsWith("com.android.") ||
-             !className.startsWith("org.jetbrains") ||
-             !className.startsWith("com.intellij") ||
-             !className.startsWith("com.jetbrains");
+             className.startsWith("org.jetbrains") ||
+             className.startsWith("com.intellij") ||
+             className.startsWith("com.jetbrains");
     }
 
     public void print(Consumer<String> writer) {

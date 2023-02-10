@@ -41,7 +41,7 @@ class ClearAppStorageTask(private val packageName: String) : LaunchTask {
       val result = device.shellToString("pm clear $packageName").trim()
       if (result != "Success") {
         val message = AndroidBundle.message("android.launch.task.clear.app.data.error", packageName, device)
-        RunConfigurationNotifier.notifyWarning(launchContext.project, "", message)
+        RunConfigurationNotifier.notifyWarning(launchContext.env.project, "", message)
       }
     }
   }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.sdklib.SdkVersionInfo
+import com.android.sdklib.computeFullApiName
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.common.AdtUiUtils.allComponents
 import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
@@ -251,7 +252,12 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
                 }
                 horizontalTextPosition = SwingConstants.LEFT
               })
-              add(JBLabel(SdkVersionInfo.getAndroidName(value.apiLevel)).apply {
+              add(JBLabel(computeFullApiName(
+                apiLevel = value.apiLevel,
+                extensionLevel = null,
+                includeReleaseName = true,
+                includeCodeName = true
+              )).apply {
                 foreground = when {
                   isSelected -> UIUtil.getListForeground(isSelected, isSelected)
                   value.isDisabled() -> UIUtil.getLabelDisabledForeground()
@@ -293,7 +299,7 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
             .filter { it.accessibleContext.accessibleName != null }
             .firstOrNull()?.let {
               accessibleContext.accessibleName = it.accessibleContext.accessibleName
-              accessibleContext.accessibleDescription =  it.accessibleContext.accessibleDescription
+              accessibleContext.accessibleDescription = it.accessibleContext.accessibleDescription
             }
 
           isOpaque = true

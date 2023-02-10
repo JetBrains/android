@@ -816,6 +816,19 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getRecordingModel().isRecording()).isTrue();
   }
 
+  @Test
+  public void receivingTraceStopStatusEventSetsRecordingToFinished() throws InterruptedException {
+    // Initiate a capture
+    CpuProfilerTestUtils.startCapturing(myStage, myTransportService, true);
+    // Verify that the recording model state recognized the ongoing capture.
+    assertThat(myStage.getRecordingModel().isRecording()).isTrue();
+
+    // Stop the capture.
+    CpuProfilerTestUtils.stopCapturing(myStage, myTransportService, true, null);
+    // Verify that the recording model state recognized that the recording has terminated.
+    assertThat(myStage.getRecordingModel().isRecording()).isFalse();
+  }
+
   private void addAndSetDevice(int featureLevel, String serial) {
     int deviceId = serial.hashCode();
     Common.Device device = Common.Device.newBuilder()

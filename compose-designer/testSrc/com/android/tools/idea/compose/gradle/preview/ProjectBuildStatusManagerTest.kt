@@ -20,7 +20,6 @@ import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
-import com.android.tools.idea.editors.build.ProjectBuildStatusManagerTest
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
@@ -40,7 +39,6 @@ import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import org.hamcrest.CoreMatchers
-import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -172,45 +170,5 @@ class ProjectBuildStatusManagerTest {
       "Builds status is not Ready after successful build",
       statusManager.status == ProjectStatus.Ready
     )
-  }
-
-  @RunsInEdt
-  @Test
-  fun testFilteringChange() {
-    val mainFile =
-      projectRule.project.guessProjectDir()!!.findFileByRelativePath(
-        SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path
-      )!!
-    WriteAction.run<Throwable> { projectRule.fixture.openFileInEditor(mainFile) }
-
-    val fileFilter = ProjectBuildStatusManagerTest.TestFilter()
-    val statusManager =
-      ProjectBuildStatusManager.create(
-        projectRule.fixture.testRootDisposable,
-        projectRule.fixture.file,
-        fileFilter,
-        scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher())
-      )
-    projectRule.buildAndAssertIsSuccessful()
-    assertEquals(
-      "Builds status is not Ready after successful build",
-      ProjectStatus.Ready,
-      statusManager.status
-    )
-
-    var filterWasInvoked = false
-    fileFilter.filter = {
-      filterWasInvoked = true
-      it !is KtLiteralStringTemplateEntry
-    }
-    assertEquals(ProjectStatus.Ready, statusManager.status)
-    assertFalse(
-      "Filter should not have been invoked since change was not notified",
-      filterWasInvoked
-    )
-    // Notify the filter update
-    fileFilter.incModificationCount()
-    assertEquals(ProjectStatus.Ready, statusManager.status)
-    assertTrue("Filter should have been re-invoked after the change notification", filterWasInvoked)
   }
 }

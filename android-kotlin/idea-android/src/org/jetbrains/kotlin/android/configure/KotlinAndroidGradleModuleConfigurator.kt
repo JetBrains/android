@@ -38,19 +38,13 @@ import org.jetbrains.android.sdk.AndroidSdkType
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.idea.compiler.configuration.IdeKotlinVersion
 import org.jetbrains.kotlin.idea.configuration.BuildSystemType
-import org.jetbrains.kotlin.idea.configuration.ConfigureKotlinStatus
-import org.jetbrains.kotlin.idea.base.projectStructure.ModuleSourceRootGroup
 import org.jetbrains.kotlin.idea.configuration.NotificationMessageCollector
-import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.getBuildScriptPsiFile
-import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.getTopLevelBuildScriptPsiFile
+import org.jetbrains.kotlin.idea.configuration.buildSystemType
 import org.jetbrains.kotlin.idea.framework.ui.ConfigureDialogWithModulesAndVersion
 import org.jetbrains.kotlin.idea.gradle.KotlinIdeaGradleBundle
-import org.jetbrains.kotlin.idea.configuration.buildSystemType
-import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.GradleBuildScriptSupport
 import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.KotlinWithGradleConfigurator
-import org.jetbrains.kotlin.idea.util.application.executeCommand
-import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.jetbrains.kotlin.idea.projectConfiguration.hasJreSpecificRuntime
+import org.jetbrains.kotlin.idea.util.application.executeCommand
 import org.jetbrains.kotlin.idea.util.projectStructure.version
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
@@ -63,62 +57,6 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
     override val targetPlatform: TargetPlatform = JvmPlatforms.defaultJvmPlatform
 
     override val presentableText: String = "Android with Gradle"
-
-    /**
-     * Copied from super-class as a way to workaround b/255827313
-     * Differences from original copy have been commented out and explained.
-     */
-    override fun getStatus(moduleSourceRootGroup: ModuleSourceRootGroup): ConfigureKotlinStatus {
-        val module = moduleSourceRootGroup.baseModule
-        if (!isApplicable(module)) {
-            return ConfigureKotlinStatus.NON_APPLICABLE
-        }
-
-        // The Android new project template already has a dependency on the Kotlin stdlib due to its dependencies.
-        // As a result ::hasAnyKotlinRuntimeInScope returns true for these modules even though the Kotlin plugin
-        // is not configured in this project.
-
-        //if (moduleSourceRootGroup.sourceRootModules.all(::hasAnyKotlinRuntimeInScope)) {
-        //    return ConfigureKotlinStatus.CONFIGURED
-        //}
-
-        val buildFiles = runReadAction {
-            listOf(
-              module.getBuildScriptPsiFile(),
-              module.project.getTopLevelBuildScriptPsiFile()
-            ).filterNotNull()
-        }
-
-        if (buildFiles.isEmpty()) {
-            return ConfigureKotlinStatus.NON_APPLICABLE
-        }
-
-        // isConfiguredByAnyGradleConfigurator is private within the super-class.
-        // Also KotlinNativeGradleConfigurator always reports itself as configured due to its Kotlin plugin name being
-        // the empty string, this causes us to always report the status as BROKEN.
-
-        //if (buildFiles.none { it.isConfiguredByAnyGradleConfigurator() }) {
-        //  return ConfigureKotlinStatus.CAN_BE_CONFIGURED
-        //}
-
-        //return ConfigureKotlinStatus.BROKEN
-
-        // We add the following condition to check if the Android Kotlin plugin has been applied but not use any other configurator.
-        if (buildFiles.none { isFileConfigured(it) }) {
-            return ConfigureKotlinStatus.CAN_BE_CONFIGURED
-        }
-
-
-        return ConfigureKotlinStatus.BROKEN
-    }
-
-    // Copied from super-class as it is private there.
-    private fun isFileConfigured(buildScript: PsiFile): Boolean {
-        val manipulator = GradleBuildScriptSupport.getManipulator(buildScript)
-        return with(manipulator) {
-            isConfiguredWithOldSyntax(kotlinPluginName) || isConfigured(getKotlinPluginExpression(buildScript.isKtDsl()))
-        }
-    }
 
     public override fun isApplicable(module: Module): Boolean = module.buildSystemType == BuildSystemType.AndroidGradle
 

@@ -213,7 +213,7 @@ public class LayoutPullParsers {
         return null;
       }
       case FONT:
-        AndroidFacet facet = AndroidFacet.getInstance(renderTask.getContext().getModule());
+        AndroidFacet facet = AndroidFacet.getInstance(renderTask.getContext().getModule().getIdeaModule());
         renderTask.setTransparentBackground();
         renderTask.setDecorations(false);
         renderTask.setRenderingMode(V_SCROLL);

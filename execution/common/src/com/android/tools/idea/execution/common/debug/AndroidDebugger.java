@@ -16,6 +16,7 @@
 package com.android.tools.idea.execution.common.debug;
 
 import com.android.annotations.Nullable;
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.Client;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -25,7 +26,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.xdebugger.XDebugProcessStarter;
 import com.intellij.xdebugger.XDebugSession;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.concurrency.Promise;
 
 /**
  * An interface to implement Android debugger.
@@ -88,7 +88,8 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
    * running Android processes without associated run configuration and run action. When you attach a debugger
    * through debug run action, {@link #getDebugProcessStarterForNewProcess} is used instead.
    **/
-  Promise<XDebugSession> attachToClient(@NotNull Project project, @NotNull Client client, @Nullable S debugState);
+  @WorkerThread
+  XDebugSession attachToClient(@NotNull Project project, @NotNull Client client, @Nullable S debugState) throws ExecutionException;
 
   /**
    * Indicates whether this debugger should be the default.

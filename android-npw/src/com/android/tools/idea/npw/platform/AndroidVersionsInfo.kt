@@ -29,6 +29,7 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.sdklib.SdkVersionInfo.LOWEST_COMPILE_SDK_VERSION
+import com.android.sdklib.getFullApiName
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.meta.DetailsTypes
@@ -227,6 +228,7 @@ class AndroidVersionsInfo {
         if (target.isPlatform && !target.version.isPreview) {
           return fromAndroidVersion(target.version)
         }
+
         return VersionItem(
           label = getLabel(target.version, target),
           androidTarget = target,
@@ -247,22 +249,14 @@ private val NO_MATCH: IdDisplay = IdDisplay.create("no_match", "No Match")
 val sdkManagerLocalPath: Path? get() = IdeSdks.getInstance().androidSdkPath?.toPath()
 
 private fun getLabel(version: AndroidVersion, target: IAndroidTarget?): String {
-  val featureLevel = version.featureLevel
 
-  if (featureLevel > HIGHEST_KNOWN_API) {
-    return "API ${version.apiString}: Android ${version.apiString}"  + " (${version.codename} preview)".takeIf { version.isPreview }.orEmpty()
+  if (target != null && !target.isPlatform) {
+    return AndroidTargetHash.getTargetHashString(target)
   }
 
-  return when {
-      version.isPreview ->
-        "API %s: Android %s (%s preview)".format(
-          version.apiString,
-          SdkVersionInfo.getVersionStringSanitized(featureLevel),
-          SdkVersionInfo.getCodeName(featureLevel))
-      target == null || target.isPlatform -> SdkVersionInfo.getAndroidName(featureLevel)
-      else -> AndroidTargetHash.getTargetHashString(target)
-  }
+  return version.getFullApiName(includeReleaseName = true, includeCodeName = true)
 }
+
 
 /**
  * Returns a list of android compilation targets (platforms and add-on SDKs).

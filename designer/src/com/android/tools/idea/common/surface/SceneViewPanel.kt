@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.surface
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.scaleBy
@@ -32,7 +33,6 @@ import com.android.tools.idea.uibuilder.surface.layout.horizontal
 import com.android.tools.idea.uibuilder.surface.layout.margin
 import com.android.tools.idea.uibuilder.surface.layout.scaledContentSize
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import kotlinx.coroutines.launch
@@ -158,7 +158,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
    */
   private val modelNameLabel = JBLabel().apply {
     maximumSize = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
-    isEnabled = false
+    foreground = AdtUiUtils.TITLE_COLOR
   }
 
   val positionableAdapter = object : PositionableContent {
@@ -297,8 +297,6 @@ class SceneViewPeerPanel(val sceneView: SceneView,
       override fun mouseEntered(e: MouseEvent?) {
         // Show the toolbar actions when mouse is hovering the top panel.
         sceneViewToolbar?.let { it.isVisible = true }
-        // Updates the actions immediately, so the action buttons are available when we're traversing the toolbar components.
-        (sceneViewToolbar as? ActionToolbarImpl)?.updateActionsImmediately()
       }
 
       override fun mouseExited(e: MouseEvent?) {
@@ -316,6 +314,15 @@ class SceneViewPeerPanel(val sceneView: SceneView,
           if (!containsExcludingBorder(it)) {
             hideToolbar()
           }
+          else {
+            // We've exited to one of the toolbar actions, so we need to make sure this listener is algo registered on them.
+            sceneViewToolbar?.let { toolbar ->
+              for (i in 0 until toolbar.componentCount) {
+                toolbar.getComponent(i).removeMouseListener(this) // Prevent duplicate listeners being added.
+                toolbar.getComponent(i).addMouseListener(this)
+              }
+            }
+          }
         } ?: hideToolbar()
       }
 
@@ -330,32 +337,8 @@ class SceneViewPeerPanel(val sceneView: SceneView,
       }
     }
 
-    // Mouse listener to lazily add hoverTopPanelMouseListener to sceneViewToolbar and its action buttons. This is needed because the
-    // toolbar is initialized with a single JLabel representing a load state. By lazily adding the listener when entering the mouse on
-    // either modelNameLabel or sceneViewTopPanel, we make sure the corresponding action buttons are added to the toolbar by the time
-    // the listener is added.
-    //
-    // Once mouseEntered is called once, we remove the listener from both modelNameLabel and sceneViewTopPanel, to prevent adding
-    // hoverTopPanelMouseListener multiple times.
-    val lazyHoverListener = object : MouseAdapter() {
-      override fun mouseEntered(e: MouseEvent?) {
-        sceneViewToolbar?.let {
-          it.addMouseListener(hoverTopPanelMouseListener)
-          // Also add the listener to the toolbar action buttons.
-          for (i in 0 until it.componentCount) {
-            it.getComponent(i).addMouseListener(hoverTopPanelMouseListener)
-          }
-        }
-        removeMouseListener(this)
-        modelNameLabel.removeMouseListener(this)
-      }
-    }
-
     addMouseListener(hoverTopPanelMouseListener)
     modelNameLabel.addMouseListener(hoverTopPanelMouseListener)
-
-    addMouseListener(lazyHoverListener)
-    modelNameLabel.addMouseListener(lazyHoverListener)
   }
 
   val sceneViewBottomPanel = JPanel(BorderLayout()).apply {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.diagnostics.hprof.action
 
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor
 import com.android.tools.idea.diagnostics.hprof.analysis.LiveInstanceStats
 import com.android.tools.idea.diagnostics.hprof.util.HeapDumpAnalysisNotificationGroup
@@ -23,6 +24,8 @@ import com.android.tools.idea.diagnostics.report.MemoryReportReason
 import com.android.tools.idea.diagnostics.report.UnanalyzedHeapReport
 import com.android.tools.idea.ui.GuiTestingService
 import com.android.utils.TraceUtils
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.HeapReportEvent
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.ApplicationManager
@@ -81,6 +84,8 @@ class HeapDumpSnapshotRunnable(
             Messages.showErrorDialog(message, AndroidBundle.message("heap.dump.snapshot.title"))
           }
           LOG.info("Heap report already pending.")
+          UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
+            HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.REPORT_ALREADY_PENDING).build()))
           return
         }
       }
@@ -105,6 +110,8 @@ class HeapDumpSnapshotRunnable(
     // Check if there is enough space
     if (spaceInMB < estimatedRequiredMB) {
       LOG.info("Not enough space for heap dump: $spaceInMB MB < $estimatedRequiredMB MB")
+      UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
+        HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.INSUFFICIENT_DISK_SPACE).build()))
       // If invoked by the user action, show a message why a heap dump cannot be captured.
       if (userInvoked) {
         val message = AndroidBundle.message("heap.dump.snapshot.no.space", hprofPath.parent.toString(),
@@ -151,6 +158,8 @@ class HeapDumpSnapshotRunnable(
       // Capture only large memory heaps, unless explicitly requested by the user
       if (usedMemoryMB < MINIMUM_USED_MEMORY_TO_CAPTURE_HEAP_DUMP_IN_MB) {
         LOG.info("Heap dump too small: $usedMemoryMB MB < $MINIMUM_USED_MEMORY_TO_CAPTURE_HEAP_DUMP_IN_MB MB")
+        UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
+          HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.HEAP_TOO_SMALL).build()))
         return false
       }
 
@@ -160,6 +169,8 @@ class HeapDumpSnapshotRunnable(
       if (nextCheckPropertyMs > currentTimestampMs) {
         val nextCheckDateString = SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z", Locale.US).format(Date(nextCheckPropertyMs))
         LOG.info("Don't ask for snapshot until $nextCheckDateString.")
+        UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
+          HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.RATE_LIMITED).build()))
         return false
       }
     }
@@ -269,6 +280,8 @@ class HeapDumpSnapshotRunnable(
       catch (t: Throwable) {
         // Delete the hprof file if exception was raised.
         Files.deleteIfExists(hprofPath)
+        UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
+          HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.CAPTURE_SNAPSHOT_FAILED).build()))
         throw t
       }
     }

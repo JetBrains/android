@@ -18,6 +18,7 @@ package com.android.tools.idea.actions;
 import com.android.ide.common.util.PathString;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.util.FileExtensions;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -72,6 +73,11 @@ public class CreateSampleDataDirectory extends AnAction {
   public void update(@NotNull AnActionEvent e) {
     Module module = getModuleFromSelection(e.getDataContext());
     e.getPresentation().setEnabledAndVisible(isActionVisibleForModule(module));
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

@@ -625,6 +625,42 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testVersionCatalogPluginsDslApplyPluginByReference() {
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile(TestFile.VERSION_CATALOG_BUILD_FILE)
+      writeToVersionCatalogFile(TestFile.VERSION_CATALOG_PLUGINS_NOTATION)
+
+      val pbm = projectBuildModel
+      val buildModel = pbm.projectBuildModel!!
+      val app = pbm.versionCatalogsModel.plugins("libs").findProperty("app")
+      buildModel.applyPlugin(ReferenceTo(app, buildModel), null).also { pluginModel ->
+        assertEquals("com.android.application", pluginModel.name().forceString())
+        assertEquals("7.1.0", pluginModel.version().forceString())
+        assertMissingProperty(pluginModel.apply())
+      }
+      val lib = pbm.versionCatalogsModel.plugins("libs").findProperty("lib")
+      buildModel.applyPlugin(ReferenceTo(lib, buildModel), true).also { pluginModel ->
+        assertEquals("com.android.library", pluginModel.name().forceString())
+        assertEquals("7.1.0", pluginModel.version().forceString())
+        assertEquals("true", pluginModel.apply().forceString())
+      }
+      val com = pbm.versionCatalogsModel.plugins("libs").findProperty("com")
+      buildModel.applyPlugin(ReferenceTo(com, buildModel), false).also { pluginModel ->
+        assertEquals("com.android.dynamic-feature", pluginModel.name().forceString())
+        assertEquals("7.1.0", pluginModel.version().forceString())
+        assertEquals("false", pluginModel.apply().forceString())
+      }
+      applyChangesAndReparse(pbm)
+      verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_BUILD_FILE_PLUGINS_REFERENCE_EXPECTED)
+      verifyVersionCatalogFileContents(myVersionCatalogFile, TestFile.VERSION_CATALOG_PLUGINS_NOTATION)
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
+  @Test
   fun testVersionCatalogBundlesDsl() {
     writeToBuildFile(TestFile.VERSION_CATALOG_BUNDLE_BUILD_FILE)
     writeToVersionCatalogFile(TestFile.VERSION_CATALOG_BUNDLES_COMPACT_NOTATION)
@@ -1795,7 +1831,59 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
+  fun testAddDependencyReferenceToVersionCatalog() {
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile(TestFile.ADD_DEPENDENCY_REFERENCE_TO_VERSION_CATALOG)
+      writeToVersionCatalogFile(TestFile.VERSION_CATALOG_GROUP_BOTH_NOTATION)
+
+      val pbm = projectBuildModel
+      val buildModel = pbm.projectBuildModel!!
+      val dependencies = buildModel.dependencies()
+      val versionCatalog = pbm.versionCatalogsModel
+      ReferenceTo(versionCatalog.libraries("libs").findProperty("a_dep-endency"), dependencies).let { reference ->
+        dependencies.addArtifact("api", reference)
+      }
+      ReferenceTo(versionCatalog.libraries("libs").findProperty("a_nother-dep_endency"), dependencies).let { reference ->
+        dependencies.addArtifact("implementation", reference)
+      }
+      applyChangesAndReparse(pbm)
+      verifyFileContents(myBuildFile, TestFile.ADD_DEPENDENCY_REFERENCE_TO_VERSION_CATALOG_EXPECTED)
+      verifyVersionCatalogFileContents(myVersionCatalogFile, TestFile.VERSION_CATALOG_GROUP_BOTH_NOTATION)
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
+  @Test
+  fun testAddDependencyReferenceToVersionCatalogBundle() {
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile(TestFile.ADD_DEPENDENCY_REFERENCE_TO_VERSION_CATALOG)
+      writeToVersionCatalogFile(TestFile.VERSION_CATALOG_GROUP_BOTH_NOTATION)
+
+      val pbm = projectBuildModel
+      val buildModel = pbm.projectBuildModel!!
+      val dependencies = buildModel.dependencies()
+      val versionCatalog = pbm.versionCatalogsModel
+      ReferenceTo(versionCatalog.bundles("libs").findProperty("dep_endencies"), dependencies).let { reference ->
+        dependencies.addArtifact("api", reference)
+      }
+      applyChangesAndReparse(pbm)
+      verifyFileContents(myBuildFile, TestFile.ADD_DEPENDENCY_REFERENCE_TO_VERSION_CATALOG_BUNDLE_EXPECTED)
+      verifyVersionCatalogFileContents(myVersionCatalogFile, TestFile.VERSION_CATALOG_GROUP_BOTH_NOTATION)
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
   enum class TestFile(val path: @SystemDependent String): TestFileName {
+    ADD_DEPENDENCY_REFERENCE_TO_VERSION_CATALOG("addDependencyReferenceToVersionCatalog"),
+    ADD_DEPENDENCY_REFERENCE_TO_VERSION_CATALOG_BUNDLE_EXPECTED("addDependencyReferenceToVersionCatalogBundleExpected"),
+    ADD_DEPENDENCY_REFERENCE_TO_VERSION_CATALOG_EXPECTED("addDependencyReferenceToVersionCatalogExpected"),
     APPLIED_FILES_SHARED("appliedFilesShared"),
     APPLIED_FILES_SHARED_APPLIED("appliedFilesSharedApplied"),
     APPLIED_FILES_SHARED_APPLIED_EXPECTED("appliedFilesSharedAppliedExpected"),
@@ -1829,11 +1917,13 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     BUILD_SRC_ANDROID_GRADLE_PLUGIN_DEPENDENCY_EXPECTED("buildSrcAndroidGradlePluginDependencyExpected"),
     CONTEXT_AGP_VERSION("contextAgpVersion"),
     VERSION_CATALOG_BUILD_FILE("versionCatalogBuildFile"),
+    VERSION_CATALOG_BUILD_FILE_PLUGINS_REFERENCE_EXPECTED("versionCatalogBuildFilePluginsReferenceExpected"),
     VERSION_CATALOG_ALIAS_MAPPING_BUILD_FILE("versionCatalogAliasMappingBuildFile"),
     VERSION_CATALOG_PLUGINS_DSL_BUILD_FILE("versionCatalogPluginsDslBuildFile"),
     VERSION_CATALOG_BUNDLE_BUILD_FILE("versionCatalogBundleBuildFile"),
     VERSION_CATALOG_BUILD_FILE_INVALID_ALIAS("versionCatalogBuildFileInvalidAlias"),
     VERSION_CATALOG_COMPACT_NOTATION("versionCatalogCompactNotation.toml"),
+    VERSION_CATALOG_GROUP_BOTH_NOTATION("versionCatalogGroupBothNotation.toml"),
     VERSION_CATALOG_GROUP_COMPACT_NOTATION("versionCatalogGroupCompactNotation.toml"),
     VERSION_CATALOG_MAP_NOTATION("versionCatalogMapNotation.toml"),
     VERSION_CATALOG_MAP_NOTATION_EXPECTED("versionCatalogMapNotationExpected.toml"),

@@ -74,7 +74,7 @@ public class JavaDepTest {
       .clickFinishAndWaitForSyncToFinish();
     EditorFixture editor = ideFrame.getEditor()
       .open("/lib/build.gradle")
-      .select("()java \\{")
+      .moveBetween("id 'java-library'\n", "")
       .enterText("\ndependencies {\n    api 'com.google.code.gson:gson:2.6.2'\n}\n\n");
 
     ideFrame.getProjectView()
@@ -93,6 +93,7 @@ public class JavaDepTest {
     AddModuleDependencyDialogFixture addModuleDependencyFixture = dependenciesFixture.findDependenciesPanel().clickAddModuleDependency();
     addModuleDependencyFixture.toggleModule("lib");
     addModuleDependencyFixture.clickOk();
+    guiTest.robot().waitForIdle();
     dialogFixture.clickOk();
 
     guiTest.waitForBackgroundTasks();

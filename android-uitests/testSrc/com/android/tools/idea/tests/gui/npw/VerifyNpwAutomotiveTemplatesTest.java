@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.JButton;
 import javax.swing.JPopupMenu;
 import org.fest.swing.timing.Pause;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -96,7 +97,8 @@ public class VerifyNpwAutomotiveTemplatesTest {
         if (templateName.toLowerCase(Locale.ROOT).contains("c++")) {
           newProjectWizard.clickNext();
         }
-        newProjectWizard.clickFinishAndWaitForSyncToFinish();
+        newProjectWizard.clickFinishAndWaitForSyncToFinish(Wait.seconds(180));
+        guiTest.waitForAllBackgroundTasksToBeCompleted();
 
         Collection<JPopupMenu> popups;
         int counter = 100; // Wait approx 1 second for a popup to appear on hover/click.
@@ -113,7 +115,7 @@ public class VerifyNpwAutomotiveTemplatesTest {
 
         guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-        boolean buildSuccessful = guiTest.ideFrame().invokeProjectMake().isBuildSuccessful();
+        boolean buildSuccessful = guiTest.ideFrame().invokeProjectMake(Wait.seconds(120)).isBuildSuccessful();
 
         if (!buildSuccessful) {
           failedBuildTemplates.add(templateName);

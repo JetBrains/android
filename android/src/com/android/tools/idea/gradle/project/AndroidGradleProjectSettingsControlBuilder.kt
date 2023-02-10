@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project
 
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.ui.GradleJdkComboBox
+import com.android.tools.idea.gradle.util.GradleJdkComboBoxUtil
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME
 import com.intellij.ide.util.projectWizard.WizardContext
@@ -33,7 +34,6 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
 import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable
-import com.intellij.openapi.roots.ui.configuration.SdkComboBoxModel
 import com.intellij.openapi.roots.ui.configuration.SdkLookupProvider.SdkInfo
 import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel
 import com.intellij.openapi.util.text.StringUtil
@@ -48,15 +48,13 @@ import java.nio.file.Path
 import javax.swing.JPanel
 import kotlin.io.path.absolutePathString
 
+private const val GRADLE_JDK_LABEL_TEXT = "Gradle JDK:"
+
 @Suppress("UnstableApiUsage")
 class AndroidGradleProjectSettingsControlBuilder(
   private val myInitialSettings: GradleProjectSettings
 ) : JavaGradleProjectSettingsControlBuilder(myInitialSettings) {
-  companion object {
-    const val GRADLE_JDK_LABEL_TEXT = "Gradle JDK:"
-    const val EMBEDDED_JDK_NAME = "Embedded JDK"
-    const val ANDROID_STUDIO_JAVA_HOME_NAME = "Android Studio java home"
-  }
+
   init {
     // Drop original JdkComponents so new ones can be generated
     super.dropGradleJdkComponents()
@@ -189,7 +187,7 @@ class AndroidGradleProjectSettingsControlBuilder(
     }
     val projectJdk = sdksModel.projectSdk
     sdksModel.projectSdk = null
-    val boxModel = SdkComboBoxModel.createJdkComboBoxModel(project, sdksModel)
+    val boxModel = GradleJdkComboBoxUtil.createBoxModel(project, sdksModel)
     sdksModel.projectSdk = projectJdk
 
     // TODO: Remove, used only for debug

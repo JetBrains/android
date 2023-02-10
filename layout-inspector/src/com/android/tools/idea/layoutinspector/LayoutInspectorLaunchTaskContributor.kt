@@ -24,10 +24,15 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTaskDurations
+import com.intellij.execution.ExecutionListener
+import com.intellij.execution.ExecutionManager
 import com.intellij.execution.Executor
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
+import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -47,12 +52,13 @@ class LayoutInspectorLaunchTaskContributor : AndroidLaunchTaskContributor {
     override fun getDuration() = LaunchTaskDurations.LAUNCH_ACTIVITY
     override fun run(launchContext: LaunchContext) {
       if (configuration.INSPECTION_WITHOUT_ACTIVITY_RESTART && launchContext.device.version.apiLevel >= 29) {
-        enableDebugViewAttributes(configuration.project, applicationId, launchContext)
+        enableDebugViewAttributes(configuration.project, applicationId, launchContext.env.executionId, device)
       }
     }
 
-    private fun enableDebugViewAttributes(project: Project, packageName: String, launchContext: LaunchContext) {
-      val device = launchContext.device
+    private fun enableDebugViewAttributes(project: Project, packageName: String, executionId: Long, device: IDevice) {
+      val disposable = Disposer.newDisposable()
+      Disposer.register(project, disposable)
       val descriptor = object : DeviceDescriptor {
         override val manufacturer: String = "" // unused
         override val model: String = device.model
@@ -72,22 +78,30 @@ class LayoutInspectorLaunchTaskContributor : AndroidLaunchTaskContributor {
         override val streamId: Long = 0L
       }
       val debugViewAttributes = DebugViewAttributes.getInstance()
-      if (debugViewAttributes.set(project, process)) {
-        launchContext.processHandler.addProcessListener(object : ProcessAdapter() {
-          override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
-            // TODO(b/195152579) Consider creating a proper API on ProcessListener for debugger attachment
-            // This is a workaround:
-            if (event.source != launchContext.launchStatus.processHandler) {
-              launchContext.launchStatus.processHandler.addProcessListener(this)
-            }
-            else {
-              if (!debugViewAttributes.usePerDeviceSettings()) {
-                debugViewAttributes.clear(project, process)
-              }
-            }
+
+      project.messageBus.connect(disposable).subscribe(ExecutionManager.EXECUTION_TOPIC, object : ExecutionListener {
+        override fun processNotStarted(executorId: String, env: ExecutionEnvironment) {
+          if (env.executionId != executionId) {
+            return
           }
-        })
-      }
+          Disposer.dispose(disposable)
+        }
+
+        override fun processStarted(executorId: String, env: ExecutionEnvironment, handler: ProcessHandler) {
+          if (env.executionId != executionId) {
+            return
+          }
+          if (debugViewAttributes.set(project, process)) {
+            handler.addProcessListener(object : ProcessAdapter() {
+              override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
+                if (!debugViewAttributes.usePerDeviceSettings()) {
+                  debugViewAttributes.clear(project, process)
+                }
+              }
+            })
+          }
+        }
+      })
     }
   }
 

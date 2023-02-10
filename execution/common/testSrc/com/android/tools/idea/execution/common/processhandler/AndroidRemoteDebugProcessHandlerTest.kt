@@ -28,7 +28,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import kotlin.test.assertTrue
 
 class AndroidRemoteDebugProcessHandlerTest {
 
@@ -78,32 +77,11 @@ class AndroidRemoteDebugProcessHandlerTest {
   }
 
   @Test
-  fun callFinishAndroidProcess() {
-    var androidProcessFinished = false
-    val processHandler = AndroidRemoteDebugProcessHandler(projectRule.project, client, false) { androidProcessFinished = true }
-    processHandler.startNotify()
-    processHandler.destroyProcess()
-    processHandler.waitFor()
-    Thread.sleep(100)
-    assertTrue(androidProcessFinished)
-  }
-
-  @Test
   fun `don'tTerminateTargetVMOnDestroy`() {
     val processHandler = AndroidRemoteDebugProcessHandler(projectRule.project, client, false)
     processHandler.startNotify()
     processHandler.destroyProcess()
     processHandler.waitFor()
     Mockito.verify(debugProcess).stop(false)
-  }
-
-  @Test
-  fun forceStopOnDestroy() {
-    val processHandler = AndroidRemoteDebugProcessHandler(projectRule.project, client, false)
-    processHandler.startNotify()
-    processHandler.destroyProcess()
-    processHandler.waitFor()
-    Thread.sleep(100)
-    Mockito.verify(device).forceStop("MyApp")
   }
 }

@@ -27,6 +27,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.API_OPTIMIZATION_ENABLE
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
@@ -359,7 +360,8 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
       } else {
         // For non bundle tool deploy tasks, we have one argument per device spec property
         val version = deviceSpec.commonVersion
-        if (version != null && API_OPTIMIZATION_ENABLE.get()) {
+        val deviceApiOptimization = API_OPTIMIZATION_ENABLE.get() && GradleExperimentalSettings.getInstance().ENABLE_GRADLE_API_OPTIMIZATION
+        if (version != null && deviceApiOptimization) {
           properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API, version.apiLevel.toString()))
           if (version.codename != null) {
             properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API_CODENAME, version.codename!!))

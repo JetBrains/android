@@ -16,13 +16,19 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
     <customUsageSearcher implementation="com.android.tools.idea.dagger.DaggerCustomUsageSearcher"/>
+    <customUsageSearcher implementation="com.android.tools.idea.dagger.DaggerCustomUsageSearcherV2"/>
     <usageTypeProvider implementation="com.android.tools.idea.dagger.DaggerUsageTypeProvider"/>
+    <usageTypeProvider implementation="com.android.tools.idea.dagger.DaggerUsageTypeProviderV2"/>
     <codeInsight.lineMarkerProvider language="JAVA"
                                     implementationClass="com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProvider"
                                     order="last"
     />
     <codeInsight.lineMarkerProvider language="kotlin"
                                     implementationClass="com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProvider"/>
+    <codeInsight.lineMarkerProvider language="JAVA"
+                                    implementationClass="com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProviderV2"/>
+    <codeInsight.lineMarkerProvider language="kotlin"
+                                    implementationClass="com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProviderV2"/>
     <consoleFilterProvider implementation="com.android.tools.idea.dagger.DaggerConsoleFilterProvider"/>
     <projectService
         serviceInterface="com.android.tools.idea.dagger.DaggerAnalyticsTracker"

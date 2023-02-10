@@ -20,7 +20,7 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Co
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.withKotlin
 import com.intellij.openapi.application.ApplicationManager
-import org.jetbrains.android.uipreview.ModuleClassLoaderManager
+import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
@@ -44,12 +44,12 @@ open class ComposeRenderTestBase {
       Assert.assertTrue("The project must compile correctly for the test to pass", isBuildSuccessful)
     }
 
-    ModuleClassLoaderManager.get().setCaptureClassLoadingDiagnostics(true)
+    StudioModuleClassLoaderManager.get().setCaptureClassLoadingDiagnostics(true)
   }
 
   @After
   open fun tearDown() {
-    ModuleClassLoaderManager.get().setCaptureClassLoadingDiagnostics(false)
+    StudioModuleClassLoaderManager.get().setCaptureClassLoadingDiagnostics(false)
     ApplicationManager.getApplication().invokeAndWait {
       RenderTestUtil.afterRenderTestCase()
     }

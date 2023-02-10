@@ -24,7 +24,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
+import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -93,7 +93,7 @@ class AppResourceRepository extends MultiResourceRepository {
     Module module = myFacet.getModule();
     ResourceIdManager.get(module).resetDynamicIds();
     ResourceClassRegistry.get(module.getProject()).clearCache();
-    ModuleClassLoaderManager.get().clearCache(module);
+    StudioModuleClassLoaderManager.get().clearCache(module);
   }
 
   @TestOnly

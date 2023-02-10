@@ -36,7 +36,7 @@
     <action id="RefreshLinkedCppProjects" class="com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="RebuildGradleProject"/>
     </action>
-     <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="StudioIcons.Shell.Toolbar.GRADLE_SYNC">
+    <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="StudioIcons.Shell.Toolbar.GRADLE_SYNC">
       <add-to-group group-id="FileMenu" anchor="after" relative-to-action="SaveAll"/>
     </action>
     <action class="com.android.tools.idea.actions.ExportProjectZip" id="Android.ExportProjectZip" text="Export to Zip File...">
@@ -108,7 +108,6 @@
       <action internal="true" id="Android.Jfr.Start" class="com.android.tools.idea.diagnostics.profiler.StartJfr" />
       <action internal="true" id="Android.Jfr.Dump" class="com.android.tools.idea.diagnostics.profiler.DumpJfrRecording" />
       <action internal="true" id="Android.Jfr.Stop" class="com.android.tools.idea.diagnostics.profiler.StopJfr" />
-      <action internal="true" id="Android.Diagnostic.Summary.File" class="com.android.tools.idea.diagnostics.report.DiagnosticSummaryAction" />
       <add-to-group group-id="Internal"/>
     </group>
     <group id="Internal.Android.LiveLiterals" text="Live Literals" popup="true" internal="true">
@@ -202,6 +201,12 @@
         overrides="true"
         text="Submit _Feedback"
         description="Submit feedback to the Android Studio team"/>
+    <action
+        id="CollectZippedLogs"
+        class="com.android.tools.idea.actions.CreateDiagnosticReportAction"
+        overrides="true"
+        text="Collect Logs and Diagnostic Data"
+        description="Collect logs and diagnostic data"/>
     <action class="com.android.tools.idea.rendering.webp.ConvertToWebpAction" id="ConvertToWebp" text="Convert to WebP...">
       <add-to-group group-id="ProjectViewPopupMenu"/>
       <add-to-group group-id="Images.EditorPopupMenu" relative-to-action="RefactoringMenu" anchor="after"/>
@@ -314,6 +319,8 @@
     <applicationConfigurable groupId="build" id="instant.run"
                              provider="com.android.tools.idea.deploy.DeploymentConfigurableProvider"/>
 
+    <projectTypesProvider implementation="com.android.tools.idea.project.AndroidProjectTypesProvider"/>
+
     <applicationConfigurable groupId="build" id="configuration.execution"
                              provider="com.android.tools.idea.run.configuration.user.settings.AndroidConfigurationExecutionConfigurableProvider"/>
     <applicationService serviceImplementation="com.android.tools.idea.deploy.DeploymentConfiguration"/>
@@ -335,7 +342,7 @@
 
     <applicationService serviceImplementation="com.android.tools.idea.ddms.screenrecord.ScreenRecorderPersistentOptions"/>
 
-    <applicationService serviceImplementation="org.jetbrains.android.uipreview.ModuleClassLoaderManager"/>
+    <applicationService serviceImplementation="org.jetbrains.android.uipreview.StudioModuleClassLoaderManager"/>
 
     <applicationService serviceInterface="com.android.tools.idea.run.NonGradleAndroidArtifactResolver"
                         serviceImplementation="com.android.tools.idea.run.JpsAndroidArtifactResolver"/>
@@ -690,6 +697,7 @@
     <notificationGroup id="Logcat" displayType="BALLOON" isLogByDefault="true" />
     <notificationGroup id="DeviceMirrorBenchmarking" displayType="STICKY_BALLOON" key="android.emulator" />
     <notificationGroup id="Font Downloading Problems" displayType="BALLOON" isLogByDefault="true" />
+    <notificationGroup id="Create Diagnostic Report" displayType="BALLOON" isLogByDefault="true" />
 
     <webHelpProvider implementation="com.android.tools.idea.help.AndroidWebHelpProvider"/>
 
@@ -818,4 +826,3 @@
   <!-- Resource Explorer is included at the bottom since it has dependencies on the general Android Plugin declarations -->
   <xi:include href="/com/android/tools/idea/ui/resourcemanager/META-INF/resources-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>
-

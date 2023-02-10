@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.execution.common.debug
+package com.android.tools.idea.execution.common.debug.impl.java
 
 import com.android.ddmlib.Client
-import com.android.ddmlib.IDevice
 import com.android.tools.idea.execution.common.AndroidSessionInfo
-import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugEnvironment
 import com.intellij.debugger.DebuggerManagerEx
 import com.intellij.debugger.impl.DebuggerSession
 import com.intellij.execution.ExecutionException
@@ -33,7 +31,6 @@ fun startAndroidJavaDebuggerSession(
   project: Project,
   client: Client,
   consoleViewToReuse: ConsoleView?,
-  onDebugProcessDestroyed: (IDevice) -> Unit,
   detachIsDefault: Boolean
 ): AsyncPromise<DebuggerSession> {
 
@@ -48,7 +45,6 @@ fun startAndroidJavaDebuggerSession(
         client,
         sessionName,
         consoleViewToReuse,
-        onDebugProcessDestroyed,
         detachIsDefault
       )
 

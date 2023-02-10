@@ -89,11 +89,9 @@ public class InstallPackageTest {
     File licenseFile = new File(tmpSdk, "licenses/android-sdk-license");
     licenseFile.delete();
 
-    GuiTask.execute(() -> {
-      ApplicationManager.getApplication().runWriteAction(() -> {
-        IdeSdks.getInstance().setAndroidSdkPath(tmpSdk, null);
-      });
-    });
+    GuiTask.execute(() -> ApplicationManager.getApplication().runWriteAction(() -> {
+      IdeSdks.getInstance().setAndroidSdkPath(tmpSdk);
+    }));
 
     tmpSdkLocation = tmpSdk;
     originalSdk = origSdk;
@@ -187,14 +185,12 @@ public class InstallPackageTest {
 
     File origSdk = originalSdk;
     if (origSdk != null) {
-      GuiTask.execute(() -> {
-        ApplicationManager.getApplication().invokeLater(() -> {
-          ApplicationManager.getApplication().runWriteAction(() -> {
-            IdeSdks.getInstance().setAndroidSdkPath(origSdk, null);
-          });
-          sdkRestored.countDown();
-        }, ModalityState.stateForComponent(ideFrame.target()));
-      });
+      GuiTask.execute(() -> ApplicationManager.getApplication().invokeLater(() -> {
+        ApplicationManager.getApplication().runWriteAction(() -> {
+          IdeSdks.getInstance().setAndroidSdkPath(origSdk);
+        });
+        sdkRestored.countDown();
+      }, ModalityState.stateForComponent(ideFrame.target())));
     }
 
     try {

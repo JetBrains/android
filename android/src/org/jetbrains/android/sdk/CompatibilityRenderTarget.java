@@ -17,10 +17,10 @@ package org.jetbrains.android.sdk;
 
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.AndroidVersionUtils;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.OptionalLibrary;
-import com.android.sdklib.SdkVersionInfo;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -90,7 +90,7 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
 
   @Override
   public String getVersionName() {
-    return SdkVersionInfo.getAndroidName(myApiLevel);
+    return AndroidVersionUtils.getFullApiName(myVersion, true, true);
   }
 
   @Override

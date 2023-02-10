@@ -426,17 +426,16 @@ class IssuePanelService(private val project: Project) {
 
   /**
    * Select the highest severity issue related to the provided [NlComponent] and scroll the viewport to issue.
-   * TODO: Remove the dependency of [NlComponent]
    */
   fun showIssueForComponent(surface: DesignSurface<*>, userInvoked: Boolean, component: NlComponent, collapseOthers: Boolean) {
-    // TODO: The shared issue panel should support this feature.
+    val issueModel = surface.issueModel
+    val issue: Issue = issueModel.getHighestSeverityIssue(component) ?: return
     if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
       setSharedIssuePanelVisibility(true)
+      setSelectedNode(IssueNodeVisitor(issue))
     }
     else {
       val issuePanel = surface.issuePanel
-      val issueModel = surface.issueModel
-      val issue: Issue = issueModel.getHighestSeverityIssue(component) ?: return
       val issueView = issuePanel.getDisplayIssueView(issue)
       if (issueView != null) {
         surface.setIssuePanelVisibility(true, userInvoked)

@@ -221,7 +221,7 @@ public class ResourceResolverCache {
       if (platform == null) {
         return null;
       }
-      targetData = platform.getSdkData().getTargetData(target); // Uses soft reference.
+      targetData = AndroidTargetData.get(platform.getSdkData(), target); // Uses soft reference.
       cacheTargetData(apiLevel, targetData);
     }
 

@@ -61,7 +61,7 @@ import javax.swing.LookAndFeel
 import javax.swing.UIManager
 import javax.swing.plaf.metal.MetalLookAndFeel
 import javax.swing.plaf.metal.MetalTheme
-import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
+import com.android.tools.idea.layoutinspector.properties.PropertyType
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData/ui"
 private const val DIFF_THRESHOLD = 0.01
@@ -142,9 +142,9 @@ class ResolutionElementEditorTest {
     val model = model(projectRule.project, FakeTreeSettings(), body = DemoExample.setUpDemo(projectRule.fixture))
     val node = model["title"]!!
     val item1 = InspectorPropertyItem(
-      ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, null, PropertySection.DECLARED, node.layout, node.drawId, model)
+      ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, PropertyType.COLOR, null, PropertySection.DECLARED, node.layout, node.drawId, model)
     val item2 = InspectorPropertyItem(
-      ANDROID_URI, ATTR_ELEVATION, ATTR_ELEVATION, Type.FLOAT, null, PropertySection.DEFAULT, null, node.drawId, model)
+      ANDROID_URI, ATTR_ELEVATION, ATTR_ELEVATION, PropertyType.FLOAT, null, PropertySection.DEFAULT, null, node.drawId, model)
 
     // The "textColor" attribute is defined in the layout file, and we should have a link to the layout definition
     assertThat(ResolutionElementEditor.hasLinkPanel(item1)).isTrue()
@@ -194,7 +194,7 @@ class ResolutionElementEditorTest {
     val model = model(projectRule.project, FakeTreeSettings(), body = DemoExample.setUpDemo(projectRule.fixture))
     val node = model["title"]!!
     val item = InspectorPropertyItem(
-      ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, null, PropertySection.DECLARED, node.layout, node.drawId, model)
+      ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, PropertyType.COLOR, null, PropertySection.DECLARED, node.layout, node.drawId, model)
     val textStyleMaterial = ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "TextAppearance.Material")
     val map = listOf(textStyleMaterial).associateWith { model.resourceLookup.findAttributeValue(item, node, it) }
     val value = model.resourceLookup.findAttributeValue(item, node, item.source!!)

@@ -93,13 +93,13 @@ class ApplicationDeployerImpl(private val project: Project,
 class AdbCommandCaptureLoggerWithConsole(logger: Logger, val console: ConsoleView) : LogWrapper(logger) {
   override fun info(msgFormat: String, vararg args: Any?) { // print to user console commands that we run on device
     if (msgFormat.contains("$ adb")) {
-      console.print(msgFormat + "\n")
+      console.println(msgFormat + "\n")
     }
     super.info(msgFormat, *args)
   }
 
   override fun warning(msgFormat: String, vararg args: Any?) { // print to user console commands that we run on device
-    console.printError(msgFormat + "\n")
+    console.printlnError(msgFormat + "\n")
     super.info(msgFormat, *args)
   }
 }

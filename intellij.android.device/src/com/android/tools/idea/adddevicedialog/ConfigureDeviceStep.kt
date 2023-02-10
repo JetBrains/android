@@ -19,5 +19,7 @@ import com.android.tools.idea.wizard.model.ModelWizardStep
 import javax.swing.JComponent
 
 internal class ConfigureDeviceStep internal constructor(model: AddDeviceWizardModel) : ModelWizardStep<AddDeviceWizardModel>(model, "") {
-  override fun getComponent(): JComponent = ConfigureDevicePanel()
+  internal val component = ConfigureDevicePanel()
+
+  override fun getComponent(): JComponent = component
 }

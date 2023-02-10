@@ -133,70 +133,6 @@
         id="AvoidByLazy"
         message="Avoid `by lazy` for simple lazy initialization">
         <location
-            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
-            line="212"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
-            line="212"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
-            line="212"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
-            line="212"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
-            line="215"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
-            line="215"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
-            line="215"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
-            line="215"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
             file="src/com/android/tools/idea/ui/resourcemanager/explorer/ResourceExplorerListViewModelImpl.kt"
             line="135"/>
     </issue>
@@ -207,6 +143,22 @@
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/plugin/ResourceImporter.kt"
             line="27"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/uipreview/StudioModuleClassLoaderManager.kt"
+            line="210"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/uipreview/StudioModuleClassLoaderManager.kt"
+            line="213"/>
     </issue>
 
     <issue
@@ -701,14 +653,6 @@
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
-            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
-            line="280"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
             file="src/org/jetbrains/android/uipreview/ModuleClassLoaderUtil.kt"
             line="368"/>
     </issue>
@@ -767,6 +711,14 @@
         <location
             file="src/com/android/tools/idea/editors/literals/actions/ShowLiveLiteralsProblemAction.kt"
             line="73"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/org/jetbrains/android/uipreview/StudioModuleClassLoaderManager.kt"
+            line="288"/>
     </issue>
 
     <issue
@@ -838,7 +790,7 @@
         message="Use `whenCompleteAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/rendering/RenderTask.java"
-            line="810"/>
+            line="811"/>
     </issue>
 
     <issue

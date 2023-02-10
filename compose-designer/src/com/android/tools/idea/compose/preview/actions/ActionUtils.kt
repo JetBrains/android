@@ -55,11 +55,6 @@ internal fun List<AnAction>.visibleOnlyInComposeStaticPreview(): ActionGroup =
 internal fun AnAction.visibleOnlyInComposeStaticPreview(): ActionGroup =
   listOf(this).visibleOnlyInComposeStaticPreview()
 
-/** The given disables the actions if a surface is refreshing. */
-fun List<AnAction>.disabledIfRefreshing(): List<AnAction> = map {
-  EnableUnderConditionWrapper(it) { context -> !isAnyPreviewRefreshing(context) }
-}
-
 /**
  * The given disables the actions if a12 surface is refreshing or if the [sceneView] contains
  * errors.

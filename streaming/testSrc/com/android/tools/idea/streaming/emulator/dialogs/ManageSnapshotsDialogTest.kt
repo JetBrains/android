@@ -18,9 +18,9 @@ package com.android.tools.idea.streaming.emulator.dialogs
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
-import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.adtui.ui.ImagePanel
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.protobuf.TextFormat
@@ -75,7 +75,7 @@ class ManageSnapshotsDialogTest {
   private val timeoutRule = Timeout.builder().withTimeout(60, TimeUnit.SECONDS).withLookingForStuckThread(true).build()
 
   @get:Rule
-  val ruleChain = RuleChain(timeoutRule, emulatorViewRule, EdtRule())
+  val ruleChain = RuleChain(timeoutRule, emulatorViewRule, EdtRule(), HeadlessDialogRule())
 
   @get:Rule
   val portableUiFontRule = PortableUiFontRule()
@@ -96,7 +96,6 @@ class ManageSnapshotsDialogTest {
 
   @Before
   fun setUp() {
-    enableHeadlessDialogs(testRootDisposable)
     emulatorView = emulatorViewRule.newEmulatorView()
     emulator = emulatorViewRule.getFakeEmulator(emulatorView)
     Disposer.register(testRootDisposable) {

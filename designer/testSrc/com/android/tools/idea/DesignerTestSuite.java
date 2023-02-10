@@ -16,6 +16,7 @@
 package com.android.tools.idea;
 
 import com.android.testutils.JarTestSuiteRunner;
+import com.android.tools.adtui.swing.IconLoaderRule;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurfaceTest;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
@@ -39,5 +40,6 @@ public class DesignerTestSuite extends IdeaTestSuiteBase {
     unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");
     linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest");
     linkIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.manifest");
+    IconLoaderRule.enableIconLoading();
   }
 }

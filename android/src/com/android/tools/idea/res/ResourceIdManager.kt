@@ -49,7 +49,7 @@ private const val FIRST_PACKAGE_ID: Byte = 0x02
 /**
  * Module service responsible for tracking the numeric resource ids we assign to resources, in an attempt to emulate aapt.
  */
-internal interface ResourceIdManager : ResourceClassGenerator.NumericIdProvider {
+interface ResourceIdManager : ResourceClassGenerator.NumericIdProvider {
   /**
    * Whether R classes with final ids are used for compiling custom views.
    */

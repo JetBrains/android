@@ -30,7 +30,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.util.text.nullize
 import icons.StudioIcons
 import org.junit.Test
-import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
+import com.android.tools.idea.layoutinspector.properties.PropertyType
 
 class SelectedViewModelTest {
 
@@ -76,12 +76,12 @@ class SelectedViewModelTest {
 
   private fun nameOf(name: String): InspectorPropertyItem {
     val lookup: ViewNodeAndResourceLookup = mock()
-    return InspectorPropertyItem(ANDROID_URI, ATTR_NAME, Type.STRING, name, PropertySection.VIEW, null, 1L, lookup)
+    return InspectorPropertyItem(ANDROID_URI, ATTR_NAME, PropertyType.STRING, name, PropertySection.VIEW, null, 1L, lookup)
   }
 
   private fun idOf(id: String?): InspectorPropertyItem {
     val lookup: ViewNodeAndResourceLookup = mock()
     val value = id.nullize()?.let { "@id/$id" } ?: id
-    return InspectorPropertyItem(ANDROID_URI, ATTR_ID, Type.STRING, value, PropertySection.VIEW, null, 1L, lookup)
+    return InspectorPropertyItem(ANDROID_URI, ATTR_ID, PropertyType.STRING, value, PropertySection.VIEW, null, 1L, lookup)
   }
 }

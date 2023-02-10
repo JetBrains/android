@@ -236,7 +236,7 @@ class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackag
   }
 
   init {
-    val latestInfo = findLatestPlatform(remotePackages)
+    val latestInfo = findLatestPlatform(remotePackages, true)
     myLatestVersion = if (latestInfo != null) (latestInfo.typeDetails as DetailsTypes.PlatformDetailsType).androidVersion else null
   }
 }

@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.containingPackage
+import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil.getFileClassInfoNoResolve
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
 import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
 import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
@@ -215,16 +216,14 @@ class LiveEditCompiler(val project: Project) {
           val targetClass = input.element as KtClass
           val desc = bindingContext[BindingContext.CLASS, targetClass]!!
           val internalClassName = getInternalClassName(desc.containingPackage(), targetClass.fqName.toString(), input.file)
-          val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, input.file as KtFile, compilerOutput)
-          output.addClass(internalClassName, primaryClass).addSupportClasses(supportClasses)
+          getCompiledClasses(internalClassName, input.file as KtFile, compilerOutput, output)
         }
 
         // When the edit was at top level
         is KtFile -> {
           val targetFile = input.element as KtFile
           val internalClassName = getInternalClassName(targetFile.packageFqName, targetFile.javaFileFacadeFqName.toString(), input.file)
-          val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, input.file as KtFile, compilerOutput)
-          output.addClass(internalClassName,primaryClass).addSupportClasses(supportClasses)
+          getCompiledClasses(internalClassName, input.file as KtFile, compilerOutput, output)
         }
 
         else -> throw compilationError("Event was generated for unsupported kotlin element")
@@ -232,7 +231,8 @@ class LiveEditCompiler(val project: Project) {
     }
   }
 
-  private fun getGeneratedMethodCode(compilerOutput: List<OutputFile>, targetFunction: KtFunction, generationState: GenerationState, builder : LiveEditCompilerOutput.Builder) {
+  private fun getGeneratedMethodCode(compilerOutput: List<OutputFile>, targetFunction: KtFunction,
+                                     generationState: GenerationState, builder : LiveEditCompilerOutput.Builder) {
     val desc = generationState.bindingContext[BindingContext.FUNCTION, targetFunction]!!
     val isCompose = desc.hasComposableAnnotation()
 
@@ -259,9 +259,8 @@ class LiveEditCompiler(val project: Project) {
     }
 
     val internalClassName = getInternalClassName(desc.containingPackage(), className, function.containingFile)
-    val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, elem.containingFile as KtFile, compilerOutput)
+    getCompiledClasses(internalClassName, elem.containingFile as KtFile, compilerOutput, builder)
 
-    builder.addClass(internalClassName, primaryClass).addSupportClasses(supportClasses)
     if (!isCompose) {
       builder.resetState = true
     }
@@ -274,10 +273,8 @@ class LiveEditCompiler(val project: Project) {
     }
   }
 
-  // TODO (next CL): This should return a compilerOutput that contains all the results.
-  private fun getCompiledClasses(internalClassName: String, input: KtFile, compilerOutput: List<OutputFile>) : Pair<ByteArray, Map<String, ByteArray>> {
-    var primaryClass = ByteArray(0)
-    val supportClasses = mutableMapOf<String, ByteArray>()
+  private fun getCompiledClasses(internalClassName: String, input: KtFile, compilerOutput: List<OutputFile>,
+                                 liveEditOutput : LiveEditCompilerOutput.Builder) {
     // TODO: Remove all these println once we are more stable.
     println("Lived edit classes summary start")
     for (c in compilerOutput) {
@@ -293,13 +290,19 @@ class LiveEditCompiler(val project: Project) {
         continue
       }
 
-      // The class to become interpreted
-      if (c.relativePath == "$internalClassName.class") {
-        primaryClass = c.asByteArray()
+      // Query kotlin compiler via getFileClassInfoNoResolve to handle file level annotations that changes output filenames.
+      // For example: "@file:JvmName("CustomJvmName")" or "@file:JvmMultifileClass"
+      val classInfo = getFileClassInfoNoResolve(input)
+      if (c.relativePath == "$internalClassName.class" ||
+          c.relativePath == "${classInfo.fileClassFqName.toString().replace(".", "/")}.class" ||
+          c.relativePath == "${classInfo.facadeClassFqName.toString().replace(".", "/")}.class") {
+        var primaryClass = c.asByteArray()
+        var name = c.relativePath.substringBefore(".class")
         println("   Primary class: ${c.relativePath}")
-        inlineCandidateCache.computeIfAbsent(internalClassName) {
+        inlineCandidateCache.computeIfAbsent(name) {
           SourceInlineCandidate(input, it)
         }.setByteCode(primaryClass)
+        liveEditOutput.addClass(name, primaryClass)
         continue
       }
 
@@ -308,10 +311,11 @@ class LiveEditCompiler(val project: Project) {
       if (isProxiable(reader)) {
         println("   Proxiable class: ${c.relativePath}")
         val name = c.relativePath.substringBefore(".class")
-        supportClasses[name] = c.asByteArray()
+        val supportClass = c.asByteArray()
         inlineCandidateCache.computeIfAbsent(name) {
           SourceInlineCandidate(input, it)
-        }.setByteCode(supportClasses[name]!!)
+        }.setByteCode(supportClass)
+        liveEditOutput.addSupportClass(name, supportClass)
         continue
       }
 
@@ -319,7 +323,6 @@ class LiveEditCompiler(val project: Project) {
       // TODO: New classes (or existing unmodified classes) are not handled here. We should let the user know here.
     }
     println("Lived edit classes summary end")
-    return Pair(primaryClass, supportClasses)
   }
 
   private fun isProxiable(clazzFile: ClassReader): Boolean {

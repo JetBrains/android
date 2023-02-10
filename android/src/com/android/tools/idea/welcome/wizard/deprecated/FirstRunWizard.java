@@ -80,7 +80,6 @@ public class FirstRunWizard extends DynamicWizard {
       else {
         addPath(new SingleStepPath(new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL)));
       }
-      addPath(new SingleStepPath(new JdkSetupStep()));
       addPath(new SingleStepPath(new SelectThemeStep()));
     }
     if (myMode == FirstRunWizardMode.MISSING_SDK) {

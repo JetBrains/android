@@ -21,7 +21,6 @@ import com.android.testutils.TestUtils;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.emulator.AvdSpec;
 import com.android.tools.idea.tests.gui.framework.emulator.AvdTestRule;
 import com.android.tools.idea.tests.gui.framework.emulator.EmulatorGenerator;
@@ -159,11 +158,9 @@ public class DebuggerTestUtil {
    * necessary for this test.
    */
   public static void setupSpecialSdk(@NotNull AvdTestRule avdRule) {
-    GuiTask.execute(() -> {
-      ApplicationManager.getApplication().runWriteAction(() -> {
-        IdeSdks.getInstance().setAndroidSdkPath(avdRule.getGeneratedSdkLocation(), null);
-      });
-    });
+    GuiTask.execute(() -> ApplicationManager.getApplication().runWriteAction(() -> {
+      IdeSdks.getInstance().setAndroidSdkPath(avdRule.getGeneratedSdkLocation());
+    }));
   }
 
   public static void symlinkLldb() throws IOException {

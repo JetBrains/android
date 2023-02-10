@@ -1,8 +1,1 @@
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<mask id="path-1-inside-1_241_656" fill="white">
-<rect x="6" y="8" width="8" height="5" rx="0.5"/>
-</mask>
-<rect x="6" y="8" width="8" height="5" rx="0.5" stroke="#CED0D6" stroke-width="2" mask="url(#path-1-inside-1_241_656)"/>
-<path d="M6.5 14.5H13.5" stroke="#CED0D6" stroke-linecap="round"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M4 1C2.89543 1 2 1.89543 2 3V13C2 14.1046 2.89543 15 4 15H5V14H4C3.44772 14 3 13.5523 3 13V3C3 2.44772 3.44772 2 4 2H9C9.55228 2 10 2.44772 10 3V7H11V3C11 1.89543 10.1046 1 9 1H4ZM5.5 3C5.22386 3 5 3.22386 5 3.5C5 3.77614 5.22386 4 5.5 4H7.5C7.77614 4 8 3.77614 8 3.5C8 3.22386 7.77614 3 7.5 3H5.5Z" fill="#CED0D6"/>
-</svg>
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><mask id="a" fill="#fff"><rect x="6" y="8" width="8" height="5" rx=".5"/></mask><rect x="6" y="8" width="8" height="5" rx=".5" stroke="#CED0D6" stroke-width="2" mask="url(#a)"/><path d="M6.5 14.5h7" stroke="#CED0D6" stroke-linecap="round"/><path fill-rule="evenodd" clip-rule="evenodd" d="M4 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h1v-1H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v4h1V3a2 2 0 0 0-2-2H4zm1.5 2a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1h-2z" fill="#CED0D6"/></svg>

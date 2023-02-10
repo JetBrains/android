@@ -67,7 +67,7 @@ class CreateAndRunInstantAppTest {
     val newSdk = avdTestRule.generatedSdkLocation!!
     GuiTask.execute {
       ApplicationManager.getApplication().runWriteAction {
-        IdeSdks.getInstance().setAndroidSdkPath(newSdk, null)
+        IdeSdks.getInstance().setAndroidSdkPath(newSdk)
       }
     }
 

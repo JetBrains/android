@@ -34,7 +34,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -116,19 +115,6 @@ public class RenderLogger implements IRenderLogger {
   public static final String TAG_MISSING_FRAGMENT = "missing.fragment";
   public static final String TAG_STILL_BUILDING = "project.building";
   static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.RenderLogger");
-
-  /**
-   * Whether render errors should be sent to the IDE log. We generally don't want this, since if for
-   * example a custom view generates an error, it will go to the IDE log, which will interpret it as an
-   * IntelliJ error, and will blink the bottom right exception icon and offer to submit an exception
-   * etc. All these errors should be routed through the render error panel instead. However, since the
-   * render error panel does massage and collate the exceptions etc quite a bit, this flag is here
-   * in case we need to ask bug submitters to generate full, raw exceptions.
-   */
-  @SuppressWarnings("UseOfArchaicSystemPropertyAccessors")
-  private static final boolean LOG_ALL = Boolean.getBoolean("adt.renderLog") ||
-                                         (ApplicationManager.getApplication() != null &&
-                                          ApplicationManager.getApplication().isUnitTestMode());
 
   /**
    * Maximum number of RenderProblems that the logger will save. After hitting this limit, no more errors will be added and an additional

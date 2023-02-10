@@ -509,14 +509,26 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     if (parent == null) return null;
     PsiElement parentPsi = parent.create();
     GradleDslElement firstElement = expression.getCurrentElements().get(0);
-    if (!(firstElement instanceof GradleDslLiteral)) return null;
-    GradleDslLiteral firstLiteral = (GradleDslLiteral) firstElement;
-    expression.setPsiElement(parentPsi);
-    PsiElement elementPsi = createDslElement(firstLiteral);
-    expression.setPsiElement(elementPsi);
-    applyDslLiteral(firstLiteral);
-    firstLiteral.reset();
-    firstLiteral.commit();
+    if (firstElement instanceof GradleDslLiteral) {
+      GradleDslLiteral firstLiteral = (GradleDslLiteral)firstElement;
+      expression.setPsiElement(parentPsi);
+      PsiElement elementPsi = createDslElement(firstLiteral);
+      expression.setPsiElement(elementPsi);
+      applyDslLiteral(firstLiteral);
+      firstLiteral.reset();
+      firstLiteral.commit();
+    }
+    else if (firstElement instanceof GradleDslMethodCall) {
+      GradleDslMethodCall firstMethodCall = (GradleDslMethodCall)firstElement;
+      expression.setPsiElement(parentPsi);
+      PsiElement elementPsi = createDslMethodCall(firstMethodCall);
+      expression.setPsiElement(elementPsi);
+      applyDslMethodCall(firstMethodCall);
+      firstMethodCall.commit();
+    }
+    else {
+      return null;
+    }
     return expression.getPsiElement();
   }
 

@@ -23,6 +23,7 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.sdk.AndroidSdkPath;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.SelectSdkDialog;
@@ -38,11 +39,10 @@ import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
 import com.intellij.util.ModalityUiUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SdkSync {
   private static final String ERROR_DIALOG_TITLE = "Sync Android SDKs";
@@ -73,19 +73,10 @@ public class SdkSync {
       reconcileIdeAndProjectPaths(localProperties, project, ideAndroidSdkPath, projectAndroidSdkPath);
     }
     else if (ideAndroidSdkPath == null && projectAndroidSdkPath == null) {
-      if (IdeInfo.getInstance().isAndroidStudio()) {
-        // We don't have any SDK (IDE or project.)
-        // In IDEA there are non-android gradle projects. IDEA should not create local.properties file and should not ask users to configure
-        // Android SDK unless we are sure that they are working with Android projects (e.g. local.properties file already exists)
-        setIdeSdkFromLocalProperties(localProperties, findSdkPathTask);
-      }
+      setIdeSdkAndProjectSdkByAskingUser(localProperties, findSdkPathTask);
     }
     else if (ideAndroidSdkPath != null) {
-      if (localProperties.getPropertiesFilePath().exists() || IdeInfo.getInstance().isAndroidStudio()) {
-        // In IDEA we don't want local.properties to be created in plain java-gradle projects, so we update local.properties only if the
-        // file exists
-        setProjectSdkFromLocalProperties(localProperties, ideAndroidSdkPath);
-      }
+      setProjectSdkFromIdeSdk(localProperties, ideAndroidSdkPath);
     }
     else {
       setIdeSdkFromProjectSdk(localProperties, findSdkPathTask, projectAndroidSdkPath);
@@ -99,10 +90,10 @@ public class SdkSync {
   private void setIdeSdkFromProjectSdk(@NotNull LocalProperties localProperties,
                                        @NotNull FindValidSdkPathTask findSdkPathTask,
                                        @NotNull File projectAndroidSdkPath) {
-    if (IdeSdks.getInstance().isValidAndroidSdkPath(projectAndroidSdkPath)) {
+    if (AndroidSdkPath.isValid(projectAndroidSdkPath)) {
       setIdeSdk(localProperties, projectAndroidSdkPath);
     }
-    else {
+    else if (IdeInfo.getInstance().isAndroidStudio()) {
       File selectedPath = findSdkPathTask.selectValidSdkPath();
       if (selectedPath == null) {
         throw new ExternalSystemException("Unable to continue until an Android SDK is specified");
@@ -116,7 +107,7 @@ public class SdkSync {
    * local.properties to be created in plain java-gradle projects, so we update
    * local.properties only if the file exists.
    */
-  private void setProjectSdkFromLocalProperties(@NotNull LocalProperties localProperties, @NotNull File ideAndroidSdkPath) {
+  private void setProjectSdkFromIdeSdk(@NotNull LocalProperties localProperties, @NotNull File ideAndroidSdkPath) {
     if (localProperties.getPropertiesFilePath().exists() || IdeInfo.getInstance().isAndroidStudio()) {
       setProjectSdk(localProperties, ideAndroidSdkPath);
     }
@@ -126,11 +117,10 @@ public class SdkSync {
    * Sets the IDE SDK in the case where neither the IDE nor the project has an
    * SDK defined. In IDEA, there are non-Android gradle projects. IDEA should
    * not create local.properties and should not ask users to configure the
-   * Android SDK unless we are sure that they are working with Android projects
-   * (e.g. local.properties file already exists).
+   * Android SDK unless we're sure that they are working with Android projects.
    */
-  private void setIdeSdkFromLocalProperties(@NotNull LocalProperties localProperties, @NotNull FindValidSdkPathTask findSdkPathTask) {
-    if (localProperties.getPropertiesFilePath().exists() || IdeInfo.getInstance().isAndroidStudio()) {
+  private void setIdeSdkAndProjectSdkByAskingUser(@NotNull LocalProperties localProperties, @NotNull FindValidSdkPathTask findSdkPathTask) {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
       File selectedPath = findSdkPathTask.selectValidSdkPath();
       if (selectedPath == null) {
         throw new ExternalSystemException("Unable to continue until an Android SDK is specified");
@@ -255,7 +245,7 @@ public class SdkSync {
 
     ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState(),
                                        () -> ApplicationManager.getApplication().runWriteAction(() -> {
-                                         IdeSdks.getInstance().setAndroidSdkPath(projectAndroidSdkPath, null);
+                                         IdeSdks.getInstance().setAndroidSdkPath(projectAndroidSdkPath);
                                        }));
   }
 
@@ -274,7 +264,7 @@ public class SdkSync {
   }
 
   @VisibleForTesting
-  static class FindValidSdkPathTask {
+  static class FindValidSdkPathTask { // TODO: rename to "AskUserToProvideValidSdkPathTask"
     @Nullable
     File selectValidSdkPath() {
       Ref<File> pathRef = new Ref<>();
@@ -295,7 +285,7 @@ public class SdkSync {
         return;
       }
       File path = new File(dialog.getAndroidHome());
-      if (!IdeSdks.getInstance().isValidAndroidSdkPath(path)) {
+      if (!AndroidSdkPath.isValid(path)) {
         String format = "The path\n'%1$s'\ndoes not refer to a valid Android SDK. Would you like to try again?";
         if (MessageDialogBuilder.yesNo(ERROR_DIALOG_TITLE, String.format(format, path.getPath())).ask((Project)null)) {
           findValidSdkPath(pathRef);

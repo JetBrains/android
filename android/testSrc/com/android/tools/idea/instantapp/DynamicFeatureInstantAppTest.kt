@@ -24,11 +24,9 @@ import com.android.tools.idea.run.AndroidLaunchTasksProvider
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.DefaultStudioProgramRunner
 import com.android.tools.idea.run.LaunchOptions
 import com.android.tools.idea.run.tasks.RunInstantAppTask
-import com.android.tools.idea.run.util.LaunchStatus
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
@@ -49,7 +47,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 
 class DynamicFeatureInstantAppTest  {
@@ -66,10 +63,6 @@ class DynamicFeatureInstantAppTest  {
   private lateinit var launchOptionsBuilder: LaunchOptions.Builder
 
   private lateinit var device: IDevice
-
-  @Mock
-  private lateinit var launchStatus: LaunchStatus
-  private val consolePrinter = StubConsolePrinter()
 
   private lateinit var instantAppSdks: InstantAppSdks
 
@@ -123,7 +116,7 @@ class DynamicFeatureInstantAppTest  {
       launchOptionsBuilder.build()
     )
 
-    val launchTasks = launchTaskProvider.getTasks(device, launchStatus, consolePrinter)
+    val launchTasks = launchTaskProvider.getTasks(device)
 
     val deployTask = launchTasks.stream().filter { x -> x is RunInstantAppTask }.findFirst().orElse(null)
 
@@ -156,7 +149,7 @@ class DynamicFeatureInstantAppTest  {
       launchOptionsBuilder.build()
     )
 
-    val launchTasks = launchTaskProvider.getTasks(device, launchStatus, consolePrinter)
+    val launchTasks = launchTaskProvider.getTasks(device)
 
     val deployTask = launchTasks.stream().filter { x -> x is RunInstantAppTask }.findFirst().orElse(null)
 
@@ -184,16 +177,8 @@ class DynamicFeatureInstantAppTest  {
       launchOptionsBuilder.build()
     )
 
-    val launchTasks = launchTaskProvider.getTasks(device, launchStatus, consolePrinter)
+    val launchTasks = launchTaskProvider.getTasks(device)
 
     assertThat(launchTasks.stream().filter { x -> x is RunInstantAppTask }.findFirst().orElse(null)).isNull()
-  }
-
-  class StubConsolePrinter : ConsolePrinter {
-    override fun stdout(message: String) {
-    }
-
-    override fun stderr(message: String) {
-    }
   }
 }

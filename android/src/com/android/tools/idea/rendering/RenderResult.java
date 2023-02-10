@@ -131,7 +131,7 @@ public class RenderResult {
     Map<Object, ResourceReference> defaultStyles = session.getDefaultNamespacedStyles();
     RenderResult result = new RenderResult(
       file,
-      renderTask.getContext().getModule(),
+      renderTask.getContext().getModule().getIdeaModule(),
       logger,
       renderTask.getContext(),
       renderTask.getLayoutlibCallback().isUsed(),

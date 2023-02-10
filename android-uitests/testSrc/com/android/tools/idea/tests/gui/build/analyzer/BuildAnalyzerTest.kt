@@ -162,7 +162,7 @@ class BuildAnalyzerTest {
     tasksPage.findDetailsPanel("Android Resources").also { detailsPanel ->
       detailsPanel.requireVisible()
       val androidResourcesPageDetails = detailsPanel.readTaskDetails()
-      assertTrue ( androidResourcesPageDetails.contains(Regex("\\d+ warnings associated")) )
+      assertTrue ( androidResourcesPageDetails.contains(Regex("\\d+ warnings? associated")) )
       assertTrue ( androidResourcesPageDetails.contains("Non-transitive R classes are currently disabled."))
       //detailsPanel.verifyLinkPresent("Click here to migrate your project to use non-transitive R classes")
     }
@@ -316,7 +316,7 @@ class BuildAnalyzerTest {
       val alwaysRunTasksDetailsPage = detailsPanel.readTaskDetails()
       assertTrue ( alwaysRunTasksDetailsPage.contains("Always-Run Tasks") )
       assertTrue ( alwaysRunTasksDetailsPage.contains("Duration:") )
-      assertTrue ( alwaysRunTasksDetailsPage.contains(Regex("\\d+\\s+warnings")) )
+      assertTrue ( alwaysRunTasksDetailsPage.contains(Regex("\\d+\\s+warnings?")) )
       assertTrue ( alwaysRunTasksDetailsPage.contains(":app:sample2") )
       assertTrue ( alwaysRunTasksDetailsPage.contains(":app:sample1") )
     }
@@ -354,7 +354,7 @@ class BuildAnalyzerTest {
     warningsPage.findDetailsPanel("ANDROID_RESOURCES").also { detailsPanel ->
       detailsPanel.requireVisible()
       val androidResourcesPageDetails = detailsPanel.readTaskDetails()
-      assertTrue ( androidResourcesPageDetails.contains(Regex("\\d+\\s+warnings")) )
+      assertTrue ( androidResourcesPageDetails.contains(Regex("\\d+\\s+warnings?")) )
       assertTrue ( androidResourcesPageDetails.contains("Non-transitive R classes are currently disabled.") )
       //detailsPanel.verifyLinkPresent("Click here to migrate your project to use non-transitive R classes")
     }

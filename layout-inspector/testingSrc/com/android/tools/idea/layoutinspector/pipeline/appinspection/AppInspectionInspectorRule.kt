@@ -45,8 +45,8 @@ import com.intellij.openapi.Disposable
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 
 /**
  * An [InspectorClientProvider] for creating an app inspection-based client.
@@ -90,8 +90,8 @@ class AppInspectionInspectorRule(
   private val grpcServer = FakeGrpcServer.createFakeGrpcServer("AppInspectionInspectorRuleServer", transportService)
   val inspectionService = AppInspectionServiceRule(timer, transportService, grpcServer)
 
-  val viewInspector = FakeViewLayoutInspector(object : FakeInspector.Connection<ViewProtocol.Event>() {
-    override fun sendEvent(event: ViewProtocol.Event) {
+  val viewInspector = FakeViewLayoutInspector(object : FakeInspector.Connection<LayoutInspectorViewProtocol.Event>() {
+    override fun sendEvent(event: LayoutInspectorViewProtocol.Event) {
       if (withDefaultResponse) {
         inspectionService.addAppInspectionEvent(
           AppInspection.AppInspectionEvent.newBuilder().apply {
@@ -111,7 +111,7 @@ class AppInspectionInspectorRule(
         createCommand.createResponse(viewInspector.createResponseStatus)
       },
       rawInspectorResponse = { rawCommand ->
-        val viewCommand = ViewProtocol.Command.parseFrom(rawCommand.content)
+        val viewCommand = LayoutInspectorViewProtocol.Command.parseFrom(rawCommand.content)
         val viewResponse = viewInspector.handleCommand(viewCommand)
         val rawResponse = AppInspection.RawResponse.newBuilder().setContent(viewResponse.toByteString())
         AppInspection.AppInspectionResponse.newBuilder().setRawResponse(rawResponse)
@@ -123,7 +123,7 @@ class AppInspectionInspectorRule(
         createCommand.createResponse(composeInspector.createResponseStatus)
       },
       rawInspectorResponse = { rawCommand ->
-        val composeCommand = ComposeProtocol.Command.parseFrom(rawCommand.content)
+        val composeCommand = LayoutInspectorComposeProtocol.Command.parseFrom(rawCommand.content)
         val composeResponse = composeInspector.handleCommand(composeCommand)
         val rawResponse = AppInspection.RawResponse.newBuilder().setContent(composeResponse.toByteString())
         AppInspection.AppInspectionResponse.newBuilder().setRawResponse(rawResponse)

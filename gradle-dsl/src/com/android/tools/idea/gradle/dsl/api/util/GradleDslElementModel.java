@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
  * This interface is implemented by Dsl models which provide access to an underlying Dsl element, which is essentially all of them.
  */
 
-public interface GradleDslElementModel {
+public interface GradleDslElementModel extends GradleDslContextModel {
   /**
    * @return the Dsl element holding the most specific element associated with this model.
    */
@@ -33,11 +33,6 @@ public interface GradleDslElementModel {
    * @return the Dsl element associated with this model.
    */
   @Nullable GradleDslElement getRawElement();
-
-  /**
-   * @return the Dsl element holding the element associated with this model.
-   */
-  @NotNull GradleDslElement getRawPropertyHolder();
 
   /**
    * @return the fully-qualified name for this model.

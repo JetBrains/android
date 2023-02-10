@@ -24,7 +24,7 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.progress.StudioProgressRunner
-import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.sdk.isValid
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.ui.validation.validators.PathValidator
@@ -456,7 +456,7 @@ fun isExistingSdk(path: String?): Boolean {
   if (path.isNullOrBlank()) {
     return false
   }
-  return File(path).run { isDirectory && IdeSdks.getInstance().isValidAndroidSdkPath(this) }
+  return File(path).run { isDirectory && isValid(this) }
 }
 
 @Contract("null->false")

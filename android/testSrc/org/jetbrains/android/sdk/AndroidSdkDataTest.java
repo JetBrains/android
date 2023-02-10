@@ -24,7 +24,6 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -43,7 +42,7 @@ public class AndroidSdkDataTest extends AndroidTestCase {
 
     ApplicationManager.getApplication().runWriteAction(() -> {
       IdeSdks ideSdks = IdeSdks.getInstance();
-      ideSdks.setAndroidSdkPath(sdkDir, null);
+      ideSdks.setAndroidSdkPath(sdkDir);
       IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
       ProjectRootManager.getInstance(getProject()).setProjectSdk(ideSdks.getEligibleAndroidSdks().get(0));
     });
@@ -78,12 +77,12 @@ public class AndroidSdkDataTest extends AndroidTestCase {
   }
 
   public void testGetSdkDataByProject() throws Exception {
-    AndroidSdkData sdkFromProject = AndroidSdkData.getSdkData(getProject());
+    AndroidSdkData sdkFromProject = StudioAndroidSdkData.getSdkData(getProject());
     assertEquals(sdkData, sdkFromProject);
   }
 
   public void testGetSdkDataByModule() throws Exception {
-    AndroidSdkData actual = AndroidSdkData.getSdkData(myModule);
+    AndroidSdkData actual = StudioAndroidSdkData.getSdkData(myModule);
     assertEquals(sdkData, actual);
   }
 
@@ -91,6 +90,6 @@ public class AndroidSdkDataTest extends AndroidTestCase {
     Sdk sdk = mock(Sdk.class);
     when(sdk.getHomePath()).thenReturn(TestUtils.getSdk().toString());
 
-    assertEquals(sdkData, AndroidSdkData.getSdkData(sdk));
+    assertEquals(sdkData, StudioAndroidSdkData.getSdkData(sdk));
   }
 }

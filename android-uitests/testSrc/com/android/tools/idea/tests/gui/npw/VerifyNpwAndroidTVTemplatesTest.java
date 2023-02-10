@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.adtui.device.FormFactor;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ChooseAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
@@ -33,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.JButton;
 import javax.swing.JPopupMenu;
 import org.fest.swing.timing.Pause;
+import org.fest.swing.timing.Wait;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -97,8 +99,8 @@ public class VerifyNpwAndroidTVTemplatesTest {
         if (templateName.toLowerCase(Locale.ROOT).contains("c++")) {
           newProjectWizard.clickNext();
         }
-        newProjectWizard.clickFinishAndWaitForSyncToFinish();
-
+        newProjectWizard.clickFinishAndWaitForSyncToFinish(Wait.seconds(180));
+        guiTest.waitForAllBackgroundTasksToBeCompleted();
         Collection<JPopupMenu> popups;
         int counter = 100; // Wait approx 1 second for a popup to appear on hover/click.
         do {

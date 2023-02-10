@@ -503,4 +503,13 @@ public final class ProfilersTestData {
         .build()
     );
   }
+
+  @NotNull
+  public static Common.Event.Builder generateTraceStatusEvent(long sessionId,
+                                                              int pid,
+                                                              long timestampNs,
+                                                              Trace.TraceStatusData traceStatusData) {
+    return Common.Event.newBuilder().setGroupId(sessionId).setPid(pid).setKind(Common.Event.Kind.TRACE_STATUS).setTimestamp(timestampNs)
+      .setCommandId(0).setTraceStatus(traceStatusData);
+  }
 }

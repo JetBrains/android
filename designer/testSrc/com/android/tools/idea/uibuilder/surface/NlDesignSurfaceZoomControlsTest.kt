@@ -21,6 +21,7 @@ import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.editor.zoomActionPlace
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
@@ -50,6 +51,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import java.awt.BorderLayout
 import java.awt.EventQueue
 import java.awt.event.KeyEvent
@@ -57,8 +59,12 @@ import java.nio.file.Paths
 import javax.swing.JPanel
 
 class NlDesignSurfaceZoomControlsTest {
+  private val androidProjectRule = AndroidProjectRule.withSdk()
+
   @get:Rule
-  val androidProjectRule = AndroidProjectRule.withSdk()
+  val ruleChain = RuleChain
+    .outerRule(IconLoaderRule()) // Must be before AndroidProjectRule
+    .around(androidProjectRule)!!
 
   private val facet: AndroidFacet
     get() = androidProjectRule.module.androidFacet!!

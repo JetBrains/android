@@ -25,9 +25,6 @@ import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeUnknownLibrary
-import com.android.tools.idea.gradle.model.IdeUnresolvedModuleLibrary
-import com.android.tools.idea.gradle.model.projectPath
-import com.android.tools.idea.gradle.model.variant
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependencyCollection
 import com.android.tools.idea.gradle.structure.model.PsDependencyCollection
@@ -112,14 +109,19 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
     val dependencies = resolvedArtifact.compileClasspath
 
     dependencies.unresolvedDependencies.forEach { unresolvedDependency ->
+      // Create a list of transitive dependencies if we have them
+      val transitiveDependencies = unresolvedDependency.dependencies?.flatMap {
+        dependencies.resolver.resolve(dependencies.unresolvedDependencies[it]).filterIsInstance<IdeArtifactLibrary>()
+      }
+
       val libraries = dependencies.resolver.resolve(unresolvedDependency)
       libraries.forEach { library ->
         when (library) {
           is IdeAndroidLibrary -> {
-            addLibrary(library, artifact)
+            addLibrary(library, artifact, transitiveDependencies)
           }
           is IdeJavaLibrary -> {
-            addLibrary(library, artifact)
+            addLibrary(library, artifact, transitiveDependencies)
           }
           is IdeModuleLibrary -> {
             val gradlePath = library.projectPath
@@ -138,7 +140,7 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
   private fun collectReverseDependencies(): Map<PsLibraryKey, Set<ReverseDependency>> {
     return libraries
       .flatMap { resolvedDependency ->
-        resolvedDependency.pomDependencies.mapNotNull { transitiveDependencyTargetSpec ->
+        resolvedDependency.transitiveDependencies.mapNotNull { transitiveDependencyTargetSpec ->
           findLibraryDependencies(transitiveDependencyTargetSpec.toLibraryKey()).singleOrNull()?.let { pomResolvedDependency ->
             ReverseDependency.Transitive(pomResolvedDependency.spec, resolvedDependency, transitiveDependencyTargetSpec)
           }
@@ -151,7 +153,7 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
       .mapValues { it.value.toSet() }
   }
 
-  private fun addLibrary(library: IdeArtifactLibrary, artifact: PsAndroidArtifact) {
+  private fun addLibrary(library: IdeArtifactLibrary, artifact: PsAndroidArtifact, transitiveDependencies: List<IdeArtifactLibrary>?) {
     val libraryArtifactFile = when (library) {
       is IdeAndroidLibrary -> library.artifact
       is IdeJavaLibrary -> library.artifact
@@ -169,8 +171,16 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
           .filter { artifact.contains(it.parsedModel) }
       // TODO(b/74425541): Reconsider duplicates.
       val androidDependency = PsResolvedLibraryAndroidDependency(parent, this, spec, artifact, matchingDeclaredDependencies)
-      if (libraryArtifactFile != null) {
-        androidDependency.setDependenciesFromPomFile(
+
+      if (transitiveDependencies != null) {
+        androidDependency.setTransitiveDependencies(
+          transitiveDependencies.mapNotNull { PsArtifactDependencySpec.create(it.artifactAddress) }
+        )
+      } else if (libraryArtifactFile != null) {
+        // Note: Sometime in the near future of writing this we won't fetch pom files from Gradle since we have the full transitive
+        // dependency graph. This is maintained in order to support older versions of the Android Gradle plugin where this graph isn't
+        // present.
+        androidDependency.setTransitiveDependencies(
           parent.parent.pomDependencyCache.getPomDependencies(
             library.artifactAddress,
             libraryArtifactFile

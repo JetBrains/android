@@ -38,6 +38,11 @@ public interface RenderAsyncActionExecutor {
   );
 
   /**
+   * Returns the number of render actions that this executor has executed.
+   */
+  long getExecutedRenderActionCount();
+
+  /**
    * Runs an action that requires the rendering lock. Layoutlib is not thread safe so any rendering actions should be called using this
    * method.
    * <p/>

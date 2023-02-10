@@ -21,8 +21,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.WriteAction
-import com.intellij.openapi.application.ex.ApplicationUtil
-import com.intellij.openapi.application.ex.ApplicationUtil.CannotRunReadActionException
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -319,57 +318,6 @@ suspend fun <T> Deferred<T>.getCompletedOrNull(): T? {
 }
 
 /**
- * Suspendable method that will suspend until the [project] is in smart mode and can get hold of the read lock. Once both conditions
- * are true, this method will execute [compute].
- * @see [com.intellij.openapi.application.smartReadAction]. This method is equivalent and will be replaced by it once is out of experimental.
- */
-// TODO(b/190691270): Migrate to com.intellij.openapi.application.smartReadAction once is not experimental
-suspend fun <T> runInSmartReadAction(project: Project, compute: Computable<T>): T = coroutineScope {
-  val result = CompletableDeferred<T>()
-  while (!result.isCompleted && isActive) {
-    val waitingForSmart = CompletableDeferred<Boolean>()
-    runReadAction {
-      val dumbService = DumbService.getInstance(project)
-      if (dumbService.isDumb) {
-        dumbService.runWhenSmart {
-          waitingForSmart.complete(true)
-        }
-        return@runReadAction
-      }
-      waitingForSmart.complete(true)
-      result.complete(compute.compute())
-      return@runReadAction
-    }
-    // We could not run in this loop, wait until we are in smart mode
-    waitingForSmart.await()
-  }
-  return@coroutineScope result.await()
-}
-
-/**
- * Suspendable method that will suspend until it can get obtain the read lock. Once the read lock is obtained, it will execute [compute].
- * @see [com.intellij.openapi.application.readAction]. This method is equivalent and will be replaced by it once is out of experimental.
- */
-// TODO(b/190691270): Migrate to com.intellij.openapi.application.readAction once is not experimental
-suspend fun <T> runReadAction(compute: Computable<T>): T = coroutineScope {
-  while (isActive) {
-    try {
-      return@coroutineScope ApplicationUtil.tryRunReadAction {
-        return@tryRunReadAction compute.compute()
-      }
-    }
-    catch (_: CannotRunReadActionException) {
-      // Wait until the current write finishes.
-      val writeFinished = CompletableDeferred<Boolean>()
-      ApplicationManager.getApplication().invokeLater { writeFinished.complete(true) }
-      // This will suspend the coroutine until the write lock has finished.
-      writeFinished.await()
-    }
-  }
-  throw CancellationException()
-}
-
-/**
  * Suspendable method that will suspend until the given [compute] can be executed in a write action in the UI thread.
  */
 suspend fun <T> runWriteActionAndWait(compute: Computable<T>): T = coroutineScope {
@@ -425,7 +373,7 @@ suspend fun <T> runReadActionWithWritePriority(
          * Thus, we are waiting for the end of the [WriteAction] by blocking on a no-op `ReadAction`. After that read action happens it
          * is only makes sense to retry again.
          */
-        runReadAction {}
+        readAction { }
       }
       throw RetriesExceededException("Could you complete the action after $maxRetries retries.")
     }
@@ -441,10 +389,10 @@ suspend fun <T> runReadActionWithWritePriority(
 /**
  * Similar to [AndroidPsiUtils#getPsiFileSafely] but using a suspendable function.
  */
-suspend fun getPsiFileSafely(project: Project, virtualFile: VirtualFile): PsiFile? = runReadAction {
-  if (project.isDisposed) return@runReadAction null
-  val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return@runReadAction null
-  return@runReadAction if (psiFile.isValid) psiFile else null
+suspend fun getPsiFileSafely(project: Project, virtualFile: VirtualFile): PsiFile? = readAction {
+  if (project.isDisposed) return@readAction null
+  val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return@readAction null
+  if (psiFile.isValid) psiFile else null
 }
 
 /**
@@ -472,7 +420,6 @@ interface CallbackFlowWithDisposableScope<T> : CoroutineScope {
  *
  * This allows for any callbacks to use that [Disposable] and dispose the listeners when the flow is not needed.
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 fun <T> disposableCallbackFlow(debugName: String,
                                logger: Logger? = null,
                                parentDisposable: Disposable? = null,

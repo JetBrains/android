@@ -28,8 +28,8 @@ public class AndroidDeprecationInspectionTest extends AndroidInspectionTestCase 
             "\n" +
             "public class X extends java.util.Date {\n" +
             "    @Override\n" +
-            "    public int /*Overrides deprecated method in 'java.util.Date' as of API 15: Android 4.0.3 (IceCreamSandwich)*/getSeconds/**/() {\n" +
-            "        return super./*'getSeconds()' is deprecated as of API 15: Android 4.0.3 (IceCreamSandwich)*/getSeconds/**/();\n" +
+            "    public int /*Overrides deprecated method in 'java.util.Date' as of API 15 (\\\"IceCreamSandwich\\\"; Android 4.0.3)*/getSeconds/**/() {\n" +
+            "        return super./*'getSeconds()' is deprecated as of API 15 (\\\"IceCreamSandwich\\\"; Android 4.0.3)*/getSeconds/**/();\n" +
             "    }\n" +
             "}");
   }
@@ -71,10 +71,10 @@ public class AndroidDeprecationInspectionTest extends AndroidInspectionTestCase 
            "            date.getSeconds(); // No warning\n" +
            "        }\n" +
            "        if (Build.VERSION.SDK_INT >= 15) {\n" +
-           "            date./*'getSeconds()' is deprecated as of API 15: Android 4.0.3 (IceCreamSandwich)*/getSeconds/**/(); // Should warn\n" +
+           "            date./*'getSeconds()' is deprecated as of API 15 (\\\"IceCreamSandwich\\\"; Android 4.0.3)*/getSeconds/**/(); // Should warn\n" +
            "        }\n" +
            "        if (Build.VERSION.SDK_INT >= 16) {\n" +
-           "            date./*'getSeconds()' is deprecated as of API 15: Android 4.0.3 (IceCreamSandwich)*/getSeconds/**/(); // Should warn\n" +
+           "            date./*'getSeconds()' is deprecated as of API 15 (\\\"IceCreamSandwich\\\"; Android 4.0.3)*/getSeconds/**/(); // Should warn\n" +
            "        }\n" +
            "    }\n" +
            "\n" +
@@ -85,7 +85,7 @@ public class AndroidDeprecationInspectionTest extends AndroidInspectionTestCase 
            "            return;\n" +
            "        }\n" +
            "\n" +
-           "        date./*'getSeconds()' is deprecated as of API 15: Android 4.0.3 (IceCreamSandwich)*/getSeconds/**/(); // Should warn\n" +
+           "        date./*'getSeconds()' is deprecated as of API 15 (\\\"IceCreamSandwich\\\"; Android 4.0.3)*/getSeconds/**/(); // Should warn\n" +
            "    }\n" +
            "}\n");
   }

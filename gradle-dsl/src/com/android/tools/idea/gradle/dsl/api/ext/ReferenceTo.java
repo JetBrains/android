@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.api.ext;
 
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslContextModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslElementModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
@@ -53,7 +54,7 @@ public final class ReferenceTo {
    * @param model the model we want to refer to.  This model must be associated with a Dsl element.
    * @param context the context in which we want to refer to the model.
    */
-  public ReferenceTo(@NotNull GradleDslElementModel model, @NotNull GradleDslElementModel context) {
+  public ReferenceTo(@NotNull GradleDslElementModel model, @NotNull GradleDslContextModel context) {
     elementModel = model;
     scope = context.getRawPropertyHolder();
     if (model.getRawElement() != null) {

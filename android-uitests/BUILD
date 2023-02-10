@@ -38,7 +38,6 @@ COMMON_DATA = [
 
 COMMON_TAGS = [
     "block-network",
-    "no_windows",
     "cpu:3",
 ]
 
@@ -198,9 +197,11 @@ maven_repository(
         "@maven//:com.android.support.support-v13_28.0.0",
         "@maven//:com.android.support.support-v4_27.1.1",
         "@maven//:com.android.support.test.espresso.espresso-core_3.0.2",
+        "@maven//:com.android.tools.build.bundletool_1.14.0",
         "@maven//:com.android.tools.build.gradle_7.1.0",
         "@maven//:com.android.tools.build.gradle_7.2.0",
         "@maven//:com.android.tools.build.gradle_7.3.1",
+        "@maven//:com.android.tools.build.gradle_7.4.1",
         "@maven//:com.android.tools.desugar_jdk_libs_1.0.5",
         "@maven//:com.android.tools.lint.lint-checks_26.5.0",
         "@maven//:com.github.bumptech.glide.glide_4.11.0",
@@ -240,6 +241,7 @@ maven_repository(
         "@maven//:javax.annotation.javax.annotation-api_1.2",
         "@maven//:javax.inject.javax.inject_1",
         "@maven//:junit.junit_4.13.2",
+        "@maven//:org.apache.commons.commons-compress_1.21",
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",
         "@maven//:org.hamcrest.hamcrest-library_1.3",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
@@ -274,6 +276,7 @@ java_test(
     tags = COMMON_TAGS + [
         "very_flaky",
         "no_mac",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -287,6 +290,7 @@ java_test(
     tags = COMMON_TAGS + [
         "very_flaky",
         "no_mac",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -300,6 +304,7 @@ java_test(
     tags = COMMON_TAGS + [
         "very_flaky",
         "no_mac",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -313,6 +318,7 @@ java_test(
     tags = COMMON_TAGS + [
         "very_flaky",
         "no_mac",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -326,6 +332,7 @@ java_test(
     tags = COMMON_TAGS + [
         "very_flaky",
         "no_mac",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -339,6 +346,7 @@ java_test(
     tags = COMMON_TAGS + [
         "very_flaky",
         "no_mac",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -352,6 +360,7 @@ java_test(
     tags = COMMON_TAGS + [
         "very_flaky",
         "no_mac",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -372,6 +381,7 @@ java_test(
     tags = COMMON_TAGS + [
         "very_flaky",
         "no_mac",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -392,6 +402,7 @@ java_test(
     tags = COMMON_TAGS + [
         "very_flaky",
         "no_mac",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -412,6 +423,7 @@ java_test(
     tags = COMMON_TAGS + [
         "very_flaky",
         "no_mac",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -432,6 +444,7 @@ java_test(
     tags = COMMON_TAGS + [
         "very_flaky",
         "no_mac",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -452,6 +465,7 @@ java_test(
     tags = COMMON_TAGS + [
         "very_flaky",
         "no_mac",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -472,6 +486,7 @@ java_test(
     tags = COMMON_TAGS + [
         "very_flaky",
         "no_mac",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -492,6 +507,7 @@ java_test(
     tags = COMMON_TAGS + [
         "very_flaky",
         "no_mac",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -633,6 +649,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.VerifyJavaKotlinXmlCodeStylesTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -653,6 +670,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.avdmanager.DeviceConfigurationDialogTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -670,6 +688,7 @@ java_test(
     tags = COMMON_TAGS + [
         "qa_smoke",
         "no_mac",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -686,6 +705,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.GradleBuildTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -732,6 +752,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.layoutinspector.LayoutInspectorTest"],
     tags = COMMON_TAGS + [
         "manual",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -748,6 +769,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.webp.ConvertFromAndToWebpTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -763,6 +785,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.webp.FilterIconTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -780,6 +803,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.build.analyzer.BuildAnalyzerTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -793,6 +817,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.CodeConversionFromJavaToKotlinTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -824,6 +849,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.deploy.DeploymentTest"],
     tags = COMMON_TAGS + [
         "no_mac",
+        "no_windows",
         "ui_test",
         "very_flaky",  # b/203243180
     ],
@@ -897,6 +923,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.java8.CompileWithJava8Test"],
     tags = COMMON_TAGS + [
         "qa_smoke",  # fails 0 out of 3000 runs
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -925,6 +952,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.GenerateApkWithReleaseVariantTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",  # b/110178024
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -938,6 +966,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.ModifyMinSdkAndSyncTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",  # fails 1 out of 3000 runs
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -953,6 +982,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.CreateNewAppModuleWithDefaultsTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -966,6 +996,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.CreateNewLibraryModuleWithDefaultsTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -979,6 +1010,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddNewBuildTypeTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -990,6 +1022,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.newpsd.StudioDefaultJDKTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1006,6 +1039,7 @@ java_test(
     ],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [
@@ -1022,6 +1056,7 @@ java_test(
     ],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [
@@ -1090,6 +1125,7 @@ java_test(
     tags = COMMON_TAGS + [
         "ui_test",
         "very_flaky",  # b/241915111
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1109,6 +1145,7 @@ java_test(
     tags = COMMON_TAGS + [
         "ui_test",
         "very_flaky",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1129,6 +1166,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.OpenCloseVisualizationToolTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1153,6 +1191,7 @@ java_test(
         "qa_smoke",
         "qa_smoke_unreliable",  # b/160247726
         "qa_unreliable",  # b/160247726
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1169,6 +1208,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.CreateNewFlavorsTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1184,6 +1224,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddDebugAndReleaseSourceSetToProjectTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1198,6 +1239,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.LaunchApkViewerTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1214,6 +1256,7 @@ java_test(
     ],
     tags = COMMON_TAGS + [
         "qa_smoke",  # fails 1 out of 3000 runs
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1230,6 +1273,7 @@ java_test(
     ],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1244,6 +1288,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateNewProjectWithCpp1Test"],
     tags = COMMON_TAGS + [
         "qa_smoke",  # fails 1 out of 3000 runs
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1258,6 +1303,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateNewProjectWithCpp2Test"],
     tags = COMMON_TAGS + [
         "qa_smoke",  # fails 1 out of 3000 runs
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1272,6 +1318,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateNewProjectWithCpp3Test"],
     tags = COMMON_TAGS + [
         "qa_smoke",  # fails 0 out of 3000 runs
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1287,6 +1334,7 @@ java_test(
     tags = COMMON_TAGS + [
         "ui_test",
         "very_flaky",  # b/264602589
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1306,6 +1354,7 @@ java_test(
     tags = COMMON_TAGS + [
         "ui_test",
         "very_flaky",  # b/230003185
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1322,6 +1371,7 @@ java_test(
         "no_crostini",
         "qa_smoke_unreliable",  # b/161711253
         "qa_unreliable",  # b/161711253
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1338,6 +1388,7 @@ java_test(
     tags = COMMON_TAGS + [
         "qa_smoke",
         "no_crostini",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1354,6 +1405,7 @@ java_test(
     tags = COMMON_TAGS + [
         "qa_smoke",
         "no_crostini",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1370,6 +1422,7 @@ java_test(
         "no-remote",
         "requires-fakeroot",
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1386,6 +1439,7 @@ java_test(
         "no-remote",
         "requires-fakeroot",
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1399,6 +1453,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.ImportSampleProjectTest"],
     tags = [
         "cpu:3",
+        "manual",
         "no-remote",
         "no_mac",
         "no_windows",
@@ -1425,6 +1480,19 @@ java_test(
         "qa_smoke_emu",  # Run together with emulators because the test needs to run alone
         "requires-network",
         "requires_emulator",  # Run together with emulators because the test needs to run alone
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "ImportTestHistoryTest",
+    size = "large",
+    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.androidtest.ImportTestHistoryTest"],
+    tags = COMMON_TAGS + [
+        "no_mac",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1481,6 +1549,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.naveditor.CreateNavGraphTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1489,11 +1558,22 @@ java_test(
 java_test(
     name = "NavGraphSanityTest",
     data = COMMON_DATA + [
+        # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
+        "//prebuilts/studio/layoutlib:build.prop",
+        "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ],
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
+        "//prebuilts/studio/layoutlib/data:native_libs",
+        "@maven//:com.android.support.support-annotations_28.0.0",
+        "@maven//:com.android.support.appcompat-v7_26.1.0",
+    ] + glob([
+        "testData/SimpleApplication/**",
+    ]) + glob(["testData/LayoutTest/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.naveditor.NavGraphSanityTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1519,6 +1599,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.AddOrRemoveAttributesTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1549,14 +1630,23 @@ java_test(
 
 java_test(
     name = "CreateNavNIGraphTest",
-    data = COMMON_DATA + glob([
-        "testData/SimpleApplication/**",
-    ]) + [
+    data = COMMON_DATA + [
+        # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
+        "//prebuilts/studio/layoutlib:build.prop",
+        "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ],
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
+        "//prebuilts/studio/layoutlib/data:native_libs",
+        "@maven//:com.android.support.support-annotations_28.0.0",
+        "@maven//:com.android.support.appcompat-v7_26.1.0",
+    ] + glob([
+        "testData/SimpleApplication/**",
+    ]) + glob(["testData/LayoutTest/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.naveditor.CreateNavNIGraphTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1573,6 +1663,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.archcomponents.RoomComponentTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1588,6 +1679,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.RefactoringFlowTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1729,6 +1821,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.CMakeListsTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1744,6 +1837,7 @@ java_test(
     tags = COMMON_TAGS + [
         "ui_test",
         "very_flaky",  # b/255152721, b/263061905, b/263957563
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1758,6 +1852,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.QuickFixForJniTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1770,6 +1865,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.OpenExistingProjectTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1784,6 +1880,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.intellijplatform.CodeGenerationTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1798,6 +1895,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.intellijplatform.GotoDeclarationTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1812,6 +1910,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.intellijplatform.FindUsagesTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1826,6 +1925,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.benchmark.AddBenchmarkModuleTest"],
     tags = COMMON_TAGS + [
         "qa_unreliable",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1840,6 +1940,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.AddInstantModuleTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1854,6 +1955,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.BuildInstantAppTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1867,6 +1969,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.lint.LintTest"],
     tags = COMMON_TAGS + [
         "qa_fast",  # b/110178024
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1881,6 +1984,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.VerifyNpwPhoneAndTabletTemplatesTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1894,6 +1998,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.VerifyNpwWearOSTemplatesTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1902,11 +2007,17 @@ java_test(
 java_test(
     name = "VerifyNpwAutomotiveTemplatesTest",
     data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:build.prop",
+        "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ],
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
+        "//prebuilts/studio/layoutlib/data:native_libs",
+    ] + glob(["testData/Navigation/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.VerifyNpwAutomotiveTemplatesTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1920,6 +2031,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.VerifyNpwAndroidTVTemplatesTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1933,6 +2045,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.UnusedResourceEvaluationTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1944,6 +2057,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.UnusedResourceEvaluationTest2"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1965,6 +2079,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.resourceexplorer.MultiModuleSearchTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1986,6 +2101,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.resourceexplorer.ResourceExplorerTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2001,6 +2117,7 @@ java_test(
         "qa_fast",
         "qa_unreliable",  # b/117238132
         "qa_fast_unreliable",  # b/117238132
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2016,6 +2133,7 @@ java_test(
         "qa_fast",
         "qa_unreliable",  # b/117238132
         "qa_fast_unreliable",  # b/117238132
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2032,6 +2150,7 @@ java_test(
         "qa_fast",
         "qa_unreliable",  # b/117238132
         "qa_fast_unreliable",  # b/117238132
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2048,6 +2167,7 @@ java_test(
         "qa_fast",
         "qa_unreliable",  # b/111889561
         "qa_fast_unreliable",  # b/111889561
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2061,6 +2181,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.IdePermissionTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2078,6 +2199,7 @@ java_test(
         "qa_fast",
         "qa_unreliable",  # b/111889561
         "qa_fast_unreliable",  # b/111889561
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2095,6 +2217,7 @@ java_test(
         "qa_fast",
         "qa_unreliable",  # b/111889561
         "qa_fast_unreliable",  # b/111889561
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2110,6 +2233,7 @@ java_test(
         "qa_fast",
         "qa_unreliable",  # b/111889561
         "qa_fast_unreliable",  # b/111889561
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2153,6 +2277,7 @@ java_test(
         "qa_fast",
         "qa_unreliable",  # b/115685973
         "qa_fast_unreliable",  # b/115685973
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2175,6 +2300,7 @@ java_test(
         "qa_fast",
         "qa_unreliable",  # b/116793860
         "qa_fast_unreliable",  # b/116793860
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2197,6 +2323,7 @@ java_test(
         "qa_fast",
         "qa_unreliable",  # b/116801839
         "qa_fast_unreliable",  # b/116801839
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2217,6 +2344,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.CreateBaselineConnectionTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2237,6 +2365,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.assetstudio.AdaptiveIconsTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2257,6 +2386,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.AndroidVectorDrawableToolTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2279,6 +2409,7 @@ java_test(
         "qa_fast",
         "qa_unreliable",  # b/115567466
         "qa_fast_unreliable",  # b/115567466
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2300,6 +2431,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ImageAssetErrorCheckTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2312,6 +2444,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.AddCppToModuleActionTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2325,6 +2458,7 @@ java_test(
     tags = COMMON_TAGS + [
         "qa_smoke",
         "no_crostini",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2338,6 +2472,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.CLionIntegrationTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2353,6 +2488,7 @@ java_test(
         "qa_fast",
         "qa_unreliable",  # b/115567466
         "qa_fast_unreliable",  # b/115567466
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2372,6 +2508,7 @@ java_test(
         "qa_unreliable",  # b/111997969
         "qa_fast_unreliable",  # b/111997969
         "no-remote",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2385,6 +2522,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.webp.ConvertFrom9PatchTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2400,6 +2538,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.LintCheckWithKotlinTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2413,6 +2552,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.NoGradleSyncForProjectReimportTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2426,6 +2566,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.ApkViewerTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2732,6 +2873,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.NdkSxsTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2747,6 +2889,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.JavaToKotlinConversionTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2761,6 +2904,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.NewJavaProjectToKotlinProjectConversionTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2774,6 +2918,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.CreateFromPreexistingApkTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2789,6 +2934,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.AgpUpgradeTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2929,6 +3075,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.InferNullityTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2948,6 +3095,7 @@ java_test(
     ],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2962,6 +3110,7 @@ java_test(
         "qa_fast",
         "qa_unreliable",  # b/117238132
         "qa_fast_unreliable",  # b/117238132
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2976,6 +3125,7 @@ java_test(
         "qa_fast",
         "qa_unreliable",  # b/115679328
         "qa_fast_unreliable",  # b/115679328
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2999,6 +3149,7 @@ java_test(
         "qa_fast",
         "qa_unreliable",  # b/115679328
         "qa_fast_unreliable",  # b/115679328
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -3013,6 +3164,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.SurroundWithShortcutTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -3027,6 +3179,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.ForeachLiveTemplateTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -3041,6 +3194,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.ForiLiveTemplateTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -3055,6 +3209,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.ToastLiveTemplateTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -3071,6 +3226,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.mlmodels.ImportMlModelTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+        "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],

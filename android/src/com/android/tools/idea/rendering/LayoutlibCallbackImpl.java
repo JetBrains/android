@@ -74,9 +74,6 @@ import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.FileResourceReader;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceIdManager;
-import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.idea.util.FileExtensions;
 import com.android.tools.lint.detector.api.Lint;
@@ -92,7 +89,6 @@ import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -112,7 +108,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ViewLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -145,9 +140,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   /** Directory name for the gradle build-cache. Exploded AARs will end up there when using build cache */
   public static final String BUILD_CACHE = "build-cache";
 
-  @NotNull private final ResourceRepositoryManager myResourceRepositoryManager;
-  @NotNull private final Module myModule;
-  @NotNull private final ResourceIdManager myIdManager;
+  @NotNull private final RenderModelModule myRenderModule;
   @NotNull final private LayoutLibrary myLayoutLib;
   @Nullable private final Object myCredential;
   private final boolean myHasLegacyAppCompat;
@@ -184,9 +177,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    *
    * @param renderTask The associated render task
    * @param layoutLib  The layout library this callback is going to be invoked from
-   * @param projectRes the {@link LocalResourceRepository} for the project.
-   * @param module     the module
-   * @param resourceRepositoryManager the ResourceRepositoryManager
+   * @param renderModule     the module resources information required for rendering
    * @param logger     the render logger
    * @param credential the sandbox credential
    * @param actionBarHandler An {@link ActionBarHandler} instance.
@@ -195,9 +186,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    */
   public LayoutlibCallbackImpl(@NotNull RenderTask renderTask,
                                @NotNull LayoutLibrary layoutLib,
-                               @NotNull LocalResourceRepository projectRes,
-                               @NotNull Module module,
-                               @NotNull ResourceRepositoryManager resourceRepositoryManager,
+                               @NotNull RenderModelModule renderModule,
                                @NotNull IRenderLogger logger,
                                @Nullable Object credential,
                                @Nullable ActionBarHandler actionBarHandler,
@@ -205,18 +194,16 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                                @NotNull ClassLoader moduleClassLoader) {
     myRenderTask = renderTask;
     myLayoutLib = layoutLib;
-    myIdManager = ResourceIdManager.get(module);
-    myResourceRepositoryManager = resourceRepositoryManager;
-    myModule = module;
+    myRenderModule = renderModule;
     myLogger = logger;
     myCredential = credential;
-    myClassLoader = new ViewLoader(myLayoutLib, module, logger, credential, moduleClassLoader);
+    myClassLoader = new ViewLoader(myLayoutLib, renderModule.getIdeaModule(), logger, credential, moduleClassLoader);
     myActionBarHandler = actionBarHandler;
     myLayoutPullParserFactory = parserFactory;
-    myHasLegacyAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7);
-    myHasAndroidXAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
+    myHasLegacyAppCompat = DependencyManagementUtil.dependsOn(renderModule.getIdeaModule(), GoogleMavenArtifactId.APP_COMPAT_V7);
+    myHasAndroidXAppCompat = DependencyManagementUtil.dependsOn(renderModule.getIdeaModule(), GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
 
-    myNamespacing = resourceRepositoryManager.getNamespacing();
+    myNamespacing = renderModule.getResourceRepositoryManager().getNamespacing();
     if (myNamespacing == Namespacing.DISABLED) {
       myImplicitNamespaces = ResourceNamespace.Resolver.TOOLS_ONLY;
     } else {
@@ -225,7 +212,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
     myFontCacheService = DownloadableFontCacheService.getInstance();
     ImmutableMap.Builder<String, ResourceValue> fontBuilder = ImmutableMap.builder();
-    projectRes.accept(
+    renderModule.getResourceRepositoryManager().getAppResources().accept(
         new ResourceVisitor() {
           @Override
           @NotNull
@@ -304,12 +291,12 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Override
   @Nullable
   public ResourceReference resolveResourceId(int id) {
-    return myIdManager.findById(id);
+    return myRenderModule.getResourceIdManager().findById(id);
   }
 
   @Override
   public int getOrGenerateResourceId(@NotNull ResourceReference resource) {
-    return myIdManager.getOrGenerateId(resource);
+    return myRenderModule.getResourceIdManager().getOrGenerateId(resource);
   }
 
   /**
@@ -353,7 +340,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     try {
       VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(fileName);
       if (virtualFile != null) {
-        PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myModule.getProject(), virtualFile);
+        PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myRenderModule.getIdeaModule().getProject(), virtualFile);
         if (psiFile != null) {
           ResourceValue resourceValue = myFontFamilies.get(fileName);
           if (resourceValue != null) {
@@ -361,7 +348,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
             // this is a special case where we generate a synthetic font-family XML file that points
             // to the cached fonts downloaded by the DownloadableFontCacheService.
             if (myProjectFonts == null) {
-              myProjectFonts = new ProjectFonts(myResourceRepositoryManager);
+              myProjectFonts = new ProjectFonts(myRenderModule.getResourceRepositoryManager());
             }
 
             FontFamily family = myProjectFonts.getFont(resourceValue.getResourceUrl().toString());
@@ -518,7 +505,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
           && (parentName.startsWith(FD_RES_LAYOUT) || parentName.startsWith(FD_RES_DRAWABLE) || parentName.startsWith(FD_RES_MENU))) {
         VirtualFile file = FileExtensions.toVirtualFile(xml);
         if (file != null) {
-          PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myModule.getProject(), file);
+          PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myRenderModule.getIdeaModule().getProject(), file);
           if (psiFile instanceof XmlFile) {
             ResourceResolver resourceResolver = myRenderTask.getContext().getConfiguration().getResourceResolver();
             // Do not honor the merge tag for layouts that are inflated via this call. This is just being inflated as part of a different
@@ -834,7 +821,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
   @Nullable
   public String getResourcePackage() {
-    return ProjectSystemUtil.getModuleSystem(myModule).getPackageName();
+    return ProjectSystemUtil.getModuleSystem(myRenderModule.getIdeaModule()).getPackageName();
   }
 
   @Nullable
@@ -843,7 +830,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       return RenderSecurityManager.runInSafeRegion(myCredential, () -> {
         // This section might access system properties or access disk but it does not leak information back to Layoutlib so it can be
         // executed in safe mode.
-        AndroidModuleInfo info = AndroidModuleInfo.getInstance(myModule);
+        AndroidModuleInfo info = myRenderModule.getInfo();
         return info == null ? null : info.getPackage();
       });
     }

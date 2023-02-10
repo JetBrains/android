@@ -709,12 +709,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   private boolean startupMemoryProfilingStarted() {
-    List<Trace.TraceStatusData> samples =
-      MemoryProfiler.getNativeHeapStatusForSession(myClient, mySelectedSession, new Range(Long.MIN_VALUE, Long.MAX_VALUE));
-    if (samples.isEmpty()) {
+    List<Common.Event> events =
+      MemoryProfiler.getNativeHeapEventsForSessionSortedByTimestamp(myClient, mySelectedSession, new Range(Long.MIN_VALUE, Long.MAX_VALUE));
+    if (events.isEmpty()) {
       return false;
     }
-    Trace.TraceStartStatus lastStartStatus = samples.get(samples.size() - 1).getTraceStartStatus();
+    Trace.TraceStartStatus lastStartStatus = events.get(events.size() - 1).getTraceStatus().getTraceStartStatus();
     // If we are ongoing, and we started before the process then we have a startup session.
     return lastStartStatus.getStatus() == Trace.TraceStartStatus.Status.SUCCESS &&
            lastStartStatus.getStartTimeNs() <= mySelectedSession.getStartTimestamp();

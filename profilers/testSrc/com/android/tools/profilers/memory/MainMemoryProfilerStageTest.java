@@ -184,6 +184,38 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
+  public void testToggleNativeAllocationRecordingChangesIsRecordingState() {
+    // Native allocation recording is only enabled as a built-in recording option for Q+ api levels.
+    // The call to RecordingOptionsModel::setRecording can only be done if native allocation recording
+    // is a part of the built-in recording options list. Thus, we only run this test with api levels Q and above.
+    assumeTrue(myStage.getDeviceForSelectedSession().getFeatureLevel() >= AndroidVersion.VersionCodes.Q);
+    assertThat(myStage.isTrackingAllocations()).isFalse();
+    assertThat(((FakeFeatureTracker)myIdeProfilerServices.getFeatureTracker()).isTrackRecordAllocationsCalled()).isFalse();
+    // Set time to 1 second (in ns) before starting tracking to verify start time field of TraceStartStatus event.
+    myTimer.setCurrentTimeNs(FakeTimer.ONE_SECOND_IN_NS);
+    // Validate we enabled tracking allocations.
+    myStage.toggleNativeAllocationTracking();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    //myStage.getRecordingOptionsModel().addBuiltInOptions();
+    assertThat(myStage.isTrackingAllocations()).isTrue();
+    assertThat(myStage.myNativeAllocationTracking).isTrue();
+    // Verify that the isRecording state of the RecordingOptionsModel is true post start of capture.
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isTrue();
+    // Make sure start time is equivalent to fake time set above
+    assertThat(myStage.getPendingCaptureStartTime()).isEqualTo(1000000000);
+    // Validate timeline streaming has begun.
+    assertThat(myStage.getTimeline().isStreaming()).isTrue();
+    assertThat(((FakeFeatureTracker)myIdeProfilerServices.getFeatureTracker()).isTrackRecordAllocationsCalled()).isTrue();
+    // Validate we disabled tracking allocations.
+    myStage.toggleNativeAllocationTracking();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myStage.isTrackingAllocations()).isFalse();
+    assertThat(myStage.myNativeAllocationTracking).isFalse();
+    // Verify that the isRecording state of the RecordingOptionsModel is false post stop of capture.
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
+  }
+
+  @Test
   public void testAllocationTrackingSetStreaming() {
     myStage.getTimeline().setStreaming(false);
     assertThat(myStage.getTimeline().isStreaming()).isFalse();
@@ -221,7 +253,6 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.enter();
     assertThat(myStage.isTrackingAllocations()).isFalse();
   }
-
 
   @Test
   public void testRequestHeapDump() {
@@ -835,12 +866,33 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myProfilers.getStage()).isInstanceOf(AllocationStage.class);
   }
 
+  @Test
+  public void testNativeAllocationTrackingWhenEventsAreOutOfOrder() {
+    // Start native allocation tracking the "normal" way.
+    MemoryProfilerTestUtils.toggleNativeAllocationTrackingHelper(myStage, myTimer);
+    // To simulate events being returned out of order by the transport pipeline:
+    // - insert another event into the pipeline; this event is added after the "normal" event, but has an earlier timestamp
+    // - manually turn off native allocation tracking
+    Trace.TraceStatusData unspecifiedTraceStatusData = Trace.TraceStatusData.newBuilder()
+      .setTraceStartStatus(Trace.TraceStartStatus.newBuilder().setStatus(Trace.TraceStartStatus.Status.UNSPECIFIED)).build();
+    Common.Event unspecifiedEvent = ProfilersTestData.generateTraceStatusEvent(ProfilersTestData.SESSION_DATA.getStreamId(),
+                                                                               ProfilersTestData.SESSION_DATA.getPid(),
+                                                                               /* timestampNs= */ -1,
+                                                                               unspecifiedTraceStatusData).build();
+    myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(), unspecifiedEvent);
+    myStage.myNativeAllocationTracking = false;
+
+    myStage.enter();
+
+    assertThat(myStage.myNativeAllocationTracking).isTrue();
+  }
+
   private void assumePreO(boolean assumedPreO) {
     assumeTrue(myStage.getDeviceForSelectedSession().getFeatureLevel() < AndroidVersion.VersionCodes.O == assumedPreO);
   }
 
   @Parameterized.Parameters
   public static List<Integer> configs() {
-    return Arrays.asList(AndroidVersion.VersionCodes.N, AndroidVersion.VersionCodes.O);
+    return Arrays.asList(AndroidVersion.VersionCodes.N, AndroidVersion.VersionCodes.O, AndroidVersion.VersionCodes.Q);
   }
 }

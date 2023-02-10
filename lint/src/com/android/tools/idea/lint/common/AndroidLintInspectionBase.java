@@ -500,8 +500,11 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   @NotNull
   @Override
   public String getGroupDisplayName() {
+    return getGroupDisplayName(myIssue.getCategory());
+  }
+
+  public static String getGroupDisplayName(@NotNull Category category) {
     // Use root category (inspections window doesn't do nesting the way the preference window does)
-    Category category = myIssue.getCategory();
     while (category.getParent() != null) {
       category = category.getParent();
     }

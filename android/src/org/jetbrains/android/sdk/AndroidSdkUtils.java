@@ -25,13 +25,12 @@ import static org.jetbrains.android.util.AndroidBuildCommonUtils.platformToolPat
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.AndroidVersionUtils;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.google.common.base.Strings;
 import com.intellij.CommonBundle;
@@ -61,7 +60,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -132,10 +130,6 @@ public final class AndroidSdkUtils {
 
   public static String getTargetPresentableName(@NotNull IAndroidTarget target) {
     return target.isPlatform() ? target.getName() : target.getName() + " (" + target.getVersionName() + ')';
-  }
-
-  public static boolean targetHasId(@NotNull IAndroidTarget target, @NotNull String id) {
-    return id.equals(target.getVersion().getApiString()) || id.equals(target.getVersionName());
   }
 
   /**
@@ -296,19 +290,9 @@ public final class AndroidSdkUtils {
     if (!target.isPlatform()) {
       return String.format("%1$s (API %2$s)", target.getFullName(), target.getVersion().getApiString());
     }
+
     AndroidVersion version = target.getVersion();
-    if (version.isPreview()) {
-      return String.format(Locale.US, "API %d+: %s", target.getVersion().getApiLevel(), target.getName());
-    }
-    String name = SdkVersionInfo.getAndroidName(target.getVersion().getApiLevel());
-    if (isNotEmpty(name)) {
-      return name;
-    }
-    String release = target.getProperty("ro.build.version.release"); //$NON-NLS-1$
-    if (release != null) {
-      return String.format(Locale.US, "API %1$d: Android %2$s", version.getApiLevel(), release);
-    }
-    return String.format(Locale.US, "API %1$d", version.getApiLevel());
+    return AndroidVersionUtils.getFullApiName(version, /*includeReleaseName*/ true, /*IncludeCodeName*/ true);
   }
 
   @Nullable

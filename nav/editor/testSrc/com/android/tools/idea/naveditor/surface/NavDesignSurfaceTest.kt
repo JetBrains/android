@@ -53,7 +53,7 @@ import com.intellij.util.ui.UIUtil
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.refactoring.setAndroidxProperties
-import org.jetbrains.android.sdk.AndroidSdkData
+import org.jetbrains.android.sdk.StudioAndroidSdkData
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.eq
@@ -459,7 +459,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     val defaultConfiguration = defaultConfigurationManager.getConfiguration(navFile)
     val navConfiguration = navConfigurationManager.getConfiguration(navFile)
     val navDevice = navConfiguration.device
-    val pixelC = AndroidSdkData.getSdkData(myFacet)!!.deviceManager.getDevice("pixel_c", "Google")!!
+    val pixelC = StudioAndroidSdkData.getSdkData(myFacet)!!.deviceManager.getDevice("pixel_c", "Google")!!
     // in order to unset the cached derived device in the configuration you have to set it to something else first
     navConfiguration.setDevice(pixelC, false)
     navConfiguration.setDevice(null, false)

@@ -46,6 +46,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
 import com.google.wireless.android.sdk.stats.GcPauseInfo;
+import com.google.wireless.android.sdk.stats.HeapReportEvent;
 import com.google.wireless.android.sdk.stats.StudioCrash;
 import com.google.wireless.android.sdk.stats.StudioExceptionDetails;
 import com.google.wireless.android.sdk.stats.StudioPerformanceStats;
@@ -272,7 +273,10 @@ public final class AndroidStudioSystemHealthMonitor {
     }
     long usedMemoryAfter = getUsedMemory();
 
-    return (usedMemoryAfter > usedMemoryBefore) ? 0 : usedMemoryBefore - usedMemoryAfter;
+    long freedMemory = (usedMemoryAfter > usedMemoryBefore) ? 0 : usedMemoryBefore - usedMemoryAfter;
+    UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
+      HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.FORCED_GC).setFreedMemory(freedMemory).build()));
+    return freedMemory;
   }
 
   private static long getUsedMemory() {
@@ -296,6 +300,8 @@ public final class AndroidStudioSystemHealthMonitor {
         // Don't clear weak/soft references if there is still plenty of free memory
         long freeMemory = getFreeMemory();
         if (freeMemory >= FREE_MEMORY_THRESHOLD_FOR_HEAP_REPORT) {
+          UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
+            HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.EXCESS_FREE_MEMORY).build()));
           return false;
         }
 
@@ -304,16 +310,26 @@ public final class AndroidStudioSystemHealthMonitor {
         LOG.warn("Forced clear of soft/weak references. Reason: " + reason + ", freed memory: " + (memoryFreed / 1_000_000) + "MB");
         if (memoryFreed >= MEMORY_FREED_THRESHOLD_FOR_HEAP_REPORT) {
           // Enough memory was freed, so there is no reason to send the report.
+          UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
+            HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.EXCESS_FREE_MEMORY_AFTER_GC).build()));
           return false;
         }
       }
 
       // Create only one report per session
+      UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
+        HeapReportEvent.newBuilder()
+          .setStatus(HeapReportEvent.Status.LOW_MEMORY_EVENT)
+          .setReason(reason.asHeapReportEventReason())
+          .build()));
       if (!memoryReportCreated) {
         memoryReportCreated = true;
         addHistogramToDatabase(reason, "LowMemoryWatcher");
         ApplicationManager.getApplication()
           .invokeLater(new HeapDumpSnapshotRunnable(reason, HeapDumpSnapshotRunnable.AnalysisOption.SCHEDULE_ON_NEXT_START));
+      } else {
+        UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
+          HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.REPORT_ALREADY_PENDING).build()));
       }
 
       return true;

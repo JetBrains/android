@@ -57,16 +57,6 @@ class ProjectBuildStatusManagerTest {
     .outerRule(projectRule)
     .around(FastPreviewRule())
 
-  /**
-   * [PsiFileSnapshotFilter] that allows changing the filter on the fly. Alter the [filter] is updated or when the filter changes behaviour,
-   * [incModificationCount] should be called.
-   */
-  class TestFilter : PsiFileSnapshotFilter, SimpleModificationTracker() {
-    var filter: (PsiElement) -> Boolean = { true }
-
-    override fun accepts(element: PsiElement): Boolean = filter(element)
-  }
-
   @Test
   fun testFastPreviewTriggersCompileState() {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
@@ -77,11 +67,9 @@ class ProjectBuildStatusManagerTest {
     }
     projectRule.replaceProjectService(FastPreviewManager::class.java, fastPreviewManager)
 
-    val fileFilter = TestFilter()
     val statusManager = ProjectBuildStatusManager.create(
       projectRule.fixture.testRootDisposable,
       psiFile,
-      fileFilter,
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
 
     runBlocking {
@@ -112,11 +100,9 @@ class ProjectBuildStatusManagerTest {
   fun testFastPreviewEnableLeavesFileAsUpToDateForSuccessfulGradleBuild() {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
 
-    val fileFilter = TestFilter()
     val statusManager = ProjectBuildStatusManager.create(
       projectRule.fixture.testRootDisposable,
       psiFile,
-      fileFilter,
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
 
     try {
@@ -141,11 +127,9 @@ class ProjectBuildStatusManagerTest {
   fun testFastPreviewEnableLeavesFileAsOutOfDateForFailedGradleBuild() {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
 
-    val fileFilter = TestFilter()
     val statusManager = ProjectBuildStatusManager.create(
       projectRule.fixture.testRootDisposable,
       psiFile,
-      fileFilter,
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
 
     try {
@@ -170,11 +154,9 @@ class ProjectBuildStatusManagerTest {
   fun testFastPreviewEnableLeavesFileAsOutOfDateForFailedFastPreviewCompilation() {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
 
-    val fileFilter = TestFilter()
     val statusManager = ProjectBuildStatusManager.create(
       projectRule.fixture.testRootDisposable,
       psiFile,
-      fileFilter,
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
 
     try {

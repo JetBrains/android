@@ -29,7 +29,6 @@ import com.android.tools.idea.run.tasks.ConnectDebuggerTask
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTasksProvider
-import com.android.tools.idea.run.util.LaunchStatus
 import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.stats.RunStats
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
@@ -317,7 +316,7 @@ class LaunchTaskRunnerTest {
   }
 
   private fun getLaunchTaskProvider(isDebug: Boolean = false) = object : LaunchTasksProvider {
-    override fun getTasks(device: IDevice, launchStatus: LaunchStatus, consolePrinter: ConsolePrinter) = listOf(object : LaunchTask {
+    override fun getTasks(device: IDevice) = listOf(object : LaunchTask {
       override fun getDescription() = "TestTask"
       override fun getDuration() = 0
       override fun run(launchContext: LaunchContext) {
@@ -342,7 +341,7 @@ class LaunchTaskRunnerTest {
 
   private fun getFailingLaunchTaskProvider(): LaunchTasksProvider {
     return object : LaunchTasksProvider {
-      override fun getTasks(device: IDevice, launchStatus: LaunchStatus, consolePrinter: ConsolePrinter) = listOf(object : LaunchTask {
+      override fun getTasks(device: IDevice) = listOf(object : LaunchTask {
         override fun getDescription() = "TestTask"
         override fun getDuration() = 0
         override fun run(launchContext: LaunchContext) = throw ExecutionException("error")

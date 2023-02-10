@@ -16,17 +16,21 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
-import com.android.tools.idea.run.ConsolePrinter
+import com.android.tools.idea.run.DefaultStudioProgramRunner
 import com.android.tools.idea.run.tasks.LaunchContext
-import com.android.tools.idea.run.util.LaunchStatus
 import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.execution.RunManager
+import com.intellij.execution.executors.DefaultRunExecutor
+import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.ConsoleView
+import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -44,13 +48,18 @@ import java.util.concurrent.ExecutorService
 @RunWith(JUnit4::class)
 class AndroidTestApplicationLaunchTaskTest {
 
-  @get:Rule val mockitoJunitRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
+  @get:Rule
+  val mockitoJunitRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
+  @get:Rule
+  val projectRule = ProjectRule()
 
-  @Mock lateinit var mockProcessHandler: AndroidProcessHandler
-  @Mock lateinit var mockPrinter: ConsolePrinter
-  @Mock lateinit var mockITestRunListener: ITestRunListener
-  @Mock lateinit var mockLaunchContext: LaunchContext
-  @Mock lateinit var mockLaunchStatus: LaunchStatus
+  @Mock
+  lateinit var mockProcessHandler: AndroidProcessHandler
+
+  @Mock
+  lateinit var mockConsole: ConsoleView
+  @Mock
+  lateinit var mockLaunchContext: LaunchContext
 
   private val directExecutor: ExecutorService = MoreExecutors.newDirectExecutorService()
 
@@ -62,12 +71,12 @@ class AndroidTestApplicationLaunchTaskTest {
 
   private fun createLaunchTask(): AndroidTestApplicationLaunchTask {
     return AndroidTestApplicationLaunchTask(
+      null,
       "instrumentationTestRunner",
       "testApplicationId",
       null,
       /*waitForDebugger=*/ false,
       "instrumentationOptions",
-      listOf(mockITestRunListener),
       myBackgroundTaskExecutor = directExecutor::submit,
       myAndroidTestConfigurationProvider = { AndroidTestConfiguration() },
     ) {}
@@ -98,15 +107,20 @@ class AndroidTestApplicationLaunchTaskTest {
   @Test
   fun run() {
     val mockDevice = createMockDevice(AndroidVersion(26))
+    whenever(mockDevice.serialNumber).thenReturn("1234")
     whenever(mockLaunchContext.device).thenReturn(mockDevice)
-    whenever(mockLaunchContext.consolePrinter).thenReturn(mockPrinter)
-    whenever(mockLaunchContext.launchStatus).thenReturn(mockLaunchStatus)
-    whenever(mockLaunchStatus.processHandler).thenReturn(mockProcessHandler)
+    whenever(mockLaunchContext.consoleView).thenReturn(mockConsole)
+    whenever(mockLaunchContext.processHandler).thenReturn(mockProcessHandler)
+    val configSettings = RunManager.getInstance(projectRule.project).createConfiguration("allInPackageTest",
+                                                                                         AndroidTestRunConfigurationType.getInstance().factory)
+    val environment = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), DefaultStudioProgramRunner(), configSettings,
+                                           projectRule.project)
+    whenever(mockLaunchContext.env).thenReturn(environment)
 
     val launchTask = createLaunchTask()
     launchTask.run(mockLaunchContext)
 
-    verify(mockPrinter).stdout(eq("Running tests\n"))
+    verify(mockConsole).print(eq("Running tests\n"), any())
     verify(mockProcessHandler).detachDevice(eq(mockDevice))
   }
 }

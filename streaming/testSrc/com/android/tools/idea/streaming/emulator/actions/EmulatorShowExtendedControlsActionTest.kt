@@ -18,7 +18,7 @@ package com.android.tools.idea.streaming.emulator.actions
 import com.android.emulator.control.ThemingStyle
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.adtui.swing.enableHeadlessDialogs
+import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.LafManager
@@ -27,7 +27,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
@@ -40,12 +39,7 @@ import javax.swing.UIManager
 class EmulatorShowExtendedControlsActionTest {
   private val emulatorViewRule = EmulatorViewRule()
   @get:Rule
-  val ruleChain = RuleChain(emulatorViewRule, EdtRule())
-
-  @Before
-  fun setUp() {
-    enableHeadlessDialogs(emulatorViewRule.testRootDisposable)
-  }
+  val ruleChain = RuleChain(emulatorViewRule, EdtRule(), HeadlessDialogRule())
 
   @Test
   fun testShowExtendedControls() {

@@ -27,7 +27,6 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.task.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE
-import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
@@ -37,6 +36,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
@@ -69,9 +69,12 @@ class GradleConnectedAndroidTestInvokerTest {
   @get:Rule val projectRule = ProjectRule()
   @get:Rule val mockitoJunitRule = MockitoJUnit.rule()
 
-  @Mock lateinit var mockExecutionEnvironment: ExecutionEnvironment
-  @Mock lateinit var mockPrinter: ConsolePrinter
-  @Mock lateinit var mockProcessHandler: ProcessHandler
+  @Mock
+  lateinit var mockExecutionEnvironment: ExecutionEnvironment
+  @Mock
+  lateinit var mockPrinter: ConsoleView
+  @Mock
+  lateinit var mockProcessHandler: ProcessHandler
   @Mock lateinit var mockAndroidTestResultListener: AndroidTestResultListener
   @Mock lateinit var mockAndroidModuleModel: GradleAndroidModel
   @Mock lateinit var mockGradleTaskManager: GradleTaskManager

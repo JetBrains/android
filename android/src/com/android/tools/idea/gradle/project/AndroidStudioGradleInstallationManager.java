@@ -1,7 +1,5 @@
 package com.android.tools.idea.gradle.project;
 
-import static com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder.ANDROID_STUDIO_JAVA_HOME_NAME;
-import static com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder.EMBEDDED_JDK_NAME;
 import static com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME;
 import static com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_JAVA_HOME;
 import static com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_PROJECT_JDK;
@@ -12,7 +10,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
 import java.io.File;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.gradle.internal.impldep.com.amazonaws.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -42,14 +39,7 @@ public class AndroidStudioGradleInstallationManager extends GradleInstallationMa
             if (IdeSdks.getInstance().isJdkEnvVariableValid()) {
               return ideSdks.getEnvVariableJdkValue();
             }
-          case EMBEDDED_JDK_NAME: {
-            Path embeddedPath = ideSdks.getEmbeddedJdkPath();
-            if (embeddedPath != null) {
-              return embeddedPath.toAbsolutePath().toString();
-            }
-          }
-          case USE_JAVA_HOME:
-          case ANDROID_STUDIO_JAVA_HOME_NAME: {
+          case USE_JAVA_HOME: {
             String javaHome = IdeSdks.getJdkFromJavaHome();
             if (!StringUtils.isNullOrEmpty(javaHome)) {
               return javaHome;

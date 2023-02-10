@@ -32,7 +32,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.PopupMenuListenerAdapter
-import com.intellij.util.containers.toArray
 import com.intellij.util.text.nullize
 import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.JComponent
@@ -74,7 +73,7 @@ fun showViewContextMenu(views: List<ViewNode>, inspectorModel: InspectorModel, s
         result.add(showAllAction)
         result.add(GotoDeclarationAction)
       }
-      return result.toArray(arrayOf())
+      return result.toTypedArray()
     }
   }
   val popupMenu = actionManager.createActionPopupMenu("LayoutInspector", group)

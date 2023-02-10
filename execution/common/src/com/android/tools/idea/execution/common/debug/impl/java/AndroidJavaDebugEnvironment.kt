@@ -16,7 +16,6 @@
 package com.android.tools.idea.execution.common.debug.impl.java
 
 import com.android.ddmlib.Client
-import com.android.ddmlib.IDevice
 import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebugProcessHandler
 import com.intellij.debugger.DebugEnvironment
 import com.intellij.debugger.DebuggerGlobalSearchScope
@@ -41,7 +40,6 @@ internal class AndroidJavaDebugEnvironment(
   private val client: Client,
   private val mySessionName: String,
   private val consoleViewToReuse: ConsoleView?,
-  private val onDebugProcessDestroyed: (IDevice) -> Unit,
   private val detachIsDefault: Boolean
 ) : DebugEnvironment {
 
@@ -56,8 +54,7 @@ internal class AndroidJavaDebugEnvironment(
     val debugProcessHandler = AndroidRemoteDebugProcessHandler(
       project,
       client,
-      detachIsDefault,
-      onDebugProcessDestroyed
+      detachIsDefault
     )
     console.attachToProcess(debugProcessHandler)
 

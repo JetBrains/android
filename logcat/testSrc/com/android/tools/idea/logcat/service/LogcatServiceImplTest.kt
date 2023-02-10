@@ -39,6 +39,7 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.registerOrReplaceServiceInstance
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -50,6 +51,8 @@ import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeUnit.SECONDS
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTimedValue
 
 /**
  * A Logcat message that's sent as the last message to a device so that we can wait for it before terminating FakeAdbRule
@@ -127,6 +130,22 @@ class LogcatServiceImplTest {
     assertThat(logcatHandler.lastArgs).isEqualTo("-v long")
   }
 
+  @Test
+  fun readLogcat_newMessagesOnly_launchesLogcat_sdk21(): Unit = runBlocking {
+    val service = logcatServiceImpl()
+    val logcatHandler = CheckFormatLogcatHandler()
+    fakeAdb.addDeviceCommandHandler(logcatHandler)
+    fakeAdb.attachDevice("device",  manufacturer = "", model = "", release = "", sdk = "21")
+
+    val job = launch {
+      service.readLogcat("device", 21, newMessagesOnly = true).collect {}
+    }
+    yieldUntil { logcatHandler.lastDeviceId == "device" }
+    job.cancel()
+
+    assertThat(logcatHandler.lastArgs).isEqualTo("-v long -T 0")
+  }
+
   /**
    * Test a large file with numbered Logcat messages so if there's a bug, the numbers can help debug it.
    */
@@ -156,6 +175,23 @@ class LogcatServiceImplTest {
     actualLines.zip(expectedLines).forEachIndexed { index, (actual, expected) ->
       assertThat(actual).named("Line $index").isEqualTo(expected)
     }
+  }
+
+  /**
+   * Test that calling with `duration` only blocks for the specified duration
+   */
+  @Suppress("OPT_IN_IS_NOT_ENABLED")
+  @OptIn(ExperimentalTime::class)
+  @Test
+  fun readLogcat_withTimeout() = runBlocking {
+    val service = logcatServiceImpl()
+    val deviceState = fakeAdb.attachDevice(device30.serialNumber, manufacturer = "", model = "", release = "", sdk = "")
+    deviceState.addLogcatMessage(rawLogcatMessage(Instant.EPOCH, "Message1"))
+
+    val (messages, duration) = measureTimedValue { service.readLogcat(device30, duration = Duration.ofSeconds(1)).toList() }
+
+    assertThat(messages).containsExactly(listOf(logcatMessage (DEBUG, 1, 1, "app-1.1", "process-1.1", "Tag", Instant.EPOCH, "Message1")))
+    assertThat(duration.inWholeSeconds).isEqualTo(1)
   }
 
   /**
@@ -277,4 +313,13 @@ class LogcatServiceImplTest {
       super.execute(fakeAdbServer, responseSocket, device, args)
     }
   }
+}
+
+@Suppress("SameParameterValue")
+private fun rawLogcatMessage(timestamp: Instant, message: String): String {
+  return """
+    [          ${timestamp.epochSecond}.000 1:1 D/Tag     ]
+    $message
+
+  """.trimIndent()
 }

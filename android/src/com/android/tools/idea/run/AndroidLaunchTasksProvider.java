@@ -41,12 +41,11 @@ import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.tasks.RunInstantAppTask;
 import com.android.tools.idea.run.tasks.ShowLogcatTask;
 import com.android.tools.idea.run.tasks.StartLiveUpdateMonitoringTask;
-import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.stats.RunStats;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.intellij.execution.executors.DefaultDebugExecutor;
+import com.intellij.execution.ExecutionException;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -86,7 +85,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
   @NotNull
   @Override
-  public List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter consolePrinter) {
+  public List<LaunchTask> getTasks(@NotNull IDevice device) throws ExecutionException {
     final List<LaunchTask> launchTasks = new ArrayList<>();
 
     if (myLaunchOptions.isClearLogcatBeforeStart()) {
@@ -96,7 +95,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     launchTasks.add(new DismissKeyguardTask());
 
     final boolean useApplyChanges = shouldApplyChanges() || shouldApplyCodeChanges();
-    final boolean terminateLaunchOnError = !useApplyChanges && !shouldDeployAsInstant();
     String packageName;
     try {
       packageName = myApplicationIdProvider.getPackageName();
@@ -120,8 +118,8 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         // RunInstantAppTask
         AppLaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
                                                                            amStartOptions.toString(),
-                                                                           myLaunchOptions.isDebug(), launchStatus, myApkProvider,
-                                                                           consolePrinter, device);
+                                                                           myLaunchOptions.isDebug(), myApkProvider,
+                                                                           device);
 
         if (appLaunchTask != null) {
           // Apply (Code) Changes needs additional control over killing/restarting the app.
@@ -137,13 +135,10 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       } else {
         myLogger.warn(e);
       }
-      launchStatus.terminateLaunch(e.getMessage(), /*destroyProcess=*/terminateLaunchOnError);
-      return Collections.emptyList();
+      throw new ExecutionException("Unable to determine application id: " + e);
     }
     catch (IllegalStateException e) {
-      myLogger.error(e);
-      launchStatus.terminateLaunch(e.getMessage(), /*destroyProcess=*/terminateLaunchOnError);
-      return Collections.emptyList();
+      throw new ExecutionException("Unable to determine application id: " + e);
     }
 
     if (!myLaunchOptions.isDebug() && myLaunchOptions.isOpenLogcatAutomatically()) {

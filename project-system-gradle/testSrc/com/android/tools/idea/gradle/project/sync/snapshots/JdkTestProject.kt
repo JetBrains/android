@@ -40,18 +40,22 @@ sealed class JdkTestProject(
   class SimpleApplication(
     ideaGradleJdk: String? = null,
     ideaProjectJdk: String? = null,
-    gradlePropertiesJdkPath: String? = null,
+    localPropertiesJdkPath: String? = null,
+    gradlePropertiesJdkPath: String? = null
   ) : JdkTestProject(
     template = TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
     patch = { projectRoot ->
       ideaGradleJdk?.let {
         ProjectJdkUtils.setProjectIdeaGradleJdk(
           projectRoot,
-          listOf(GradleRoot(gradleJvm = it, modulesPath = listOf("app")))
+          listOf(GradleRoot(ideaGradleJdk = it, modulesPath = listOf("app")))
         )
       }
       ideaProjectJdk?.let {
-        ProjectJdkUtils.setProjectIdeaJdk(projectRoot, it)
+        ProjectJdkUtils.setProjectIdeaMiscJdk(projectRoot, it)
+      }
+      localPropertiesJdkPath?.let {
+        ProjectJdkUtils.setProjectLocalPropertiesJdk(projectRoot, it)
       }
       gradlePropertiesJdkPath?.let {
         ProjectJdkUtils.setProjectGradlePropertiesJdk(projectRoot, it)
@@ -61,19 +65,25 @@ sealed class JdkTestProject(
 
   class SimpleApplicationMultipleRoots(
     roots: List<GradleRoot>,
-    ideaProjectJdk: String? = null,
-    gradlePropertiesJdkPath: String? = null,
+    ideaProjectJdk: String? = null
   ) : JdkTestProject(
     template = TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
     patch = { projectRoot ->
-      cloneProjectRootIntoMultipleGradleRoots(projectRoot, roots)
-      ideaProjectJdk?.let {
-        ProjectJdkUtils.setProjectIdeaJdk(projectRoot, it)
-      }
-      gradlePropertiesJdkPath?.let {
-        ProjectJdkUtils.setProjectGradlePropertiesJdk(projectRoot, it)
-      }
-    },
+      cloneProjectRootIntoMultipleGradleRoots(
+        projectRoot,
+        gradleRoots = roots,
+        configGradleRoot = { gradleRootFile, gradleRoot ->
+          gradleRoot.localPropertiesJdkPath?.let {
+            ProjectJdkUtils.setProjectLocalPropertiesJdk(gradleRootFile, it)
+          }
+        },
+        configProjectRoot = {
+          ProjectJdkUtils.setProjectIdeaGradleJdk(projectRoot, roots)
+          ideaProjectJdk?.let {
+            ProjectJdkUtils.setProjectIdeaMiscJdk(projectRoot, ideaProjectJdk)
+          }
+        })
+    }
   )
 
   override val name: String = this::class.simpleName.orEmpty()

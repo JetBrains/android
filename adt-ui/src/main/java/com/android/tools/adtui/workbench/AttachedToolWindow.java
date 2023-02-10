@@ -4,6 +4,7 @@ package com.android.tools.adtui.workbench;
 import static com.intellij.openapi.actionSystem.ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE;
 import static com.intellij.openapi.actionSystem.IdeActions.ACTION_FIND;
 
+import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.adtui.util.ActionToolbarUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
@@ -29,6 +30,7 @@ import com.intellij.openapi.wm.impl.AnchoredButton;
 import com.intellij.openapi.wm.impl.InternalDecorator;
 import com.intellij.toolWindow.StripeButtonUi;
 import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.ExperimentalUI;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.SideBorder;
@@ -522,16 +524,17 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
 
   private static class MinimizedButton<T> extends AnchoredButton {
     private final AttachedToolWindow<T> myToolWindow;
+    private final Icon myIcon;
     private JLabel myDragImage;
     private Point myStartDragPosition;
 
     private MinimizedButton(@NotNull String title, @NotNull Icon icon, @NotNull AttachedToolWindow<T> toolWindow) {
       super(title, icon);
       myToolWindow = toolWindow;
+      myIcon = icon;
       setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
       setFocusable(false);
       setRolloverEnabled(true);
-      setSelected(!toolWindow.isMinimized());
 
       // This is needed on Linux otherwise the button shows
       // the Metal L&F gradient even though opaque is false
@@ -562,6 +565,11 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
       };
       addMouseListener(listener);
       addMouseMotionListener(listener);
+      //noinspection UnstableApiUsage
+      if (ExperimentalUI.isNewUI()) {
+        addChangeListener(event -> setIcon(isSelected() ? ColoredIconGenerator.generateWhiteIcon(myIcon) : myIcon));
+      }
+      setSelected(!toolWindow.isMinimized());
     }
 
     @Override

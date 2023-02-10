@@ -17,7 +17,6 @@ import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.util.concurrency.AppExecutorUtil;
@@ -67,15 +66,12 @@ public class AndroidConnectDebuggerAction extends AnAction {
     else {
       state = androidDebugger.createState();
     }
-    androidDebugger.attachToClient(project, client, state)
-      .onError(e -> {
-        if (e instanceof ExecutionException) {
-          showError(project, (ExecutionException)e, "Attach debug to process");
-        }
-        else {
-          Logger.getInstance(AndroidConnectDebuggerAction.class).error(e);
-        }
-      });
+    try {
+      androidDebugger.attachToClient(project, client, state);
+    }
+    catch (ExecutionException e) {
+      showError(project, e, "Attach debug to process");
+    }
   }
 
   // Disconnect any active run sessions to the same client

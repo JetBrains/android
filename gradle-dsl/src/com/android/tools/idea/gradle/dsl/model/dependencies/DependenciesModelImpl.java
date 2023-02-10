@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileTreeDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
@@ -503,6 +504,11 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
       return;
     }
     addArtifact(configurationName, dependency);
+  }
+
+  @Override
+  public void addArtifact(@NotNull String configurationName, @NotNull ReferenceTo reference) {
+    ArtifactDependencyModelImpl.createNew(myDslElement, configurationName, reference, Collections.emptyList());
   }
 
   @Override

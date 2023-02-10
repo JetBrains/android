@@ -45,6 +45,8 @@ categories: {
     label: "naveditor"
     package_names: "com.android.tools.idea.naveditor"
   }
+
+  extended_report_threshold_bytes: 	100000000
 }
 categories: {
   label: "android:gradle"
@@ -60,10 +62,11 @@ categories: {
 
   components: {
     label: "profiler_main"
-    package_names: "com.android.tools.profiling"
     package_names: "com.android.tools.profilers"
     package_names: "com.android.tools.profiler"
     package_names: "com.android.tools.idea.profilers"
+    package_names: "com.android.tools.perflib"
+    package_names: "trebuchet.io"
   }
   components: {
     label: "transport"
@@ -99,6 +102,7 @@ categories: {
   components: {
     label: "debug"
     package_names: "com.android.tools.idea.debug"
+    package_names: "com.intellij.xdebugger"
   }
   components: {
     label: "apkView"
@@ -207,5 +211,15 @@ categories: {
     label: "psi"
     package_names: "com.intellij.psi"
   }
+  components: {
+    label: "intellij_inspections"
+    package_names: "com.intellij.codeInspection"
+  }
+  components: {
+    label: "messages"
+    package_names: "com.intellij.util.messages"
+  }
 }
 shared_components_limit: 200
+shared_cluster_extended_report_threshold_bytes: 280000000
+uncategorized_component_extended_report_threshold_bytes: 100000000

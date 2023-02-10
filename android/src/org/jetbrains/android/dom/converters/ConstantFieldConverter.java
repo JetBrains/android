@@ -94,8 +94,7 @@ public class ConstantFieldConverter extends Converter<String> implements CustomR
     if (platform == null) {
       return null;
     }
-    IAndroidTarget target = platform.getTarget();
-    final AndroidTargetData targetData = platform.getSdkData().getTargetData(target);
+    final AndroidTargetData targetData = AndroidTargetData.get(platform.getSdkData(), platform.getTarget());
     DomElement element = context.getInvocationElement().getParent();
 
     if (element instanceof Category) {

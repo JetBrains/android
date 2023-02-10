@@ -15,10 +15,9 @@
  */
 package com.android.tools.adtui.compose
 
+import com.android.tools.adtui.common.AdtUiUtils
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
-import com.intellij.ui.Gray
-import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
@@ -41,7 +40,7 @@ class IssueNotificationActionButton(val action: IssueNotificationAction, present
 
   private val font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
 
-  private val textColor = JBColor(Gray._110, Gray._187)
+  private val textColor = AdtUiUtils.TITLE_COLOR
 
   override fun isBackgroundSet(): Boolean =
     actionPresentation != null || super.isBackgroundSet()

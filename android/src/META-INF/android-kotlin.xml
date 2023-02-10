@@ -65,14 +65,11 @@
 
         <lang.foldingBuilder language="kotlin" implementationClass="org.jetbrains.kotlin.android.folding.ResourceFoldingBuilder" />
 
-        <externalAnnotator language="kotlin" implementationClass="org.jetbrains.kotlin.android.AndroidKotlinResourceExternalAnnotator" />
-
         <registryKey key="kotlin.android.import.mpp.all.transitive"
                      description="Add all transitive dependencies on MPP modules when Android project is imported"
                      defaultValue="true"
                      restartRequired="false"/>
     </extensions>
-
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
         <quickFixContributor implementation="org.jetbrains.kotlin.android.quickfix.AndroidQuickFixRegistrar"/>
@@ -89,4 +86,6 @@
     <extensions defaultExtensionNs="com.android.tools.idea.lint.common">
         <lintQuickFixProvider implementation="org.jetbrains.kotlin.android.quickfix.KotlinAndroidQuickFixProvider" />
     </extensions>
+
+  <xi:include href="/META-INF/android-kotlin.k1.xml" xpointer="xpointer(/idea-plugin/*)" includeUnless="idea.kotlin.plugin.use.k2"/>
 </idea-plugin>

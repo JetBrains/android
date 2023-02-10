@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProje
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.testStructure
+import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.psTestWithProject
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -30,20 +31,58 @@ import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class ResolvedDependenciesTreeRootNodeTest {
+open class ResolvedDependenciesTreeRootNodeTest {
 
   @get:Rule
   val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
-  fun testTreeStructure() {
+  open fun testTreeStructure() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
     projectRule.psTestWithProject(preparedProject) {
-      val appModule = project.findModuleByGradlePath(":app") as PsAndroidModule
-      val node = ResolvedDependenciesTreeRootNode(appModule, PsUISettings())
+      project.runTestAndroidTreeStructure()
+    }
+  }
+
+  @Test
+  fun testTreeStructure_javaModule() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject) {
+      val module = project.findModuleByGradlePath(":jModuleZ")!!
+      val node = ResolvedDependenciesTreeRootNode(module, PsUISettings())
 
       // Note: indentation matters!
       val expectedProjectStructure = """
+    jModuleZ
+        projectjModuleZ
+            jModuleK
+                jModuleL
+                    lib3:1.0 (com.example.jlib)
+                        lib4:1.0 (com.example.jlib)
+                lib3:0.9.1 (com.example.jlib)
+                    lib4:0.9.1 (com.example.jlib)
+                lib4:0.9.1 (com.example.jlib)
+                jarlib-1.1.jar (libs)
+            jModuleL
+                lib3:1.0 (com.example.jlib)
+                    lib4:1.0 (com.example.jlib)
+            nestedZ
+                lib4:0.6 (com.example.jlib)
+            lib4:0.6 (com.example.jlib)
+            libsam1-1.1.jar (../lib)
+            libsam2-1.1.jar (../lib)""".trimIndent()
+      val treeStructure = node.testStructure { !it.name.startsWith("appcompat-v7") }
+      // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
+      assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
+    }
+  }
+
+  fun PsProjectImpl.runTestAndroidTreeStructure() {
+    val appModule = findModuleByGradlePath(":app") as PsAndroidModule
+    val node = ResolvedDependenciesTreeRootNode(appModule, PsUISettings())
+
+    // Note: indentation matters!
+    val expectedProjectStructure = """
     app
         freeDebug
             mainModule
@@ -121,42 +160,8 @@ class ResolvedDependenciesTreeRootNodeTest {
                         lib2:1.0 (com.example.libs)
                             lib3:1.0 (com.example.jlib)
                                 lib4:1.0 (com.example.jlib)""".trimIndent()
-      val treeStructure = node.testStructure { !it.name.startsWith("appcompat-v7") }
-      // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
-      assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
-    }
-  }
-
-  @Test
-  fun testTreeStructure_javaModule() {
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
-    projectRule.psTestWithProject(preparedProject) {
-      val module = project.findModuleByGradlePath(":jModuleZ")!!
-      val node = ResolvedDependenciesTreeRootNode(module, PsUISettings())
-
-      // Note: indentation matters!
-      val expectedProjectStructure = """
-    jModuleZ
-        projectjModuleZ
-            jModuleK
-                jModuleL
-                    lib3:1.0 (com.example.jlib)
-                        lib4:1.0 (com.example.jlib)
-                lib3:0.9.1 (com.example.jlib)
-                    lib4:0.9.1 (com.example.jlib)
-                lib4:0.9.1 (com.example.jlib)
-                jarlib-1.1.jar (libs)
-            jModuleL
-                lib3:1.0 (com.example.jlib)
-                    lib4:1.0 (com.example.jlib)
-            nestedZ
-                lib4:0.6 (com.example.jlib)
-            lib4:0.6 (com.example.jlib)
-            libsam1-1.1.jar (../lib)
-            libsam2-1.1.jar (../lib)""".trimIndent()
-      val treeStructure = node.testStructure { !it.name.startsWith("appcompat-v7") }
-      // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
-      assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
-    }
+    val treeStructure = node.testStructure { !it.name.startsWith("appcompat-v7") }
+    // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
+    assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
   }
 }

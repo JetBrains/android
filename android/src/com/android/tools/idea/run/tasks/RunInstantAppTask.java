@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
-import com.android.tools.idea.run.ConsolePrinter;
+import com.android.tools.idea.run.configuration.execution.ExecutionUtils;
 import com.google.android.instantapps.sdk.api.ExtendedSdk;
 import com.google.android.instantapps.sdk.api.HandlerResult;
 import com.google.android.instantapps.sdk.api.ProgressIndicator;
@@ -31,6 +31,7 @@ import com.google.android.instantapps.sdk.api.ResultStream;
 import com.google.android.instantapps.sdk.api.StatusCode;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.ExecutionException;
+import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Messages;
@@ -75,7 +76,7 @@ public class RunInstantAppTask implements LaunchTask {
 
   @Override
   public void run(@NotNull LaunchContext launchContext) throws ExecutionException {
-    ConsolePrinter printer = launchContext.getConsolePrinter();
+    ConsoleView console = launchContext.getConsoleView();
 
     // We expect exactly one zip file per Instant App that will contain the apk-splits for the
     // Instant App
@@ -99,11 +100,11 @@ public class RunInstantAppTask implements LaunchTask {
         if (result.isError()) {
           ApplicationManager.getApplication().invokeLater(
             () -> Messages.showWarningDialog(result.getDetail(), "Instant App Deployment Failed"));
-          printer.stderr(result.toString());
+          ExecutionUtils.println(console, result.toString());
           getLogger().warn(new RunInstantAppException(result.getMessage()));
         }
         else {
-          printer.stdout(result.toString());
+          ExecutionUtils.println(console, result.toString());
         }
       }
     };

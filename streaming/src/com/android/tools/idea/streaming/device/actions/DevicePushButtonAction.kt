@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.device.actions
 
 import com.android.tools.idea.streaming.PushButtonAction
+import com.android.tools.idea.streaming.device.AKEYCODE_UNKNOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
@@ -27,22 +28,43 @@ import java.util.function.Predicate
 
 /**
  * Simulates pressing and releasing a button on an Android device.
+ *
+ * @param keyCode the code of the button to press
+ * @param modifierKeyCode if not AKEYCODE_UNKNOWN, the code of the second button that is pressed
+ *     before the first and released after it
+ * @param configFilter determines the types of devices the action is applicable to
  */
 internal open class DevicePushButtonAction(
   private val keyCode: Int,
+  private val modifierKeyCode: Int = AKEYCODE_UNKNOWN,
   configFilter: Predicate<DeviceConfiguration>? = null,
 ) : AbstractDeviceAction(configFilter), PushButtonAction {
 
   final override fun buttonPressed(event: AnActionEvent) {
-    getDeviceController(event)?.sendControlMessage(KeyEventMessage(ACTION_DOWN, keyCode, metaState = 0))
+    val deviceController = getDeviceController(event) ?: return
+    if (modifierKeyCode != AKEYCODE_UNKNOWN) {
+      deviceController.sendControlMessage(KeyEventMessage(ACTION_DOWN, modifierKeyCode, metaState = 0))
+    }
+    deviceController.sendControlMessage(KeyEventMessage(ACTION_DOWN, keyCode, metaState = 0))
   }
 
   final override fun buttonReleased(event: AnActionEvent) {
+    val deviceController = getDeviceController(event) ?: return
     getDeviceController(event)?.sendControlMessage(KeyEventMessage(ACTION_UP, keyCode, metaState = 0))
+    if (modifierKeyCode != AKEYCODE_UNKNOWN) {
+      deviceController.sendControlMessage(KeyEventMessage(ACTION_UP, modifierKeyCode, metaState = 0))
+    }
   }
 
   final override fun buttonPressedAndReleased(event: AnActionEvent) {
-    getDeviceController(event)?.sendControlMessage(KeyEventMessage(ACTION_DOWN_AND_UP, keyCode, metaState = 0))
+    val deviceController = getDeviceController(event) ?: return
+    if (modifierKeyCode != AKEYCODE_UNKNOWN) {
+      deviceController.sendControlMessage(KeyEventMessage(ACTION_DOWN, modifierKeyCode, metaState = 0))
+    }
+    deviceController.sendControlMessage(KeyEventMessage(ACTION_DOWN_AND_UP, keyCode, metaState = 0))
+    if (modifierKeyCode != AKEYCODE_UNKNOWN) {
+      deviceController.sendControlMessage(KeyEventMessage(ACTION_UP, modifierKeyCode, metaState = 0))
+    }
   }
 
   final override fun actionPerformed(event: AnActionEvent) {

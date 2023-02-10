@@ -19,8 +19,8 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.PortableUiFontRule
-import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.adtui.swing.findModelessDialog
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.ddms.screenshot.ScreenshotViewer
@@ -49,7 +49,7 @@ class EmulatorScreenshotActionTest {
   private val emulatorViewRule = EmulatorViewRule()
 
   @get:Rule
-  val ruleChain = RuleChain(emulatorViewRule, EdtRule())
+  val ruleChain = RuleChain(emulatorViewRule, EdtRule(), HeadlessDialogRule())
 
   private var nullableEmulator: FakeEmulator? = null
   private var nullableEmulatorView: EmulatorView? = null
@@ -62,15 +62,11 @@ class EmulatorScreenshotActionTest {
     get() = nullableEmulatorView ?: throw IllegalStateException()
     set(value) { nullableEmulatorView = value }
 
-  private val testRootDisposable
-    get() = emulatorViewRule.testRootDisposable
-
   @get:Rule
   val portableUiFontRule = PortableUiFontRule()
 
   @Before
   fun setUp() {
-    enableHeadlessDialogs(testRootDisposable)
     emulatorView = emulatorViewRule.newEmulatorView()
     emulator = emulatorViewRule.getFakeEmulator(emulatorView)
   }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.debugger
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
+import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
@@ -121,6 +122,8 @@ class LocalApkProjTest {
 
     ideFrame.invokeAndWaitForBuildAction("Build", "Build Bundle(s) / APK(s)", "Build APK(s)")
 
+    guiTest.waitForBackgroundTasks()
+
     val projectRoot = ideFrame.projectPath
     // We will have another window opened for the APK project. Close this window
     // so we don't have to manage two windows.
@@ -151,6 +154,8 @@ class LocalApkProjTest {
         "Disassembled classes.dex file. To set up breakpoints for debugging, please attach Kotlin/Java source files.")
       .performActionWithoutWaitingForDisappearance("Attach Kotlin/Java Sources...")
 
+    GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(120))
+    guiTest.robot().waitForIdle()
     // b/70731570 investigates the long amount of
     // time the IDE takes to show the file tree in the file picker. Unfortunately,
     // the amount of time the IDE takes is much longer than the amount of time the

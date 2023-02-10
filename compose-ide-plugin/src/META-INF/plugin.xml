@@ -13,8 +13,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
   -->
-
-<idea-plugin>
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <id>androidx.compose.plugins.idea</id>
   <name>Jetpack Compose</name>
   <description><![CDATA[The Jetpack Compose IDE plugin]]></description>
@@ -28,7 +27,6 @@
     <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.ComposableDeclarationChecker"/>
     <diagnosticSuppressor implementation="androidx.compose.compiler.plugins.kotlin.ComposeDiagnosticSuppressor"/>
     <highlighterExtension implementation="com.android.tools.compose.ComposableHighlighterExtension"/>
-
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -71,10 +69,6 @@
     <codeStyleSettingsProvider implementation="com.android.tools.compose.settings.ComposeFormattingCodeStyleSettingsProvider"/>
 
     <projectService serviceImplementation="com.android.tools.compose.ComposeAutoDocumentation"/>
-    <projectService serviceInterface="org.jetbrains.kotlin.idea.kdoc.KDocLinkResolutionService"
-                    serviceImplementation="com.android.tools.compose.ComposeKDocLinkResolutionService"
-                    overrides="true"
-    />
     <postStartupActivity implementation="com.android.tools.compose.ComposeAutoDocumentation$MyStartupActivity"/>
 
     <completion.contributor language="kotlin"
@@ -148,6 +142,9 @@
                  defaultValue="false"
                  restartRequired="false"/>
 
+    <overrideImplementsAnnotationsFilter id="ComposeOverrideImplementsAnnotationsFilter"
+                                         implementation="com.android.tools.compose.ComposeOverrideImplementsAnnotationsFilter"/>
+
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
@@ -160,4 +157,5 @@
     <irGenerationExtension implementation="com.android.tools.compose.ComposePluginIrGenerationExtension"/>
   </extensions>
 
+  <xi:include href="plugin.k1.xml" includeUnless="idea.kotlin.plugin.use.k2" />
 </idea-plugin>

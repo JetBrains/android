@@ -282,8 +282,8 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
       }
 
     @JvmStatic
-    fun getNativeHeapStatusForSession(client: ProfilerClient, session: Common.Session, rangeUs: Range) =
-      getForSession(client, session, rangeUs, Common.Event.Kind.TRACE_STATUS) { it.last().traceStatus }
+    fun getNativeHeapEventsForSessionSortedByTimestamp(client: ProfilerClient, session: Common.Session, rangeUs: Range) =
+      getForSession(client, session, rangeUs, Common.Event.Kind.TRACE_STATUS) { it.last() }.sortedWith(compareBy { it.timestamp })
 
     @JvmStatic
     fun getHeapDumpsForSession(client: ProfilerClient, session: Common.Session, rangeUs: Range,

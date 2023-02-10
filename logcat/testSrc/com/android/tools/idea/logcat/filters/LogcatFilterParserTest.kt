@@ -27,6 +27,7 @@ import com.android.tools.idea.logcat.filters.LogcatFilterField.TAG
 import com.android.tools.idea.logcat.filters.LogcatFilterParser.CombineWith
 import com.android.tools.idea.logcat.filters.LogcatFilterParser.CombineWith.AND
 import com.android.tools.idea.logcat.filters.LogcatFilterParser.CombineWith.OR
+import com.android.tools.idea.logcat.logcatMessage
 import com.android.tools.idea.logcat.message.LogLevel
 import com.android.tools.idea.logcat.message.LogLevel.INFO
 import com.android.tools.idea.logcat.message.LogLevel.WARN
@@ -43,6 +44,7 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 import java.time.Clock
+import kotlin.test.fail
 
 private val KEYS = mapOf(
   "tag" to TAG,
@@ -228,6 +230,17 @@ class LogcatFilterParserTest {
   fun parse_isCrash() {
     StudioFlags.LOGCAT_IS_FILTER.override(true)
     assertThat(logcatFilterParser().parse("is:crash")).isEqualTo(CrashFilter("is:crash".asRange()))
+  }
+
+  @Test
+  fun parse_isFirebase() {
+    StudioFlags.LOGCAT_IS_FILTER.override(true)
+    val filter = logcatFilterParser().parse("is:firebase") as? RegexFilter ?: fail("Expected a RegexFilter")
+
+    assertThat(filter.field).isEqualTo(TAG)
+    // No need to test all the tags, just test a single tag and make sure we don't match substrings
+    assertThat(filter.matches(LogcatMessageWrapper(logcatMessage(tag = "FA")))).isTrue()
+    assertThat(filter.matches(LogcatMessageWrapper(logcatMessage(tag = "FAQ")))).isFalse()
   }
 
   @Test

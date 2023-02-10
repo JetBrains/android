@@ -55,13 +55,14 @@ import javax.swing.event.HyperlinkListener
  * This class is implemented ad hoc. All unused methods will throw a [NotImplementedError].
  *
  * This class keeps track of the popups that it creates. Popups can be created directly by this class or indirectly via builders. A test can
- * retrieve the popup it needs using the [getPopup] method. Type safety is the responsibility of the caller.
+ * retrieve the popup it needs using the [getPopup] or [getBalloon] method. Type safety is the responsibility of the caller.
  *
  * Note to contributors:
  * As methods are implemented, please move them towards the top of the file.
  */
 class FakeJBPopupFactory : JBPopupFactory() {
   private val popups = mutableListOf<JBPopup>()
+  private val balloons = mutableListOf<FakeBalloon>()
 
   /**
    * Returns a popup that has been created using this factory.
@@ -71,8 +72,19 @@ class FakeJBPopupFactory : JBPopupFactory() {
   @Suppress("UNCHECKED_CAST")
   fun <T> getPopup(i: Int): FakeJBPopup<T> = popups[i] as FakeJBPopup<T>
 
+  /**
+   * Returns a popup that has been created using this factory.
+   *
+   * Type safety is the responsibility of the caller.
+   */
+  fun getBalloon(i: Int): FakeBalloon = balloons[i]
+
   internal fun <T> addPopup(popup: FakeJBPopup<T>) {
     popups.add(popup)
+  }
+
+  internal fun addBalloon(balloon: FakeBalloon) {
+    balloons.add(balloon)
   }
 
   override fun <T> createPopupChooserBuilder(list: MutableList<out T>): IPopupChooserBuilder<T> =
@@ -205,9 +217,8 @@ class FakeJBPopupFactory : JBPopupFactory() {
     TODO("Not yet implemented")
   }
 
-  override fun createBalloonBuilder(content: JComponent): BalloonBuilder {
-    TODO("Not yet implemented")
-  }
+  override fun createBalloonBuilder(content: JComponent): BalloonBuilder =
+    FakeBalloonBuilder(this, content)
 
   override fun createDialogBalloonBuilder(content: JComponent, title: String?): BalloonBuilder {
     TODO("Not yet implemented")

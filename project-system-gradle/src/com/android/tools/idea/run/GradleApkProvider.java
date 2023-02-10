@@ -69,6 +69,7 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.options.ConfigurationQuickFix;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
@@ -556,8 +557,8 @@ public final class GradleApkProvider implements ApkProvider {
 
     GradleAndroidModel androidModuleModel = GradleAndroidModel.get(androidFacet);
     if (androidModuleModel == null) {
-      Runnable requestProjectSync =
-        () -> ProjectSystemUtil.getSyncManager(androidFacet.getModule().getProject())
+      ConfigurationQuickFix requestProjectSync =
+        (dataContext) -> ProjectSystemUtil.getSyncManager(androidFacet.getModule().getProject())
           .syncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST);
       result.add(ValidationError.fatal("The project has not yet been synced with Gradle configuration", requestProjectSync));
       return result.build();
@@ -594,7 +595,7 @@ public final class GradleApkProvider implements ApkProvider {
 
     final String message =
       AndroidBundle.message("run.error.apk.not.signed", androidModuleModel.getSelectedVariant().getDisplayName());
-    Runnable quickFix = new UnsignedApkQuickFix(module, androidModuleModel.getSelectedVariant().getBuildType());
+    ConfigurationQuickFix quickFix = new UnsignedApkQuickFix(module, androidModuleModel.getSelectedVariant().getBuildType());
     result.add(ValidationError.fatal(message, quickFix));
     return result.build();
   }

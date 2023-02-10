@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.archcomponents;
 
 import static junit.framework.Assert.assertTrue;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -26,6 +27,7 @@ import java.awt.Point;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.fixture.JPopupMenuFixture;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -89,6 +91,8 @@ public class RoomComponentTest {
     new JPopupMenuFixture(guiTest.robot(), guiTest.robot().findActivePopupMenu())
       .menuItemWithPath("Find Usages")
       .click();
+    GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(120));
+    guiTest.robot().waitForIdle();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     // Verify all the SQL query references are displayed in the find tool window

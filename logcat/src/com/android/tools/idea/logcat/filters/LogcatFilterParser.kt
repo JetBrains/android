@@ -58,8 +58,6 @@ import com.intellij.refactoring.suggested.startOffset
 import java.text.ParseException
 import java.time.Clock
 
-private val DURATION_RE = "\\d+[smhd]".toRegex()
-
 /**
  * Parses a Logcat Filter expression into a [LogcatFilter]
  */
@@ -349,6 +347,7 @@ private fun LogcatFilterLiteralExpression.createIsFilter(text: String): LogcatFi
   return when {
     !StudioFlags.LOGCAT_IS_FILTER.get() -> throw LogcatFilterParseException(PsiErrorElementImpl("Invalid key: is"))
     text == "crash" -> CrashFilter(TextRange(startOffset, endOffset))
+    text == "firebase" -> RegexFilter(firebaseRegex, TAG, TextRange(startOffset, endOffset))
     text == "stacktrace" -> StackTraceFilter(TextRange(startOffset, endOffset))
     else -> throw LogcatFilterParseException(PsiErrorElementImpl("Invalid filter: is:$text"))
   }
@@ -361,10 +360,10 @@ private fun PsiElement.asLogLevel(): LogLevel =
   ?: throw LogcatFilterParseException(PsiErrorElementImpl("Invalid Log Level: $text"))
 
 internal fun String.isValidLogLevel(): Boolean = LogLevel.getByString(lowercase()) != null
-internal fun String.isValidIsFilter(): Boolean = this == "crash" || this == "stacktrace"
+internal fun String.isValidIsFilter(): Boolean = this == "crash" || this == "firebase" || this == "stacktrace"
 
 internal fun String.isValidLogAge(): Boolean {
-  DURATION_RE.matchEntire(this) ?: return false
+  durationRegex.matchEntire(this) ?: return false
   try {
     substring(0, length - 1).toLong()
   }
@@ -417,3 +416,36 @@ private fun LogcatFilter.getFieldForImplicitOr(index: Int): FilterType {
     else -> FilterType(index)
   }
 }
+
+// Avoid clutter at the top of the file
+private val durationRegex = "\\d+[smhd]".toRegex()
+
+private val firebaseTags =
+  listOf(
+    "AppInstallOperation",
+    "AppInviteActivity",
+    "AppInviteAgent",
+    "AppInviteAnalytics",
+    "AppInviteLogger",
+    "BackgroundTask",
+    "ClassMapper",
+    "Connection",
+    "DataOperation",
+    "EventRaiser",
+    "FA",
+    "FirebaseAppIndex",
+    "FirebaseDatabase",
+    "FirebaseInstanceId",
+    "FirebaseMessaging",
+    "FirebaseRemoteConfig",
+    "NetworkRequest",
+    "Persistence",
+    "PersistentConnection",
+    "RepoOperation",
+    "RunLoop",
+    "StorageTask",
+    "SyncTree",
+    "Transaction",
+    "WebSocket",
+  )
+private val firebaseRegex = "^(${firebaseTags.joinToString("|")})$"

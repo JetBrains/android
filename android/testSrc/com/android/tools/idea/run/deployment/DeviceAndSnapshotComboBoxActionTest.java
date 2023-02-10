@@ -62,6 +62,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
+import javax.swing.UIManager;
 
 public final class DeviceAndSnapshotComboBoxActionTest {
   @Rule
@@ -240,12 +241,11 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       false);
 
     // Act
+    UIManager.getDefaults().put("ComboBoxButtonUI", "com.intellij.ide.ui.laf.darcula.ui.ComboBoxButtonUI");
     Component component = action.createCustomComponent(myPresentation, i -> i);
 
     // Assert
-/* b/263906088
     assertEquals(253, component.getPreferredSize().width);
-b/263906088 */
   }
 
   @Test

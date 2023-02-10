@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel;
 import com.android.tools.idea.gradle.dsl.api.GradlePropertiesModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslContextModel;
 import com.intellij.openapi.diagnostic.ControlFlowException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -40,7 +41,7 @@ import org.jetbrains.annotations.TestOnly;
 import java.util.List;
 import java.util.Set;
 
-public interface GradleBuildModel extends GradleFileModel, PluginsModel {
+public interface GradleBuildModel extends GradleDslContextModel, GradleFileModel, PluginsModel {
   /**
    * Runs the given supplier and returns the result if no exception was thrown. If an exception was thrown then
    * log it to back intellijs logs and the AndroidStudioCrashReporter and return null.

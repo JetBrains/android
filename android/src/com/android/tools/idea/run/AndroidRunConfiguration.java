@@ -24,9 +24,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.deployer.model.component.ComponentType;
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.android.tools.idea.execution.common.AppRunConfiguration;
-import com.android.tools.idea.execution.common.AppRunSettings;
-import com.android.tools.idea.execution.common.ComponentLaunchOptions;
-import com.android.tools.idea.execution.common.DeployOptions;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
@@ -36,14 +33,11 @@ import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
 import com.android.tools.idea.run.activity.launch.DefaultActivityLaunch;
 import com.android.tools.idea.run.activity.launch.NoLaunch;
 import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch;
-import com.android.tools.idea.run.configuration.execution.AndroidActivityConfigurationExecutor;
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.ApplicationRunParameters;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.ui.BaseAction;
-import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.RunStats;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -61,12 +55,10 @@ import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.junit.RefactoringListeners;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
@@ -262,10 +254,8 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
                                                    @NotNull AndroidFacet facet,
                                                    @NotNull String contributorsAmStartOptions,
                                                    boolean waitForDebugger,
-                                                   @NotNull LaunchStatus launchStatus,
                                                    @NotNull ApkProvider apkProvider,
-                                                   @NotNull ConsolePrinter consolePrinter,
-                                                   @NotNull IDevice device) {
+                                                   @NotNull IDevice device) throws ExecutionException {
     ActivityLaunchOptionState state = getLaunchOptionState(MODE);
     assert state != null;
 
@@ -295,9 +285,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
                                  apkProvider);
     }
     catch (ApkProvisionException e) {
-      Logger.getInstance(AndroidRunConfiguration.class).error(e);
-      launchStatus.terminateLaunch("Unable to identify application id", true);
-      return null;
+      throw new ExecutionException("Unable to identify application id :" + e);
     }
   }
 
@@ -413,34 +401,6 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     runStats.setAppComponentType(ComponentType.ACTIVITY);
     runStats.setDeployedAsInstant(DEPLOY_AS_INSTANT);
     runStats.setDeployedFromBundle(DEPLOY_APK_FROM_BUNDLE);
-  }
-
-  @NotNull
-  public AndroidConfigurationExecutor getExecutor(@NotNull ExecutionEnvironment environment) {
-    Module myModule = getConfigurationModule().getModule();
-    ComponentLaunchOptions launchOptions = getLaunchOptionState(MODE);
-    DeployOptions deployOptions = new DeployOptions(getDisabledDynamicFeatures(), PM_INSTALL_OPTIONS, ALL_USERS, ALWAYS_INSTALL_WITH_PM);
-    AppRunSettings settings = new AppRunSettings() {
-
-      @Nullable
-      @Override
-      public Module getModule() {
-        return myModule;
-      }
-
-      @NotNull
-      @Override
-      public ComponentLaunchOptions getComponentLaunchOptions() {
-        return launchOptions;
-      }
-
-      @NotNull
-      @Override
-      public DeployOptions getDeployOptions() {
-        return deployOptions;
-      }
-    };
-    return new AndroidActivityConfigurationExecutor(environment, getDeployTarget(), settings, getApplicationIdProvider(), getApkProvider());
   }
 
   @Nullable

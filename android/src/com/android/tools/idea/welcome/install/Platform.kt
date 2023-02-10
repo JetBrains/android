@@ -20,6 +20,7 @@ import com.android.repository.Revision
 import com.android.repository.api.RemotePackage
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
+import com.android.sdklib.getFullReleaseName
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
@@ -90,11 +91,11 @@ class Platform(
 
   companion object {
     private fun getLatestPlatform(remotePackages: Map<String?, RemotePackage>?, installUpdates: Boolean): Platform? {
-      val latest = findLatestPlatform(remotePackages)
+      val latest = findLatestPlatform(remotePackages, true)
       if (latest != null) {
         val version = (latest.typeDetails as DetailsTypes.PlatformDetailsType).androidVersion
-        val versionName = SdkVersionInfo.getAndroidName(version.featureLevel)
-        val description = "Android platform libraries for targeting $versionName platform"
+        val versionName = version.getFullReleaseName(includeApiLevel = true, includeCodeName = true)
+        val description = "Android platform libraries for targeting platform: $versionName"
         return Platform(versionName, description, version, !version.isPreview, installUpdates)
       }
       return null

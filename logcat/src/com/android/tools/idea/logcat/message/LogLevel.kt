@@ -20,7 +20,7 @@ package com.android.tools.idea.logcat.message
  * Log Level enum.
  */
 
-internal enum class LogLevel(val stringValue: String, val priorityLetter: Char) {
+enum class LogLevel(val stringValue: String, val priorityLetter: Char) {
   VERBOSE("verbose", 'V'),
   DEBUG("debug", 'D'),
   INFO("info", 'I'),

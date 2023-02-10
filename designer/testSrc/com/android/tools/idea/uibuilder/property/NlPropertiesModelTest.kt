@@ -34,7 +34,6 @@ import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.common.collect.ImmutableSet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.util.containers.toArray
 import com.intellij.util.ui.update.MergingUpdateQueue
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
@@ -321,7 +320,7 @@ class NlPropertiesModelTest: LayoutTestCase() {
               .id("@id/$it")
               .width("wrap_content")
               .height("wrap_content")
-          }.toArray(emptyArray())
+          }.toTypedArray()
         )
     )
     return builder.build()

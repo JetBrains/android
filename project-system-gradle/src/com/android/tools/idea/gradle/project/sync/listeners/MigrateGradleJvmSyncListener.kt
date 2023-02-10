@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.listeners
 
-import com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder.Companion.ANDROID_STUDIO_JAVA_HOME_NAME
-import com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder.Companion.EMBEDDED_JDK_NAME
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.intellij.openapi.application.runWriteActionAndWait
@@ -27,7 +25,12 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 
+const val EMBEDDED_JDK_NAME = "Embedded JDK"
+const val ANDROID_STUDIO_JAVA_HOME_NAME = "Android Studio java home"
+const val ANDROID_STUDIO_DEFAULT_JDK_NAME = "Android Studio default JDK"
+
 private val LOG = Logger.getInstance(MigrateGradleJvmSyncListener::class.java)
+
 /**
  * This GradleSyncListener is responsible for migrate Gradle projects away of the hardcoded jdk naming
  * using platform convention: vendor + version i.e. jbr-17 or special macros defined on [ExternalSystemJdkUtil]
@@ -37,9 +40,9 @@ open class MigrateGradleJvmSyncListener : GradleSyncListenerWithRoot {
   override fun syncStarted(project: Project, rootProjectPath: @SystemIndependent String) {
     val projectRootSettings = GradleSettings.getInstance(project).getLinkedProjectSettings(rootProjectPath)
     when (projectRootSettings?.gradleJvm) {
-      EMBEDDED_JDK_NAME -> runWriteActionAndWait {
+      EMBEDDED_JDK_NAME, ANDROID_STUDIO_DEFAULT_JDK_NAME -> runWriteActionAndWait {
         JdkUtils.setProjectGradleJvmToUseEmbeddedJdk(project, rootProjectPath)?.let { gradleJvm ->
-          LOG.info("Project Gradle root: $rootProjectPath gradleJvm updated from $EMBEDDED_JDK_NAME to $gradleJvm")
+          LOG.info("Project Gradle root: $rootProjectPath gradleJvm updated from ${projectRootSettings.gradleJvm} to $gradleJvm")
         }
       }
       ANDROID_STUDIO_JAVA_HOME_NAME -> {

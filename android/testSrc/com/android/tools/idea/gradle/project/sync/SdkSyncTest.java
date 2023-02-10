@@ -54,7 +54,7 @@ public class SdkSyncTest extends PlatformTestCase {
 
   public void testSyncIdeAndProjectAndroidHomesWithIdeSdkAndLocalPropertiesExistsAndNoProjectSdk() throws Exception {
     ApplicationManager.getApplication().runWriteAction(() -> {
-      myIdeSdks.setAndroidSdkPath(myAndroidSdkPath, null);
+      myIdeSdks.setAndroidSdkPath(myAndroidSdkPath);
     });
 
     createEmptyLocalPropertiesFile();
@@ -65,7 +65,7 @@ public class SdkSyncTest extends PlatformTestCase {
 
   public void testSyncIdeAndProjectAndroidHomesWithIdeSdkAndNoLocalPropertiesExistsAndNoProjectSdk() throws Exception {
     ApplicationManager.getApplication().runWriteAction(() -> {
-      myIdeSdks.setAndroidSdkPath(myAndroidSdkPath, null);
+      myIdeSdks.setAndroidSdkPath(myAndroidSdkPath);
     });
 
     assertNoLocalPropertiesExists();
@@ -82,7 +82,7 @@ public class SdkSyncTest extends PlatformTestCase {
 
   public void testSyncIdeAndProjectAndroidHomesWithIdeSdkAndInvalidProjectSdk() throws Exception {
     ApplicationManager.getApplication().runWriteAction(() -> {
-      myIdeSdks.setAndroidSdkPath(myAndroidSdkPath, null);
+      myIdeSdks.setAndroidSdkPath(myAndroidSdkPath);
     });
 
     myLocalProperties.setAndroidSdkPath(new File("randomPath"));

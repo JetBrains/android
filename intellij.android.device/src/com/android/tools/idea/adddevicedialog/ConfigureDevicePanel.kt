@@ -22,10 +22,13 @@ import com.intellij.ui.components.JBTabbedPane
 import java.awt.Component
 
 internal class ConfigureDevicePanel internal constructor() : JBPanel<ConfigureDevicePanel>(null) {
+  internal val deviceAndApiPanel: DeviceAndApiPanel
+
   init {
     val configureDeviceLabel = JBLabel("Configure device")
     val addDeviceToDeviceManagerLabel = JBLabel("Add a device to the device manager")
-    val tabbedPane = tabbedPane()
+    deviceAndApiPanel = DeviceAndApiPanel()
+    val tabbedPane = initTabbedPane()
 
     layout = groupLayout(this) {
       horizontalGroup {
@@ -46,10 +49,10 @@ internal class ConfigureDevicePanel internal constructor() : JBPanel<ConfigureDe
     }
   }
 
-  private fun tabbedPane(): Component {
+  private fun initTabbedPane(): Component {
     val tabbedPane = JBTabbedPane()
 
-    tabbedPane.addTab("Device and API", DeviceAndApiPanel())
+    tabbedPane.addTab("Device and API", deviceAndApiPanel)
     tabbedPane.addTab("Additional settings", AdditionalSettingsPanel())
 
     return tabbedPane

@@ -53,7 +53,7 @@ object ProjectIdeaConfigFilesUtils {
         <option name="testRunner" value="GRADLE" />
         <option name="distributionType" value="DEFAULT_WRAPPED" />
         <option name="externalProjectPath" value="${getProjectPath(gradleRoot.name)}" />
-        ${gradleRoot.gradleJvm?.let { buildGradleJvmXml(it) } ?: run { "" }}
+        ${gradleRoot.ideaGradleJdk?.let { buildGradleJvmXml(it) } ?: run { "" }}
         ${buildProjectModulesXml(gradleRoot.modulesPath)}
       </GradleProjectSettings>
     """

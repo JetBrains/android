@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview.animation.actions
 
 import com.android.tools.adtui.actions.componentToRestoreFocusTo
-import com.android.tools.adtui.actions.locationFromEvent
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationEventTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.InspectorLayout.colorButtonOffset
@@ -73,7 +72,7 @@ class ColorStateAction(
       configuration = null,
       resourcePickerSources = listOf(),
       restoreFocusComponent = e.componentToRestoreFocusTo(),
-      locationToShow = e.locationFromEvent(),
+      locationToShow = null,
       colorPickedCallback = {
         state = ComposeUnit.Color.create(it)
         onPropertiesUpdated()

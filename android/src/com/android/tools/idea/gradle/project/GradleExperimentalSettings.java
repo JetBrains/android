@@ -35,6 +35,8 @@ public class GradleExperimentalSettings implements PersistentStateComponent<Grad
 
   public boolean ENABLE_PARALLEL_SYNC = true;
 
+  public boolean ENABLE_GRADLE_API_OPTIMIZATION = true;
+
   // Settings related to Gradle sync tracer.
   public boolean TRACE_GRADLE_SYNC = false;
   public TraceProfileItem TRACE_PROFILE_SELECTION = TraceProfileItem.DEFAULT;

@@ -92,6 +92,11 @@ object AdtUiUtils {
   @JvmField
   val DEFAULT_FONT_COLOR = JBColor.foreground()
 
+  /**
+   * Color to be used by labels representing the title of a Component, e.g. a layout preview or a status button.
+   */
+  val TITLE_COLOR = JBColor(0x6C707E, 0xCED0D6)
+
   @JvmField
   val DEFAULT_BORDER_COLOR: Color = border
 

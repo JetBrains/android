@@ -52,7 +52,12 @@ class RecordingOptionsModelTest(configs: Array<RecordingOption>) {
     assertThat(model.isRecording).isTrue()
     assertThat(model.canStop()).isTrue()
     model.stop()
-    assertThat(model.isRecording).isFalse()
+    // Because setFinished() (which sets isRecording to false) is only called when the TraceStopStatus event
+    // is received, isRecording should still be true.
+    assertThat(model.isRecording).isTrue()
+    // The value will eventually be false once a trace stop status even is received. This is verified by
+    // other tests such as MainMemoryProfilerStageTest's testToggleNativeAllocationRecordingChangesIsRecordingState()
+    // test as well as CpuProfilerStageTest's receivingTraceStopStatusEventSetsRecordingToFinished() test.
   }
 
   @Test
@@ -87,7 +92,12 @@ class RecordingOptionsModelTest(configs: Array<RecordingOption>) {
     assertThat(recording).isTrue()
     model.stop()
     assertThat(state).isEqualTo("Attempted to stop")
-    assertThat(recording).isFalse()
+    // Because setFinished() (which sets isRecording to false) is only called when the TraceStopStatus event
+    // is received, isRecording should still be true.
+    assertThat(recording).isTrue()
+    // The value will eventually be false once a trace stop status even is received. This is verified by
+    // other tests such as MainMemoryProfilerStageTest's testToggleNativeAllocationRecordingChangesIsRecordingState()
+    // test as well as CpuProfilerStageTest's receivingTraceStopStatusEventSetsRecordingToFinished() test.
   }
 
   @Test

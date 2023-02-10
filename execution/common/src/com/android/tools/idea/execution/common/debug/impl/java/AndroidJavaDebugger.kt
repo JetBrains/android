@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.execution.common.debug.impl.java
 
+import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.Client
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerConfigurable
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter.attachDebuggerToClientAndShowTab
 import com.android.tools.idea.execution.common.debug.impl.AndroidDebuggerImplBase
-import com.android.tools.idea.execution.common.debug.startAndroidJavaDebuggerSession
 import com.intellij.debugger.engine.JavaDebugProcess
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RunConfiguration
@@ -30,8 +30,6 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.xdebugger.XDebugProcess
 import com.intellij.xdebugger.XDebugProcessStarter
 import com.intellij.xdebugger.XDebugSession
-import org.jetbrains.concurrency.Promise
-import org.jetbrains.concurrency.resolvedPromise
 import java.util.concurrent.TimeUnit
 
 class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
@@ -55,17 +53,18 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
     return true
   }
 
-  override fun attachToClient(project: Project, client: Client, debugState: AndroidDebuggerState?): Promise<XDebugSession> {
+  @WorkerThread
+  override fun attachToClient(project: Project, client: Client, debugState: AndroidDebuggerState?): XDebugSession {
     val debugPort = getClientDebugPort(client)
 
     // Try to find existing debug session
     val existingDebugSession = getExistingDebugSession(debugPort)
     if (existingDebugSession != null) {
       activateDebugSessionWindow(project, existingDebugSession.runContentDescriptor)
-      return resolvedPromise(existingDebugSession)
+      return existingDebugSession
     }
 
-    return resolvedPromise(attachDebuggerToClientAndShowTab(project, client, this, createState()));
+    return attachDebuggerToClientAndShowTab(project, client, this, createState());
   }
 
 
@@ -76,7 +75,7 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
     consoleViewToReuse: ConsoleView?
   ): XDebugProcessStarter {
     try {
-      val debuggerSession = startAndroidJavaDebuggerSession(project, client, consoleViewToReuse, {}, detachIsDefault = false)
+      val debuggerSession = startAndroidJavaDebuggerSession(project, client, consoleViewToReuse, detachIsDefault = false)
                               .blockingGet(10, TimeUnit.SECONDS) ?: throw ExecutionException("Java Debug Session is not started")
       return object : XDebugProcessStarter() {
         override fun start(session: XDebugSession): XDebugProcess {
@@ -95,7 +94,7 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
     state: AndroidDebuggerState?
   ): XDebugProcessStarter {
     try {
-      val debuggerSession = startAndroidJavaDebuggerSession(project, client, null, {}, detachIsDefault = true)
+      val debuggerSession = startAndroidJavaDebuggerSession(project, client, null, detachIsDefault = true)
                               .blockingGet(10, TimeUnit.SECONDS) ?: throw ExecutionException("Java Debug Session is not started")
       return object : XDebugProcessStarter() {
         override fun start(session: XDebugSession): XDebugProcess {

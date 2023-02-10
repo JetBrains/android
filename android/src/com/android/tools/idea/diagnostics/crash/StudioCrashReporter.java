@@ -63,7 +63,7 @@ public class StudioCrashReporter extends GoogleCrashReporter {
     }
   }
 
-  StudioCrashReporter() {
+  protected StudioCrashReporter() {
     super(UNIT_TEST_MODE, DEBUG_BUILD);
   }
 

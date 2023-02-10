@@ -96,6 +96,7 @@ private val LEVEL_LOOKUPS_UPPERCASE get() = LogLevel.values()
 
 private val IS_VALUES = listOf(
   Pair("crash", message("logcat.filter.completion.hint.is.crash")),
+  Pair("firebase", message("logcat.filter.completion.hint.is.firebase")),
   Pair("stacktrace", message("logcat.filter.completion.hint.is.stacktrace")),
 )
 

@@ -317,6 +317,8 @@ public class TutorialStep extends JPanel {
     // Get standard label font.
     Font font = new JLabel().getFont();
     JTextPane stepNumber = new JTextPane();
+    DefaultCaret ct = (DefaultCaret) stepNumber.getCaret();
+    ct.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
     stepNumber.setEditable(false);
     stepNumber.setText(String.valueOf(myIndex + 1));
     Font boldFont = new Font(font.getFontName(), Font.BOLD, JBUIScale.scaleFontSize(11));

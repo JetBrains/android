@@ -41,6 +41,7 @@ import com.android.tools.idea.gradle.project.upgrade.trackProcessorUsage
 import com.android.tools.idea.gradle.project.upgrade.versionsAreIncompatible
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.gradle.ui.GradleJdkListPathPresenter
+import com.android.tools.idea.gradle.util.GradleJdkComboBoxUtil
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.google.wireless.android.sdk.stats.GradleSyncStats
@@ -59,12 +60,10 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.projectRoots.impl.SdkVersionUtil
 import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable
 import com.intellij.openapi.roots.ui.configuration.SdkComboBox
-import com.intellij.openapi.roots.ui.configuration.SdkComboBoxModel
 import com.intellij.openapi.roots.ui.configuration.SdkListItem
 import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel
 import com.intellij.openapi.util.Disposer
@@ -664,7 +663,7 @@ class UpgradeAssistantWindowModel(
         //TODO not sure why we need to 'hide' project sdk from the model.
         val projectJdk = sdksModel.projectSdk
         sdksModel.projectSdk = null
-        val gradleJdkBoxModel = SdkComboBoxModel.createJdkComboBoxModel(project, sdksModel)
+        val gradleJdkBoxModel = GradleJdkComboBoxUtil.createBoxModel(project, sdksModel)
         sdksModel.projectSdk = projectJdk
 
         comboBox = SdkComboBox(gradleJdkBoxModel).apply { name = "selection" }

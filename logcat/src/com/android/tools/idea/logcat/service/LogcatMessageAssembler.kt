@@ -59,6 +59,7 @@ internal class LogcatMessageAssembler(
   processNameMonitor: ProcessNameMonitor,
   coroutineContext: CoroutineContext,
   private val lastMessageDelayMs: Long,
+  private val cutoffTimeSeconds: Long? = null,
 ) : Disposable {
   private val coroutineScope = AndroidCoroutineScope(this, coroutineContext)
 
@@ -96,7 +97,11 @@ internal class LogcatMessageAssembler(
     // Parse new lines and send log messages
     val batch: Batch = parseNewLines(state, newLines)
     if (batch.messages.isNotEmpty()) {
-      channel.send(batch.messages)
+      // Use the timestamp of the last message in the batch. We might end up sending a few older messages but not by much. There's no
+      // need to be super precise.
+      if (cutoffTimeSeconds == null || batch.messages.last().header.timestamp.epochSecond >= cutoffTimeSeconds) {
+        channel.send(batch.messages)
+      }
     }
 
     // Save the last header/lines to handle in the next batch or in the delayed job
@@ -110,7 +115,9 @@ internal class LogcatMessageAssembler(
         delay(lastMessageDelayMs)
         val message = getAndResetPendingMessage(partialMessage)
         if (message != null) {
-          channel.send(listOf(message))
+          if (cutoffTimeSeconds == null || message.header.timestamp.epochSecond >= cutoffTimeSeconds) {
+            channel.send(listOf(message))
+          }
         }
       }
     }

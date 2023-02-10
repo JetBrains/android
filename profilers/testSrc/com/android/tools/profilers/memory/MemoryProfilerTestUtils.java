@@ -145,6 +145,11 @@ public class MemoryProfilerTestUtils {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
   }
 
+  public static void toggleNativeAllocationTrackingHelper(MainMemoryProfilerStage stage, FakeTimer timer) {
+    stage.toggleNativeAllocationTracking();
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+  }
+
   public static void heapDumpHelper(MainMemoryProfilerStage stage,
                                     FakeTransportService transportService,
                                     Memory.HeapDumpStatus.Status status) {

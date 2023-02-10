@@ -71,11 +71,6 @@ public final class StudioFlags {
     "Show the Welcome Wizard when Studio starts",
     false);
 
-  public static final Flag<Boolean> NPW_SHOW_JDK_STEP = Flag.create(
-    NPW, "first.run.jdk.step", "Show JDK setup step",
-    "Show JDK Setup Step in Welcome Wizard",
-    true);
-
   public static final Flag<Boolean> NPW_SHOW_FRAGMENT_GALLERY = Flag.create(
     NPW, "show.fragment.gallery", "Show fragment gallery",
     "Show fragment gallery which contains fragment based templates",
@@ -103,12 +98,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> USE_DISPOSER_TREE_REFERENCES = Flag.create(
     MEMORY_USAGE_REPORTING, "use.disposer.tree.references", "Memory report collection traversal will use disposer tree reference.",
     "If enabled, the memory report collecting traversal will consider disposer tree references as an object graph edges.",
-    false);
-
-  public static final Flag<Boolean> MEMORY_TRAFFIC_TRACK_OLDER_GENERATIONS = Flag.create(
-    MEMORY_USAGE_REPORTING, "memory.traffic.track.older.generations",
-    "Memory report collection keeps track of the older object statistics.",
-    "If enabled, the memory usage report will contain statistics on the number and total size of objects that have been allocated 1/2/3/... iterations ago.",
     false);
   //endregion
 
@@ -546,7 +535,7 @@ public final class StudioFlags {
     "Use adblib to track device processes (Client)",
     "Use adblib instead of ddmlib to track processes (Client) on devices and handle debug sessions. " +
     "Note: Changing the value of this flag requires restarting Android Studio.",
-    false);
+    true);
 
   public static final Flag<Boolean> JDWP_TRACER = Flag.create(
     RUNDEBUG,
@@ -1095,7 +1084,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE = Flag.create(
     COMPOSE, "preview.scroll.on.caret.move", "Enable the Compose Preview scrolling when the caret moves",
     "If enabled, when moving the caret in the text editor, the Preview will show the preview currently under the cursor.",
-    true);
+    false);
 
   public static final Flag<Boolean> COMPOSE_CONSTRAINTLAYOUT_COMPLETION = Flag.create(
     COMPOSE, "editor.completion.constraintlayout.json",
@@ -1273,6 +1262,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_FAST_PREVIEW_AUTO_DISABLE = Flag.create(
     COMPOSE, "fast.preview.auto.disable", "If enabled, Fast Preview can auto-disable",
     "If enabled, if fast preview finds a compiler problem, it will be auto disable until the user re-enables it",
+    false);
+
+  public static final Flag<Boolean> COMPOSE_ALLOCATION_LIMITER = Flag.create(
+    COMPOSE, "allocation.limiter", "If enabled, limits allocations per render",
+    "If enabled, limits the number of allocations that user code can do in a single render action",
     false);
   //endregion
 
@@ -1557,14 +1551,14 @@ public final class StudioFlags {
   );
   // endregion GOOGLE_PLAY_SDK_INDEX
 
-  // region NEW_SEND_FEEDBACK_DIALOG
-  private static final FlagGroup NEW_SEND_FEEDBACK_DIALOG = new FlagGroup(FLAGS, "new.send.feedback", "New Send Feedback Dialog");
-  public static final Flag<Boolean> ENABLE_NEW_SEND_FEEDBACK_DIALOG = Flag.create(
-    NEW_SEND_FEEDBACK_DIALOG, "enable.new.send.feedback.dialog", "Enable new send feedback dialog",
+  // region NEW_COLLECT_LOGS_DIALOG
+  private static final FlagGroup NEW_COLLECT_LOGS_DIALOG = new FlagGroup(FLAGS, "new.collect.logs", "New Collect Logs Dialog");
+  public static final Flag<Boolean> ENABLE_NEW_COLLECT_LOGS_DIALOG = Flag.create(
+    NEW_COLLECT_LOGS_DIALOG, "enable.new.collect.logs.dialog", "Enable new collect logs dialog",
     "Enable the new send feedback dialog",
     false
   );
-  // endregion NEW_SEND_FEEDBACK_DIALOG
+  // endregion NEW_COLLECT_LOGS_DIALOG
 
   // region TargetSDKVersion Upgrade Assistant
   private static final FlagGroup TSDKVUA = new FlagGroup(FLAGS, "tsdkvua", "Android SDK Upgrade Assistant");

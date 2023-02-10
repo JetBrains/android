@@ -92,7 +92,6 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
   fun stop() {
     if (canStop()) {
       selectedOption?.stopAction?.run()
-      setFinished()
     }
   }
 

@@ -17,7 +17,7 @@ package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration
 import com.android.tools.idea.streaming.emulator.EmulatorController
-import com.android.tools.idea.streaming.emulator.createHardwareKeyEvent
+import com.android.tools.idea.streaming.emulator.createKeyboardEvent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import java.util.function.Predicate
 
@@ -33,6 +33,6 @@ abstract class EmulatorKeypressAction(
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController: EmulatorController = getEmulatorController(event) ?: return
-    emulatorController.sendKey(createHardwareKeyEvent(keyName))
+    emulatorController.sendKey(createKeyboardEvent(keyName))
   }
 }

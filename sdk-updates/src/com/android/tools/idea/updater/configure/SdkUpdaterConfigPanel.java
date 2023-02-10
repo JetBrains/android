@@ -37,8 +37,8 @@ import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.adapters.AdapterProperty;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.progress.StudioProgressRunner;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
@@ -497,10 +497,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
   }
 
   private static void setAndroidSdkLocation(final File sdkLocation) {
-    ApplicationUtils.invokeWriteActionAndWait(ModalityState.any(), () -> {
-      // TODO Do we have to pass the default project here too instead of null?
-      IdeSdks.getInstance().setAndroidSdkPath(sdkLocation, null);
-    });
+    ApplicationUtils.invokeWriteActionAndWait(ModalityState.any(), () -> IdeSdks.getInstance().setAndroidSdkPath(sdkLocation));
   }
 
   /**

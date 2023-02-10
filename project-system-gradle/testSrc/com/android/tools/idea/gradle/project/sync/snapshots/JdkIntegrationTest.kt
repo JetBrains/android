@@ -113,10 +113,12 @@ class JdkIntegrationTest(
       expectedGradleJdkName: String,
       expectedProjectJdkName: String,
       expectedJdkPath: String,
+      expectedLocalPropertiesJdkPath: String? = null,
       expectedException: KClass<out Exception>? = null,
     ) {
       syncWithAssertion(
         expectedGradleRootsJdkName = mapOf("" to expectedGradleJdkName),
+        expectedGradleRootsLocalPropertiesJdkPath = expectedLocalPropertiesJdkPath?.let { mapOf("" to it) },
         expectedProjectJdkName = expectedProjectJdkName,
         expectedJdkPath = expectedJdkPath,
         expectedException = expectedException
@@ -125,6 +127,7 @@ class JdkIntegrationTest(
 
     fun syncWithAssertion(
       expectedGradleRootsJdkName: Map<String, String>,
+      expectedGradleRootsLocalPropertiesJdkPath: Map<String, String>? = null,
       expectedProjectJdkName: String,
       expectedJdkPath: String,
       expectedException: KClass<out Exception>? = null,
@@ -140,6 +143,9 @@ class JdkIntegrationTest(
         assertOnDiskConfig = {
           assertGradleRootsJdk(expectedGradleRootsJdkName)
           assertProjectJdk(expectedProjectJdkName)
+          expectedGradleRootsLocalPropertiesJdkPath?.let {
+            assertGradleRootsLocalPropertiesJdk(it)
+          }
         },
         assertOnFailure = { syncException ->
           expectedException?.let {

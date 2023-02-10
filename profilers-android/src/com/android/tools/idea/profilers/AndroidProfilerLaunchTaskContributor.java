@@ -39,8 +39,6 @@ import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.idea.run.tasks.LaunchContext;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTaskDurations;
-import com.android.tools.idea.run.util.LaunchStatus;
-import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.android.tools.idea.transport.TransportFileManager;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.idea.util.StudioPathManager;
@@ -451,7 +449,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       // Otherwise, the profiler can start profiling for a brief moment, then the new process launches and the profiler switches
       // immediately to the new process, leaving a short-lived session behind. We do this only if the user launches explicit with the
       // profile option, as we need to not impact the run/debug workflow.
-      long currentDeviceTimeNs = isProfilerLaunch(launchContext.getExecutor()) ? getCurrentDeviceTime(device) : Long.MIN_VALUE;
+      long currentDeviceTimeNs = isProfilerLaunch(launchContext.getEnv().getExecutor()) ? getCurrentDeviceTime(device) : Long.MIN_VALUE;
 
       // There are two scenarios here:
       // 1. If the profiler window is opened, we only profile the process that is launched and detected by the profilers after the current
@@ -486,19 +484,16 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
       // When Studio detects that the process is terminated, remove the LAST_RUN_APP_INFO cache to prevent the profilers from waiting
       // to auto-profiling a process that has already been killed.
-      LaunchStatus launchStatus = launchContext.getLaunchStatus();
-      if (launchStatus instanceof ProcessHandlerLaunchStatus) {
-        ProcessHandler processHandler = ((ProcessHandlerLaunchStatus)launchStatus).getProcessHandler();
-        ProcessAdapter adapter = new ProcessAdapter() {
-          @Override
-          public void processTerminated(@NotNull ProcessEvent event) {
-            myProject.putUserData(LAST_RUN_APP_INFO, null);
-            // Removes the listener as soon as we receive the event, to avoid the ProcessHandler holding to it any longer than needed.
-            processHandler.removeProcessListener(this);
-          }
-        };
-        processHandler.addProcessListener(adapter);
-      }
+      ProcessHandler processHandler = launchContext.getProcessHandler();
+      ProcessAdapter adapter = new ProcessAdapter() {
+        @Override
+        public void processTerminated(@NotNull ProcessEvent event) {
+          myProject.putUserData(LAST_RUN_APP_INFO, null);
+          // Removes the listener as soon as we receive the event, to avoid the ProcessHandler holding to it any longer than needed.
+          processHandler.removeProcessListener(this);
+        }
+      };
+      processHandler.addProcessListener(adapter);
     }
 
     @NotNull

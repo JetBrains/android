@@ -21,19 +21,32 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.File;
 import org.fest.swing.timing.Wait;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.concurrent.TimeUnit;
 
+import static com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class LintTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
+  private IdeFrameFixture ideFrame;
+
+  @Before
+  public void setUp() throws Exception {
+
+    File projectDir = guiTest.setUpProject("LintTest", null, ANDROID_GRADLE_PLUGIN_VERSION, null, null);
+    guiTest.openProjectAndWaitForProjectSyncToFinish(projectDir, Wait.seconds(540));
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    ideFrame = guiTest.ideFrame();
+  }
 
   /**
    * Verifies that obsolete SDK_INT checks in conditional statements
@@ -53,9 +66,7 @@ public class LintTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void obsoleteSdkIntLintCheck() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LintTest");
-
-    EditorFixture editor = ideFrameFixture
+    EditorFixture editor = ideFrame
       .getEditor()
       .open("app/src/main/java/com/example/nishanthkumarg/myapplication/MainActivity.java", EditorFixture.Tab.EDITOR)
       .waitUntilErrorAnalysisFinishes();
