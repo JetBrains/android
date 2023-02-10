@@ -1097,8 +1097,8 @@ internal fun isUpdatablePluginDependency(toVersion: AgpVersion, model: ArtifactD
   if (!AndroidPluginInfo.isAndroidPlugin(artifactId, groupId)) {
     return ThreeState.UNSURE
   }
-  val versionValue = model.version().toString()
-  return if (StringUtil.isEmpty(versionValue) || toVersion.compareTo(versionValue) != 0) ThreeState.YES else ThreeState.NO
+  val versionValue = AgpVersion.tryParse(model.version().toString()) ?: return ThreeState.UNSURE
+  return if (toVersion.compareTo(versionValue) != 0) ThreeState.YES else ThreeState.NO
 }
 
 internal fun isUpdatablePluginRelatedDependency(toVersion: AgpVersion, model: ArtifactDependencyModel): ThreeState {
@@ -1108,8 +1108,8 @@ internal fun isUpdatablePluginRelatedDependency(toVersion: AgpVersion, model: Ar
     return ThreeState.UNSURE
   }
 
-  val versionValue = model.version().toString()
-  return if (StringUtil.isEmpty(versionValue) || toVersion.compareTo(versionValue) != 0) ThreeState.YES else ThreeState.NO
+  val versionValue = AgpVersion.tryParse(model.version().toString()) ?: return ThreeState.UNSURE
+  return if (toVersion.compareTo(versionValue) != 0) ThreeState.YES else ThreeState.NO
 }
 
 /**
