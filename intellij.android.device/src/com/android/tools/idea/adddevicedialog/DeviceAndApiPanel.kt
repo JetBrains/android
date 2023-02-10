@@ -19,7 +19,6 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.grouplayout.GroupLayout.Companion.groupLayout
-import com.android.tools.idea.systemimage.SystemImage
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.SimpleTextAttributes
