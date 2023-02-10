@@ -91,7 +91,7 @@ object AppWidgetModelAdapter : GlancePreviewElementModelAdapter<GlancePreviewEle
     backedFile: VirtualFile,
     id: Long
   ): LightVirtualFile =
-    GlanceAppWidgetAdapterLightVirtualFile("model-appwidget-$id.xml", content) { backedFile }
+    GlanceAppWidgetAdapterLightVirtualFile("model-glance-appwidget-$id.xml", content) { backedFile }
 }
 
 internal const val WEAR_TILE_VIEW_ADAPTER =
@@ -110,5 +110,5 @@ object WearTilesModelAdapter : GlancePreviewElementModelAdapter<GlancePreviewEle
     backedFile: VirtualFile,
     id: Long
   ): LightVirtualFile =
-    GlanceTileAdapterLightVirtualFile("model-weartile-$id.xml", content) { backedFile }
+    GlanceTileAdapterLightVirtualFile("model-glance-weartile-$id.xml", content) { backedFile }
 }

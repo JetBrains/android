@@ -1334,6 +1334,11 @@ public final class StudioFlags {
     WEAR_SURFACES, "glance.preview.tile.enabled", "Enable Glance Tile preview",
     "If enabled, a preview for annotated glance tile composable functions is displayed",
     false);
+
+  public static final Flag<Boolean> WEAR_TILE_PREVIEW = Flag.create(
+    WEAR_SURFACES, "wear.tile.preview.enabled", "Enable Wear Tile preview",
+    "If enabled, a preview for classes extending androidx.wear.tiles.TileService is displayed",
+    false);
   // endregion
 
   // region App Inspection

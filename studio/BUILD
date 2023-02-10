@@ -374,6 +374,7 @@ studio_plugin(
             "//tools/adt/idea/layoutlib:intellij.android.layoutlib",
             "//tools/adt/idea/nav/editor:intellij.android.nav.editor",
             "//tools/adt/idea/preview-designer:intellij.android.preview-designer",
+            "//tools/adt/idea/wear-designer:intellij.android.wear-designer",
         ],
     },
     resources = {
