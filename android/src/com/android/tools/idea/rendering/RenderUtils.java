@@ -20,7 +20,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.collect.ImmutableCollection;
 import com.intellij.openapi.module.Module;
 import java.util.Objects;
@@ -52,7 +52,7 @@ public class RenderUtils {
           AndroidFacet facet = AndroidFacet.getInstance(module);
           Stream.concat(AndroidDependenciesCache.getAllAndroidDependencies(module, true).stream(), Stream.of(facet))
             .filter(Objects::nonNull)
-            .forEach(f -> ResourceRepositoryManager.getInstance(f).resetAllCaches());
+            .forEach(f -> StudioResourceRepositoryManager.getInstance(f).resetAllCaches());
         }
       });
   }

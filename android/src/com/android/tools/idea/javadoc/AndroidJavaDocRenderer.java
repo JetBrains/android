@@ -65,7 +65,7 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceFolderRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.res.StateList;
 import com.android.tools.idea.res.StateListState;
 import com.android.utils.HtmlBuilder;
@@ -329,7 +329,7 @@ public class AndroidJavaDocRenderer {
 
       if (resources != null) {
         // Go through all the binary libraries and look for additional resources there
-        for (AarResourceRepository dependency : ResourceRepositoryManager.getInstance(facet).getLibraryResources()) {
+        for (AarResourceRepository dependency : StudioResourceRepositoryManager.getInstance(facet).getLibraryResources()) {
           addItemsFromRepository(dependency.getDisplayName(), MASK_NORMAL, rank++, dependency, false, type, resourceName, results);
         }
       }
@@ -503,7 +503,7 @@ public class AndroidJavaDocRenderer {
     @Override
     @Nullable
     public ResourceRepository getFrameworkResources() {
-      ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myModule);
+      StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(myModule);
       return repositoryManager == null ? null : repositoryManager.getFrameworkResources(ImmutableSet.of());
     }
 
@@ -511,7 +511,7 @@ public class AndroidJavaDocRenderer {
     @Nullable
     public LocalResourceRepository getAppResources() {
       if (myAppResources == null) {
-        myAppResources = ResourceRepositoryManager.getAppResources(myModule);
+        myAppResources = StudioResourceRepositoryManager.getAppResources(myModule);
       }
 
       return myAppResources;

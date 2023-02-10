@@ -58,12 +58,12 @@ class GeneratedResourcesTest : AndroidGradleTestCase() {
     requestSyncAndWait()
 
     AndroidProjectRootListener.ensureSubscribed(project)
-    Truth.assertThat(ResourceRepositoryManager.getAppResources(project.findAppModule())!!
+    Truth.assertThat(StudioResourceRepositoryManager.getAppResources(project.findAppModule())!!
                        .getResources(ResourceNamespace.RES_AUTO, ResourceType.RAW, "sample_raw_resource")).isEmpty()
 
     generateSources()
 
-    Truth.assertThat(ResourceRepositoryManager.getAppResources(project.findAppModule())!!
+    Truth.assertThat(StudioResourceRepositoryManager.getAppResources(project.findAppModule())!!
                        .getResources(ResourceNamespace.RES_AUTO, ResourceType.RAW, "sample_raw_resource")).isNotEmpty()
 
     myFixture.openFileInEditor(

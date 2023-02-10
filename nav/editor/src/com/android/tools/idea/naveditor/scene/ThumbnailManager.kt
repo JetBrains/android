@@ -22,7 +22,7 @@ import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.taskBuilder
 import com.android.tools.idea.res.LocalResourceRepository
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.HashBasedTable
 import com.intellij.openapi.application.ApplicationManager
@@ -60,7 +60,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
   private val myScaledImages = HashBasedTable.create<VirtualFile, Configuration, HashBasedTable<Dimension, ScaleContext, SoftReference<Image>?>?>()
   private val myRenderVersions = HashBasedTable.create<VirtualFile, Configuration, Long>()
   private val myRenderModStamps = HashBasedTable.create<VirtualFile, Configuration, Long>()
-  private var myResourceRepository: LocalResourceRepository? = ResourceRepositoryManager.getAppResources(facet)
+  private var myResourceRepository: LocalResourceRepository? = StudioResourceRepositoryManager.getAppResources(facet)
 
   @GuardedBy("disposalLock")
   private val myPendingFutures = HashMap<VirtualFile, CompletableFuture<RefinableImage?>>()

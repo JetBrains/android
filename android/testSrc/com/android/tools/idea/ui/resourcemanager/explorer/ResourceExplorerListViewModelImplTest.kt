@@ -23,7 +23,7 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addAndroidModule
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -146,7 +146,7 @@ class ResourceExplorerListViewModelImplTest {
   @Test
   fun getSampleDataPreview() {
     val latch = CountDownLatch(1)
-    val sampleDataResource = ResourceRepositoryManager.getAppResources(projectRule.module)!!.getResources(
+    val sampleDataResource = StudioResourceRepositoryManager.getAppResources(projectRule.module)!!.getResources(
       // These are bitmap images, preferred for tests.
       ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA).values().first { it.name == "backgrounds/scenic" }
     Truth.assertThat(sampleDataResource).isNotNull()
@@ -188,7 +188,7 @@ class ResourceExplorerListViewModelImplTest {
   @Test
   fun getDataBindingLayoutSummary() {
     projectRule.fixture.copyFileToProject("res/layout/data_binding_layout.xml", "res/layout/data_binding_layout.xml")
-    val layoutResource = ResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!).getResources(
+    val layoutResource = StudioResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!).getResources(
       ResourceNamespace.RES_AUTO, ResourceType.LAYOUT).values().first()
     val asset = Asset.fromResourceItem(layoutResource) as DesignAsset
     val assetSet = ResourceAssetSet(asset.name, listOf(asset))
@@ -206,7 +206,7 @@ class ResourceExplorerListViewModelImplTest {
 
   @Test
   fun getSampleDataSummary() {
-    val sampleResource = ResourceRepositoryManager.getAppResources(projectRule.module.androidFacet!!).getResources(
+    val sampleResource = StudioResourceRepositoryManager.getAppResources(projectRule.module.androidFacet!!).getResources(
       ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA).values().first { it.name == "avatars" }
     val asset = Asset.fromResourceItem(sampleResource, ResourceType.DRAWABLE)
     val assetSet = ResourceAssetSet(asset.name, listOf(asset))
@@ -223,7 +223,7 @@ class ResourceExplorerListViewModelImplTest {
   @Test
   fun getThemeAttributeSummary() {
     projectRule.fixture.copyFileToProject("/res/values/colors.xml", "/res/values/colors.xml")
-    val colorResource = ResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!).getResources(
+    val colorResource = StudioResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!).getResources(
       ResourceNamespace.RES_AUTO, ResourceType.COLOR).values().first { it.name == "colorPrimary" }
     val attrResource = ResourceMergerItem("my_attr", ResourceNamespace.RES_AUTO, ResourceType.ATTR, null, null, null)
     ResourceFile.createSingle(File("res/values/attrs.xml"), attrResource, "")
@@ -243,7 +243,7 @@ class ResourceExplorerListViewModelImplTest {
 
   @Test
   fun getOtherModulesResources() {
-    Truth.assertThat(ResourceRepositoryManager.getModuleResources(projectRule.module)!!.allResources).isEmpty()
+    Truth.assertThat(StudioResourceRepositoryManager.getModuleResources(projectRule.module)!!.allResources).isEmpty()
     val module2Name = "app2"
 
     runInEdtAndWait {
@@ -280,7 +280,7 @@ class ResourceExplorerListViewModelImplTest {
     }
 
     var viewModel = createViewModel(projectRule.module, ResourceType.COLOR)
-    Truth.assertThat(ResourceRepositoryManager.getModuleResources(projectRule.module)!!.allResources).isEmpty()
+    Truth.assertThat(StudioResourceRepositoryManager.getModuleResources(projectRule.module)!!.allResources).isEmpty()
     viewModel.filterOptions.isShowLibraries = true
     val colorSection = viewModel.getCurrentModuleResourceLists().get()
     Truth.assertThat(colorSection).hasSize(2)

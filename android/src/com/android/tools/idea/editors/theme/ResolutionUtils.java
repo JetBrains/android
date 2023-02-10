@@ -42,7 +42,7 @@ import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyl
 import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.lint.checks.ApiLookup;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -303,7 +303,7 @@ public class ResolutionUtils {
           resourceRepository.getResources(ResourceNamespace.ANDROID, resolvedValue.getResourceType(), resolvedValue.getName());
     }
     else {
-      LocalResourceRepository LocalResourceRepository = ResourceRepositoryManager.getAppResources(facet);
+      LocalResourceRepository LocalResourceRepository = StudioResourceRepositoryManager.getAppResources(facet);
       configurables =
           LocalResourceRepository.getResources(ResourceNamespace.TODO(), resolvedValue.getResourceType(), resolvedValue.getName());
     }

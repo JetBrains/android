@@ -33,7 +33,7 @@ import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.projectsystem.gradle.GradleClassFinderUtil;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.res.TestResourceIdManager;
 import com.android.tools.idea.testing.AndroidLibraryDependency;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
@@ -156,7 +156,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
 
     generateRClass("test", new File(outputDir, "R.class"));
 
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(module);
+    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(module);
     ResourceNamespace namespace = Objects.requireNonNull(repositoryManager).getNamespace();
     List<ResourceRepository> repositories = repositoryManager.getAppResourcesForNamespace(namespace);
     // In the namespaced case two repositories are returned. The first one is a module repository,

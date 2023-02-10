@@ -26,7 +26,7 @@ import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.android.tools.idea.lint.common.DefaultLintQuickFix
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.util.ReformatUtil
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.ui.Messages
@@ -57,7 +57,7 @@ class GenerateMotionSceneFix(val url: ResourceUrl) :
     contextType: AndroidQuickfixContexts.ContextType
   ): Boolean {
     val facet = AndroidFacet.getInstance(startElement) ?: return false
-    val appResources = ResourceRepositoryManager.getAppResources(facet)
+    val appResources = StudioResourceRepositoryManager.getAppResources(facet)
     return !(appResources
       .getResources(ResourceNamespace.TODO(), ResourceType.XML)
       .keySet()

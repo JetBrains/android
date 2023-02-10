@@ -25,7 +25,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
@@ -182,7 +182,7 @@ public class MotionSceneTag implements MTag {
     private MotionSceneTag.Root getFile(Project project, NlModel model, String fileName) {
       AndroidFacet facet = model.getFacet();
 
-      List<VirtualFile> resourcesXML = IdeResourcesUtil.getResourceSubdirs(ResourceFolderType.XML, ResourceRepositoryManager
+      List<VirtualFile> resourcesXML = IdeResourcesUtil.getResourceSubdirs(ResourceFolderType.XML, StudioResourceRepositoryManager
         .getModuleResources(facet).getResourceDirs());
       if (resourcesXML.isEmpty()) {
         Debug.log(" resourcesXML.isEmpty() ");

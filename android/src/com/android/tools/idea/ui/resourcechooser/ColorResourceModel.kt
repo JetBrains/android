@@ -23,7 +23,7 @@ import com.android.ide.common.resources.ResourceVisitor
 import com.android.resources.ResourceType
 import com.android.resources.ResourceVisibility
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.resolveColor
 import com.google.common.annotations.VisibleForTesting
 import org.intellij.lang.annotations.MagicConstant
@@ -47,7 +47,7 @@ class ColorResourceModel(configuration: Configuration) {
   private val project = configuration.module.project
 
   init {
-    val repoManager = ResourceRepositoryManager.getInstance(configuration.module)
+    val repoManager = StudioResourceRepositoryManager.getInstance(configuration.module)
 
     val projectResources = ArrayList<ResourceReference>()
     val libraryResources = ArrayList<ResourceReference>()

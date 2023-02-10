@@ -24,5 +24,5 @@ class AndroidFacetResourceIdManagerModelModule(private val facet: AndroidFacet) 
     get() = facet.configuration.isAppOrFeature
 
   override val namespacing: Namespacing
-    get() = ResourceRepositoryManager.getInstance(facet).namespacing
+    get() = StudioResourceRepositoryManager.getInstance(facet).namespacing
 }

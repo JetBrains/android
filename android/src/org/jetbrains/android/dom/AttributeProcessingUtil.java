@@ -86,7 +86,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.psi.TagToClassMapper;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.CompletionUtil;
@@ -461,7 +461,7 @@ public class AttributeProcessingUtil {
     @NotNull Set<XmlName> skipAttrNames,
     @NotNull ResourceNamespace resourceNamespace
   ) {
-    ResourceRepository repo = ResourceRepositoryManager.getInstance(facet).getResourcesForNamespace(resourceNamespace);
+    ResourceRepository repo = StudioResourceRepositoryManager.getInstance(facet).getResourcesForNamespace(resourceNamespace);
     if (repo == null) return;
 
     //@see AttributeProcessingUtil.getLayoutStyleablePrimary and AttributeProcessingUtil.getLayoutStyleableSecondary

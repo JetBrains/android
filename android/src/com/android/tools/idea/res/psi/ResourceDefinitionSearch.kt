@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res.psi
 
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.intellij.openapi.application.QueryExecutorBase
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.searches.DefinitionsScopedSearch
@@ -30,7 +30,7 @@ class ResourceDefinitionSearch : QueryExecutorBase<PsiElement, DefinitionsScoped
     val project = queryParameters.project
     val element = queryParameters.element
     val refElement = ResourceReferencePsiElement.create(element) ?: return
-    val resourceRepositoryManager = ResourceRepositoryManager.getInstance(element) ?: return
+    val resourceRepositoryManager = StudioResourceRepositoryManager.getInstance(element) ?: return
     val resourceReference = refElement.resourceReference
     val repository = resourceRepositoryManager.getResourcesForNamespace(resourceReference.namespace) ?: return
     var minQualifiers = Int.MAX_VALUE

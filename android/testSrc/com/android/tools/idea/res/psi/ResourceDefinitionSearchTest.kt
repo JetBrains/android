@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res.psi
 
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.navigation.GotoImplementationHandler
 import com.intellij.openapi.editor.Editor
@@ -48,7 +48,7 @@ class ResourceDefinitionSearchTest : AndroidTestCase() {
       }
       """.trimIndent()).virtualFile
 
-    ResourceRepositoryManager.getAppResources(myFacet)
+    StudioResourceRepositoryManager.getAppResources(myFacet)
     myFixture.configureFromExistingVirtualFile(file)
 
     val gotoData = TestGotoImplementationHandler().createDataForSource(myFixture.editor, myFixture.caretOffset, myFixture.elementAtCaret)
@@ -75,7 +75,7 @@ class ResourceDefinitionSearchTest : AndroidTestCase() {
       </resources>
       """.trimIndent()).virtualFile
 
-    ResourceRepositoryManager.getAppResources(myFacet)
+    StudioResourceRepositoryManager.getAppResources(myFacet)
     myFixture.configureFromExistingVirtualFile(file)
 
     val gotoData = TestGotoImplementationHandler().createDataForSource(myFixture.editor, myFixture.caretOffset, myFixture.elementAtCaret)

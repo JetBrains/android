@@ -60,7 +60,7 @@ import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.android.tools.idea.rendering.DrawableRenderer;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -361,7 +361,7 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
     // This method delays actual state loading until default icon text is obtained from the project
     // resource repository.
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myFacet);
+      StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(myFacet);
       LocalResourceRepository projectResources = repositoryManager.getProjectResources();
       List<ResourceItem> items = projectResources.getResources(repositoryManager.getNamespace(), ResourceType.STRING, "app_name");
       ResourceValue resourceValue = !items.isEmpty() ? items.get(0).getResourceValue() : null;

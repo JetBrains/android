@@ -8,7 +8,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.openapi.application.ApplicationManager;
@@ -279,7 +279,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
     if (facet == null) {
       return;
     }
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(facet);
+    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(facet);
     LocalResourceRepository repository = repositoryManager.getAppResources();
     List<ResourceItem> styles = repository.getResources(ResourceNamespace.TODO(), ResourceType.STYLE, styleName);
     if (styles.size() == 1) {

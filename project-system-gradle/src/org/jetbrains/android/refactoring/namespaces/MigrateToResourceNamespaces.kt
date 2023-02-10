@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.res.AndroidDependenciesCache
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.Language
@@ -90,7 +90,7 @@ class MigrateToResourceNamespacesAction : BaseRefactoringAction() {
   override fun isEnabledOnElements(elements: Array<PsiElement>) = isEnabledOnModule(ModuleUtil.findModuleForPsiElement(elements.first()))
 
   private fun isEnabledOnModule(module: Module?): Boolean {
-    return ResourceRepositoryManager.getInstance(module ?: return false)?.namespacing == Namespacing.DISABLED
+    return StudioResourceRepositoryManager.getInstance(module ?: return false)?.namespacing == Namespacing.DISABLED
   }
 }
 
@@ -195,7 +195,7 @@ class MigrateToResourceNamespacesProcessor(
     val psiManager = PsiManager.getInstance(myProject)
 
     for (facet in allFacets) {
-      val repositoryManager = ResourceRepositoryManager.getInstance(facet)
+      val repositoryManager = StudioResourceRepositoryManager.getInstance(facet)
       if (repositoryManager.namespacing != Namespacing.DISABLED) continue
 
       for (resourceDir in repositoryManager.moduleResources.resourceDirs) {
@@ -238,7 +238,7 @@ class MigrateToResourceNamespacesProcessor(
 
     val result = mutableListOf<ResourceUsageInfo>()
     val domManager = DomManager.getDomManager(myProject)
-    val moduleRepo = ResourceRepositoryManager.getModuleResources(currentFacet)
+    val moduleRepo = StudioResourceRepositoryManager.getModuleResources(currentFacet)
 
     fun referenceNeedsRewriting(resourceType: ResourceType, name: String): Boolean {
       return !moduleRepo.hasResources(ResourceNamespace.RES_AUTO, resourceType, name)

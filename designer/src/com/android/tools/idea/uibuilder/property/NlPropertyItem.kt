@@ -43,7 +43,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.psi.TagToClassMapper
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.parseColor
 import com.android.tools.idea.res.resolveAsIcon
 import com.android.tools.idea.res.resolveColor
@@ -304,7 +304,7 @@ open class NlPropertyItem(
     get() = firstComponent?.model
 
   private fun computeDefaultNamespace(): ResourceNamespace =
-    ReadAction.compute<ResourceNamespace, RuntimeException> { ResourceRepositoryManager.getInstance(model.facet).namespace }
+    ReadAction.compute<ResourceNamespace, RuntimeException> { StudioResourceRepositoryManager.getInstance(model.facet).namespace }
 
   private fun isReferenceValue(value: String?): Boolean {
     return value != null && (value.startsWith("?") || value.startsWith("@") && !isId(value))
@@ -348,7 +348,7 @@ open class NlPropertyItem(
     if (attrDefinition != null && attrDefinition.values.isNotEmpty()) {
       values.addAll(attrDefinition.values)
     }
-    val repositoryManager = ResourceRepositoryManager.getInstance(model.facet)
+    val repositoryManager = StudioResourceRepositoryManager.getInstance(model.facet)
     val localRepository = repositoryManager.appResources
     val frameworkRepository = repositoryManager.getFrameworkResources(emptySet())
     val types = type.resourceTypes

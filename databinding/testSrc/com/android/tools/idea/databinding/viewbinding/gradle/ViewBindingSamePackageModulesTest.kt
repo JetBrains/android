@@ -20,7 +20,7 @@ import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_SAME_PACKAG
 import com.android.tools.idea.databinding.finders.BindingClassFinder
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
@@ -65,7 +65,7 @@ class ViewBindingSamePackageModulesTest {
     assertThat(appFacet.isViewBindingEnabled()).isTrue()
 
     // Trigger initialization
-    ResourceRepositoryManager.getModuleResources(appFacet)
+    StudioResourceRepositoryManager.getModuleResources(appFacet)
 
     val bindingClassFinder = PsiElementFinder.EP.findExtension(BindingClassFinder::class.java, project)!!
 

@@ -49,7 +49,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseIntArray;
 import com.google.common.collect.ImmutableList;
@@ -99,7 +99,7 @@ public class ConfigurationMatcher {
     myFile = file;
 
     myManager = myConfiguration.getConfigurationManager();
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myManager.getModule());
+    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(myManager.getModule());
     if (repositoryManager == null) {
       myResources = null;
       myNamespace = null;
@@ -705,7 +705,7 @@ public class ConfigurationMatcher {
       }
       FolderConfiguration currentConfig = Configuration.getFolderConfig(module, selectedState, locale, target);
       if (currentConfig != null) {
-        ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(module);
+        StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(module);
         if (repositoryManager != null) {
           LocalResourceRepository resources = repositoryManager.getAppResources();
           ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);

@@ -419,7 +419,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
     assertThat(IdeResourcesUtil.getResourceNamespace(frameworkClass)).isEqualTo(ANDROID);
 
     // Framework XML: API28 has two default app icons: res/drawable-watch/sym_def_app_icon.xml and res/drawable/sym_def_app_icon.xml
-    List<ResourceItem> appIconResourceItems = ResourceRepositoryManager.getInstance(myFacet)
+    List<ResourceItem> appIconResourceItems = StudioResourceRepositoryManager.getInstance(myFacet)
       .getFrameworkResources(ImmutableSet.of())
       .getResources(ANDROID, ResourceType.DRAWABLE, "sym_def_app_icon");
 

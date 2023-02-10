@@ -20,7 +20,7 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.idea.editors.theme.ResolutionUtils
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.progress.ProgressIndicator
@@ -184,7 +184,7 @@ private class ModalExplorerUpdater(private val facet: AndroidFacet, private val 
       // Commit any pending document changes
       PsiDocumentManager.getInstance(facet.module.project).commitAllDocumentsUnderProgress()
 
-      ResourceRepositoryManager.getInstance(facet).appResources.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE) {
+      StudioResourceRepositoryManager.getInstance(facet).appResources.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE) {
         // Wait for Resource repository to update
         repoUpdated.set(true)
       }

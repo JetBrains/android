@@ -9,7 +9,7 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.res.AndroidRClassBase
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
@@ -65,8 +65,7 @@ class AndroidGotoDeclarationHandler : GotoDeclarationHandler {
       is StyleableAttrLightField -> {
         // For Styleable Attr fields, we go to the reference of the attr inside the declare styleable, not necessarily the attr definition
         val styleableAttrUrl = targetElement.styleableAttrFieldUrl
-        val styleables =
-          ResourceRepositoryManager.getInstance(sourceElement)
+        val styleables = StudioResourceRepositoryManager.getInstance(sourceElement)
             ?.getResourcesForNamespace(styleableAttrUrl.styleable.namespace)
             ?.getResources(styleableAttrUrl.styleable) ?: return PsiElement.EMPTY_ARRAY
         return findAttrElementsInStyleables(styleables, targetElement)

@@ -5,7 +5,7 @@ import static com.android.SdkConstants.R_CLASS;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.intellij.codeInsight.completion.CompletionContributor;
 import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.codeInsight.completion.CompletionResult;
@@ -123,7 +123,7 @@ public class AndroidJavaCompletionContributor extends CompletionContributor {
         }
 
         ResourceType type = ResourceType.fromClassName(containingClass.getName());
-        ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(facet);
+        StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(facet);
         return type != null && !IdeResourcesUtil.isAccessible(repositoryManager.getNamespace(), type, psiField.getName(), facet);
       }
     }

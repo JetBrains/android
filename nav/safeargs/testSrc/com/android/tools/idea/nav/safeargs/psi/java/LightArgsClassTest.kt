@@ -16,7 +16,7 @@
 package com.android.tools.idea.nav.safeargs.psi.java
 
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
@@ -60,7 +60,7 @@ class LightArgsClassTest {
       """.trimIndent())
 
     // Initialize repository after creating resources, needed for codegen to work
-    ResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
+    StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
 
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 

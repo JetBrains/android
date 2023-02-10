@@ -18,7 +18,7 @@ package com.android.tools.idea.databinding.viewbinding.gradle
 import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.databinding.ViewBindingEnabledTrackingService
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findClass
@@ -86,7 +86,7 @@ class ViewBindingEnabledTest {
 
     // Trigger resource repository initialization
     val facet = projectRule.androidFacet(":app")
-    ResourceRepositoryManager.getAppResources(facet)
+    StudioResourceRepositoryManager.getAppResources(facet)
 
     // Context needed for searching for light classes
     val moduleDescriptor = facet.mainModule.toDescriptor()!!

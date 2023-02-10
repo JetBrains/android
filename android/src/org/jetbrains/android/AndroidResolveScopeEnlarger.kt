@@ -24,7 +24,7 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.ModuleRClass
 import com.android.tools.idea.res.ModuleRClass.SourceSet
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.ResourceRepositoryRClass
 import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity
 import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity.NON_TRANSITIVE
@@ -106,7 +106,7 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
     ): GlobalSearchScope(module.project) {
 
       private val dependentAarAddresses = findDependenciesWithResources(module).keys
-      private val namespacing = ResourceRepositoryManager.getInstance(module)?.namespacing
+      private val namespacing = StudioResourceRepositoryManager.getInstance(module)?.namespacing
 
       fun isLightVirtualFileFromAccessibleModule(file: LightVirtualFile): Boolean {
         val modulePointer = file.getUserData(MODULE_POINTER_KEY) ?: return false

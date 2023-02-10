@@ -25,7 +25,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.ActivityAttributesSnapshot;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.model.MergedManifestManager;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -141,7 +141,7 @@ public class ActionBarHandler extends ActionBarCallback {
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
       Module module = myRenderTask.getContext().getModule().getIdeaModule();
-      ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(module);
+      StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(module);
       if (repositoryManager != null) {
         ResourceNamespace namespace = repositoryManager.getNamespace();
         XmlFile xmlFile = myRenderTask.getXmlFile();

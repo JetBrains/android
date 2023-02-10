@@ -68,8 +68,8 @@ import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class ResourceRepositoryManager implements Disposable {
-  private static final Key<ResourceRepositoryManager> KEY = Key.create(ResourceRepositoryManager.class.getName());
+public final class StudioResourceRepositoryManager implements Disposable {
+  private static final Key<StudioResourceRepositoryManager> KEY = Key.create(StudioResourceRepositoryManager.class.getName());
 
   private static final Object APP_RESOURCES_LOCK = new Object();
   private static final Object PROJECT_RESOURCES_LOCK = new Object();
@@ -110,9 +110,9 @@ public final class ResourceRepositoryManager implements Disposable {
   private final Object myLibraryLock = new Object();
 
   @NotNull
-  public static ResourceRepositoryManager getInstance(@NotNull AndroidFacet facet) {
+  public static StudioResourceRepositoryManager getInstance(@NotNull AndroidFacet facet) {
     Namespacing namespacing = AndroidProjectModelUtils.getNamespacing(facet);
-    ResourceRepositoryManager instance = facet.getUserData(KEY);
+    StudioResourceRepositoryManager instance = facet.getUserData(KEY);
 
     if (instance != null && instance.myNamespacing != namespacing) {
       if (facet.replace(KEY, instance, null)) {
@@ -122,7 +122,7 @@ public final class ResourceRepositoryManager implements Disposable {
     }
 
     if (instance == null) {
-      ResourceRepositoryManager manager = new ResourceRepositoryManager(facet, namespacing);
+      StudioResourceRepositoryManager manager = new StudioResourceRepositoryManager(facet, namespacing);
       instance = facet.putUserDataIfAbsent(KEY, manager);
       if (instance == manager) {
         // Our object ended up stored in the facet.
@@ -135,13 +135,13 @@ public final class ResourceRepositoryManager implements Disposable {
   }
 
   @Nullable
-  public static ResourceRepositoryManager getInstance(@NotNull Module module) {
+  public static StudioResourceRepositoryManager getInstance(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     return facet == null ? null : getInstance(facet);
   }
 
   @Nullable
-  public static ResourceRepositoryManager getInstance(@NotNull PsiElement element) {
+  public static StudioResourceRepositoryManager getInstance(@NotNull PsiElement element) {
     Module module = ModuleUtilCore.findModuleForPsiElement(element);
     if (module == null) {
       return null;
@@ -245,7 +245,7 @@ public final class ResourceRepositoryManager implements Disposable {
     return getInstance(facet).getModuleResources();
   }
 
-  private ResourceRepositoryManager(@NotNull AndroidFacet facet, @NotNull Namespacing namespacing) {
+  private StudioResourceRepositoryManager(@NotNull AndroidFacet facet, @NotNull Namespacing namespacing) {
     myFacet = facet;
     myNamespacing = namespacing;
   }

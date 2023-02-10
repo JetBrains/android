@@ -33,7 +33,7 @@ import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.util.dependsOn
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -197,7 +197,7 @@ class LayoutBindingModuleCache(private val module: Module) {
       }
 
       synchronized(lock) {
-        val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
+        val moduleResources = StudioResourceRepositoryManager.getModuleResources(facet)
         val modificationCount = moduleResources.modificationCount
         if (modificationCount != lastResourcesModificationCount) {
           val layoutResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT)

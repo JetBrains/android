@@ -16,7 +16,7 @@
 package com.android.tools.idea.databinding
 
 import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
@@ -108,7 +108,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
 
     // This has to be called to explicitly fetch resources as a side-effect, which are used by the
     // DataBindingShortNamesCache class.
-    ResourceRepositoryManager.getInstance(androidFacet).moduleResources
+    StudioResourceRepositoryManager.getInstance(androidFacet).moduleResources
 
     val contextScope = context.resolveScope
     val invalidScope = GlobalSearchScope.EMPTY_SCOPE
@@ -162,7 +162,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
 
     // This has to be called to explicitly fetch resources as a side-effect, which are used by the
     // DataBindingShortNamesCache class.
-    ResourceRepositoryManager.getInstance(androidFacet).moduleResources
+    StudioResourceRepositoryManager.getInstance(androidFacet).moduleResources
 
     val contextScope = context.resolveScope
     val invalidScope = GlobalSearchScope.EMPTY_SCOPE
@@ -185,7 +185,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
 
     // This has to be called to explicitly fetch resources as a side-effect, which are used by the
     // DataBindingShortNamesCache class.
-    ResourceRepositoryManager.getInstance(androidFacet).moduleResources
+    StudioResourceRepositoryManager.getInstance(androidFacet).moduleResources
 
     val cache = PsiShortNamesCache.getInstance(projectRule.project) // Powered behind the scenes by DataBindingShortNamesCache
     assertThat(cache.allClassNames.asIterable()).containsAllIn(listOf("CustomBinding"))
@@ -212,7 +212,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
     """.trimIndent())
 
     // This has to be called to explicitly initialize the resource repository as a side-effect.
-    ResourceRepositoryManager.getInstance(androidFacet).appResources
+    StudioResourceRepositoryManager.getInstance(androidFacet).appResources
 
     val modelFile = fixture.addFileToProject("src/java/test/db/Model.java", """
       package test.db;

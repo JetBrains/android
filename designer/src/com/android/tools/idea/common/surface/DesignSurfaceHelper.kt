@@ -24,7 +24,7 @@ import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.npw.assetstudio.IconGenerator
 import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.google.common.io.CharStreams
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
@@ -47,7 +47,7 @@ import javax.swing.JComponent
 private val logger: Logger by lazy { Logger.getInstance("DesignSurfaceHelper") }
 
 fun moduleContainsResource(facet: AndroidFacet, type: ResourceType, name: String): Boolean {
-  return ResourceRepositoryManager.getModuleResources(facet).hasResources(ResourceNamespace.TODO(), type, name)
+  return StudioResourceRepositoryManager.getModuleResources(facet).hasResources(ResourceNamespace.TODO(), type, name)
 }
 
 fun copyVectorAssetToMainModuleSourceSet(project: Project, facet: AndroidFacet, asset: String) {

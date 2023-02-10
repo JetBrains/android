@@ -71,7 +71,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
     // ResourceFolderRepository.create may require the IDE read lock. To avoid deadlocks it is
     // always obtained first, before the caches locks.
     return ReadAction.nonBlocking(Callable {
-      get(facet, dir, ResourceRepositoryManager.getInstance(facet).namespace)
+      get(facet, dir, StudioResourceRepositoryManager.getInstance(facet).namespace)
     }).executeSynchronously()
   }
 

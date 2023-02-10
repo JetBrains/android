@@ -12,7 +12,7 @@ import com.android.ide.common.resources.ResourceItemWithVisibility;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.base.Verify;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.diagnostic.Logger;
@@ -69,7 +69,7 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
 
   protected static PsiField[] buildResourceFields(@NotNull ResourceRepository repository,
                                                   @NotNull ResourceNamespace namespace,
-                                                  @Nullable ResourceRepositoryManager resourceRepositoryManager,
+                                                  @Nullable StudioResourceRepositoryManager studioResourceRepositoryManager,
                                                   @NotNull AndroidLightField.FieldModifier fieldModifier,
                                                   @NotNull Predicate<ResourceItem> resourceFilter,
                                                   @NotNull ResourceType resourceType,
@@ -88,8 +88,8 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
           List<AttrResourceValue> attributes = value.getAllAttributes();
           for (AttrResourceValue attr : attributes) {
             ResourceNamespace attrNamespace = attr.getNamespace();
-            ResourceRepository attrRepository = resourceRepositoryManager == null ?
-                                                repository : resourceRepositoryManager.getResourcesForNamespace(attrNamespace);
+            ResourceRepository attrRepository = studioResourceRepositoryManager == null ?
+                                                repository : studioResourceRepositoryManager.getResourcesForNamespace(attrNamespace);
             if (attrRepository != null) {
               List<ResourceItem> attrResources = attrRepository.getResources(attrNamespace, ResourceType.ATTR, attr.getName());
               if (!attrResources.isEmpty()) {

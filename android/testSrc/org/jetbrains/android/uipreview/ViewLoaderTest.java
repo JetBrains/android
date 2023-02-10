@@ -28,7 +28,7 @@ import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.res.ResourceIdManager;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.AndroidTestCase;
@@ -112,7 +112,7 @@ public class ViewLoaderTest extends AndroidTestCase {
 
     // No LocalResourceRepository exists prior to calling loadAndParseRClass. It will get created during the call.
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    assertNull(facet != null ? ResourceRepositoryManager.getInstance(facet).getCachedAppResources() : null);
+    assertNull(facet != null ? StudioResourceRepositoryManager.getInstance(facet).getCachedAppResources() : null);
     viewLoader.loadAndParseRClass("org.jetbrains.android.uipreview.ViewLoaderTest$R", idManager);
 
     assertEquals(0x7f0a000e, idManager.getCompiledId(new ResourceReference(RES_AUTO, ResourceType.STRING, "app_name")).intValue());

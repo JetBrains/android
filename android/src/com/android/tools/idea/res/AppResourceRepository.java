@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 /**
- * @see ResourceRepositoryManager#getAppResources()
+ * @see StudioResourceRepositoryManager#getAppResources()
  */
 class AppResourceRepository extends MultiResourceRepository {
   private final AndroidFacet myFacet;
@@ -64,7 +64,7 @@ class AppResourceRepository extends MultiResourceRepository {
   }
 
   private static List<LocalResourceRepository> computeLocalRepositories(@NotNull AndroidFacet facet) {
-    return ImmutableList.of(ResourceRepositoryManager.getProjectResources(facet), SampleDataResourceRepository.getInstance(facet));
+    return ImmutableList.of(StudioResourceRepositoryManager.getProjectResources(facet), SampleDataResourceRepository.getInstance(facet));
   }
 
   private AppResourceRepository(@NotNull AndroidFacet facet,

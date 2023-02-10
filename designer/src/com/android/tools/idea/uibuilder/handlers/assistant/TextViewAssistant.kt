@@ -27,7 +27,7 @@ import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.adtui.stdui.CommonComboBoxRenderer
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.SampleDataResourceItem
 import com.android.tools.idea.uibuilder.assistant.AssistantPopupPanel
 import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory.Context
@@ -45,7 +45,7 @@ private const val NONE_VALUE = "None"
 class TextViewAssistant(private val context: Context) : AssistantPopupPanel() {
   private val myComponent: NlComponent = context.component
   private val myOriginalTextValue: String?
-  private val myAppResources = ResourceRepositoryManager.getAppResources(context.component.model.facet)
+  private val myAppResources = StudioResourceRepositoryManager.getAppResources(context.component.model.facet)
 
   private var myProject: Project = context.component.model.facet.module.project
 

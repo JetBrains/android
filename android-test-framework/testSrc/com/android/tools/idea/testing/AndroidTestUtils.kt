@@ -19,7 +19,7 @@ package com.android.tools.idea.testing
 
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.res.LocalResourceRepository
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.IntentionActionDelegate
 import com.intellij.lang.annotation.HighlightSeverity
@@ -192,14 +192,14 @@ fun <T> runDispatching(context: CoroutineContext = EmptyCoroutineContext, block:
 @Throws(InterruptedException::class, TimeoutException::class)
 @JvmOverloads
 fun waitForResourceRepositoryUpdates(facet: AndroidFacet, timeout: Long = 2, unit: TimeUnit = TimeUnit.SECONDS) {
-  waitForUpdates(ResourceRepositoryManager.getInstance(facet).projectResources, timeout, unit)
+  waitForUpdates(StudioResourceRepositoryManager.getInstance(facet).projectResources, timeout, unit)
 }
 
 /** Waits for the app resource repository to finish currently pending updates. */
 @Throws(InterruptedException::class, TimeoutException::class)
 @JvmOverloads
 fun waitForResourceRepositoryUpdates(module: Module, timeout: Long = 2, unit: TimeUnit = TimeUnit.SECONDS) {
-  waitForUpdates(ResourceRepositoryManager.getInstance(module)!!.projectResources, timeout, unit)
+  waitForUpdates(StudioResourceRepositoryManager.getInstance(module)!!.projectResources, timeout, unit)
 }
 
 /** Waits for the app resource repository to finish currently pending updates. */

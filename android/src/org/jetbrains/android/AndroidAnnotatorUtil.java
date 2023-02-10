@@ -33,7 +33,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.rendering.MultipleColorIcon;
@@ -132,7 +132,7 @@ public class AndroidAnnotatorUtil {
       switch (tagName) {
         case "vector": {
           // Take a look and see if we have a bitmap we can fall back to.
-          LocalResourceRepository resourceRepository = ResourceRepositoryManager.getAppResources(facet);
+          LocalResourceRepository resourceRepository = StudioResourceRepositoryManager.getAppResources(facet);
           List<ResourceItem> items =
             resourceRepository.getResources(resourceValue.getNamespace(), resourceValue.getResourceType(), resourceValue.getName());
           for (ResourceItem item : items) {

@@ -393,7 +393,7 @@ public class SampleDataResourceRepositoryTest {
     PsiFile rootImagePsiFile = myProjectRule.getFixture().addFileToProject("sampledata/root_image.png", "\n");
 
 
-    LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(myFacet);
+    LocalResourceRepository repository = StudioResourceRepositoryManager.getAppResources(myFacet);
     Collection<ResourceItem> items = repository.getResources(RES_AUTO, ResourceType.SAMPLE_DATA).values();
     assertSize(2, items);
     SampleDataResourceItem item =
@@ -431,7 +431,7 @@ public class SampleDataResourceRepositoryTest {
     @SuppressWarnings("unused") SampleDataResourceRepository.SampleDataRepositoryManager manager =
       SampleDataResourceRepository.SampleDataRepositoryManager.getInstance(myFacet);
 
-    ResourceRepositoryManager.getInstance(myFacet).resetAllCaches();
+    StudioResourceRepositoryManager.getInstance(myFacet).resetAllCaches();
   }
 
   @Test

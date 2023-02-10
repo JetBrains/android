@@ -25,7 +25,7 @@ import com.android.ide.common.resources.getConfiguredValue
 import com.android.resources.ResourceType
 import com.android.tools.idea.folding.AndroidFoldingSettings
 import com.android.tools.idea.res.LocalResourceRepository
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.intellij.lang.ASTNode
 import com.intellij.lang.folding.FoldingBuilderEx
 import com.intellij.lang.folding.FoldingDescriptor
@@ -73,7 +73,7 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
 
         val element = SourceTreeToPsiMap.treeElementToPsi(node) ?: return null
         // We force creation of the app resources repository when necessary to keep things deterministic.
-        val appResources = ResourceRepositoryManager.getInstance(element)?.appResources ?: return null
+        val appResources = StudioResourceRepositoryManager.getInstance(element)?.appResources ?: return null
         val uastContext = element.project.getService(UastContext::class.java) ?: return null
         return uastContext.convertElement(element, null, null)?.unwrapReferenceAndGetValue(appResources)
     }

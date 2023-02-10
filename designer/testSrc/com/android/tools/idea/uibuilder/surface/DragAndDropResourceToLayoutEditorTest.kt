@@ -20,7 +20,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.createTransferable
@@ -50,8 +50,7 @@ class DragAndDropResourceToLayoutEditorTest : LayoutTestCase() {
     surface.scene!!.buildDisplayList(DisplayList(), 0)
     surface.model = model
 
-    val layoutResource =
-      ResourceRepositoryManager
+    val layoutResource = StudioResourceRepositoryManager
         .getModuleResources(myFixture.module.androidFacet!!)
         .getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT)["layout_to_include"][0]
     val asset = Asset.fromResourceItem(layoutResource) as DesignAsset
@@ -94,8 +93,7 @@ class DragAndDropResourceToLayoutEditorTest : LayoutTestCase() {
     surface.scene!!.buildDisplayList(DisplayList(), 0)
     surface.model = model
 
-    val layoutResource =
-      ResourceRepositoryManager
+    val layoutResource = StudioResourceRepositoryManager
         .getModuleResources(myFixture.module.androidFacet!!)
         .getResources(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE)["color_drawable"][0]
     val asset = Asset.fromResourceItem(layoutResource) as DesignAsset

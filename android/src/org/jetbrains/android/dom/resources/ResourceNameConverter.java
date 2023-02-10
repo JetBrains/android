@@ -9,7 +9,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.LocalQuickFixProvider;
@@ -138,7 +138,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
     if (manager == null) {
       return Collections.emptyList();
     }
-    LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(facet);
+    LocalResourceRepository appResources = StudioResourceRepositoryManager.getAppResources(facet);
     final Collection<String> styleNames = appResources.getResources(ResourceNamespace.TODO(), ResourceType.STYLE).keySet();
     final List<String> result = new ArrayList<>();
 
@@ -204,7 +204,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
   }
 
   public static boolean hasExplicitParent(@NotNull AndroidFacet facet, @NotNull String localStyleName) {
-    LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(facet);
+    LocalResourceRepository repository = StudioResourceRepositoryManager.getAppResources(facet);
     List<ResourceItem> styles = repository.getResources(ResourceNamespace.TODO(), ResourceType.STYLE, localStyleName);
     if (styles.isEmpty()) {
       return false;

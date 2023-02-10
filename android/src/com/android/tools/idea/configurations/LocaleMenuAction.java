@@ -26,7 +26,7 @@ import com.android.tools.idea.rendering.FlagManager;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -112,7 +112,7 @@ public class LocaleMenuAction extends DropDownAction {
   }
 
   /**
-   * Like {@link ResourceRepositoryManager#getLocalesInProject} but filters out locales not compatible
+   * Like {@link StudioResourceRepositoryManager#getLocalesInProject} but filters out locales not compatible
    * with language and region qualifiers in the current configuration's folder config.
    *
    * @return the list of relevant locales in the project
@@ -143,7 +143,7 @@ public class LocaleMenuAction extends DropDownAction {
       }
     }
 
-    LocalResourceRepository projectResources = ResourceRepositoryManager.getProjectResources(module);
+    LocalResourceRepository projectResources = StudioResourceRepositoryManager.getProjectResources(module);
     Set<LocaleQualifier> languages = projectResources != null ? ResourceRepositoryUtil.getLocales(projectResources) : Collections.emptySet();
     for (LocaleQualifier l : languages) {
       if (specificLocale != null && !specificLocale.isMatchFor(l)) {

@@ -53,7 +53,7 @@ import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.namespacing
 import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.res.ResourceNamespaceContext
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.StateList
 import com.android.tools.idea.res.colorToString
 import com.android.tools.idea.res.getItemPsiFile
@@ -139,7 +139,7 @@ class ResourceLookupResolver(
   private val folderConfiguration: FolderConfiguration,
   private val resolver: ResourceResolver
 ) {
-  private val projectResources = ResourceRepositoryManager.getProjectResources(appFacet)
+  private val projectResources = StudioResourceRepositoryManager.getProjectResources(appFacet)
   private val androidResourceNamespaceResolver =
     ResourceNamespace.Resolver { namespacePrefix -> if (namespacePrefix == ANDROID_NS_NAME) ANDROID_URI else null }
   private val androidNamespaceContext = ResourceNamespaceContext(ResourceNamespace.ANDROID, androidResourceNamespaceResolver)

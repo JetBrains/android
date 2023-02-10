@@ -34,16 +34,16 @@ import java.util.Set;
 import org.jetbrains.android.AndroidTestCase;
 
 /**
- * Tests for {@link ResourceRepositoryManager}.
+ * Tests for {@link StudioResourceRepositoryManager}.
  */
-public class ResourceRepositoryManagerTest extends AndroidTestCase {
+public class StudioResourceRepositoryManagerTest extends AndroidTestCase {
   /**
-   * Checks that adding an AAR dependency is reflected in the result returned by {@link ResourceRepositoryManager#getLibraryResources()}.
+   * Checks that adding an AAR dependency is reflected in the result returned by {@link StudioResourceRepositoryManager#getLibraryResources()}.
    */
   public void testLibraryResources() {
     enableNamespacing("p1.p2");
 
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myFacet);
+    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(myFacet);
     assertThat(repositoryManager.getLibraryResources()).isEmpty();
     ResourceNamespace libraryNamespace = ResourceNamespace.fromPackageName("com.example.mylibrary");
     addBinaryAarDependency(myModule);
@@ -55,7 +55,7 @@ public class ResourceRepositoryManagerTest extends AndroidTestCase {
     myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
     assertThat(AndroidModel.isRequired(myFacet)).named("module uses a model").isTrue();
 
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myFacet);
+    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(myFacet);
     repositoryManager.getAppResources();
     repositoryManager.resetResources(); // This can be triggered from the layout editor UI.
     for (SingleNamespaceResourceRepository repository : repositoryManager.getAppResources().getLeafResourceRepositories()) {
@@ -71,7 +71,7 @@ public class ResourceRepositoryManagerTest extends AndroidTestCase {
     Set<ResourceRepository> repositoriesToDispose = new HashSet<>();
 
     public void testClosingProject() {
-      ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myFacet);
+      StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(myFacet);
       repositoriesToDispose.add(repositoryManager.getAppResources());
       repositoriesToDispose.add(repositoryManager.getProjectResources());
       repositoriesToDispose.add(repositoryManager.getModuleResources());

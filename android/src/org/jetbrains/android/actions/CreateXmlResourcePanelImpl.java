@@ -24,7 +24,7 @@ import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.ui.TextFieldWithBooleanBoxKt;
 import com.android.tools.idea.ui.TextFieldWithColorPickerKt;
 import com.intellij.application.options.ModulesComboBox;
@@ -361,7 +361,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     }
 
     // Resources with names already used in this module will not build.
-    LocalResourceRepository moduleResources = ResourceRepositoryManager.getModuleResources(selectedModule);
+    LocalResourceRepository moduleResources = StudioResourceRepositoryManager.getModuleResources(selectedModule);
     if (moduleResources != null) {
       List<ResourceItem> resources = moduleResources.getResources(ResourceNamespace.RES_AUTO, myResourceType, resourceName);
       if (!resources.isEmpty()) {

@@ -21,7 +21,7 @@ import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.intellij.navigation.NavigationItem;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 public class GoToAndroidResourceContributor extends GoToSymbolProvider {
   @Override
   protected void addNames(@NotNull Module module, @NotNull Set<String> result) {
-    LocalResourceRepository resources = ResourceRepositoryManager.getModuleResources(module);
+    LocalResourceRepository resources = StudioResourceRepositoryManager.getModuleResources(module);
     if (resources != null) {
       for (SingleNamespaceResourceRepository repository : resources.getLeafResourceRepositories()) {
         repository.accept(item -> {
@@ -50,7 +50,7 @@ public class GoToAndroidResourceContributor extends GoToSymbolProvider {
 
   @Override
   protected void addItems(@NotNull Module module, @NotNull String name, @NotNull List<NavigationItem> result) {
-    LocalResourceRepository resources = ResourceRepositoryManager.getModuleResources(module);
+    LocalResourceRepository resources = StudioResourceRepositoryManager.getModuleResources(module);
     if (resources != null) {
       for (SingleNamespaceResourceRepository repository : resources.getLeafResourceRepositories()) {
         repository.accept(item -> {

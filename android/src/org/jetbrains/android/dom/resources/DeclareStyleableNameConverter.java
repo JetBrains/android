@@ -3,7 +3,7 @@ package org.jetbrains.android.dom.resources;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver;
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder;
@@ -93,7 +93,7 @@ public class DeclareStyleableNameConverter extends Converter<String> implements 
         return ResolveResult.EMPTY_ARRAY;
       }
       // Declare styleable name will point to the ResourceReferencePsiElement.
-      ResourceNamespace resourceNamespace = ResourceRepositoryManager.getInstance(myFacet).getNamespace();
+      ResourceNamespace resourceNamespace = StudioResourceRepositoryManager.getInstance(myFacet).getNamespace();
       return ResourceRepositoryToPsiResolver.INSTANCE.resolveReference(
         new ResourceReference(resourceNamespace, ResourceType.STYLEABLE, value), myElement, myFacet);
     }

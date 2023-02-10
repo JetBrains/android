@@ -49,7 +49,7 @@ class TestAppResourceRepository private constructor(
           //
           .filter { it.getHolderModule() != facet.holderModule }
           .mapNotNull { it.androidFacet }
-          .map { ResourceRepositoryManager.getModuleResources(it) }
+          .map { StudioResourceRepositoryManager.getModuleResources(it) }
       )
 
       val aarCache = AarResourceRepositoryCache.instance
@@ -60,7 +60,7 @@ class TestAppResourceRepository private constructor(
 
       if (facet.configuration.isLibraryProject) {
         // In library projects, there's only one APK when testing and the test R class contains all resources.
-        localRepositories += ResourceRepositoryManager.getAppResources(facet)
+        localRepositories += StudioResourceRepositoryManager.getAppResources(facet)
       }
 
       return TestAppResourceRepository(facet, localRepositories, libraryRepositories)

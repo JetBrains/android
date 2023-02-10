@@ -515,7 +515,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       // Regression test for b/144585792. Caches in ResourceRepositoryManager can be dropped for various reasons, we need to make sure we
       // keep track of changes even after new repository instances are created.
-      ResourceRepositoryManager.getInstance(myFacet).resetAllCaches()
+      StudioResourceRepositoryManager.getInstance(myFacet).resetAllCaches()
       runWriteAction { barXml.delete() }
       waitForResourceRepositoryUpdates()
       assertThat(myFixture.doHighlighting(ERROR)).hasSize(1)

@@ -24,7 +24,7 @@ import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDIN
 import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_SUPPORT
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.findClass
 import com.google.common.collect.Lists
@@ -244,7 +244,7 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
     assertThat(parameters.mode).isEqualTo(LayoutBindingModuleCache.getInstance(projectRule.androidFacet(":app")).dataBindingMode)
 
     // trigger initialization
-    ResourceRepositoryManager.getModuleResources(projectRule.androidFacet(":app"))
+    StudioResourceRepositoryManager.getModuleResources(projectRule.androidFacet(":app"))
 
     val classesOut = File(projectRule.project.basePath, "/app/build/intermediates/javac//debug/classes")
 

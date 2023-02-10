@@ -18,7 +18,7 @@ package org.jetbrains.android.resourceManagers;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
@@ -83,7 +83,7 @@ public class FrameworkResourceManager extends ResourceManager {
 
   @Nullable
   private ResourceRepository getResourceRepository() {
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myModule);
+    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(myModule);
     return repositoryManager == null ? null : repositoryManager.getFrameworkResources(ImmutableSet.of());
   }
 

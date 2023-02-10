@@ -88,7 +88,7 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
     super("Sample Data");
     myAndroidFacet = androidFacet;
 
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(androidFacet);
+    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(androidFacet);
     myNamespace = repositoryManager.getNamespace();
     loadItems();
 

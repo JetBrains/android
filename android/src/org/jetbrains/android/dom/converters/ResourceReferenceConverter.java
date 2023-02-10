@@ -41,7 +41,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceNamespaceContext;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.CodeCompletionHandlerBase;
@@ -306,7 +306,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     });
 
     // Find matching ID resource declarations.
-    Collection<String> ids = ResourceRepositoryManager.getAppResources(facet).getResources(namespace, ResourceType.ID).keySet();
+    Collection<String> ids = StudioResourceRepositoryManager.getAppResources(facet).getResources(namespace, ResourceType.ID).keySet();
     for (String name : ids) {
       ResourceValue ref = referenceTo(prefix, "+id", namespace.getPackageName(), name, true);
       if (!value.startsWith(doToString(ref))) {
@@ -351,7 +351,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
   @NotNull
   public static Set<ResourceType> getResourceTypesInCurrentModule(@NotNull AndroidFacet facet) {
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(facet);
+    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(facet);
     LocalResourceRepository repository = repositoryManager.getAppResources();
     return repository.getResourceTypes(repositoryManager.getNamespace());
   }
@@ -417,7 +417,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       }
     }
     else {
-      ResourceRepositoryManager repoManager = ResourceRepositoryManager.getInstance(facet);
+      StudioResourceRepositoryManager repoManager = StudioResourceRepositoryManager.getInstance(facet);
       LocalResourceRepository appResources = repoManager.getAppResources();
 
       if (onlyNamespace == ResourceNamespace.ANDROID || (onlyNamespace == null && !StudioFlags.COLLAPSE_ANDROID_NAMESPACE.get())) {
@@ -465,7 +465,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     String namespacePrefix = resolver.uriToPrefix(namespace.getXmlNamespaceUri());
     List<Module> modules = androidModuleSystem.getDynamicFeatureModules();
     for (Module module : modules) {
-      LocalResourceRepository moduleResources = ResourceRepositoryManager.getModuleResources(module);
+      LocalResourceRepository moduleResources = StudioResourceRepositoryManager.getModuleResources(module);
       if (moduleResources == null) {
         continue;
       }
@@ -477,7 +477,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   private static void addResourceReferenceValuesFromRepo(ResourceRepository repo,
-                                                         ResourceRepositoryManager repoManager,
+                                                         StudioResourceRepositoryManager repoManager,
                                                          @Nullable XmlElement element,
                                                          char prefix,
                                                          ResourceType type,

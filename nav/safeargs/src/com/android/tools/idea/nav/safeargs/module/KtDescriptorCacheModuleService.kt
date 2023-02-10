@@ -30,7 +30,7 @@ import com.android.tools.idea.nav.safeargs.psi.xml.XmlSourceElement
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
 import com.android.tools.idea.nav.safeargs.safeArgsMode
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.diagnostic.Logger
@@ -217,7 +217,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
 
   private fun getNavResourceFromIndex(): List<NavEntryKt> {
     val facet = AndroidFacet.getInstance(module) ?: return emptyList()
-    val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
+    val moduleResources = StudioResourceRepositoryManager.getModuleResources(facet)
     val navResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.NAVIGATION)
 
     return navResources.values()

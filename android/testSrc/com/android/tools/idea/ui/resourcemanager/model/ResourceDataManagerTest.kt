@@ -20,7 +20,7 @@ import com.android.ide.common.resources.ResourceFile
 import com.android.ide.common.resources.ResourceMergerItem
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.getPNGResourceItem
@@ -86,7 +86,7 @@ class ResourceDataManagerTest {
   @Test
   fun getColorPsiElement() {
     rule.fixture.copyFileToProject("res/values/colors.xml", "res/values/colors.xml")
-    val colorItem = ResourceRepositoryManager.getInstance(rule.module.androidFacet!!)
+    val colorItem = StudioResourceRepositoryManager.getInstance(rule.module.androidFacet!!)
       .appResources
       .getResources(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "colorPrimary")
       .first()

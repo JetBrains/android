@@ -38,7 +38,7 @@ import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
@@ -71,7 +71,7 @@ public class ThemeResolver {
   public ThemeResolver(@NotNull Configuration configuration) {
     myConfiguration = configuration;
 
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(configuration.getModule());
+    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(configuration.getModule());
     if (repositoryManager == null) {
       throw new IllegalArgumentException("\"" + configuration.getModule().getName() + "\" is not an Android module");
     }
@@ -153,7 +153,7 @@ public class ThemeResolver {
    */
   @NotNull
   private List<StyleResourceValue> resolveNonFrameworkThemes() {
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myConfiguration.getModule());
+    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(myConfiguration.getModule());
     if (repositoryManager == null) {
       return Collections.emptyList();
     }
@@ -173,11 +173,11 @@ public class ThemeResolver {
     Module module = myConfiguration.getModule();
     List<Pair<StyleResourceValue, Module>> result = new ArrayList<>();
 
-    fillModuleResources(module, ResourceRepositoryManager.getModuleResources(module), result);
+    fillModuleResources(module, StudioResourceRepositoryManager.getModuleResources(module), result);
 
     List<AndroidFacet> allAndroidDependencies = AndroidDependenciesCache.getAllAndroidDependencies(module, false);
     for (AndroidFacet facet : allAndroidDependencies) {
-      fillModuleResources(facet.getModule(), ResourceRepositoryManager.getModuleResources(facet), result);
+      fillModuleResources(facet.getModule(), StudioResourceRepositoryManager.getModuleResources(facet), result);
     }
 
     return result;
@@ -353,7 +353,7 @@ public class ThemeResolver {
   }
 
   private static boolean isNamespacingEnabled(@NotNull Module module) {
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(module);
+    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(module);
     return repositoryManager != null && repositoryManager.getNamespacing() == Namespacing.REQUIRED;
   }
 }

@@ -26,7 +26,7 @@ import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.databinding.TestDataPaths;
 import com.android.tools.idea.databinding.module.LayoutBindingModuleCache;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.openapi.project.Project;
@@ -73,7 +73,7 @@ public class DataBindingScopeTest {
     GlobalSearchScope lib2Scope = fixture.findClass("lib2.ContextPlaceholder").getResolveScope();
 
     // trigger initialization
-    ResourceRepositoryManager.getModuleResources(facet);
+    StudioResourceRepositoryManager.getModuleResources(facet);
     JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
 
     // app binding only accessible from app

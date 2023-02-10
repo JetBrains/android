@@ -43,7 +43,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 /**
- * @see ResourceRepositoryManager#getModuleResources()
+ * @see StudioResourceRepositoryManager#getModuleResources()
  */
 final class ModuleResourceRepository extends MultiResourceRepository implements SingleNamespaceResourceRepository {
   @NotNull private final AndroidFacet myFacet;

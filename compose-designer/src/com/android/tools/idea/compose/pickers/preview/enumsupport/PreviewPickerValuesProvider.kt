@@ -36,7 +36,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.DeviceGroup
 import com.android.tools.idea.configurations.groupDevices
 import com.android.tools.idea.model.StudioAndroidModuleInfo
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.property.panel.api.EnumValue
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
@@ -187,7 +187,7 @@ private fun createGroupEnumProvider(
 private fun createLocaleEnumProvider(module: Module): EnumValuesProvider =
   localesProvider@{
     val enumValueLocales = mutableListOf<EnumValue>(EnumValue.empty("Default (en-US)"))
-    ResourceRepositoryManager.getInstance(module)
+    StudioResourceRepositoryManager.getInstance(module)
       ?.localesInProject
       ?.sortedWith(Locale.LANGUAGE_CODE_COMPARATOR)
       ?.forEach { locale ->

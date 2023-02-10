@@ -16,7 +16,7 @@
 package com.android.tools.idea.databinding.integration.gradle
 
 import com.android.testutils.TestUtils.resolveWorkspacePath
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtil
@@ -105,7 +105,7 @@ class DataBindingInspectionVerificationTest {
     projectRule.load("TestApp")
 
     // Trigger resource repository initialization
-    ResourceRepositoryManager.getAppResources(projectRule.androidFacet(":app"))
+    StudioResourceRepositoryManager.getAppResources(projectRule.androidFacet(":app"))
 
     // Need to do this or else highlighting will fail with a
     // "Access to tree elements not allowed" error

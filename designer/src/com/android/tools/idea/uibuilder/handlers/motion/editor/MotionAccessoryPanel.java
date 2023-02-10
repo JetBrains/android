@@ -28,7 +28,7 @@ import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceNotificationManager;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.api.AccessorySelectionListener;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -477,7 +477,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     // let's open the file
     AndroidFacet facet = motionLayout.getModel().getFacet();
 
-    List<VirtualFile> resourcesXML = IdeResourcesUtil.getResourceSubdirs(ResourceFolderType.XML, ResourceRepositoryManager
+    List<VirtualFile> resourcesXML = IdeResourcesUtil.getResourceSubdirs(ResourceFolderType.XML, StudioResourceRepositoryManager
       .getModuleResources(facet).getResourceDirs());
     if (resourcesXML.isEmpty()) {
       return null;
@@ -673,7 +673,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       return null;
     }
     AndroidFacet facet = component.getModel().getFacet();
-    List<VirtualFile> resourcesXML = IdeResourcesUtil.getResourceSubdirs(ResourceFolderType.XML, ResourceRepositoryManager
+    List<VirtualFile> resourcesXML = IdeResourcesUtil.getResourceSubdirs(ResourceFolderType.XML, StudioResourceRepositoryManager
       .getModuleResources(facet).getResourceDirs());
     if (resourcesXML.isEmpty()) {
       return null;

@@ -30,7 +30,7 @@ import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getManifestFiles
 import com.android.tools.idea.res.LocalResourceRepository
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.findResourceFieldsForFileResource
 import com.android.tools.idea.res.findResourceFieldsForValueResource
 import com.android.tools.idea.res.getFolderType
@@ -305,7 +305,7 @@ class AndroidModularizeHandler : RefactoringActionHandler {
 
     private inner class XmlResourceReferenceVisitor(private val myFacet: AndroidFacet,
                                                     private val mySource: PsiElement) : XmlRecursiveElementWalkingVisitor() {
-      private val myResourceRepository: LocalResourceRepository = ResourceRepositoryManager.getModuleResources(myFacet)
+      private val myResourceRepository: LocalResourceRepository = StudioResourceRepositoryManager.getModuleResources(myFacet)
 
       override fun visitXmlAttributeValue(element: XmlAttributeValue) = processPotentialReference(element.value)
 
@@ -339,7 +339,7 @@ class AndroidModularizeHandler : RefactoringActionHandler {
 
     private inner class JavaReferenceVisitor(private val myFacet: AndroidFacet,
                                              private val mySource: PsiElement) : JavaRecursiveElementWalkingVisitor() {
-      private val myResourceRepository: LocalResourceRepository = ResourceRepositoryManager.getModuleResources(myFacet)
+      private val myResourceRepository: LocalResourceRepository = StudioResourceRepositoryManager.getModuleResources(myFacet)
 
       override fun visitReferenceExpression(expression: PsiReferenceExpression) {
         expression.resolve()?.let { element -> commonVisitReferenceExpression(expression, element, mySource, myResourceRepository) }
@@ -353,7 +353,7 @@ class AndroidModularizeHandler : RefactoringActionHandler {
 
     private inner class KotlinReferenceVisitor(private val myFacet: AndroidFacet,
                                                private val mySource: PsiElement) : KotlinRecursiveElementWalkingVisitor() {
-      private val myResourceRepository: LocalResourceRepository = ResourceRepositoryManager.getModuleResources(myFacet)
+      private val myResourceRepository: LocalResourceRepository = StudioResourceRepositoryManager.getModuleResources(myFacet)
 
       override fun visitReferenceExpression(expression: KtReferenceExpression) {
         expression.references.forEach {

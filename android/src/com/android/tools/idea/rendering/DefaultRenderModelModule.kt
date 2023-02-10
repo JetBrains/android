@@ -18,7 +18,7 @@ package com.android.tools.idea.rendering
 import com.android.ide.common.rendering.api.AssetRepository
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.res.ResourceIdManager
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.intellij.openapi.module.Module
 import org.jetbrains.android.sdk.AndroidPlatform
 
@@ -29,7 +29,7 @@ import org.jetbrains.android.sdk.AndroidPlatform
 class DefaultRenderModelModule(
   override val ideaModule: Module,
   assets: AssetRepository?,
-  override val resourceRepositoryManager: ResourceRepositoryManager,
+  override val studioResourceRepositoryManager: StudioResourceRepositoryManager,
   override val info: AndroidModuleInfo,
   override val androidPlatform: AndroidPlatform?,
   override val resourceIdManager: ResourceIdManager

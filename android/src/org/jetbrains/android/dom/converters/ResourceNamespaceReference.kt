@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AndroidDependenciesCache
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.resolveResourceNamespace
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.NavigatablePsiElement
@@ -53,7 +53,7 @@ class ResourceNamespaceReference(
     val prefix = rangeInElement.substring(element.text).nullize(nullizeSpaces = true) ?: return null
     val prefixDeclaration = XmlExtension.getExtensionByElement(element)?.getPrefixDeclaration(element.parentOfType<XmlTag>(), prefix)
 
-    val repositoryManager = ResourceRepositoryManager.getInstance(element) ?: return null
+    val repositoryManager = StudioResourceRepositoryManager.getInstance(element) ?: return null
 
     if (prefixDeclaration != null && repositoryManager.namespacing != Namespacing.DISABLED) {
       // TODO(b/76409654): In non-namespaced projects, namespaced resource references cannot rely on XML namespace definitions.

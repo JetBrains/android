@@ -17,7 +17,7 @@ package com.android.tools.idea.ui.resourcemanager.importer
 
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.res.IdeResourceNameValidator
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.designAssets
@@ -82,7 +82,7 @@ class ResourceImportDialogViewModel(
   private val resourceDuplicateValidator = IdeResourceNameValidator.forFilename(
     ResourceFolderType.DRAWABLE,
     null,
-    ResourceRepositoryManager.getAppResources(facet))
+    StudioResourceRepositoryManager.getAppResources(facet))
 
   /**
    * This validator only check for the name

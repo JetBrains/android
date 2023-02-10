@@ -34,7 +34,7 @@ import com.android.tools.adtui.HorizontalSpinner;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.assistant.AssistantPopupPanel;
 import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory.Context;
 import com.google.common.base.Charsets;
@@ -119,7 +119,7 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
    */
   private static int getIndexOfMatchingTemplate(@NotNull Template[] availableTemplates, @NotNull AndroidFacet facet,
                                          @NotNull ResourceReference reference) {
-    List<ResourceItem> items = ResourceRepositoryManager.getAppResources(facet).getResources(reference);
+    List<ResourceItem> items = StudioResourceRepositoryManager.getAppResources(facet).getResources(reference);
     if (items.isEmpty()) {
       return -1;
     }
@@ -258,7 +258,7 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
 
   @NotNull
   private static String getTemplateName(@NotNull AndroidFacet facet, @NotNull String templateRootName) {
-    LocalResourceRepository LocalResourceRepository = ResourceRepositoryManager.getAppResources(facet);
+    LocalResourceRepository LocalResourceRepository = StudioResourceRepositoryManager.getAppResources(facet);
     String resourceNameRoot = FileResourceNameValidator.getValidResourceFileName(templateRootName);
 
     String resourceName;

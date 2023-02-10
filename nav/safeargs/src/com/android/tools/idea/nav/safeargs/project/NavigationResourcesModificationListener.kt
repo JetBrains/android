@@ -25,7 +25,7 @@ import com.android.tools.idea.nav.safeargs.module.ModuleNavigationResourcesModif
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
@@ -78,7 +78,7 @@ class NavigationResourcesModificationListener(
       return false
     }
 
-    val navResourceVfs = ResourceRepositoryManager.getModuleResources(facet)
+    val navResourceVfs = StudioResourceRepositoryManager.getModuleResources(facet)
       .getResources(ResourceNamespace.RES_AUTO, ResourceType.NAVIGATION)
       .values()
       .mapNotNull(ResourceItem::getSourceAsVirtualFile)

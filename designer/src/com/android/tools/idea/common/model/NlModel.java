@@ -42,7 +42,7 @@ import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceNotificationManager;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
@@ -867,7 +867,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
    */
   @NotNull
   public Set<String> getIds() {
-    LocalResourceRepository resources = ResourceRepositoryManager.getAppResources(getFacet());
+    LocalResourceRepository resources = StudioResourceRepositoryManager.getAppResources(getFacet());
     Set<String> ids = new HashSet<>(resources.getResources(ResourceNamespace.TODO(), ResourceType.ID).keySet());
     Set<String> pendingIds = getPendingIds();
     if (!pendingIds.isEmpty()) {

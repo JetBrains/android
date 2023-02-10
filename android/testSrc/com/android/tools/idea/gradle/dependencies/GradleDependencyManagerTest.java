@@ -31,7 +31,7 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
 import com.android.tools.idea.testing.TestModuleUtil;
@@ -103,7 +103,7 @@ public class GradleDependencyManagerTest {
       boolean found = dependencyManager.addDependenciesAndSync(appModule, dependencies);
       assertTrue(found);
 
-      List<ResourceItem> items = ResourceRepositoryManager
+      List<ResourceItem> items = StudioResourceRepositoryManager
         .getAppResources(AndroidFacet.getInstance(gradleModule(project, ":app")))
         .getResources(RES_AUTO, ResourceType.STYLEABLE, "RecyclerView");
       assertThat(items).isNotEmpty();

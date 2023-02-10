@@ -29,7 +29,7 @@ import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.targets.PlatformTarget;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
@@ -385,7 +385,7 @@ public class ConfigurationManager implements Disposable {
 
   @NotNull
   public ImmutableList<Locale> getLocalesInProject() {
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myModule);
+    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(myModule);
     assert repositoryManager != null;
     return repositoryManager.getLocalesInProject();
   }

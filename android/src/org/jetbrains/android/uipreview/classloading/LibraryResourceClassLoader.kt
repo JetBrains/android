@@ -26,7 +26,7 @@ import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoad
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.ResourceClassRegistry
 import com.android.tools.idea.res.ResourceIdManager
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.util.VirtualFileSystemOpener.recognizes
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.application.ReadAction
@@ -69,7 +69,7 @@ private fun ExternalAndroidLibrary.getResolvedPackageName(): String? {
  * Register this [ExternalAndroidLibrary] with the [ResourceClassRegistry].
  */
 private fun ExternalAndroidLibrary.registerLibraryResources(
-  repositoryManager: ResourceRepositoryManager,
+  repositoryManager: StudioResourceRepositoryManager,
   classRegistry: ResourceClassRegistry,
   idManager: ResourceIdManager) {
   val appResources = repositoryManager.appResources
@@ -97,7 +97,7 @@ private fun ExternalAndroidLibrary.registerLibraryResources(
  */
 private fun registerResources(module: Module) {
   val androidFacet: AndroidFacet = AndroidFacet.getInstance(module) ?: return
-  val repositoryManager = ResourceRepositoryManager.getInstance(androidFacet)
+  val repositoryManager = StudioResourceRepositoryManager.getInstance(androidFacet)
   val idManager = ResourceIdManager.get(module)
   val classRegistry = ResourceClassRegistry.get(module.project)
 
@@ -168,7 +168,7 @@ class LibraryResourceClassLoader(
     }
 
     val facet: AndroidFacet = AndroidFacet.getInstance(module) ?: throw ClassNotFoundException(name)
-    val repositoryManager = ResourceRepositoryManager.getInstance(facet)
+    val repositoryManager = StudioResourceRepositoryManager.getInstance(facet)
     val data = ResourceClassRegistry.get(module.project).findClassDefinition(name, repositoryManager) ?: throw ClassNotFoundException(name)
     Logger.getInstance(LibraryResourceClassLoader::class.java).debug("  Defining class from AAR registry")
     return defineClass(name, data, 0, data.size)

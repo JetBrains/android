@@ -20,7 +20,7 @@ import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.resources.ResourceUrl
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.intellij.openapi.util.text.StringUtil
@@ -70,7 +70,7 @@ open class StyleEnumSupport(val property: NlPropertyItem) : CachedEnumSupport {
    * Convert the sorted list of styles into a sorted list of [EnumValue]s with group headers.
    */
   protected fun convertStyles(styles: List<StyleResourceValue>): List<EnumValue> {
-    val resourceManager = ResourceRepositoryManager.getInstance(facet)
+    val resourceManager = StudioResourceRepositoryManager.getInstance(facet)
     val currentNamespace = resourceManager.namespace
     val namespaceResolver = property.namespaceResolver
     var prev: StyleResourceValue? = null

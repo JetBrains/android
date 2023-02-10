@@ -25,7 +25,7 @@ import com.android.tools.idea.projectsystem.getForFile
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.IdeResourceNameValidator
 import com.android.tools.idea.res.ResourceFolderRegistry
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.wizard.template.Constraint.*
 import com.android.tools.idea.wizard.template.Constraint
@@ -293,6 +293,6 @@ private fun resourceExists(paths: AndroidModulePaths, resourceType: ResourceFold
  * Like [resourceExists] but a useful fallback if information about the current paths is not known.
  */
 private fun resourceExists(facet: AndroidFacet, resourceType: ResourceType, name: String): Boolean {
-  val repository = ResourceRepositoryManager.getAppResources(facet)
+  val repository = StudioResourceRepositoryManager.getAppResources(facet)
   return repository.hasResources(ResourceNamespace.TODO(), resourceType, name)
 }
