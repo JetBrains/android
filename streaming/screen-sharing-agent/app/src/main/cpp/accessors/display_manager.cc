@@ -67,7 +67,9 @@ DisplayInfo DisplayManager::GetDisplayInfo(Jni jni, int32_t display_id) {
   if (display_info.IsNull()) {
     Log::Fatal("Unable to obtain a android.view.DisplayInfo object");
   }
-  Log::D("display_info=%s", display_info.ToString().c_str());
+  if (Log::IsEnabled(Log::Level::DEBUG)) {
+    Log::D("display_info=%s", display_info.ToString().c_str());
+  }
   int logical_width = display_info.GetIntField(jni, instance.logical_width_field_);
   int logical_height = display_info.GetIntField(instance.logical_height_field_);
   int rotation = display_info.GetIntField(instance.rotation_field_);

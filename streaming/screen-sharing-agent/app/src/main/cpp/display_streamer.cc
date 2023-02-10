@@ -153,6 +153,7 @@ string GetVideoEncoderDetails(const string& codec_name, const string& mime_type,
   Jni jni = Jvm::GetJni();
   JClass clazz = jni.GetClass("com/android/tools/screensharing/CodecInfo");
   jmethodID method = clazz.GetStaticMethodId("getVideoEncoderDetails", "(Ljava/lang/String;Ljava/lang/String;II)Ljava/lang/String;");
+  Log::V("%s:%d", __FILE__, __LINE__);
   return clazz.CallStaticObjectMethod(method, JString(jni, codec_name).ref(), JString(jni, mime_type).ref(), width, height).ToString();
 }
 
@@ -393,7 +394,9 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPa
       packet_header->presentation_timestamp_us = codec_buffer.info.presentationTimeUs - presentation_timestamp_offset_;
     }
     packet_header->packet_size = codec_buffer.info.size;
-    Log::V("DisplayStreamer::ProcessFramesUntilCodecStopped: writing video packet %s", packet_header->ToDebugString().c_str());
+    if (Log::IsEnabled(Log::Level::VERBOSE)) {
+      Log::V("DisplayStreamer::ProcessFramesUntilCodecStopped: writing video packet %s", packet_header->ToDebugString().c_str());
+    }
     iovec buffers[] = { { packet_header, sizeof(*packet_header) }, { codec_buffer.buffer, static_cast<size_t>(codec_buffer.info.size) } };
     if (writev(socket_fd_, buffers, 2) != buffers[0].iov_len + buffers[1].iov_len) {
       if (errno != EBADF && errno != EPIPE) {
