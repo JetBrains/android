@@ -20,19 +20,17 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 
 /** A [DaggerIndexPsiWrapper] representing a field (or property in Kotlin). */
-interface DaggerIndexFieldWrapper : DaggerIndexPsiWrapper {
+interface DaggerIndexFieldWrapper : DaggerIndexAnnotatedWrapper {
   /** Simple name of the field. Eg: "someFieldName" */
   fun getSimpleName(): String
   fun getType(): DaggerIndexTypeWrapper?
   fun getContainingClass(): DaggerIndexClassWrapper
-  /** Gets whether the class might be annotated with the given annotation. */
-  fun getIsAnnotatedWith(fqName: String): Boolean
 }
 
 internal class KtPropertyWrapper(
   private val ktProperty: KtProperty,
   private val importHelper: KotlinImportHelper
-) : DaggerIndexFieldWrapper {
+) : DaggerIndexAnnotatedKotlinWrapper(ktProperty, importHelper), DaggerIndexFieldWrapper {
   override fun getSimpleName() = ktProperty.name!!
 
   override fun getType(): DaggerIndexTypeWrapper? =
@@ -40,15 +38,12 @@ internal class KtPropertyWrapper(
 
   override fun getContainingClass(): DaggerIndexClassWrapper =
     KtClassOrObjectWrapper(ktProperty.containingClassOrObject!!, importHelper)
-
-  override fun getIsAnnotatedWith(fqName: String) =
-    ktProperty.getIsAnnotatedWith(fqName, importHelper)
 }
 
 internal class PsiFieldWrapper(
   private val psiField: PsiField,
   private val importHelper: JavaImportHelper
-) : DaggerIndexFieldWrapper {
+) : DaggerIndexAnnotatedJavaWrapper(psiField, importHelper), DaggerIndexFieldWrapper {
   override fun getSimpleName() = psiField.name
 
   override fun getType(): DaggerIndexTypeWrapper? =
@@ -56,7 +51,4 @@ internal class PsiFieldWrapper(
 
   override fun getContainingClass(): DaggerIndexClassWrapper =
     PsiClassWrapper(psiField.containingClass!!, importHelper)
-
-  override fun getIsAnnotatedWith(fqName: String) =
-    psiField.getIsAnnotatedWith(fqName, importHelper)
 }

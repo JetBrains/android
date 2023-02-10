@@ -36,7 +36,7 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 @RunsInEdt
-class AnnotationHelperTest {
+class DaggerIndexAnnotatedWrapperTest {
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
@@ -65,12 +65,12 @@ class AnnotationHelperTest {
         KtFile
 
     val element = myFixture.moveCaret("Fo|o").parentOfType<KtClass>()!!
-    val importHelper = KotlinImportHelper(psiFile)
+    val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
-    assertThat(element.getIsAnnotatedWith("Annotation", importHelper)).isTrue()
-    assertThat(element.getIsAnnotatedWith("com.example.Annotation", importHelper)).isTrue()
-    assertThat(element.getIsAnnotatedWith("com.other.Annotation", importHelper)).isTrue()
-    assertThat(element.getIsAnnotatedWith("com.notimported.Annotation", importHelper)).isFalse()
+    assertThat(wrapper.getIsAnnotatedWith("Annotation")).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith("com.other.Annotation")).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith("com.notimported.Annotation")).isFalse()
   }
 
   @Test
@@ -91,12 +91,12 @@ class AnnotationHelperTest {
         KtFile
 
     val element = myFixture.moveCaret("Fo|o").parentOfType<KtClass>()!!
-    val importHelper = KotlinImportHelper(psiFile)
+    val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
-    assertThat(element.getIsAnnotatedWith("Annotation", importHelper)).isFalse()
-    assertThat(element.getIsAnnotatedWith("com.example.Annotation", importHelper)).isFalse()
-    assertThat(element.getIsAnnotatedWith("com.other.Annotation", importHelper)).isFalse()
-    assertThat(element.getIsAnnotatedWith("com.qualified.Annotation", importHelper)).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith("Annotation")).isFalse()
+    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isFalse()
+    assertThat(wrapper.getIsAnnotatedWith("com.other.Annotation")).isFalse()
+    assertThat(wrapper.getIsAnnotatedWith("com.qualified.Annotation")).isTrue()
   }
 
   @Test
@@ -117,9 +117,9 @@ class AnnotationHelperTest {
         KtFile
 
     val element = myFixture.moveCaret("Fo|o").parentOfType<KtClass>()!!
-    val importHelper = KotlinImportHelper(psiFile)
+    val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
-    assertThat(element.getIsAnnotatedWith("com.aliased.Annotation", importHelper)).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith("com.aliased.Annotation")).isTrue()
   }
 
   @Test
@@ -140,12 +140,12 @@ class AnnotationHelperTest {
         PsiJavaFile
 
     val element = myFixture.moveCaret("Fo|o").parentOfType<PsiClass>()!!
-    val importHelper = JavaImportHelper(psiFile)
+    val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
-    assertThat(element.getIsAnnotatedWith("Annotation", importHelper)).isTrue()
-    assertThat(element.getIsAnnotatedWith("com.example.Annotation", importHelper)).isTrue()
-    assertThat(element.getIsAnnotatedWith("com.other.Annotation", importHelper)).isTrue()
-    assertThat(element.getIsAnnotatedWith("com.notimported.Annotation", importHelper)).isFalse()
+    assertThat(wrapper.getIsAnnotatedWith("Annotation")).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith("com.other.Annotation")).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith("com.notimported.Annotation")).isFalse()
   }
 
   @Test
@@ -166,11 +166,11 @@ class AnnotationHelperTest {
         PsiJavaFile
 
     val element = myFixture.moveCaret("Fo|o").parentOfType<PsiClass>()!!
-    val importHelper = JavaImportHelper(psiFile)
+    val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
-    assertThat(element.getIsAnnotatedWith("Annotation", importHelper)).isFalse()
-    assertThat(element.getIsAnnotatedWith("com.example.Annotation", importHelper)).isFalse()
-    assertThat(element.getIsAnnotatedWith("com.other.Annotation", importHelper)).isFalse()
-    assertThat(element.getIsAnnotatedWith("com.qualified.Annotation", importHelper)).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith("Annotation")).isFalse()
+    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isFalse()
+    assertThat(wrapper.getIsAnnotatedWith("com.other.Annotation")).isFalse()
+    assertThat(wrapper.getIsAnnotatedWith("com.qualified.Annotation")).isTrue()
   }
 }

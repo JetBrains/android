@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.dagger.index.psiwrappers
 
+import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiTypeElement
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
@@ -49,6 +51,8 @@ import org.jetbrains.kotlin.psi.KtTypeReference
 sealed interface DaggerIndexPsiWrapper {
   class KotlinFactory(ktFile: KtFile) {
     private val importHelper = KotlinImportHelper(ktFile)
+    fun of(psiElement: KtAnnotationEntry): DaggerIndexAnnotationWrapper =
+      KtAnnotationEntryWrapper(psiElement)
     fun of(psiElement: KtClassOrObject): DaggerIndexClassWrapper =
       KtClassOrObjectWrapper(psiElement, importHelper)
     fun of(psiElement: KtFunction): DaggerIndexMethodWrapper =
@@ -63,6 +67,8 @@ sealed interface DaggerIndexPsiWrapper {
 
   class JavaFactory(psiJavaFile: PsiJavaFile) {
     private val importHelper = JavaImportHelper(psiJavaFile)
+    fun of(psiElement: PsiAnnotation): DaggerIndexAnnotationWrapper =
+      PsiAnnotationWrapper(psiElement)
     fun of(psiElement: PsiClass): DaggerIndexClassWrapper =
       PsiClassWrapper(psiElement, importHelper)
     fun of(psiElement: PsiField): DaggerIndexFieldWrapper =

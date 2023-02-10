@@ -22,21 +22,19 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 
 /** A [DaggerIndexPsiWrapper] representing a method (or function in Kotlin). */
-interface DaggerIndexMethodWrapper : DaggerIndexPsiWrapper {
+interface DaggerIndexMethodWrapper : DaggerIndexAnnotatedWrapper {
   /** Simple name of the method. Eg: "someMethodName" */
   fun getSimpleName(): String
   fun getReturnType(): DaggerIndexTypeWrapper?
   fun getParameters(): List<DaggerIndexParameterWrapper>
   fun getIsConstructor(): Boolean
   fun getContainingClass(): DaggerIndexClassWrapper?
-  /** Gets whether the class might be annotated with the given annotation. */
-  fun getIsAnnotatedWith(fqName: String): Boolean
 }
 
 internal class KtFunctionWrapper(
   private val ktFunction: KtFunction,
   private val importHelper: KotlinImportHelper
-) : DaggerIndexMethodWrapper {
+) : DaggerIndexAnnotatedKotlinWrapper(ktFunction, importHelper), DaggerIndexMethodWrapper {
   override fun getSimpleName() = ktFunction.name!!
 
   override fun getReturnType(): DaggerIndexTypeWrapper? =
@@ -49,15 +47,12 @@ internal class KtFunctionWrapper(
 
   override fun getContainingClass(): DaggerIndexClassWrapper? =
     ktFunction.containingClassOrObject?.let { KtClassOrObjectWrapper(it, importHelper) }
-
-  override fun getIsAnnotatedWith(fqName: String) =
-    ktFunction.getIsAnnotatedWith(fqName, importHelper)
 }
 
 internal class PsiMethodWrapper(
   private val psiMethod: PsiMethod,
   private val importHelper: JavaImportHelper
-) : DaggerIndexMethodWrapper {
+) : DaggerIndexAnnotatedJavaWrapper(psiMethod, importHelper), DaggerIndexMethodWrapper {
   override fun getSimpleName() = psiMethod.name
 
   override fun getReturnType(): DaggerIndexTypeWrapper? =
@@ -70,7 +65,4 @@ internal class PsiMethodWrapper(
 
   override fun getContainingClass(): DaggerIndexClassWrapper? =
     psiMethod.containingClass?.let { PsiClassWrapper(it, importHelper) }
-
-  override fun getIsAnnotatedWith(fqName: String) =
-    psiMethod.getIsAnnotatedWith(fqName, importHelper)
 }
