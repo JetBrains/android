@@ -68,7 +68,7 @@ import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class StudioResourceRepositoryManager implements Disposable {
+public final class StudioResourceRepositoryManager implements Disposable, ResourceRepositoryManager {
   private static final Key<StudioResourceRepositoryManager> KEY = Key.create(StudioResourceRepositoryManager.class.getName());
 
   private static final Object APP_RESOURCES_LOCK = new Object();
@@ -280,6 +280,7 @@ public final class StudioResourceRepositoryManager implements Disposable {
    * @return the computed repository
    * @see #getCachedAppResources()
    */
+  @Override
   @Slow
   @NotNull
   public LocalResourceRepository getAppResources() {
@@ -330,6 +331,7 @@ public final class StudioResourceRepositoryManager implements Disposable {
    * @return the computed repository
    * @see #getCachedProjectResources()
    */
+  @Override
   @Slow
   @NotNull
   public LocalResourceRepository getProjectResources() {
@@ -609,6 +611,7 @@ public final class StudioResourceRepositoryManager implements Disposable {
     }
   }
 
+  @Override
   @NotNull
   public Namespacing getNamespacing() {
     return myNamespacing;
@@ -619,6 +622,7 @@ public final class StudioResourceRepositoryManager implements Disposable {
    *
    * <p>This is read from the manifest, so needs to be run inside a read action.
    */
+  @Override
   @NotNull
   public ResourceNamespace getNamespace() {
     if (myNamespacing == Namespacing.DISABLED) {
