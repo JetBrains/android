@@ -230,6 +230,41 @@ class DaggerDataIndexerTest {
   }
 
   @Test
+  fun kotlinClass() {
+    val fileContent =
+      createFileContent(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
+      package com.example
+      class CoffeeMaker {
+        class CoffeeFilter
+      }
+      """.trimIndent()
+      )
+
+    val indexer =
+      DaggerDataIndexer(
+        DaggerConceptIndexers(
+          classIndexers =
+            listOf(
+              DaggerConceptIndexer { wrapper, indexEntries ->
+                when (wrapper.getFqName()) {
+                  "com.example.CoffeeMaker" ->
+                    indexEntries["foundClass"] = mutableSetOf(fakeIndexValue)
+                  "com.example.CoffeeMaker.CoffeeFilter" ->
+                    indexEntries["foundInnerClass"] = mutableSetOf(fakeIndexValue)
+                }
+              }
+            ),
+        )
+      )
+
+    assertThat(indexer.map(fileContent)).containsKey("foundClass")
+    assertThat(indexer.map(fileContent)).containsKey("foundInnerClass")
+  }
+
+  @Test
   fun javaNoContent() {
     val fileContent =
       createFileContent(
@@ -349,6 +384,43 @@ class DaggerDataIndexerTest {
       )
 
     assertThat(indexer.map(fileContent)).containsKey("found")
+  }
+
+  @Test
+  fun javaClass() {
+    val fileContent =
+      createFileContent(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
+      package com.example;
+      public class CoffeeMaker {
+        public void foo() {}
+
+        public class CoffeeFilter {}
+      }
+      """.trimIndent()
+      )
+
+    val indexer =
+      DaggerDataIndexer(
+        DaggerConceptIndexers(
+          classIndexers =
+            listOf(
+              DaggerConceptIndexer { wrapper, indexEntries ->
+                when (wrapper.getFqName()) {
+                  "com.example.CoffeeMaker" ->
+                    indexEntries["foundClass"] = mutableSetOf(fakeIndexValue)
+                  "com.example.CoffeeMaker.CoffeeFilter" ->
+                    indexEntries["foundInnerClass"] = mutableSetOf(fakeIndexValue)
+                }
+              }
+            ),
+        )
+      )
+
+    assertThat(indexer.map(fileContent)).containsKey("foundClass")
+    assertThat(indexer.map(fileContent)).containsKey("foundInnerClass")
   }
 
   private fun createFileContent(fileType: FileType, text: String): FileContent {

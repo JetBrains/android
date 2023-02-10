@@ -34,6 +34,7 @@ object AllConcepts : DaggerConcept {
   override val indexers =
     CONCEPTS.map(DaggerConcept::indexers).let { indexersList ->
       DaggerConceptIndexers(
+        indexersList.flatMap(DaggerConceptIndexers::classIndexers),
         indexersList.flatMap(DaggerConceptIndexers::fieldIndexers),
         indexersList.flatMap(DaggerConceptIndexers::methodIndexers)
       )

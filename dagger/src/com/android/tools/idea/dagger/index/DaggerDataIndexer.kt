@@ -17,11 +17,13 @@ package com.android.tools.idea.dagger.index
 
 import com.android.tools.idea.dagger.concepts.AllConcepts
 import com.android.tools.idea.dagger.concepts.DaggerConcept
+import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexClassWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexFieldWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexMethodWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexPsiWrapper
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.JavaRecursiveElementWalkingVisitor
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiMethod
@@ -29,6 +31,7 @@ import com.intellij.util.indexing.DataIndexer
 import com.intellij.util.indexing.FileContent
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
@@ -88,6 +91,11 @@ internal constructor(private val conceptIndexers: DaggerConceptIndexers = AllCon
       conceptIndexers.doIndexing(wrapperFactory.of(property), results)
       // No need to continue traversing within the field definition.
     }
+
+    override fun visitClass(klass: KtClass) {
+      conceptIndexers.doIndexing(wrapperFactory.of(klass), results)
+      super.visitClass(klass)
+    }
   }
 
   private class JavaVisitor(
@@ -106,6 +114,11 @@ internal constructor(private val conceptIndexers: DaggerConceptIndexers = AllCon
       conceptIndexers.doIndexing(wrapperFactory.of(field), results)
       // No need to continue traversing within the field definition.
     }
+
+    override fun visitClass(aClass: PsiClass) {
+      conceptIndexers.doIndexing(wrapperFactory.of(aClass), results)
+      super.visitClass(aClass)
+    }
   }
 }
 
@@ -123,10 +136,13 @@ fun interface DaggerConceptIndexer<T : DaggerIndexPsiWrapper> {
 
 /** Utility class containing [DaggerConceptIndexer]s associated with [DaggerConcept]s. */
 class DaggerConceptIndexers(
+  val classIndexers: List<DaggerConceptIndexer<DaggerIndexClassWrapper>> = emptyList(),
   val fieldIndexers: List<DaggerConceptIndexer<DaggerIndexFieldWrapper>> = emptyList(),
   val methodIndexers: List<DaggerConceptIndexer<DaggerIndexMethodWrapper>> = emptyList()
 ) {
 
+  fun doIndexing(wrapper: DaggerIndexClassWrapper, indexEntries: IndexEntries) =
+    classIndexers.forEach { it.addIndexEntries(wrapper, indexEntries) }
   fun doIndexing(wrapper: DaggerIndexFieldWrapper, indexEntries: IndexEntries) =
     fieldIndexers.forEach { it.addIndexEntries(wrapper, indexEntries) }
   fun doIndexing(wrapper: DaggerIndexMethodWrapper, indexEntries: IndexEntries) =
