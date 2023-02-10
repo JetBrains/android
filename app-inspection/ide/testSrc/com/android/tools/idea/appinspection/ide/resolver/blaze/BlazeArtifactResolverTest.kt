@@ -27,6 +27,10 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.net.URI
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import kotlin.test.assertFailsWith
 
 class BlazeArtifactResolverTest {
@@ -44,32 +48,20 @@ class BlazeArtifactResolverTest {
   }
 
   @Test
-  fun resolveInspectorJarOverLibraryAarAndHttp() = runBlocking {
+  fun resolveInspectorJarWithBlazeResolver() = runBlocking {
     val artifactCoordinate = ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01", ArtifactCoordinate.Type.AAR)
     val artifactDir = temporaryDirectoryRule.newPath("test")
-    // blaze artifact resolver should always take inspector.jar over other options.
-    artifactDir.resolve("inspector.jar").createFile()
-    artifactDir.resolve("library.aar").createFile()
-    val moduleSystemArtifactFinder = ModuleSystemArtifactFinder(projectRule.project) {
-      artifactDir
+    val inspectorPath = artifactDir.resolve("inspector.jar").createFile()
+
+    val uri = URI.create("jar:${artifactDir.resolve("library.aar").toUri()}")
+    FileSystems.newFileSystem(uri, mapOf("create" to "true")).use { zipFs ->
+      val pathInZipFile = zipFs.getPath("/inspector.jar")
+      Files.copy(inspectorPath, pathInZipFile, StandardCopyOption.REPLACE_EXISTING)
     }
+    val moduleSystemArtifactFinder = ModuleSystemArtifactFinder(projectRule.project) { artifactDir }
     val resolver = BlazeArtifactResolver(testFileService, moduleSystemArtifactFinder)
     val inspectorJar = resolver.resolveArtifact(artifactCoordinate)
     assertThat(inspectorJar.fileName.toString()).isEqualTo("inspector.jar")
-  }
-
-  @Test
-  fun resolveInspectorLibraryAar() = runBlocking {
-    val artifactCoordinate = ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01", ArtifactCoordinate.Type.AAR)
-    val artifactDir = temporaryDirectoryRule.newPath("test")
-    // when inspector.jar is not present, resolver should take the library.aar
-    artifactDir.resolve("library.aar").createFile()
-    val moduleSystemArtifactFinder = ModuleSystemArtifactFinder(projectRule.project) {
-      artifactDir
-    }
-    val resolver = BlazeArtifactResolver(testFileService, moduleSystemArtifactFinder)
-    val inspectorJar = resolver.resolveArtifact(artifactCoordinate)
-    assertThat(inspectorJar.fileName.toString()).isEqualTo("library.aar")
   }
 
   @Test

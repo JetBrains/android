@@ -295,7 +295,7 @@ class AppInspectionView @VisibleForTesting constructor(
                     config.id,
                     jarTarget.jar,
                     project.name,
-                    (config.params as? LibraryInspectorLaunchParams)?.minVersionLibraryCoordinate?.let { LibraryCompatibility(it) },
+                    jarTarget.artifactCoordinate?.let { LibraryCompatibility(it) },
                     force
                   )
                 )

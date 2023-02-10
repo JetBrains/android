@@ -145,10 +145,18 @@ class AppInspectorTabLaunchSupportTest {
     assertThat(unresolvedTabs.map { it.provider }).containsExactly(incompatibleLibraryInspector, unresolvedLibraryInspector)
 
     resolvedTabs.forEach { tabTargets ->
-      val jar = (tabTargets.targets.values.single() as InspectorJarTarget.Resolved).jar
+      val target = tabTargets.targets.values.single()
+      val jar = (target as InspectorJarTarget.Resolved).jar
       when (tabTargets.provider) {
-        frameworkInspector -> assertThat(jar).isSameAs(TEST_JAR)
-        else -> assertThat(jar).isEqualTo(AppInspectorJar("jar", "resolved", "resolved"))
+        frameworkInspector -> {
+          assertThat(target.artifactCoordinate).isNull()
+          assertThat(jar).isSameAs(TEST_JAR)
+        }
+        else -> {
+          assertThat(target.artifactCoordinate).isEqualTo(
+            (tabTargets.provider.launchConfigs.single().params as LibraryInspectorLaunchParams).minVersionLibraryCoordinate)
+          assertThat(jar).isEqualTo(AppInspectorJar("jar", "resolved", "resolved"))
+        }
       }
     }
   }

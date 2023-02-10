@@ -50,14 +50,15 @@ import java.nio.file.Path
  * The file name is then computed from the maven coordinate, yielding:
  *   ${WORKSPACE_ROOT}/third_party/java/androidx/work/runtime/work-runtime.aar
  */
-class BlazeArtifactResolver constructor(
+class BlazeArtifactResolver(
   private val fileService: FileService,
   private val moduleSystemArtifactFinder: ModuleSystemArtifactFinder
 ) : ArtifactResolver {
   override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path = withContext(AndroidDispatchers.diskIoThread) {
     moduleSystemArtifactFinder.findLibrary(artifactCoordinate)?.let { libraryPath ->
-      val unzippedDir = extractZipIfNeeded(fileService.createRandomTempDir(), libraryPath)
-      unzippedDir.resolveExistsOrNull(INSPECTOR_JAR) ?: unzippedDir.resolveExistsOrNull(artifactCoordinate.blazeFileName)
+      extractZipIfNeeded(fileService.createRandomTempDir(), libraryPath).resolveExistsOrNull(artifactCoordinate.blazeFileName)?.let {
+        extractZipIfNeeded(fileService.createRandomTempDir(), it).resolveExistsOrNull(INSPECTOR_JAR)
+      }
     } ?: throw AppInspectionArtifactNotFoundException("Artifact not found in blaze module system.", artifactCoordinate)
   }
 }

@@ -21,6 +21,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.io.FileService
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modules
 import com.intellij.util.io.ZipUtil
 import com.intellij.util.io.exists
 import com.intellij.util.io.isDirectory
@@ -61,9 +62,8 @@ class ModuleSystemArtifactFinder(
 
   companion object {
     private fun Project.findLibrary(artifactCoordinate: ArtifactCoordinate) =
-      allModules()
-        .asSequence()
-        .mapNotNull { module -> getProjectSystem().getModuleSystem(module).getDependencyPath(artifactCoordinate.toGradleCoordinate()) }
-        .firstOrNull()
+      modules.asList().firstNotNullOfOrNull { module ->
+        getProjectSystem().getModuleSystem(module).getDependencyPath(artifactCoordinate.toGradleCoordinate())
+      }
   }
 }

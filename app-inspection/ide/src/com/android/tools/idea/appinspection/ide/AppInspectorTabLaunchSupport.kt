@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.ide
 
+import com.android.tools.idea.analytics.currentIdeBrand
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
@@ -29,6 +30,7 @@ import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvide
 import com.android.tools.idea.appinspection.inspector.ide.FrameworkInspectorLaunchParams
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
 import com.android.tools.idea.flags.StudioFlags
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.project.Project
 import java.nio.file.Path
 
@@ -69,7 +71,7 @@ class AppInspectorTabLaunchSupport(
   private fun List<AppInspectorLaunchConfig>.getFrameworkJarTargets(): Map<String, InspectorJarTarget> {
     assert(all { config -> config.params is FrameworkInspectorLaunchParams })
     // Framework inspector jars are always resolvable because they are bundled with Studio
-    return associate { config -> config.id to InspectorJarTarget.Resolved(config.params.inspectorAgentJar) }
+    return associate { config -> config.id to InspectorJarTarget.Resolved(config.params.inspectorAgentJar, null) }
   }
 
   private suspend fun List<AppInspectorLaunchConfig>.getLibraryJarTargets(
@@ -79,29 +81,41 @@ class AppInspectorTabLaunchSupport(
     assert(all { config -> config.params is LibraryInspectorLaunchParams })
 
     if (StudioFlags.APP_INSPECTION_USE_DEV_JAR.get()) {
-      return associate { config -> config.id to InspectorJarTarget.Resolved(config.params.inspectorAgentJar) }
+      return associate { config -> config.id to InspectorJarTarget.Resolved(config.params.inspectorAgentJar, null) }
     }
 
-    val coords = map { config -> (config.params as LibraryInspectorLaunchParams).minVersionLibraryCoordinate }
-    val compatibilities = coords.map { LibraryCompatibility(it) }
+    val artifactCoordinates = map { config -> (config.params as LibraryInspectorLaunchParams).minVersionLibraryCoordinate }
+    val compatibilities = artifactCoordinates.map { LibraryCompatibility(it) }
     val compatibilityResponse = apiServices.attachToProcess(process, project.name).getLibraryVersions(compatibilities)
 
     return mapIndexed { i, config ->
       config.id to when (compatibilityResponse[i].status) {
-        LibraryCompatbilityInfo.Status.COMPATIBLE -> {
-          val coord = coords[i]
-          try {
-            InspectorJarTarget.Resolved(artifactService.getOrResolveInspectorArtifact(coord, project).toAppInspectorJar())
-          } catch (e: AppInspectionArtifactNotFoundException) {
-            InspectorJarTarget.Unresolved(coord.toUnresolvedInspectorMessage())
+        LibraryCompatbilityInfo.Status.COMPATIBLE -> getInspectorJarTarget(artifactCoordinates[i])
+        LibraryCompatbilityInfo.Status.APP_PROGUARDED -> InspectorJarTarget.Unresolved(APP_PROGUARDED_MESSAGE, artifactCoordinates[i])
+        else -> {
+          if (currentIdeBrand() == AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE) {
+            // Ignore the compatibility check result if user is using ASwB.
+            // We still want to perform the check because it gives us other useful warnings such as
+            // when the app is proguarded.
+            getInspectorJarTarget(artifactCoordinates[i].copy(version = "+"))
+          }
+          else {
+            InspectorJarTarget.Unresolved(provider.toIncompatibleVersionMessage(), artifactCoordinates[i])
           }
         }
-        LibraryCompatbilityInfo.Status.APP_PROGUARDED -> InspectorJarTarget.Unresolved(APP_PROGUARDED_MESSAGE)
-        else -> InspectorJarTarget.Unresolved(provider.toIncompatibleVersionMessage())
       }
     }
       .toMap()
   }
+
+  private suspend fun getInspectorJarTarget(artifactCoordinate: ArtifactCoordinate): InspectorJarTarget =
+    try {
+      InspectorJarTarget.Resolved(artifactService.getOrResolveInspectorArtifact(artifactCoordinate, project).toAppInspectorJar(),
+                                  artifactCoordinate)
+    }
+    catch (e: AppInspectionArtifactNotFoundException) {
+      InspectorJarTarget.Unresolved(artifactCoordinate.toUnresolvedInspectorMessage(), artifactCoordinate)
+    }
 
   private fun Path.toAppInspectorJar(): AppInspectorJar {
     return AppInspectorJar(fileName.toString(), parent.toString(), parent.toString())
@@ -110,13 +124,15 @@ class AppInspectorTabLaunchSupport(
 
 /** A wrapper around a target inspector jar that either was successfully resolved or not. */
 sealed class InspectorJarTarget {
-  class Resolved(val jar: AppInspectorJar) : InspectorJarTarget()
+  abstract val artifactCoordinate: ArtifactCoordinate?
+
+  class Resolved(val jar: AppInspectorJar, override val artifactCoordinate: ArtifactCoordinate?) : InspectorJarTarget()
 
   /**
    * Represents inspectors that cannot be launched, e.g. the target library used by the app is too
    * old or the user's app was proguarded.
    */
-  class Unresolved(val error: String) : InspectorJarTarget()
+  class Unresolved(val error: String, override val artifactCoordinate: ArtifactCoordinate?) : InspectorJarTarget()
 }
 
 /** A collection of one or more [InspectorJarTarget]s referenced by a given tab. */
