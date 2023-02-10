@@ -91,7 +91,7 @@ internal fun defaultCreateInformationPopup(
       listOfNotNull(ToggleLiveEditStatusAction()),
       listOfNotNull(
         link,
-        AnActionLink("View Docs", BrowserHelpAction("Live Edit Docs", "https://developer.android.com/jetpack/compose/tooling/studio#iterative-code-dev")),
+        AnActionLink("View Docs", BrowserHelpAction("Live Edit Docs", "https://developer.android.com/jetpack/compose/tooling/studio#live-edit")),
         object: AnActionLink("Configure Live Edit", configureLiveEditAction) {
         }.apply {
           setDropDownLinkIcon()
