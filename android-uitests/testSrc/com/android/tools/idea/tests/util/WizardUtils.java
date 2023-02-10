@@ -26,6 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class WizardUtils {
+  protected static final int MIN_SDK_API = 23;
+
   private WizardUtils() {
   }
 
@@ -49,7 +51,7 @@ public final class WizardUtils {
       .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()
-      .selectMinimumSdkApi(23)
+      .selectMinimumSdkApi(MIN_SDK_API)
       .setSourceLanguage(language)
       .enterPackageName("com.google.myapplication")
       .wizard()

@@ -85,7 +85,9 @@ public class ConfigureNewAndroidProjectStepFixture<W extends AbstractWizardFixtu
 
   @NotNull
   public ConfigureNewAndroidProjectStepFixture<W> selectMinimumSdkApi(int minSdkApi) {
-    new ApiLevelComboBoxFixture(robot(), robot().finder().findByName(target(), "minSdkComboBox", JComboBox.class)).selectApiLevel(minSdkApi);
+    ApiLevelComboBoxFixture apiLevelComboBoxFixture = new ApiLevelComboBoxFixture(robot(), robot().finder().findByName(target(), "minSdkComboBox", JComboBox.class));
+    apiLevelComboBoxFixture.click();
+    apiLevelComboBoxFixture.selectApiLevel(minSdkApi);
     return this;
   }
 
