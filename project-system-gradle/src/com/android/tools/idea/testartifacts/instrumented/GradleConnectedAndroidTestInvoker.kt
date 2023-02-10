@@ -42,10 +42,13 @@ import com.android.tools.utp.TaskOutputProcessor
 import com.android.utils.usLocaleCapitalize
 import com.google.common.base.Joiner
 import com.intellij.build.BuildContentManager
+import com.intellij.execution.ExecutionListener
+import com.intellij.execution.ExecutionManager
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
@@ -54,6 +57,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
@@ -92,7 +96,6 @@ class GradleConnectedAndroidTestInvoker(
     project: Project,
     devices: List<IDevice>,
     taskId: String,
-    processHandler: ProcessHandler,
     androidTestSuiteView: AndroidTestSuiteView,
     androidModuleModel: GradleAndroidModel,
     waitForDebugger: Boolean,
@@ -115,6 +118,7 @@ class GradleConnectedAndroidTestInvoker(
     val externalTaskId: ExternalSystemTaskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID,
                                                                            ExternalSystemTaskType.EXECUTE_TASK, project)
     val taskOutputProcessor = TaskOutputProcessor(adapters)
+    val executionId = executionEnvironment.executionId
     val listener: ExternalSystemTaskNotificationListenerAdapter = object : ExternalSystemTaskNotificationListenerAdapter() {
       val outputLineProcessor = TaskOutputLineProcessor(object : TaskOutputLineProcessor.LineProcessor {
         override fun processLine(line: String) {
@@ -183,7 +187,6 @@ class GradleConnectedAndroidTestInvoker(
             project,
             rerunDevices.map { it.iDevice }.toList(),
             taskId,
-            processHandler,
             androidTestSuiteView,
             androidModuleModel,
             waitForDebugger,
@@ -197,25 +200,46 @@ class GradleConnectedAndroidTestInvoker(
         } else {
           // If Gradle task run finished before the test suite starts, show error
           // in the Build output tool window.
-          if(!testSuiteStartedOnAnyDevice && !testRunIsCancelled.get()) {
+          if (!testSuiteStartedOnAnyDevice && !testRunIsCancelled.get()) {
             ApplicationManager.getApplication().invokeLater({
-              val toolWindow = buildToolWindowProvider(project)
-              if (toolWindow.isAvailable && !toolWindow.isVisible) {
-                toolWindow.show()
-              }
-            }, ModalityState.NON_MODAL, project.disposed)
+                                                              val toolWindow = buildToolWindowProvider(project)
+                                                              if (toolWindow.isAvailable && !toolWindow.isVisible) {
+                                                                toolWindow.show()
+                                                              }
+                                                            }, ModalityState.NON_MODAL, project.disposed)
           }
 
-          processHandler.detachProcess()
+          RunContentManager.getInstance(project).allDescriptors.find {
+            it.executionId == executionEnvironment.executionId
+          }?.let {
+            it.processHandler?.detachProcess()
+          }
         }
       }
     }
 
-    processHandler.addProcessListener(object: ProcessAdapter() {
-      override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
-        if (willBeDestroyed) {
-          AndroidGradleTaskManager().cancelTask(externalTaskId, listener)
+    val disposable = Disposer.newDisposable()
+    Disposer.register(project, disposable)
+    project.messageBus.connect(disposable).subscribe(ExecutionManager.EXECUTION_TOPIC, object : ExecutionListener {
+      override fun processNotStarted(executorId: String, env: ExecutionEnvironment) {
+        if (env.executionId != executionId) {
+          return
         }
+        Disposer.dispose(disposable)
+      }
+
+      override fun processStarted(executorId: String, env: ExecutionEnvironment, handler: ProcessHandler) {
+        if (env.executionId != executionId) {
+          return
+        }
+        Disposer.dispose(disposable)
+        handler.addProcessListener(object : ProcessAdapter() {
+          override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
+            if (willBeDestroyed) {
+              AndroidGradleTaskManager().cancelTask(externalTaskId, listener)
+            }
+          }
+        })
       }
     })
 

@@ -33,8 +33,6 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_T
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.ExecutionException
-import com.intellij.execution.process.NopProcessHandler
-import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.diagnostic.Logger
@@ -77,6 +75,7 @@ class GradleAndroidTestRunConfigurationExecutor(
   }
 
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
+    LOG.info("Start run tests")
     BaseAction.findRunningProcessHandler(project, configuration, env.executionTarget)?.destroyProcess()
 
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
@@ -88,19 +87,17 @@ class GradleAndroidTestRunConfigurationExecutor(
     // instrumentation tests, the target application may be killed in between test cases by test runner. Only test
     // runner knows when all test run completes.
     val shouldAutoTerminate = false
-    val processHandler = AndroidProcessHandler(project, processId, { it.forceStop(processId) }, shouldAutoTerminate)
 
     val console = createAndroidTestSuiteView()
-    processHandler.putCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY, console)
-    doRun(devices, processHandler, indicator, console)
+    doRun(devices, indicator, console)
 
+    val processHandler = AndroidProcessHandler(project, processId, { it.forceStop(processId) }, shouldAutoTerminate)
     devices.forEach { device -> processHandler.addTargetDevice(device) }
 
     createRunContentDescriptor(processHandler, console, env)
   }
 
   private suspend fun doRun(devices: List<IDevice>,
-                            processHandler: ProcessHandler,
                             indicator: ProgressIndicator,
                             console: AndroidTestSuiteView) = coroutineScope {
     val applicationId = applicationIdProvider.packageName
@@ -111,7 +108,7 @@ class GradleAndroidTestRunConfigurationExecutor(
       indicator.text = "Preparing gradle task"
       val launchTasksProvider = GradleAndroidTestApplicationLaunchTasksProvider(env, facet, applicationIdProvider)
       val gradleAndroidTestApplicationLaunchTask = launchTasksProvider.getTask()
-      gradleAndroidTestApplicationLaunchTask.run(devices, processHandler, console)
+      gradleAndroidTestApplicationLaunchTask.run(devices, console)
     }
     finally {
       devices.forEach {
@@ -133,6 +130,7 @@ class GradleAndroidTestRunConfigurationExecutor(
   }
 
   override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
+    LOG.info("Start debug tests")
     BaseAction.findRunningProcessHandler(project, configuration, env.executionTarget)?.destroyProcess()
 
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
@@ -142,11 +140,8 @@ class GradleAndroidTestRunConfigurationExecutor(
     }
     waitPreviousProcessTermination(devices, getMasterAndroidProcessId(), indicator)
 
-
-    val processHandler = NopProcessHandler()
     val console = createAndroidTestSuiteView()
-    processHandler.putCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY, console)
-    doRun(devices, processHandler, indicator, console)
+    doRun(devices, indicator, console)
 
     val device = devices.single()
     val debuggerTask = getBaseDebuggerTask(configuration.androidDebuggerContext, facet, env, timeoutSeconds = Int.MAX_VALUE)

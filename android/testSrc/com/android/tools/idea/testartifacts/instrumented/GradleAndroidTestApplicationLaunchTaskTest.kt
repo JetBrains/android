@@ -80,13 +80,12 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       extraInstrumentationParams
     )
 
-    launchTask.run(listOf(mockDevice), mockHandler, mockAndroidTestSuiteView)
+    launchTask.run(listOf(mockDevice), mockAndroidTestSuiteView)
 
     verify(mockGradleConnectedAndroidTestInvoker).runGradleTask(
       eq(mockProject),
       eq(listOf(mockDevice)),
       eq("taskId"),
-      eq(mockHandler),
       eq(mockAndroidTestSuiteView),
       eq(mockAndroidModuleModel),
       eq(false),
@@ -111,13 +110,12 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       retentionConfiguration,
       extraInstrumentationParams)
 
-    launchTask.run(listOf(mockDevice), mockHandler, mockAndroidTestSuiteView)
+    launchTask.run(listOf(mockDevice), mockAndroidTestSuiteView)
 
     verify(mockGradleConnectedAndroidTestInvoker).runGradleTask(
       eq(mockProject),
       eq(listOf(mockDevice)),
       eq("taskId"),
-      eq(mockHandler),
       eq(mockAndroidTestSuiteView),
       eq(mockAndroidModuleModel),
       eq(false),
@@ -142,13 +140,12 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       retentionConfiguration,
       extraInstrumentationParams)
 
-    launchTask.run(listOf(mockDevice), mockHandler, mockAndroidTestSuiteView)
+    launchTask.run(listOf(mockDevice), mockAndroidTestSuiteView)
 
     verify(mockGradleConnectedAndroidTestInvoker).runGradleTask(
       eq(mockProject),
       eq(listOf(mockDevice)),
       eq("taskId"),
-      eq(mockHandler),
       eq(mockAndroidTestSuiteView),
       eq(mockAndroidModuleModel),
       eq(false),
@@ -174,13 +171,12 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       retentionConfiguration,
       extraInstrumentationParams)
 
-    launchTask.run(listOf(mockDevice), mockHandler, mockAndroidTestSuiteView)
+    launchTask.run(listOf(mockDevice), mockAndroidTestSuiteView)
 
     verify(mockGradleConnectedAndroidTestInvoker).runGradleTask(
       eq(mockProject),
       eq(listOf(mockDevice)),
       eq("taskId"),
-      eq(mockHandler),
       eq(mockAndroidTestSuiteView),
       eq(mockAndroidModuleModel),
       eq(false),
@@ -207,13 +203,12 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       extraInstrumentationParams
     )
 
-    launchTask.run(listOf(mockDevice), mockHandler, mockAndroidTestSuiteView)
+    launchTask.run(listOf(mockDevice), mockAndroidTestSuiteView)
 
     verify(mockGradleConnectedAndroidTestInvoker).runGradleTask(
       eq(mockProject),
       eq(listOf(mockDevice)),
       eq("taskId"),
-      eq(mockHandler),
       eq(mockAndroidTestSuiteView),
       eq(mockAndroidModuleModel),
       eq(false),
@@ -237,13 +232,12 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       retentionConfiguration,
       extraInstrumentationParams)
 
-    launchTask.run(listOf(mockDevice), mockHandler, mockAndroidTestSuiteView)
+    launchTask.run(listOf(mockDevice), mockAndroidTestSuiteView)
 
     verify(mockGradleConnectedAndroidTestInvoker).runGradleTask(
       eq(mockProject),
       eq(listOf(mockDevice)),
       eq("taskId"),
-      eq(mockHandler),
       eq(mockAndroidTestSuiteView),
       eq(mockAndroidModuleModel),
       eq(false),

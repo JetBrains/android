@@ -18,7 +18,6 @@ package com.android.tools.idea.testartifacts.instrumented
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
-import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.project.Project
 
 /**
@@ -116,10 +115,10 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
     }
   }
 
-  fun run(devices: List<IDevice>, processHandler: ProcessHandler, androidTestSuiteView: AndroidTestSuiteView) {
+  fun run(devices: List<IDevice>, androidTestSuiteView: AndroidTestSuiteView) {
     myGradleConnectedAndroidTestInvoker.runGradleTask(
-      project, devices, taskId, processHandler, androidTestSuiteView, androidModuleModel,
-      waitForDebugger, testPackageName, testClassName, testMethodName, testRegex,
-      retentionConfiguration, extraInstrumentationOptions)
+      project, devices, taskId, androidTestSuiteView, androidModuleModel, waitForDebugger,
+      testPackageName, testClassName, testMethodName, testRegex, retentionConfiguration,
+      extraInstrumentationOptions)
   }
 }
