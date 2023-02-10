@@ -126,6 +126,7 @@ iml_module(
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
     ],
 )
 
@@ -348,6 +349,7 @@ iml_module(
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-coverage[test]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
     ],
 )
 

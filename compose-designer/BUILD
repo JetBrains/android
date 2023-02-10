@@ -33,6 +33,7 @@ iml_module(
         "//tools/adt/idea/intellij.android.compose-common[module]",
         "//tools/adt/idea/preview-designer:intellij.android.preview-designer[module]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
     ],
 )
 

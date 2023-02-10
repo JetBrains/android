@@ -49,6 +49,7 @@ import com.android.tools.idea.preview.xml.XmlSerializable
 import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
+import com.android.tools.sdk.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
@@ -75,7 +76,6 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jetbrains.android.sdk.CompatibilityRenderTarget
 import org.jetbrains.android.uipreview.ModuleRenderContext
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager
 import org.jetbrains.annotations.TestOnly

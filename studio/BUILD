@@ -162,6 +162,7 @@ studio_plugin(
             "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade",
             "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
             "//tools/adt/idea/project-system:intellij.android.projectSystem",
+            "//tools/adt/idea/render-resources:intellij.android.render-resources",
             "//tools/adt/idea/room:intellij.android.room",
             "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates",
             "//tools/adt/idea/android-test-retention:intellij.android.testRetention",

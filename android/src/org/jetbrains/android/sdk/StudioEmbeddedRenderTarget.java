@@ -22,6 +22,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.repository.targets.PlatformTarget;
 import com.android.tools.idea.util.StudioPathManager;
+import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
