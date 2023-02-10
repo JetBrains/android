@@ -20,13 +20,17 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.DialogWrapperDialog
+import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.ui.PopupBorder
 import com.intellij.ui.TitlePanel
 import com.intellij.ui.WindowMoveListener
+import com.intellij.ui.WindowRoundedCornersManager
 import com.intellij.ui.components.DialogPanel
 import com.intellij.ui.components.Label
 import com.intellij.ui.scale.JBUIScale
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.Borders
+import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
 import java.awt.Component
@@ -117,6 +121,16 @@ internal class ScreenRecorderDialog(private val dialogTitle: String, private val
       setUndecorated(true)
       rootPane.windowDecorationStyle = JRootPane.NONE
       panel.border = PopupBorder.Factory.create(true, true)
+
+      if (WindowRoundedCornersManager.isAvailable()) {
+        if (SystemInfoRt.isMac && UIUtil.isUnderDarcula()) {
+          WindowRoundedCornersManager.setRoundedCorners(window, JBUI.CurrentTheme.Popup.borderColor(true))
+          rootPane.border = PopupBorder.Factory.createEmpty()
+        }
+        else {
+          WindowRoundedCornersManager.setRoundedCorners(window)
+        }
+      }
     }
 
     override fun createCenterPanel(): JComponent {
