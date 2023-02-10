@@ -17,7 +17,7 @@ package com.android.tools.profilers.memory;
 
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_ID;
 import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
-import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_DETACHED_RESPONSE;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_UNATTACHABLE_RESPONSE;
 import static org.junit.Assert.assertArrayEquals;
 
 import com.android.sdklib.AndroidVersion;
@@ -125,7 +125,7 @@ public final class MemoryProfilerTest {
     myTransportService.addEventToStream(myStudioProfiler.getSession().getStreamId(), Common.Event.newBuilder()
       .setPid(myStudioProfiler.getSession().getPid())
       .setKind(Common.Event.Kind.AGENT)
-      .setAgentData(DEFAULT_AGENT_DETACHED_RESPONSE)
+      .setAgentData(DEFAULT_AGENT_UNATTACHABLE_RESPONSE)
       .build());
 
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);

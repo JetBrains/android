@@ -25,14 +25,15 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.NullMonitorStage
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioMonitorStage
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.FakeCpuService
+import com.android.tools.profilers.Utils.debuggableProcess
+import com.android.tools.profilers.Utils.newProcess
+import com.android.tools.profilers.Utils.onlineDevice
 import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.google.common.truth.Truth
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
@@ -40,17 +41,9 @@ import java.util.concurrent.TimeUnit
 class SessionItemTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
-  private val myMemoryService = FakeMemoryService()
 
   @get:Rule
-  var myGrpcChannel = FakeGrpcChannel(
-    "SessionItemTestChannel",
-    myTransportService,
-    FakeProfilerService(myTimer),
-    myMemoryService,
-    FakeCpuService(),
-    FakeEventService()
-  )
+  var myGrpcChannel = FakeGrpcChannel("SessionItemTestChannel", myTransportService, FakeProfilerService(myTimer), FakeEventService())
 
   private val myIdeServices = FakeIdeProfilerServices().apply {
     enableEventsPipeline(true)
@@ -62,8 +55,8 @@ class SessionItemTest {
     Truth.assertThat(myProfilers.stageClass).isEqualTo(NullMonitorStage::class.java)
 
     val sessionsManager = myProfilers.sessionsManager
-    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process = Common.Process.newBuilder().setPid(2).setState(Common.Process.State.ALIVE).build()
+    val device = onlineDevice { deviceId = NEW_DEVICE_ID }
+    val process = newProcess { deviceId = NEW_DEVICE_ID; pid = 10 }
     sessionsManager.beginSession(device.deviceId, device, process)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     Truth.assertThat(myProfilers.stageClass).isEqualTo(StudioMonitorStage::class.java)
@@ -81,8 +74,8 @@ class SessionItemTest {
     Truth.assertThat(myProfilers.stageClass).isEqualTo(NullMonitorStage::class.java)
 
     val sessionsManager = myProfilers.sessionsManager
-    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process = Common.Process.newBuilder().setPid(2).setState(Common.Process.State.ALIVE).build()
+    val device = onlineDevice { deviceId = NEW_DEVICE_ID }
+    val process = newProcess { deviceId = NEW_DEVICE_ID; pid = 10 }
     sessionsManager.beginSession(device.deviceId, device, process)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     Truth.assertThat(myProfilers.stageClass).isEqualTo(StudioMonitorStage::class.java)
@@ -93,17 +86,13 @@ class SessionItemTest {
     Truth.assertThat(myProfilers.stage).isEqualTo(stage)
   }
 
-  @Ignore("b/136292864")
   @Test
   fun testNonFullSessionNavigation() {
     Truth.assertThat(myProfilers.stageClass).isEqualTo(NullMonitorStage::class.java)
 
-    val sessionsManager = myProfilers.sessionsManager
-    val session = sessionsManager.createImportedSessionLegacy("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 1, 2, 0)
-    sessionsManager.update()
-    sessionsManager.setSession(session)
+    generateMemoryCaptureEvents()
     Truth.assertThat(myProfilers.stageClass).isEqualTo(MainMemoryProfilerStage::class.java)
-
+    val sessionsManager = myProfilers.sessionsManager
     Truth.assertThat(sessionsManager.sessionArtifacts.size).isEqualTo(1)
     val sessionItem = sessionsManager.sessionArtifacts[0] as SessionItem
     sessionItem.onSelect()
@@ -111,18 +100,20 @@ class SessionItemTest {
     Truth.assertThat(myProfilers.stageClass).isEqualTo(MainMemoryProfilerStage::class.java)
   }
 
-  @Ignore("b/136292864")
   @Test
   fun testImportedHprofSessionName() {
+    val device = onlineDevice { deviceId = NEW_DEVICE_ID }
+    val process = debuggableProcess { deviceId = NEW_DEVICE_ID; pid = NEW_PROCESS_ID }
+    startSession(device, process)
+    generateMemoryCaptureEvents()
     val sessionsManager = myProfilers.sessionsManager
-    sessionsManager.createImportedSessionLegacy("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
-    sessionsManager.update()
     Truth.assertThat(sessionsManager.sessionArtifacts.size).isEqualTo(1)
     val sessionItem = sessionsManager.sessionArtifacts[0] as SessionItem
     Truth.assertThat(sessionItem.getSubtitle()).isEqualTo(SessionItem.SESSION_LOADING)
 
-    val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build()
-    myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
+    val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(10).setEndTime(Long.MAX_VALUE).build()
+    val heapDumpEvent = ProfilersTestData.generateMemoryHeapDumpData(heapDumpInfo.startTime, heapDumpInfo.startTime, heapDumpInfo)
+    myTransportService.addEventToStream(device.deviceId, heapDumpEvent.setPid(process.pid).build())
     sessionsManager.update()
     Truth.assertThat(sessionItem.getSubtitle()).isEqualTo("Heap Dump")
   }
@@ -195,5 +186,26 @@ class SessionItemTest {
     }.build())
 
     Truth.assertThat(sessionItem.name).isEqualTo("com.google.app (Pixel 3A XL)")
+  }
+
+  private fun generateMemoryCaptureEvents() {
+    myTransportService.addEventToStream(1, ProfilersTestData.generateSessionStartEvent(1, 2, 0,
+                                                                                       Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE,
+                                                                                       0).build())
+    myTransportService.addEventToStream(1, ProfilersTestData.generateSessionEndEvent(1, 2, 0).build())
+    myProfilers.sessionsManager.update()
+  }
+
+  private fun startSession(device: Common.Device, process: Common.Process) {
+    myTransportService.addDevice(device)
+    myTransportService.addProcess(device, process)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    myProfilers.setProcess(device, process)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+  }
+
+  companion object {
+    const val NEW_DEVICE_ID = 1L
+    const val NEW_PROCESS_ID = 2
   }
 }
