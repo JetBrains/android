@@ -41,7 +41,7 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
   private var configurationCachingGradlePropertiesFlagState: String? = null
   private var configurationCacheInBuildState: Boolean? = null
   private var runningConfigurationCacheTestFlow: Boolean? = null
-  private var studioProvidedGradleVersion: GradleVersion? = null
+  private var currentGradleVersion: GradleVersion? = null
 
   override fun cleanupTempState() {
     buildscriptClasspath.clear()
@@ -51,7 +51,7 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
     configurationCachingGradlePropertiesFlagState = null
     configurationCacheInBuildState = null
     runningConfigurationCacheTestFlow = null
-    studioProvidedGradleVersion = null
+    currentGradleVersion = null
   }
 
   override fun receiveBuildAttributionReport(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData) {
@@ -60,6 +60,7 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
     )
     configurationCacheInBuildState = androidGradlePluginAttributionData.buildInfo?.configurationCacheIsOn
     currentAgpVersion = androidGradlePluginAttributionData.buildInfo?.agpVersion?.let { AgpVersion.tryParse(it) }
+    currentGradleVersion = androidGradlePluginAttributionData.buildInfo?.gradleVersion?.let { GradleVersion.version(it) }
   }
 
   override fun receiveKnownPluginsData(data: GradlePluginsData) {
@@ -69,9 +70,9 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
   override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalyzersProxy, studioProvidedInfo: StudioProvidedInfo) {
     appliedPlugins = analyzersResult.projectConfigurationAnalyzer.result.allAppliedPlugins.toImmutableMap()
     if (currentAgpVersion == null) currentAgpVersion = studioProvidedInfo.agpVersion
+    if (currentGradleVersion == null) currentGradleVersion = studioProvidedInfo.gradleVersion
     configurationCachingGradlePropertiesFlagState = studioProvidedInfo.configurationCachingGradlePropertyState
     runningConfigurationCacheTestFlow = studioProvidedInfo.isInConfigurationCacheTestFlow
-    studioProvidedGradleVersion = studioProvidedInfo.gradleVersion
     ensureResultCalculated()
   }
 
@@ -80,7 +81,7 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
   }
 
   private fun compute(appliedPlugins: List<PluginData>): ConfigurationCachingCompatibilityProjectResult {
-    val isFeatureConsideredStable = studioProvidedGradleVersion?.let { it >= minGradleVersionForStableConfigurationCache } ?: false
+    val isFeatureConsideredStable = currentGradleVersion?.let { it >= minGradleVersionForStableConfigurationCache } ?: false
     if (runningConfigurationCacheTestFlow == true) return ConfigurationCacheCompatibilityTestFlow(isFeatureConsideredStable)
     if (configurationCacheInBuildState == true) return ConfigurationCachingTurnedOn
     if (configurationCachingGradlePropertiesFlagState != null) return ConfigurationCachingTurnedOff

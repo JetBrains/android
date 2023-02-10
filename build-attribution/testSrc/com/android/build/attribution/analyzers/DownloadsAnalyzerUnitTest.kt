@@ -95,6 +95,7 @@ class DownloadsAnalyzerUnitTest {
     val attributionData = AndroidGradlePluginAttributionData(
       buildInfo = AndroidGradlePluginAttributionData.BuildInfo(
         agpVersion = "7.3.0",
+        gradleVersion = "8.0.0",
         configurationCacheIsOn = false
       )
     )
@@ -235,6 +236,7 @@ class DownloadsAnalyzerUnitTest {
     val attributionData = AndroidGradlePluginAttributionData(
       buildInfo = AndroidGradlePluginAttributionData.BuildInfo(
         agpVersion = agpVersionFromBuild,
+        gradleVersion = "8.0.0",
         configurationCacheIsOn = false
       )
     )

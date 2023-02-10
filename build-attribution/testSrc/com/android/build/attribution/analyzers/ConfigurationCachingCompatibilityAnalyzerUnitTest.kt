@@ -195,7 +195,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest(
     whenever(pluginAnalyzer.result).thenReturn(ProjectConfigurationAnalyzer.Result(emptyMap(), emptyList(), mapOf(":" to testCaseData.pluginsApplied)))
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(
       buildscriptDependenciesInfo = testCaseData.buildscriptDependenciesInfo,
-      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(testCaseData.agpVersion.toString(), false)
+      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(testCaseData.agpVersion.toString(), gradleVersion?.version, false)
     ))
     analyzer.receiveKnownPluginsData(testCaseData.knownPluginsData)
     analyzer.runPostBuildAnalysis(analysisResult, studioProvidedInfo)
@@ -222,7 +222,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest(
 
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(
       buildscriptDependenciesInfo = setOf("my.org:plugin1-jar:0.1.0"),
-      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(agpVersionString, false)
+      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(agpVersionString, gradleVersion?.version, false)
     ))
     analyzer.receiveKnownPluginsData(knownPluginsData)
     analyzer.runPostBuildAnalysis(analysisResult, studioProvidedInfo)
@@ -254,7 +254,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest(
 
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(
       buildscriptDependenciesInfo = setOf("my.org:plugin1-jar:0.2.0"),
-      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(agpVersionString, true)
+      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(agpVersionString, gradleVersion?.version, true)
     ))
     analyzer.receiveKnownPluginsData(knownPluginsData)
     analyzer.runPostBuildAnalysis(analysisResult, studioProvidedInfo)
@@ -279,7 +279,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest(
 
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(
       buildscriptDependenciesInfo = setOf("my.org:plugin1-jar:0.2.0"),
-      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(agpVersionString, false)
+      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(agpVersionString, gradleVersion?.version, false)
     ))
     analyzer.receiveKnownPluginsData(knownPluginsData)
     analyzer.runPostBuildAnalysis(analysisResult, studioProvidedInfo)
@@ -304,7 +304,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest(
 
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(
       buildscriptDependenciesInfo = setOf("my.org:plugin1-jar:0.2.0"),
-      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(agpVersionString, true)
+      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(agpVersionString, gradleVersion?.version, true)
     ))
     analyzer.receiveKnownPluginsData(knownPluginsData)
     analyzer.runPostBuildAnalysis(analysisResult, studioProvidedInfo)
