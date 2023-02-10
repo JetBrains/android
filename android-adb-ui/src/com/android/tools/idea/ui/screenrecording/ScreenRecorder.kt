@@ -26,7 +26,6 @@ import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.fileChooser.FileSaverDialog
 import com.intellij.openapi.fileTypes.NativeFileType
-import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
@@ -68,6 +67,7 @@ internal class ScreenRecorder(
     recordingProvider.startRecording()
 
     val start = clock.millis()
+    val deadline = start + timeLimitSec * 1000
 
     val stoppingLatch = CountDownLatch(1)
     val dialog = ScreenRecorderDialog(dialogTitle) { stoppingLatch.countDown() }
@@ -79,30 +79,39 @@ internal class ScreenRecorder(
 
     try {
       withContext(Dispatchers.IO) {
-        while (!stoppingLatch.await(millisUntilNextSecondTick(start), MILLISECONDS) && clock.millis() - start < timeLimitSec * 1000) {
+        while (!stoppingLatch.await(millisUntilNextSecondTick(start), MILLISECONDS) && clock.millis() < deadline) {
           withContext(uiThread) {
             dialog.recordingTimeMillis = clock.millis() - start
           }
         }
       }
       withContext(uiThread) {
+        if (dialogWrapper.isDisposed) {
+          throw InterruptedException() // The dialog was closed by pressing Esc.
+        }
         dialog.recordingLabelText = AndroidAdbUiBundle.message("screenrecord.action.stopping")
       }
       // TODO: Call recordingProvider.stopRecording() unconditionally when b/256957515 is fixed.
-      if (clock.millis() - start < timeLimitSec * 1000) {
+      if (clock.millis() < deadline) {
         recordingProvider.stopRecording()
-      }
-      else {
+      } else {
         delay(1000)
       }
     }
     catch (e: InterruptedException) {
-      recordingProvider.stopRecording()
-      throw ProcessCanceledException()
+      try {
+        recordingProvider.cancelRecording()
+      }
+      catch (e: Exception) {
+        thisLogger().warn(AndroidAdbUiBundle.message("screenrecord.error.cancelling"), e)
+      }
+      throw CancellationException()
     }
     finally {
       withContext(uiThread) {
-        dialogWrapper.close(DialogWrapper.CLOSE_EXIT_CODE)
+        if (!dialogWrapper.isDisposed) {
+          dialogWrapper.close(DialogWrapper.CLOSE_EXIT_CODE)
+        }
       }
     }
 

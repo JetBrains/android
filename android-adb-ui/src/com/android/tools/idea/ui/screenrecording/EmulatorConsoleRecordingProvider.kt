@@ -23,7 +23,9 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.io.exists
 import com.intellij.util.io.move
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import java.nio.file.Files
 import java.nio.file.Path
 
 private const val SERIAL_NUMBER_PREFIX = "emulator-"
@@ -51,6 +53,19 @@ internal class EmulatorConsoleRecordingProvider(
       throw IllegalStateException("emulatorConsole not initialized. Did you call startRecording()?")
     }
     emulatorConsole.stopScreenRecording()
+  }
+
+  override suspend fun cancelRecording() {
+    try {
+      stopRecording()
+    }
+    catch (e: Exception) {
+      // TODO: Remove this delay when b/256957515 is fixed.
+      delay(1000)
+    }
+    withContext(Dispatchers.IO) {
+      Files.deleteIfExists(localPath)
+    }
   }
 
   override suspend fun doesRecordingExist(): Boolean = localPath.exists()

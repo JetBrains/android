@@ -35,7 +35,6 @@ import javax.swing.Box
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JLabel
-import javax.swing.JPanel
 import javax.swing.JRootPane
 import javax.swing.SwingUtilities
 import javax.swing.border.Border
@@ -100,12 +99,13 @@ internal class ScreenRecorderDialog(private val dialogTitle: String, private val
    * Creates the dialog wrapper.
    */
   fun createWrapper(project: Project): DialogWrapper {
-    return MyDialogWrapper(project, createPanel())
+    return MyDialogWrapper(project, createPanel(), onStop)
   }
 
   private class MyDialogWrapper(
     project: Project?,
-    private val panel: JPanel
+    private val panel: DialogPanel,
+    private val onClose: Runnable,
   ) : DialogWrapper(project, false, IdeModalityType.MODELESS) {
 
     init {
@@ -117,11 +117,15 @@ internal class ScreenRecorderDialog(private val dialogTitle: String, private val
       setUndecorated(true)
       rootPane.windowDecorationStyle = JRootPane.NONE
       panel.border = PopupBorder.Factory.create(true, true)
-      cancelAction.isEnabled = false
     }
 
     override fun createCenterPanel(): JComponent {
       return panel
+    }
+
+    override fun doCancelAction() {
+      super.doCancelAction()
+      onClose.run()
     }
 
     override fun createSouthPanel(): JComponent? {
