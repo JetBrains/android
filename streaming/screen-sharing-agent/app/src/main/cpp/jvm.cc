@@ -45,7 +45,6 @@ JClass JObject::GetClass() const {
 }
 
 JClass JObject::GetClass(JNIEnv* jni_env) const {
-  Log::V("%s:%d", __FILE__, __LINE__);
   return JClass(jni_env, jni_env->GetObjectClass(ref_));
 }
 
@@ -137,9 +136,6 @@ void JObject::SetFloatField(JNIEnv* jni_env, jfieldID field, float value) const 
 }
 
 string JObject::ToString() const {
-  if (ref_ == nullptr) {
-    Log::Fatal("ToString is called on a null object");
-  }
   jmethodID method = GetClass().GetDeclaredOrInheritedMethodId("toString", "()Ljava/lang/String;");
   return JString(jni_env_, jni_env_->CallObjectMethod(ref_, method)).GetValue();
 }

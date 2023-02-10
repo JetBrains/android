@@ -60,7 +60,7 @@ void DisplayListenerDispatcher::Run() {
   // Store the looper so that it can be stopped later.
   JObject looper = looper_class.CallStaticObjectMethod(looper_class.GetStaticMethodId("myLooper", "()Landroid/os/Looper;"));
   looper.MakeGlobal();
-  looper_promise_.set_value(std::move(looper));
+  looper_promise_.set_value(move(looper));
 
   auto api_level = android_get_device_api_level();
   const char* signature = api_level >= 31 ?
@@ -83,7 +83,6 @@ void DisplayListenerDispatcher::Stop() {
   if (thread_.joinable()) {
     Jni jni = Jvm::GetJni();
     JObject looper = looper_promise_.get_future().get();
-    Log::V("%s:%d", __FILE__, __LINE__);
     looper.CallVoidMethod(jni, looper.GetClass(jni).GetMethodId("quit", "()V"));
     thread_.join();
   }
