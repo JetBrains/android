@@ -16,9 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
-import com.android.tools.deployer.DeployerException
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.ApplicationTerminator
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.run.DeviceFutures
@@ -27,8 +25,6 @@ import com.android.tools.idea.run.configuration.execution.AndroidConfigurationEx
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
-import com.android.tools.idea.run.tasks.LaunchContext
-import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.getBaseDebuggerTask
 import com.android.tools.idea.run.ui.BaseAction
 import com.android.tools.idea.stats.RunStats
@@ -49,8 +45,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.utils.keysToMap
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 
@@ -64,7 +60,6 @@ class GradleAndroidTestRunConfigurationExecutor(
     "Can't get ApplicationIdProvider for AndroidTestRunConfiguration")
   val module = configuration.configurationModule.module!!
   val facet = module.androidFacet ?: throw RuntimeException("GradleAndroidTestRunConfigurationExecutor shouldn't be invoked for module without facet")
-  private val launchTasksProvider = GradleAndroidTestApplicationLaunchTasksProvider(env, facet, applicationIdProvider)
   val project = env.project
   private val LOG = Logger.getInstance(this::class.java)
 
@@ -113,23 +108,16 @@ class GradleAndroidTestRunConfigurationExecutor(
     stat.beginLaunchTasks()
     try {
       printLaunchTaskStartedMessage(console)
-
-      // Create launch tasks for each device.
-      indicator.text = "Getting task for devices"
-
-      // A list of devices that we have launched application successfully.
-      indicator.text = "Launching on devices"
-      devices.map { device ->
-        async {
-          LOG.info("Launching on device ${device.name}")
-          val launchContext = LaunchContext(env, device, console, processHandler, indicator)
-          launchTasksProvider.getTask(device).run(launchContext)
-          // Notify listeners of the deployment.
-          project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(device.serialNumber, project)
-        }
-      }.awaitAll()
+      indicator.text = "Preparing gradle task"
+      val launchTasksProvider = GradleAndroidTestApplicationLaunchTasksProvider(env, facet, applicationIdProvider)
+      val gradleAndroidTestApplicationLaunchTask = launchTasksProvider.getTask()
+      gradleAndroidTestApplicationLaunchTask.run(devices, processHandler, console)
     }
     finally {
+      devices.forEach {
+        // Notify listeners of the deployment.
+        project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(it.serialNumber, project)
+      }
       stat.endLaunchTasks()
     }
   }
@@ -172,8 +160,8 @@ class GradleAndroidTestRunConfigurationExecutor(
   }
 
   private fun printLaunchTaskStartedMessage(consoleView: AndroidTestSuiteView) {
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT)
-    consoleView.println("$dateFormat: Launching ${configuration.name} on '${env.executionTarget.displayName}.")
+    val date = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT).format(Date())
+    consoleView.println("$date: Launching ${configuration.name} on '${env.executionTarget.displayName}.")
   }
 
   override fun applyChanges(indicator: ProgressIndicator) = throw UnsupportedOperationException(

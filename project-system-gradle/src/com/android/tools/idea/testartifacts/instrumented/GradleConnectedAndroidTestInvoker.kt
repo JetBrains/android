@@ -31,10 +31,11 @@ import com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectPro
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.execution.println
+import com.android.tools.idea.run.configuration.execution.printlnError
 import com.android.tools.idea.run.editor.AndroidTestExtraParam.Companion.parseFromString
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
+import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.android.tools.utp.GradleAndroidProjectResolverExtension
 import com.android.tools.utp.TaskOutputLineProcessor
 import com.android.tools.utp.TaskOutputProcessor
@@ -44,9 +45,7 @@ import com.intellij.build.BuildContentManager
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
-import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
@@ -66,11 +65,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Gradle task invoker to run ConnectedAndroidTask for selected devices at once.
- *
- * @param selectedDevices number of total selected devices to run instrumentation tests
  */
 class GradleConnectedAndroidTestInvoker(
-  private val selectedDevices: Int,
   private val executionEnvironment: ExecutionEnvironment,
   private val moduleData: ModuleData,
   private val uninstallIncompatibleApks: Boolean = false,
@@ -89,50 +85,15 @@ class GradleConnectedAndroidTestInvoker(
     const val UNINSTALL_INCOMPATIBLE_APKS_PROPERTY = "android.experimental.testOptions.uninstallIncompatibleApks"
   }
 
-  private val scheduledDeviceList: MutableList<IDevice> = mutableListOf()
-
-  /**
-   * Schedules a given device. Once the number of scheduled devices matches to [selectedDevices],
-   * it invokes "connectedAndroidTest" Gradle task.
-   */
-  fun schedule(project: Project,
-               taskId: String,
-               processHandler: ProcessHandler,
-               consolePrinter: ConsoleView,
-               androidModuleModel: GradleAndroidModel,
-               waitForDebugger: Boolean,
-               testPackageName: String,
-               testClassName: String,
-               testMethodName: String,
-               testRegex: String,
-               device: IDevice,
-               retentionConfiguration: RetentionConfiguration,
-               extraInstrumentationOptions: String) {
-    scheduledDeviceList.add(device)
-    if (scheduledDeviceList.size == selectedDevices) {
-      runGradleTask(project,
-                    taskId,
-                    processHandler,
-                    consolePrinter,
-                    androidModuleModel,
-                    waitForDebugger,
-                    testPackageName,
-                    testClassName,
-                    testMethodName,
-                    testRegex,
-                    retentionConfiguration,
-                    extraInstrumentationOptions)
-    }
-  }
-
   /**
    * Runs connectedAndroidTest Gradle task asynchronously.
    */
-  private fun runGradleTask(
+  fun runGradleTask(
     project: Project,
+    devices: List<IDevice>,
     taskId: String,
     processHandler: ProcessHandler,
-    consolePrinter: ConsoleView,
+    androidTestSuiteView: AndroidTestSuiteView,
     androidModuleModel: GradleAndroidModel,
     waitForDebugger: Boolean,
     testPackageName: String,
@@ -142,11 +103,10 @@ class GradleConnectedAndroidTestInvoker(
     retentionConfiguration: RetentionConfiguration,
     extraInstrumentationOptions: String
   ) {
-    consolePrinter.println("Running tests")
+    androidTestSuiteView.println("Running tests")
 
-    val androidTestResultListener = processHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)
-    val adapters = scheduledDeviceList.associate {
-      val adapter = gradleTestResultAdapterFactory(it, taskId, androidModuleModel.getArtifactForAndroidTest(), androidTestResultListener)
+    val adapters = devices.associate {
+      val adapter = gradleTestResultAdapterFactory(it, taskId, androidModuleModel.getArtifactForAndroidTest(), androidTestSuiteView)
       adapter.device.id to adapter
     }
 
@@ -156,11 +116,11 @@ class GradleConnectedAndroidTestInvoker(
                                                                            ExternalSystemTaskType.EXECUTE_TASK, project)
     val taskOutputProcessor = TaskOutputProcessor(adapters)
     val listener: ExternalSystemTaskNotificationListenerAdapter = object : ExternalSystemTaskNotificationListenerAdapter() {
-      val outputLineProcessor = TaskOutputLineProcessor(object: TaskOutputLineProcessor.LineProcessor {
+      val outputLineProcessor = TaskOutputLineProcessor(object : TaskOutputLineProcessor.LineProcessor {
         override fun processLine(line: String) {
           val processedText = taskOutputProcessor.process(line)
           if (!(processedText.isBlank() && line != processedText)) {
-            consolePrinter.println(processedText)
+            androidTestSuiteView.println(processedText)
           }
         }
       })
@@ -178,7 +138,7 @@ class GradleConnectedAndroidTestInvoker(
         if (stdOut) {
           outputLineProcessor.append(text)
         } else {
-          processHandler.notifyTextAvailable(text, ProcessOutputTypes.STDERR)
+          androidTestSuiteView.printlnError(text)
         }
       }
 
@@ -209,7 +169,6 @@ class GradleConnectedAndroidTestInvoker(
         if (isRerunRequested) {
           // rerunInvoker will call detachProcess().
           val rerunInvoker = GradleConnectedAndroidTestInvoker(
-            rerunDevices.size,
             executionEnvironment,
             moduleData,
             uninstallIncompatibleApks = true,
@@ -218,23 +177,23 @@ class GradleConnectedAndroidTestInvoker(
             gradleTestResultAdapterFactory,
           )
           rerunDevices.forEach {
-            androidTestResultListener.onRerunScheduled(it.device)
-            rerunInvoker.schedule(
-              project,
-              taskId,
-              processHandler,
-              consolePrinter,
-              androidModuleModel,
-              waitForDebugger,
-              testPackageName,
-              testClassName,
-              testMethodName,
-              testRegex,
-              it.iDevice,
-              retentionConfiguration,
-              extraInstrumentationOptions
-            )
+            androidTestSuiteView.onRerunScheduled(it.device)
           }
+          rerunInvoker.runGradleTask(
+            project,
+            rerunDevices.map { it.iDevice }.toList(),
+            taskId,
+            processHandler,
+            androidTestSuiteView,
+            androidModuleModel,
+            waitForDebugger,
+            testPackageName,
+            testClassName,
+            testMethodName,
+            testRegex,
+            retentionConfiguration,
+            extraInstrumentationOptions
+          )
         } else {
           // If Gradle task run finished before the test suite starts, show error
           // in the Build output tool window.
@@ -261,7 +220,7 @@ class GradleConnectedAndroidTestInvoker(
     })
 
     val gradleExecutionSettings = getGradleExecutionSettings(
-      project, waitForDebugger, testPackageName, testClassName, testMethodName, testRegex,
+      project, devices, waitForDebugger, testPackageName, testClassName, testMethodName, testRegex,
       retentionConfiguration, extraInstrumentationOptions)
 
     backgroundTaskExecutor {
@@ -290,6 +249,7 @@ class GradleConnectedAndroidTestInvoker(
 
   private fun getGradleExecutionSettings(
     project: Project,
+    devices: List<IDevice>,
     waitForDebugger: Boolean,
     testPackageName: String,
     testClassName: String,
@@ -300,7 +260,7 @@ class GradleConnectedAndroidTestInvoker(
   ): GradleExecutionSettings {
     return GradleUtil.getOrCreateGradleExecutionSettings(project).apply {
       // Add an environmental variable to filter connected devices for selected devices.
-      val deviceSerials = scheduledDeviceList.joinToString(",") { device ->
+      val deviceSerials = devices.joinToString(",") { device ->
         device.serialNumber
       }
       withEnvironmentVariables(mapOf(("ANDROID_SERIAL" to deviceSerials)))

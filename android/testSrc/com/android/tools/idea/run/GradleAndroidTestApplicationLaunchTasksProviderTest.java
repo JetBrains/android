@@ -87,7 +87,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       appIdProvider
     );
 
-    assertNotNull(provider.getTask(mockDevice));
+    assertNotNull(provider.getTask());
   }
 
   public void testLaunchTaskProvidedForAllInPackageTest() throws Exception {
@@ -109,7 +109,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       myAndroidFacet,
       appIdProvider);
 
-    assertNotNull(provider.getTask(mockDevice));
+    assertNotNull(provider.getTask());
   }
 
   public void testLaunchTaskProvidedForClassTest() throws Exception {
@@ -132,7 +132,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       appIdProvider
     );
 
-    assertNotNull(provider.getTask(mockDevice));
+    assertNotNull(provider.getTask());
   }
 
   public void testLaunchTaskProvidedForMethodTest() throws Exception {
@@ -158,7 +158,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       myAndroidFacet,
       appIdProvider);
 
-    assertNotNull(provider.getTask(mockDevice));
+    assertNotNull(provider.getTask());
   }
 
   public void testNoLaunchTaskProvidedForIndeterminatePackageName() throws Exception {
@@ -181,7 +181,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       appIdProvider);
 
     try {
-      provider.getTask(mockDevice);
+      provider.getTask();
       fail();
     }
     catch (ExecutionException e) {
@@ -210,7 +210,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
     );
 
     try {
-      provider.getTask(mockDevice);
+      provider.getTask();
       fail();
     }
     catch (ExecutionException e) {

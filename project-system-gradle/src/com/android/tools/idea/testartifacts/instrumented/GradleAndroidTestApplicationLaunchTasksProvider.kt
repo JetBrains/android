@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.testartifacts.instrumented
 
-import com.android.ddmlib.IDevice
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplicationLaunchTask.Companion.allInModuleTest
 import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplicationLaunchTask.Companion.allInPackageTest
 import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplicationLaunchTask.Companion.classTest
@@ -56,10 +54,9 @@ class GradleAndroidTestApplicationLaunchTasksProvider(
   )
 
   @Throws(ExecutionException::class)
-  fun getTask(device: IDevice): GradleAndroidTestApplicationLaunchTask {
+  fun getTask(): GradleAndroidTestApplicationLaunchTask {
     val gradleConnectedAndroidTestInvoker =
       GradleConnectedAndroidTestInvoker(
-        getNumberOfSelectedDevices(),
         myEnv,
         requireNotNull(runConfiguration.configurationModule.module?.let {
           GradleUtil.findGradleModuleData(it)?.data
@@ -68,7 +65,8 @@ class GradleAndroidTestApplicationLaunchTasksProvider(
 
     val testAppId: String? = try {
       myApplicationIdProvider.testPackageName
-    } catch (e: ApkProvisionException) {
+    }
+    catch (e: ApkProvisionException) {
       throw ExecutionException("Unable to determine test package name")
     }
 
@@ -83,12 +81,10 @@ class GradleAndroidTestApplicationLaunchTasksProvider(
           requireNotNull(GradleAndroidModel.get(facet)),
           testAppId,
           isDebug,
-          device,
           testRegex,
           gradleConnectedAndroidTestInvoker,
           retentionConfiguration,
-          myExtraInstrumentationOptions
-        )
+          myExtraInstrumentationOptions)
       }
 
       TEST_ALL_IN_PACKAGE -> {
@@ -97,12 +93,10 @@ class GradleAndroidTestApplicationLaunchTasksProvider(
           requireNotNull(GradleAndroidModel.get(facet)),
           testAppId,
           isDebug,
-          device,
           myPackageName,
           gradleConnectedAndroidTestInvoker,
           retentionConfiguration,
-          myExtraInstrumentationOptions
-        )
+          myExtraInstrumentationOptions)
       }
 
       TEST_CLASS -> {
@@ -111,7 +105,6 @@ class GradleAndroidTestApplicationLaunchTasksProvider(
           requireNotNull(GradleAndroidModel.get(facet)),
           testAppId,
           isDebug,
-          device,
           myClassName,
           gradleConnectedAndroidTestInvoker,
           retentionConfiguration,
@@ -125,7 +118,6 @@ class GradleAndroidTestApplicationLaunchTasksProvider(
           requireNotNull(GradleAndroidModel.get(facet)),
           testAppId,
           isDebug,
-          device,
           myClassName,
           myMethodName,
           gradleConnectedAndroidTestInvoker,
@@ -139,10 +131,6 @@ class GradleAndroidTestApplicationLaunchTasksProvider(
       }
     }
     return appLaunchTask
-  }
-
-  private fun getNumberOfSelectedDevices(): Int {
-    return (myEnv.getCopyableUserData(DeviceFutures.KEY) ?: error("'DeviceFutures.KEY' not found")).devices.size
   }
 
   companion object {

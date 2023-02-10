@@ -17,7 +17,8 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.run.tasks.LaunchContext
+import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
+import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.project.Project
 
 /**
@@ -28,7 +29,6 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
   private val androidModuleModel: GradleAndroidModel,
   private val taskId: String,
   private val waitForDebugger: Boolean,
-  private val device: IDevice,
   private val testPackageName: String,
   private val testClassName: String,
   private val testMethodName: String,
@@ -47,15 +47,14 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
       androidModuleModel: GradleAndroidModel,
       taskId: String,
       waitForDebugger: Boolean,
-      device: IDevice,
       testRegex: String,
       gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker,
       retentionConfiguration: RetentionConfiguration,
       extraInstrumentationOptions: String) : GradleAndroidTestApplicationLaunchTask {
       return GradleAndroidTestApplicationLaunchTask(project, androidModuleModel,
-                                                    taskId, waitForDebugger, device, "",
-                                                    "", "", testRegex, gradleConnectedAndroidTestInvoker,
-                                                    retentionConfiguration, extraInstrumentationOptions)
+                                                    taskId, waitForDebugger, "", "",
+                                                    "", testRegex, gradleConnectedAndroidTestInvoker, retentionConfiguration,
+                                                    extraInstrumentationOptions)
     }
 
     /**
@@ -67,15 +66,14 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
       androidModuleModel: GradleAndroidModel,
       taskId: String,
       waitForDebugger: Boolean,
-      device: IDevice,
       testPackageName: String,
       gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker,
       retentionConfiguration: RetentionConfiguration,
       extraInstrumentationOptions: String) : GradleAndroidTestApplicationLaunchTask {
       return GradleAndroidTestApplicationLaunchTask(project, androidModuleModel,
-                                                    taskId, waitForDebugger, device, testPackageName,
-                                                    "", "", "", gradleConnectedAndroidTestInvoker,
-                                                    retentionConfiguration, extraInstrumentationOptions)
+                                                    taskId, waitForDebugger, testPackageName, "",
+                                                    "", "", gradleConnectedAndroidTestInvoker, retentionConfiguration,
+                                                    extraInstrumentationOptions)
     }
 
     /**
@@ -87,15 +85,14 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
       androidModuleModel: GradleAndroidModel,
       taskId: String,
       waitForDebugger: Boolean,
-      device: IDevice,
       testClassName: String,
       gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker,
       retentionConfiguration: RetentionConfiguration,
       extraInstrumentationOptions: String) : GradleAndroidTestApplicationLaunchTask {
       return GradleAndroidTestApplicationLaunchTask(project, androidModuleModel,
-                                                    taskId, waitForDebugger, device, "",
-                                                    testClassName, "", "", gradleConnectedAndroidTestInvoker,
-                                                    retentionConfiguration, extraInstrumentationOptions)
+                                                    taskId, waitForDebugger, "", testClassName,
+                                                    "", "", gradleConnectedAndroidTestInvoker, retentionConfiguration,
+                                                    extraInstrumentationOptions)
     }
 
     /**
@@ -107,23 +104,22 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
       androidModuleModel: GradleAndroidModel,
       taskId: String,
       waitForDebugger: Boolean,
-      device: IDevice,
       testClassName: String,
       testMethodName: String,
       gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker,
       retentionConfiguration: RetentionConfiguration,
-      extraInstrumentationOptions: String) : GradleAndroidTestApplicationLaunchTask {
+      extraInstrumentationOptions: String): GradleAndroidTestApplicationLaunchTask {
       return GradleAndroidTestApplicationLaunchTask(project, androidModuleModel, taskId,
-                                                    waitForDebugger, device, "",
-                                                    testClassName, testMethodName, "", gradleConnectedAndroidTestInvoker,
-                                                    retentionConfiguration, extraInstrumentationOptions)
+                                                    waitForDebugger, "", testClassName,
+                                                    testMethodName, "", gradleConnectedAndroidTestInvoker, retentionConfiguration,
+                                                    extraInstrumentationOptions)
     }
   }
 
-  fun run(launchContext: LaunchContext) {
-    myGradleConnectedAndroidTestInvoker.schedule(
-      project, taskId, launchContext.processHandler, launchContext.consoleView, androidModuleModel,
+  fun run(devices: List<IDevice>, processHandler: ProcessHandler, androidTestSuiteView: AndroidTestSuiteView) {
+    myGradleConnectedAndroidTestInvoker.runGradleTask(
+      project, devices, taskId, processHandler, androidTestSuiteView, androidModuleModel,
       waitForDebugger, testPackageName, testClassName, testMethodName, testRegex,
-      device, retentionConfiguration, extraInstrumentationOptions)
+      retentionConfiguration, extraInstrumentationOptions)
   }
 }
