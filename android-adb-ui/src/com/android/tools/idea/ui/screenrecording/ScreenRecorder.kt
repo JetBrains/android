@@ -141,7 +141,7 @@ internal class ScreenRecorder(
     val baseDir = if (lastPath != null) LocalFileSystem.getInstance().findFileByPath(lastPath) else VfsUtil.getUserHomeDir()
     val saveFileWrapper = saveFileDialog.save(baseDir, getDefaultFileName(extension))
     if (saveFileWrapper != null) {
-      properties.setValue(SAVE_PATH_KEY, saveFileWrapper.file.toPath().toString())
+      properties.setValue(SAVE_PATH_KEY, saveFileWrapper.file.toPath().parent.toString())
     }
     return saveFileWrapper
   }
