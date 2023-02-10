@@ -21,6 +21,7 @@ import com.android.tools.idea.ui.AndroidAdbUiBundle
 import com.intellij.CommonBundle
 import com.intellij.ide.actions.RevealFileAction
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.fileChooser.FileSaverDialog
@@ -40,6 +41,7 @@ import java.text.SimpleDateFormat
 import java.time.Clock
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.CancellationException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit.MILLISECONDS
 
@@ -126,7 +128,20 @@ internal class ScreenRecorder(
       getTargetFile(recordingProvider.fileExtension)
     } ?: return
 
-    recordingProvider.pullRecording(fileWrapper.file.toPath())
+    try {
+      recordingProvider.pullRecording(fileWrapper.file.toPath())
+    }
+    catch (e: CancellationException) {
+      throw e
+    }
+    catch (e: Throwable) {
+      val message = AndroidAdbUiBundle.message("screenrecord.error.save", fileWrapper.file)
+      thisLogger().warn(message, e)
+      withContext(uiThread) {
+        Messages.showErrorDialog(message, AndroidAdbUiBundle.message("screenrecord.error.popup.title"))
+      }
+      return
+    }
 
     withContext(uiThread) {
       handleSavedRecording(fileWrapper)
