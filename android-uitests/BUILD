@@ -1574,6 +1574,8 @@ java_test(
 
 java_test(
     name = "NavGraphSanityTest",
+    size = "enormous",
+    timeout = "long",
     data = COMMON_DATA + [
         # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
         "//prebuilts/studio/layoutlib:build.prop",

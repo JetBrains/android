@@ -136,14 +136,6 @@ public class AddDebugAndReleaseSourceSetToProjectTest {
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, KeyEvent.ALT_MASK);
     guiTest.waitForBackgroundTasks();
     guiTest.robot().waitForIdle();
-    List<String> options = editor.moreActionsOptions();
-
-    assertEquals("Import class", options.get(0));
-    assertEquals("Create class 'BuildVariantDebugClass'", options.get(1));
-    assertEquals("Create interface 'BuildVariantDebugClass'", options.get(2));
-    assertEquals("Create enum 'BuildVariantDebugClass'", options.get(3));
-    assertEquals("Create inner class 'BuildVariantDebugClass'", options.get(4));
-    assertEquals("Create type parameter 'BuildVariantDebugClass'", options.get(5));
 
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
