@@ -67,11 +67,6 @@ public class GradleVersionCatalogModelImpl extends GradleFileModelImpl implement
   }
 
   @Override
-  public VirtualFile getFile() {
-    return catalogFile.getFile();
-  }
-
-  @Override
   public boolean isDefault() {
     return "libs".equals(catalogName);
   }

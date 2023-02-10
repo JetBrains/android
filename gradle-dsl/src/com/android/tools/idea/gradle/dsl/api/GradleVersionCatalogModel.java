@@ -24,7 +24,7 @@ import com.intellij.openapi.vfs.VirtualFile;
  *
  * Effective model of GradleVersionCatalogModel is a list of maps. VersionCatalogModel -> ExtModel -> name-value properties.
  */
-public interface GradleVersionCatalogModel {
+public interface GradleVersionCatalogModel extends GradleFileModel {
 
   ExtModel libraries();
 
@@ -35,8 +35,6 @@ public interface GradleVersionCatalogModel {
   ExtModel bundles();
 
   String catalogName();
-
-  VirtualFile getFile();
 
   boolean isDefault();
 }
