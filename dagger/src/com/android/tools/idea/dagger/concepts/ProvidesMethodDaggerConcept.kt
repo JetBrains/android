@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.dagger.concepts
 
-import com.android.tools.idea.dagger.concepts.DaggerAttributes.MODULE
-import com.android.tools.idea.dagger.concepts.DaggerAttributes.PROVIDES
+import com.android.tools.idea.dagger.concepts.DaggerAnnotations.MODULE
+import com.android.tools.idea.dagger.concepts.DaggerAnnotations.PROVIDES
 import com.android.tools.idea.dagger.concepts.DaggerElement.Type
 import com.android.tools.idea.dagger.index.DaggerConceptIndexer
 import com.android.tools.idea.dagger.index.DaggerConceptIndexers

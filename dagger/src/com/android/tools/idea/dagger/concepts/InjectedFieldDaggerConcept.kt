@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.dagger.concepts
 
-import com.android.tools.idea.dagger.concepts.DaggerAttributes.INJECT
+import com.android.tools.idea.dagger.concepts.DaggerAnnotations.INJECT
 import com.android.tools.idea.dagger.concepts.DaggerElement.Type
 import com.android.tools.idea.dagger.index.DaggerConceptIndexer
 import com.android.tools.idea.dagger.index.DaggerConceptIndexers
