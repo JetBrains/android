@@ -708,7 +708,6 @@
           "profiler.svg": "studio/icons/shell/toolbar/profiler.svg",
           "run-with-coverage.svg": "studio/icons/shell/toolbar/run-with-coverage.svg",
           "sdk-manager.svg": "studio/icons/shell/toolbar/sdk-manager.svg",
-          "user-profile-active.svg": "studio/icons/shell/toolbar/user-profile-active.svg",
           "user-profile.svg": "studio/icons/shell/toolbar/user-profile.svg"
         }
       },
