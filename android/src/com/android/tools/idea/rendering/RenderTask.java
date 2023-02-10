@@ -237,7 +237,6 @@ public class RenderTask {
                                     ScreenOrientation.PORTRAIT;
     myHardwareConfigHelper.setOrientation(orientation);
     myLayoutLib = layoutLib;
-    LocalResourceRepository appResources = renderContext.getModule().getStudioResourceRepositoryManager().getAppResources();
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, manifestProvider, myCredential);
     WeakReference<RenderTask> xmlFileProvider = new WeakReference<>(this);
     ModuleRenderContext moduleRenderContext = ModuleRenderContext.forFile(renderContext.getModule().getIdeaModule(), () -> {

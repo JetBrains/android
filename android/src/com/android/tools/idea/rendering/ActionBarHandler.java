@@ -24,7 +24,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.ActivityAttributesSnapshot;
 import com.android.tools.idea.model.MergedManifestSnapshot;
-import com.android.tools.idea.res.StudioResourceRepositoryManager;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ModalityState;
@@ -62,6 +62,12 @@ public class ActionBarHandler extends ActionBarCallback {
 
   @Nullable private final Object myCredential;
   @NotNull private final RenderTask myRenderTask;
+
+  public ResourceRepositoryManager getResourceRepositoryManager() {
+    return myResourceRepositoryManager;
+  }
+
+  @NotNull private final ResourceRepositoryManager myResourceRepositoryManager;
   @Nullable private ImmutableList<ResourceReference> myMenus;
 
   @NotNull private final Function<Module, MergedManifestSnapshot> myManifestProvider;
@@ -72,6 +78,7 @@ public class ActionBarHandler extends ActionBarCallback {
     @Nullable Object credential) {
     myRenderTask = renderTask;
     myCredential = credential;
+    myResourceRepositoryManager = renderTask.getContext().getModule().getResourceRepositoryManager();
     myManifestProvider = manifestProvider;
   }
 
@@ -146,23 +153,20 @@ public class ActionBarHandler extends ActionBarCallback {
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
       Module module = myRenderTask.getContext().getModule().getIdeaModule();
-      StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(module);
-      if (repositoryManager != null) {
-        ResourceNamespace namespace = repositoryManager.getNamespace();
-        XmlFile xmlFile = myRenderTask.getXmlFile();
-        String commaSeparatedMenus = xmlFile == null ? null : AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_MENU, TOOLS_URI);
-        if (commaSeparatedMenus != null) {
-          List<String> names = Splitter.on(',').trimResults().omitEmptyStrings().splitToList(commaSeparatedMenus);
-          myMenus = names.stream()
-            .map(name -> new ResourceReference(namespace, ResourceType.MENU, name))
-            .collect(ImmutableList.toImmutableList());
-        } else {
-          String fqn = xmlFile == null ? null : AndroidUtils.getDeclaredContextFqcn(module, xmlFile);
-          if (fqn != null) {
-            updateMenusInBackground(xmlFile.getProject(), fqn, namespace);
-          }
+      ResourceNamespace namespace = myResourceRepositoryManager.getNamespace();
+      XmlFile xmlFile = myRenderTask.getXmlFile();
+      String commaSeparatedMenus = xmlFile == null ? null : AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_MENU, TOOLS_URI);
+      if (commaSeparatedMenus != null) {
+        List<String> names = Splitter.on(',').trimResults().omitEmptyStrings().splitToList(commaSeparatedMenus);
+        myMenus = names.stream()
+          .map(name -> new ResourceReference(namespace, ResourceType.MENU, name))
+          .collect(ImmutableList.toImmutableList());
+      } else {
+        String fqn = xmlFile == null ? null : AndroidUtils.getDeclaredContextFqcn(module, xmlFile);
+        if (fqn != null) {
+          updateMenusInBackground(xmlFile.getProject(), fqn, namespace);
         }
-      }
+       }
 
       if (myMenus == null) {
         myMenus = ImmutableList.of();

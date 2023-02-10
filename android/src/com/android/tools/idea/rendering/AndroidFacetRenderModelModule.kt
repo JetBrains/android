@@ -32,7 +32,7 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
     get() = facet.module
   override var assetRepository: AssetRepository? = AssetRepositoryImpl(facet)
     private set
-  override val studioResourceRepositoryManager: StudioResourceRepositoryManager
+  override val resourceRepositoryManager: StudioResourceRepositoryManager
     get() = StudioResourceRepositoryManager.getInstance(facet)
   override val info: AndroidModuleInfo
     get() = StudioAndroidModuleInfo.getInstance(facet)

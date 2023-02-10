@@ -203,7 +203,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myHasLegacyAppCompat = DependencyManagementUtil.dependsOn(renderModule.getIdeaModule(), GoogleMavenArtifactId.APP_COMPAT_V7);
     myHasAndroidXAppCompat = DependencyManagementUtil.dependsOn(renderModule.getIdeaModule(), GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
 
-    myNamespacing = renderModule.getStudioResourceRepositoryManager().getNamespacing();
+    myNamespacing = renderModule.getResourceRepositoryManager().getNamespacing();
     if (myNamespacing == Namespacing.DISABLED) {
       myImplicitNamespaces = ResourceNamespace.Resolver.TOOLS_ONLY;
     } else {
@@ -212,7 +212,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
     myFontCacheService = DownloadableFontCacheService.getInstance();
     ImmutableMap.Builder<String, ResourceValue> fontBuilder = ImmutableMap.builder();
-    renderModule.getStudioResourceRepositoryManager().getAppResources().accept(
+    renderModule.getResourceRepositoryManager().getAppResources().accept(
         new ResourceVisitor() {
           @Override
           @NotNull
@@ -344,7 +344,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
         // this is a special case where we generate a synthetic font-family XML file that points
         // to the cached fonts downloaded by the DownloadableFontCacheService.
         if (myProjectFonts == null) {
-          myProjectFonts = new ProjectFonts(myRenderModule.getStudioResourceRepositoryManager());
+          myProjectFonts = new ProjectFonts(myRenderModule.getResourceRepositoryManager());
         }
 
         FontFamily family = myProjectFonts.getFont(resourceValue.getResourceUrl().toString());
