@@ -47,6 +47,10 @@ class DaggerIndexAnnotatedWrapperTest {
     myFixture = projectRule.fixture
   }
 
+  private fun DaggerIndexAnnotatedWrapper.getAnnotationByNameTestHelper(
+    fqName: String
+  ): List<String> = getAnnotationsByName(fqName).toList().map { it.getAnnotationNameInSource() }
+
   @Test
   fun kotlinAnnotation() {
     val psiFile =
@@ -71,6 +75,13 @@ class DaggerIndexAnnotatedWrapperTest {
     assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isTrue()
     assertThat(wrapper.getIsAnnotatedWith("com.other.Annotation")).isTrue()
     assertThat(wrapper.getIsAnnotatedWith("com.notimported.Annotation")).isFalse()
+
+    assertThat(wrapper.getAnnotationByNameTestHelper("Annotation")).containsExactly("Annotation")
+    assertThat(wrapper.getAnnotationByNameTestHelper("com.example.Annotation"))
+      .containsExactly("Annotation")
+    assertThat(wrapper.getAnnotationByNameTestHelper("com.other.Annotation"))
+      .containsExactly("Annotation")
+    assertThat(wrapper.getAnnotationByNameTestHelper("com.notimported.Annotation")).isEmpty()
   }
 
   @Test
@@ -97,6 +108,12 @@ class DaggerIndexAnnotatedWrapperTest {
     assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isFalse()
     assertThat(wrapper.getIsAnnotatedWith("com.other.Annotation")).isFalse()
     assertThat(wrapper.getIsAnnotatedWith("com.qualified.Annotation")).isTrue()
+
+    assertThat(wrapper.getAnnotationByNameTestHelper("Annotation")).isEmpty()
+    assertThat(wrapper.getAnnotationByNameTestHelper("com.example.Annotation")).isEmpty()
+    assertThat(wrapper.getAnnotationByNameTestHelper("com.other.Annotation")).isEmpty()
+    assertThat(wrapper.getAnnotationByNameTestHelper("com.qualified.Annotation"))
+      .containsExactly("com.qualified.Annotation")
   }
 
   @Test
@@ -120,6 +137,50 @@ class DaggerIndexAnnotatedWrapperTest {
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getIsAnnotatedWith("com.aliased.Annotation")).isTrue()
+    assertThat(wrapper.getAnnotationByNameTestHelper("com.aliased.Annotation"))
+      .containsExactly("Bar")
+  }
+
+  @Test
+  fun kotlinMultipleAnnotations() {
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
+      package com.example
+
+      import com.other.*
+
+      @Annotation
+      @Annotation
+      @com.other.Annotation
+      @com.qualified1.Annotation
+      @com.qualified2.Annotation
+      class Foo {}
+      """.trimIndent()
+      ) as
+        KtFile
+
+    val element = myFixture.moveCaret("Fo|o").parentOfType<KtClass>()!!
+    val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
+
+    assertThat(wrapper.getIsAnnotatedWith("Annotation")).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith("com.other.Annotation")).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith("com.qualified1.Annotation")).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith("com.qualified2.Annotation")).isTrue()
+
+    assertThat(wrapper.getAnnotationByNameTestHelper("Annotation"))
+      .containsExactly("Annotation", "Annotation")
+    assertThat(wrapper.getAnnotationByNameTestHelper("com.example.Annotation"))
+      .containsExactly("Annotation", "Annotation")
+    assertThat(wrapper.getAnnotationByNameTestHelper("com.other.Annotation"))
+      .containsExactly("Annotation", "Annotation", "com.other.Annotation")
+    assertThat(wrapper.getAnnotationByNameTestHelper("com.qualified1.Annotation"))
+      .containsExactly("com.qualified1.Annotation")
+    assertThat(wrapper.getAnnotationByNameTestHelper("com.qualified2.Annotation"))
+      .containsExactly("com.qualified2.Annotation")
   }
 
   @Test
@@ -146,6 +207,13 @@ class DaggerIndexAnnotatedWrapperTest {
     assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isTrue()
     assertThat(wrapper.getIsAnnotatedWith("com.other.Annotation")).isTrue()
     assertThat(wrapper.getIsAnnotatedWith("com.notimported.Annotation")).isFalse()
+
+    assertThat(wrapper.getAnnotationByNameTestHelper("Annotation")).containsExactly("Annotation")
+    assertThat(wrapper.getAnnotationByNameTestHelper("com.example.Annotation"))
+      .containsExactly("Annotation")
+    assertThat(wrapper.getAnnotationByNameTestHelper("com.other.Annotation"))
+      .containsExactly("Annotation")
+    assertThat(wrapper.getAnnotationByNameTestHelper("com.notimported.Annotation")).isEmpty()
   }
 
   @Test
@@ -172,5 +240,53 @@ class DaggerIndexAnnotatedWrapperTest {
     assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isFalse()
     assertThat(wrapper.getIsAnnotatedWith("com.other.Annotation")).isFalse()
     assertThat(wrapper.getIsAnnotatedWith("com.qualified.Annotation")).isTrue()
+
+    assertThat(wrapper.getAnnotationByNameTestHelper("Annotation")).isEmpty()
+    assertThat(wrapper.getAnnotationByNameTestHelper("com.example.Annotation")).isEmpty()
+    assertThat(wrapper.getAnnotationByNameTestHelper("com.other.Annotation")).isEmpty()
+    assertThat(wrapper.getAnnotationByNameTestHelper("com.qualified.Annotation"))
+      .containsExactly("com.qualified.Annotation")
+  }
+
+  @Test
+  fun javaMultipleAnnotations() {
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
+      package com.example;
+
+      import com.other.*;
+
+      @Annotation
+      @Annotation
+      @com.other.Annotation
+      @com.qualified1.Annotation
+      @com.qualified2.Annotation
+      class Foo {}
+      """.trimIndent()
+      ) as
+        PsiJavaFile
+
+    val element = myFixture.moveCaret("Fo|o").parentOfType<PsiClass>()!!
+    val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
+
+    assertThat(wrapper.getIsAnnotatedWith("Annotation")).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith("com.other.Annotation")).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith("com.qualified1.Annotation")).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith("com.qualified2.Annotation")).isTrue()
+
+    assertThat(wrapper.getAnnotationByNameTestHelper("Annotation"))
+      .containsExactly("Annotation", "Annotation")
+    assertThat(wrapper.getAnnotationByNameTestHelper("com.example.Annotation"))
+      .containsExactly("Annotation", "Annotation")
+    assertThat(wrapper.getAnnotationByNameTestHelper("com.other.Annotation"))
+      .containsExactly("Annotation", "Annotation", "com.other.Annotation")
+    assertThat(wrapper.getAnnotationByNameTestHelper("com.qualified1.Annotation"))
+      .containsExactly("com.qualified1.Annotation")
+    assertThat(wrapper.getAnnotationByNameTestHelper("com.qualified2.Annotation"))
+      .containsExactly("com.qualified2.Annotation")
   }
 }

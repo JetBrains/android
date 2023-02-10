@@ -116,6 +116,90 @@ class DaggerIndexAnnotationWrapperTest {
   }
 
   @Test
+  fun kotlinAnnotationArgumentSingleClass() {
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
+      package com.example
+
+      @Annotation(modules = [Module1::class])
+      interface Foo {}
+      """.trimIndent()
+      ) as
+        KtFile
+
+    val element = myFixture.moveCaret("Annota|tion").parentOfType<KtAnnotationEntry>()!!
+    val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
+
+    assertThat(wrapper.getArgumentClassNames("modules")).containsExactly("Module1")
+  }
+
+  @Test
+  fun kotlinAnnotationArgumentMultipleClasses() {
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
+      package com.example
+
+      @Annotation(modules = [Module1::class, Module2::class])
+      interface Foo {}
+      """.trimIndent()
+      ) as
+        KtFile
+
+    val element = myFixture.moveCaret("Annota|tion").parentOfType<KtAnnotationEntry>()!!
+    val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
+
+    assertThat(wrapper.getArgumentClassNames("modules")).containsExactly("Module1", "Module2")
+  }
+
+  @Test
+  fun kotlinAnnotationArgumentNoClasses() {
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
+      package com.example
+
+      @Annotation(modules = [])
+      interface Foo {}
+      """.trimIndent()
+      ) as
+        KtFile
+
+    val element = myFixture.moveCaret("Annota|tion").parentOfType<KtAnnotationEntry>()!!
+    val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
+
+    assertThat(wrapper.getArgumentClassNames("modules")).isEmpty()
+  }
+
+  @Test
+  fun kotlinAnnotationArgumentDifferentName() {
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
+      package com.example
+
+      @Annotation(notModules = [Module1::class, Module2::class])
+      interface Foo {}
+      """.trimIndent()
+      ) as
+        KtFile
+
+    val element = myFixture.moveCaret("Annota|tion").parentOfType<KtAnnotationEntry>()!!
+    val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
+
+    assertThat(wrapper.getArgumentClassNames("modules")).isEmpty()
+  }
+
+  @Test
   fun javaAnnotation() {
     val psiFile =
       myFixture.configureByText(
@@ -159,5 +243,110 @@ class DaggerIndexAnnotationWrapperTest {
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getAnnotationNameInSource()).isEqualTo("com.qualified.Annotation")
+  }
+
+  @Test
+  fun javaAnnotationArgumentSingleClass() {
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
+      package com.example;
+
+      @Annotation(modules = Module1.class)
+      interface Foo {}
+      """.trimIndent()
+      ) as
+        PsiJavaFile
+
+    val element = myFixture.moveCaret("Annota|tion").parentOfType<PsiAnnotation>()!!
+    val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
+
+    assertThat(wrapper.getArgumentClassNames("modules")).containsExactly("Module1")
+  }
+
+  @Test
+  fun javaAnnotationArgumentSingleClassWithBrackets() {
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
+      package com.example;
+
+      @Annotation(modules = { Module1.class })
+      interface Foo {}
+      """.trimIndent()
+      ) as
+        PsiJavaFile
+
+    val element = myFixture.moveCaret("Annota|tion").parentOfType<PsiAnnotation>()!!
+    val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
+
+    assertThat(wrapper.getArgumentClassNames("modules")).containsExactly("Module1")
+  }
+
+  @Test
+  fun javaAnnotationArgumentMultipleClasses() {
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
+      package com.example;
+
+      @Annotation(modules = { Module1.class, Module2.class })
+      interface Foo {}
+      """.trimIndent()
+      ) as
+        PsiJavaFile
+
+    val element = myFixture.moveCaret("Annota|tion").parentOfType<PsiAnnotation>()!!
+    val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
+
+    assertThat(wrapper.getArgumentClassNames("modules")).containsExactly("Module1", "Module2")
+  }
+
+  @Test
+  fun javaAnnotationArgumentEmptyClasses() {
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
+      package com.example;
+
+      @Annotation(modules = { })
+      interface Foo {}
+      """.trimIndent()
+      ) as
+        PsiJavaFile
+
+    val element = myFixture.moveCaret("Annota|tion").parentOfType<PsiAnnotation>()!!
+    val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
+
+    assertThat(wrapper.getArgumentClassNames("modules")).isEmpty()
+  }
+
+  @Test
+  fun javaAnnotationArgumentDifferentName() {
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
+      package com.example;
+
+      @Annotation(notModules = { Module1.class, Module2.class })
+      interface Foo {}
+      """.trimIndent()
+      ) as
+        PsiJavaFile
+
+    val element = myFixture.moveCaret("Annota|tion").parentOfType<PsiAnnotation>()!!
+    val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
+
+    assertThat(wrapper.getArgumentClassNames("modules")).isEmpty()
   }
 }
