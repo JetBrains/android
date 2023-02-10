@@ -20,6 +20,7 @@ import com.android.tools.idea.editors.literals.internal.LiveLiteralsDiagnosticsM
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
 import com.android.tools.idea.flags.StudioFlags
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.BaseState
 import com.intellij.openapi.components.Service
@@ -52,6 +53,9 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
       if (state.mode != patchedValue) {
         state.mode = patchedValue
         LiveLiteralsDiagnosticsManager.getApplicationWriteInstance().userChangedLiveLiteralsState(patchedValue == LIVE_LITERALS)
+
+        // Force the UI to redraw with the new status. See com.intellij.openapi.actionSystem.AnAction#update().
+        ActivityTracker.getInstance().inc()
       }
     }
 

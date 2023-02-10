@@ -20,6 +20,7 @@ import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -128,6 +129,48 @@ class InformationPopupImplTest {
       add(popup.popupComponent, BorderLayout.CENTER)
     }, 1.0, true)
 
+    assertEquals(
+      "Action 1, Action 2",
+      fakeUi.findAllComponents<AnActionLink>().joinToString(", ") { it.text }
+    )
+  }
+
+  @Test
+  fun testPopupWithPopupLinks() {
+    val popup = InformationPopupImpl(
+      "Title",
+      "A Description",
+      listOf(),
+      listOf(
+        AnActionLink("Action 1", object : AnAction() {
+          override fun actionPerformed(e: AnActionEvent) {
+          }
+        }),
+        object: AnActionLink("Action 2", object : AnAction(), DataContext {
+          override fun actionPerformed(e: AnActionEvent) {
+          }
+
+          override fun getData(dataId: String): Any? {
+            return if (POPUP_ACTION.`is`(dataId)) true else null
+          }
+        }) {}
+      )
+    )
+
+    val fakeUi = FakeUi(JPanel().apply {
+      layout = BorderLayout()
+      size = Dimension(200, 100)
+      add(popup.popupComponent, BorderLayout.CENTER)
+    }, 1.0, true)
+
+    assertEquals(
+      "Action 1, Action 2",
+      fakeUi.findAllComponents<AnActionLink>().joinToString(", ") { it.text }
+    )
+
+    fakeUi.clickOn(fakeUi.findAllComponents<AnActionLink>().find { link -> link.text == "Action 2" }!!)
+
+    // Popup should still be showing.
     assertEquals(
       "Action 1, Action 2",
       fakeUi.findAllComponents<AnActionLink>().joinToString(", ") { it.text }

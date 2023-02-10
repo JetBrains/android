@@ -20,6 +20,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButton
@@ -77,6 +78,12 @@ interface InformationPopup {
   fun isVisible(): Boolean
 
 }
+
+/**
+ * If the underlying action creates a popup, its DataProvider should return true for
+ * this data key to prevent closing the parent popup prematurely.
+ */
+val POPUP_ACTION = DataKey.create<Boolean>("compose.information_popup.popup_action")
 
 /**
  * The popup contains an optional `title` and `description` that can contain HTML contents.
@@ -194,9 +201,11 @@ class InformationPopupImpl(
     links.forEachIndexed { index, linkLabel ->
       if (index != 0) panel.add(Box.createHorizontalStrut(JBUI.scale(POPUP_LINK_SEPARATOR_WIDTH)))
       linkLabel.addActionListener {
-        // Invoke later to avoid closing the tab before the action has executed.
-        invokeLater {
-          hidePopup()
+        if (linkLabel.getData(POPUP_ACTION.name) != true) {
+          // Invoke later to avoid closing the tab before the action has executed.
+          invokeLater {
+            hidePopup()
+          }
         }
       }
       panel.add(linkLabel)
