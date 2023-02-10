@@ -62,11 +62,26 @@ import org.jetbrains.uast.tryResolve
 private val NON_MULTIPREVIEW_PREFIXES =
   listOf(
     "android.",
-    "androidx.",
     "kotlin.",
     "kotlinx.",
     "java.",
   )
+
+/**
+ * Returns true if the MultiPreview flag is enabled and one of the following is true:
+ * 1. This annotation's class is defined in androidx (i.e. its fqcn starts with 'androidx.'), and it
+ * contains 'preview' as one of its subpackages (e.g. 'package androidx.example.preview' or 'package
+ * androidx.preview.example')
+ * 2. This annotation's fqcn doesn't start with 'androidx.' nor with any of the prefixes in
+ * [NON_MULTIPREVIEW_PREFIXES].
+ */
+private fun UAnnotation.couldBeMultiPreviewAnnotation(): Boolean {
+  return StudioFlags.COMPOSE_MULTIPREVIEW.get() &&
+    (this.tryResolve() as? PsiClass)?.qualifiedName?.let { fqcn ->
+      if (fqcn.startsWith("androidx.")) fqcn.contains(".preview.")
+      else NON_MULTIPREVIEW_PREFIXES.none { fqcn.startsWith(it) }
+    } == true
+}
 
 /** Returns true if the [KtAnnotationEntry] is a `@Preview` annotation. */
 internal fun KtAnnotationEntry.isPreviewAnnotation() =
@@ -76,17 +91,6 @@ internal fun KtAnnotationEntry.isPreviewAnnotation() =
     shortName?.identifier == COMPOSE_PREVIEW_ANNOTATION_NAME &&
       COMPOSE_PREVIEW_ANNOTATION_FQN == getQualifiedName()
   }
-
-/**
- * Returns true if the Multipreview flag is enabled and this annotation fqcn doesn't start with any
- * of the prefixes of [NON_MULTIPREVIEW_PREFIXES]
- */
-private fun UAnnotation.couldBeMultiPreviewAnnotation(): Boolean {
-  return StudioFlags.COMPOSE_MULTIPREVIEW.get() &&
-    NON_MULTIPREVIEW_PREFIXES.all {
-      (this.tryResolve() as? PsiClass)?.qualifiedName?.startsWith(it) == false
-    }
-}
 
 /** Returns true if the [UAnnotation] is a `@Preview` annotation. */
 internal fun UAnnotation.isPreviewAnnotation() =

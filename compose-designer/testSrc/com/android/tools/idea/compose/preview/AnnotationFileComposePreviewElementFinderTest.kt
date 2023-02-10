@@ -358,6 +358,190 @@ class AnnotationFileComposePreviewElementFinderTest(
   }
 
   @Test
+  fun testFindMultiPreviewsInAndroidx() = runBlocking {
+    // Add 3 files "simulating" them to be from androidx and containing a MultiPreview with a valid
+    // package name.
+    fixture.addFileToProjectAndInvalidate(
+      "src/File1.kt",
+      // language=kotlin
+      """
+        package androidx.preview.valid.package
+
+        import $PREVIEW_TOOLING_PACKAGE.Preview
+
+        @Composable
+        @Preview
+        annotation class MyValidAnnotation1
+        """.trimIndent()
+    )
+    fixture.addFileToProjectAndInvalidate(
+      "src/File2.kt",
+      // language=kotlin
+      """
+        package androidx.valid.preview.package
+
+        import $PREVIEW_TOOLING_PACKAGE.Preview
+
+        @Composable
+        @Preview
+        annotation class MyValidAnnotation2
+        """.trimIndent()
+    )
+    fixture.addFileToProjectAndInvalidate(
+      "src/File3.kt",
+      // language=kotlin
+      """
+        package androidx.valid.package.preview
+
+        import $PREVIEW_TOOLING_PACKAGE.Preview
+
+        @Composable
+        @Preview
+        annotation class MyValidAnnotation3
+        """.trimIndent()
+    )
+
+    // Add 3 files "simulating" them to be from androidx and containing a MultiPreview with an
+    // invalid package name.
+    fixture.addFileToProjectAndInvalidate(
+      "src/File4.kt",
+      // language=kotlin
+      """
+        // Doesn't contain preview
+        package androidx.invalid.package
+
+        import $PREVIEW_TOOLING_PACKAGE.Preview
+
+        @Composable
+        @Preview
+        annotation class MyInvalidAnnotation1
+        """.trimIndent()
+    )
+    fixture.addFileToProjectAndInvalidate(
+      "src/File5.kt",
+      // language=kotlin
+      """
+        // 'mypreview' is not valid
+        package androidx.invalid.mypreview.package
+
+        import $PREVIEW_TOOLING_PACKAGE.Preview
+
+        @Composable
+        @Preview
+        annotation class MyInvalidAnnotation2
+        """.trimIndent()
+    )
+    fixture.addFileToProjectAndInvalidate(
+      "src/File6.kt",
+      // language=kotlin
+      """
+        // 'pre.view' is not valid
+        package androidx.invalid.pre.view.package
+
+        import $PREVIEW_TOOLING_PACKAGE.Preview
+
+        @Composable
+        @Preview
+        annotation class MyInvalidAnnotation3
+        """.trimIndent()
+    )
+
+    val composeTest =
+      fixture.addFileToProjectAndInvalidate(
+        "src/Test.kt",
+        // language=kotlin
+        """
+        package com.example.test
+
+        import $PREVIEW_TOOLING_PACKAGE.Preview
+        import $COMPOSABLE_ANNOTATION_FQN
+        import androidx.preview.valid.package.MyValidAnnotation1
+        import androidx.valid.preview.package.MyValidAnnotation2
+        import androidx.valid.package.preview.MyValidAnnotation3
+        import androidx.invalid.package.MyInvalidAnnotation1
+        import androidx.invalid.mypreview.package.MyInvalidAnnotation2
+        import androidx.invalid.pre.view.package.MyInvalidAnnotation3
+
+        @Composable
+        @Preview
+        @MyValidAnnotation1
+        @MyValidAnnotation2
+        @MyValidAnnotation3
+        @MyInvalidAnnotation1
+        @MyInvalidAnnotation2
+        @MyInvalidAnnotation3
+        fun Preview1() {
+        }
+        """.trimIndent()
+      )
+
+    assertTrue(
+      AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+    )
+    val elements =
+      AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+        .toList()
+
+    assertEquals(4, elements.size)
+
+    elements[0].let {
+      assertEquals("Preview1", it.displaySettings.name)
+      assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
+      assertFalse(it.displaySettings.showBackground)
+      assertFalse(it.displaySettings.showDecoration)
+
+      ReadAction.run<Throwable> {
+        assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
+        assertEquals("@Preview", it.previewElementDefinitionPsi?.element?.text)
+      }
+    }
+
+    elements[1].let {
+      assertEquals("Preview1 - MyValidAnnotation1 1", it.displaySettings.name)
+      assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
+      assertFalse(it.displaySettings.showBackground)
+      assertFalse(it.displaySettings.showDecoration)
+
+      ReadAction.run<Throwable> {
+        assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
+        assertEquals("@MyValidAnnotation1", it.previewElementDefinitionPsi?.element?.text)
+      }
+    }
+
+    elements[2].let {
+      assertEquals("Preview1 - MyValidAnnotation2 1", it.displaySettings.name)
+      assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
+      assertFalse(it.displaySettings.showBackground)
+      assertFalse(it.displaySettings.showDecoration)
+
+      ReadAction.run<Throwable> {
+        assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
+        assertEquals("@MyValidAnnotation2", it.previewElementDefinitionPsi?.element?.text)
+      }
+    }
+
+    elements[3].let {
+      assertEquals("Preview1 - MyValidAnnotation3 1", it.displaySettings.name)
+      assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
+      assertFalse(it.displaySettings.showBackground)
+      assertFalse(it.displaySettings.showDecoration)
+
+      ReadAction.run<Throwable> {
+        assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
+        assertEquals("@MyValidAnnotation3", it.previewElementDefinitionPsi?.element?.text)
+      }
+    }
+  }
+
+  @Test
   fun testFindPreviewAnnotationsWithoutImport() = runBlocking {
     val composeTest =
       fixture.addFileToProjectAndInvalidate(
