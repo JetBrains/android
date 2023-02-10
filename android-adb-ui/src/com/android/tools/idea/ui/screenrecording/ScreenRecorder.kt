@@ -36,9 +36,9 @@ import com.intellij.openapi.vfs.VirtualFileWrapper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import java.io.File
+import java.text.SimpleDateFormat
 import java.time.Clock
-import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit.MILLISECONDS
@@ -55,9 +55,12 @@ private const val SAVE_PATH_KEY = "ScreenRecorder.SavePath"
 internal class ScreenRecorder(
   private val project: Project,
   private val recordingProvider: RecordingProvider,
-  private val deviceName: String,
+  deviceName: String,
   private val clock: Clock = Clock.systemDefaultZone(),
 ) {
+
+  private val dialogTitle = AndroidAdbUiBundle.message("screenrecord.dialog.title", deviceName)
+
   suspend fun recordScreen(timeLimitSec: Int) {
     require(timeLimitSec > 0)
     recordingProvider.startRecording()
@@ -65,7 +68,7 @@ internal class ScreenRecorder(
     val start = clock.millis()
 
     val stoppingLatch = CountDownLatch(1)
-    val dialog = ScreenRecorderDialog(AndroidAdbUiBundle.message("screenrecord.dialog.title", deviceName)) { stoppingLatch.countDown() }
+    val dialog = ScreenRecorderDialog(dialogTitle) { stoppingLatch.countDown() }
     val dialogWrapper: DialogWrapper
     withContext(uiThread) {
       dialogWrapper = dialog.createWrapper(project)
@@ -104,6 +107,10 @@ internal class ScreenRecorder(
     pullRecording()
   }
 
+  private fun millisUntilNextSecondTick(start: Long): Long {
+    return 1000 - (clock.millis() - start) % 1000
+  }
+
   private suspend fun pullRecording() {
     if (!recordingProvider.doesRecordingExist()) {
       // TODO(aalbert): See if we can get the error for the non-emulator impl.
@@ -115,13 +122,9 @@ internal class ScreenRecorder(
       return
     }
 
-    val fileWrapper: VirtualFileWrapper?
-    withContext(uiThread) {
-      fileWrapper = getTargetFile(recordingProvider.fileExtension)
-    }
-    if (fileWrapper == null) {
-      return
-    }
+    val fileWrapper = withContext(uiThread) {
+      getTargetFile(recordingProvider.fileExtension)
+    } ?: return
 
     recordingProvider.pullRecording(fileWrapper.file.toPath())
 
@@ -138,62 +141,56 @@ internal class ScreenRecorder(
     val baseDir = if (lastPath != null) LocalFileSystem.getInstance().findFileByPath(lastPath) else VfsUtil.getUserHomeDir()
     val saveFileWrapper = saveFileDialog.save(baseDir, getDefaultFileName(extension))
     if (saveFileWrapper != null) {
-      val saveFile = saveFileWrapper.file
-      properties.setValue(SAVE_PATH_KEY, saveFile.path)
+      properties.setValue(SAVE_PATH_KEY, saveFileWrapper.file.toPath().toString())
     }
     return saveFileWrapper
   }
 
-  private fun millisUntilNextSecondTick(start: Long): Long {
-    return 1000 - (clock.millis() - start) % 1000
+  private fun getDefaultFileName(extension: String): String {
+    val timestampFormat = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ROOT)
+    val timestampSuffix = timestampFormat.format(Date())
+    val filename = "Screen_recording_$timestampSuffix"
+    // Add extension to filename on Mac only see: b/38447816.
+    return if (SystemInfo.isMac) "$filename.$extension" else filename
   }
 
   @UiThread
   private fun handleSavedRecording(fileWrapper: VirtualFileWrapper) {
-    val path = fileWrapper.file.absolutePath
-    val message = AndroidAdbUiBundle.message("screenrecord.action.view.recording", path)
+    val message = AndroidAdbUiBundle.message("screenrecord.action.view.recording", fileWrapper.file)
     val cancel = CommonBundle.getOkButtonText()
     val icon = Messages.getInformationIcon()
     if (RevealFileAction.isSupported()) {
       val no = AndroidAdbUiBundle.message("screenrecord.action.show.in", RevealFileAction.getFileManagerName())
       val exitCode: Int = Messages.showYesNoCancelDialog(
-        project,
-        message,
-        AndroidAdbUiBundle.message("screenrecord.dialog.title", deviceName),
-        AndroidAdbUiBundle.message("screenrecord.action.open"),
-        no,
-        cancel,
-        icon)
-      if (exitCode == Messages.YES) {
-        openSavedFile(fileWrapper)
-      }
-      else if (exitCode == Messages.NO) {
-        RevealFileAction.openFile(File(path))
+          project,
+          message,
+          dialogTitle,
+          AndroidAdbUiBundle.message("screenrecord.action.open"),
+          no,
+          cancel,
+          icon)
+      when (exitCode) {
+        Messages.YES -> openSavedFile(fileWrapper)
+        Messages.NO -> RevealFileAction.openFile(fileWrapper.file.toPath())
+        else -> {}
       }
     }
     else if (Messages.showOkCancelDialog(
         project,
         message,
-        AndroidAdbUiBundle.message("screenrecord.dialog.title", deviceName),
+        dialogTitle,
         AndroidAdbUiBundle.message("screenrecord.action.open.file"),
         cancel,
         icon) == Messages.OK) {
       openSavedFile(fileWrapper)
     }
   }
-}
 
-private fun getDefaultFileName(extension: String): String {
-  val now = Calendar.getInstance()
-  val fileName = "device-%tF-%tH%tM%tS"
-  // Add extension to filename on Mac only see: b/38447816.
-  return String.format(Locale.US, if (SystemInfo.isMac) "$fileName.$extension" else fileName, now, now, now, now)
-}
-
-// Tries to open the file at myLocalPath
-private fun openSavedFile(fileWrapper: VirtualFileWrapper) {
-  val file = fileWrapper.virtualFile
-  if (file != null) {
-    NativeFileType.openAssociatedApplication(file)
+  // Tries to open the file at myLocalPath
+  private fun openSavedFile(fileWrapper: VirtualFileWrapper) {
+    val file = fileWrapper.virtualFile
+    if (file != null) {
+      NativeFileType.openAssociatedApplication(file)
+    }
   }
 }
