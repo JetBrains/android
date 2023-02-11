@@ -41,7 +41,6 @@ com.android.tools.idea.rendering.NamespacedRenderTestWithAppCompat
 com.android.tools.idea.run.AndroidRunConfigurationGradleTest
 com.android.tools.idea.run.AndroidRunConfigurationGradleTestCase
 com.android.tools.idea.run.AndroidTestRunConfigurationTest
-com.android.tools.idea.run.GradleAndroidTestApplicationLaunchTasksProviderTest
 com.android.tools.idea.run.LaunchUtilsTest
 com.android.tools.idea.run.activity.SpecificActivityLocatorGradleTest
 com.android.tools.idea.run.editor.AndroidTestExtraParamTest
