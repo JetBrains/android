@@ -76,8 +76,8 @@ class CreateNewFlavorsTest {
             type(FLAVOR1)
             clickOk()
           }
-          minSdkVersion().selectItem("24 (API 24: Android 7.0 (Nougat))")
-          targetSdkVersion().selectItem("24 (API 24: Android 7.0 (Nougat))")
+          minSdkVersion().selectItemWithIndex(0) //Index 0 is corresponding SDK - 24 (API 24 ("Nougat"; Android 7.0))
+          targetSdkVersion().selectItemWithIndex(0) //Index 0 is corresponding SDK - 24 (API 24 ("Nougat"; Android 7.0))
           clickAddProductFlavor().run {
             type(FLAVOR2)
             clickOk()
