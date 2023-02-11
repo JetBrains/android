@@ -44,44 +44,112 @@
   <actions>
     <group id="Streaming">
       <action id="android.device.power.button" class="com.android.tools.idea.streaming.actions.StreamingPowerButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.POWER" text="Power" description="Press the Power button of the device"/>
+              icon="StudioIcons.Emulator.Toolbar.POWER" text="Power" description="Press the Power button of the device">
+        <keyboard-shortcut first-keystroke="control shift P" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift P" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift P" keymap="Mac OS X 10.5+"/>
+      </action>
       <action id="android.device.power.and.volume.up.button" class="com.android.tools.idea.streaming.actions.StreamingPowerAndVolumeUpButtonAction"
-              text="Power + Volume Up (Power Menu)" description="Press the Power and Volume Up buttons together of the device"/>
+              text="Power + Volume Up (Power Menu)" description="Press the Power and Volume Up buttons together of the device">
+        <keyboard-shortcut first-keystroke="alt shift P" keymap="$default"/>
+      </action>
       <action id="android.device.volume.up.button" class="com.android.tools.idea.streaming.actions.StreamingVolumeUpButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.VOLUME_UP" text="Volume Up" description="Press the Volume Up button of the device"/>
+              icon="StudioIcons.Emulator.Toolbar.VOLUME_UP" text="Volume Up" description="Press the Volume Up button of the device">
+        <keyboard-shortcut first-keystroke="control shift U" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift U" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift U" keymap="Mac OS X 10.5+"/>
+      </action>
       <action id="android.device.volume.down.button" class="com.android.tools.idea.streaming.actions.StreamingVolumeDownButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.VOLUME_DOWN" text="Volume Down" description="Press the Volume Down button of the device"/>
+              icon="StudioIcons.Emulator.Toolbar.VOLUME_DOWN" text="Volume Down" description="Press the Volume Down button of the device">
+        <keyboard-shortcut first-keystroke="control shift D" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift D" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift D" keymap="Mac OS X 10.5+"/>
+      </action>
       <action id="android.device.rotate.left" class="com.android.tools.idea.streaming.actions.StreamingRotateAction$Left"
-              icon="StudioIcons.Emulator.Toolbar.ROTATE_LEFT" text="Rotate Left" description="Rotate the device counterclockwise by 90 degrees"/>
+              icon="StudioIcons.Emulator.Toolbar.ROTATE_LEFT" text="Rotate Left" description="Rotate the device counterclockwise by 90 degrees">
+        <keyboard-shortcut first-keystroke="control l" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta l" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta l" keymap="Mac OS X 10.5+"/>
+      </action>
       <action id="android.device.rotate.right" class="com.android.tools.idea.streaming.actions.StreamingRotateAction$Right"
-              icon="StudioIcons.Emulator.Toolbar.ROTATE_RIGHT" text="Rotate Right" description="Rotate the device clockwise by 90 degrees"/>
+              icon="StudioIcons.Emulator.Toolbar.ROTATE_RIGHT" text="Rotate Right" description="Rotate the device clockwise by 90 degrees">
+        <keyboard-shortcut first-keystroke="control r" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta r" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta r" keymap="Mac OS X 10.5+"/>
+      </action>
       <action id="android.emulator.folding.controls" class="com.android.tools.idea.streaming.emulator.actions.EmulatorShowFoldingControlsAction"
-              icon="StudioIcons.Emulator.Toolbar.FOLD" text="Fold/Unfold" description="Show folding controls for the device"/>
+              icon="StudioIcons.Emulator.Toolbar.FOLD" text="Fold/Unfold" description="Show folding controls for the device">
+        <keyboard-shortcut first-keystroke="control shift BACK_SLASH" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift BACK_SLASH" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift BACK_SLASH" keymap="Mac OS X 10.5+"/>
+      </action>
       <action id="android.device.wear1.button" class="com.android.tools.idea.streaming.actions.StreamingWear1ButtonAction"
-              icon="StudioIcons.Emulator.Wear.BUTTON_1" text="Button 1" description="Press the first button of the device"/>
+              icon="StudioIcons.Emulator.Wear.BUTTON_1" text="Button 1" description="Press the first button of the device">
+        <keyboard-shortcut first-keystroke="control shift 1" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift 1" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift 1" keymap="Mac OS X 10.5+"/>
+      </action>
       <action id="android.device.wear2.button" class="com.android.tools.idea.streaming.actions.StreamingWear2ButtonAction"
-              icon="StudioIcons.Emulator.Wear.BUTTON_2" text="Button 2" description="Press the second button of the device"/>
+              icon="StudioIcons.Emulator.Wear.BUTTON_2" text="Button 2" description="Press the second button of the device">
+        <keyboard-shortcut first-keystroke="control shift 2" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift 2" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift 2" keymap="Mac OS X 10.5+"/>
+      </action>
       <action id="android.device.sleep" class="com.android.tools.idea.streaming.actions.StreamingPalmAction"
-              icon="StudioIcons.Emulator.Wear.PALM" text="Palm" description="Simulate the Palm gesture for the device"/>
+              icon="StudioIcons.Emulator.Wear.PALM" text="Palm" description="Simulate the Palm gesture for the device">
+        <keyboard-shortcut first-keystroke="control shift M" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift M" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift M" keymap="Mac OS X 10.5+"/>
+      </action>
       <action id="android.emulator.tilt" class="com.android.tools.idea.streaming.emulator.actions.EmulatorTiltAction"
-              icon="StudioIcons.Emulator.Wear.TILT" text="Tilt" description="Simulate the Tilt gesture for the device"/>
+              icon="StudioIcons.Emulator.Wear.TILT" text="Tilt" description="Simulate the Tilt gesture for the device">
+        <keyboard-shortcut first-keystroke="control shift T" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift T" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift T" keymap="Mac OS X 10.5+"/>
+      </action>
       <action id="android.device.back.button" class="com.android.tools.idea.streaming.actions.StreamingBackButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.BACK" text="Back" description="Press the Back button of the device"/>
+              icon="StudioIcons.Emulator.Toolbar.BACK" text="Back" description="Press the Back button of the device">
+        <keyboard-shortcut first-keystroke="control shift B" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift B" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift B" keymap="Mac OS X 10.5+"/>
+      </action>
       <action id="android.device.home.button" class="com.android.tools.idea.streaming.actions.StreamingHomeButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.HOME" text="Home" description="Press the Home button of the device"/>
+              icon="StudioIcons.Emulator.Toolbar.HOME" text="Home" description="Press the Home button of the device">
+        <keyboard-shortcut first-keystroke="control shift H" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift H" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift H" keymap="Mac OS X 10.5+"/>
+      </action>
       <action id="android.device.overview.button" class="com.android.tools.idea.streaming.actions.StreamingOverviewButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.OVERVIEW" text="Overview" description="Press the Overview button of the device"/>
+              icon="StudioIcons.Emulator.Toolbar.OVERVIEW" text="Overview" description="Press the Overview button of the device">
+        <keyboard-shortcut first-keystroke="control shift W" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift W" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift W" keymap="Mac OS X 10.5+"/>
+      </action>
       <action id="android.device.screenshot" class="com.android.tools.idea.streaming.actions.StreamingScreenshotAction"
-              icon="StudioIcons.Emulator.Toolbar.SCREENSHOT" text="Take Screenshot" description="Obtain a screenshot from the device"/>
+              icon="StudioIcons.Emulator.Toolbar.SCREENSHOT" text="Take Screenshot" description="Obtain a screenshot from the device">
+        <keyboard-shortcut first-keystroke="control shift S" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift S" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift S" keymap="Mac OS X 10.5+"/>
+      </action>
       <action id="android.device.screen.record" class="com.android.tools.idea.ui.screenrecording.ScreenRecorderAction"
-              icon="StudioIcons.Common.VIDEO_CAPTURE" text="Record Screen" description="Record a video of the device display"/>
+              icon="StudioIcons.Common.VIDEO_CAPTURE" text="Record Screen" description="Record a video of the device display">
+        <keyboard-shortcut first-keystroke="control shift V" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift V" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift V" keymap="Mac OS X 10.5+"/>
+      </action>
       <action id="android.emulator.display.mode.phone" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeAction$Phone"
-              icon="StudioIcons.Emulator.Menu.MODE_PHONE" text="Phone" description="Change display size to match a typical phone"/>
+              icon="StudioIcons.Emulator.Menu.MODE_PHONE" text="Phone" description="Change display size to match a typical phone">
+        <keyboard-shortcut first-keystroke="alt shift 0" keymap="$default"/>
+      </action>
       <action id="android.emulator.display.mode.foldable" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeAction$Foldable"
               icon="StudioIcons.Emulator.Menu.MODE_FOLDABLE" text="Unfolded Foldable"
-              description="Change display size to match a typical foldable"/>
+              description="Change display size to match a typical foldable">
+        <keyboard-shortcut first-keystroke="alt shift 1" keymap="$default"/>
+      </action>
       <action id="android.emulator.display.mode.tablet" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeAction$Tablet"
-              icon="StudioIcons.Emulator.Menu.MODE_TABLET" text="Tablet" description="Change display size to match a typical tablet"/>
+              icon="StudioIcons.Emulator.Menu.MODE_TABLET" text="Tablet" description="Change display size to match a typical tablet">
+        <keyboard-shortcut first-keystroke="alt shift 2" keymap="$default"/>
+      </action>
       <action id="android.emulator.snapshots" class="com.android.tools.idea.streaming.emulator.actions.EmulatorManageSnapshotsAction"
               icon="StudioIcons.Emulator.Toolbar.SNAPSHOTS" text="Snapshots" description="Create, load, rename or delete emulator snapshots"/>
       <action id="android.emulator.extended.controls" class="com.android.tools.idea.streaming.emulator.actions.EmulatorShowExtendedControlsAction"
