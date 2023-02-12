@@ -132,7 +132,7 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
       for (XmlAttributeDescriptor descriptor : descriptors) {
         String namespaceUri = getNamespace(descriptor, tag);
         String name = descriptor.getName();
-        AttributeDefinitions attrDefs = (ANDROID_URI == namespaceUri) ? systemAttrDefs : localAttrDefs;
+        AttributeDefinitions attrDefs = ANDROID_URI.equals(namespaceUri) ? systemAttrDefs : localAttrDefs;
         ResourceNamespace namespace = ResourceNamespace.fromNamespaceUri(namespaceUri);
         AttributeDefinition attrDef = (namespace != null && attrDefs != null)
                                       ? attrDefs.getAttrDefinition(ResourceReference.attr(namespace, name)) : null;

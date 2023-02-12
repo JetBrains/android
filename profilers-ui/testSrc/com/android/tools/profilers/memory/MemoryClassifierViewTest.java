@@ -15,20 +15,6 @@
  */
 package com.android.tools.profilers.memory;
 
-import static com.android.tools.profiler.proto.Memory.AllocationStack;
-import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CALLSTACK;
-import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CLASS;
-import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_PACKAGE;
-import static com.android.tools.profilers.memory.ClassGrouping.NATIVE_ARRANGE_BY_ALLOCATION_METHOD;
-import static com.android.tools.profilers.memory.ClassGrouping.NATIVE_ARRANGE_BY_CALLSTACK;
-import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetNodeWithClassName;
-import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetWithName;
-import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildWithName;
-import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildWithPredicate;
-import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.verifyNode;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.model.FakeTimer;
@@ -39,53 +25,32 @@ import com.android.tools.idea.codenavigation.CodeLocation;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profilers.FakeIdeProfilerComponents;
-import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.profilers.ProfilerClient;
-import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.ProfilersTestData;
-import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.ClassDb;
-import com.android.tools.profilers.memory.adapters.FakeCaptureObject;
-import com.android.tools.profilers.memory.adapters.FakeInstanceObject;
-import com.android.tools.profilers.memory.adapters.InstanceObject;
-import com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject;
-import com.android.tools.profilers.memory.adapters.MemoryObject;
-import com.android.tools.profilers.memory.adapters.NativeAllocationInstanceObject;
-import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
-import com.android.tools.profilers.memory.adapters.classifiers.Classifier;
-import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
-import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
-import com.android.tools.profilers.memory.adapters.classifiers.MethodSet;
-import com.android.tools.profilers.memory.adapters.classifiers.NativeAllocationMethodSet;
-import com.android.tools.profilers.memory.adapters.classifiers.NativeCallStackSet;
-import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet;
+import com.android.tools.profilers.*;
+import com.android.tools.profilers.memory.adapters.*;
+import com.android.tools.profilers.memory.adapters.classifiers.*;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.ui.ColoredTreeCellRenderer;
-import com.intellij.util.containers.ImmutableList;
 import icons.StudioIcons;
-import java.io.ByteArrayOutputStream;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import javax.swing.JScrollPane;
-import javax.swing.JTree;
-import javax.swing.table.TableColumnModel;
-import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import javax.swing.*;
+import javax.swing.table.TableColumnModel;
+import javax.swing.tree.TreePath;
+import java.io.ByteArrayOutputStream;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import static com.android.tools.profiler.proto.Memory.AllocationStack;
+import static com.android.tools.profilers.memory.ClassGrouping.*;
+import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.*;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
 
 public class MemoryClassifierViewTest {
   private final FakeTimer myTimer = new FakeTimer();
@@ -170,7 +135,7 @@ public class MemoryClassifierViewTest {
     assertThat(((MemoryObjectTreeNode<?>)root).getAdapter()).isInstanceOf(HeapSet.class);
     //noinspection unchecked
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
-    ImmutableList<MemoryObjectTreeNode<ClassifierSet>> childrenOfRoot = rootNode.getChildren();
+    List<MemoryObjectTreeNode<ClassifierSet>> childrenOfRoot = rootNode.getChildren();
 
     classifierTree.setSelectionPath(new TreePath(new Object[]{root, childrenOfRoot.get(0)}));
     MemoryObject selectedClassifier = ((MemoryObjectTreeNode<?>)classifierTree.getSelectionPath().getLastPathComponent()).getAdapter();
@@ -323,7 +288,7 @@ public class MemoryClassifierViewTest {
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
 
     //noinspection unchecked
-    ImmutableList<MemoryObjectTreeNode<ClassifierSet>> childrenOfRoot = rootNode.getChildren();
+    List<MemoryObjectTreeNode<ClassifierSet>> childrenOfRoot = rootNode.getChildren();
     assertThat(childrenOfRoot.size()).isEqualTo(3);
     classifierTree.setSelectionPath(new TreePath(new Object[]{root, childrenOfRoot.get(0)}));
     MemoryObjectTreeNode<ClassifierSet> selectedClassNode = childrenOfRoot.get(0);
@@ -421,7 +386,7 @@ public class MemoryClassifierViewTest {
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
 
     //noinspection unchecked
-    ImmutableList<MemoryObjectTreeNode<ClassifierSet>> childrenOfRoot = rootNode.getChildren();
+    List<MemoryObjectTreeNode<ClassifierSet>> childrenOfRoot = rootNode.getChildren();
     assertThat(childrenOfRoot.size()).isEqualTo(3);
     classifierTree.setSelectionPath(new TreePath(new Object[]{root, childrenOfRoot.get(0)}));
 
@@ -1385,7 +1350,7 @@ public class MemoryClassifierViewTest {
       }
       else if (depth > currentDepth) {
         // We need to go deeper...
-        ImmutableList<MemoryObjectTreeNode> children = node.getChildren();
+        List<MemoryObjectTreeNode> children = node.getChildren();
         assertThat(children.size()).isGreaterThan(0);
         assertThat(childrenVisited).isFalse();
         for (MemoryObjectTreeNode childNode : children) {

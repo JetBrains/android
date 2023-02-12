@@ -189,7 +189,8 @@ public final class TestUtils {
 
   // returns path relative to PathManager.getHomePath(). TODO: in idea PathManager.getHomePath() should work as workspace root.
   @NonNull
-  private static String mapRelativePath(@NonNull String relativePath) {
+  private static String mapRelativePath(@NonNull String relativePathParam) {
+    String relativePath = FileUtils.toSystemIndependentPath(relativePathParam);
     Map<String, String> pathMappings = new HashMap<>();
     Path homePath = Paths.get(PathManager.getHomePath());
     Path communityHomePath = Paths.get(PathManager.getCommunityHomePath());
@@ -201,8 +202,7 @@ public final class TestUtils {
       String aospPathPrefix = entry.getKey();
       String ijPathPrefix = entry.getValue();
       if (relativePath.startsWith(aospPathPrefix)){
-        String ijFile = ijPathPrefix + relativePath.substring(aospPathPrefix.length());
-        return ijFile;
+        return ijPathPrefix + relativePath.substring(aospPathPrefix.length());
       }
     }
 

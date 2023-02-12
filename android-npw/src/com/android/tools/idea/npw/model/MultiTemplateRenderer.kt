@@ -122,7 +122,8 @@ class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
     }
     renderRunner { project ->
       log.info("Generating sources.")
-      assert(!ApplicationManager.getApplication().isDispatchThread)
+      ApplicationManager.getApplication().assertIsNonDispatchThread();
+
       multiRenderingStarted(project)
 
       // Some models need to access other models data, during doDryRun/render phase. By calling init() in all of them first,

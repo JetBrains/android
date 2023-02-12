@@ -20,15 +20,7 @@ import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.sourceProviders
-import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.SnapshotComparisonTest
-import com.android.tools.idea.testing.TestProjectPaths
-import com.android.tools.idea.testing.assertAreEqualToSnapshots
-import com.android.tools.idea.testing.gradleModule
-import com.android.tools.idea.testing.onEdt
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
+import com.android.tools.idea.testing.*
 import com.android.tools.idea.util.androidFacet
 import com.android.utils.FileUtils.toSystemIndependentPath
 import com.intellij.testFramework.runInEdtAndWait
@@ -37,11 +29,10 @@ import org.junit.Test
 import org.junit.rules.TestName
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.w3c.dom.Node
 import java.io.File
+import java.io.StringWriter
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
-import java.io.StringWriter
 import javax.swing.tree.TreeModel
 import javax.xml.transform.OutputKeys
 import javax.xml.transform.TransformerFactory
@@ -139,16 +130,17 @@ class ManifestPanelContentTest : GradleIntegrationTest, SnapshotComparisonTest {
     return fileAndPosition.substring(0, suffixPosition) to fileAndPosition.substring(suffixPosition, fileAndPosition.length)
   }
 
-  private fun TreeModel?.transformToString() : String? =
-    if (this == null) {
+  private fun TreeModel?.transformToString() : String? {
+    return if (this == null) {
       null
     } else {
       StringWriter().let {
-        TransformerFactory.newInstance().newTransformer().apply {
+        TransformerFactory.newDefaultInstance().newTransformer().apply {
           setOutputProperty(OutputKeys.INDENT, "yes")
           setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
         }.transform(DOMSource((this.root as ManifestTreeNode).userObject), StreamResult(it))
         it.buffer.toString()
       }
     }
+  }
 }

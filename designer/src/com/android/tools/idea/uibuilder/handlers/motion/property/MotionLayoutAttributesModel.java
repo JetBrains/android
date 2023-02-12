@@ -352,7 +352,7 @@ public class MotionLayoutAttributesModel extends NlPropertiesModel {
     tagWriter.setAttribute(AUTO_URI, valueAttrName, newValue);
     if (oldCustomTag != null) {
       for (String attr : MotionSceneAttrs.ourCustomAttribute) {
-        if (attr != valueAttrName) {
+        if (!attr.equals(valueAttrName)) {
           tagWriter.setAttribute(AUTO_URI, attr, null);
         }
       }

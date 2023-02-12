@@ -18,13 +18,13 @@ package com.android.tools.profilers.memory;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ImmutableList;
-import java.util.Enumeration;
-import java.util.List;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
+import java.util.Enumeration;
+import java.util.List;
 
 /**
  * This class optimizes tree nodes building/expansion to prevent running out of memory on tree construction when there are many many nodes:
@@ -130,15 +130,14 @@ public abstract class LazyMemoryObjectTreeNode<T extends MemoryObject> extends M
     return super.children();
   }
 
-  @NotNull
   @Override
-  public ImmutableList<MemoryObjectTreeNode<T>> getChildren() {
+  public @NotNull List<MemoryObjectTreeNode<T>> getChildren() {
     expandNode();
     return super.getChildren();
   }
 
   @VisibleForTesting
-  ImmutableList<MemoryObjectTreeNode<T>> getBuiltChildren() {
+  List<MemoryObjectTreeNode<T>> getBuiltChildren() {
     ensureOrder();
     return ContainerUtil.immutableList(myChildrenView);
   }

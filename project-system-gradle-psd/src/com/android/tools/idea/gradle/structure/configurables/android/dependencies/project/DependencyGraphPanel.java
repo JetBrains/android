@@ -219,7 +219,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
       DefaultActionGroup group = new DefaultActionGroup();
       group.add(new GoToModuleAction(name, getContext(), myTree));
 
-      ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu("", group);
+      ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu("DependencyGraphPanel", group);
       popupMenu.getComponent().show(myTree, x, y);
     }
   }

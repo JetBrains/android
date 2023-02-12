@@ -17,9 +17,9 @@ package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.intellij.execution.RunConfigurationProducerService
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.ProjectPostStartupActivity
+import com.intellij.openapi.startup.ProjectActivity
 
-private class ComposePreviewRunConfigurationStartupActivity : ProjectPostStartupActivity {
+private class ComposePreviewRunConfigurationStartupActivity : ProjectActivity {
   override suspend fun execute(project: Project) {
     val producerClass = ComposePreviewRunConfigurationProducer::class.java
     val producerService = RunConfigurationProducerService.getInstance(project)

@@ -87,7 +87,7 @@ public class AndroidLibraryTest extends AndroidGradleTestCase {
     );
     List<Template> templates = TemplateResolver.Companion.getAllTemplates();
     @SuppressWarnings("OptionalGetWithoutIsPresent")
-    Template emptyActivityTemplate = templates.stream().filter(t -> t.getName() == "Empty Activity").findFirst().get();
+    Template emptyActivityTemplate = templates.stream().filter(t -> "Empty Activity".equals(t.getName())).findFirst().get();
     // Template is set to "No Activity" by default. Wizard step will be not displayed in this case, so we use empty activity instead.
     render.setNewTemplate(emptyActivityTemplate);
 

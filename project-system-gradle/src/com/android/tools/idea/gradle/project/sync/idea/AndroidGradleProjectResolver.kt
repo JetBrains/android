@@ -107,7 +107,7 @@ import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
 import org.jetbrains.kotlin.android.configure.patchFromMppModel
-import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProjectResolver
+import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMppGradleProjectResolver
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
@@ -532,7 +532,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
   private fun buildArtifactsModuleIdMap(ideProject: DataNode<ProjectData>): Map<String, List<String>> =
     mergeProjectResolvedArtifacts(
       kmpArtifactToModuleIdMap = ideProject
-        .getUserData(KotlinMPPGradleProjectResolver.MPP_CONFIGURATION_ARTIFACTS)
+        .getUserData(KotlinMppGradleProjectResolver.MPP_CONFIGURATION_ARTIFACTS)
         .orEmpty(),
       artifactToModuleIdMap = ideProject
         .getUserData(GradleProjectResolver.CONFIGURATION_ARTIFACTS)

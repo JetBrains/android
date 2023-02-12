@@ -28,6 +28,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
+import com.intellij.openapi.util.text.Strings;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
@@ -132,7 +133,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
         return (o1, o2) -> {
           String name1 = valueOf(o1);
           String name2 = valueOf(o2);
-          if (name1 == name2) {
+          if (Strings.areSameInstance(name1, name2)) {
             return 0;
           }
           if (name1.isEmpty() || name2.isEmpty()) {

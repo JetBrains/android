@@ -30,6 +30,7 @@ import com.intellij.internal.statistic.eventLog.StatisticsEventLogger
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.getProjectCacheFileName
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executor
 
 object AndroidStudioEventLogger : StatisticsEventLogger {
   override fun cleanup() {}
@@ -52,6 +53,9 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
                         isState: Boolean): CompletableFuture<Void> {
     val data = dataProvider() ?: return CompletableFuture.completedFuture(null)
     return logAsync(group, eventId, data, isState)
+  }
+
+  override fun computeAsync(computation: (backgroundThreadExecutor: Executor) -> Unit) {
   }
 
   override fun rollOver() {}

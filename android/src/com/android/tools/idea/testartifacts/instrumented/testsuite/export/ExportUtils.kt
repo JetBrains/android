@@ -145,7 +145,7 @@ private fun createOutputText(exportConfig: ExportTestResultsConfiguration,
 private fun createTransformerHandler(exportConfig: ExportTestResultsConfiguration,
                                      runConfiguration: RunConfiguration,
                                      toolWindowId: String?): TransformerHandler? {
-  val transformerFactory = SAXTransformerFactory.newInstance() as SAXTransformerFactory
+  val transformerFactory = SAXTransformerFactory.newDefaultInstance() as SAXTransformerFactory
   return when(exportConfig.exportFormat) {
     ExportTestResultsConfiguration.ExportFormat.Xml -> {
       transformerFactory.newTransformerHandler().apply {

@@ -462,8 +462,7 @@ private class HeadlessDialogWrapperPeer(
 
   private val isHeadlessEnv: Boolean
     get() {
-      val app = getApplication()
-      return if (app == null) GraphicsEnvironment.isHeadless() else app.isUnitTestMode || app.isHeadlessEnvironment
+      return getApplication() != null || GraphicsEnvironment.isHeadless()
     }
 
   private inner class AnCancelAction : AnAction(), DumbAware {

@@ -22,18 +22,11 @@ import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigura
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ExportAndroidTestResultsAction
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestGroup
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestsFromFileAction
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.*
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.isRootAggregationResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.export.AndroidTestResultsXmlFormatter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.*
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkLinkListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener
@@ -57,13 +50,7 @@ import com.intellij.largeFilesEditor.GuiUtils
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionToolbar
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.actionSystem.Separator
-import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.actionSystem.ex.ActionButtonLook
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
@@ -98,16 +85,9 @@ import java.io.FileWriter
 import java.text.SimpleDateFormat
 import java.time.Clock
 import java.time.Duration
-import java.util.Date
-import java.util.Locale
+import java.util.*
 import java.util.function.Supplier
-import javax.swing.Box
-import javax.swing.BoxLayout
-import javax.swing.Icon
-import javax.swing.JComponent
-import javax.swing.JPanel
-import javax.swing.JProgressBar
-import javax.swing.LayoutFocusTraversalPolicy
+import javax.swing.*
 import javax.xml.transform.OutputKeys
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXTransformerFactory
@@ -574,7 +554,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
           val outputFile = File(TestStateStorage.getTestHistoryRoot(myProject!!), historyFileName)
           FileUtilRt.createParentDirs(outputFile)
 
-          val transformerFactory = TransformerFactory.newInstance() as SAXTransformerFactory
+          val transformerFactory = TransformerFactory.newDefaultInstance() as SAXTransformerFactory
           val transformerHandler = transformerFactory.newTransformerHandler().apply {
             transformer.apply {
               setOutputProperty(OutputKeys.INDENT, "yes")
