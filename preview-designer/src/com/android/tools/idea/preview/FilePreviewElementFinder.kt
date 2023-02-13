@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.glance.preview
+package com.android.tools.idea.preview
 
-import com.android.tools.idea.preview.PreviewElement
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
 /**
  * Interface for the object that can detect and find the [PreviewElement] of a particular type in
- * the file.
+ * the file. This interface serves a generic case where [PreviewElement] are nt necessarily marked
+ * with @Preview annotations or similar.
  */
 interface FilePreviewElementFinder<T : PreviewElement> {
   fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean

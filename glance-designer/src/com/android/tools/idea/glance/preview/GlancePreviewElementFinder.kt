@@ -17,6 +17,7 @@ package com.android.tools.idea.glance.preview
 
 import com.android.tools.idea.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.annotations.hasAnnotations
+import com.android.tools.idea.preview.FilePreviewElementFinder
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
