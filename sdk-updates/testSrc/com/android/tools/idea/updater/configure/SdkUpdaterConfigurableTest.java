@@ -20,14 +20,12 @@ import static org.junit.Assert.assertNull;
 
 import com.android.repository.Revision;
 import com.android.repository.api.RemotePackage;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.generated.addon.v2.ExtraDetailsType;
 import com.android.sdklib.repository.generated.sysimg.v2.SysImgDetailsType;
-import com.android.testutils.OsType;
 import com.android.testutils.file.InMemoryFileSystems;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.Pair;
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import org.junit.Before;
@@ -148,25 +146,31 @@ public class SdkUpdaterConfigurableTest {
   @Test
   public void getItemMessageForImage() {
     SysImgDetailsType detailsType = Mockito.mock(SysImgDetailsType.class);
-    Mockito.when(detailsType.getApiLevel()).thenReturn(30);
+    Mockito.when(detailsType.getAndroidVersion()).thenReturn(new AndroidVersion(30));
+    Mockito.when(detailsType.getPackageDisplayNameQualifier()).thenCallRealMethod();
+    Mockito.when(detailsType.getVersionTerm()).thenCallRealMethod();
 
     RemotePackage remotePackage = Mockito.mock(RemotePackage.class);
-    Mockito.when(remotePackage.getDisplayName()).thenReturn("Test Image");
+    Mockito.when(remotePackage.getDisplayName()).thenReturn("Test System Image");
     Mockito.when(remotePackage.getVersion()).thenReturn(new Revision(1));
     Mockito.when(remotePackage.getTypeDetails()).thenReturn(detailsType);
+    Mockito.when(remotePackage.getDetailedDisplayName()).thenCallRealMethod();
 
-    assertEquals("Test Image: API level 30 revision 1", SdkUpdaterConfigurable.getItemMessage(remotePackage));
+    assertEquals("Test System Image API 30 (revision 1)", SdkUpdaterConfigurable.getItemMessage(remotePackage));
   }
 
   @Test
   public void getItemMessageForTool() {
     ExtraDetailsType detailsType = Mockito.mock(ExtraDetailsType.class);
+    Mockito.when(detailsType.getPackageDisplayNameQualifier()).thenCallRealMethod();
+    Mockito.when(detailsType.getVersionTerm()).thenCallRealMethod();
 
     RemotePackage remotePackage = Mockito.mock(RemotePackage.class);
     Mockito.when(remotePackage.getDisplayName()).thenReturn("Test SDK Tool");
     Mockito.when(remotePackage.getVersion()).thenReturn(new Revision(12));
     Mockito.when(remotePackage.getTypeDetails()).thenReturn(detailsType);
+    Mockito.when(remotePackage.getDetailedDisplayName()).thenCallRealMethod();
 
-    assertEquals("Test SDK Tool: version 12", SdkUpdaterConfigurable.getItemMessage(remotePackage));
+    assertEquals("Test SDK Tool (version 12)", SdkUpdaterConfigurable.getItemMessage(remotePackage));
   }
 }

@@ -31,11 +31,10 @@ import com.android.repository.io.FileUtilKt;
 import com.android.repository.util.InstallerUtil;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
@@ -346,14 +345,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
 
   @VisibleForTesting
   static @NotNull String getItemMessage(@NotNull RepoPackage item) {
-    String apiLevelString = item.getTypeDetails() instanceof DetailsTypes.SysImgDetailsType ?
-                            " API level " + ((DetailsTypes.SysImgDetailsType)item.getTypeDetails()).getApiLevel() : "";
-    String revisionOrVersion = String.format("%1$s %2$s",
-                                             item.getTypeDetails() instanceof DetailsTypes.ApiDetailsType ? "revision" : "version",
-                                             item.getVersion());
-    return String.format("%1$s:%2$s %3$s", item.getDisplayName(),
-                         apiLevelString,
-                         revisionOrVersion);
+    return item.getDetailedDisplayName();
   }
 
   private static long getLocalInstallationSize(@NotNull Collection<LocalPackage> localPackages) {
