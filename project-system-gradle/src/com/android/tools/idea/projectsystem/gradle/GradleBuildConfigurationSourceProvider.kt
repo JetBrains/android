@@ -154,7 +154,7 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
       )
 
       projectRootFolder.findChild("gradle")?.takeIf { it.isDirectory }?.let { gradle ->
-        gradle.children.filter { !it.isDirectory && it.name.endsWith(".versions.toml") }.forEach {
+        gradle.children.filter { !it.isDirectory && it.name.endsWith(SdkConstants.DOT_VERSIONS_DOT_TOML) }.forEach {
           yield(it.describe("Version Catalog", BUILD_WIDE_ORDER_BASE))
         }
       }
