@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.NONE;
+
 import com.android.annotations.NonNull;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
@@ -32,15 +34,15 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.concurrency.EdtExecutorService;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import java.awt.Component;
+import java.awt.Dimension;
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.View;
-import java.awt.*;
-
-import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.NONE;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Component for displaying an alert on the installation state of HAXM/KVM.
@@ -85,7 +87,7 @@ public class HaxmAlert extends JPanel {
 
   public void setSystemImageDescription(SystemImageDescription description) {
     myImageDescription = description;
-    refresh();
+    refresh(false);
   }
 
   @VisibleForTesting
@@ -99,13 +101,13 @@ public class HaxmAlert extends JPanel {
     return null;
   }
 
-  private void refresh() {
+  private void refresh(boolean force) {
     if (myImageDescription == null) {
       setVisible(false);
       return;
     }
 
-    ListenableFuture<AccelerationErrorCode> accelerationError = getAccelerationState(false);
+    ListenableFuture<AccelerationErrorCode> accelerationError = getAccelerationState(force);
     Futures.addCallback(accelerationError, new FutureCallback<AccelerationErrorCode>() {
       @Override
       public void onSuccess(AccelerationErrorCode result) {
@@ -122,7 +124,7 @@ public class HaxmAlert extends JPanel {
           if (myErrorLinkListener != null) {
             myErrorInstructionsLink.removeHyperlinkListener(myErrorLinkListener);
           }
-          final Runnable action = AccelerationErrorSolution.getActionForFix(result, null, () -> refresh(), null);
+          final Runnable action = AccelerationErrorSolution.getActionForFix(result, null, () -> refresh(true), null);
           myErrorLinkListener = new HyperlinkAdapter() {
               @Override
               protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
