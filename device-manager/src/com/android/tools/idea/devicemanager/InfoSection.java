@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
@@ -22,7 +23,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Streams;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.util.ui.JBUI.CurrentTheme.Label;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,7 +55,7 @@ public class InfoSection extends JBPanel<InfoSection> {
 
   public final @NotNull JLabel addNameAndValueLabels(@NotNull String name) {
     JLabel nameLabel = new JBLabel(name);
-    nameLabel.setForeground(Label.disabledForeground());
+    nameLabel.setForeground(StandardColors.TEXT_COLOR);
 
     myNameLabels.add(nameLabel);
 
