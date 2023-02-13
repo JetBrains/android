@@ -351,6 +351,8 @@ interface AndroidProjectStubBuilder {
   fun androidModuleDependencies(variant: String): List<AndroidModuleDependency>?
   fun androidLibraryDependencies(variant: String): List<AndroidLibraryDependency>?
   fun applicationId(variant: String): String
+
+  val testApplicationId: String
   fun mainArtifact(variant: String): IdeAndroidArtifactCoreImpl
   fun androidTestArtifact(variant: String, applicationId: String?): IdeAndroidArtifactCoreImpl?
   fun unitTestArtifact(variant: String): IdeJavaArtifactCoreImpl?
@@ -403,6 +405,7 @@ data class AndroidProjectBuilder(
   val dependenciesInfo: AndroidProjectStubBuilder.() -> IdeDependenciesInfoImpl = { buildDependenciesInfo() },
   val supportsBundleTask: AndroidProjectStubBuilder.() -> Boolean = { true },
   val applicationIdFor: AndroidProjectStubBuilder.(variant: String) -> String = { "applicationId" },
+  val testApplicationId: AndroidProjectStubBuilder.() -> String = { "testApplicationId" },
   val productFlavorsStub: AndroidProjectStubBuilder.(dimension: String) -> List<IdeProductFlavorImpl> = { dimension -> emptyList() },
   val productFlavorSourceProviderStub: AndroidProjectStubBuilder.(flavor: String) -> IdeSourceProviderImpl =
     { flavor -> sourceProvider(flavor) },
@@ -555,6 +558,7 @@ data class AndroidProjectBuilder(
         override val dependenciesInfo: IdeDependenciesInfoImpl = dependenciesInfo()
         override val supportsBundleTask: Boolean = supportsBundleTask()
         override fun applicationId(variant: String): String = applicationIdFor(variant)
+        override val testApplicationId: String get() = testApplicationId()
         override fun productFlavors(dimension: String): List<IdeProductFlavorImpl> = productFlavorsStub(dimension)
         override fun productFlavorSourceProvider(flavor: String): IdeSourceProviderImpl = productFlavorSourceProviderStub(flavor)
         override fun productFlavorContainers(dimension: String): List<IdeProductFlavorContainerImpl> = productFlavorContainersStub(
@@ -704,7 +708,7 @@ fun AndroidProjectStubBuilder.buildDefaultConfigStub() = IdeProductFlavorContain
     minSdkVersion = IdeApiVersionImpl(minSdk, null, "$minSdk"),
     targetSdkVersion = IdeApiVersionImpl(targetSdk, null, "$targetSdk"),
     maxSdkVersion = null,
-    testApplicationId = null,
+    testApplicationId = testApplicationId,
     testInstrumentationRunner = "android.test.InstrumentationTestRunner",
     testHandleProfiling = null,
     testFunctionalTest = null,
@@ -1037,11 +1041,12 @@ fun AndroidProjectStubBuilder.buildVariantStubs(): List<IdeVariantCoreImpl> {
         val buildType = it.buildType
         val flavorNames = flavors.map { it.name }
         val variant = (flavorNames + buildType.name).combineAsCamelCase()
+        val mainArtifact = mainArtifact(variant)
         val testApplicationId = flavors.firstNotNullOfOrNull { it.testApplicationId } ?: defaultConfig.productFlavor.testApplicationId
         IdeVariantCoreImpl(
           variant,
           variant,
-          mainArtifact(variant),
+          mainArtifact,
           unitTestArtifact(variant),
           androidTestArtifact(variant, applicationId = testApplicationId),
           testFixturesArtifact(variant),
@@ -2219,7 +2224,7 @@ private fun <T> openPreparedProject(
       }
       finally {
         runInEdtAndWait {
-          if(!project.isDisposed) {
+          if (!project.isDisposed) {
             PlatformTestUtil.saveProject(project, true)
             ProjectUtil.closeAndDispose(project)
             PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
