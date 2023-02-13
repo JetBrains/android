@@ -114,7 +114,7 @@ class GlancePreviewElementFinderTest {
   }
 
   @Test
-  fun testAppWidgetElementsFinder() {
+  fun testAppWidgetElementsFinder() = runBlocking {
     Assert.assertTrue(
       AppWidgetPreviewElementFinder.hasPreviewElements(project, sourceFileBoth.virtualFile)
     )
@@ -144,7 +144,7 @@ class GlancePreviewElementFinderTest {
   }
 
   @Test
-  fun testWearTileElementsFinder() {
+  fun testWearTileElementsFinder() = runBlocking {
     Assert.assertTrue(
       TilePreviewElementFinder.hasPreviewElements(project, sourceFileBoth.virtualFile)
     )

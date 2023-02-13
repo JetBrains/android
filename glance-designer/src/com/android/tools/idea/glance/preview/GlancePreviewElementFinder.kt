@@ -112,7 +112,7 @@ open class GlancePreviewElementFinder(private val surfaceName: String) :
       methodsToElements
     )
 
-  override fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean {
+  override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean {
     return hasAnnotations(
       project,
       vFile,

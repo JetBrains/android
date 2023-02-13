@@ -24,7 +24,7 @@ import com.intellij.openapi.vfs.VirtualFile
  * with @Preview annotations or similar.
  */
 interface FilePreviewElementFinder<T : PreviewElement> {
-  fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean
+  suspend fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean
 
   /**
    * Returns all the [PreviewElement]s present in the passed [VirtualFile].
