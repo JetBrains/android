@@ -89,11 +89,27 @@ class AgpVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
+  fun testNonsenseInLiteral() {
+    writeToBuildFile(TestFileName("AgpVersion/NonsenseInLiteral"))
+    val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.1.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("AgpVersion/NonsenseInLiteral"))
+  }
+
+  @Test
   fun testVersionInInterpolatedVariable() {
     writeToBuildFile(TestFileName("AgpVersion/VersionInInterpolatedVariable"))
     val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.1.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("AgpVersion/VersionInInterpolatedVariableExpected"))
+  }
+
+  @Test
+  fun testNonsenseInInterpolatedVariable() {
+    writeToBuildFile(TestFileName("AgpVersion/NonsenseInInterpolatedVariable"))
+    val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.1.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("AgpVersion/NonsenseInInterpolatedVariable"))
   }
 
   @Test
@@ -145,11 +161,35 @@ class AgpVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
+  fun testNonsenseInBuildSrc() {
+    writeToBuildFile(TestFileName("AgpVersion/VersionInLiteral"))
+    lateinit var buildSrcFile: VirtualFile
+    runWriteAction {
+      buildSrcFile = projectRule.fixture.tempDirFixture.findOrCreateDir("buildSrc").createChildData(this, buildFileName)
+      val testFile = TestFileName("AgpVersion/BuildSrcNonsense").toFile(testDataPath, testDataExtension!!)
+      val virtualTestFile = VfsUtil.findFileByIoFile(testFile, true)
+      VfsUtil.saveText(buildSrcFile, VfsUtilCore.loadText(virtualTestFile!!))
+    }
+    val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.1.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("AgpVersion/VersionInLiteralExpected"))
+    verifyFileContents(buildSrcFile, TestFileName("AgpVersion/BuildSrcNonsense"))
+  }
+
+  @Test
   fun testPluginDslDependency() {
     writeToBuildFile(TestFileName("AgpVersion/PluginDslDependency"))
     val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.1.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("AgpVersion/PluginDslDependencyExpected"))
+  }
+
+  @Test
+  fun testPluginDslNonsense() {
+    writeToBuildFile(TestFileName("AgpVersion/PluginDslNonsense"))
+    val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.1.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("AgpVersion/PluginDslNonsense"))
   }
 
   @Test
@@ -293,6 +333,16 @@ class AgpVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     finally {
       StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
     }
+  }
+
+  @Test
+  fun testNonsenseInVersionCatalog () {
+    writeToBuildFile(TestFileName("AgpVersion/VersionInVersionCatalog"))
+    writeToVersionCatalogFile(TestFileName("AgpVersion/VersionCatalogNonsense"))
+    val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("7.2.0"), AgpVersion.parse("8.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("AgpVersion/VersionInVersionCatalog"))
+    verifyVersionCatalogFileContents(versionCatalogFile, TestFileName("AgpVersion/VersionCatalogNonsense"))
   }
 
   @Test
