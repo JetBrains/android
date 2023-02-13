@@ -2702,7 +2702,7 @@ PROJECT                       : project
     MODULE                        : com.test.compositeNest3.compositeNest
         ExternalModuleGroup           : com.test.compositeNest3
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : project-TestCompositeLibNested_3
+        LinkedProjectId               : TestCompositeLib3-compositeNest
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -2742,7 +2742,7 @@ PROJECT                       : project
         ExternalModuleGroup           : com.test.compositeNest3
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : project-TestCompositeLibNested_3:main
+        LinkedProjectId               : TestCompositeLib3-compositeNest:main
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -2781,7 +2781,7 @@ PROJECT                       : project
         ExternalModuleGroup           : com.test.compositeNest3
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : project-TestCompositeLibNested_3:test
+        LinkedProjectId               : TestCompositeLib3-compositeNest:test
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -3053,7 +3053,7 @@ PROJECT                       : project
     MODULE                        : compositeNest
         ExternalModuleGroup           : com.test.compositeNest1
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : project-TestCompositeLibNested_1
+        LinkedProjectId               : TestCompositeLib1-compositeNest
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -3093,7 +3093,7 @@ PROJECT                       : project
         ExternalModuleGroup           : com.test.compositeNest1
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : project-TestCompositeLibNested_1:main
+        LinkedProjectId               : TestCompositeLib1-compositeNest:main
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -3131,7 +3131,7 @@ PROJECT                       : project
         ExternalModuleGroup           : com.test.compositeNest1
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : project-TestCompositeLibNested_1:test
+        LinkedProjectId               : TestCompositeLib1-compositeNest:test
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION

@@ -6296,7 +6296,7 @@ MODULE                        : com.test.compositeNest3.compositeNest
         rootFolderPath                : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
-    externalProject               : project-TestCompositeLibNested_3 (DefaultExternalProject)
+    externalProject               : TestCompositeLib3-compositeNest (DefaultExternalProject)
         name                          : compositeNest
         qName                         : compositeNest
         group                         : com.test.compositeNest3
@@ -6551,7 +6551,7 @@ MODULE                        : compositeNest
         rootFolderPath                : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
-    externalProject               : project-TestCompositeLibNested_1 (DefaultExternalProject)
+    externalProject               : TestCompositeLib1-compositeNest (DefaultExternalProject)
         name                          : compositeNest
         qName                         : compositeNest
         group                         : com.test.compositeNest1
@@ -6873,7 +6873,7 @@ MODULE                        : project
                     wearApp                       : <empty>
             composite2                    : composite2 (DefaultExternalProject) (*seen*)
             composite4                    : composite4 (DefaultExternalProject) (*seen*)
-            compositeNest                 : project-TestCompositeLibNested_3 (DefaultExternalProject) (*seen*)
+            compositeNest                 : TestCompositeLib3-compositeNest (DefaultExternalProject) (*seen*)
             lib                           : :lib (DefaultExternalProject)
                 name                          : lib
                 qName                         : :lib

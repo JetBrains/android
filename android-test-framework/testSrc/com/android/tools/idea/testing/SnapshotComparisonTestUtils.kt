@@ -132,8 +132,11 @@ fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
 ): Pair<String, String> {
   val fullSnapshotName = sanitizeFileName(UsefulTestCase.getTestName(getName(), true)) + snapshotTestSuffix
   val expectedText = getExpectedTextFor(fullSnapshotName)
+  if (doNotUpdate) {
+    return fullSnapshotName to expectedText
+  }
 
-  if (!doNotUpdate && System.getProperty(updateSnapshotsJvmProperty) != null) {
+  if (System.getProperty(updateSnapshotsJvmProperty) != null) {
     getSnapshotFileToUpdate(fullSnapshotName).run {
       println("Writing to: ${this.absolutePath}")
       writeText(text)
@@ -150,7 +153,6 @@ fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
         writeText(text)
       }
     }
-
   }
   return fullSnapshotName to expectedText
 }
