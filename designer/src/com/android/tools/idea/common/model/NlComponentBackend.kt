@@ -43,12 +43,6 @@ interface NlComponentBackend {
   val tag: XmlTag?
 
   // TODO: remove
-  fun getTagPointer(): SmartPsiElementPointer<XmlTag>
-
-  // TODO: remove
-  fun setTagName(name: String)
-
-  // TODO: remove
   fun getTagName(): String
 
   /**

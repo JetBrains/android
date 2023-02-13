@@ -109,15 +109,6 @@ open class NlComponentBackendXml private constructor(
       return if (tag != null && tag.isValid) tag else null
     }
 
-  override fun getTagPointer(): SmartPsiElementPointer<XmlTag> {
-    return myTagPointer
-  }
-
-  override fun setTagName(name: String) {
-    myTagName = name
-    tag?.name = name
-  }
-
   override fun getTagName(): String {
     return myTagName
   }

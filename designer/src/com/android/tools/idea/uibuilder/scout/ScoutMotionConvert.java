@@ -25,9 +25,11 @@ import com.android.tools.idea.util.DependencyManagementUtil;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.PsiManager;
 import java.util.Locale;
 
 /**
@@ -38,7 +40,12 @@ public class ScoutMotionConvert {
   public static boolean convert(NlComponent layout) {
 
     Project project = layout.getModel().getProject();
-    PsiFile layoutFile = layout.getTagPointer().getContainingFile();
+    PsiManager psiManager = PsiManager.getInstance(project);
+    VirtualFile affectedFile = layout.getBackend().getAffectedFile();
+    if (affectedFile == null) {
+      return false;
+    }
+    PsiFile layoutFile = psiManager.findFile(affectedFile);
     String fname = layoutFile.getName();
     fname = fname.substring(0, fname.lastIndexOf("."));
     String motion_scene_name = fname + "_scene";

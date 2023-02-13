@@ -568,10 +568,4 @@ public class GuiInputHandlerTest extends LayoutTestCase {
       return true;
     }
   }
-
-  private void deleteXmlTag(@NotNull NlComponent component) {
-    XmlTag tag = component.getBackend().getTagPointer().getElement();
-    WriteCommandAction.writeCommandAction(getProject()).run(() -> tag.delete());
-    UIUtil.dispatchAllInvocationEvents();
-  }
 }
