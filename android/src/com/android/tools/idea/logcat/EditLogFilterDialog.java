@@ -23,7 +23,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
@@ -181,7 +180,7 @@ final class EditLogFilterDialog extends DialogWrapper {
       public int compare(String item1, String item2) {
         final int pid1 = Integer.parseInt(item1);
         final int pid2 = Integer.parseInt(item2);
-        return Comparing.compare(pid1, pid2);
+        return Integer.compare(pid1, pid2);
       }
     }, true, null);
     myPidFieldWrapper.add(myPidField);
