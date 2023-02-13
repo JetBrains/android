@@ -145,6 +145,9 @@
     <overrideImplementsAnnotationsFilter id="ComposeOverrideImplementsAnnotationsFilter"
                                          implementation="com.android.tools.compose.ComposeOverrideImplementsAnnotationsFilter"/>
 
+    <codeInsight.lineMarkerProvider language="kotlin"
+                                    implementationClass="com.android.tools.compose.code.ComposeLineMarkerProviderDescriptor" />
+
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
