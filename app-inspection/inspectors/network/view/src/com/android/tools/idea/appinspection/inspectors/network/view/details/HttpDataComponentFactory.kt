@@ -164,11 +164,12 @@ class HttpDataComponentFactory(private val httpData: HttpData, private val compo
     return createHideablePanel(getBodyTitle(type), bodyComponent, northEastComponent)
   }
 
-  fun createDataViewer(type: ConnectionType): DataViewer {
+  fun createDataViewer(type: ConnectionType, formatted: Boolean): DataViewer {
     return componentsProvider.createDataViewer(
       getPayload(type).toByteArray(),
       ContentType.fromMimeType(getMimeTypeString(type)),
-      DataViewer.Style.PRETTY
+      DataViewer.Style.PRETTY,
+      formatted
     )
   }
 
@@ -313,7 +314,12 @@ class HttpDataComponentFactory(private val httpData: HttpData, private val compo
       componentsProvider: UiComponentsProvider
     ): JComponent {
       val contentTypeFromMime = ContentType.fromMimeType(contentType.mimeType)
-      val viewer = componentsProvider.createDataViewer(payload.toByteArray(), contentTypeFromMime, DataViewer.Style.RAW)
+      val viewer = componentsProvider.createDataViewer(
+        payload.toByteArray(),
+        contentTypeFromMime,
+        DataViewer.Style.RAW,
+        false
+      )
       val viewerComponent = viewer.component
       viewerComponent.name = ID_PAYLOAD_VIEWER
       viewerComponent.border = PAYLOAD_BORDER
@@ -349,7 +355,12 @@ class HttpDataComponentFactory(private val httpData: HttpData, private val compo
         return createStyledMapComponent(parsedContent)
       }
       val contentTypeFromMime = ContentType.fromMimeType(contentType.mimeType)
-      val viewer: DataViewer = componentsProvider.createDataViewer(payload.toByteArray(), contentTypeFromMime, DataViewer.Style.PRETTY)
+      val viewer: DataViewer = componentsProvider.createDataViewer(
+        payload.toByteArray(),
+        contentTypeFromMime,
+        DataViewer.Style.PRETTY,
+        true
+      )
 
       // Just because we request a "pretty" viewer doesn't mean we'll actually get one. If we didn't,
       // that means formatting support is not provided, so return null as a way to indicate this

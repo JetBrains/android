@@ -42,10 +42,19 @@ class UiComponentsProviderTest {
     val componentsProvider = DefaultUiComponentsProvider(projectRule.project)
 
     // Valid image results in the creation of an image data viewer.
-    assertThat(componentsProvider.createDataViewer(TEST_IMAGE.readBytes(), ContentType.PNG, DataViewer.Style.RAW))
-      .isInstanceOf(IntellijImageDataViewer::class.java)
+    assertThat(componentsProvider.createDataViewer(
+      TEST_IMAGE.readBytes(),
+      ContentType.PNG,
+      DataViewer.Style.RAW,
+      false
+    )).isInstanceOf(IntellijImageDataViewer::class.java)
 
-    val viewer = componentsProvider.createDataViewer(ByteArray(0), ContentType.GIF, DataViewer.Style.RAW)
+    val viewer = componentsProvider.createDataViewer(
+      ByteArray(0),
+      ContentType.GIF,
+      DataViewer.Style.RAW,
+      false
+    )
     // Invalid image bytes in the creation of a regular data viewer with text saying preview is not available.
     assertThat(viewer).isInstanceOf(IntellijDataViewer::class.java)
     assertThat((viewer.component as JLabel).text).isEqualTo("No preview available")
@@ -55,7 +64,12 @@ class UiComponentsProviderTest {
   fun createTextDataViewer() {
     val componentsProvider = DefaultUiComponentsProvider(projectRule.project)
 
-    val viewer = componentsProvider.createDataViewer("csv,file".toByteArray(), ContentType.CSV, DataViewer.Style.RAW)
+    val viewer = componentsProvider.createDataViewer(
+      "csv,file".toByteArray(),
+      ContentType.CSV,
+      DataViewer.Style.RAW,
+      false
+    )
     assertThat(viewer).isInstanceOf(IntellijDataViewer::class.java)
     assertThat(viewer.style).isEqualTo(DataViewer.Style.RAW)
   }
@@ -64,7 +78,8 @@ class UiComponentsProviderTest {
   fun createPrettyDataViewer() {
     val componentsProvider = DefaultUiComponentsProvider(projectRule.project)
 
-    val viewer = componentsProvider.createDataViewer("<html></html>".toByteArray(), ContentType.HTML, DataViewer.Style.PRETTY)
+    val viewer =
+      componentsProvider.createDataViewer("<html></html>".toByteArray(), ContentType.HTML, DataViewer.Style.PRETTY, true)
     assertThat(viewer).isInstanceOf(IntellijDataViewer::class.java)
     assertThat(viewer.style).isEqualTo(DataViewer.Style.PRETTY)
   }

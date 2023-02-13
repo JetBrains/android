@@ -25,7 +25,7 @@ import com.android.tools.inspectors.common.ui.stacktrace.StackTraceGroup
 import com.intellij.openapi.project.Project
 
 class DefaultUiComponentsProvider(private val project: Project) : UiComponentsProvider {
-  override fun createDataViewer(bytes: ByteArray, contentType: ContentType, styleHint: DataViewer.Style): DataViewer {
+  override fun createDataViewer(bytes: ByteArray, contentType: ContentType, styleHint: DataViewer.Style, formatted: Boolean): DataViewer {
     return when {
       contentType.isSupportedImageType -> {
         IntellijImageDataViewer.createImageViewer(bytes) ?: IntellijDataViewer.createInvalidViewer()
@@ -34,7 +34,7 @@ class DefaultUiComponentsProvider(private val project: Project) : UiComponentsPr
         if (contentType.isSupportedTextType) IntellijDataViewer.createRawTextViewer(bytes) else IntellijDataViewer.createInvalidViewer()
       }
       styleHint == DataViewer.Style.PRETTY -> {
-        IntellijDataViewer.createPrettyViewerIfPossible(project, bytes, contentType.fileType)
+        IntellijDataViewer.createPrettyViewerIfPossible(project, bytes, contentType.fileType, formatted)
       }
       else -> {
         // This shouldn't ever happen.

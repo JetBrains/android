@@ -83,7 +83,8 @@ public class IntellijDataViewer implements DataViewer {
   @NotNull
   public static IntellijDataViewer createPrettyViewerIfPossible(@NotNull Project project,
                                                                 byte[] content,
-                                                                @Nullable FileType fileType) {
+                                                                @Nullable FileType fileType,
+                                                                boolean formatted) {
     try {
       EditorFactory editorFactory = EditorFactory.getInstance();
 
@@ -103,8 +104,10 @@ public class IntellijDataViewer implements DataViewer {
         if (!language.is(PlainTextLanguage.INSTANCE)) {
           PsiFile psiFile = PsiFileFactory.getInstance(project).createFileFromText(language, contentStr);
           if (psiFile != null) {
-            ReformatCodeProcessor processor = new ReformatCodeProcessor(psiFile, false);
-            processor.run();
+            if (formatted) {
+              ReformatCodeProcessor processor = new ReformatCodeProcessor(psiFile, false);
+              processor.run();
+            }
 
             document = PsiDocumentManager.getInstance(project).getDocument(psiFile);
             if (document != null) {

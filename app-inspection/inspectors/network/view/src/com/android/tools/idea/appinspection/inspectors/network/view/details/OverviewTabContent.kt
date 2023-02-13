@@ -88,7 +88,10 @@ class OverviewTabContent : TabContent() {
     if (data == null) {
       return
     }
-    val payloadViewer = httpDataComponentFactory.createDataViewer(HttpDataComponentFactory.ConnectionType.RESPONSE)
+    val payloadViewer = httpDataComponentFactory.createDataViewer(
+      HttpDataComponentFactory.ConnectionType.RESPONSE,
+      false
+    )
     val responsePayloadComponent: JComponent = payloadViewer.component
     responsePayloadComponent.name = ID_RESPONSE_PAYLOAD_VIEWER
     contentPanel.add(responsePayloadComponent, TabularLayout.Constraint(0, 0))

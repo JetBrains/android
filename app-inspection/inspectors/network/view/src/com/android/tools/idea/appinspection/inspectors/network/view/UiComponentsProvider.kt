@@ -37,7 +37,7 @@ interface UiComponentsProvider {
    * @param styleHint A style which the viewer will attempt to apply; however, this may fail in some cases, so you are encouraged
    * to check [DataViewer.getStyle] if you need to confirm the style was actually accepted.
    */
-  fun createDataViewer(bytes: ByteArray, contentType: ContentType, styleHint: DataViewer.Style): DataViewer
+  fun createDataViewer(bytes: ByteArray, contentType: ContentType, styleHint: DataViewer.Style, formatted: Boolean): DataViewer
 
   /**
    * Creates a stack trace group that represents a list of stack trace views.
