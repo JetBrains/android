@@ -76,6 +76,7 @@
 
     <annotator language="LogcatFilter" implementationClass="com.android.tools.idea.logcat.filters.LogcatFilterErrorAnnotator"/>
 
+    <keymapExtension implementation="com.android.tools.idea.logcat.actions.LogcatKeymapExtension"/>
   </extensions>
 
   <actions>
@@ -84,6 +85,18 @@
               class="com.android.tools.idea.logcat.actions.ToggleViewFormatAction"
               text="Toggle Logcat Formatting"
               description="Toggle between Standard and Compact view"/>
+      <action id="Logcat.ClearLogcat"
+              class="com.android.tools.idea.logcat.actions.ClearLogcatAction"
+              text="Clear Logcat Panel"
+              description="Clear the Logcat panel and logcat buffer on the device"/>
+      <action id="Logcat.PauseResumeLogcat"
+              class="com.android.tools.idea.logcat.actions.PauseLogcatAction"
+              text="Pause/Resume Logcat"
+              description="Pause/Resume the Logcat panel"/>
+      <action id="Logcat.RestartLogcat"
+              class="com.android.tools.idea.logcat.actions.RestartLogcatAction"
+              text="Restart Logcat"
+              description="Restart Logcat monitoring"/>
     </group>
   </actions>
 

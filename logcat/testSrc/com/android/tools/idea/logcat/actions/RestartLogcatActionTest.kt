@@ -17,10 +17,13 @@ package com.android.tools.idea.logcat.actions
 
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.logcat.FakeLogcatPresenter
+import com.android.tools.idea.logcat.LogcatPresenter
+import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_ACTION
 import com.android.tools.idea.logcat.devices.Device
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.TestActionEvent
 import org.junit.After
 import org.junit.Rule
@@ -37,7 +40,6 @@ class RestartLogcatActionTest {
   private val device = Device.createPhysical("device", false, "11", 30, "Google", "Pixel 2")
 
   private val fakeLogcatPresenter = FakeLogcatPresenter()
-  private val event by lazy(::TestActionEvent)
 
   @After
   fun tearDown() {
@@ -47,7 +49,8 @@ class RestartLogcatActionTest {
   @Test
   fun update_withoutConnectedDevice_disabled() {
     fakeLogcatPresenter.attachedDevice = null
-    val action = RestartLogcatAction(fakeLogcatPresenter)
+    val event = testEvent(fakeLogcatPresenter)
+    val action = RestartLogcatAction()
 
     action.update(event)
 
@@ -57,7 +60,8 @@ class RestartLogcatActionTest {
   @Test
   fun update_withConnectedDevice_enabled() {
     fakeLogcatPresenter.attachedDevice = device
-    val action = RestartLogcatAction(fakeLogcatPresenter)
+    val event = testEvent(fakeLogcatPresenter)
+    val action = RestartLogcatAction()
 
     action.update(event)
 
@@ -66,11 +70,14 @@ class RestartLogcatActionTest {
 
   @Test
   fun actionPerformed_callsRestartLogcat() {
-    val action = RestartLogcatAction(fakeLogcatPresenter)
+    val event = testEvent(fakeLogcatPresenter)
+    val action = RestartLogcatAction()
 
     action.actionPerformed(event)
 
     // Use waitForCondition rather than assertThat because the action launches a coroutine. Timeout represents failure.
-    waitForCondition(1, SECONDS) {fakeLogcatPresenter.logcatRestartedCount == 1}
+    waitForCondition(1, SECONDS) { fakeLogcatPresenter.logcatRestartedCount == 1 }
   }
 }
+
+private fun testEvent(logcatPresenter: LogcatPresenter) = TestActionEvent(MapDataContext(mapOf(LOGCAT_PRESENTER_ACTION to logcatPresenter)))

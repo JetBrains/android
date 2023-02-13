@@ -101,6 +101,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.CommonDataKeys.EDITOR
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.runInEdt
@@ -114,7 +115,6 @@ import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.ex.util.EditorUtil
 import com.intellij.openapi.editor.impl.ContextMenuPopupHandler
 import com.intellij.openapi.project.Project
-import com.intellij.tools.SimpleActionGroup
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI.Borders
@@ -160,7 +160,7 @@ private val textCursor = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
 class LogcatMainPanelFactory {
   companion object {
     fun create(project: Project): JComponent {
-      return LogcatMainPanel(project, SimpleActionGroup(), LogcatColors(), null)
+      return LogcatMainPanel(project, DefaultActionGroup(), LogcatColors(), null)
     }
   }
 }
@@ -381,7 +381,7 @@ internal class LogcatMainPanel @TestOnly constructor(
   }
 
   private fun getPopupActionGroup(actions: Array<AnAction>): ActionGroup {
-    return SimpleActionGroup().apply {
+    return DefaultActionGroup().apply {
       add(CopyAction().withText(ActionsBundle.message("action.EditorCopy.text")).withIcon(AllIcons.Actions.Copy))
       add(CopyMessageTextAction())
       add(SearchWebAction().withText(ActionsBundle.message("action.\$SearchWeb.text")))
@@ -392,7 +392,7 @@ internal class LogcatMainPanel @TestOnly constructor(
       add(Separator.create())
       actions.forEach { add(it) }
       add(Separator.create())
-      add(ClearLogcatAction(this@LogcatMainPanel))
+      add(ClearLogcatAction())
     }
   }
 
@@ -544,10 +544,10 @@ internal class LogcatMainPanel @TestOnly constructor(
   override fun getProcessNames(): Set<String> = processNames
 
   private fun createToolbarActions(project: Project): ActionGroup {
-    return SimpleActionGroup().apply {
-      add(ClearLogcatAction(this@LogcatMainPanel))
-      add(PauseLogcatAction(this@LogcatMainPanel))
-      add(RestartLogcatAction(this@LogcatMainPanel))
+    return DefaultActionGroup().apply {
+      add(ClearLogcatAction())
+      add(PauseLogcatAction())
+      add(RestartLogcatAction())
       add(LogcatScrollToTheEndToolbarAction(editor))
       add(PreviousOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
       add(NextOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))

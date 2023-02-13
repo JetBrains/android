@@ -18,22 +18,24 @@ package com.android.tools.idea.logcat.actions
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 
 /**
  * Pauses/Resumes Logcat collection
  */
-internal class PauseLogcatAction(private val logcatPresenter: LogcatPresenter)
-  : DumbAwareAction(LogcatBundle.message("logcat.pause.action.pause.text"), "", AllIcons.Actions.Pause) {
+internal class PauseLogcatAction : DumbAwareAction(LogcatBundle.message("logcat.pause.action.pause.text"), "", AllIcons.Actions.Pause) {
 
   override fun update(e: AnActionEvent) {
+    val logcatPresenter = e.getData(LogcatPresenter.LOGCAT_PRESENTER_ACTION) ?: return
     e.presentation.isEnabled = logcatPresenter.getConnectedDevice() != null
     e.presentation.text = getActionText(logcatPresenter)
     e.presentation.icon = getActionIcon(logcatPresenter)
   }
 
   override fun actionPerformed(e: AnActionEvent) {
+    val logcatPresenter = e.getData(LogcatPresenter.LOGCAT_PRESENTER_ACTION) ?: return
     if (logcatPresenter.isLogcatPaused()) {
       logcatPresenter.resumeLogcat()
     }
@@ -41,6 +43,8 @@ internal class PauseLogcatAction(private val logcatPresenter: LogcatPresenter)
       logcatPresenter.pauseLogcat()
     }
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 }
 
 private fun getActionText(logcatPresenter: LogcatPresenter) = when {

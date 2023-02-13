@@ -133,6 +133,16 @@
     <option name="profile" path="ActionManager" hit="Choose and profile configuration" />
     <option name="clean" path="ActionManager" hit="Clean Project" />
     <option name="project" path="ActionManager" hit="Clean Project" />
+    <option name="clear" path="ActionManager" hit="Clear Logcat" />
+    <option name="logcat" path="ActionManager" hit="Clear Logcat" />
+    <option name="and" path="ActionManager" hit="Clear the Logcat panel and logcat buffer on the device" />
+    <option name="buffer" path="ActionManager" hit="Clear the Logcat panel and logcat buffer on the device" />
+    <option name="clear" path="ActionManager" hit="Clear the Logcat panel and logcat buffer on the device" />
+    <option name="device" path="ActionManager" hit="Clear the Logcat panel and logcat buffer on the device" />
+    <option name="logcat" path="ActionManager" hit="Clear the Logcat panel and logcat buffer on the device" />
+    <option name="on" path="ActionManager" hit="Clear the Logcat panel and logcat buffer on the device" />
+    <option name="panel" path="ActionManager" hit="Clear the Logcat panel and logcat buffer on the device" />
+    <option name="the" path="ActionManager" hit="Clear the Logcat panel and logcat buffer on the device" />
     <option name="and" path="ActionManager" hit="Collect Logs and Diagnostic Data" />
     <option name="collect" path="ActionManager" hit="Collect Logs and Diagnostic Data" />
     <option name="data" path="ActionManager" hit="Collect Logs and Diagnostic Data" />
@@ -480,6 +490,8 @@
     <option name="using" path="ActionManager" hit="Pair Devices Using Wi-Fi" />
     <option name="wi" path="ActionManager" hit="Pair Devices Using Wi-Fi" />
     <option name="palm" path="ActionManager" hit="Palm" />
+    <option name="logcat" path="ActionManager" hit="Pause Logcat" />
+    <option name="pause" path="ActionManager" hit="Pause Logcat" />
     <option name="phone" path="ActionManager" hit="Phone" />
     <option name="power" path="ActionManager" hit="Power" />
     <option name="menu" path="ActionManager" hit="Power + Volume Up (Power Menu)" />
@@ -600,6 +612,11 @@
     <option name="where" path="ActionManager" hit="Replaces attributes by Android style reference where possible" />
     <option name="manager" path="ActionManager" hit="Resource Manager" />
     <option name="resource" path="ActionManager" hit="Resource Manager" />
+    <option name="logcat" path="ActionManager" hit="Restart Logcat" />
+    <option name="restart" path="ActionManager" hit="Restart Logcat" />
+    <option name="logcat" path="ActionManager" hit="Restart Logcat monitoring" />
+    <option name="monitoring" path="ActionManager" hit="Restart Logcat monitoring" />
+    <option name="restart" path="ActionManager" hit="Restart Logcat monitoring" />
     <option name="left" path="ActionManager" hit="Rotate Left" />
     <option name="rotate" path="ActionManager" hit="Rotate Left" />
     <option name="right" path="ActionManager" hit="Rotate Right" />

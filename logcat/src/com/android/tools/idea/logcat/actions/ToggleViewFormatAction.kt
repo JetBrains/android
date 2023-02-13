@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.actions
 import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_ACTION
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 
@@ -27,7 +28,6 @@ import com.intellij.openapi.project.DumbAwareAction
  * This action is registered in the plugin XML and is not visible. It's only available as a KB shortcut. Since it's registered with the
  * plugin, it's discoverable via Ctrl-Shift-A and the shortcut is configurable via the Keymap settings
  */
-@Suppress("ComponentNotRegistered") // It is in fact registered in logcat.xml
 internal class ToggleViewFormatAction : DumbAwareAction() {
 
   override fun update(e: AnActionEvent) {
@@ -44,4 +44,6 @@ internal class ToggleViewFormatAction : DumbAwareAction() {
       else -> return
     }
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 }
