@@ -25,6 +25,7 @@ import com.android.tools.idea.logcat.message.LogLevel.ERROR
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.intellij.openapi.util.TextRange
+import com.intellij.openapi.util.TextRange.EMPTY_RANGE
 import com.intellij.openapi.util.text.Strings
 import com.intellij.psi.impl.source.tree.PsiErrorElementImpl
 import org.jetbrains.annotations.PropertyKey
@@ -328,10 +329,16 @@ internal data class NameFilter(
   override fun matches(message: LogcatMessageWrapper): Boolean = true
 }
 
-private val EXCEPTION_LINE_PATTERN = Regex("\n\\s*at .+\\(.+\\)\n")
+private val exceptionLinePattern = Regex("\n\\s*at .+\\(.+\\)\n")
 
 internal data class StackTraceFilter(override val textRange: TextRange) : LogcatFilter(textRange) {
   override val displayText: String = message("logcat.filter.completion.hint.is.stacktrace")
 
-  override fun matches(message: LogcatMessageWrapper): Boolean = EXCEPTION_LINE_PATTERN.find(message.logcatMessage.message) != null
+  override fun matches(message: LogcatMessageWrapper): Boolean = exceptionLinePattern.find(message.logcatMessage.message) != null
+}
+
+internal object EmptyFilter: LogcatFilter(EMPTY_RANGE) {
+  override val displayText: String = ""
+
+  override fun matches(message: LogcatMessageWrapper): Boolean = true
 }
