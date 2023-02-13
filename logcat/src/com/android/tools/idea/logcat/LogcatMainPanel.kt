@@ -165,8 +165,6 @@ class LogcatMainPanelFactory {
   }
 }
 
-private val bannerBorder = BorderFactory.createCompoundBorder(Borders.customLine(JBColor.border(), 1, 1, 0, 0), Borders.empty(5, 10))
-
 /**
  * The top level Logcat panel.
  *
@@ -747,7 +745,7 @@ internal class LogcatMainPanel @TestOnly constructor(
 
   private class WarningNotificationPanel : EditorNotificationPanel(Banner.WARNING_BACKGROUND) {
     init {
-      border = bannerBorder
+      border = BorderFactory.createCompoundBorder(Borders.customLine(JBColor.border(), 1, 1, 0, 0), border)
     }
   }
 }
