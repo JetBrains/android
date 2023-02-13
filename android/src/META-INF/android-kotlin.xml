@@ -92,6 +92,7 @@
         <quickFixContributor implementation="com.android.tools.idea.imports.AndroidMavenImportKotlinResolver"/>
         <resolveScopeEnlarger implementation="org.jetbrains.kotlin.android.AndroidKotlinResolveScopeEnlarger"/>
         <renameHandler implementation="org.jetbrains.android.refactoring.renaming.KotlinResourceRenameHandler" order="first"/>
+        <idea.androidSdkProvider implementation="org.jetbrains.kotlin.android.wizard.AndroidSdkProviderImpl"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.android.tools.idea.lint.common">

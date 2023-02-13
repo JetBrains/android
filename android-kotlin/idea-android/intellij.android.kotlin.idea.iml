@@ -79,5 +79,6 @@
     <orderEntry type="module" module-name="intellij.platform.util.ex" />
     <orderEntry type="module" module-name="intellij.platform.ide.core" />
     <orderEntry type="module" module-name="kotlin.base.fe10.code-insight" />
+    <orderEntry type="module" module-name="kotlin.project-wizard.core" />
   </component>
 </module>
