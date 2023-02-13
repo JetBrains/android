@@ -118,6 +118,7 @@ import com.intellij.tools.SimpleActionGroup
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI.Borders
+import com.intellij.util.ui.JBUI.CurrentTheme.Banner
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import kotlinx.coroutines.Dispatchers
@@ -150,8 +151,8 @@ private const val MAX_TAGS = 1000
 private const val MAX_PACKAGE_NAMES = 1000
 private const val MAX_PROCESS_NAMES = 1000
 
-private val HAND_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
-private val TEXT_CURSOR = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
+private val handCursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+private val textCursor = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
 
 // To avoid exposing LogcatMainPanel, we needed to make a factory that will return a JComponent. We
 // initially tried making LogcatMainPanel public, but that caused a chain-reaction of "package
@@ -164,7 +165,7 @@ class LogcatMainPanelFactory {
   }
 }
 
-private val BANNER_BORDER = BorderFactory.createCompoundBorder(Borders.customLine(JBColor.border(), 1, 1, 0, 1), Borders.empty(0, 5, 0, 0))
+private val bannerBorder = BorderFactory.createCompoundBorder(Borders.customLine(JBColor.border(), 1, 1, 0, 0), Borders.empty(5, 10))
 
 /**
  * The top level Logcat panel.
@@ -210,9 +211,9 @@ internal class LogcatMainPanel @TestOnly constructor(
 
   @VisibleForTesting
   internal val editor: EditorEx = createLogcatEditor(project)
-  private val pausedBanner = EditorNotificationPanel()
-  private val noApplicationIdsBanner = EditorNotificationPanel()
-  private val noLogsBanner = EditorNotificationPanel()
+  private val pausedBanner = WarningNotificationPanel()
+  private val noApplicationIdsBanner = WarningNotificationPanel()
+  private val noLogsBanner = WarningNotificationPanel()
   private val document = editor.document
   private val documentAppender = DocumentAppender(project, document, logcatSettings.bufferSize)
   private val coroutineScope = AndroidCoroutineScope(this)
@@ -295,7 +296,6 @@ internal class LogcatMainPanel @TestOnly constructor(
 
     pausedBanner.apply {
       text = LogcatBundle.message("logcat.main.panel.pause.banner.text")
-      border = BANNER_BORDER
       isVisible = false
     }
     noApplicationIdsBanner.apply {
@@ -303,7 +303,6 @@ internal class LogcatMainPanel @TestOnly constructor(
       createActionLabel(LogcatBundle.message("logcat.main.panel.no.application.ids.banner.sync.now")) {
         ProjectSystemService.getInstance(project).projectSystem.getSyncManager().syncProject(USER_REQUEST)
       }
-      border = BANNER_BORDER
       isVisible = isMissingApplicationIds()
     }
     noLogsBanner.apply {
@@ -311,7 +310,6 @@ internal class LogcatMainPanel @TestOnly constructor(
       createActionLabel(LogcatBundle.message("logcat.main.panel.no.logs.banner.clear.filter")) {
         setFilter("")
       }
-      border = BANNER_BORDER
       isVisible = isLogsMissing()
     }
     val centerPanel = JPanel(null).apply {
@@ -719,13 +717,13 @@ internal class LogcatMainPanel @TestOnly constructor(
         val filterHint = e.getFilterHint()
         if (e.isControlDown) {
           if (filterHint != null && toggleFilterTerm(logcatFilterParser, headerPanel.filter, filterHint.getFilter()) != null) {
-            contentComponent.cursor = HAND_CURSOR
+            contentComponent.cursor = handCursor
             return
           }
         }
         contentComponent.toolTipText = if (filterHint?.isElided() == true) filterHint.text else null
 
-        contentComponent.cursor = TEXT_CURSOR
+        contentComponent.cursor = textCursor
       }
     })
   }
@@ -744,6 +742,12 @@ internal class LogcatMainPanel @TestOnly constructor(
       // Logging as error in order to see how prevalent this is in the wild. See b/239095674
       LOGGER.error("Failed to check caret position directly. Using backup method.", t)
       caretLine >= document.lineCount - 1
+    }
+  }
+
+  private class WarningNotificationPanel : EditorNotificationPanel(Banner.WARNING_BACKGROUND) {
+    init {
+      border = bannerBorder
     }
   }
 }
