@@ -35,6 +35,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.JBColor
+import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
@@ -43,6 +44,7 @@ import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.awt.event.ActionEvent
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -77,12 +79,27 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
   private val fileTree: Tree
   private val grid = JPanel(GridBagLayout())
   private val contents: JBTextArea
+  private val checkBox: JBCheckBox
+
+  // Privacy requires that the 'Create' button has nothing that gives it precedence over the cancel button.
+  // Make a custom OK action as the default OK button will be colored blue instead of grey.
+  private val createAction = object : DialogWrapperAction("Create") {
+    override fun doAction(e: ActionEvent) {
+      doOKAction()
+    }
+  }.apply {
+    isEnabled = false
+  }
+
+  override fun createActions(): Array<Action> {
+    return arrayOf(createAction, myCancelAction)
+  }
+
 
   init {
     title = "Create Diagnostic Report"
     isResizable = false
     isModal = true
-    myOKAction.putValue(Action.NAME, "Create")
 
     grid.apply {
       val filesLabel = JLabel().apply {
@@ -114,7 +131,9 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
 
       add(treeScrollPane, constraints)
 
-      contents = JBTextArea()
+      contents = JBTextArea().apply {
+        isEditable = false
+      }
 
       val contentsScrollPane = JScrollPane(contents).apply {
         preferredSize = Dimension(800, 300)
@@ -149,6 +168,21 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
       }
 
       add(privacy, constraints)
+
+      checkBox = JBCheckBox().apply {
+        text = "I agree to the terms above."
+        addItemListener { _ ->
+          createAction.isEnabled = isSelected
+        }
+      }
+
+      constraints.apply {
+        gridx = 0
+        gridy = 3
+        gridwidth = 1
+      }
+
+      add(checkBox, constraints)
     }
 
     init()

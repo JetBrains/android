@@ -39,6 +39,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckedTreeNode
+import com.intellij.ui.components.JBCheckBox
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -144,10 +145,8 @@ class CreateDiagnosticReportDialogTest {
       val file3 = directoryA.getChildAt(0)
       (file3 as CheckedTreeNode).isChecked = false
 
-      val buttons = TreeWalker(dialog.rootPane).descendants().filterIsInstance<JButton>()
-      val okButton = buttons.firstOrNull { button -> button.text == CREATE_BUTTON_TEXT }
-      Truth.assertThat(okButton).isNotNull()
-      okButton!!.doClick()
+      selectCheckBox()
+      clickCreateButton()
 
       ZipFile(zipFile).use { zipFile ->
         val entryList = zipFile.entries().toList()
@@ -167,6 +166,19 @@ class CreateDiagnosticReportDialogTest {
     Truth.assertThat(root).isNotNull()
 
     return root!!
+  }
+
+  private fun selectCheckBox() {
+    val checkBox = TreeWalker(dialog.rootPane).descendants().filterIsInstance<JBCheckBox>().firstOrNull()
+    Truth.assertThat(checkBox).isNotNull()
+    checkBox!!.isSelected = true
+  }
+
+  private fun clickCreateButton() {
+    val buttons = TreeWalker(dialog.rootPane).descendants().filterIsInstance<JButton>()
+    val okButton = buttons.firstOrNull { button -> button.text == CREATE_BUTTON_TEXT }
+    Truth.assertThat(okButton).isNotNull()
+    okButton!!.doClick()
   }
 
   private fun assertNode(node: TreeNode, userObject: String) {
