@@ -21,7 +21,7 @@ import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
-import com.android.tools.idea.glance.preview.mvvm.PreviewView
+import com.android.tools.idea.preview.mvvm.PreviewView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project

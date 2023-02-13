@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.glance.preview.mvvm
+package com.android.tools.idea.preview.mvvm
 
 import com.intellij.psi.PsiFile
 

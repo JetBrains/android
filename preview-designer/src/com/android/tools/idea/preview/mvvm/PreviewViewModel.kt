@@ -13,17 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.glance.preview.mvvm
+package com.android.tools.idea.preview.mvvm
 
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import javax.swing.JComponent
+import com.android.tools.idea.projectsystem.BuildListener
 
 /**
- * Interface that should be implemented by the view exposing the API that is accessed by the
- * [PreviewRepresentation] implementation for updating the previews for the [PreviewElement]s.
+ * Preview ViewModel interface in the MVVM pattern. Intended to be accessed by the Model
+ * (PreviewRepresentation).
  */
-interface PreviewRepresentationView {
-  val component: JComponent
+interface PreviewViewModel : BuildListener {
 
-  val surface: NlDesignSurface
+  fun checkForNativeCrash(runnable: Runnable): Boolean
+
+  fun refreshStarted()
+
+  fun refreshFinished()
+
+  fun beforePreviewsRefreshed()
+
+  fun afterPreviewsRefreshed()
+
+  fun setHasPreviews(hasPreviews: Boolean)
+
+  fun refreshCompleted(isCancelled: Boolean, durationNanos: Long)
+
+  fun onEnterSmartMode()
+
+  fun activate()
 }

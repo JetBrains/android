@@ -13,31 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.glance.preview.mvvm
+package com.android.tools.idea.preview.mvvm
 
-import com.android.tools.idea.projectsystem.BuildListener
+import com.android.annotations.concurrency.UiThread
+import com.android.tools.adtui.stdui.ActionData
+import com.android.tools.adtui.stdui.UrlData
 
-/**
- * Preview ViewModel interface in the MVVM pattern. Intended to be accessed by the Model
- * (PreviewRepresentation).
- */
-interface PreviewViewModel : BuildListener {
+/** Preview View interface in the MVVM pattern. Intended to be accessed by the ViewModel. */
+interface PreviewView {
+  @UiThread
+  fun showErrorMessage(message: String, recoveryUrl: UrlData?, actionToRecover: ActionData?)
 
-  fun checkForNativeCrash(runnable: Runnable): Boolean
+  @UiThread fun showLoadingMessage(message: String)
 
-  fun refreshStarted()
+  @UiThread fun showContent()
 
-  fun refreshFinished()
-
-  fun beforePreviewsRefreshed()
-
-  fun afterPreviewsRefreshed()
-
-  fun setHasPreviews(hasPreviews: Boolean)
-
-  fun refreshCompleted(isCancelled: Boolean, durationNanos: Long)
-
-  fun onEnterSmartMode()
-
-  fun activate()
+  @UiThread fun updateToolbar()
 }

@@ -22,9 +22,9 @@ import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.glance.preview.GlancePreviewBundle.message
-import com.android.tools.idea.glance.preview.mvvm.PreviewView
-import com.android.tools.idea.glance.preview.mvvm.PreviewViewModel
-import com.android.tools.idea.glance.preview.mvvm.PreviewViewModelStatus
+import com.android.tools.idea.preview.mvvm.PreviewView
+import com.android.tools.idea.preview.mvvm.PreviewViewModel
+import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
