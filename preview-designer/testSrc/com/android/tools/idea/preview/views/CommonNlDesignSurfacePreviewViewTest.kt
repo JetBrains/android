@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.glance.preview
+package com.android.tools.idea.preview.views
 
 import com.android.tools.adtui.instructions.HyperlinkInstruction
 import com.android.tools.adtui.instructions.InstructionsPanel
@@ -21,10 +21,15 @@ import com.android.tools.adtui.instructions.NewRowInstruction
 import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.common.editor.ActionManager
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -56,8 +61,9 @@ private fun InstructionsPanel.toDisplayText(): String =
 
 private fun JComponent?.isVisible() = this?.isShowing == true
 
-class GlancePreviewViewTest {
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+class CommonNlDesignSurfacePreviewViewTest {
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory()
 
   private val project: Project
     get() = projectRule.project
@@ -66,18 +72,15 @@ class GlancePreviewViewTest {
 
   private lateinit var fakeUi: FakeUi
 
-  private lateinit var previewView: GlancePreviewView
+  private lateinit var previewView: CommonNlDesignSurfacePreviewView
 
   @RunsInEdt
   @Before
   fun setUp() =
     runBlocking(uiThread) {
-      val surfaceBuilder =
-        NlDesignSurface.builder(project, fixture.testRootDisposable).setActionManagerProvider {
-          GlancePreviewActionManager(it)
-        }
+      val surfaceBuilder = NlDesignSurface.builder(project, fixture.testRootDisposable)
 
-      previewView = GlancePreviewView(project, surfaceBuilder, fixture.testRootDisposable)
+      previewView = CommonNlDesignSurfacePreviewView(project, surfaceBuilder, fixture.testRootDisposable)
 
       fakeUi =
         FakeUi(

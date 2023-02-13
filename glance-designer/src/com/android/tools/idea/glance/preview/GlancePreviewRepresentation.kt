@@ -35,6 +35,7 @@ import com.android.tools.idea.preview.navigation.DefaultNavigationHandler
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
+import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
 import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
@@ -107,7 +108,7 @@ internal class GlancePreviewRepresentation<T : MethodPreviewElement>(
     )
 
   private val previewView = invokeAndWaitIfNeeded {
-    GlancePreviewView(
+    CommonNlDesignSurfacePreviewView(
       project,
       NlDesignSurface.builder(project, this)
         .setActionManagerProvider { surface -> GlancePreviewActionManager(surface) }
