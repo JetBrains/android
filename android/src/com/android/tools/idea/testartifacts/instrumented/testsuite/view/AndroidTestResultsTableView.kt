@@ -55,6 +55,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.util.ColorProgressBar
 import com.intellij.openapi.util.text.StringUtil
@@ -540,20 +541,32 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
 
   override fun getData(dataId: String): Any? {
     return when {
+      PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId) -> {
+        DataProvider { slowId -> getSlowData(slowId) }
+      }
       CommonDataKeys.PROJECT.`is`(dataId) -> {
         javaPsiFacade.project
-      }
-      CommonDataKeys.PSI_ELEMENT.`is`(dataId) -> {
-        val selectedTestResults = selectedObject ?: return null
-        return getPsiElement(selectedTestResults)
-      }
-      Location.DATA_KEY.`is`(dataId) -> {
-        val psiElement = getData(CommonDataKeys.PSI_ELEMENT.name) as? PsiElement ?: return null
-        PsiLocation.fromPsiElement(psiElement, module)
       }
       RunConfiguration.DATA_KEY.`is`(dataId) -> {
         return AndroidTestRunConfiguration(javaPsiFacade.project, AndroidTestRunConfigurationType.getInstance().factory)
       }
+
+      else -> null
+    }
+  }
+
+  private fun getSlowData(dataId: String): Any? {
+    return when {
+      CommonDataKeys.PSI_ELEMENT.`is`(dataId) -> {
+        val selectedTestResults = selectedObject ?: return null
+        getPsiElement(selectedTestResults)
+      }
+
+      Location.DATA_KEY.`is`(dataId) -> {
+        val psiElement = getSlowData(CommonDataKeys.PSI_ELEMENT.name) as? PsiElement ?: return null
+        PsiLocation.fromPsiElement(psiElement, module)
+      }
+
       else -> null
     }
   }

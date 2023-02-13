@@ -42,6 +42,7 @@ import com.intellij.lang.jvm.JvmMethod
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.module.Module
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
@@ -802,20 +803,24 @@ class AndroidTestResultsTableViewTest {
     table.getTableViewForTesting().setColumnSelectionInterval(0, 0)
     table.getTableViewForTesting().selectionModel.setSelectionInterval(2, 2)
 
-    val data = (table.getTableViewForTesting() as DataProvider).getData(CommonDataKeys.PSI_ELEMENT.name)
+    val dataProvider = (table.getTableViewForTesting() as DataProvider).getData(PlatformCoreDataKeys.BGT_DATA_PROVIDER.name)
+    assertThat(dataProvider).isInstanceOf(DataProvider::class.java)
+    val data = (dataProvider as DataProvider).getData(CommonDataKeys.PSI_ELEMENT.name)
     assertThat(data).isInstanceOf(JvmMethod::class.java)
     assertThat((data as JvmMethod).name).isEqualTo("myTestMethodName")
-    val location = (table.getTableViewForTesting() as DataProvider).getData(Location.DATA_KEY.name)
+
+    val dataProviderLocation = (table.getTableViewForTesting() as DataProvider).getData(PlatformCoreDataKeys.BGT_DATA_PROVIDER.name)
+    val location = (dataProviderLocation as DataProvider).getData(Location.DATA_KEY.name)
     assertThat(location).isInstanceOf(PsiLocation::class.java)
     assertThat((location as PsiLocation<*>).psiElement).isSameAs(mockPsiMethod)
 
     // Select the test class.
     table.getTableViewForTesting().selectionModel.setSelectionInterval(1, 1)
 
-    val dataForClass = (table.getTableViewForTesting() as DataProvider).getData(CommonDataKeys.PSI_ELEMENT.name)
+    val dataForClass = dataProvider.getData(CommonDataKeys.PSI_ELEMENT.name)
     assertThat(dataForClass).isInstanceOf(PsiClass::class.java)
     assertThat((dataForClass as PsiClass).name).isEqualTo("myTestClassName")
-    val locationForClass = (table.getTableViewForTesting() as DataProvider).getData(Location.DATA_KEY.name)
+    val locationForClass = dataProviderLocation.getData(Location.DATA_KEY.name)
     assertThat(locationForClass).isInstanceOf(PsiLocation::class.java)
     assertThat((locationForClass as PsiLocation<*>).psiElement).isSameAs(mockPsiClass)
     val runConfiguration = (table.getTableViewForTesting() as DataProvider).getData(RunConfiguration.DATA_KEY.name)
