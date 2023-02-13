@@ -67,7 +67,7 @@ public class ArrayMapRendererBase extends NodeRendererImpl {
   @Override
   public void buildChildren(Value value, ChildrenBuilder builder, EvaluationContext evaluationContext) {
     DebuggerManagerThreadImpl.assertIsManagerThread();
-    List<DebuggerTreeNode> children = new ArrayList<DebuggerTreeNode>();
+    List<DebuggerTreeNode> children = new ArrayList<>();
     NodeManagerImpl nodeManager = (NodeManagerImpl)builder.getNodeManager();
     NodeDescriptorFactory descriptorFactory = builder.getDescriptorManager();
 
@@ -79,18 +79,14 @@ public class ArrayMapRendererBase extends NodeRendererImpl {
     }
 
     for (int i = 0, n = Math.min(size, MAX_CHILDREN); i < n; i++) {
-      // For each entry, display the value at that entry. TODO: we need to show the key corresponding to this as well.
-      // We used to show the key and value by using the following expression:
-      // String expression = String.format("new Object[] {this.keyAt(%1$d), this.valueAt(%2$d)}", i, i);
-      // But it turns out that this throws "java.lang.ClassNotFoundException: [LObject;"
-      // Until we find an alternate scheme, just show the value.
-      String expression = String.format(Locale.US, "this.valueAt(%1$d)", i);
+      // For each entry, display the key and value at that entry.
+      String expression = String.format("new AbstractMap.SimpleEntry(this.keyAt(%1$d), this.valueAt(%2$d)", i, i);
       UserExpressionData descriptorData =
         new UserExpressionData((ValueDescriptorImpl)builder.getParentDescriptor(), myFqn,
-                               String.format(Locale.US, "value[%1$d]", i),
+                               String.format(Locale.US, "entry[%1$d]", i),
                                new TextWithImportsImpl(CodeFragmentKind.EXPRESSION,
                                                        expression,
-                                                       "",
+                                                       "java.util.AbstractMap",
                                                        JavaFileType.INSTANCE));
       UserExpressionDescriptor userExpressionDescriptor =
         descriptorFactory.getUserExpressionDescriptor(builder.getParentDescriptor(), descriptorData);
