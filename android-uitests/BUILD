@@ -1510,6 +1510,7 @@ java_test(
     tags = COMMON_TAGS + [
         "no_mac",
         "no_windows",
+        "very_flaky",  # b/269167918
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
