@@ -17,7 +17,6 @@ package com.android.tools.idea.avdmanager;
 
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.NONE;
 
-import com.android.annotations.NonNull;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.analytics.CommonMetricsData;
@@ -48,8 +47,8 @@ import org.jetbrains.annotations.NotNull;
  * Component for displaying an alert on the installation state of HAXM/KVM.
  */
 public class HaxmAlert extends JPanel {
-  private JBLabel myWarningMessage;
-  private HyperlinkLabel myErrorInstructionsLink;
+  private final JBLabel myWarningMessage;
+  private final HyperlinkLabel myErrorInstructionsLink;
   private HyperlinkListener myErrorLinkListener;
   private SystemImageDescription myImageDescription;
   private AccelerationErrorCode myAccelerationErrorCode;
@@ -91,7 +90,7 @@ public class HaxmAlert extends JPanel {
   }
 
   @VisibleForTesting
-  static String getWarningTextForX86HostsUsingNonX86Image(@NonNull SystemImageDescription description,
+  static String getWarningTextForX86HostsUsingNonX86Image(@NotNull SystemImageDescription description,
                                                           ProductDetails.CpuArchitecture arch) {
     Abi abi = Abi.getEnum(description.getAbiType());
     boolean isX86Host = arch == ProductDetails.CpuArchitecture.X86 || arch == ProductDetails.CpuArchitecture.X86_64;
@@ -108,7 +107,7 @@ public class HaxmAlert extends JPanel {
     }
 
     ListenableFuture<AccelerationErrorCode> accelerationError = getAccelerationState(force);
-    Futures.addCallback(accelerationError, new FutureCallback<AccelerationErrorCode>() {
+    Futures.addCallback(accelerationError, new FutureCallback<>() {
       @Override
       public void onSuccess(AccelerationErrorCode result) {
         myAccelerationErrorCode = result;
@@ -148,7 +147,7 @@ public class HaxmAlert extends JPanel {
             if (warningTextBuilder.length() > 0) {
               warningTextBuilder.append("<br>");
             }
-            warningTextBuilder.append(nonX86ImageWarning + "<br>");
+            warningTextBuilder.append(nonX86ImageWarning).append("<br>");
           }
 
           if (!SystemImageDescription.TAGS_WITH_GOOGLE_API.contains(myImageDescription.getTag())) {
