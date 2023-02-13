@@ -29,11 +29,8 @@ import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestExecutionOption;
 import com.android.tools.idea.model.TestOptions;
-import com.android.tools.idea.projectsystem.AndroidModuleSystem;
-import com.android.tools.idea.run.AndroidLaunchTasksProvider;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
-import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.LaunchOptions;
@@ -46,11 +43,8 @@ import com.android.tools.idea.run.editor.DeployTarget;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
-import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration;
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.wireless.android.sdk.stats.TestLibraries;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.execution.ExecutionBundle;
 import com.intellij.execution.ExecutionException;
@@ -61,7 +55,6 @@ import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.execution.configurations.RefactoringListenerProvider;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
-import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.testframework.TestRunnerBundle;
@@ -164,24 +157,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @Override
   protected AndroidConfigurationExecutor getExecutor(ExecutionEnvironment env, AndroidFacet facet, DeviceFutures deviceFutures)
     throws ExecutionException {
-    ApplicationIdProvider applicationIdProvider = getApplicationIdProvider();
-    if (applicationIdProvider == null) {
-      throw new RuntimeException("Cannot get ApplicationIdProvider");
-    }
-
-    boolean isDebugging = env.getExecutor() instanceof DefaultDebugExecutor;
-
-    LaunchOptions launchOptions = getLaunchOptions().setDebug(isDebugging).build();
-
-    ApkProvider apkProvider = getApkProvider();
-    if (apkProvider == null) {
-      throw new RuntimeException("Cannot get ApkProvider");
-    }
-
-    LaunchTasksProvider launchTaskProvider =
-      new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions);
-
-    return new AndroidTestRunConfigurationExecutor(getApplicationIdProvider(), env, deviceFutures, launchTaskProvider);
+    return new AndroidTestRunConfigurationExecutor(env, deviceFutures);
   }
 
   @Override
@@ -376,75 +352,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                    boolean waitForDebugger,
                                                    @NotNull ApkProvider apkProvider,
                                                    @NotNull IDevice device) throws ExecutionException {
-    String runner = INSTRUMENTATION_RUNNER_CLASS;
-    if (isEmptyOrSpaces(runner)) {
-      runner = getDefaultInstrumentationRunner(facet);
-    }
-    if (isEmptyOrSpaces(runner)) {
-      throw new ExecutionException("Unable to determine instrumentation runner");
-    }
-    @Nullable AndroidModel androidModel = AndroidModel.get(facet);
-    @Nullable TestOptions testOptions = androidModel != null ? androidModel.getTestOptions() : null;
-    String instrumentationOptions = Joiner.on(" ").join(getExtraInstrumentationOptions(facet), getInstrumentationOptions(testOptions));
-
-    String testAppId;
-    try {
-      testAppId = applicationIdProvider.getTestPackageName();
-      if (testAppId == null) {
-        throw new ExecutionException("Unable to determine test package name");
-      }
-    }
-    catch (ApkProvisionException e) {
-      throw new ExecutionException("Unable to determine test package name");
-    }
-
-    AndroidModuleSystem moduleSystem = getModuleSystem(facet);
-    TestLibraries testLibrariesInUse = moduleSystem.getTestLibrariesInUse();
-    TestExecutionOption testExecutionOption = testOptions != null ? testOptions.getExecutionOption() : null;
-    switch (TESTING_TYPE) {
-      case TEST_ALL_IN_MODULE:
-        return AndroidTestApplicationLaunchTask.allInModuleTest(runner,
-                                                                testAppId,
-                                                                waitForDebugger,
-                                                                instrumentationOptions,
-                                                                testLibrariesInUse,
-                                                                testExecutionOption,
-                                                                device);
-
-      case TEST_ALL_IN_PACKAGE:
-        return AndroidTestApplicationLaunchTask.allInPackageTest(runner,
-                                                                 testAppId,
-                                                                 waitForDebugger,
-                                                                 instrumentationOptions,
-                                                                 testLibrariesInUse,
-                                                                 testExecutionOption,
-                                                                 device,
-                                                                 PACKAGE_NAME);
-
-      case TEST_CLASS:
-        return AndroidTestApplicationLaunchTask.classTest(runner,
-                                                          testAppId,
-                                                          waitForDebugger,
-                                                          instrumentationOptions,
-                                                          testLibrariesInUse,
-                                                          testExecutionOption,
-                                                          device,
-                                                          CLASS_NAME);
-
-      case TEST_METHOD:
-        return AndroidTestApplicationLaunchTask.methodTest(runner,
-                                                           testAppId,
-                                                           waitForDebugger,
-                                                           instrumentationOptions,
-                                                           testLibrariesInUse,
-                                                           testExecutionOption,
-                                                           device,
-                                                           CLASS_NAME,
-                                                           METHOD_NAME);
-
-      default:
-        throw new RuntimeException("Unknown testing type is selected");
-    }
+    return null;
   }
 
   /**
@@ -509,21 +417,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     return extraParams.stream()
       .map(param -> "-e " + param.getNAME() + " " + param.getVALUE())
       .collect(Collectors.joining(" "));
-  }
-
-  /**
-   * Retrieves instrumentation options from the given facet. Extra instrumentation options are not included.
-   *
-   * @return instrumentation options string. All instrumentation options specified by the facet are concatenated by a single space.
-   */
-  @NotNull
-  public String getInstrumentationOptions(@Nullable TestOptions testOptions) {
-    ImmutableList.Builder<String> builder = new ImmutableList.Builder<>();
-    boolean isAnimationDisabled = testOptions != null ? testOptions.getAnimationsDisabled() : false;
-    if (isAnimationDisabled) {
-      builder.add("--no-window-animation");
-    }
-    return Joiner.on(" ").join(builder.build());
   }
 
   /**
@@ -625,22 +518,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       };
     }
     return null;
-  }
-
-  @NotNull
-  @Override
-  protected LaunchOptions.Builder getLaunchOptions() {
-    LaunchOptions.Builder builder = super.getLaunchOptions();
-    builder.setPmInstallOptions(device -> {
-      // -t: Allow test APKs to be installed.
-      // -g: Grant all permissions listed in the app manifest. (Introduced at Android 6.0).
-      if (device.isPresent() && device.get().getVersion().getApiLevel() >= 23) {
-        return "-t -g";
-      } else {
-        return "-t";
-      }
-    });
-    return builder;
   }
 
   /**
