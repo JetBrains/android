@@ -152,6 +152,9 @@ class DependenciesFixture(
   fun findConfigurationCombo(): JComboBoxFixture =
     EditorComboBoxFixture(robot(), robot().finder().findByName(container, "configuration", JComboBox::class.java, true))
 
+  fun findVersionCombo(): JComboBoxFixture =
+    EditorComboBoxFixture(robot(), robot().finder().findByName(container, "version", JComboBox::class.java, true))
+
   fun clickAddLibraryDependency(): AddLibraryDependencyDialogFixture {
     clickToolButton("Add Dependency")
     val listFixture = JListFixture(robot(), getList())
