@@ -579,6 +579,7 @@ Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/allopen-compiler-
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/android-extensions-compiler.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/android-extensions-runtime.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/annotations-13.0.jar
+Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/assignment-compiler-plugin.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/js.engines.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/jvm-abi-gen.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-annotation-processing-cli.jar
@@ -658,7 +659,6 @@ Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/l
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/maven_LICENSE.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/mocha-teamcity-reporter_LICENSE.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/okhttp_license.txt
-Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/pcollections_LICENSE.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/prototype_license.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/qunit_license.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/rhino_LICENSE.txt
@@ -2434,8 +2434,8 @@ Android Studio Preview.app/Contents/plugins/android/resources/transport/native/a
 Android Studio Preview.app/Contents/plugins/android/resources/transport/native/agent/x86_64/libjvmtiagent.so
 Android Studio Preview.app/Contents/plugins/android/resources/transport/x86/transport
 Android Studio Preview.app/Contents/plugins/android/resources/transport/x86_64/transport
-Android Studio Preview.app/Contents/plugins/c-clangd/bin/clang/mac/clang-tidy
-Android Studio Preview.app/Contents/plugins/c-clangd/bin/clang/mac/clangd
+Android Studio Preview.app/Contents/plugins/c-clangd/bin/clang/mac/aarch64/clang-tidy
+Android Studio Preview.app/Contents/plugins/c-clangd/bin/clang/mac/aarch64/clangd
 Android Studio Preview.app/Contents/plugins/c-clangd/lib/LICENSE.txt/CIDR_LICENSE.txt
 Android Studio Preview.app/Contents/plugins/c-clangd/lib/c-clangd.jar
 Android Studio Preview.app/Contents/plugins/c-clangdBridge/lib/c-clangdBridge.jar
@@ -2743,7 +2743,6 @@ Android Studio Preview.app/Contents/plugins/junit/lib/junit5-rt.jar
 Android Studio Preview.app/Contents/plugins/keymap-eclipse/lib/keymap-eclipse.jar
 Android Studio Preview.app/Contents/plugins/keymap-netbeans/lib/keymap-netbeans.jar
 Android Studio Preview.app/Contents/plugins/keymap-visualStudio/lib/keymap-visualStudio.jar
-Android Studio Preview.app/Contents/plugins/laf-macos/lib/laf-macos.jar
 Android Studio Preview.app/Contents/plugins/markdown/lib/markdown.jar
 Android Studio Preview.app/Contents/plugins/maven-model/lib/maven-model.jar
 Android Studio Preview.app/Contents/plugins/maven-server/lib/maven-server.jar
