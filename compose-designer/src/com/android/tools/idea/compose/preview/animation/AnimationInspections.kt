@@ -39,6 +39,9 @@ import org.jetbrains.kotlin.types.SimpleType
 private const val LABEL_PARAMETER = "label"
 private const val COMPOSE_ANIMATION_PACKAGE_PREFIX = "androidx.compose.animation"
 private const val UPDATE_TRANSITION_FQN = "$COMPOSE_ANIMATION_PACKAGE_PREFIX.core.updateTransition"
+private const val ANIMATED_CONTENT_FQN = "$COMPOSE_ANIMATION_PACKAGE_PREFIX.AnimatedContent"
+private const val REMEMBER_INFINITE_TRANSITION_FQN =
+  "$COMPOSE_ANIMATION_PACKAGE_PREFIX.core.rememberInfiniteTransition"
 private const val TRANSITION_FQN = "$COMPOSE_ANIMATION_PACKAGE_PREFIX.core.Transition"
 private const val ANIMATE_PREFIX = "animate" // e.g. animateColor, animateFloat, animateValue
 
@@ -47,7 +50,49 @@ private const val ANIMATE_PREFIX = "animate" // e.g. animateColor, animateFloat,
  * Compose transition animations. This parameter is used by the animation tooling to identify the
  * transition when inspecting animations in the Animation Preview.
  */
-class UpdateTransitionLabelInspection : AbstractKotlinInspection() {
+class UpdateTransitionLabelInspection : FunctionLabelInspection() {
+
+  override val fqNameCheck: (String) -> Boolean = { it == UPDATE_TRANSITION_FQN }
+
+  override val animationType: String
+    get() = message("inspection.animation.type.transition")
+}
+
+/**
+ * Inspection to verify that the `label` parameter is set for `AnimatedContent` calls. This
+ * parameter is used by the animation tooling to identify the transition when inspecting animations
+ * in the Animation Preview.
+ */
+class AnimatedContentLabelInspection : FunctionLabelInspection() {
+
+  override val fqNameCheck: (String) -> Boolean = { it == ANIMATED_CONTENT_FQN }
+
+  override val animationType: String
+    get() = message("inspection.animation.type.animated.content")
+}
+
+/**
+ * Inspection to verify that the `label` parameter is set for `rememberInfiniteTransition` calls.
+ * This parameter is used by the animation tooling to identify the transition when inspecting
+ * animations in the Animation Preview.
+ */
+class InfiniteTransitionLabelInspection : FunctionLabelInspection() {
+
+  override val fqNameCheck: (String) -> Boolean = { it == REMEMBER_INFINITE_TRANSITION_FQN }
+
+  override val animationType: String
+    get() = message("inspection.animation.type.remember.infinite.transition")
+}
+
+/**
+ * Inspection to verify that the `label` parameter is set for these calls. This parameter is used by
+ * the animation tooling to identify the transition when inspecting animations in the Animation
+ * Preview.
+ */
+abstract class FunctionLabelInspection : AbstractKotlinInspection() {
+
+  abstract val fqNameCheck: (String) -> Boolean
+  abstract val animationType: String
   override fun buildVisitor(
     holder: ProblemsHolder,
     isOnTheFly: Boolean,
@@ -58,24 +103,22 @@ class UpdateTransitionLabelInspection : AbstractKotlinInspection() {
         override fun visitCallExpression(expression: KtCallExpression) {
           super.visitCallExpression(expression)
           val resolvedExpression = expression.resolveToCall() ?: return
-          // First, check we're analyzing an updateTransition call
-          if (resolvedExpression.resultingDescriptor.fqNameOrNull()?.asString() !=
-              UPDATE_TRANSITION_FQN
-          )
-            return
+          // First, check we're analyzing the right call
+          val fqName = resolvedExpression.resultingDescriptor.fqNameOrNull()?.asString() ?: return
+          if (!fqNameCheck(fqName)) return
 
-          // Finally, verify the updateTransition has the `label` parameter set, otherwise show a
+          // Finally, verify the functions has the `label` parameter set, otherwise show a
           // weak warning.
           if (expression.valueArguments.any {
               resolvedExpression.getParameterForArgument(it)?.name?.asString() == LABEL_PARAMETER
             }
           ) {
-            // This updateTransition call already has the label parameter set.
+            // This function call already has the label parameter set.
             return
           }
           holder.registerProblem(
             expression,
-            message("inspection.update.transition.no.label.parameter.set.description"),
+            message("inspection.animation.no.label.parameter.set.description", animationType),
             ProblemHighlightType.WEAK_WARNING,
             AddLabelFieldQuickFix(expression)
           )
@@ -149,8 +192,8 @@ class TransitionPropertiesLabelInspection : AbstractKotlinInspection() {
  * state)` -> `updateTransition(targetState = state, label = "")` `animateFloat(transitionSpec =
  * ...)` -> `animateFloat(transitionSpec = ..., label = "")`
  */
-private class AddLabelFieldQuickFix(updateTransition: KtCallExpression) :
-  LocalQuickFixOnPsiElement(updateTransition) {
+private class AddLabelFieldQuickFix(animation: KtCallExpression) :
+  LocalQuickFixOnPsiElement(animation) {
   override fun getFamilyName() = message("inspection.group.name")
 
   override fun getText() = message("inspection.no.label.parameter.set.quick.fix.text")
