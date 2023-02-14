@@ -19,13 +19,14 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
-import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -45,7 +46,6 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.isNull
-import org.mockito.Mockito
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
@@ -155,7 +155,8 @@ class LambdaPropertyItemTest {
     val client: InspectorClient = mock()
     val stats: SessionStatistics = mock()
     whenever(client.stats).thenReturn(stats)
-    return LayoutInspector(client, model {}, mock())
+    val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
+    return LayoutInspector(coroutineScope, InspectorClientSettings(projectRule.project), client, model {}, mock())
   }
 
   private fun event(inspector: LayoutInspector): AnActionEvent {

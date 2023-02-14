@@ -46,7 +46,6 @@ import com.android.tools.idea.layoutinspector.ui.InspectorRenderSettings
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.ide.DataManager
-import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
@@ -137,28 +136,34 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
       layoutInspectorCoroutineScope,
       workbench
     )
-    val layoutInspector = LayoutInspector(launcher, model, treeSettings)
 
     val deviceModel = DeviceModel(workbench, processesModel)
     val foregroundProcessDetection = createForegroundProcessDetection(
       project, processesModel, deviceModel, layoutInspectorCoroutineScope
     )
 
-    val deviceViewPanel = DeviceViewPanel(
+    val layoutInspector = LayoutInspector(
       coroutineScope = layoutInspectorCoroutineScope,
-      processesModel = processesModel,
+      processModel = processesModel,
       deviceModel = deviceModel,
-      onDeviceSelected = { newDevice -> foregroundProcessDetection?.startPollingDevice(newDevice) },
+      foregroundProcessDetection = foregroundProcessDetection,
+      inspectorClientSettings = inspectorClientSettings,
+      launcher = launcher,
+      layoutInspectorModel = model,
+      treeSettings = treeSettings
+    )
+
+    val deviceViewPanel = DeviceViewPanel(
+      onDeviceSelected = { newDevice -> layoutInspector.foregroundProcessDetection?.startPollingDevice(newDevice) },
       onProcessSelected = { newProcess -> processesModel.selectedProcess = newProcess },
-      onStopInspector = { stopInspector(project, deviceModel, processesModel, foregroundProcessDetection) },
+      onStopInspector = { stopInspector(project, deviceModel, processesModel, layoutInspector.foregroundProcessDetection) },
       layoutInspector = layoutInspector,
       viewSettings = viewSettings,
-      inspectorClientSettings = inspectorClientSettings,
       disposableParent = workbench
     )
 
     // notify DeviceViewPanel that a new foreground process showed up
-    foregroundProcessDetection?.foregroundProcessListeners?.add(object : ForegroundProcessListener {
+    layoutInspector.foregroundProcessDetection?.foregroundProcessListeners?.add(object : ForegroundProcessListener {
       override fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess) {
         deviceViewPanel.onNewForegroundProcess(foregroundProcess)
       }

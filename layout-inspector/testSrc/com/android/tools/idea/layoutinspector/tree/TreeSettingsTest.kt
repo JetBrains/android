@@ -66,7 +66,7 @@ class InspectorTreeSettingsTest {
     val application = ApplicationManager.getApplication()
     application.registerServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock(), disposableRule.disposable)
     settings = InspectorTreeSettings { client }
-    inspector = LayoutInspector(mock(), mock(), settings, MoreExecutors.directExecutor())
+    inspector = LayoutInspector(mock(), mock(), mock(), mock(), mock(), mock (), mock(), settings, MoreExecutors.directExecutor())
     doAnswer { capabilities }.whenever(client).capabilities
     doAnswer { isConnected }.whenever(client).isConnected
   }

@@ -32,6 +32,7 @@ import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.componenttree.treetable.TreeTableModelImplAdapter
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
@@ -54,6 +55,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW4
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableRoot
@@ -611,7 +613,19 @@ class LayoutInspectorTreePanelTest {
   fun testSystemNodeWithMultipleChildren() {
     val launcher: InspectorClientLauncher = mock()
     val model = InspectorModel(projectRule.project)
-    val inspector = LayoutInspector(launcher, model, FakeTreeSettings(), MoreExecutors.directExecutor ())
+    val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
+    val clientSettings = InspectorClientSettings(projectRule.project)
+    val inspector = LayoutInspector(
+      coroutineScope,
+      mock(),
+      mock(),
+      null,
+      clientSettings,
+      launcher,
+      model,
+      FakeTreeSettings(),
+      MoreExecutors.directExecutor()
+    )
     val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     inspector.treeSettings.hideSystemNodes = true
     inspector.treeSettings.composeAsCallstack = true
@@ -647,7 +661,19 @@ class LayoutInspectorTreePanelTest {
   fun testSemanticTrees() {
     val launcher: InspectorClientLauncher = mock()
     val model = InspectorModel(projectRule.project)
-    val inspector = LayoutInspector(launcher, model, FakeTreeSettings(), MoreExecutors.directExecutor())
+    val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
+    val clientSettings = InspectorClientSettings(projectRule.project)
+    val inspector = LayoutInspector(
+      coroutineScope,
+      mock(),
+      mock(),
+      null,
+      clientSettings,
+      launcher,
+      model,
+      FakeTreeSettings(),
+      MoreExecutors.directExecutor()
+    )
     val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val tree = treePanel.tree
     inspector.treeSettings.hideSystemNodes = false

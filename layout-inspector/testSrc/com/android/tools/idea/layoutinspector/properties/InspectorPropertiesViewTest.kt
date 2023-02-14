@@ -221,7 +221,7 @@ class InspectorPropertiesViewTest {
     val settings = FakeTreeSettings()
     val client: InspectorClient = mock()
     whenever(client.stats).thenReturn(mock())
-    val layoutInspector = LayoutInspector(client, model, settings)
+    val layoutInspector = LayoutInspector(mock(), mock(), client, model, settings)
     propertiesModel.layoutInspector = layoutInspector
     customize(propertiesModel)
     return propertiesView

@@ -15,15 +15,19 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.common.MostRecentExecutor
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.InspectorConnectionError
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.ConnectionFailedException
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.logUnexpectedError
+import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
+import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.google.common.annotations.VisibleForTesting
@@ -35,6 +39,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.Messages
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import java.awt.Component
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicLong
@@ -51,6 +56,11 @@ private val logger = Logger.getInstance(LayoutInspector::class.java)
  */
 class LayoutInspector private constructor(
   val inspectorModel: InspectorModel,
+  val coroutineScope: CoroutineScope,
+  val processModel: ProcessesModel?,
+  val deviceModel: DeviceModel?,
+  val foregroundProcessDetection: ForegroundProcessDetection?,
+  val inspectorClientSettings: InspectorClientSettings,
   val treeSettings: TreeSettings,
   val isSnapshot: Boolean,
   private val currentClientProvider: () -> InspectorClient,
@@ -61,12 +71,22 @@ class LayoutInspector private constructor(
    * Construct a LayoutInspector that can launch new [InspectorClient]s as needed using [launcher].
    */
   constructor(
+    coroutineScope: CoroutineScope,
+    processModel: ProcessesModel,
+    deviceModel: DeviceModel,
+    foregroundProcessDetection: ForegroundProcessDetection?,
+    inspectorClientSettings: InspectorClientSettings,
     launcher: InspectorClientLauncher,
     layoutInspectorModel: InspectorModel,
     treeSettings: TreeSettings,
     executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor
   ) : this(
     layoutInspectorModel,
+    coroutineScope,
+    processModel,
+    deviceModel,
+    foregroundProcessDetection,
+    inspectorClientSettings,
     treeSettings,
     false,
     { launcher.activeClient },
@@ -79,10 +99,24 @@ class LayoutInspector private constructor(
    * Construct a LayoutInspector tied to a specific [InspectorClient], e.g. for viewing a snapshot file.
    */
   constructor(
+    coroutineScope: CoroutineScope,
+    layoutInspectorClientSettings: InspectorClientSettings,
     client: InspectorClient,
     layoutInspectorModel: InspectorModel,
-    treeSettings: TreeSettings
-  ) : this(layoutInspectorModel, treeSettings, true, { client }) {
+    treeSettings: TreeSettings,
+    executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor
+  ) : this(
+    inspectorModel = layoutInspectorModel,
+    coroutineScope = coroutineScope,
+    processModel = null,
+    deviceModel = null,
+    foregroundProcessDetection = null,
+    inspectorClientSettings = layoutInspectorClientSettings,
+    treeSettings = treeSettings,
+    isSnapshot = true,
+    currentClientProvider = { client },
+    workerExecutor = executor
+  ) {
     onClientChanged(client)
   }
 

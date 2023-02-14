@@ -28,11 +28,13 @@ import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetr
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbDebugViewProperties
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeParametersCache
+import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
@@ -211,6 +213,7 @@ class LayoutInspectorRule(
    * property.
    */
   val processes = ProcessesModel(processNotifier, isPreferredProcess)
+  private lateinit var deviceModel: DeviceModel
 
   val adbRule = FakeAdbRule()
   val adbProperties: AdbDebugViewProperties = FakeShellCommandHandler().apply {
@@ -243,12 +246,15 @@ class LayoutInspectorRule(
   private fun before() {
     projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
 
+    val layoutInspectorCoroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
+
+    deviceModel = DeviceModel(disposable, processes)
     inspectorModel = InspectorModel(projectRule.project)
     launcher = InspectorClientLauncher(
       processes,
       clientProviders.map { provider -> { params -> provider.create(params, inspector) } },
       project,
-      AndroidCoroutineScope(projectRule.testRootDisposable),
+      layoutInspectorCoroutineScope,
       launcherDisposable,
       executor = launcherExecutor
     )
@@ -268,7 +274,17 @@ class LayoutInspectorRule(
 
     // This factory will be triggered when LayoutInspector is created
     val treeSettings = FakeTreeSettings()
-    inspector = LayoutInspector(launcher, inspectorModel, treeSettings, MoreExecutors.directExecutor())
+    inspector = LayoutInspector(
+      coroutineScope = layoutInspectorCoroutineScope,
+      processModel = processes,
+      deviceModel = deviceModel,
+      foregroundProcessDetection = null,
+      inspectorClientSettings = InspectorClientSettings(project),
+      launcher = launcher,
+      layoutInspectorModel = inspectorModel,
+      treeSettings = treeSettings,
+      executor = MoreExecutors.directExecutor()
+    )
     launcher.addClientChangedListener {
       inspectorClient = it
     }
