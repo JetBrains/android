@@ -888,7 +888,7 @@ class RuleDetailsViewTest {
     assertThat(rule.criteria.host).isNotEqualTo(invalidUrl)
 
     // Assert URL shown in table is the default URL
-    assertThat(inspectorView.rulesView.table.getValueAt(0, 2)).isEqualTo("https://*")
+    assertThat(inspectorView.rulesView.table.getValueAt(0, 2)).isEqualTo("https://<Any>")
     client.verifyLatestCommand {
       it.interceptRuleUpdated.rule.criteria.also { criteria ->
         assertThat(criteria.host).isNotEqualTo(invalidUrl)
@@ -918,7 +918,7 @@ class RuleDetailsViewTest {
     assertThat(rule.criteria.port).isNotEqualTo(invalidPort)
 
     // Assert URL shown in table is the default URL
-    assertThat(inspectorView.rulesView.table.getValueAt(0, 2)).isEqualTo("https://*")
+    assertThat(inspectorView.rulesView.table.getValueAt(0, 2)).isEqualTo("https://<Any>")
     client.verifyLatestCommand {
       it.interceptRuleUpdated.rule.criteria.also { criteria ->
         assertThat(criteria.port).isNotEqualTo(invalidPort)

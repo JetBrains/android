@@ -76,7 +76,7 @@ class RuleData(
     var method: Method by delegate(Method.GET)
 
     val url: String
-      get() = "$protocol://${host.ifBlank { "*" }}${port.withPrefixIfNotEmpty(':')}$path${query.withPrefixIfNotEmpty('?')}"
+      get() = "$protocol://${host.ifBlank { "<Any>" }}${port.withPrefixIfNotEmpty(':')}$path${query.withPrefixIfNotEmpty('?')}"
 
     fun toProto(): InterceptCriteria = InterceptCriteria.newBuilder().apply {
       protocol = this@CriteriaData.protocol.toProto()
