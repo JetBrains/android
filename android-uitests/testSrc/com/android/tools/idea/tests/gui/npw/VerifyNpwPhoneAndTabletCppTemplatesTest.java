@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.adtui.device.FormFactor;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.CppStandardType;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,13 +48,13 @@ public class VerifyNpwPhoneAndTabletCppTemplatesTest {
 
   @Test
   public void  testGameActivityCppTemplate() {
-    boolean buildProjectStatus = NewProjectTestUtil.createCppProject(guiTest, CppStandardType.DEFAULT, selectMobileTab, expectedTemplates.get(0));
+    boolean buildProjectStatus = NewProjectTestUtil.createCppProject(guiTest, selectMobileTab, expectedTemplates.get(0));
     assertThat(buildProjectStatus).isTrue();
   }
 
   @Test
   public void  testNativeCppTemplate() {
-    boolean buildProjectStatus = NewProjectTestUtil.createCppProject(guiTest, CppStandardType.DEFAULT, selectMobileTab, expectedTemplates.get(1));
+    boolean buildProjectStatus = NewProjectTestUtil.createCppProject(guiTest, selectMobileTab, expectedTemplates.get(1));
     assertThat(buildProjectStatus).isTrue();
   }
 

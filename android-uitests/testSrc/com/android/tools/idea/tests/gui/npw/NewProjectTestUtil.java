@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
-import static com.android.tools.idea.wizard.template.Language.Java;
-import static com.google.common.truth.Truth.assertThat;
-
 import com.android.tools.adtui.device.FormFactor;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.CppStandardType;
+import com.android.tools.idea.tests.util.WizardUtils;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
 
@@ -31,53 +28,21 @@ public class NewProjectTestUtil {
   public static boolean createNewProject(GuiTestRule guiTest, FormFactor tabName, String templateName) {
     System.out.println("\nValidating template: " + templateName+ " in: " +tabName.toString());
 
-    IdeFrameFixture ideFrameFixture = guiTest
-      .welcomeFrame()
-      .createNewProject()
-      .getChooseAndroidProjectStep()
-      .selectTab(tabName)
-      .chooseActivity(templateName)
-      .wizard()
-      .clickNext()
-      .getConfigureNewAndroidProjectStep()
-      .wizard()
-      .clickFinishAndWaitForSyncToFinish(Wait.seconds(300));
-
+    WizardUtils.createNewProject(guiTest,tabName,templateName);
     GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(5)));
-
     guiTest.ideFrame().clearNotificationsPresentOnIdeFrame();
-
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-
     return (guiTest.ideFrame().invokeProjectMake(Wait.seconds(180)).isBuildSuccessful());
-
   }
 
-  public static boolean createCppProject(GuiTestRule guiTest, CppStandardType toolChain, FormFactor tabName, String templateName) {
+  public static boolean createCppProject(GuiTestRule guiTest, FormFactor tabName, String templateName) {
     System.out.println("\nValidating template: " + templateName+ " in: " +tabName.toString());
 
-    guiTest.welcomeFrame()
-      .createNewProject()
-      .getChooseAndroidProjectStep()
-      .selectTab(tabName)
-      .chooseActivity(templateName)
-      .wizard()
-      .clickNext()
-      .getConfigureNewAndroidProjectStep()
-      .setSourceLanguage(Java)
-      .enterPackageName("com.example.myapplication")
-      .wizard()
-      .clickNext()
-      .clickFinishAndWaitForSyncToFinish(Wait.seconds(300));
-
+    WizardUtils.createCppProject(guiTest,tabName,templateName);
     GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(5)));
     guiTest.waitForBackgroundTasks();
     guiTest.ideFrame().clearNotificationsPresentOnIdeFrame();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-
     return (guiTest.ideFrame().invokeProjectMake(Wait.seconds(180)).isBuildSuccessful());
-
-
   }
-
 }

@@ -44,7 +44,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class VerifyNpwPhoneAndTabletTemplatesTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(20, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   private List<String> expectedTemplates = List.of("No Activity", "Empty Activity", "Basic Views Activity",
                                                    "Bottom Navigation Views Activity", "Empty Views Activity", "Navigation Drawer Views Activity",
