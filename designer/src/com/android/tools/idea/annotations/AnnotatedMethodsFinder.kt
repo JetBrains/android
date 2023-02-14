@@ -148,7 +148,7 @@ fun findAnnotations(project: Project, vFile: VirtualFile, shortAnnotationName: S
     psiFile,
     CacheKeysManager.getKey(shortAnnotationName)) {
     val kotlinAnnotations: Sequence<PsiElement> = ReadAction.compute<Sequence<PsiElement>, Throwable> {
-      KotlinAnnotationsIndex.getInstance().get(shortAnnotationName, project, GlobalSearchScope.fileScope(project, vFile)).asSequence()
+      KotlinAnnotationsIndex[shortAnnotationName, project, GlobalSearchScope.fileScope(project, vFile)].asSequence()
     }
 
     val annotations = kotlinAnnotations
