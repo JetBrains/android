@@ -261,8 +261,10 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       .addComponent(button, 0, GroupLayout.DEFAULT_SIZE, scale.applyAsInt(250))
       .addGap(scale.applyAsInt(3));
 
-    Group verticalGroup = layout.createParallelGroup()
-      .addComponent(button);
+    Group verticalGroup = layout.createSequentialGroup()
+      .addGap(0, 0, Short.MAX_VALUE)
+      .addComponent(button)
+      .addGap(0, 0, Short.MAX_VALUE);
 
     layout.setHorizontalGroup(horizontalGroup);
     layout.setVerticalGroup(verticalGroup);
