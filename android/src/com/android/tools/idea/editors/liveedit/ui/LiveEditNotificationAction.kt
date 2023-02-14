@@ -89,7 +89,7 @@ internal fun defaultCreateInformationPopup(
     return@let InformationPopupImpl(
       null,
       status.description,
-      listOfNotNull(ToggleLiveEditStatusAction()),
+      emptyList(),
       listOfNotNull(
         link,
         AnActionLink("View Docs", BrowserHelpAction("Live Edit Docs", "https://developer.android.com/jetpack/compose/tooling/studio#live-edit")),
