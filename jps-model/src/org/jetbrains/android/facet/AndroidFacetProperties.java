@@ -17,13 +17,10 @@ package org.jetbrains.android.facet;
 
 import com.android.AndroidProjectTypes;
 import com.android.SdkConstants;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.XCollection;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import org.jetbrains.annotations.NonNls;
 
 /**
@@ -97,7 +94,7 @@ public class AndroidFacetProperties {
   public static final String PROGUARD_SYSTEM_CFG_FILE_URL =
     "file://" + SDK_HOME_MACRO + "/tools/proguard/proguard-android.txt";
   @XCollection(propertyElementName = "proGuardCfgFiles", elementName = "file", valueAttributeName = "")
-  public List<String> myProGuardCfgFiles = Lists.newArrayList(PROGUARD_SYSTEM_CFG_FILE_URL);
+  public List<String> myProGuardCfgFiles = Collections.singletonList(PROGUARD_SYSTEM_CFG_FILE_URL);
 
   public boolean USE_CUSTOM_MANIFEST_PACKAGE = false;
   public String CUSTOM_MANIFEST_PACKAGE = "";
