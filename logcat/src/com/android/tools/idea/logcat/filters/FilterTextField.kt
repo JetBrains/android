@@ -213,11 +213,9 @@ internal class FilterTextField(
       addFocusListener(object : FocusAdapter() {
         override fun focusGained(e: FocusEvent?) {
           val hintText = getFilterHintText()
-          if (hintText != null) {
-            GotItTooltip(GOT_IT_ID, hintText, logcatPresenter)
-              .withBrowserLink(LogcatBundle.message("logcat.filter.got.it.link.text"), logcatFilterHelpUrl)
-              .show(textField, BOTTOM_LEFT)
-          }
+          GotItTooltip(GOT_IT_ID, hintText, logcatPresenter)
+            .withBrowserLink(LogcatBundle.message("logcat.filter.got.it.link.text"), logcatFilterHelpUrl)
+            .show(textField, BOTTOM_LEFT)
         }
 
         override fun focusLost(e: FocusEvent?) {
@@ -725,9 +723,11 @@ internal class FilterTextField(
   }
 }
 
-private fun getFilterHintText(): String? {
-  val shortcut = KeymapManager.getInstance().activeKeymap.getShortcuts(IdeActions.ACTION_CODE_COMPLETION).firstOrNull() ?: return null
-  return LogcatBundle.message("logcat.filter.hint", KeymapUtil.getShortcutText(shortcut))
+private fun getFilterHintText(): String {
+  return when (val shortcut = KeymapManager.getInstance().activeKeymap.getShortcuts(IdeActions.ACTION_CODE_COMPLETION).firstOrNull()) {
+    null -> LogcatBundle.message("logcat.filter.hint.no.shortcut")
+    else -> LogcatBundle.message("logcat.filter.hint", KeymapUtil.getShortcutText(shortcut))
+  }
 }
 
 private operator fun Rectangle.plus(point: Point): Rectangle {
