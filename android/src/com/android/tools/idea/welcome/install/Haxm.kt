@@ -46,7 +46,7 @@ class Haxm(
 ) : Vm(InstallerInfo, installationIntention, isCustomInstall) {
   override val installUrl =
     if (SystemInfo.isWindows) HAXM_WINDOWS_INSTALL_URL
-    else throw WizardException(AccelerationErrorCode.CANNOT_INSTALL_ON_THIS_OS.problem)
+    else throw WizardException(AccelerationErrorCode.HAXM_REQUIRES_WINDOWS.problem)
   override val filePrefix = "haxm"
 
   private val emulatorMemoryMb: IntProperty = IntValueProperty(getRecommendedHaxmMemory(AvdManagerConnection.getMemorySize()))
@@ -86,7 +86,11 @@ class Haxm(
     override val vendor = "intel"
     override val installSolution = SolutionCode.INSTALL_HAXM
     override val reinstallSolution = SolutionCode.REINSTALL_HAXM
-    override val compatibleSystem = SystemInfo.isWindows && CpuVendor.isIntel
+    override val incompatibleSystemError = when {
+      !SystemInfo.isWindows -> AccelerationErrorCode.HAXM_REQUIRES_WINDOWS
+      !CpuVendor.isIntel -> AccelerationErrorCode.HAXM_REQUIRES_INTEL_CPU
+      else -> null
+    }
     override val componentPath = "Hardware_Accelerated_Execution_Manager"
   }
 }

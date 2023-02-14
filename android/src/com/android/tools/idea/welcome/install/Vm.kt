@@ -16,7 +16,6 @@
 package com.android.tools.idea.welcome.install
 
 import com.android.SdkConstants
-import com.android.repository.io.FileOpUtils
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution
@@ -303,8 +302,8 @@ abstract class VmInstallerInfo(internal val fullName: String) {
     get() = "Running $fullName installer"
 
   private var ourInitialCheck: AccelerationErrorCode? = null
-  /** Whether this component is compatible with this system (os/cpu architecture) */
-  protected abstract val compatibleSystem: Boolean
+  /** If set, an error code indicating that this component is incompatible with this system (os/cpu architecture) */
+  protected abstract val incompatibleSystemError: AccelerationErrorCode?
 
   /**
    * Check the status of the vm installation.
@@ -317,18 +316,12 @@ abstract class VmInstallerInfo(internal val fullName: String) {
    *  * On Windows (until we fix the headless installer to use an admin account)
    *  * If the CPU is not a supported processor
    *  * If there is not enough memory available
-   *  * If the CPU is not a supported processor
    *  * BIOS is not setup correctly
    *
    * For some of these error conditions the user may rectify the problem and install Gvm later.
    */
-  fun checkInstallation(): AccelerationErrorCode {
-    if (!compatibleSystem) {
-      return AccelerationErrorCode.CANNOT_INSTALL_ON_THIS_OS
-    }
-    val manager = AvdManagerConnection.getDefaultAvdManagerConnection()
-    return manager.checkAcceleration()
-  }
+  fun checkInstallation(): AccelerationErrorCode =
+    incompatibleSystemError ?: AvdManagerConnection.getDefaultAvdManagerConnection().checkAcceleration()
 
   /**
    * Return true if it is possible to install on the current machine without any other configuration changes.
@@ -338,7 +331,7 @@ abstract class VmInstallerInfo(internal val fullName: String) {
     return when (check) {
       AccelerationErrorCode.NO_EMULATOR_INSTALLED, AccelerationErrorCode.UNKNOWN_ERROR -> {
         // We don't know if we can install. Assume we can if this is a compatible system:
-        compatibleSystem
+        incompatibleSystemError == null
       }
       AccelerationErrorCode.NOT_ENOUGH_MEMORY -> false
       AccelerationErrorCode.ALREADY_INSTALLED -> true // just continue anyway
