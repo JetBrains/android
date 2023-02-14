@@ -17,7 +17,9 @@
 <idea-plugin>
   <id>androidx.compose.plugins.idea</id>
   <name>Jetpack Compose</name>
-  <description><![CDATA[The Jetpack Compose IDE plugin]]></description>
+  <description><![CDATA[
+  Adds support for building native UI on Android via the <a href="https://developer.android.com/jetpack/compose">Jetpack Compose</a> toolkit.
+]]></description>
   <vendor url="http://www.android.com">Android, JetBrains</vendor>
 
   <depends>org.jetbrains.android</depends>
