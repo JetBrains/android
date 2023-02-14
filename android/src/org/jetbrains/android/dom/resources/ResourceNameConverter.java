@@ -228,7 +228,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
     }
 
     @Override
-    public LocalQuickFix[] getQuickFixes() {
+    public @NotNull LocalQuickFix @Nullable [] getQuickFixes() {
       final String resourceName = getValue();
 
       if (resourceName.isEmpty()) {

@@ -572,9 +572,8 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
       return myIsPackage ? "Unresolved package ''{0}''" : "Unresolved class ''{0}''";
     }
 
-    @NotNull
     @Override
-    public LocalQuickFix[] getQuickFixes() {
+    public @NotNull LocalQuickFix @Nullable [] getQuickFixes() {
       if (myModule == null) {
         return LocalQuickFix.EMPTY_ARRAY;
       }
