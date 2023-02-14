@@ -750,7 +750,8 @@ public class RenderTask {
       // Attempt to read from PSI.
       PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(getContext().getModule().getIdeaModule().getProject(), layoutVirtualFile);
       if (psiFile instanceof XmlFile) {
-        LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
+        LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger,
+                                                                myContext.getModule().getResourceRepositoryManager());
         // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag
         parser.setProvideViewCookies(myProvideCookiesForIncludedViews);
         topParser = parser;
@@ -1247,7 +1248,10 @@ public class RenderTask {
    */
   @NotNull
   public CompletableFuture<Map<XmlTag, ViewInfo>> measureChildren(@NotNull XmlTag parent, @Nullable AttributeFilter filter) {
-    ILayoutPullParser modelParser = LayoutPsiPullParser.create(filter, parent, myLogger);
+    ILayoutPullParser modelParser = LayoutPsiPullParser.create(filter,
+                                                               parent,
+                                                               myLogger,
+                                                               myContext.getModule().getResourceRepositoryManager());
     Map<XmlTag, ViewInfo> map = new HashMap<>();
     return RenderService.getRenderAsyncActionExecutor().runAsyncAction(myPriority, () -> measure(modelParser))
       .thenComposeAsync(session -> {

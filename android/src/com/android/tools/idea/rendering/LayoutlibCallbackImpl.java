@@ -470,7 +470,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myParserCount++;
 
     if (myLayoutPullParserFactory != null) {
-      ILayoutPullParser parser = myLayoutPullParserFactory.create(xml, this);
+      ILayoutPullParser parser = myLayoutPullParserFactory.create(xml, this, myRenderModule.getResourceRepositoryManager());
       if (parser != null) {
         return parser;
       }
@@ -509,8 +509,12 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
             ResourceResolver resourceResolver = myRenderTask.getContext().getConfiguration().getResourceResolver();
             // Do not honor the merge tag for layouts that are inflated via this call. This is just being inflated as part of a different
             // layout so we already have a parent.
-            LayoutPsiPullParser parser =
-              LayoutPsiPullParser.create((XmlFile)psiFile, myLogger, false, resourceResolver, sampleDataCounter.getAndIncrement());
+            LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile,
+                                                                    myLogger,
+                                                                    false,
+                                                                    resourceResolver,
+                                                                    myRenderModule.getResourceRepositoryManager(),
+                                                                    sampleDataCounter.getAndIncrement());
             parser.setUseSrcCompat(myHasLegacyAppCompat || myHasAndroidXAppCompat);
             if (parentName.startsWith(FD_RES_LAYOUT)) {
               // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag.

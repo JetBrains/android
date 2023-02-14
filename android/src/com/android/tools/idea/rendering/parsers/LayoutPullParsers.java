@@ -176,6 +176,8 @@ public class LayoutPullParsers {
       throw new IllegalArgumentException("RenderTask always should always have PsiFile when it has ResourceFolderType");
     }
 
+    ResourceRepositoryManager manager = renderTask.getContext().getModule().getResourceRepositoryManager();
+
     switch (folderType) {
       case LAYOUT: {
         IRenderLogger logger = renderTask.getLogger();
@@ -183,7 +185,7 @@ public class LayoutPullParsers {
         ResourceResolver resourceResolver = renderTask.getContext().getConfiguration().getResourceResolver();
         boolean useToolsNamespace = renderTask.getShowWithToolsVisibilityAndPosition();
         return LayoutPsiPullParser
-          .create(file, logger, Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver, useToolsNamespace);
+          .create(file, logger, Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver, manager, useToolsNamespace);
       }
       case DRAWABLE:
       case MIPMAP:
@@ -207,7 +209,7 @@ public class LayoutPullParsers {
             IRenderLogger logger = renderTask.getLogger();
             HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
             ResourceResolver resourceResolver = renderTask.getContext().getConfiguration().getResourceResolver();
-            return LayoutPsiPullParser.create(file, logger,  Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver, true);
+            return LayoutPsiPullParser.create(file, logger,  Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver, manager, true);
           }
         }
         return null;
@@ -216,7 +218,6 @@ public class LayoutPullParsers {
         renderTask.setTransparentBackground();
         renderTask.setDecorations(false);
         renderTask.setRenderingMode(V_SCROLL);
-        ResourceRepositoryManager manager = renderTask.getContext().getModule().getResourceRepositoryManager();
         return createFontFamilyParser(file, (fontName) -> (new ProjectFonts(manager)).getFont(fontName));
       default:
         // Should have been prevented by isSupported(PsiFile)
