@@ -22,6 +22,8 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 @RunWith(JUnit4::class)
 class DeviceStatusManagerTest {
@@ -134,6 +136,28 @@ class DeviceStatusManagerTest {
     assertEquals(events[device2], LiveEditStatus.Disabled)
   }
 
+  @Test
+  fun testDisabled() {
+    val map = DeviceStatusManager()
+    assertTrue(map.isDisabled())
 
+    map.addDevice(device1, LiveEditStatus.UpToDate)
+    assertFalse(map.isDisabled())
+
+    map.update(device1) { if (it == LiveEditStatus.UpToDate) LiveEditStatus.Disabled else it }
+    assertTrue(map.isDisabled())
+
+    map.update(device1) { if (it == LiveEditStatus.Disabled) LiveEditStatus.UpToDate else it }
+    assertFalse(map.isDisabled())
+
+    map.addDevice(device2, LiveEditStatus.UnrecoverableError)
+    assertFalse(map.isDisabled())
+
+    map.update(device1) { if (it == LiveEditStatus.UpToDate) LiveEditStatus.Disabled else it }
+    assertFalse(map.isDisabled())
+
+    map.update(device2) { if (it.unrecoverable()) LiveEditStatus.Disabled else it }
+    assertTrue(map.isDisabled())
+  }
 
 }

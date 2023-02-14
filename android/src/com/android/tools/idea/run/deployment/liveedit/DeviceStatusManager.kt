@@ -47,7 +47,7 @@ class DeviceStatusManager {
   }
 
   fun isDisabled(): Boolean {
-    return deviceStatuses.values.any { it == LiveEditStatus.Disabled }
+    return deviceStatuses.values.all { it == LiveEditStatus.Disabled }
   }
 
   fun clear() {
