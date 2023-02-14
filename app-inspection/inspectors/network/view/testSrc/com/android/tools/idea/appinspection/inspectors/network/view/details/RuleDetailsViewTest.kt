@@ -149,7 +149,8 @@ class RuleDetailsViewTest {
         FakeUiComponentsProvider(),
         component,
         services,
-        scope
+        scope,
+        testRootDisposable
       )
     parentPanel.add(inspectorView.component)
     detailsPanel = inspectorView.detailsPanel

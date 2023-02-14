@@ -32,6 +32,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.fa
 import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
@@ -73,6 +74,8 @@ class ConnectionsViewTest {
   @get:Rule val edtRule = EdtRule()
 
   @get:Rule val projectRule = ProjectRule()
+
+  @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var model: NetworkInspectorModel
   private lateinit var inspectorView: NetworkInspectorView
@@ -118,7 +121,8 @@ class ConnectionsViewTest {
         FakeUiComponentsProvider(),
         component,
         services,
-        scope
+        scope,
+        disposableRule.disposable
       )
     parentPanel.add(inspectorView.component)
   }

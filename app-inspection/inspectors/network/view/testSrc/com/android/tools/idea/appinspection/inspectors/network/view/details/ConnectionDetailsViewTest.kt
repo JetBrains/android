@@ -161,7 +161,8 @@ class ConnectionDetailsViewTest {
         FakeUiComponentsProvider(),
         component,
         services,
-        scope
+        scope,
+        disposable
       )
     parentPanel.add(inspectorView.component)
     detailsView = inspectorView.detailsPanel.connectionDetailsView

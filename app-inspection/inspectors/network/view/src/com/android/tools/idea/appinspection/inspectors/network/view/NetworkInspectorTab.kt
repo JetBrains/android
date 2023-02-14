@@ -105,7 +105,15 @@ class NetworkInspectorTab(
 
           model = NetworkInspectorModel(services, dataSource, scope, startTimeStampNs = deviceTime)
           view =
-            NetworkInspectorView(project, model, componentsProvider, component, services, scope)
+            NetworkInspectorView(
+              project,
+              model,
+              componentsProvider,
+              component,
+              services,
+              scope,
+              this@NetworkInspectorTab
+            )
           stagePanel.add(view.component)
 
           actionsToolBar = JPanel(GridBagLayout())

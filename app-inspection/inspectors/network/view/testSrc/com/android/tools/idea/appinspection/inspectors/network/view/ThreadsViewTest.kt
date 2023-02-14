@@ -33,6 +33,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.cr
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
@@ -89,6 +90,8 @@ class ThreadsViewTest {
 
   @get:Rule val projectRule = ProjectRule()
 
+  @get:Rule val disposableRule = DisposableRule()
+
   private lateinit var model: NetworkInspectorModel
   private lateinit var inspectorView: NetworkInspectorView
   private lateinit var threadsView: ThreadsView
@@ -125,7 +128,8 @@ class ThreadsViewTest {
         FakeUiComponentsProvider(),
         component,
         services,
-        scope
+        scope,
+        disposableRule.disposable
       )
     parentPanel.add(inspectorView.component)
 

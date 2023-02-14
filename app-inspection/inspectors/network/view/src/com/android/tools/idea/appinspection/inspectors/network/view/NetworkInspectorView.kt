@@ -66,11 +66,17 @@ import com.android.tools.idea.appinspection.inspectors.network.view.constants.Y_
 import com.android.tools.idea.appinspection.inspectors.network.view.details.NetworkInspectorDetailsPanel
 import com.android.tools.idea.appinspection.inspectors.network.view.rules.RulesTableView
 import com.android.tools.idea.flags.StudioFlags
+import com.intellij.ide.ui.LafManagerListener
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.util.messages.MessageBusConnection
+import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtilities
 import icons.StudioIcons
@@ -101,9 +107,10 @@ class NetworkInspectorView(
   val model: NetworkInspectorModel,
   val componentsProvider: UiComponentsProvider,
   private val parentPane: TooltipLayeredPane,
-  private val inspectorServices: NetworkInspectorServices,
-  scope: CoroutineScope
-) : AspectObserver() {
+  inspectorServices: NetworkInspectorServices,
+  scope: CoroutineScope,
+  parentDisposable: Disposable
+) : AspectObserver(), Disposable {
 
   val component = JPanel(BorderLayout())
 
@@ -127,7 +134,10 @@ class NetworkInspectorView(
   private val mainPanel = JPanel(TabularLayout("*,Fit-", "Fit-,*"))
   private val tooltipBinder = ViewBinder<NetworkInspectorView, TooltipModel, TooltipView>()
 
+  private val messageBusConnection: MessageBusConnection
+
   init {
+    Disposer.register(parentDisposable, this)
     // Use FlowLayout instead of the usual BorderLayout since BorderLayout doesn't respect
     // min/preferred sizes.
     tooltipPanel.background = TOOLTIP_BACKGROUND
@@ -146,6 +156,11 @@ class NetworkInspectorView(
     val leftSplitter = JBSplitter(true, 0.25f)
     leftSplitter.divider.border = DEFAULT_HORIZONTAL_BORDERS
     leftSplitter.firstComponent = buildMonitorUi()
+    messageBusConnection = ApplicationManager.getApplication().messageBus.connect(parentDisposable)
+    messageBusConnection.subscribe(
+      LafManagerListener.TOPIC,
+      LafManagerListener { leftSplitter.firstComponent = buildMonitorUi() }
+    )
     val connectionsPanel = JPanel(CardLayout())
     val connectionsTab = CommonTabbedPane()
     val connectionScrollPane = JBScrollPane(connectionsView.component)
@@ -239,11 +254,12 @@ class NetworkInspectorView(
     component.add(splitter, BorderLayout.CENTER)
   }
 
-  private fun buildTimeAxis(axis: ResizingAxisComponentModel): JComponent {
+  private fun buildTimeAxis(axis: ResizingAxisComponentModel, font: JBFont): JComponent {
     val axisPanel = JPanel(BorderLayout())
     axisPanel.background = DEFAULT_BACKGROUND
     val timeAxis = AxisComponent(axis, AxisComponent.AxisOrientation.BOTTOM, true)
     timeAxis.setShowAxisLine(false)
+    timeAxis.font = font
     timeAxis.minimumSize = Dimension(0, TIME_AXIS_HEIGHT)
     timeAxis.preferredSize = Dimension(Int.MAX_VALUE, TIME_AXIS_HEIGHT)
     axisPanel.add(timeAxis, BorderLayout.CENTER)
@@ -309,6 +325,7 @@ class NetworkInspectorView(
   }
 
   private fun buildMonitorUi(): JPanel {
+    val font = JBUI.Fonts.label()
     val timeline = model.timeline
     val selection = RangeSelectionComponent(model.rangeSelectionModel)
     selection.setCursorSetter(AdtUiUtils::setTooltipCursor)
@@ -333,7 +350,7 @@ class NetworkInspectorView(
       ResizingAxisComponentModel.Builder(timeline.viewRange, TimeAxisFormatter.DEFAULT)
         .setGlobalRange(timeline.dataRange)
         .build()
-    val timeAxis = buildTimeAxis(viewAxis)
+    val timeAxis = buildTimeAxis(viewAxis, font)
     panel.add(timeAxis, TabularLayout.Constraint(2, 0))
     val monitorPanel = JBPanel<Nothing>(TabularLayout("*", "*"))
     monitorPanel.isOpaque = false
@@ -362,9 +379,14 @@ class NetworkInspectorView(
     leftAxis.setHideTickAtMin(true)
     leftAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
     leftAxis.setMargins(0, Y_AXIS_TOP_MARGIN)
+    leftAxis.font = font
     axisPanel.add(leftAxis, BorderLayout.WEST)
     val legends = model.legends
-    val legend = LegendComponent.Builder(legends).setRightPadding(LEGEND_RIGHT_PADDING).build()
+    val legend =
+      LegendComponent.Builder(legends)
+        .setRightPadding(LEGEND_RIGHT_PADDING)
+        .setTextSize(font.size)
+        .build()
     legend.configure(legends.rxLegend, LegendConfig(lineChart.getLineConfig(usage.rxSeries)))
     legend.configure(legends.txLegend, LegendConfig(lineChart.getLineConfig(usage.txSeries)))
     val legendPanel = JBPanel<Nothing>(BorderLayout())
@@ -413,4 +435,6 @@ class NetworkInspectorView(
         list[minIndex].value > 0
     } else false
   }
+
+  override fun dispose() = messageBusConnection.disconnect()
 }

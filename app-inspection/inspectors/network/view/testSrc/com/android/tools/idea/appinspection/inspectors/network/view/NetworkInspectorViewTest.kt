@@ -131,7 +131,8 @@ class NetworkInspectorViewTest {
         FakeUiComponentsProvider(),
         component,
         services,
-        scope
+        scope,
+        disposableRule.disposable
       )
     stagePanel.add(inspectorView.component)
     component.size = Dimension(1000, 800)
