@@ -979,6 +979,118 @@ class ComposeCompletionContributorTest {
       , true)
   }
 
+  /**
+   * Regression test for b/182564317. Autocomplete should not treat varargs as required.
+   */
+  @Test
+  fun testInsertHandlerWithVarArgs() {
+    myFixture.addFileToProject(
+      "src/com/example/ObjectWithComposables.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      // "Foobar" is a unique prefix that no other lookup elements will match.
+
+      @Composable
+      fun FoobarOne(vararg inputs: Any?, children: @Composable () -> Unit) {}
+      """.trimIndent()
+    )
+
+    // Given:
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        Foobar${caret}
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        FoobarOne() {
+
+        }
+      }
+      """.trimIndent()
+      , true)
+  }
+
+  /**
+   * Regression test for b/182564317. Autocomplete should not treat varargs as required.
+   */
+  @Test
+  fun testInsertHandlerWithVarArgsLambda() {
+    myFixture.addFileToProject(
+      "src/com/example/ObjectWithComposables.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      // "Foobar" is a unique prefix that no other lookup elements will match.
+
+      @Composable
+      fun FoobarOne(vararg children: @Composable () -> Unit) {}
+      """.trimIndent()
+    )
+
+    // Given:
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        Foobar${caret}
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        FoobarOne()
+      }
+      """.trimIndent()
+      , true)
+  }
+
   private val CodeInsightTestFixture.renderedLookupElements: Collection<String>
     get() {
       return runReadAction {
