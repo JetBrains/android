@@ -48,7 +48,10 @@ import javax.swing.JComponent
 import javax.swing.JTable
 import javax.swing.JTextPane
 import javax.swing.ListSelectionModel
+import javax.swing.event.ChangeEvent
 import javax.swing.event.ListSelectionEvent
+import javax.swing.event.TableColumnModelEvent
+import javax.swing.event.TableColumnModelListener
 import javax.swing.event.TableModelEvent
 import javax.swing.event.TableModelListener
 import javax.swing.table.AbstractTableModel
@@ -62,7 +65,7 @@ class ConnectionsView(private val model: NetworkInspectorModel, private val pare
    * Columns for each connection information
    */
   @VisibleForTesting
-  enum class Column(val widthPercentage: Double, val type: Class<*>) {
+  enum class Column(var widthPercentage: Double, val type: Class<*>) {
     NAME(0.25, String::class.java) {
       override fun getValueFrom(data: HttpData): Any {
         return getUrlName(data.url)
@@ -105,6 +108,7 @@ class ConnectionsView(private val model: NetworkInspectorModel, private val pare
 
   private val tableModel = ConnectionsTableModel(model.selectionRangeDataFetcher)
   private val connectionsTable: JTable
+  private var columnWidthsInitialized = false
   val component: JComponent
     get() = connectionsTable
 
@@ -159,9 +163,10 @@ class ConnectionsView(private val model: NetworkInspectorModel, private val pare
     connectionsTable.addComponentListener(object : ComponentAdapter() {
       override fun componentResized(e: ComponentEvent) {
         Column.values().forEachIndexed { i, column ->
-          connectionsTable.columnModel.getColumn(
-            connectionsTable.convertColumnIndexToView(i)).preferredWidth = (connectionsTable.width * column.widthPercentage).toInt()
+          getColumnForIndex(i).preferredWidth = (connectionsTable.width * column.widthPercentage).toInt()
         }
+        // Mark the column widths as initialized once we set their widths here
+        columnWidthsInitialized = true
       }
     })
     model.selectionRangeDataFetcher.addOnChangedListener {
@@ -171,7 +176,24 @@ class ConnectionsView(private val model: NetworkInspectorModel, private val pare
     }
     // Fix column positions in the header
     connectionsTable.tableHeader.reorderingAllowed = false
+    connectionsTable.columnModel.addColumnModelListener(object : TableColumnModelListener {
+      override fun columnAdded(e: TableColumnModelEvent) = Unit
+      override fun columnRemoved(e: TableColumnModelEvent) = Unit
+      override fun columnMoved(e: TableColumnModelEvent) = Unit
+      override fun columnSelectionChanged(e: ListSelectionEvent?) = Unit
+
+      override fun columnMarginChanged(e: ChangeEvent) {
+        // Let the columns be set to their original widths during init process before retaining their widths.
+        // Not doing so leads to each column having equal widths.
+        if (!columnWidthsInitialized) return
+        Column.values().forEachIndexed { index, column ->
+          column.widthPercentage = getColumnForIndex(index).width.toDouble() / connectionsTable.width
+        }
+      }
+    })
   }
+
+  private fun getColumnForIndex(index: Int) = connectionsTable.columnModel.getColumn(connectionsTable.convertColumnIndexToView(index))
 
   private fun createTooltip() {
     val textPane = JTextPane()
