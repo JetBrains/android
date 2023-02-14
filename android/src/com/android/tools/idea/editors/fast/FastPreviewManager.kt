@@ -241,14 +241,13 @@ private const val FAST_PREVIEW_NOTIFICATION_GROUP_ID = "Fast Preview Notificatio
  *  be used. This is useful when locating the specific kotlin compiler daemon.
  * @param maxCachedRequests Maximum number of cached requests to store by this manager. If 0, caching is disabled.
  */
-@Service
+@Service(Service.Level.PROJECT)
 class FastPreviewManager private constructor(
   private val project: Project,
   alternativeDaemonFactory: ((String, Project, Logger, CoroutineScope) -> CompilerDaemonClient)? = null,
   private val moduleRuntimeVersionLocator: (Module) -> Version = ::defaultRuntimeVersionLocator,
   maxCachedRequests: Int = DEFAULT_MAX_CACHED_REQUESTS) : Disposable {
 
-  @Suppress("unused") // Needed for IntelliJ service constructor call
   constructor(project: Project) : this(project, null)
 
   private val log = Logger.getInstance(FastPreviewManager::class.java)
@@ -347,7 +346,6 @@ class FastPreviewManager private constructor(
    *
    * The given [FastPreviewTrackerManager.Request] is used to track the metrics of this request.
    */
-  @Suppress("BlockingMethodInNonBlockingContext") // Runs in the IO context
   suspend fun compileRequest(files: Collection<PsiFile>,
                              module: Module,
                              indicator: ProgressIndicator = EmptyProgressIndicator(),
@@ -472,7 +470,6 @@ class FastPreviewManager private constructor(
   /**
    * Sends a compilation request for the a single [file]. See [FastPreviewManager.compileRequest].
    */
-  @Suppress("BlockingMethodInNonBlockingContext") // Runs in the IO context
   suspend fun compileRequest(file: PsiFile,
                              module: Module,
                              indicator: ProgressIndicator = EmptyProgressIndicator(),
