@@ -19,24 +19,26 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.adtui.device.FormFactor;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ChooseAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-import javax.swing.JButton;
-import javax.swing.JPopupMenu;
-import org.fest.swing.timing.Pause;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+/**
+ * Test following scenarios for NPW => Automotive tab
+ * 1. Expected templates are displayed
+ * 2. Correct default template is present
+ * 3. For all expected templates
+ * 3.a. Verify Gradle sync is successful
+ * 3.b. Build -> Make Project is successful
+ */
 
 @RunWith(GuiTestRemoteRunner.class)
 public class VerifyNpwAutomotiveTemplatesTest {
@@ -47,14 +49,15 @@ public class VerifyNpwAutomotiveTemplatesTest {
 
   private List<String> failedBuildTemplates = new ArrayList<String>();
   private List<String> dependencyMissingTemplates = new ArrayList<String>();
-  FormFactor selectAutomotiveTab = FormFactor.AUTOMOTIVE;
+  private List<String> failedGradleSyncTemplates = new ArrayList<String>();
+  FormFactor automotiveTab = FormFactor.AUTOMOTIVE;
 
   @Test
   public void testAvailableTemplates() {
     ChooseAndroidProjectStepFixture androidProjectStep = guiTest.welcomeFrame()
       .createNewProject()
       .getChooseAndroidProjectStep()
-      .selectTab(selectAutomotiveTab);
+      .selectTab(automotiveTab);
 
     List<String> observedTemplates = androidProjectStep.listActivities(); //Get list of templates
     androidProjectStep.clickCancel(); //Close New Project dialog
@@ -66,70 +69,38 @@ public class VerifyNpwAutomotiveTemplatesTest {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
       .createNewProject()
       .getChooseAndroidProjectStep()
-      .selectTab(selectAutomotiveTab)
+      .selectTab(automotiveTab)
       .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()
       .wizard();
 
     String actualActivityName = newProjectWizard.getActivityName(defaultActivity);
-    newProjectWizard.clickCancel(); //Close New Project dialog
     System.out.println("\nObserved default activity " + actualActivityName);
     assertThat(actualActivityName).contains(defaultActivity); //Verify expected default template
+
+    newProjectWizard.clickFinishAndWaitForSyncToFinish(Wait.seconds(420));
+
+    GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(5)));
+
+    guiTest.ideFrame().clearNotificationsPresentOnIdeFrame();
+
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
+    assertThat(guiTest.ideFrame().invokeProjectMake(Wait.seconds(180)).isBuildSuccessful()).isTrue();
+  }
+
+
+  @Test
+  public void  testNoActivityTemplate() {
+    boolean buildProjectStatus = NewProjectTestUtil.createNewProject(guiTest, automotiveTab, expectedTemplates.get(0));
+    assertThat(buildProjectStatus).isTrue();
   }
 
   @Test
-  public void testTemplateBuild() {
-    for (String templateName : expectedTemplates) {
-        System.out.println("\nValidating Build > Make Project for: " + templateName);
-
-        NewProjectWizardFixture newProjectWizard = guiTest
-          .welcomeFrame()
-          .createNewProject()
-          .getChooseAndroidProjectStep()
-          .selectTab(selectAutomotiveTab)
-          .chooseActivity(templateName)
-          .wizard()
-          .clickNext()
-          .getConfigureNewAndroidProjectStep()
-          .wizard();
-
-        if (templateName.toLowerCase(Locale.ROOT).contains("c++")) {
-          newProjectWizard.clickNext();
-        }
-        newProjectWizard.clickFinishAndWaitForSyncToFinish(Wait.seconds(180));
-        guiTest.waitForAllBackgroundTasksToBeCompleted();
-
-        Collection<JPopupMenu> popups;
-        int counter = 100; // Wait approx 1 second for a popup to appear on hover/click.
-        do {
-          popups = guiTest.robot().finder().findAll(Matchers.byType(JPopupMenu.class).andIsShowing());
-          if (popups.size() > 0 ) {
-            JButton okButton = guiTest.robot().finder().find(Matchers.byText(JButton.class, "OK"));
-            guiTest.robot().click(okButton);
-            dependencyMissingTemplates.add(templateName);
-          }
-          Pause.pause();
-        }
-        while (counter-- > 0);
-
-        guiTest.waitForAllBackgroundTasksToBeCompleted();
-
-        boolean buildSuccessful = guiTest.ideFrame().invokeProjectMake(Wait.seconds(120)).isBuildSuccessful();
-
-        if (!buildSuccessful) {
-          failedBuildTemplates.add(templateName);
-        }
-        guiTest.ideFrame().closeProject();
-    }
-
-    if(!dependencyMissingTemplates.isEmpty()){
-      System.out.println("\n*** Dependency is missing for: " + Arrays.toString(dependencyMissingTemplates.toArray()) + " ***");
-    }
-
-    if(!failedBuildTemplates.isEmpty()){
-      System.out.println("\n*** Make Project failed for: " + Arrays.toString(failedBuildTemplates.toArray()) + " ***");
-    }
-    assertThat(failedBuildTemplates.isEmpty()).isTrue();
+  public void  testMessagingServiceTemplate() {
+    boolean buildProjectStatus = NewProjectTestUtil.createNewProject(guiTest, automotiveTab, expectedTemplates.get(2));
+    assertThat(buildProjectStatus).isTrue();
   }
+
 }

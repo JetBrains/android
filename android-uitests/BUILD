@@ -2011,7 +2011,38 @@ java_test(
 )
 
 java_test(
+    name = "VerifyNpwPhoneAndTabletCppTemplatesTest",
+    size = "large",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+    ],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.VerifyNpwPhoneAndTabletCppTemplatesTest"],
+    tags = COMMON_TAGS + [
+        "qa_fast",
+        "no_windows",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "VerifyNpwPhoneAndTabletNavigationTemplatesTest",
+    size = "large",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+    ],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.VerifyNpwPhoneAndTabletNavigationTemplatesTest"],
+    tags = COMMON_TAGS + [
+        "qa_fast",
+        "no_windows",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
     name = "VerifyNpwWearOSTemplatesTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ],
@@ -2026,6 +2057,7 @@ java_test(
 
 java_test(
     name = "VerifyNpwAutomotiveTemplatesTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
@@ -2045,6 +2077,7 @@ java_test(
 
 java_test(
     name = "VerifyNpwAndroidTVTemplatesTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ],
@@ -2129,6 +2162,7 @@ java_test(
 
 java_test(
     name = "JavaLibsDepTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ],
@@ -2145,6 +2179,7 @@ java_test(
 
 java_test(
     name = "AndroidLibsDepTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ],
@@ -2227,6 +2262,7 @@ java_test(
 
 java_test(
     name = "ChangeLibModSettingsTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ] + glob([
@@ -2536,6 +2572,7 @@ java_test(
 
 java_test(
     name = "ConvertFrom9PatchTest",
+    size = "large",
     data = COMMON_DATA + glob([
         "testData/ConvertFrom9Patch/**",
     ]),
