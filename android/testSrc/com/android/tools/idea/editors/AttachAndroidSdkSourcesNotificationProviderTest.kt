@@ -130,7 +130,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
   fun createNotificationPanel_panelHasCorrectLabel() {
     val panel = invokeCreateNotificationPanel(androidSdkClassWithoutSources)
     assertThat(panel).isNotNull()
-    assertThat(panel!!.text).isEqualTo("Android SDK sources for API level 33 not found.")
+    assertThat(panel!!.text).isEqualTo("Android SDK sources for API 33 not found.")
   }
 
   @Test
