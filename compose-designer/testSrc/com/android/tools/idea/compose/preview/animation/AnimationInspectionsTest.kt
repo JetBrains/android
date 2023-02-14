@@ -42,6 +42,9 @@ private const val REMEMBER_INFINITE_TRANSITION_LABEL_NOT_SET_MESSAGE =
 private const val ANIMATE_AS_STATE_LABEL_NOT_SET_MESSAGE =
   "The label parameter should be set so this animate*AsState can be better inspected in the Animation Preview."
 
+private const val CROSSFADE_LABEL_NOT_SET_MESSAGE =
+  "The label parameter should be set so this Crossfade can be better inspected in the Animation Preview."
+
 private const val TRANSITION_PROPERTY_LABEL_NOT_SET_MESSAGE =
   "The label parameter should be set so this transition property can be better inspected in the Animation Preview. " +
     "Otherwise, a default name will be used to represent the property."
@@ -107,11 +110,21 @@ class AnimationInspectionsTest {
       fun animateFloatAsState(targetValue: Float, label: String = "FloatAnimation") {}
       """.trimIndent()
     )
+    fixture.addFileToProjectAndInvalidate(
+      "src/androidx/compose/animation/Crossfade.kt",
+      // language=kotlin
+      """
+      package androidx.compose.animation
+
+      fun <T> Crossfade(targetState: T, label: String = "Crossfade") {}
+      """.trimIndent()
+    )
     fixture.enableInspections(UpdateTransitionLabelInspection() as InspectionProfileEntry)
     fixture.enableInspections(TransitionPropertiesLabelInspection() as InspectionProfileEntry)
     fixture.enableInspections(AnimatedContentLabelInspection() as InspectionProfileEntry)
     fixture.enableInspections(InfiniteTransitionLabelInspection() as InspectionProfileEntry)
     fixture.enableInspections(AnimateAsStateLabelInspection() as InspectionProfileEntry)
+    fixture.enableInspections(CrossfadeLabelInspection() as InspectionProfileEntry)
   }
 
   // region AnimatedContent
@@ -403,6 +416,115 @@ class AnimationInspectionsTest {
 
       fun MyComposable() {
         animateFloatAsState(targetValue = 10f, label = "")
+      }
+    """.trimIndent()
+
+    val quickFix =
+      (fixture.getAllQuickFixes().single() as QuickFixWrapper).fix as LocalQuickFixOnPsiElement
+    assertEquals("Add label parameter", quickFix.text)
+    assertEquals("Compose preview", quickFix.familyName)
+
+    ApplicationManager.getApplication().invokeAndWait {
+      CommandProcessor.getInstance()
+        .executeCommand(
+          fixture.project,
+          { runWriteAction { quickFix.applyFix() } },
+          "Add Label Argument",
+          null
+        )
+    }
+
+    fixture.checkResult(fileContentAfterFix)
+  }
+  // endregion
+
+  // region Crossfade
+  @Test
+  fun crossfadeLabelNotSet() {
+    // language=kotlin
+    val fileContent =
+      """
+      import androidx.compose.animation.Crossfade
+
+      fun MyComposable() {
+        Crossfade(targetState = 10)
+      }
+    """.trimIndent()
+
+    fixture.configureByText("Test.kt", fileContent)
+    assertEquals(
+      CROSSFADE_LABEL_NOT_SET_MESSAGE,
+      fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().description
+    )
+  }
+
+  @Test
+  fun crossfadeLabelSetExplicitly() {
+    // language=kotlin
+    val fileContent =
+      """
+      import androidx.compose.animation.Crossfade
+
+      fun MyComposable() {
+        Crossfade(targetState = 10, label = "Label")
+      }
+    """.trimIndent()
+
+    fixture.configureByText("Test.kt", fileContent)
+    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+  }
+
+  @Test
+  fun crossfadeLabelSetImplicitly() {
+    // language=kotlin
+    val fileContent =
+      """
+      import androidx.compose.animation.Crossfade
+
+      fun MyComposable() {
+        Crossfade(targetState = 10, "Label")
+      }
+    """.trimIndent()
+
+    fixture.configureByText("Test.kt", fileContent)
+    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+  }
+
+  @Test
+  fun crossfadeSetOtherParameterImplicitly() {
+    // language=kotlin
+    val fileContent =
+      """
+      import androidx.compose.animation.Crossfade
+
+      fun MyComposable() {
+        Crossfade(targetState = 10, "Label")
+      }
+    """.trimIndent()
+
+    fixture.configureByText("Test.kt", fileContent)
+    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+  }
+  @Test
+  fun testQuickFixCrossfade() {
+    // language=kotlin
+    val originalFileContent =
+      """
+     import androidx.compose.animation.Crossfade
+
+     fun MyComposable() {
+       Crossfade(targetState = 10)
+     }
+    """.trimIndent()
+    fixture.configureByText("Test.kt", originalFileContent)
+
+    // language=kotlin
+    val fileContentAfterFix =
+      """
+      import androidx.compose.animation.Crossfade
+
+      fun MyComposable() {
+        Crossfade(targetState = 10, label = "")
       }
     """.trimIndent()
 

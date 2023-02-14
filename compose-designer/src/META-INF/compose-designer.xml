@@ -118,6 +118,14 @@
                      key="inspection.animate.as.state.no.label.parameter.set.name"
                      level="WARNING"/>
 
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.CrossfadeLabelInspection"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.crossfade.no.label.parameter.set.name"
+                     level="WARNING"/>
+
     <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.TransitionPropertiesLabelInspection"
                      language="kotlin"
                      enabledByDefault="true"

@@ -44,6 +44,7 @@ private const val ANIMATE_AS_STATE_FQN_PREFIX = "$COMPOSE_ANIMATION_PACKAGE_PREF
 private const val ANIMATE_AS_STATE_FQN_SUFFIX = "AsState"
 private const val REMEMBER_INFINITE_TRANSITION_FQN =
   "$COMPOSE_ANIMATION_PACKAGE_PREFIX.core.rememberInfiniteTransition"
+private const val CROSSFADE_FQN = "$COMPOSE_ANIMATION_PACKAGE_PREFIX.Crossfade"
 private const val TRANSITION_FQN = "$COMPOSE_ANIMATION_PACKAGE_PREFIX.core.Transition"
 private const val ANIMATE_PREFIX = "animate" // e.g. animateColor, animateFloat, animateValue
 
@@ -99,6 +100,19 @@ class InfiniteTransitionLabelInspection : FunctionLabelInspection() {
 
   override val animationType: String
     get() = message("inspection.animation.type.remember.infinite.transition")
+}
+
+/**
+ * Inspection to verify that the `label` parameter is set for `Crossfade` calls. This parameter is
+ * used by the animation tooling to identify the transition when inspecting animations in the
+ * Animation Preview.
+ */
+class CrossfadeLabelInspection : FunctionLabelInspection() {
+
+  override val fqNameCheck: (String) -> Boolean = { it == CROSSFADE_FQN }
+
+  override val animationType: String
+    get() = message("inspection.animation.type.crossfade")
 }
 
 /**
