@@ -19,6 +19,7 @@ import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
+import com.android.tools.perflogger.WindowDeviationAnalyzer
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.runReadAction
@@ -67,13 +68,17 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
       // Measures the memory usage of the render operation end to end.
       MemoryUseMeasurement(Metric("default_template_memory_use")),
       // Measures just the inflate time.
-      InflateTimeMeasurement(Metric("default_template_inflate_time")),
+      InflateTimeMeasurement(Metric("default_template_inflate_time"))
+        .withAnalyzer(WindowDeviationAnalyzer.Builder().build()),
       // Measures just the render time.
-      RenderTimeMeasurement(Metric("default_template_render_time")),
+      RenderTimeMeasurement(Metric("default_template_render_time"))
+        .withAnalyzer(WindowDeviationAnalyzer.Builder().build()),
       // Measures the class loading time.
-      ClassLoadTimeMeasurment(Metric("default_class_total_load_time")),
+      ClassLoadTimeMeasurment(Metric("default_class_total_load_time"))
+        .withAnalyzer(WindowDeviationAnalyzer.Builder().build()),
       // Measures the class loading time.
-      ClassRewriteTimeMeasurement(Metric("default_class_total_rewrite_time")),
+      ClassRewriteTimeMeasurement(Metric("default_class_total_rewrite_time"))
+        .withAnalyzer(WindowDeviationAnalyzer.Builder().build()),
       // Measures the number of classes loaded.
       ClassLoadCountMeasurement(Metric("default_class_load_count")),
       // Measures the class avg loading time.
@@ -91,13 +96,17 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
       // Measures the memory usage of the render operation end to end.
       MemoryUseMeasurement(Metric("complex_template_memory_use")),
       // Measures just the inflate time.
-      InflateTimeMeasurement(Metric("complex_template_inflate_time")),
+      InflateTimeMeasurement(Metric("complex_template_inflate_time"))
+        .withAnalyzer(WindowDeviationAnalyzer.Builder().build()),
       // Measures just the render time.
-      RenderTimeMeasurement(Metric("complex_template_render_time")),
+      RenderTimeMeasurement(Metric("complex_template_render_time"))
+        .withAnalyzer(WindowDeviationAnalyzer.Builder().build()),
       // Measures the class loading time.
-      ClassLoadTimeMeasurment(Metric("complex_template_class_total_load_time")),
+      ClassLoadTimeMeasurment(Metric("complex_template_class_total_load_time"))
+        .withAnalyzer(WindowDeviationAnalyzer.Builder().build()),
       // Measures the class loading time.
-      ClassRewriteTimeMeasurement(Metric("complex_template_class_total_rewrite_time")),
+      ClassRewriteTimeMeasurement(Metric("complex_template_class_total_rewrite_time"))
+        .withAnalyzer(WindowDeviationAnalyzer.Builder().build()),
       // Measures the number of classes loaded.
       ClassLoadCountMeasurement(Metric("complex_template_class_load_count")),
       // Measures the class avg loading time.
