@@ -97,6 +97,10 @@
               class="com.android.tools.idea.logcat.actions.RestartLogcatAction"
               text="Restart Logcat"
               description="Restart Logcat monitoring"/>
+      <action id="Logcat.ToggleSoftWrap"
+              class="com.android.tools.idea.logcat.actions.LogcatToggleUseSoftWrapsToolbarAction"
+              text="Soft-Wrap"
+              description="Toggle soft wrap of Logcat messages"/>
     </group>
   </actions>
 

@@ -132,6 +132,8 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Cursor
 import java.awt.Point
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
@@ -205,6 +207,9 @@ internal class LogcatMainPanel @TestOnly constructor(
   )
 
   private var isLogcatPaused: Boolean = false
+
+  private var isSoftWrapEnabled: Boolean = false
+
   private var caretLine = 0
 
   @VisibleForTesting
@@ -259,13 +264,13 @@ internal class LogcatMainPanel @TestOnly constructor(
 
   @VisibleForTesting
   internal var logcatServiceJob: Job? = null
+  private var editorWidth = 0
 
   init {
     editor.apply {
       installPopupHandler(object : ContextMenuPopupHandler() {
         override fun getActionGroup(event: EditorMouseEvent): ActionGroup = getPopupActionGroup(splitterPopupActionGroup.getChildren(null))
       })
-      settings.isUseSoftWraps = state?.isSoftWrap ?: false
       if (StudioFlags.LOGCAT_CLICK_TO_ADD_FILTER.get()) {
         addFilterHintHandlers()
       }
@@ -280,6 +285,20 @@ internal class LogcatMainPanel @TestOnly constructor(
       scrollPane.border = Borders.customLine(JBColor.border(), 1, 1, 0, 0)
       UserInputHandlers(this).install()
     }
+
+    isSoftWrapEnabled = state?.isSoftWrap ?: false
+    addComponentListener(object : ComponentAdapter() {
+      override fun componentResized(e: ComponentEvent) {
+        val width = editor.scrollingModel.visibleArea.width
+        val column = editor.xyToLogicalPosition(Point(width, 0)).column
+        if (editorWidth != column) {
+          editorWidth = column
+          if (messageBacklog.get().messages.isNotEmpty()) {
+            reloadMessages()
+          }
+        }
+      }
+    })
 
     toolbar.targetComponent = this
 
@@ -451,7 +470,7 @@ internal class LogcatMainPanel @TestOnly constructor(
         headerPanel.getSelectedDevice()?.copy(isOnline = false),
         if (formattingOptionsStyle == null) Custom(formattingOptions) else Preset(formattingOptionsStyle),
         headerPanel.filter,
-        editor.settings.isUseSoftWraps))
+        isSoftWrapEnabled))
   }
 
   override suspend fun appendMessages(textAccumulator: TextAccumulator) = withContext(uiThread(ModalityState.any())) {
@@ -551,7 +570,7 @@ internal class LogcatMainPanel @TestOnly constructor(
       add(LogcatScrollToTheEndToolbarAction(editor))
       add(PreviousOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
       add(NextOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
-      add(LogcatToggleUseSoftWrapsToolbarAction(editor))
+      add(LogcatToggleUseSoftWrapsToolbarAction())
       add(Separator.create())
       add(LogcatFormatAction(project, this@LogcatMainPanel))
       add(Separator.create())
@@ -576,6 +595,14 @@ internal class LogcatMainPanel @TestOnly constructor(
   @UiThread
   override fun resumeLogcat() {
     restartLogcat()
+  }
+
+
+  override fun isSoftWrapEnabled(): Boolean  = isSoftWrapEnabled
+
+  override fun setSoftWrapEnabled(state: Boolean) {
+    isSoftWrapEnabled = state
+    reloadMessages()
   }
 
   override fun clearMessageView() {
@@ -670,7 +697,7 @@ internal class LogcatMainPanel @TestOnly constructor(
   }
 
   private fun formatMessages(textAccumulator: TextAccumulator, messages: List<LogcatMessage>) {
-    messageFormatter.formatMessages(formattingOptions, textAccumulator, messages)
+    messageFormatter.formatMessages(formattingOptions, textAccumulator, messages, if (isSoftWrapEnabled) editorWidth else null)
   }
 
   private fun MouseEvent.getFilterHint(): FilterHint? {

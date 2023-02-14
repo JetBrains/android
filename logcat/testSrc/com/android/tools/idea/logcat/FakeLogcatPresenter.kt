@@ -126,5 +126,13 @@ internal class FakeLogcatPresenter : LogcatPresenter {
     lineBatches.add(listOf(message))
   }
 
+  override fun isSoftWrapEnabled(): Boolean {
+    TODO("Not yet implemented")
+  }
+
+  override fun setSoftWrapEnabled(state: Boolean) {
+    TODO("Not yet implemented")
+  }
+
   override fun dispose() {}
 }

@@ -480,6 +480,50 @@ class MessageFormatterTest {
 
     assertThat(textAccumulator.text).isEqualTo("message\n")
   }
+
+  @Test
+  fun formatMessages_softWrap() {
+    val textAccumulator = TextAccumulator()
+
+    messageFormatter.formatMessages(
+      formattingOptions,
+      textAccumulator,
+      listOf(
+        LogcatMessage(
+          LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP),
+          "A relatively long message   that\twe can \t  use to test soft wrap"),
+      ),
+      softWrapWidth = formattingOptions.getHeaderWidth() + 20)
+
+    assertThat(textAccumulator.text).isEqualTo("""
+      1970-01-01 04:00:01.000     1-2     Tag1                    com.example.app1                     W  A relatively long
+                                                                                                          message   that	we
+                                                                                                          can 	  use to test
+                                                                                                          soft wrap
+
+    """.trimIndent())
+  }
+
+  @Test
+  fun formatMessages_softWrap_widthTooSmall() {
+    val textAccumulator = TextAccumulator()
+
+    messageFormatter.formatMessages(
+      formattingOptions,
+      textAccumulator,
+      listOf(
+        LogcatMessage(
+          LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP),
+          "A relatively long message that we can use to test soft wrap"),
+      ),
+      softWrapWidth = formattingOptions.getHeaderWidth() - 1)
+
+    assertThat(textAccumulator.text).isEqualTo("""
+      1970-01-01 04:00:01.000     1-2     Tag1                    com.example.app1                     W  A relatively long message that we can use to test soft wrap
+
+    """.trimIndent())
+  }
+
 }
 
 private fun <T> TextAccumulator.Range<T>.getText(text: String) = text.substring(start, end)
