@@ -158,6 +158,10 @@ class AndroidProcessMonitorManager(
     myMonitors.values.forEach { it.detachAndClose() }
     close()
   }
+
+  fun start() {
+    myMonitors.values.forEach { it.start() }
+  }
 }
 
 /**

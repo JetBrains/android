@@ -54,8 +54,8 @@ class AndroidProcessHandlerIntegrationTest {
 
     val handler = AndroidProcessHandler(projectRule.project, FakeAdbTestRule.CLIENT_PACKAGE_NAME, { callbackCalled.countDown() })
 
-    handler.startNotify()
     handler.addTargetDevice(device)
+    handler.startNotify()
 
     handler.destroyProcess()
 
@@ -80,8 +80,8 @@ class AndroidProcessHandlerIntegrationTest {
     }
     val handler = AndroidProcessHandler(projectRule.project, FakeAdbTestRule.CLIENT_PACKAGE_NAME)
 
-    handler.startNotify()
     handler.addTargetDevice(device)
+    handler.startNotify()
 
     handler.destroyProcess()
 

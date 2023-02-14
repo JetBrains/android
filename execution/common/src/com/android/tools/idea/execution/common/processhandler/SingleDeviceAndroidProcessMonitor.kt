@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.execution.common.processhandler.SingleDeviceAndroidProcessMonitor.Companion.APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS
 import com.android.tools.idea.execution.common.processhandler.SingleDeviceAndroidProcessMonitor.Companion.POLLING_INTERVAL_MILLIS
+import com.android.tools.idea.execution.common.processhandler.SingleDeviceAndroidProcessMonitorState.INIT
 import com.android.tools.idea.execution.common.processhandler.SingleDeviceAndroidProcessMonitorState.PROCESS_DETACHED
 import com.android.tools.idea.execution.common.processhandler.SingleDeviceAndroidProcessMonitorState.PROCESS_FINISHED
 import com.android.tools.idea.execution.common.processhandler.SingleDeviceAndroidProcessMonitorState.PROCESS_IS_RUNNING
@@ -32,6 +33,7 @@ import java.io.Closeable
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
 import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import kotlin.properties.Delegates
 
@@ -62,7 +64,7 @@ class SingleDeviceAndroidProcessMonitor(
   private val deploymentApplicationService: DeploymentApplicationService,
   private val textEmitter: TextEmitter,
   private val finishAndroidProcessCallback: (IDevice) -> Unit,
-  stateUpdaterExecutor: ScheduledExecutorService = AppExecutorUtil.getAppScheduledExecutorService(),
+  private val stateUpdaterExecutor: ScheduledExecutorService = AppExecutorUtil.getAppScheduledExecutorService(),
   listenerExecutor: Executor = AppExecutorUtil.getAppExecutorService()
 ) : Closeable {
 
@@ -85,7 +87,7 @@ class SingleDeviceAndroidProcessMonitor(
    * You should acquire synchronization lock to access to this property.
    */
   @delegate:GuardedBy("this")
-  private var myState: SingleDeviceAndroidProcessMonitorState by Delegates.observable(WAITING_FOR_PROCESS) { _, _, newValue ->
+  private var myState: SingleDeviceAndroidProcessMonitorState by Delegates.observable(INIT) { _, _, newValue ->
     // This callback method can be invoked inside synchronization block. To avoid possible deadlock,
     // invoke the listener from different thread.
     listenerExecutor.execute {
@@ -95,11 +97,18 @@ class SingleDeviceAndroidProcessMonitor(
 
   private val myMonitoringPids = ConcurrentHashMap<Int, Unit>()
 
-  private val myStateUpdaterScheduledFuture = stateUpdaterExecutor.scheduleWithFixedDelay(
-    this::updateState, 0, POLLING_INTERVAL_MILLIS, TimeUnit.MILLISECONDS)
+  private var myStateUpdaterScheduledFuture: ScheduledFuture<*>? = null
 
-  private val myTimeoutScheduledFuture = stateUpdaterExecutor.schedule(
-    this::timeout, APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)
+  private var myTimeoutScheduledFuture: ScheduledFuture<*>? = null
+
+  fun start() {
+    assert(myState == INIT)
+    myState = WAITING_FOR_PROCESS
+    myStateUpdaterScheduledFuture = stateUpdaterExecutor.scheduleWithFixedDelay(
+      this::updateState, 0, POLLING_INTERVAL_MILLIS, TimeUnit.MILLISECONDS)
+    myTimeoutScheduledFuture = stateUpdaterExecutor.schedule(
+      this::timeout, APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)
+  }
 
   /**
    * Updates the internal state to sync with the process' state on the target device.
@@ -109,7 +118,9 @@ class SingleDeviceAndroidProcessMonitor(
     synchronized(this) {
       if (myState.isTerminalState()) {
         // Stop polling once we reach at the terminal state.
-        myStateUpdaterScheduledFuture.cancel(false)
+        myStateUpdaterScheduledFuture?.cancel(false)
+        myStateUpdaterScheduledFuture = null
+        myTimeoutScheduledFuture = null
         return
       }
     }
@@ -193,13 +204,14 @@ class SingleDeviceAndroidProcessMonitor(
         targetDevice.forceStop(targetApplicationId)
         myState = PROCESS_FINISHED
       }
+
       PROCESS_DETACHED, PROCESS_FINISHED, PROCESS_NOT_FOUND -> {
         /* Nothing to do here */
       }
     }
 
-    myStateUpdaterScheduledFuture.cancel(false)
-    myTimeoutScheduledFuture.cancel(false)
+    myStateUpdaterScheduledFuture?.cancel(false)
+    myTimeoutScheduledFuture?.cancel(false)
   }
 }
 
@@ -208,7 +220,12 @@ class SingleDeviceAndroidProcessMonitor(
  */
 enum class SingleDeviceAndroidProcessMonitorState {
   /**
-   * The initial state. The monitor is waiting for target processes to be appear and running.
+   * The initial state.
+   */
+  INIT,
+
+  /**
+   * The monitor is waiting for target processes to be appear and running.
    */
   WAITING_FOR_PROCESS,
 
