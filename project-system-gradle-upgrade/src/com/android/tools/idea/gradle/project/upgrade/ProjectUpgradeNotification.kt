@@ -119,7 +119,16 @@ abstract class ProjectUpgradeNotification(title: String, content: String, type: 
 }
 
 class UpgradeSuggestion(title: String, content: String, override val project: Project, override val currentAgpVersion: AgpVersion)
-  : ProjectUpgradeNotification(title, content, NotificationType.INFORMATION)
+  : ProjectUpgradeNotification(title, content, NotificationType.INFORMATION) {
+    init {
+      isSuggestionType = true
+    }
+  }
 
 class DeprecatedAgpUpgradeWarning(title: String, content: String, override val project: Project, override val currentAgpVersion: AgpVersion)
-  : ProjectUpgradeNotification(title, content, NotificationType.WARNING)
+  : ProjectUpgradeNotification(title, content, NotificationType.WARNING) {
+    init {
+      isSuggestionType = true
+      isImportantSuggestion = true
+    }
+  }
