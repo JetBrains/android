@@ -40,6 +40,8 @@ private const val LABEL_PARAMETER = "label"
 private const val COMPOSE_ANIMATION_PACKAGE_PREFIX = "androidx.compose.animation"
 private const val UPDATE_TRANSITION_FQN = "$COMPOSE_ANIMATION_PACKAGE_PREFIX.core.updateTransition"
 private const val ANIMATED_CONTENT_FQN = "$COMPOSE_ANIMATION_PACKAGE_PREFIX.AnimatedContent"
+private const val ANIMATE_AS_STATE_FQN_PREFIX = "$COMPOSE_ANIMATION_PACKAGE_PREFIX.core.animate"
+private const val ANIMATE_AS_STATE_FQN_SUFFIX = "AsState"
 private const val REMEMBER_INFINITE_TRANSITION_FQN =
   "$COMPOSE_ANIMATION_PACKAGE_PREFIX.core.rememberInfiniteTransition"
 private const val TRANSITION_FQN = "$COMPOSE_ANIMATION_PACKAGE_PREFIX.core.Transition"
@@ -69,6 +71,21 @@ class AnimatedContentLabelInspection : FunctionLabelInspection() {
 
   override val animationType: String
     get() = message("inspection.animation.type.animated.content")
+}
+
+/**
+ * Inspection to verify that the `label` parameter is set for `animate*AsState` calls. This
+ * parameter is used by the animation tooling to identify the animation when inspecting animations
+ * in the Animation Preview.
+ */
+class AnimateAsStateLabelInspection : FunctionLabelInspection() {
+
+  override val fqNameCheck: (String) -> Boolean = {
+    it.startsWith(ANIMATE_AS_STATE_FQN_PREFIX) && it.endsWith(ANIMATE_AS_STATE_FQN_SUFFIX)
+  }
+
+  override val animationType: String
+    get() = message("inspection.animation.type.animate.as.state")
 }
 
 /**
