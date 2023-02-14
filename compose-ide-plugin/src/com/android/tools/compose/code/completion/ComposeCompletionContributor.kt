@@ -229,11 +229,6 @@ private class ComposeInsertHandler(
         }
 
         !insertLambda -> addTextSegment("()")
-        requiredParameters.size < allParameters.size -> {
-          addTextSegment("(")
-          addVariable(EmptyExpression(), true)
-          addTextSegment(")")
-        }
       }
 
       if (insertLambda && !isNextElementOpenCurlyBrace()) {

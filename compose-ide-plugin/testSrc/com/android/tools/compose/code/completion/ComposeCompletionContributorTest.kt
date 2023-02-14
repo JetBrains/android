@@ -517,7 +517,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        FoobarOne() {
+        FoobarOne {
 
         }
       }
@@ -1028,7 +1028,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        FoobarOne() {
+        FoobarOne {
 
         }
       }
