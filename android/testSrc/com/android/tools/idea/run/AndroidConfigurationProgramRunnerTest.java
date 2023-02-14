@@ -23,23 +23,34 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner;
+import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor;
+import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorRunProfileState;
+import com.android.tools.idea.testing.KeepTasksAsynchronousRule;
 import com.google.common.truth.Truth;
+import com.intellij.execution.ExecutionException;
+import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.RunContentDescriptor;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.testFramework.ProjectRule;
+import com.intellij.testFramework.UsefulTestCase;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.Icon;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.concurrency.Promise;
+import org.jetbrains.concurrency.Promises;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -47,6 +58,9 @@ public class AndroidConfigurationProgramRunnerTest {
 
   @Rule
   public ProjectRule projectRule = new ProjectRule();
+
+  @Rule
+  public KeepTasksAsynchronousRule keepTasksAsynchronous = new KeepTasksAsynchronousRule(true);
 
   /**
    * {@link HiddenRunContentDescriptor} is a almost-pure wrapper class for
@@ -109,6 +123,57 @@ public class AndroidConfigurationProgramRunnerTest {
       };
     target.setAvailableDeviceCount(2);
     assertFalse(runner.canRun(DefaultDebugExecutor.EXECUTOR_ID, runConfiguration));
+  }
+
+  @Test
+  public void resolvePromiseEvenIfUncheckedExceptionHappened() {
+    RunnerAndConfigurationSettings runConfiguration =
+      RunManager.getInstance(projectRule.getProject()).createConfiguration("app", AndroidRunConfigurationType.getInstance().getFactory());
+    FakeExecutionTarget target = new FakeExecutionTarget();
+    AndroidConfigurationProgramRunner runner =
+      new AndroidConfigurationProgramRunner(GradleSyncState::getInstance, (project, profileState) -> target) {
+        @NotNull
+        @Override
+        protected List<String> getSupportedConfigurationTypeIds() {
+          return List.of(new AndroidRunConfigurationType().getId());
+        }
+
+        @Override
+        protected boolean canRunWithMultipleDevices(@NotNull String executorId) {
+          return false;
+        }
+
+        @Override
+        public @NotNull String getRunnerId() {
+          return "Fake Runner";
+        }
+
+        @NotNull
+        @Override
+        protected Function1<ProgressIndicator, RunContentDescriptor> getRunner(@NotNull ExecutionEnvironment environment,
+                                                                               @NotNull RunProfileState state) {
+          return (ProgressIndicator x) -> {
+            throw new RuntimeException("Exception in Runner");
+          };
+        }
+      };
+    ExecutionEnvironment env =
+      new ExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance(), runner, runConfiguration, projectRule.getProject());
+    AtomicReference<Promise<RunContentDescriptor>> execute = new AtomicReference<>();
+
+    ApplicationManager.getApplication().invokeAndWait(() ->
+                                                      {
+                                                        try {
+                                                          execute.set(runner.execute(env, new AndroidConfigurationExecutorRunProfileState(
+                                                            mock(AndroidConfigurationExecutor.class))));
+                                                        }
+                                                        catch (ExecutionException e) {
+                                                          throw new RuntimeException(e);
+                                                        }
+                                                      });
+
+    UsefulTestCase.assertThrows(RuntimeException.class, "Exception in Runner", () -> execute.get().blockingGet(1000));
+    assertTrue(Promises.isRejected(execute.get()));
   }
 
   @Test
