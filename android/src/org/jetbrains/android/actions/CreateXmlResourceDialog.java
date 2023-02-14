@@ -65,6 +65,18 @@ public class CreateXmlResourceDialog extends DialogWrapper {
     init();
   }
 
+  public CreateXmlResourceDialog(@NotNull Module module,
+                                 @NotNull final ResourceType resourceType,
+                                 @Nullable String predefinedName,
+                                 @Nullable String predefinedValue,
+                                 boolean chooseName,
+                                 @Nullable VirtualFile defaultFile,
+                                 @Nullable VirtualFile contextFile,
+                                 boolean allowValueEditing) {
+    this(module, resourceType, predefinedName, predefinedValue, chooseName, defaultFile, contextFile);
+    myPanel.setAllowValueEditing(allowValueEditing);
+  }
+
   @Override
   protected ValidationInfo doValidate() {
     return myPanel.doValidate();
