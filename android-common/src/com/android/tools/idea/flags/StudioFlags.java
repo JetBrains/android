@@ -602,6 +602,14 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> ATTACH_ON_WAIT_FOR_DEBUGGER = Flag.create(
+    RUNDEBUG,
+    "debug.app.auto.attach.wait.for.debugger",
+    "Auto attach debugger on Debug.waitForDebugger().",
+    "If the user has Debug.waitForDebugger() calls within the app code, this will allow the debugger to automatically attach to the app.",
+    true
+  );
+
   //endregion
 
   //region Logcat

@@ -29,6 +29,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidDebuggerState implements JDOMExternalizable {
+  public boolean ATTACH_ON_WAIT_FOR_DEBUGGER = false;
+
+  public boolean attachOnWaitForDebugger() {
+    return ATTACH_ON_WAIT_FOR_DEBUGGER;
+  }
+
+  public void setAttachOnWaitForDebugger(boolean attachOnWaitForDebugger) {
+    ATTACH_ON_WAIT_FOR_DEBUGGER = attachOnWaitForDebugger;
+  }
 
   @NotNull
   public List<ValidationError> validate(@NotNull AndroidFacet facet, @Nullable Executor executor) {

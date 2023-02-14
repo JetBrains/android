@@ -13,6 +13,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",

@@ -14,6 +14,7 @@ import com.android.tools.idea.execution.common.debug.AndroidDebugger;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerContext;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorRunProfileState;
@@ -98,6 +99,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     myIsTestConfiguration = isTestConfiguration;
     myProfilerState = new ProfilerState();
     getOptions().setAllowRunningInParallel(true);
+
+    if (StudioFlags.ATTACH_ON_WAIT_FOR_DEBUGGER.get()) {
+      // Start up debugger auto attach.
+      AttachOnWaitForDebuggerMonitor.getInstance(project);
+    }
   }
 
   @Override

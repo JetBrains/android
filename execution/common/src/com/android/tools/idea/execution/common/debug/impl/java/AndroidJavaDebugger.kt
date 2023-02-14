@@ -21,6 +21,7 @@ import com.android.tools.idea.execution.common.debug.AndroidDebuggerConfigurable
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter.attachDebuggerToClientAndShowTab
 import com.android.tools.idea.execution.common.debug.impl.AndroidDebuggerImplBase
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.debugger.engine.JavaDebugProcess
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RunConfiguration
@@ -30,7 +31,11 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.xdebugger.XDebugProcess
 import com.intellij.xdebugger.XDebugProcessStarter
 import com.intellij.xdebugger.XDebugSession
+import java.awt.BorderLayout
 import java.util.concurrent.TimeUnit
+import javax.swing.JCheckBox
+import javax.swing.JComponent
+import javax.swing.JPanel
 
 class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
   override fun getId(): String {
@@ -45,8 +50,25 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
     return AndroidDebuggerState()
   }
 
-  override fun createConfigurable(runConfiguration: RunConfiguration): AndroidDebuggerConfigurable<AndroidDebuggerState?> {
-    return AndroidDebuggerConfigurable()
+  override fun createConfigurable(runConfiguration: RunConfiguration): AndroidDebuggerConfigurable<AndroidDebuggerState> {
+    return if (StudioFlags.ATTACH_ON_WAIT_FOR_DEBUGGER.get()) object: AndroidDebuggerConfigurable<AndroidDebuggerState>() {
+      val attachOnWaitForDebugger = JCheckBox("Automatically attach on Debug.waitForDebugger()")
+      val mainPanel = JPanel(BorderLayout()).apply {
+        add(attachOnWaitForDebugger, BorderLayout.NORTH)
+      }
+
+      override fun getComponent(): JComponent {
+        return mainPanel
+      }
+
+      override fun resetFrom(state: AndroidDebuggerState) {
+        attachOnWaitForDebugger.isSelected = state.attachOnWaitForDebugger()
+      }
+
+      override fun applyTo(state: AndroidDebuggerState) {
+        state.setAttachOnWaitForDebugger(attachOnWaitForDebugger.isSelected)
+      }
+    } else AndroidDebuggerConfigurable()
   }
 
   override fun supportsProject(project: Project): Boolean {
@@ -64,7 +86,7 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
       return existingDebugSession
     }
 
-    return attachDebuggerToClientAndShowTab(project, client, this, createState());
+    return attachDebuggerToClientAndShowTab(project, client, this, createState())
   }
 
 
