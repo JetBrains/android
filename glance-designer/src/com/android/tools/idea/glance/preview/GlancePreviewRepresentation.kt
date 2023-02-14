@@ -134,7 +134,7 @@ internal class GlancePreviewRepresentation<T : MethodPreviewElement>(
   private val surface: NlDesignSurface
     get() = previewView.surface
 
-  private val previewViewModel: GlancePreviewViewModel =
+  private val previewViewModel: CommonPreviewViewModel =
     GlancePreviewViewModel(previewView, projectBuildStatusManager, project, psiFilePointer) {
       surface.sceneManagers.any { it.renderResult.isErrorResult(adapterViewFqcn) }
     }
