@@ -169,6 +169,8 @@ class ConnectionsView(private val model: NetworkInspectorModel, private val pare
       // flickering that otherwise occurs in our table.
       updateTableSelection()
     }
+    // Fix column positions in the header
+    connectionsTable.tableHeader.reorderingAllowed = false
   }
 
   private fun createTooltip() {
