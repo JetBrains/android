@@ -31,6 +31,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.keymap.KeymapUtil
@@ -161,11 +162,10 @@ class LiveEditIssueNotificationAction(
 }
 
 /**
- * [DefaultActionGroup] that shows the notification chip and the
- * [ForceCompileAndRefreshActionForNotification] button when applicable.
+ * [DefaultActionGroup] that shows the notification chip and the [RedeployAction] button when applicable.
  */
 class LiveEditNotificationGroup :
   DefaultActionGroup(
     "Live Edit Notification Actions",
-    listOf(LiveEditIssueNotificationAction(), ForceCompileAndRefreshActionForNotification())
+    listOf(LiveEditIssueNotificationAction(), RedeployAction(), Separator.getInstance()),
   ), RightAlignedToolbarAction

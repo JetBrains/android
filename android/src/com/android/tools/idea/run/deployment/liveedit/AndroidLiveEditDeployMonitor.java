@@ -540,7 +540,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
       if (firstProblem.getType() == Deploy.UnsupportedChange.Type.UNSUPPORTED_COMPOSE_VERSION) {
         updateEditStatus(device, LiveEditStatus.createComposeVersionError(firstProblem.getMessage()));
       } else {
-        updateEditStatus(device, LiveEditStatus.createErrorStatus(firstProblem.getMessage()));
+        updateEditStatus(device, LiveEditStatus.createRerunnableErrorStatus(firstProblem.getMessage()));
       }
     }
     return result;

@@ -75,7 +75,7 @@ internal class ToggleLiveEditStatusAction: AnAction() {
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread {
-    return ActionUpdateThread.EDT
+    return ActionUpdateThread.BGT
   }
 }
 
@@ -84,30 +84,46 @@ internal class ToggleLiveEditStatusAction: AnAction() {
  * trigger a refresh of the surface. The action visibility is controlled by
  * [LiveEditStatus.hasRefreshIcon]
  */
-internal class ForceCompileAndRefreshActionForNotification :
+internal class RedeployAction :
   AnAction(
-    "",
-    LiveEditBundle.message("le.build.redeploy.description"),
-    REFRESH_BUTTON
+    null,
+    null,
+    null
   ), CustomComponentAction {
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val status = getStatusInfo(project, e.dataContext)
-    when {
-      status == LiveEditStatus.OutOfDate -> {
+    when (status.redeployMode) {
+      LiveEditStatus.Companion.RedeployMode.REFRESH -> {
         invokeActionNow(e, ManualLiveEditAction())
       }
-      status.unrecoverable() -> ActionUtil.getAction("Run")?.let {
+      LiveEditStatus.Companion.RedeployMode.RERUN -> ActionUtil.getAction("Run")?.let {
         ActionUtil.invokeAction(it, e.dataContext, e.place, e.inputEvent, null)
+      }
+      LiveEditStatus.Companion.RedeployMode.NONE -> {
+        // do nothing
       }
     }
   }
 
   override fun update(e: AnActionEvent) {
     val project = e.project ?: return
-    val status = getStatusInfo(project, e.dataContext).let {
-      e.presentation.isEnabledAndVisible = it.hasRefreshIcon
+    val status = getStatusInfo(project, e.dataContext)
+    when (status.redeployMode) {
+      LiveEditStatus.Companion.RedeployMode.REFRESH -> {
+        e.presentation.icon = REFRESH_BUTTON
+        e.presentation.description = LiveEditBundle.message("le.status.out_of_date.description")
+        e.presentation.isEnabledAndVisible = true
+      }
+      LiveEditStatus.Companion.RedeployMode.RERUN -> {
+        e.presentation.icon = AllIcons.Actions.Restart
+        e.presentation.description = LiveEditBundle.message("le.build.redeploy.description")
+        e.presentation.isEnabledAndVisible = true
+      }
+      LiveEditStatus.Companion.RedeployMode.NONE -> {
+        e.presentation.isEnabledAndVisible = false
+      }
     }
   }
 
@@ -138,7 +154,7 @@ internal class ForceCompileAndRefreshActionForNotification :
     }
 
   override fun getActionUpdateThread(): ActionUpdateThread {
-    return ActionUpdateThread.EDT
+    return ActionUpdateThread.BGT
   }
 }
 
