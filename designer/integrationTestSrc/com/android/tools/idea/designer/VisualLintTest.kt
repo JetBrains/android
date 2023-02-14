@@ -19,6 +19,7 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Path
@@ -32,15 +33,21 @@ class VisualLintTest {
   @get:Rule
   var watcher = MemoryDashboardNameProviderWatcher()
 
-  @Test
-  fun visualLintBasicTest() {
+  private lateinit var project: AndroidProject
+
+  @Before
+  fun setup() {
     system.installation.addVmOption("-Didea.log.debug.categories=#com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService")
     // Create a new android project, and set a fixed distribution
-    val project = AndroidProject("tools/adt/idea/designer/testData/projects/visualLintApplication")
+    project = AndroidProject("tools/adt/idea/designer/testData/projects/visualLintApplication")
     project.setDistribution("tools/external/gradle/gradle-7.3.3-bin.zip")
 
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/designer/layout_preview_deps.manifest"))
+  }
+
+  @Test
+  fun visualLintBasicTest() {
     system.runStudio(project, watcher.dashboardName) { studio ->
       studio.waitForSync()
       studio.waitForIndex()
