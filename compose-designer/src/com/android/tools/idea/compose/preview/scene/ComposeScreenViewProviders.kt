@@ -22,7 +22,6 @@ import com.android.tools.idea.common.surface.SceneView.DEVICE_CONFIGURATION_SHAP
 import com.android.tools.idea.common.surface.SceneView.SQUARE_SHAPE_POLICY
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.BorderLayer
 import com.android.tools.idea.uibuilder.surface.ClassLoadingDebugLayer
@@ -71,40 +70,4 @@ internal val COMPOSE_SCREEN_VIEW_PROVIDER =
         .build()
 
     override val surfaceType: LayoutEditorState.Surfaces = LayoutEditorState.Surfaces.SCREEN_SURFACE
-  }
-
-internal val COMPOSE_BLUEPRINT_SCREEN_VIEW_PROVIDER =
-  object : ScreenViewProvider {
-    override val displayName: String = "Compose Blueprint"
-
-    override fun createPrimarySceneView(
-      surface: NlDesignSurface,
-      manager: LayoutlibSceneManager
-    ): ScreenView =
-      ScreenView.newBuilder(surface, manager)
-        .withColorSet(BlueprintColorSet())
-        .withLayersProvider {
-          ImmutableList.builder<Layer>()
-            .apply {
-              if (it.hasBorderLayer()) {
-                add(BorderLayer(it))
-              }
-              add(SceneLayer(it.surface, it, true))
-            }
-            .build()
-        }
-        .withShapePolicy {
-          (if (COMPOSE_PREVIEW_ELEMENT_INSTANCE.getData(manager.model.dataContext)
-                ?.displaySettings
-                ?.showDecoration == true
-            )
-              DEVICE_CONFIGURATION_SHAPE_POLICY
-            else SQUARE_SHAPE_POLICY)
-            .getShape(it)
-        }
-        .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
-        .build()
-
-    override val surfaceType: LayoutEditorState.Surfaces =
-      LayoutEditorState.Surfaces.BLUEPRINT_SURFACE
   }
