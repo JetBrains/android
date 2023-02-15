@@ -33,7 +33,6 @@ import com.android.tools.idea.run.configuration.editors.AndroidWearConfiguration
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorRunProfileState
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider
-import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.editor.RunConfigurationWithDebugger
 import com.android.tools.idea.stats.RunStats
 import com.android.tools.idea.stats.RunStatsService
@@ -93,12 +92,12 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
     val provider = DeviceAndSnapshotComboBoxTargetProvider()
     val deployTarget = if (provider.requiresRuntimePrompt(project)) {
       invokeAndWaitIfNeeded { provider.showPrompt(project) }
-    }
-                       else {
+    } else {
       provider.getDeployTarget(project)
     } ?: throw ExecutionException(AndroidBundle.message("deployment.target.not.found"))
+    val deviceFutures = deployTarget.getDevices(project)
 
-    fillStatsForEnvironment(environment, deployTarget)
+    fillStatsForEnvironment(environment, deviceFutures)
 
     val stats = RunStats.from(environment)
     return try {
@@ -115,7 +114,7 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
         override val componentLaunchOptions = this@AndroidWearConfiguration.componentLaunchOptions
         override val module = this@AndroidWearConfiguration.module
       }
-      val state = getExecutor(environment, deployTarget, appRunSettings, applicationIdProvider, apkProvider)
+      val state = getExecutor(environment, deviceFutures, appRunSettings, applicationIdProvider, apkProvider)
       stats.markStateCreated()
       state
     }
@@ -127,13 +126,13 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
 
   abstract fun getExecutor(
     environment: ExecutionEnvironment,
-    deployTarget: DeployTarget,
+    deviceFutures: DeviceFutures,
     appRunSettings: AppRunSettings,
     applicationIdProvider: ApplicationIdProvider,
     apkProvider: ApkProvider
   ): AndroidConfigurationExecutor
 
-  private fun fillStatsForEnvironment(environment: ExecutionEnvironment, deployTarget: DeployTarget) {
+  private fun fillStatsForEnvironment(environment: ExecutionEnvironment, deviceFutures: DeviceFutures) {
     val stats = RunStatsService.get(project).create()
     stats.setDebuggable(module!!.getModuleSystem().isDebuggable)
     stats.setExecutor(environment.executor.id)
@@ -145,13 +144,10 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
     // Save the stats so that before-run task can access it
     environment.putUserData(RunStats.KEY, stats)
 
-    val deviceFutureList = deployTarget.getDevices(project) ?: throw ExecutionException(
-      AndroidBundle.message("deployment.target.not.found"))
-
     // Record stat if we launched a device.
-    stats.setLaunchedDevices(deviceFutureList.devices.any { it is LaunchableAndroidDevice })
+    stats.setLaunchedDevices(deviceFutures.devices.any { it is LaunchableAndroidDevice })
     // Store the chosen target on the execution environment so before-run tasks can access it.
-    environment.putCopyableUserData(DeviceFutures.KEY, deviceFutureList)
+    environment.putCopyableUserData(DeviceFutures.KEY, deviceFutures)
   }
 
   override fun writeExternal(element: Element) {

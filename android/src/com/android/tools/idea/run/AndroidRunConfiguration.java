@@ -232,13 +232,13 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @NotNull
   @Override
-  protected ConsoleProvider getConsoleProvider(boolean runOnMultipleDevices) {
+  protected ConsoleProvider getConsoleProvider() {
     return new ConsoleProvider() {
       @NotNull
       @Override
       public ConsoleView createAndAttach(@NotNull Disposable parent,
                                          @NotNull ProcessHandler handler,
-                                         @NotNull Executor executor) throws ExecutionException {
+                                         @NotNull Executor executor) {
         Project project = getConfigurationModule().getProject();
         final TextConsoleBuilder builder = TextConsoleBuilderFactory.getInstance().createBuilder(project);
         ConsoleView console = builder.getConsole();

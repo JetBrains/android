@@ -28,7 +28,6 @@ import com.android.tools.idea.run.configuration.execution.AndroidConfigurationEx
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
-import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTasksProvider
@@ -65,7 +64,7 @@ class LaunchTaskRunner(
   private val consoleProvider: ConsoleProvider,
   private val applicationIdProvider: ApplicationIdProvider,
   private val myEnv: ExecutionEnvironment,
-  override val deployTarget: DeployTarget,
+  override val deviceFutures: DeviceFutures,
   private val myLaunchTasksProvider: LaunchTasksProvider,
 ) : AndroidConfigurationExecutor {
 
@@ -92,7 +91,7 @@ class LaunchTaskRunner(
 
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
     findExistingSessionAndMaybeDetachForColdSwap(myEnv)
-    val devices = getDevices(project, indicator, deployTarget, RunStats.from(myEnv))
+    val devices = getDevices(deviceFutures, indicator, RunStats.from(myEnv))
 
     waitPreviousProcessTermination(devices, applicationIdProvider.packageName, indicator)
 
@@ -169,7 +168,7 @@ class LaunchTaskRunner(
   override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
     val applicationId = applicationIdProvider.packageName
 
-    val devices = getDevices(project, indicator, deployTarget, RunStats.from(myEnv))
+    val devices = getDevices(deviceFutures, indicator, RunStats.from(myEnv))
 
     if (devices.size != 1) {
       throw ExecutionException("Cannot launch a debug session on more than 1 device.")
@@ -192,7 +191,8 @@ class LaunchTaskRunner(
   }
 
   override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
-    val devices = getDevices(project, indicator, deployTarget, RunStats.from(myEnv))
+    val devices = getDevices(deviceFutures, indicator, RunStats.from(myEnv))
+
     val oldSession = findExistingSessionAndMaybeDetachForColdSwap(myEnv)
     val processHandler = oldSession.processHandler ?: AndroidProcessHandler(
       project,

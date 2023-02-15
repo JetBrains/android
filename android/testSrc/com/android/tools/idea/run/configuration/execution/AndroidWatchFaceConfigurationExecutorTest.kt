@@ -25,6 +25,7 @@ import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.run.DefaultStudioProgramRunner
+import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.debugger.DebuggerManager
@@ -88,7 +89,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
-    val deployTarget = TestDeployTarget(device)
+    val deviceFutures = DeviceFutures.forDevices(listOf(device))
     val settings = object : AppRunSettings {
       override val deployOptions = DeployOptions(emptyList(), "", true, true)
       override val componentLaunchOptions = WatchFaceLaunchOptions().apply {
@@ -98,7 +99,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     }
 
     val executor = Mockito.spy(
-      AndroidWatchFaceConfigurationExecutor(env, deployTarget, settings, TestApplicationIdProvider(appId), TestApksProvider(appId)))
+      AndroidWatchFaceConfigurationExecutor(env, deviceFutures, settings, TestApplicationIdProvider(appId), TestApksProvider(appId)))
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
@@ -168,7 +169,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     // Executor we test.
     val executor = Mockito.spy(
-      AndroidWatchFaceConfigurationExecutor(env, TestDeployTarget(device), settings, TestApplicationIdProvider(appId),
+      AndroidWatchFaceConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId),
                                             TestApksProvider(appId)))
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
@@ -230,7 +231,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     // Executor we test.
     val executor = Mockito.spy(
-      AndroidWatchFaceConfigurationExecutor(env, TestDeployTarget(device), settings, TestApplicationIdProvider(appId),
+      AndroidWatchFaceConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId),
                                             TestApksProvider(appId)))
 
     val app = Mockito.mock(App::class.java)
@@ -303,7 +304,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     // Executor we test.
     val executor = Mockito.spy(
-      AndroidWatchFaceConfigurationExecutor(env, TestDeployTarget(device), settings, TestApplicationIdProvider(appId),
+      AndroidWatchFaceConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId),
                                             TestApksProvider(appId)))
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())

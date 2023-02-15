@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
-import com.android.tools.idea.run.editor.DeployTarget
+import com.android.tools.idea.run.DeviceFutures
 import com.intellij.execution.ExecutionResult
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.RunConfiguration
@@ -27,7 +27,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 
 interface AndroidConfigurationExecutor {
   val configuration: RunConfiguration
-  val deployTarget: DeployTarget
+  val deviceFutures: DeviceFutures
 
   fun run(indicator: ProgressIndicator): RunContentDescriptor
   fun debug(indicator: ProgressIndicator): RunContentDescriptor

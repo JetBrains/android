@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestP
 import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.project.AndroidRunConfigurations
 import com.android.tools.idea.run.activity.launch.EmptyTestConsoleView
-import com.android.tools.idea.run.configuration.execution.TestDeployTarget
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchTask
@@ -86,7 +85,7 @@ class LaunchTaskRunnerTest {
   @Test
   fun runSucceeded() {
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
-    val deployTarget = TestDeployTarget(device)
+    val deviceFutures = DeviceFutures.forDevices(listOf(device))
 
     val env = getExecutionEnvironment(listOf(device))
     val launchTaskProvider = getLaunchTaskProvider()
@@ -94,7 +93,7 @@ class LaunchTaskRunnerTest {
       consoleProvider,
       FakeApplicationIdProvider(),
       env,
-      deployTarget,
+      deviceFutures,
       launchTaskProvider
     )
 
@@ -117,7 +116,7 @@ class LaunchTaskRunnerTest {
   @Test
   fun debugSucceeded() {
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
-    val deployTarget = TestDeployTarget(device)
+    val deviceFutures = DeviceFutures.forDevices(listOf(device))
 
     val env = getExecutionEnvironment(listOf(device), isDebug = true)
     val launchTaskProvider = getLaunchTaskProvider(isDebug = true)
@@ -125,7 +124,7 @@ class LaunchTaskRunnerTest {
       consoleProvider,
       FakeApplicationIdProvider(),
       env,
-      deployTarget,
+      deviceFutures,
       launchTaskProvider
     )
 
@@ -136,7 +135,7 @@ class LaunchTaskRunnerTest {
 
   @Test
   fun swapRunSucceeded() {
-    val deployTarget = TestDeployTarget(device)
+    val deviceFutures = DeviceFutures.forDevices(listOf(device))
     val env = getExecutionEnvironment(listOf(device))
     val runningProcessHandler = setSwapInfo(env)
     runningProcessHandler.addTargetDevice(device)
@@ -146,7 +145,7 @@ class LaunchTaskRunnerTest {
       consoleProvider,
       FakeApplicationIdProvider(),
       env,
-      deployTarget,
+      deviceFutures,
       launchTaskProvider
     )
 
@@ -170,13 +169,13 @@ class LaunchTaskRunnerTest {
   @Test
   fun runFailed() {
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
-    val deployTarget = TestDeployTarget(device)
+    val deviceFutures = DeviceFutures.forDevices(listOf(device))
     val env = getExecutionEnvironment(listOf(device))
     val runner = LaunchTaskRunner(
       consoleProvider,
       FakeApplicationIdProvider(),
       env,
-      deployTarget,
+      deviceFutures,
       getFailingLaunchTaskProvider()
     )
 
@@ -193,7 +192,7 @@ class LaunchTaskRunnerTest {
   @Test
   fun swapRunFailedButProcessHandlerShouldNotBeDetached() {
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
-    val deployTarget = TestDeployTarget(device)
+    val deviceFutures = DeviceFutures.forDevices(listOf(device))
     val env = getExecutionEnvironment(listOf(device))
     val runningProcessHandler = setSwapInfo(env)
     runningProcessHandler.addTargetDevice(device)
@@ -201,7 +200,7 @@ class LaunchTaskRunnerTest {
       consoleProvider,
       FakeApplicationIdProvider(),
       env,
-      deployTarget,
+      deviceFutures,
       getFailingLaunchTaskProvider()
     )
 
@@ -226,7 +225,7 @@ class LaunchTaskRunnerTest {
   @Test
   fun androidProcessHandlerMonitorsMasterProcessId() {
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
-    val deployTarget = TestDeployTarget(device)
+    val deviceFutures = DeviceFutures.forDevices(listOf(device))
 
     var executionOptions = TestExecutionOption.HOST
 
@@ -247,7 +246,7 @@ class LaunchTaskRunnerTest {
       consoleProvider,
       FakeApplicationIdProvider(),
       env,
-      deployTarget,
+      deviceFutures,
       launchTaskProvider
     )
 

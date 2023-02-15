@@ -285,10 +285,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     DeviceFutures deviceFutures = deployTarget.getDevices(getProject());
-    if (deviceFutures == null) {
-      // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
-      return null;
-    }
 
     // Record stat if we launched a device.
     stats.setLaunchedDevices(deviceFutures.getDevices().stream().anyMatch(device -> device instanceof LaunchableAndroidDevice));
@@ -314,9 +310,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (applicationIdProvider == null) {
       throw new RuntimeException("Cannot get ApplicationIdProvider");
     }
-    String packageName;
+
     try {
-      packageName = applicationIdProvider.getPackageName();
+      applicationIdProvider.getPackageName();
     }
     catch (ApkProvisionException e) {
       throw new ExecutionException(e);
@@ -329,8 +325,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     LaunchTasksProvider launchTasksProvider =
       createLaunchTasksProvider(env, facet, applicationIdProvider, apkProvider, launchOptions.build());
 
-    ConsoleProvider consoleProvider = getConsoleProvider(deviceFutures.getDevices().size() > 1);
-    LaunchTaskRunner runner = new LaunchTaskRunner(consoleProvider, applicationIdProvider, env, deployTarget, launchTasksProvider);
+    ConsoleProvider consoleProvider = getConsoleProvider();
+    LaunchTaskRunner runner = new LaunchTaskRunner(consoleProvider, applicationIdProvider, env, deviceFutures, launchTasksProvider);
     return new AndroidConfigurationExecutorRunProfileState(runner);
   }
 
@@ -392,7 +388,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @NotNull
-  protected abstract ConsoleProvider getConsoleProvider(boolean runOnMultipleDevices);
+  protected abstract ConsoleProvider getConsoleProvider();
 
   @Nullable
   protected abstract AppLaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,

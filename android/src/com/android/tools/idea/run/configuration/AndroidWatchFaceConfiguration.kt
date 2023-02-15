@@ -18,9 +18,9 @@ package com.android.tools.idea.run.configuration
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.execution.AndroidWatchFaceConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.WatchFaceLaunchOptions
-import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationTypeBase
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -53,10 +53,10 @@ class AndroidWatchFaceConfiguration(project: Project, factory: ConfigurationFact
 
   override fun getExecutor(
     environment: ExecutionEnvironment,
-    deployTarget: DeployTarget,
+    deviceFutures: DeviceFutures,
     appRunSettings: AppRunSettings,
     applicationIdProvider: ApplicationIdProvider,
     apkProvider: ApkProvider
-  ) = AndroidWatchFaceConfigurationExecutor(environment, deployTarget, appRunSettings, applicationIdProvider, apkProvider)
+  ) = AndroidWatchFaceConfigurationExecutor(environment, deviceFutures, appRunSettings, applicationIdProvider, apkProvider)
 }
 

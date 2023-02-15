@@ -28,6 +28,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.model.component.WearComponent
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.stats.RunStats
@@ -151,13 +152,18 @@ internal suspend fun createRunContentDescriptor(
   }
 }
 
+@WorkerThread
+fun prepareDevices(project: Project, indicator: ProgressIndicator, deployTarget: DeployTarget): DeviceFutures {
+  indicator.text = "Launching devices"
+  return deployTarget.getDevices(project)
+}
+
 @Throws(ExecutionException::class)
 @WorkerThread
-suspend fun getDevices(project: Project, indicator: ProgressIndicator, deployTarget: DeployTarget, stats: RunStats): List<IDevice> {
+suspend fun getDevices(deviceFutures: DeviceFutures, indicator: ProgressIndicator, stats: RunStats): List<IDevice> {
   indicator.text = "Waiting for all target devices to come online"
 
-  val deviceFutureList = deployTarget.getDevices(project)?.get() ?: throw ExecutionException(
-    AndroidBundle.message("deployment.target.not.found"))
+  val deviceFutureList = deviceFutures.get()
 
   if (deviceFutureList.isEmpty()) {
     throw ExecutionException(AndroidBundle.message("deployment.target.not.found"))
@@ -169,4 +175,10 @@ suspend fun getDevices(project: Project, indicator: ProgressIndicator, deployTar
     stats.endWaitForDevice(device)
     device
   }.onEach { LaunchUtils.initiateDismissKeyguard(it) }
+}
+
+@Throws(ExecutionException::class)
+@WorkerThread
+suspend fun getDevices(project: Project, indicator: ProgressIndicator, deployTarget: DeployTarget, stats: RunStats): List<IDevice> {
+  return getDevices(prepareDevices (project, indicator, deployTarget), indicator, stats)
 }

@@ -343,7 +343,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @NotNull
   @Override
-  protected ConsoleProvider getConsoleProvider(boolean runOnMultipleDevices) {
+  protected ConsoleProvider getConsoleProvider() {
     return (parent, handler, executor) -> {
       final ConsoleView consoleView = new AndroidTestSuiteView(parent, getProject(), getConfigurationModule().getAndroidTestModule(),
                                                                executor.getToolWindowId(), this);

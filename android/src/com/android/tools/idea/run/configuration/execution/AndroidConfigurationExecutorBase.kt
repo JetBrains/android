@@ -25,8 +25,8 @@ import com.android.tools.idea.execution.common.ApplicationTerminator
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.isDebug
-import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.stats.RunStats
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.ExecutionException
@@ -45,7 +45,7 @@ import kotlinx.coroutines.joinAll
 
 abstract class AndroidConfigurationExecutorBase(
   protected val environment: ExecutionEnvironment,
-  override val deployTarget: DeployTarget,
+  override val deviceFutures: DeviceFutures,
   protected val appRunSettings: AppRunSettings,
   protected val applicationIdProvider: ApplicationIdProvider,
   protected val apkProvider: ApkProvider
@@ -63,7 +63,7 @@ abstract class AndroidConfigurationExecutorBase(
 
   @WorkerThread
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
-    val devices = getDevices(project, indicator, deployTarget, RunStats.from(environment))
+    val devices = getDevices(deviceFutures, indicator, RunStats.from(environment))
     val console = createConsole()
     val processHandler = AndroidProcessHandler(project, appId, getStopCallback(console, false))
 
@@ -97,7 +97,7 @@ abstract class AndroidConfigurationExecutorBase(
 
   @WorkerThread
   override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
-    val devices = getDevices(project, indicator, deployTarget, RunStats.from(environment))
+    val devices = getDevices(deviceFutures, indicator, RunStats.from(environment))
     if (devices.size > 1) {
       throw ExecutionException("Debugging is allowed only for single device")
     }

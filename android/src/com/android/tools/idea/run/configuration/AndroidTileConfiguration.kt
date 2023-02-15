@@ -18,10 +18,10 @@ package com.android.tools.idea.run.configuration
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.AndroidTileConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.TileLaunchOptions
-import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationTypeBase
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -53,11 +53,11 @@ class AndroidTileConfiguration(project: Project, factory: ConfigurationFactory) 
   override val componentLaunchOptions: TileLaunchOptions = TileLaunchOptions()
 
   override fun getExecutor(environment: ExecutionEnvironment,
-                           deployTarget: DeployTarget,
+                           deviceFutures: DeviceFutures,
                            appRunSettings: AppRunSettings,
                            applicationIdProvider: ApplicationIdProvider,
                            apkProvider: ApkProvider): AndroidConfigurationExecutor {
-    return AndroidTileConfigurationExecutor(environment, deployTarget, appRunSettings, applicationIdProvider, apkProvider)
+    return AndroidTileConfigurationExecutor(environment, deviceFutures, appRunSettings, applicationIdProvider, apkProvider)
   }
 }
 
