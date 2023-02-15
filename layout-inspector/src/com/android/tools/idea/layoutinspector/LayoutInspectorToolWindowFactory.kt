@@ -46,6 +46,7 @@ import com.android.tools.idea.layoutinspector.ui.InspectorRenderSettings
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.ide.DataManager
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
@@ -59,6 +60,7 @@ import kotlinx.coroutines.CoroutineScope
 import java.awt.BorderLayout
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
@@ -108,15 +110,14 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
     TransportErrorListener(project, LayoutInspectorMetrics, toolWindow.disposable)
 
-    val processesModel = createProcessesModel(project, AppInspectionDiscoveryService.instance.apiServices.processDiscovery, edtExecutor)
-    Disposer.register(workbench, processesModel)
-    val executor = Executors.newScheduledThreadPool(1)
-    Disposer.register(workbench) {
-      executor.shutdown()
-      executor.awaitTermination(3, TimeUnit.SECONDS)
-    }
-    val model = InspectorModel(project, executor)
-    model.setProcessModel(processesModel)
+    val processesModel = createProcessesModel(
+      project,
+      workbench,
+      AppInspectionDiscoveryService.instance.apiServices.processDiscovery,
+      edtExecutor
+    )
+    val scheduledExecutor = createScheduledExecutor(workbench)
+    val model = InspectorModel(project, scheduledExecutor)
 
     processesModel.addSelectedProcessListeners {
       // Reset notification bar every time active process changes, since otherwise we might leave up stale notifications from an error
@@ -182,6 +183,15 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
       .subscribe(ToolWindowManagerListener.TOPIC, LayoutInspectorToolWindowManagerListener(project, toolWindow, deviceViewPanel, launcher))
   }
 
+  private fun createScheduledExecutor(disposable: Disposable): ScheduledExecutorService {
+    return Executors.newScheduledThreadPool(1).apply {
+      Disposer.register(disposable) {
+        shutdown()
+        awaitTermination(3, TimeUnit.SECONDS)
+      }
+    }
+  }
+
   private fun createForegroundProcessDetection(
     project: Project,
     processesModel: ProcessesModel,
@@ -203,11 +213,18 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
   }
 
   @VisibleForTesting
-  fun createProcessesModel(project: Project, processDiscovery: ProcessDiscovery, executor: Executor) = ProcessesModel(
-    executor = executor,
-    processDiscovery = processDiscovery,
-    isPreferred = { RecentProcess.isRecentProcess(it, project) }
-  )
+  fun createProcessesModel(
+    project: Project,
+    disposable: Disposable,
+    processDiscovery: ProcessDiscovery,
+    executor: Executor
+  ): ProcessesModel {
+    return ProcessesModel(
+      executor = executor,
+      processDiscovery = processDiscovery,
+      isPreferred = { RecentProcess.isRecentProcess(it, project) }
+    ).also { Disposer.register(disposable, it) }
+  }
 }
 
 /**

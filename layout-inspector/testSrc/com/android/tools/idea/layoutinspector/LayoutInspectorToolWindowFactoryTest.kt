@@ -195,7 +195,9 @@ class LayoutInspectorToolWindowFactoryTest {
   @Test
   fun testCreateProcessesModel() {
     val factory = LayoutInspectorToolWindowFactory()
-    val model = factory.createProcessesModel(inspectorRule.project, inspectorRule.processNotifier, MoreExecutors.directExecutor())
+    val model = factory.createProcessesModel(
+      inspectorRule.project, inspectorRule.disposable, inspectorRule.processNotifier, MoreExecutors.directExecutor()
+    )
     // Verify that devices older than M will be included in the processes model:
     inspectorRule.processNotifier.fireConnected(OLDER_LEGACY_PROCESS)
     assertThat(model.processes).hasSize(1)
