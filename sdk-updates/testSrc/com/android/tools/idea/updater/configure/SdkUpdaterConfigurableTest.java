@@ -147,8 +147,7 @@ public class SdkUpdaterConfigurableTest {
   public void getItemMessageForImage() {
     SysImgDetailsType detailsType = Mockito.mock(SysImgDetailsType.class);
     Mockito.when(detailsType.getAndroidVersion()).thenReturn(new AndroidVersion(30));
-    Mockito.when(detailsType.getPackageDisplayNameQualifier()).thenCallRealMethod();
-    Mockito.when(detailsType.getVersionTerm()).thenCallRealMethod();
+    Mockito.when(detailsType.getQualifierTemplate()).thenCallRealMethod();
 
     RemotePackage remotePackage = Mockito.mock(RemotePackage.class);
     Mockito.when(remotePackage.getDisplayName()).thenReturn("Test System Image");
@@ -162,8 +161,7 @@ public class SdkUpdaterConfigurableTest {
   @Test
   public void getItemMessageForTool() {
     ExtraDetailsType detailsType = Mockito.mock(ExtraDetailsType.class);
-    Mockito.when(detailsType.getPackageDisplayNameQualifier()).thenCallRealMethod();
-    Mockito.when(detailsType.getVersionTerm()).thenCallRealMethod();
+    Mockito.when(detailsType.getQualifierTemplate()).thenCallRealMethod();
 
     RemotePackage remotePackage = Mockito.mock(RemotePackage.class);
     Mockito.when(remotePackage.getDisplayName()).thenReturn("Test SDK Tool");
@@ -171,6 +169,6 @@ public class SdkUpdaterConfigurableTest {
     Mockito.when(remotePackage.getTypeDetails()).thenReturn(detailsType);
     Mockito.when(remotePackage.getDetailedDisplayName()).thenCallRealMethod();
 
-    assertEquals("Test SDK Tool (version 12)", SdkUpdaterConfigurable.getItemMessage(remotePackage));
+    assertEquals("Test SDK Tool v.12", SdkUpdaterConfigurable.getItemMessage(remotePackage));
   }
 }
