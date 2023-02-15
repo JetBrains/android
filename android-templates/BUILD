@@ -12,11 +12,13 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/base/common:studio.android.sdktools.common[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/jps-model:intellij.android.jps.model[module]",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
@@ -62,7 +64,7 @@ iml_module(
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system:gradle-distrib",
         "//tools/adt/idea/android/testData:projects",
-    ],
+    ] + glob(["testData/**"]),
     test_srcs = ["testSrc"],
     test_tags = [],
     test_timeout = "long",
@@ -96,6 +98,7 @@ iml_module(
         "//tools/adt/idea/android-templates:intellij.android.templates[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
+        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils[module, test]",
     ],
 )
 

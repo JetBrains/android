@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.module.recipes.androidProject
 import com.android.tools.idea.wizard.template.renderIf
 
 fun androidProjectGradleSettings(appTitle: String,
-                                 kotlinVersion: String,
                                  useGradleKts: Boolean): String {
   require(!appTitle.contains("\\")) { "Backslash should not be present in the application title" }
   return renderIf(appTitle.isNotBlank()) {

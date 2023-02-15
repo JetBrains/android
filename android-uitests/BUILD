@@ -1347,6 +1347,25 @@ java_test(
 )
 
 java_test(
+    name = "NewModuleWithVersionCatalogTest",
+    size = "large",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+    ] + glob([
+        "testData/SimpleAndroidxApplicationWithConventionalDefaultToml/**",
+    ]) + glob([
+        "testData/SimpleAndroidxApplicationVersionCatalogInBuildScript/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.versioncatalog.NewModuleWithVersionCatalogTest"],
+    tags = COMMON_TAGS + [
+        "ui_test",
+        "manual",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
     name = "CreateNewMobileProjectTest",
     size = "large",
     data = COMMON_DATA + [

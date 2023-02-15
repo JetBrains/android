@@ -94,6 +94,11 @@ public final class StudioFlags {
     NPW, "new.baseline.profiles.module", "New Baseline Profile Module",
     "Show template to create a new Baseline Profile module in the new module wizard.",
     true);
+
+  public static final Flag<Boolean> NPW_ENABLE_GRADLE_VERSION_CATALOG = Flag.create(
+    NPW, "enable.version.catalog", "Enable Gradle Version Catalog",
+    "Use Gradle Version Catalogs for dependencies added in the new project/module wizard. (when existing project already uses Version Catalogs for new modules)",
+    true);
   //endregion
 
   //region Memory Usage Reporting

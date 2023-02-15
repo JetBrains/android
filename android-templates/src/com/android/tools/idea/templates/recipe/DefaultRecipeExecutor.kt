@@ -48,6 +48,7 @@ import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
+import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -57,6 +58,7 @@ import com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMi
 import com.android.tools.idea.templates.TemplateUtils.hasExtension
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDisk
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
+import com.android.tools.idea.templates.determineVersionCatalogUseForNewModule
 import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
@@ -90,7 +92,10 @@ import com.android.tools.idea.templates.mergeXml as mergeXmlUtil
  *
  * Note: it tries to use [GradleBuildModel] for merging of Gradle files, but falls back on simple merging if it is unavailable.
  */
-class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecutor {
+class DefaultRecipeExecutor(
+  private val context: RenderingContext,
+  private val versionCatalogDetector: GradleVersionCatalogDetector = GradleVersionCatalogDetector.getInstance(
+    context.project)) : RecipeExecutor {
   private val project: Project get() = context.project
   private val referencesExecutor: FindReferencesRecipeExecutor = FindReferencesRecipeExecutor(context)
   private val io: RecipeIO = if (context.dryRun) DryRunRecipeIO() else RecipeIO()
@@ -100,7 +105,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   private val moduleTemplateData: ModuleTemplateData? get() = context.moduleTemplateData
   private val repositoryUrlManager: RepositoryUrlManager by lazy { RepositoryUrlManager.get() }
 
-  private val projectBuildModel: ProjectBuildModel? by lazy {
+  @VisibleForTesting
+  val projectBuildModel: ProjectBuildModel? by lazy {
     ProjectBuildModel.getOrLog(project)
       ?.also { it.context.agpVersion = AndroidGradlePluginVersion.parse(projectTemplateData.gradlePluginVersion) }
   }
@@ -112,6 +118,9 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       context.moduleRoot != null -> getBuildModel(findGradleBuildFile(context.moduleRoot), project, projectBuildModel)
       else -> null
     }
+  }
+  private val useVersionCatalog: Boolean by lazy {
+    determineVersionCatalogUseForNewModule(project, versionCatalogDetector)
   }
 
   override fun hasDependency(mavenCoordinate: String, moduleDir: File?): Boolean {
@@ -292,8 +301,16 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
         resolvedConfiguration = GRADLE_API_CONFIGURATION
     }
 
-    if (buildModel.getDependencyConfiguration(resolvedMavenCoordinate) == null) {
-      buildModel.dependencies().addArtifact(resolvedConfiguration, resolvedMavenCoordinate)
+    if (useVersionCatalog) {
+      val catalogModel = projectBuildModel?.versionCatalogsModel?.getVersionCatalogModel("libs")
+      val referenceToDepToAdd = addDependencyToVersionCatalog(catalogModel, resolvedMavenCoordinate)
+      if (buildModel.getDependencyConfiguration(resolvedMavenCoordinate) == null) {
+        buildModel.dependencies().addArtifact(resolvedConfiguration, referenceToDepToAdd)
+      }
+    } else {
+      if (buildModel.getDependencyConfiguration(resolvedMavenCoordinate) == null) {
+        buildModel.dependencies().addArtifact(resolvedConfiguration, resolvedMavenCoordinate)
+      }
     }
   }
 

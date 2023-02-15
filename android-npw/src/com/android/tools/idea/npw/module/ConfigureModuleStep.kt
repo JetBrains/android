@@ -55,6 +55,7 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep
 import com.android.tools.idea.sdk.wizard.LicenseAgreementModel
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
+import com.android.tools.idea.templates.determineVersionCatalogUseForNewModule
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguage
@@ -88,7 +89,10 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
   protected val bindings = BindingsManager()
   protected val listeners = ListenerManager()
   protected val agpVersion: OptionalValueProperty<AgpVersion> = OptionalValueProperty()
+  // Indicates if the existing project uses Version Catalogs
   private val versionCatalogUse: OptionalValueProperty<Boolean> = OptionalValueProperty()
+  // Indicates if the new dependencies for the new module will be managed by Version Catalogs
+  private val versionCatalogUseForNewModule: OptionalValueProperty<Boolean> = OptionalValueProperty()
   // If StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX is false, the Combobox for Build configuration language is not visible,
   // thus, build script is determined if the existing project has KTS usage
   private val buildConfigurationLanguage: OptionalValueProperty<BuildConfigurationLanguage> = OptionalValueProperty(
@@ -124,18 +128,24 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
       }, model.useGradleKts)
 
       registerValidator(versionCatalogUse, createValidator {
-        if (!StudioFlags.GRADLE_VERSION_CATALOG_NEW_MODULE_WARNING.get()) return@createValidator OK
-        if (it.isPresent && it.get()) Validator.Result(INFO, "New module will not use Version Catalog information") else OK
+        if (!StudioFlags.NPW_ENABLE_GRADLE_VERSION_CATALOG.get()) return@createValidator Validator.Result(INFO, message(
+          "android.wizard.module.will.not.use.version.catalog"))
+        if (it.isPresent && it.get() && !versionCatalogUseForNewModule.value) {
+          // Meaning existing project uses Version Catalogs, but new module's dependencies are not managed by Version Catalogs
+          Validator.Result(INFO, message("android.wizard.module.will.not.use.version.catalog"))
+        } else OK
       })
 
       AndroidCoroutineScope(this).launch(Dispatchers.IO) {
         val agpVersionValue = determineAgpVersion(model.project, false)
         val versionCatalogUseValue = determineVersionCatalogUse(model.project)
+        val versionCatalogUseForNewModuleValue = determineVersionCatalogUseForNewModule(model.project)
 
         // ValueProperty's need to be set on the UI thread.
         withContext(AndroidDispatchers.uiThread(ModalityState.any())) {
           agpVersion.value = agpVersionValue
           versionCatalogUse.value = versionCatalogUseValue
+          versionCatalogUseForNewModule.value = versionCatalogUseForNewModuleValue
         }
       }
 

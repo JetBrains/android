@@ -33,5 +33,6 @@
     <orderEntry type="module" module-name="intellij.android.templates" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.testutils" scope="TEST" />
   </component>
 </module>
