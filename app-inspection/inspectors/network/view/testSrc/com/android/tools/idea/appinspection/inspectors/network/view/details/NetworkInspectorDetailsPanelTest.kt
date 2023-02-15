@@ -38,6 +38,8 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import java.awt.Component
+import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
@@ -46,8 +48,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCommand
-import java.awt.Component
-import javax.swing.JPanel
 
 @RunsInEdt
 class NetworkInspectorDetailsPanelTest {
@@ -58,14 +58,11 @@ class NetworkInspectorDetailsPanelTest {
     override suspend fun interceptResponse(command: InterceptCommand) = Unit
   }
 
-  @get:Rule
-  val flagRule = FlagRule(StudioFlags.ENABLE_NETWORK_INTERCEPTION, true)
+  @get:Rule val flagRule = FlagRule(StudioFlags.ENABLE_NETWORK_INTERCEPTION, true)
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private lateinit var client: TestNetworkInspectorClient
   private lateinit var services: TestNetworkInspectorServices
@@ -82,15 +79,32 @@ class NetworkInspectorDetailsPanelTest {
     client = TestNetworkInspectorClient()
     services = TestNetworkInspectorServices(codeNavigationProvider, timer, client)
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
-    model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(), scope, object : HttpDataModel {
-      private val dataList = listOf(DEFAULT_DATA)
-      override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
-        return dataList.filter { it.requestStartTimeUs >= timeCurrentRangeUs.min && it.requestStartTimeUs <= timeCurrentRangeUs.max }
-      }
-    })
+    model =
+      NetworkInspectorModel(
+        services,
+        FakeNetworkInspectorDataSource(),
+        scope,
+        object : HttpDataModel {
+          private val dataList = listOf(DEFAULT_DATA)
+          override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
+            return dataList.filter {
+              it.requestStartTimeUs >= timeCurrentRangeUs.min &&
+                it.requestStartTimeUs <= timeCurrentRangeUs.max
+            }
+          }
+        }
+      )
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
-    inspectorView = NetworkInspectorView(projectRule.project, model, FakeUiComponentsProvider(), component, services, scope)
+    inspectorView =
+      NetworkInspectorView(
+        projectRule.project,
+        model,
+        FakeUiComponentsProvider(),
+        component,
+        services,
+        scope
+      )
     parentPanel.add(inspectorView.component)
     detailsPanel = inspectorView.detailsPanel
     disposable = Disposer.newDisposable()

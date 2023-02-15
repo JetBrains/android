@@ -22,8 +22,8 @@ import com.android.tools.app.inspection.AppInspection
  *
  * This normally refers to the maven/gradle coordinate of the artifact.
  *
- * [version] can optionally be '+' to match any version of the artifact, when used
- * in the context of compatibility checks.
+ * [version] can optionally be '+' to match any version of the artifact, when used in the context of
+ * compatibility checks.
  */
 data class ArtifactCoordinate(
   val groupId: String,
@@ -39,22 +39,19 @@ data class ArtifactCoordinate(
       override fun toString() = "aar"
     }
   }
-  /**
-   * The coordinate for this library, i.e. how it would appear in a Gradle dependencies block.
-   */
+  /** The coordinate for this library, i.e. how it would appear in a Gradle dependencies block. */
   override fun toString() = "${groupId}:${artifactId}:${version}"
 
-  /**
-   * Returns true if the artifacts are the same without checking the version.
-   */
+  /** Returns true if the artifacts are the same without checking the version. */
   fun sameArtifact(other: ArtifactCoordinate): Boolean =
     groupId == other.groupId && artifactId == other.artifactId
 
-  fun toArtifactCoordinateProto(): AppInspection.ArtifactCoordinate = AppInspection.ArtifactCoordinate.newBuilder()
-    .setGroupId(groupId)
-    .setArtifactId(artifactId)
-    .setVersion(version)
-    .build()
+  fun toArtifactCoordinateProto(): AppInspection.ArtifactCoordinate =
+    AppInspection.ArtifactCoordinate.newBuilder()
+      .setGroupId(groupId)
+      .setArtifactId(artifactId)
+      .setVersion(version)
+      .build()
 
   fun matchesAnyVersion() = version == "+"
 }

@@ -20,7 +20,6 @@ import com.android.tools.adtui.model.LineChartModel
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangedContinuousSeries
 import com.android.tools.adtui.model.StreamingTimeline
-import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.Executor
 
 class NetworkSpeedLineChartModel(
@@ -30,17 +29,23 @@ class NetworkSpeedLineChartModel(
 ) : LineChartModel(backgroundExecutor) {
   val trafficRange = Range(0.0, 4.0)
 
-  val rxSeries = RangedContinuousSeries(NetworkTrafficLabel.BYTES_RECEIVED.getLabel(false),
-                                        timeline.viewRange,
-                                        trafficRange,
-                                        createSeries(NetworkTrafficLabel.BYTES_RECEIVED),
-                                        timeline.dataRange)
+  val rxSeries =
+    RangedContinuousSeries(
+      NetworkTrafficLabel.BYTES_RECEIVED.getLabel(false),
+      timeline.viewRange,
+      trafficRange,
+      createSeries(NetworkTrafficLabel.BYTES_RECEIVED),
+      timeline.dataRange
+    )
 
-  val txSeries = RangedContinuousSeries(NetworkTrafficLabel.BYTES_SENT.getLabel(false),
-                                        timeline.viewRange,
-                                        trafficRange,
-                                        createSeries(NetworkTrafficLabel.BYTES_SENT),
-                                        timeline.dataRange)
+  val txSeries =
+    RangedContinuousSeries(
+      NetworkTrafficLabel.BYTES_SENT.getLabel(false),
+      timeline.viewRange,
+      trafficRange,
+      createSeries(NetworkTrafficLabel.BYTES_SENT),
+      timeline.dataRange
+    )
 
   init {
     add(rxSeries)
@@ -49,7 +54,8 @@ class NetworkSpeedLineChartModel(
 
   private fun createSeries(trafficType: NetworkTrafficLabel): DataSeries<Long> {
     return NetworkInspectorDataSeries(dataSource) { event ->
-      if (trafficType == NetworkTrafficLabel.BYTES_RECEIVED) event.speedEvent.rxSpeed else event.speedEvent.txSpeed
+      if (trafficType == NetworkTrafficLabel.BYTES_RECEIVED) event.speedEvent.rxSpeed
+      else event.speedEvent.txSpeed
     }
   }
 }

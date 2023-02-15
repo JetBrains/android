@@ -19,17 +19,14 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 
 /**
- * This file contains a collection of extension functions to [ArtifactCoordinate] that do not
- * belong in the class itself, because they are build system specific.
+ * This file contains a collection of extension functions to [ArtifactCoordinate] that do not belong
+ * in the class itself, because they are build system specific.
  */
 
-/**
- * The file name of the library when resolving against the blaze build system.
- */
+/** The file name of the library when resolving against the blaze build system. */
 val ArtifactCoordinate.blazeFileName: String
   get() = "library.${type}"
 
-/**
- * Converts an [ArtifactCoordinate] to a [GradleCoordinate].
- */
-fun ArtifactCoordinate.toGradleCoordinate(): GradleCoordinate = GradleCoordinate(groupId, artifactId, version)
+/** Converts an [ArtifactCoordinate] to a [GradleCoordinate]. */
+fun ArtifactCoordinate.toGradleCoordinate(): GradleCoordinate =
+  GradleCoordinate(groupId, artifactId, version)

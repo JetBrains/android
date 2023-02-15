@@ -22,8 +22,8 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entr
 typealias EntrySelectionListener = (BackgroundTaskEntry?) -> Unit
 
 /**
- * This class represents the status of current selected entry and dispatches events
- * to its listeners accordingly.
+ * This class represents the status of current selected entry and dispatches events to its listeners
+ * accordingly.
  */
 class EntrySelectionModel {
   var selectedEntry: BackgroundTaskEntry? = null
@@ -36,9 +36,7 @@ class EntrySelectionModel {
 
   private var listeners = mutableListOf<EntrySelectionListener>()
 
-  /**
-   * Registers a [EntrySelectionListener] for [selectedEntry] updates.
-   */
+  /** Registers a [EntrySelectionListener] for [selectedEntry] updates. */
   fun registerEntrySelectionListener(listener: EntrySelectionListener) {
     listeners.add(listener)
   }

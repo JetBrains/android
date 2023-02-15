@@ -56,15 +56,15 @@ import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import com.intellij.util.concurrency.EdtExecutorService
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
 import java.awt.Dimension
 import java.awt.Point
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import javax.swing.JProgressBar
 import javax.swing.JTable
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
 
 private const val COLUMN_DEFAULT_WIDTH = 75
 private const val AUTORESIZE_OFF_COLUMN_PREFERRED_WIDTH = 85
@@ -83,7 +83,13 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val mockPopUpMenu = mock(ActionPopupMenu::class.java)
     whenever(mockPopUpMenu.component).thenReturn(mock(JPopupMenu::class.java))
     mockActionManager = mock(ActionManager::class.java)
-    whenever(mockActionManager.createActionPopupMenu(any(String::class.java), any(ActionGroup::class.java))).thenReturn(mockPopUpMenu)
+    whenever(
+        mockActionManager.createActionPopupMenu(
+          any(String::class.java),
+          any(ActionGroup::class.java)
+        )
+      )
+      .thenReturn(mockPopUpMenu)
 
     IdeComponents(myFixture).replaceApplicationService(ActionManager::class.java, mockActionManager)
 
@@ -93,7 +99,8 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     fakeUi = FakeUi(component)
 
-    sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
+    sqliteUtil =
+      SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
     sqliteUtil.setUp()
   }
 
@@ -136,9 +143,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     val column = ResultSetSqliteColumn("name", SqliteAffinity.NUMERIC, false, false)
     val columns = mutableListOf<ResultSetSqliteColumn>()
-    repeat(600 / COLUMN_DEFAULT_WIDTH) {
-      columns.add(column)
-    }
+    repeat(600 / COLUMN_DEFAULT_WIDTH) { columns.add(column) }
 
     val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
     val jbScrollPane = TreeWalker(table).ancestors().filterIsInstance<JBScrollPane>().first()
@@ -186,7 +191,6 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     // Act
     view.setEditable(false)
 
-
     // Assert
     assertTrue(readOnlyLabel.isVisible)
     assertFalse(table.model.isCellEditable(0, 0))
@@ -203,7 +207,8 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     val col = ResultSetSqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rows = listOf(SqliteRow(listOf(SqliteColumnValue(col.name, SqliteValue.StringValue("val")))))
+    val rows =
+      listOf(SqliteRow(listOf(SqliteColumnValue(col.name, SqliteValue.StringValue("val")))))
 
     view.startTableLoading()
     view.showTableColumns(cols.toViewColumns())
@@ -305,10 +310,11 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     val col = ResultSetSqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rows = listOf(
-      SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))),
-      SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2"))))
-    )
+    val rows =
+      listOf(
+        SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))),
+        SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2"))))
+      )
 
     view.startTableLoading()
     view.showTableColumns(cols.toViewColumns())
@@ -342,7 +348,8 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     table.model.setValueAt("newValue", 0, 1)
 
     // Assert
-    verify(mockListener).updateCellInvoked(0, col.toViewColumn(), SqliteValue.StringValue("newValue"))
+    verify(mockListener)
+      .updateCellInvoked(0, col.toViewColumn(), SqliteValue.StringValue("newValue"))
   }
 
   fun testColumnsAreEditableExceptForFirst() {
@@ -392,10 +399,11 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     val col = ResultSetSqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rowsToAdd = listOf(
-      SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))),
-      SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2"))))
-    )
+    val rowsToAdd =
+      listOf(
+        SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))),
+        SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2"))))
+      )
 
     // Act
     view.startTableLoading()
@@ -405,8 +413,13 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     view.updateRows(
       listOf(
-        RowDiffOperation.UpdateCell(SqliteColumnValue("col", SqliteValue.StringValue("new val")), 0, 0),
-        RowDiffOperation.RemoveLastRows(1))
+        RowDiffOperation.UpdateCell(
+          SqliteColumnValue("col", SqliteValue.StringValue("new val")),
+          0,
+          0
+        ),
+        RowDiffOperation.RemoveLastRows(1)
+      )
     )
 
     // Assert
@@ -421,10 +434,11 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     val col = ResultSetSqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rowsToAdd = listOf(
-      SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))),
-      SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2"))))
-    )
+    val rowsToAdd =
+      listOf(
+        SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))),
+        SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2"))))
+      )
 
     // Act
     view.startTableLoading()
@@ -432,14 +446,31 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     view.updateRows(rowsToAdd.map { RowDiffOperation.AddRow(it) })
     view.stopTableLoading()
 
-    view.updateRows(listOf(RowDiffOperation.UpdateCell(SqliteColumnValue("col", SqliteValue.StringValue("new val")), 0, 0)))
+    view.updateRows(
+      listOf(
+        RowDiffOperation.UpdateCell(
+          SqliteColumnValue("col", SqliteValue.StringValue("new val")),
+          0,
+          0
+        )
+      )
+    )
 
     view.updateRows(
       listOf(
-        RowDiffOperation.UpdateCell(SqliteColumnValue("col", SqliteValue.StringValue("new val1")), 0, 0),
-        RowDiffOperation.AddRow(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("new val3"))))),
-        RowDiffOperation.AddRow(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("new val4")))))
-    ))
+        RowDiffOperation.UpdateCell(
+          SqliteColumnValue("col", SqliteValue.StringValue("new val1")),
+          0,
+          0
+        ),
+        RowDiffOperation.AddRow(
+          SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("new val3"))))
+        ),
+        RowDiffOperation.AddRow(
+          SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("new val4"))))
+        )
+      )
+    )
 
     // Assert
     assertEquals(4, table.model.rowCount)
@@ -448,13 +479,19 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
   fun testEditTableUsingPrimaryKey() {
     // Prepare
-    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
-      createStatement = "CREATE TABLE t1 (pk INT PRIMARY KEY, c1 INT)",
-      insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
-    )
-    realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
-    )
+    val customSqliteFile =
+      sqliteUtil.createAdHocSqliteDatabase(
+        createStatement = "CREATE TABLE t1 (pk INT PRIMARY KEY, c1 INT)",
+        insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
+      )
+    realDatabaseConnection =
+      pumpEventsAndWaitForFuture(
+        getJdbcDatabaseConnection(
+          testRootDisposable,
+          customSqliteFile,
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+        )
+      )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
     val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
     runDispatching {
@@ -464,19 +501,20 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val schema = pumpEventsAndWaitForFuture(realDatabaseConnection!!.readSchema())
     val sqliteTable = schema.tables.first()
 
-    val controller = TableController(
-      project,
-      10,
-      view,
-      databaseId,
-      { sqliteTable },
-      databaseRepository,
-      SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(sqliteTable)),
-      {},
-      {},
-      EdtExecutorService.getInstance(),
-      EdtExecutorService.getInstance()
-    )
+    val controller =
+      TableController(
+        project,
+        10,
+        view,
+        databaseId,
+        { sqliteTable },
+        databaseRepository,
+        SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(sqliteTable)),
+        {},
+        {},
+        EdtExecutorService.getInstance(),
+        EdtExecutorService.getInstance()
+      )
     Disposer.register(testRootDisposable, controller)
     pumpEventsAndWaitForFuture(controller.setUp())
 
@@ -487,9 +525,12 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     tableModel.setValueAt(0, 0, 2)
 
     // Assert
-    val resultSet = pumpEventsAndWaitForFuture(
-      realDatabaseConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
-    )
+    val resultSet =
+      pumpEventsAndWaitForFuture(
+        realDatabaseConnection!!.query(
+          SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
+        )
+      )
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
     assertSize(1, rows)
     assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
@@ -498,13 +539,19 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
   fun testEditTableUsingRowId() {
     // Prepare
-    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
-      createStatement = "CREATE TABLE t1 (c1 INT, c2 INT)",
-      insertStatement = "INSERT INTO t1 (c1, c2) VALUES (42, 1)"
-    )
-    realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
-    )
+    val customSqliteFile =
+      sqliteUtil.createAdHocSqliteDatabase(
+        createStatement = "CREATE TABLE t1 (c1 INT, c2 INT)",
+        insertStatement = "INSERT INTO t1 (c1, c2) VALUES (42, 1)"
+      )
+    realDatabaseConnection =
+      pumpEventsAndWaitForFuture(
+        getJdbcDatabaseConnection(
+          testRootDisposable,
+          customSqliteFile,
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+        )
+      )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
     val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
     runDispatching {
@@ -514,19 +561,20 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val schema = pumpEventsAndWaitForFuture(realDatabaseConnection!!.readSchema())
     val sqliteTable = schema.tables.first()
 
-    val controller = TableController(
-      project,
-      10,
-      view,
-      databaseId,
-      { sqliteTable },
-      databaseRepository,
-      SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(sqliteTable)),
-      {},
-      {},
-      EdtExecutorService.getInstance(),
-      EdtExecutorService.getInstance()
-    )
+    val controller =
+      TableController(
+        project,
+        10,
+        view,
+        databaseId,
+        { sqliteTable },
+        databaseRepository,
+        SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(sqliteTable)),
+        {},
+        {},
+        EdtExecutorService.getInstance(),
+        EdtExecutorService.getInstance()
+      )
     Disposer.register(testRootDisposable, controller)
     pumpEventsAndWaitForFuture(controller.setUp())
 
@@ -537,9 +585,12 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     tableModel.setValueAt(0, 0, 2)
 
     // Assert
-    val resultSet = pumpEventsAndWaitForFuture(
-      realDatabaseConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
-    )
+    val resultSet =
+      pumpEventsAndWaitForFuture(
+        realDatabaseConnection!!.query(
+          SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
+        )
+      )
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
     assertSize(1, rows)
     assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
@@ -548,13 +599,19 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
   fun testEditTableInsertString() {
     // Prepare
-    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
-      createStatement = "CREATE TABLE t1 (pk INT PRIMARY KEY, c1 INT)",
-      insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
-    )
-    realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
-    )
+    val customSqliteFile =
+      sqliteUtil.createAdHocSqliteDatabase(
+        createStatement = "CREATE TABLE t1 (pk INT PRIMARY KEY, c1 INT)",
+        insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
+      )
+    realDatabaseConnection =
+      pumpEventsAndWaitForFuture(
+        getJdbcDatabaseConnection(
+          testRootDisposable,
+          customSqliteFile,
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+        )
+      )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
     val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
     runDispatching {
@@ -564,19 +621,20 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val schema = pumpEventsAndWaitForFuture(realDatabaseConnection!!.readSchema())
     val sqliteTable = schema.tables.first()
 
-    val controller = TableController(
-      project,
-      10,
-      view,
-      databaseId,
-      { sqliteTable },
-      databaseRepository,
-      SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(sqliteTable)),
-      {},
-      {},
-      EdtExecutorService.getInstance(),
-      EdtExecutorService.getInstance()
-    )
+    val controller =
+      TableController(
+        project,
+        10,
+        view,
+        databaseId,
+        { sqliteTable },
+        databaseRepository,
+        SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(sqliteTable)),
+        {},
+        {},
+        EdtExecutorService.getInstance(),
+        EdtExecutorService.getInstance()
+      )
     Disposer.register(testRootDisposable, controller)
     pumpEventsAndWaitForFuture(controller.setUp())
 
@@ -587,9 +645,12 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     tableModel.setValueAt("foo", 0, 2)
 
     // Assert
-    val resultSet = pumpEventsAndWaitForFuture(
-      realDatabaseConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
-    )
+    val resultSet =
+      pumpEventsAndWaitForFuture(
+        realDatabaseConnection!!.query(
+          SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
+        )
+      )
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
     assertSize(1, rows)
     assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
@@ -598,13 +659,19 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
   fun testEditTableInsertNull() {
     // Prepare
-    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
-      createStatement = "CREATE TABLE t1 (pk INT PRIMARY KEY, c1 INT)",
-      insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
-    )
-    realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
-    )
+    val customSqliteFile =
+      sqliteUtil.createAdHocSqliteDatabase(
+        createStatement = "CREATE TABLE t1 (pk INT PRIMARY KEY, c1 INT)",
+        insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
+      )
+    realDatabaseConnection =
+      pumpEventsAndWaitForFuture(
+        getJdbcDatabaseConnection(
+          testRootDisposable,
+          customSqliteFile,
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+        )
+      )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
     val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
     runDispatching {
@@ -614,19 +681,20 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val schema = pumpEventsAndWaitForFuture(realDatabaseConnection!!.readSchema())
     val sqliteTable = schema.tables.first()
 
-    val controller = TableController(
-      project,
-      10,
-      view,
-      databaseId,
-      { sqliteTable },
-      databaseRepository,
-      SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(sqliteTable)),
-      {},
-      {},
-      EdtExecutorService.getInstance(),
-      EdtExecutorService.getInstance()
-    )
+    val controller =
+      TableController(
+        project,
+        10,
+        view,
+        databaseId,
+        { sqliteTable },
+        databaseRepository,
+        SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(sqliteTable)),
+        {},
+        {},
+        EdtExecutorService.getInstance(),
+        EdtExecutorService.getInstance()
+      )
     Disposer.register(testRootDisposable, controller)
     pumpEventsAndWaitForFuture(controller.setUp())
 
@@ -637,9 +705,12 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     tableModel.setValueAt(null, 0, 2)
 
     // Assert
-    val resultSet = pumpEventsAndWaitForFuture(
-      realDatabaseConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
-    )
+    val resultSet =
+      pumpEventsAndWaitForFuture(
+        realDatabaseConnection!!.query(
+          SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
+        )
+      )
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
     assertSize(1, rows)
     assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
@@ -653,16 +724,21 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val col1 = ResultSetSqliteColumn("col1", SqliteAffinity.INTEGER, false, false)
     val col2 = ResultSetSqliteColumn("col2", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col1, col2)
-    val rows = listOf(
-      SqliteRow(listOf(
-        SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
-        SqliteColumnValue("col2", SqliteValue.StringValue("val2"))
-      )),
-      SqliteRow(listOf(
-        SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
-        SqliteColumnValue("col2", SqliteValue.StringValue("val4"))
-      ))
-    )
+    val rows =
+      listOf(
+        SqliteRow(
+          listOf(
+            SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
+            SqliteColumnValue("col2", SqliteValue.StringValue("val2"))
+          )
+        ),
+        SqliteRow(
+          listOf(
+            SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
+            SqliteColumnValue("col2", SqliteValue.StringValue("val4"))
+          )
+        )
+      )
 
     view.startTableLoading()
     view.showTableColumns(cols.toViewColumns())
@@ -693,16 +769,21 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val col1 = ResultSetSqliteColumn("col1", SqliteAffinity.INTEGER, false, false)
     val col2 = ResultSetSqliteColumn("col2", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col1, col2)
-    val rows = listOf(
-      SqliteRow(listOf(
-        SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
-        SqliteColumnValue("col2", SqliteValue.StringValue("val2"))
-      )),
-      SqliteRow(listOf(
-        SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
-        SqliteColumnValue("col2", SqliteValue.StringValue("val4"))
-      ))
-    )
+    val rows =
+      listOf(
+        SqliteRow(
+          listOf(
+            SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
+            SqliteColumnValue("col2", SqliteValue.StringValue("val2"))
+          )
+        ),
+        SqliteRow(
+          listOf(
+            SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
+            SqliteColumnValue("col2", SqliteValue.StringValue("val4"))
+          )
+        )
+      )
 
     view.startTableLoading()
     view.showTableColumns(cols.toViewColumns())
@@ -720,7 +801,8 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(mockActionManager).createActionPopupMenu(any(String::class.java), any(ActionGroup::class.java))
+    verify(mockActionManager)
+      .createActionPopupMenu(any(String::class.java), any(ActionGroup::class.java))
   }
 
   fun testRightClickOutsideOfTableRows() {
@@ -730,16 +812,21 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val col1 = ResultSetSqliteColumn("col1", SqliteAffinity.INTEGER, false, false)
     val col2 = ResultSetSqliteColumn("col2", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col1, col2)
-    val rows = listOf(
-      SqliteRow(listOf(
-        SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
-        SqliteColumnValue("col2", SqliteValue.StringValue("val2"))
-      )),
-      SqliteRow(listOf(
-        SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
-        SqliteColumnValue("col2", SqliteValue.StringValue("val4"))
-      ))
-    )
+    val rows =
+      listOf(
+        SqliteRow(
+          listOf(
+            SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
+            SqliteColumnValue("col2", SqliteValue.StringValue("val2"))
+          )
+        ),
+        SqliteRow(
+          listOf(
+            SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
+            SqliteColumnValue("col2", SqliteValue.StringValue("val4"))
+          )
+        )
+      )
 
     view.startTableLoading()
     view.showTableColumns(cols.toViewColumns())
@@ -802,7 +889,8 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
   }
 
   fun testProgressBarIsHiddenByDefault() {
-    val progressBar = TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
+    val progressBar =
+      TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
     assertFalse(progressBar.isVisible)
   }
 
@@ -812,7 +900,8 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Assert
     val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
-    val progressBar = TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
+    val progressBar =
+      TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
 
     assertEquals(table.emptyText.text, "Waiting for data...")
     assertTrue(table.isVisible)
@@ -829,7 +918,8 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Assert
     val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
-    val progressBar = TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
+    val progressBar =
+      TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
 
     assertEquals(table.emptyText.text, "Table is empty")
     assertTrue(table.isVisible)
@@ -839,32 +929,39 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
   fun testDisposeWhileLoadingDoesntThrow() {
     // Prepare
-    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
-      createStatement = "CREATE TABLE t1 (pk INT PRIMARY KEY, c1 INT)",
-      insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
-    )
-    realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
-    )
+    val customSqliteFile =
+      sqliteUtil.createAdHocSqliteDatabase(
+        createStatement = "CREATE TABLE t1 (pk INT PRIMARY KEY, c1 INT)",
+        insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
+      )
+    realDatabaseConnection =
+      pumpEventsAndWaitForFuture(
+        getJdbcDatabaseConnection(
+          testRootDisposable,
+          customSqliteFile,
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+        )
+      )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
     val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
     }
 
-    val controller = TableController(
-      project,
-      10,
-      view,
-      databaseId,
-      { SqliteTable("tab", emptyList(), null, false) },
-      databaseRepository,
-      SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"),
-      {},
-      {},
-      EdtExecutorService.getInstance(),
-      EdtExecutorService.getInstance()
-    )
+    val controller =
+      TableController(
+        project,
+        10,
+        view,
+        databaseId,
+        { SqliteTable("tab", emptyList(), null, false) },
+        databaseRepository,
+        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"),
+        {},
+        {},
+        EdtExecutorService.getInstance(),
+        EdtExecutorService.getInstance()
+      )
     Disposer.register(testRootDisposable, controller)
     pumpEventsAndWaitForFuture(controller.setUp())
 
@@ -876,9 +973,12 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
   fun testButtonsAreDisabledBeforeAndWhileLoading() {
     // Prepare
-    val pageSizeComboBox = TreeWalker(view.component).descendants().first { it.name == "page-size-combo-box" }
-    val refreshButton = TreeWalker(view.component).descendants().first { it.name == "refresh-button" }
-    val liveUpdatesCheckBox = TreeWalker(view.component).descendants().first { it.name == "live-updates-checkbox" }
+    val pageSizeComboBox =
+      TreeWalker(view.component).descendants().first { it.name == "page-size-combo-box" }
+    val refreshButton =
+      TreeWalker(view.component).descendants().first { it.name == "refresh-button" }
+    val liveUpdatesCheckBox =
+      TreeWalker(view.component).descendants().first { it.name == "live-updates-checkbox" }
 
     // Assert
     assertFalse(pageSizeComboBox.isEnabled)
@@ -924,7 +1024,8 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     table.model.setValueAt("val1", 0, 1)
 
     // Assert
-    verify(mockListener, times(0)).updateCellInvoked(0, col.toViewColumn(), SqliteValue.StringValue("val1"))
+    verify(mockListener, times(0))
+      .updateCellInvoked(0, col.toViewColumn(), SqliteValue.StringValue("val1"))
   }
 
   fun testRevertLastTableCellEdit() {
@@ -933,7 +1034,13 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
 
     view.showTableColumns(listOf(ViewColumn("c1", false, false)))
-    view.updateRows(listOf(RowDiffOperation.AddRow(SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny("value")))))))
+    view.updateRows(
+      listOf(
+        RowDiffOperation.AddRow(
+          SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny("value"))))
+        )
+      )
+    )
     view.setEditable(true)
 
     // Act
@@ -966,7 +1073,13 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
 
     view.showTableColumns(listOf(ViewColumn("c1", false, false)))
-    view.updateRows(listOf(RowDiffOperation.AddRow(SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny("value")))))))
+    view.updateRows(
+      listOf(
+        RowDiffOperation.AddRow(
+          SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny("value"))))
+        )
+      )
+    )
     view.setEditable(true)
 
     // Act
@@ -984,7 +1097,8 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
   fun testDisabledLiveUpdates() {
     // Prepare
-    val liveUpdatesCheckBox = TreeWalker(view.component).descendants().first { it.name == "live-updates-checkbox" }
+    val liveUpdatesCheckBox =
+      TreeWalker(view.component).descendants().first { it.name == "live-updates-checkbox" }
 
     // Assert
     assertFalse(liveUpdatesCheckBox.isEnabled)

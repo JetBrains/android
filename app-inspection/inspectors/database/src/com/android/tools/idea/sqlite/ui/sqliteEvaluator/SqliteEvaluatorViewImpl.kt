@@ -65,15 +65,15 @@ import javax.swing.JPanel
 import javax.swing.KeyStroke
 import javax.swing.LayoutFocusTraversalPolicy
 
-/**
- * @see SqliteEvaluatorView
- */
+/** @see SqliteEvaluatorView */
 class SqliteEvaluatorViewImpl(
   override val project: Project,
   override val tableView: TableView,
   private val schemaProvider: SchemaProvider,
   private val dropPsiCaches: () -> Unit = {
-    ApplicationManager.getApplication().invokeLaterOnWriteThread { PsiManager.getInstance(project).dropPsiCaches() }
+    ApplicationManager.getApplication().invokeLaterOnWriteThread {
+      PsiManager.getInstance(project).dropPsiCaches()
+    }
   }
 ) : SqliteEvaluatorView {
 
@@ -82,11 +82,13 @@ class SqliteEvaluatorViewImpl(
   override val component: JComponent = splitterPanel
 
   private val databaseComboBox = ComboBox<SqliteDatabaseId>()
-  private val editorTextField = EditorTextFieldProvider.getInstance().getEditorField(
-    AndroidSqlLanguage.INSTANCE,
-    project,
-    listOf(EditorCustomization { editor -> editor.setBorder(JBUI.Borders.empty()) })
-  )
+  private val editorTextField =
+    EditorTextFieldProvider.getInstance()
+      .getEditorField(
+        AndroidSqlLanguage.INSTANCE,
+        project,
+        listOf(EditorCustomization { editor -> editor.setBorder(JBUI.Borders.empty()) })
+      )
 
   private val listeners = ArrayList<SqliteEvaluatorView.Listener>()
 
@@ -105,7 +107,8 @@ class SqliteEvaluatorViewImpl(
     topPanel.add(editorTextField, BorderLayout.CENTER)
     topPanel.add(controlsPanel, BorderLayout.SOUTH)
 
-    // Override the splitter's custom traversal policy back to the default, because the custom policy prevents from tabbing
+    // Override the splitter's custom traversal policy back to the default, because the custom
+    // policy prevents from tabbing
     // across the components.
     splitterPanel.apply {
       focusTraversalPolicy = LayoutFocusTraversalPolicy()
@@ -131,35 +134,37 @@ class SqliteEvaluatorViewImpl(
     databaseComboBox.apply {
       addActionListener {
         setSchemaFromSelectedItem()
-        val sqliteDatabaseId = databaseComboBox.selectedItem as? SqliteDatabaseId ?: return@addActionListener
+        val sqliteDatabaseId =
+          databaseComboBox.selectedItem as? SqliteDatabaseId ?: return@addActionListener
 
-        listeners.forEach {
-          it.onDatabaseSelected(sqliteDatabaseId)
-        }
+        listeners.forEach { it.onDatabaseSelected(sqliteDatabaseId) }
       }
 
       setMinimumAndPreferredWidth(JBUI.scale(300))
       maximumSize = JBUI.size(300, databaseComboBox.preferredSize.height)
-      renderer = object : ColoredListCellRenderer<SqliteDatabaseId?>() {
-        override fun customizeCellRenderer(
-          list: JList<out SqliteDatabaseId?>,
-          sqliteDatabase: SqliteDatabaseId?,
-          index: Int,
-          selected: Boolean,
-          hasFocus: Boolean
-        ) {
-          if (sqliteDatabase != null) {
-            icon = when (sqliteDatabase) {
-              is SqliteDatabaseId.LiveSqliteDatabaseId -> StudioIcons.DatabaseInspector.DATABASE
-              is SqliteDatabaseId.FileSqliteDatabaseId -> StudioIcons.DatabaseInspector.DATABASE_OFFLINE
+      renderer =
+        object : ColoredListCellRenderer<SqliteDatabaseId?>() {
+          override fun customizeCellRenderer(
+            list: JList<out SqliteDatabaseId?>,
+            sqliteDatabase: SqliteDatabaseId?,
+            index: Int,
+            selected: Boolean,
+            hasFocus: Boolean
+          ) {
+            if (sqliteDatabase != null) {
+              icon =
+                when (sqliteDatabase) {
+                  is SqliteDatabaseId.LiveSqliteDatabaseId -> StudioIcons.DatabaseInspector.DATABASE
+                  is SqliteDatabaseId.FileSqliteDatabaseId ->
+                    StudioIcons.DatabaseInspector.DATABASE_OFFLINE
+                }
+              append(sqliteDatabase.name)
+            } else {
+              icon = null
+              append(DatabaseInspectorBundle.message("no.databases.available"))
             }
-            append(sqliteDatabase.name)
-          } else {
-            icon = null
-            append(DatabaseInspectorBundle.message("no.databases.available"))
           }
         }
-      }
     }
 
     queryHistoryButton.apply {
@@ -178,9 +183,14 @@ class SqliteEvaluatorViewImpl(
     val active = KeymapManager.getInstance().activeKeymap
     // Re-use existing shortcut, see platform/platform-resources/src/keymaps/$default.xml
     val shortcutsMultiline = active.getShortcuts("Console.Execute.Multiline")
-    val keyStrokeMultiline = KeymapUtil.getKeyStroke(CustomShortcutSet(*shortcutsMultiline)) ?:
-                             KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, Toolkit.getDefaultToolkit().menuShortcutKeyMask)
-    val shortcutText = KeymapUtil.getFirstKeyboardShortcutText(CustomShortcutSet(keyStrokeMultiline))
+    val keyStrokeMultiline =
+      KeymapUtil.getKeyStroke(CustomShortcutSet(*shortcutsMultiline))
+        ?: KeyStroke.getKeyStroke(
+          KeyEvent.VK_ENTER,
+          Toolkit.getDefaultToolkit().menuShortcutKeyMask
+        )
+    val shortcutText =
+      KeymapUtil.getFirstKeyboardShortcutText(CustomShortcutSet(keyStrokeMultiline))
 
     runButton.apply {
       toolTipText = "Run SQLite expression ($shortcutText)"
@@ -195,9 +205,8 @@ class SqliteEvaluatorViewImpl(
       name = "editor"
       setPlaceholder("Enter query...")
 
-      DumbAwareAction.create {
-        evaluateSqliteExpression()
-      }.registerCustomShortcutSet(CustomShortcutSet(keyStrokeMultiline), editorTextField)
+      DumbAwareAction.create { evaluateSqliteExpression() }
+        .registerCustomShortcutSet(CustomShortcutSet(keyStrokeMultiline), editorTextField)
 
       document.addDocumentListener(
         object : DocumentListener {
@@ -210,8 +219,10 @@ class SqliteEvaluatorViewImpl(
   }
 
   override fun schemaChanged(databaseId: SqliteDatabaseId) {
-    // A fresh schema is taken from the schema provider each time the selected db changes in the combo box.
-    // Therefore the only case we need to worry about is when the schema that changed belongs to the currently selected db.
+    // A fresh schema is taken from the schema provider each time the selected db changes in the
+    // combo box.
+    // Therefore the only case we need to worry about is when the schema that changed belongs to the
+    // currently selected db.
     if ((databaseComboBox.selectedItem as SqliteDatabaseId) == databaseId) {
       setSchemaFromSelectedItem()
     }
@@ -225,9 +236,7 @@ class SqliteEvaluatorViewImpl(
   private fun evaluateSqliteExpression() {
     if (!evaluateSqliteStatementEnabled) return
 
-    listeners.forEach {
-      it.evaluateCurrentStatement()
-    }
+    listeners.forEach { it.evaluateCurrentStatement() }
   }
 
   private fun setSchemaFromSelectedItem() {
@@ -236,9 +245,12 @@ class SqliteEvaluatorViewImpl(
     val schema = schemaProvider.getSchema(database)
 
     val fileDocumentManager = FileDocumentManager.getInstance()
-    fileDocumentManager.getFile(editorTextField.document)?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
+    fileDocumentManager
+      .getFile(editorTextField.document)
+      ?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
 
-    // since the schema has changed we need to drop psi caches to re-run reference resolution and highlighting in the editor text field.
+    // since the schema has changed we need to drop psi caches to re-run reference resolution and
+    // highlighting in the editor text field.
     dropPsiCaches()
   }
 
@@ -249,7 +261,8 @@ class SqliteEvaluatorViewImpl(
       databaseComboBox.addItem(database)
     }
 
-    // Avoid setting the item if it's already selected, so we don't trigger the action listener for no reason.
+    // Avoid setting the item if it's already selected, so we don't trigger the action listener for
+    // no reason.
     if (databaseComboBox.selectedItem != selected) {
       databaseComboBox.selectedItem = selected
     }
@@ -277,12 +290,10 @@ class SqliteEvaluatorViewImpl(
 
   override fun showMessagePanel(message: String) {
     val chunks = mutableListOf<Chunk>()
-    message
-      .split("\n")
-      .forEach {
-        chunks.add(TextChunk(it))
-        chunks.add(NewLineChunk)
-      }
+    message.split("\n").forEach {
+      chunks.add(TextChunk(it))
+      chunks.add(NewLineChunk)
+    }
 
     val enterOfflineModePanel = EmptyStatePanel(LabelData(*chunks.dropLast(1).toTypedArray()))
     enterOfflineModePanel.name = "message-panel"

@@ -24,43 +24,62 @@ import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordin
 import com.android.tools.idea.appinspection.inspector.api.service.TestFileService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import kotlinx.coroutines.runBlocking
-import org.junit.Rule
-import org.junit.Test
 import java.io.InputStream
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlinx.coroutines.runBlocking
+import org.junit.Rule
+import org.junit.Test
 
 class HttpArtifactResolverTest {
 
-  @get:Rule
-  val androidProjectRule = AndroidProjectRule.inMemory()
+  @get:Rule val androidProjectRule = AndroidProjectRule.inMemory()
 
-  private val testData = resolveWorkspacePath("tools/adt/idea/app-inspection/ide/testData/libraries")
+  private val testData =
+    resolveWorkspacePath("tools/adt/idea/app-inspection/ide/testData/libraries")
 
-  private val fakeDownloader = object : Downloader {
-    override fun downloadAndStream(url: URL, indicator: ProgressIndicator): InputStream? = null
-    override fun downloadFully(url: URL, indicator: ProgressIndicator): Path? = null
-    override fun downloadFully(url: URL, target: Path, checksum: Checksum?, indicator: ProgressIndicator) {}
-    override fun setDownloadIntermediatesLocation(intermediatesLocation: Path) {}
+  private val fakeDownloader =
+    object : Downloader {
+      override fun downloadAndStream(url: URL, indicator: ProgressIndicator): InputStream? = null
+      override fun downloadFully(url: URL, indicator: ProgressIndicator): Path? = null
+      override fun downloadFully(
+        url: URL,
+        target: Path,
+        checksum: Checksum?,
+        indicator: ProgressIndicator
+      ) {}
+      override fun setDownloadIntermediatesLocation(intermediatesLocation: Path) {}
 
-    override fun downloadFullyWithCaching(url: URL, target: Path, checksum: Checksum?, indicator: ProgressIndicator) {
-      // Fake download by resolving the URL against the local testData directory.
-      val srcFile = testData.resolve(url.path.substringAfter('/'))
-      Files.copy(srcFile, target)
+      override fun downloadFullyWithCaching(
+        url: URL,
+        target: Path,
+        checksum: Checksum?,
+        indicator: ProgressIndicator
+      ) {
+        // Fake download by resolving the URL against the local testData directory.
+        val srcFile = testData.resolve(url.path.substringAfter('/'))
+        Files.copy(srcFile, target)
+      }
     }
-  }
 
   @Test
-  fun downloadAndCacheArtifact() = runBlocking<Unit> {
-    val fileService = TestFileService()
+  fun downloadAndCacheArtifact() =
+    runBlocking<Unit> {
+      val fileService = TestFileService()
 
-    val resolver = HttpArtifactResolver(fileService, AppInspectorArtifactPaths(fileService), fakeDownloader)
-    val request = ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01", ArtifactCoordinate.Type.AAR)
-    val jar = resolver.resolveArtifact(request)
+      val resolver =
+        HttpArtifactResolver(fileService, AppInspectorArtifactPaths(fileService), fakeDownloader)
+      val request =
+        ArtifactCoordinate(
+          "androidx.work",
+          "work-runtime",
+          "2.5.0-beta01",
+          ArtifactCoordinate.Type.AAR
+        )
+      val jar = resolver.resolveArtifact(request)
 
-    assertThat(jar).isNotNull()
-    assertThat(jar.fileName.toString()).isEqualTo("inspector.jar")
-  }
+      assertThat(jar).isNotNull()
+      assertThat(jar.fileName.toString()).isEqualTo("inspector.jar")
+    }
 }

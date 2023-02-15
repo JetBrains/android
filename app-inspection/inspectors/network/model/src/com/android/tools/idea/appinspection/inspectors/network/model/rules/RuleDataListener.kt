@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.model.rules
 
-/**
- * RuleDataListener defines the interface for an object that listens
- * to changes in a [RuleData].
- */
+/** RuleDataListener defines the interface for an object that listens to changes in a [RuleData]. */
 interface RuleDataListener {
   fun onRuleNameChanged(ruleData: RuleData)
   fun onRuleIsActiveChanged(ruleData: RuleData)

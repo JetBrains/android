@@ -42,6 +42,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.EdtExecutorService
+import java.util.concurrent.Executor
+import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.guava.await
@@ -50,86 +52,68 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.ide.PooledThreadExecutor
-import java.util.concurrent.Executor
-import javax.swing.JComponent
 
-/**
- * Intellij Project Service that holds the reference to the [DatabaseInspectorControllerImpl].
- */
+/** Intellij Project Service that holds the reference to the [DatabaseInspectorControllerImpl]. */
 interface DatabaseInspectorProjectService {
   companion object {
-    @JvmStatic fun getInstance(project: Project): DatabaseInspectorProjectService {
+    @JvmStatic
+    fun getInstance(project: Project): DatabaseInspectorProjectService {
       return project.getService(DatabaseInspectorProjectService::class.java)
     }
   }
 
-  /**
-   * [JComponent] that contains the view of the Database Inspector.
-   */
+  /** [JComponent] that contains the view of the Database Inspector. */
   val sqliteInspectorComponent: JComponent
 
-  /**
-   * The base coroutine scope for this [DatabaseInspectorProjectService].
-   */
+  /** The base coroutine scope for this [DatabaseInspectorProjectService]. */
   val projectScope: CoroutineScope
 
   /**
-   * Opens a connection to the database contained in the file passed as argument. The database is then shown in the Database Inspector.
+   * Opens a connection to the database contained in the file passed as argument. The database is
+   * then shown in the Database Inspector.
    */
-  @AnyThread
-  fun openSqliteDatabase(databaseFileData: DatabaseFileData): ListenableFuture<Unit>
+  @AnyThread fun openSqliteDatabase(databaseFileData: DatabaseFileData): ListenableFuture<Unit>
 
-  /**
-   * Shows the given database in the inspector
-   */
+  /** Shows the given database in the inspector */
   @AnyThread
-  fun openSqliteDatabase(databaseId: SqliteDatabaseId, databaseConnection: LiveDatabaseConnection) : ListenableFuture<Unit>
+  fun openSqliteDatabase(
+    databaseId: SqliteDatabaseId,
+    databaseConnection: LiveDatabaseConnection
+  ): ListenableFuture<Unit>
 
-  /**
-   * Runs the query passed as argument in the Sqlite Inspector.
-   */
-  @UiThread
-  fun runSqliteStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement)
+  /** Runs the query passed as argument in the Sqlite Inspector. */
+  @UiThread fun runSqliteStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement)
 
-  /**
-   * Returns true if the Sqlite Inspector has an open database, false otherwise.
-   */
-  @AnyThread
-  fun hasOpenDatabase(): Boolean
+  /** Returns true if the Sqlite Inspector has an open database, false otherwise. */
+  @AnyThread fun hasOpenDatabase(): Boolean
 
-  /**
-   * Returns a list of the currently open databases.
-   */
-  @AnyThread
-  fun getOpenDatabases(): List<SqliteDatabaseId>
+  /** Returns a list of the currently open databases. */
+  @AnyThread fun getOpenDatabases(): List<SqliteDatabaseId>
 
   /**
    * Shows the error in the Database Inspector.
    *
-   * This method is used to handle asynchronous errors from the on-device inspector.
-   * An on-device inspector can send an error as a response to a command (synchronous) or as an event (asynchronous).
-   * When detected, synchronous errors are thrown as exceptions so that they become part of the usual flow for errors:
-   * they cause the futures to fail and are shown in the views.
+   * This method is used to handle asynchronous errors from the on-device inspector. An on-device
+   * inspector can send an error as a response to a command (synchronous) or as an event
+   * (asynchronous). When detected, synchronous errors are thrown as exceptions so that they become
+   * part of the usual flow for errors: they cause the futures to fail and are shown in the views.
    * Asynchronous errors are delivered to this method that takes care of showing them.
    */
-  @AnyThread
-  fun handleError(message: String, throwable: Throwable?)
+  @AnyThread fun handleError(message: String, throwable: Throwable?)
 
   /**
-   * Called when a `DatabasePossiblyChanged` event is received from the on-device inspector.
-   * Which tells us that the data in a database might have changed (schema, tables or both).
+   * Called when a `DatabasePossiblyChanged` event is received from the on-device inspector. Which
+   * tells us that the data in a database might have changed (schema, tables or both).
    */
-  @AnyThread
-  fun databasePossiblyChanged()
+  @AnyThread fun databasePossiblyChanged()
 
   /**
-   * IDE services useful for interacting with the app inspection tool window that contains the Database Inspector.
+   * IDE services useful for interacting with the app inspection tool window that contains the
+   * Database Inspector.
    */
   fun getIdeServices(): AppInspectionIdeServices?
 
-  /**
-   * Called when Database Inspector is connected to new process.
-   */
+  /** Called when Database Inspector is connected to new process. */
   @UiThread
   suspend fun startAppInspectionSession(
     databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel,
@@ -138,44 +122,56 @@ interface DatabaseInspectorProjectService {
   )
 
   /**
-   * Called when Database Inspector is disconnected from app,
-   * takes as argument the [ProcessDescriptor] of the process that has been disconnected.
+   * Called when Database Inspector is disconnected from app, takes as argument the
+   * [ProcessDescriptor] of the process that has been disconnected.
    */
-  @UiThread
-  suspend fun stopAppInspectionSession(processDescriptor: ProcessDescriptor)
+  @UiThread suspend fun stopAppInspectionSession(processDescriptor: ProcessDescriptor)
 
-  @UiThread
-  fun handleDatabaseClosed(databaseId: SqliteDatabaseId)
+  @UiThread fun handleDatabaseClosed(databaseId: SqliteDatabaseId)
 }
 
-class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
+class DatabaseInspectorProjectServiceImpl
+@NonInjectable
+@TestOnly
+constructor(
   private val project: Project,
   private val edtExecutor: Executor = EdtExecutorService.getInstance(),
   private val taskExecutor: Executor = PooledThreadExecutor.INSTANCE,
-  private val databaseRepository: DatabaseRepository = DatabaseRepositoryImpl(project, taskExecutor),
+  private val databaseRepository: DatabaseRepository =
+    DatabaseRepositoryImpl(project, taskExecutor),
   private val viewFactory: DatabaseInspectorViewsFactory = DatabaseInspectorViewsFactoryImpl(),
-  private val fileDatabaseManager: FileDatabaseManager = FileDatabaseManagerImpl(project, edtExecutor.asCoroutineDispatcher()),
-  private val offlineModeManager: OfflineModeManager = OfflineModeManagerImpl(project, fileDatabaseManager, edtExecutor.asCoroutineDispatcher()),
+  private val fileDatabaseManager: FileDatabaseManager =
+    FileDatabaseManagerImpl(project, edtExecutor.asCoroutineDispatcher()),
+  private val offlineModeManager: OfflineModeManager =
+    OfflineModeManagerImpl(project, fileDatabaseManager, edtExecutor.asCoroutineDispatcher()),
   private val model: DatabaseInspectorModel = DatabaseInspectorModelImpl(),
-  private val createController: (DatabaseInspectorModel, DatabaseRepository, FileDatabaseManager, OfflineModeManager) -> DatabaseInspectorController =
+  private val createController:
+    (
+      DatabaseInspectorModel,
+      DatabaseRepository,
+      FileDatabaseManager,
+      OfflineModeManager) -> DatabaseInspectorController =
     { myModel, myRepository, myFileDatabaseManager, myOfflineModeManager ->
       DatabaseInspectorControllerImpl(
-        project,
-        myModel,
-        myRepository,
-        viewFactory,
-        myFileDatabaseManager,
-        myOfflineModeManager,
-        edtExecutor,
-        taskExecutor
-      ).also {
-        it.setUp()
-        Disposer.register(project, it)
-      }
+          project,
+          myModel,
+          myRepository,
+          viewFactory,
+          myFileDatabaseManager,
+          myOfflineModeManager,
+          edtExecutor,
+          taskExecutor
+        )
+        .also {
+          it.setUp()
+          Disposer.register(project, it)
+        }
     }
 ) : DatabaseInspectorProjectService {
 
-  constructor(project: Project) : this (
+  constructor(
+    project: Project
+  ) : this(
     project = project,
     edtExecutor = EdtExecutorService.getInstance(),
     taskExecutor = PooledThreadExecutor.INSTANCE,
@@ -188,12 +184,15 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
   private var appPackageName: String? = null
 
-  private val databaseInspectorAnalyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
+  private val databaseInspectorAnalyticsTracker =
+    DatabaseInspectorAnalyticsTracker.getInstance(project)
 
-  private val controller: DatabaseInspectorController by lazy @UiThread {
-    ApplicationManager.getApplication().assertIsDispatchThread()
-    createController(model, databaseRepository, fileDatabaseManager, offlineModeManager)
-  }
+  private val controller: DatabaseInspectorController by
+    lazy @UiThread
+    {
+      ApplicationManager.getApplication().assertIsDispatchThread()
+      createController(model, databaseRepository, fileDatabaseManager, offlineModeManager)
+    }
 
   private var ideServices: AppInspectionIdeServices? = null
 
@@ -201,58 +200,74 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     @UiThread get() = controller.component
 
   @AnyThread
-  override fun openSqliteDatabase(
-    databaseFileData: DatabaseFileData
-  ): ListenableFuture<Unit> = projectScope.future {
-    val databaseId = try {
-      val databaseConnection = openJdbcDatabaseConnection(project, databaseFileData.mainFile, taskExecutor, workerDispatcher)
-      SqliteDatabaseId.fromFileDatabase(databaseFileData).also {
-        databaseRepository.addDatabaseConnection(it, databaseConnection)
-      }
-    }
-    catch (e: Exception) {
-      handleError("Error opening database from '${databaseFileData.mainFile.path}'", e)
-      throw e
-    }
+  override fun openSqliteDatabase(databaseFileData: DatabaseFileData): ListenableFuture<Unit> =
+    projectScope.future {
+      val databaseId =
+        try {
+          val databaseConnection =
+            openJdbcDatabaseConnection(
+              project,
+              databaseFileData.mainFile,
+              taskExecutor,
+              workerDispatcher
+            )
+          SqliteDatabaseId.fromFileDatabase(databaseFileData).also {
+            databaseRepository.addDatabaseConnection(it, databaseConnection)
+          }
+        } catch (e: Exception) {
+          handleError("Error opening database from '${databaseFileData.mainFile.path}'", e)
+          throw e
+        }
 
-    controller.addSqliteDatabase(databaseId)
-  }
+      controller.addSqliteDatabase(databaseId)
+    }
 
   @AnyThread
   override fun openSqliteDatabase(
     databaseId: SqliteDatabaseId,
     databaseConnection: LiveDatabaseConnection
-  ): ListenableFuture<Unit> = projectScope.future {
-    databaseRepository.addDatabaseConnection(databaseId, databaseConnection)
-    controller.addSqliteDatabase(databaseId)
-  }
+  ): ListenableFuture<Unit> =
+    projectScope.future {
+      databaseRepository.addDatabaseConnection(databaseId, databaseConnection)
+      controller.addSqliteDatabase(databaseId)
+    }
 
   @UiThread
   override suspend fun startAppInspectionSession(
     databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel,
     appInspectionIdeServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor
-  ) = withContext(uiDispatcher) {
-    appPackageName = withContext(workerDispatcher) {
-      PackageNameProvider.getPackageName(project, processDescriptor.device.serial, processDescriptor.name).await()
+  ) =
+    withContext(uiDispatcher) {
+      appPackageName =
+        withContext(workerDispatcher) {
+          PackageNameProvider.getPackageName(
+              project,
+              processDescriptor.device.serial,
+              processDescriptor.name
+            )
+            .await()
+        }
+
+      controller.startAppInspectionSession(
+        databaseInspectorClientCommandsChannel,
+        appInspectionIdeServices,
+        processDescriptor,
+        appPackageName
+      )
+
+      // close all databases when a new session starts
+      model.getOpenDatabaseIds().forEach { controller.closeDatabase(it) }
+      model.clearDatabases()
+
+      ideServices = appInspectionIdeServices
     }
-
-    controller.startAppInspectionSession(databaseInspectorClientCommandsChannel, appInspectionIdeServices, processDescriptor, appPackageName)
-
-    // close all databases when a new session starts
-    model.getOpenDatabaseIds().forEach { controller.closeDatabase(it) }
-    model.clearDatabases()
-
-    ideServices = appInspectionIdeServices
-  }
 
   @UiThread
   override suspend fun stopAppInspectionSession(processDescriptor: ProcessDescriptor) {
     ideServices = null
 
-    model.getOpenDatabaseIds().forEach {
-      controller.closeDatabase(it)
-    }
+    model.getOpenDatabaseIds().forEach { controller.closeDatabase(it) }
 
     controller.stopAppInspectionSession(appPackageName, processDescriptor)
 
@@ -270,17 +285,13 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     projectScope.launch { controller.runSqlStatement(databaseId, sqliteStatement) }
   }
 
-  @UiThread
-  override fun hasOpenDatabase() = model.getOpenDatabaseIds().isNotEmpty()
+  @UiThread override fun hasOpenDatabase() = model.getOpenDatabaseIds().isNotEmpty()
 
-  @UiThread
-  override fun getOpenDatabases(): List<SqliteDatabaseId> = model.getOpenDatabaseIds()
+  @UiThread override fun getOpenDatabases(): List<SqliteDatabaseId> = model.getOpenDatabaseIds()
 
   @AnyThread
   override fun handleError(message: String, throwable: Throwable?) {
-    invokeAndWaitIfNeeded {
-      controller.showError(message, throwable)
-    }
+    invokeAndWaitIfNeeded { controller.showError(message, throwable) }
   }
 
   @AnyThread

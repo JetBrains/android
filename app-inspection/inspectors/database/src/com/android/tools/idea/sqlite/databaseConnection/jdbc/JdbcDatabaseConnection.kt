@@ -56,41 +56,52 @@ class JdbcDatabaseConnection(
     Disposer.register(parentDisposable, this)
   }
 
-  val sequentialTaskExecutor = SequentialTaskExecutor.createSequentialApplicationPoolExecutor("Sqlite JDBC service", pooledExecutor)
+  val sequentialTaskExecutor =
+    SequentialTaskExecutor.createSequentialApplicationPoolExecutor(
+      "Sqlite JDBC service",
+      pooledExecutor
+    )
 
-  override fun close(): ListenableFuture<Unit> = sequentialTaskExecutor.executeAsync {
-    connection.close()
-    logger.info("Successfully closed database: ${sqliteFile.path}")
-  }
-
-  override fun readSchema(): ListenableFuture<SqliteSchema> = sequentialTaskExecutor.executeAsync {
-    val tables = connection.metaData.getTables(null, null, null, null)
-    val sqliteTables = mutableListOf<SqliteTable>()
-    while (tables.next()) {
-      val columns = readColumnDefinitions(connection, tables.getString("TABLE_NAME"))
-      val rowIdName = getRowIdName(columns)
-      sqliteTables.add(
-        SqliteTable(
-          tables.getString("TABLE_NAME"),
-          columns,
-          rowIdName,
-          isView = tables.getString("TABLE_TYPE") == "VIEW"
-        )
-      )
+  override fun close(): ListenableFuture<Unit> =
+    sequentialTaskExecutor.executeAsync {
+      connection.close()
+      logger.info("Successfully closed database: ${sqliteFile.path}")
     }
 
-    SqliteSchema(sqliteTables).apply { logger.info("Successfully read database schema: ${sqliteFile.path}") }
-  }
+  override fun readSchema(): ListenableFuture<SqliteSchema> =
+    sequentialTaskExecutor.executeAsync {
+      val tables = connection.metaData.getTables(null, null, null, null)
+      val sqliteTables = mutableListOf<SqliteTable>()
+      while (tables.next()) {
+        val columns = readColumnDefinitions(connection, tables.getString("TABLE_NAME"))
+        val rowIdName = getRowIdName(columns)
+        sqliteTables.add(
+          SqliteTable(
+            tables.getString("TABLE_NAME"),
+            columns,
+            rowIdName,
+            isView = tables.getString("TABLE_TYPE") == "VIEW"
+          )
+        )
+      }
+
+      SqliteSchema(sqliteTables).apply {
+        logger.info("Successfully read database schema: ${sqliteFile.path}")
+      }
+    }
 
   override fun query(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> {
-    val resultSet = when (sqliteStatement.statementType) {
-      SqliteStatementType.SELECT -> PagedJdbcSqliteResultSet(this.sequentialTaskExecutor, connection, sqliteStatement)
-      SqliteStatementType.EXPLAIN,
-      SqliteStatementType.PRAGMA_QUERY -> LazyJdbcSqliteResultSet(this.sequentialTaskExecutor, connection, sqliteStatement)
-      else -> throw IllegalArgumentException(
-        "SqliteStatement must be of type SELECT, EXPLAIN or PRAGMA, but is ${sqliteStatement.statementType}"
-      )
-    }
+    val resultSet =
+      when (sqliteStatement.statementType) {
+        SqliteStatementType.SELECT ->
+          PagedJdbcSqliteResultSet(this.sequentialTaskExecutor, connection, sqliteStatement)
+        SqliteStatementType.EXPLAIN, SqliteStatementType.PRAGMA_QUERY ->
+          LazyJdbcSqliteResultSet(this.sequentialTaskExecutor, connection, sqliteStatement)
+        else ->
+          throw IllegalArgumentException(
+            "SqliteStatement must be of type SELECT, EXPLAIN or PRAGMA, but is ${sqliteStatement.statementType}"
+          )
+      }
     Disposer.register(this, resultSet)
     return Futures.immediateFuture(resultSet)
   }
@@ -99,7 +110,9 @@ class JdbcDatabaseConnection(
     return sequentialTaskExecutor.executeAsync {
       connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
         preparedStatement.executeUpdate().also {
-          logger.info("SQL statement \"${sqliteStatement.sqliteStatementText}\" executed with success.")
+          logger.info(
+            "SQL statement \"${sqliteStatement.sqliteStatementText}\" executed with success."
+          )
         }
       }
       Unit
@@ -109,22 +122,24 @@ class JdbcDatabaseConnection(
   private fun readColumnDefinitions(connection: Connection, tableName: String): List<SqliteColumn> {
     connection.createStatement().use { statement ->
       statement.executeQuery("PRAGMA table_info(${AndroidSqlLexer.getValidName(tableName)})").use {
-        return it.map {
-          val columnName = getString(2)
-          val columnType = getString(3)
-          val colNotNull = getString(4)
-          val colPk = getString(6)
+        return it
+          .map {
+            val columnName = getString(2)
+            val columnType = getString(3)
+            val colNotNull = getString(4)
+            val colPk = getString(6)
 
-          SqliteColumn(
-            columnName,
-            SqliteAffinity.fromTypename(columnType),
-            colNotNull == "0",
-            // The number in table_info for primary key is an integer that corresponds
-            // to the position of the column in the primary key constraint.
-            // Or 0 if the column is not in the primary key.
-            colPk.toInt() > 0
-          )
-        }.toList()
+            SqliteColumn(
+              columnName,
+              SqliteAffinity.fromTypename(columnType),
+              colNotNull == "0",
+              // The number in table_info for primary key is an integer that corresponds
+              // to the position of the column in the primary key constraint.
+              // Or 0 if the column is not in the primary key.
+              colPk.toInt() > 0
+            )
+          }
+          .toList()
       }
     }
   }

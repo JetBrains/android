@@ -31,16 +31,13 @@ import java.awt.BorderLayout
 import java.awt.CardLayout
 import javax.swing.JPanel
 
-/**
- * View to display detailed information of an interception rule or connection.
- */
+/** View to display detailed information of an interception rule or connection. */
 class NetworkInspectorDetailsPanel(
   inspectorView: NetworkInspectorView,
   usageTracker: NetworkInspectorTracker
 ) : JPanel(BorderLayout()) {
 
-  @VisibleForTesting
-  val connectionDetailsView: ConnectionDetailsView
+  @VisibleForTesting val connectionDetailsView: ConnectionDetailsView
 
   val ruleDetailsView: RuleDetailsView
 
@@ -67,7 +64,9 @@ class NetworkInspectorDetailsPanel(
       isVisible = model.detailContent != NetworkInspectorModel.DetailContent.EMPTY
       cardLayout.show(cardLayoutView, model.detailContent.name)
     }
-    model.aspect.addDependency(aspectObserver).onChange(NetworkInspectorAspect.SELECTED_CONNECTION) {
+    model.aspect.addDependency(aspectObserver).onChange(
+        NetworkInspectorAspect.SELECTED_CONNECTION
+      ) {
       usageTracker.trackConnectionDetailsSelected()
       model.selectedConnection?.let { setHttpData(it) }
       repaint()
@@ -76,7 +75,9 @@ class NetworkInspectorDetailsPanel(
       model.selectedRule?.let { setRule(it) }
     }
 
-    val closeButton = CloseButton { model.detailContent = NetworkInspectorModel.DetailContent.EMPTY }
+    val closeButton = CloseButton {
+      model.detailContent = NetworkInspectorModel.DetailContent.EMPTY
+    }
     // Add a wrapper to move the close button center vertically.
     val closeButtonWrapper = JPanel(BorderLayout())
     closeButtonWrapper.add(closeButton, BorderLayout.CENTER)
@@ -86,17 +87,13 @@ class NetworkInspectorDetailsPanel(
     add(rootPanel)
   }
 
-  /**
-   * Updates the view to show given [httpData].
-   */
+  /** Updates the view to show given [httpData]. */
   private fun setHttpData(httpData: HttpData) {
     background = JBColor.background()
     connectionDetailsView.setHttpData(httpData)
   }
 
-  /**
-   * Updates the view to show given [rule].
-   */
+  /** Updates the view to show given [rule]. */
   private fun setRule(rule: RuleData) {
     background = JBColor.background()
     ruleDetailsView.selectedRule = rule

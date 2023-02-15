@@ -28,15 +28,18 @@ class PagedJdbcSqliteResultSet(
   private val sqliteStatement: SqliteStatement
 ) : JdbcSqliteResultSet(taskExecutor, connection, sqliteStatement) {
   override val totalRowCount: ListenableFuture<Int>
-    get() = getRowCount(sqliteStatement.toRowCountStatement()) {
-      it.next()
-      val count = it.getInt(1)
-      count
-    }
+    get() =
+      getRowCount(sqliteStatement.toRowCountStatement()) {
+        it.next()
+        val count = it.getInt(1)
+        count
+      }
 
   override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> {
     checkOffsetAndSize(rowOffset, rowBatchSize)
-    return getRowBatch(sqliteStatement.toSelectLimitOffset(rowOffset, rowBatchSize)) { resultSet, columns ->
+    return getRowBatch(sqliteStatement.toSelectLimitOffset(rowOffset, rowBatchSize)) {
+      resultSet,
+      columns ->
       val rows = ArrayList<SqliteRow>()
       while (resultSet.next()) {
         rows.add(createCurrentRow(resultSet, columns))

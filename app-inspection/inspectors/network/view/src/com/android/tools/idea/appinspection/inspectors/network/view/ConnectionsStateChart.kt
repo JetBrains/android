@@ -31,18 +31,20 @@ import com.android.tools.idea.appinspection.inspectors.network.view.constants.TR
 import java.awt.Color
 
 /**
- * Class responsible for rendering one or more sequential network requests, with each request appearing as a horizontal
- * bar where each stage of its lifetime (sending, receiving, etc.) is highlighted with unique colors.
+ * Class responsible for rendering one or more sequential network requests, with each request
+ * appearing as a horizontal bar where each stage of its lifetime (sending, receiving, etc.) is
+ * highlighted with unique colors.
  */
 class ConnectionsStateChart(dataList: List<HttpData>, range: Range) {
   constructor(data: HttpData, range: Range) : this(listOf(data), range)
 
-  val colors = EnumColors.Builder<NetworkState>(2)
-    .add(NetworkState.SENDING, NETWORK_SENDING_COLOR, NETWORK_SENDING_COLOR)
-    .add(NetworkState.RECEIVING, NETWORK_RECEIVING_COLOR, NETWORK_RECEIVING_SELECTED_COLOR)
-    .add(NetworkState.WAITING, NETWORK_WAITING_COLOR, NETWORK_WAITING_COLOR)
-    .add(NetworkState.NONE, TRANSPARENT_COLOR, TRANSPARENT_COLOR)
-    .build()
+  val colors =
+    EnumColors.Builder<NetworkState>(2)
+      .add(NetworkState.SENDING, NETWORK_SENDING_COLOR, NETWORK_SENDING_COLOR)
+      .add(NetworkState.RECEIVING, NETWORK_RECEIVING_COLOR, NETWORK_RECEIVING_SELECTED_COLOR)
+      .add(NetworkState.WAITING, NETWORK_WAITING_COLOR, NETWORK_WAITING_COLOR)
+      .add(NetworkState.NONE, TRANSPARENT_COLOR, TRANSPARENT_COLOR)
+      .build()
 
   val component = createChart(dataList, range)
 
@@ -64,17 +66,26 @@ class ConnectionsStateChart(dataList: List<HttpData>, range: Range) {
       series.add(data.connectionEndTimeUs, NetworkState.NONE)
     }
     val stateModel = StateChartModel<NetworkState>()
-    val stateChart = StateChart(stateModel, colorProvider = object : StateChartColorProvider<NetworkState>() {
-      override fun getColor(isMouseOver: Boolean, value: NetworkState): Color {
-        return colors.getColor(value)
-      }
-    })
-    // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
+    val stateChart =
+      StateChart(
+        stateModel,
+        colorProvider =
+          object : StateChartColorProvider<NetworkState>() {
+            override fun getColor(isMouseOver: Boolean, value: NetworkState): Color {
+              return colors.getColor(value)
+            }
+          }
+      )
+    // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current
+    // session
     stateModel.addSeries(RangedSeries(range, series))
     return stateChart
   }
 }
 
 enum class NetworkState {
-  SENDING, RECEIVING, WAITING, NONE
+  SENDING,
+  RECEIVING,
+  WAITING,
+  NONE
 }

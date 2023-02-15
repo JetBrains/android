@@ -55,9 +55,7 @@ class BackgroundInspectorClientTest {
     override val eventFlow = emptyFlow<ByteArray>()
   }
 
-  /**
-   * A fake class to cache latest background task entry updates.
-   */
+  /** A fake class to cache latest background task entry updates. */
   private class Listener(client: BackgroundTaskInspectorClient) {
     private lateinit var type: EntryUpdateEventType
     private lateinit var entry: BackgroundTaskEntry
@@ -69,9 +67,7 @@ class BackgroundInspectorClientTest {
       }
     }
 
-    /**
-     * Waits for the single threaded scope to update its listeners and consumes the latest one.
-     */
+    /** Waits for the single threaded scope to update its listeners and consumes the latest one. */
     fun consume(listener: EntryUpdateEventListener) = listener(type, entry)
   }
 
@@ -86,9 +82,13 @@ class BackgroundInspectorClientTest {
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher() + SupervisorJob())
     backgroundTaskInspectorMessenger = FakeAppInspectorMessenger(scope)
     workManagerInspectorMessenger = FakeAppInspectorMessenger(scope)
-    client = BackgroundTaskInspectorClient(backgroundTaskInspectorMessenger,
-                                           WmiMessengerTarget.Resolved(workManagerInspectorMessenger),
-                                           scope, StubBackgroundTaskInspectorTracker())
+    client =
+      BackgroundTaskInspectorClient(
+        backgroundTaskInspectorMessenger,
+        WmiMessengerTarget.Resolved(workManagerInspectorMessenger),
+        scope,
+        StubBackgroundTaskInspectorTracker()
+      )
     listener = Listener(client)
   }
 
@@ -99,25 +99,28 @@ class BackgroundInspectorClientTest {
 
   @Test
   fun startTrackingBackgroundTaskEvents_messengersSendCorrectCommands() = runBlocking {
-    val workCommand = WorkManagerInspectorProtocol.Command.newBuilder()
-      .setTrackWorkManager(TrackWorkManagerCommand.getDefaultInstance())
-      .build()
+    val workCommand =
+      WorkManagerInspectorProtocol.Command.newBuilder()
+        .setTrackWorkManager(TrackWorkManagerCommand.getDefaultInstance())
+        .build()
     workManagerInspectorMessenger.sendRawCommand(workCommand.toByteArray())
-    val backgroundTaskCommand = BackgroundTaskInspectorProtocol.Command.newBuilder()
-      .setTrackBackgroundTask(BackgroundTaskInspectorProtocol.TrackBackgroundTaskCommand.getDefaultInstance())
-      .build()
+    val backgroundTaskCommand =
+      BackgroundTaskInspectorProtocol.Command.newBuilder()
+        .setTrackBackgroundTask(
+          BackgroundTaskInspectorProtocol.TrackBackgroundTaskCommand.getDefaultInstance()
+        )
+        .build()
     backgroundTaskInspectorMessenger.sendRawCommand(backgroundTaskCommand.toByteArray())
 
     assertThat(workManagerInspectorMessenger.rawDataSent).isEqualTo(workCommand.toByteArray())
-    assertThat(backgroundTaskInspectorMessenger.rawDataSent).isEqualTo(backgroundTaskCommand.toByteArray())
+    assertThat(backgroundTaskInspectorMessenger.rawDataSent)
+      .isEqualTo(backgroundTaskCommand.toByteArray())
   }
 
   @Test
   fun addNewWork() = runBlocking {
     val id = "Test"
-    val workInfo = WorkInfo.newBuilder()
-      .setId(id)
-      .build()
+    val workInfo = WorkInfo.newBuilder().setId(id).build()
 
     sendWorkAddedEvent(workInfo)
     listener.consume { type, entry ->
@@ -130,12 +133,8 @@ class BackgroundInspectorClientTest {
   fun removeWorks() {
     val id1 = "Test1"
     val id2 = "Test2"
-    val workInfo1 = WorkInfo.newBuilder()
-      .setId(id1)
-      .build()
-    val workInfo2 = WorkInfo.newBuilder()
-      .setId(id2)
-      .build()
+    val workInfo1 = WorkInfo.newBuilder().setId(id1).build()
+    val workInfo2 = WorkInfo.newBuilder().setId(id2).build()
 
     sendWorkAddedEvent(workInfo1)
     sendWorkAddedEvent(workInfo2)
@@ -158,31 +157,30 @@ class BackgroundInspectorClientTest {
   @Test
   fun updateWork() {
     val id = "Test"
-    val workInfo = WorkInfo.newBuilder()
-      .setId(id)
-      .build()
+    val workInfo = WorkInfo.newBuilder().setId(id).build()
     sendWorkAddedEvent(workInfo)
 
-    val workStateUpdatedEvent = WorkUpdatedEvent.newBuilder()
-      .setId(id)
-      .setState(WorkInfo.State.ENQUEUED)
-      .build()
-    client.handleEvent(EventWrapper(EventWrapper.Case.WORK, workStateUpdatedEvent.toEvent().toByteArray()))
+    val workStateUpdatedEvent =
+      WorkUpdatedEvent.newBuilder().setId(id).setState(WorkInfo.State.ENQUEUED).build()
+    client.handleEvent(
+      EventWrapper(EventWrapper.Case.WORK, workStateUpdatedEvent.toEvent().toByteArray())
+    )
 
     listener.consume { type, entry ->
       assertThat(type).isEqualTo(EntryUpdateEventType.UPDATE)
       assertThat(entry.id).isEqualTo(id)
-      assertThat((client.getEntry(entry.id) as WorkEntry).getWorkInfo().state).isEqualTo(WorkInfo.State.ENQUEUED)
+      assertThat((client.getEntry(entry.id) as WorkEntry).getWorkInfo().state)
+        .isEqualTo(WorkInfo.State.ENQUEUED)
     }
 
-    val data = Data.newBuilder()
-      .addEntries(DataEntry.newBuilder().setKey("key").setValue("value").build())
-      .build()
-    val workDataUpdatedEvent = WorkUpdatedEvent.newBuilder()
-      .setId(id)
-      .setData(data)
-      .build()
-    client.handleEvent(EventWrapper(EventWrapper.Case.WORK, workDataUpdatedEvent.toEvent().toByteArray()))
+    val data =
+      Data.newBuilder()
+        .addEntries(DataEntry.newBuilder().setKey("key").setValue("value").build())
+        .build()
+    val workDataUpdatedEvent = WorkUpdatedEvent.newBuilder().setId(id).setData(data).build()
+    client.handleEvent(
+      EventWrapper(EventWrapper.Case.WORK, workDataUpdatedEvent.toEvent().toByteArray())
+    )
     listener.consume { type, entry ->
       assertThat(type).isEqualTo(EntryUpdateEventType.UPDATE)
       assertThat(entry.id).isEqualTo(id)
@@ -190,28 +188,33 @@ class BackgroundInspectorClientTest {
     }
 
     val runAttemptCount = 1
-    val workRunAttemptCountUpdatedEvent = WorkUpdatedEvent.newBuilder()
-      .setId(id)
-      .setRunAttemptCount(runAttemptCount)
-      .build()
+    val workRunAttemptCountUpdatedEvent =
+      WorkUpdatedEvent.newBuilder().setId(id).setRunAttemptCount(runAttemptCount).build()
 
-    client.handleEvent(EventWrapper(EventWrapper.Case.WORK, workRunAttemptCountUpdatedEvent.toEvent().toByteArray()))
+    client.handleEvent(
+      EventWrapper(EventWrapper.Case.WORK, workRunAttemptCountUpdatedEvent.toEvent().toByteArray())
+    )
     listener.consume { type, entry ->
       assertThat(type).isEqualTo(EntryUpdateEventType.UPDATE)
       assertThat(entry.id).isEqualTo(id)
-      assertThat((client.getEntry(entry.id) as WorkEntry).getWorkInfo().runAttemptCount).isEqualTo(runAttemptCount)
+      assertThat((client.getEntry(entry.id) as WorkEntry).getWorkInfo().runAttemptCount)
+        .isEqualTo(runAttemptCount)
     }
 
     val scheduleRequestedAt = 10L
-    val workScheduleRequestedAtUpdatedEvent = WorkUpdatedEvent.newBuilder()
-      .setId(id)
-      .setScheduleRequestedAt(scheduleRequestedAt)
-      .build()
-    client.handleEvent(EventWrapper(EventWrapper.Case.WORK, workScheduleRequestedAtUpdatedEvent.toEvent().toByteArray()))
+    val workScheduleRequestedAtUpdatedEvent =
+      WorkUpdatedEvent.newBuilder().setId(id).setScheduleRequestedAt(scheduleRequestedAt).build()
+    client.handleEvent(
+      EventWrapper(
+        EventWrapper.Case.WORK,
+        workScheduleRequestedAtUpdatedEvent.toEvent().toByteArray()
+      )
+    )
     listener.consume { type, entry ->
       assertThat(type).isEqualTo(EntryUpdateEventType.UPDATE)
       assertThat(entry.id).isEqualTo(id)
-      assertThat((client.getEntry(entry.id) as WorkEntry).getWorkInfo().scheduleRequestedAt).isEqualTo(scheduleRequestedAt)
+      assertThat((client.getEntry(entry.id) as WorkEntry).getWorkInfo().scheduleRequestedAt)
+        .isEqualTo(scheduleRequestedAt)
     }
   }
 
@@ -219,22 +222,29 @@ class BackgroundInspectorClientTest {
   fun getWorkChain() {
     /**
      * Constructs a a dependency graph that looks like:
+     * ```
      *      work1  work2
      *     /    \   /  \
-     *   work3  work4  work5
+     * ```
+     * work3 work4 work5
+     * ```
      *          /   \
      *       work6  work7    work8
+     * ```
      */
     val workIdList = (1..8).map { "work${it}" }
-    val dependencyList = listOf(Pair(1, 3), Pair(1, 4), Pair(2, 4), Pair(2, 5), Pair(4, 6), Pair(4, 7))
-      .map { Pair("work${it.first}", "work${it.second}") }
-    val workInfoList = workIdList.map { id ->
-      WorkInfo.newBuilder()
-        .setId(id)
-        .addAllPrerequisites(dependencyList.filter { it.second == id }.map { it.first })
-        .addAllDependents(dependencyList.filter { it.first == id }.map { it.second })
-        .build()
-    }
+    val dependencyList =
+      listOf(Pair(1, 3), Pair(1, 4), Pair(2, 4), Pair(2, 5), Pair(4, 6), Pair(4, 7)).map {
+        Pair("work${it.first}", "work${it.second}")
+      }
+    val workInfoList =
+      workIdList.map { id ->
+        WorkInfo.newBuilder()
+          .setId(id)
+          .addAllPrerequisites(dependencyList.filter { it.second == id }.map { it.first })
+          .addAllDependents(dependencyList.filter { it.first == id }.map { it.second })
+          .build()
+      }
     for (workInfo in workInfoList) {
       sendWorkAddedEvent(workInfo)
     }
@@ -249,7 +259,6 @@ class BackgroundInspectorClientTest {
     assertThat(singleWorkChain.size).isEqualTo(1)
     assertThat(singleWorkChain[0]).isEqualTo("work8")
   }
-
 
   private fun sendWorkAddedEvent(workInfo: WorkInfo) {
     val workAddedEvent = WorkAddedEvent.newBuilder().setWork(workInfo).build()

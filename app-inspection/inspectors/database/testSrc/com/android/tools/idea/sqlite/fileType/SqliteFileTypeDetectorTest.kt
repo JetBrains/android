@@ -26,7 +26,8 @@ class SqliteFileTypeDetectorTest : LightPlatformTestCase() {
 
   override fun setUp() {
     super.setUp()
-    mySqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
+    mySqliteUtil =
+      SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
     mySqliteUtil.setUp()
     myFileSupportPreviousEnabled = DatabaseInspectorFlagController.enableOpenFile(true)
   }
@@ -35,8 +36,7 @@ class SqliteFileTypeDetectorTest : LightPlatformTestCase() {
     try {
       mySqliteUtil.tearDown()
       DatabaseInspectorFlagController.enableOpenFile(myFileSupportPreviousEnabled)
-    }
-    finally {
+    } finally {
       super.tearDown()
     }
   }

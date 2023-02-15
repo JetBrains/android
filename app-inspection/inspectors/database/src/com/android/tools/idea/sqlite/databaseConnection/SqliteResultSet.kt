@@ -33,16 +33,18 @@ import com.intellij.openapi.Disposable
  * the result set.
  */
 interface SqliteResultSet : Disposable {
-  fun SqliteStatement.toRowCountStatement() = this.transform(SqliteStatementType.SELECT) { "SELECT COUNT(*) FROM ($it)" }
-  fun SqliteStatement.toSelectLimitOffset(rowOffset: Int, rowBatchSize: Int) = this.transform(SqliteStatementType.SELECT) {
-    "SELECT * FROM ($it) LIMIT $rowOffset, $rowBatchSize"
-  }
+  fun SqliteStatement.toRowCountStatement() =
+    this.transform(SqliteStatementType.SELECT) { "SELECT COUNT(*) FROM ($it)" }
+  fun SqliteStatement.toSelectLimitOffset(rowOffset: Int, rowBatchSize: Int) =
+    this.transform(SqliteStatementType.SELECT) {
+      "SELECT * FROM ($it) LIMIT $rowOffset, $rowBatchSize"
+    }
 
   val columns: ListenableFuture<List<ResultSetSqliteColumn>>
 
   /**
-   * Returns the total amount of rows available to this result set.
-   * This number is obtained by running a `SELECT COUNT(*) FROM (sqliteStatement)`, sqliteStatement can be anything.
+   * Returns the total amount of rows available to this result set. This number is obtained by
+   * running a `SELECT COUNT(*) FROM (sqliteStatement)`, sqliteStatement can be anything.
    */
   val totalRowCount: ListenableFuture<Int>
 
@@ -54,9 +56,7 @@ interface SqliteResultSet : Disposable {
   fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>>
 }
 
-/**
- * Checks that [rowOffset] is >= 0 and [rowBatchSize] is > 0.
- */
+/** Checks that [rowOffset] is >= 0 and [rowBatchSize] is > 0. */
 internal fun checkOffsetAndSize(rowOffset: Int, rowBatchSize: Int) {
   require(rowOffset >= 0) { "Offset must be >= 0." }
   require(rowBatchSize > 0) { "Row batch size must be > 0." }

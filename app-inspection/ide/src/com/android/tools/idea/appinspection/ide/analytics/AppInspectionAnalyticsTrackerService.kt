@@ -26,7 +26,8 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 
 @Service
-class AppInspectionAnalyticsTrackerService(private val project: Project): AppInspectionAnalyticsTracker {
+class AppInspectionAnalyticsTrackerService(private val project: Project) :
+  AppInspectionAnalyticsTracker {
   companion object {
     fun getInstance(project: Project) = project.service<AppInspectionAnalyticsTrackerService>()
   }
@@ -46,7 +47,7 @@ class AppInspectionAnalyticsTrackerService(private val project: Project): AppIns
   }
 
   override fun trackProcessSelected(device: DeviceDescriptor, numDevices: Int, numProcesses: Int) {
-    track(AppInspectionEvent.Type.PROCESS_SELECTED)  { events ->
+    track(AppInspectionEvent.Type.PROCESS_SELECTED) { events ->
       events.studioEvent.deviceInfo = device.toDeviceInfo()
       events.inspectionEvent.environmentMetadata = toEnvironmentMetadata(numDevices, numProcesses)
     }
@@ -60,20 +61,27 @@ class AppInspectionAnalyticsTrackerService(private val project: Project): AppIns
     track(AppInspectionEvent.Type.INSPECTION_RESTARTED)
   }
 
-  private fun toEnvironmentMetadata(numDevices: Int, numProcesses: Int): AppInspectionEvent.EnvironmentMetadata {
+  private fun toEnvironmentMetadata(
+    numDevices: Int,
+    numProcesses: Int
+  ): AppInspectionEvent.EnvironmentMetadata {
     return AppInspectionEvent.EnvironmentMetadata.newBuilder()
       .setNumDevices(numDevices)
       .setNumProcesses(numProcesses)
       .build()
   }
 
-  private class Events(val studioEvent: AndroidStudioEvent.Builder, val inspectionEvent: AppInspectionEvent.Builder)
+  private class Events(
+    val studioEvent: AndroidStudioEvent.Builder,
+    val inspectionEvent: AppInspectionEvent.Builder
+  )
 
   private fun track(type: AppInspectionEvent.Type, addMetadataTo: (Events) -> Unit = {}) {
     val appInspectionEvent = AppInspectionEvent.newBuilder().setType(type)
-    val studioEvent = AndroidStudioEvent.newBuilder()
-      .setKind(AndroidStudioEvent.EventKind.APP_INSPECTION)
-      .withProjectId(project)
+    val studioEvent =
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.APP_INSPECTION)
+        .withProjectId(project)
 
     addMetadataTo(Events(studioEvent, appInspectionEvent))
     studioEvent.setAppInspectionEvent(appInspectionEvent)

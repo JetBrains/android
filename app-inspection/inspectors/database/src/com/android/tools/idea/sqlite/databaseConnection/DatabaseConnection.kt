@@ -23,7 +23,8 @@ import com.intellij.openapi.Disposable
 /**
  * Abstraction over operations allowed on a single underlying sqlite database.
  *
- * All operations are asynchronous, where completion is communicated through [ListenableFuture] return values.
+ * All operations are asynchronous, where completion is communicated through [ListenableFuture]
+ * return values.
  */
 interface DatabaseConnection : Disposable {
   fun close(): ListenableFuture<Unit>
@@ -31,13 +32,14 @@ interface DatabaseConnection : Disposable {
 
   /**
    * Use this method for Query statements (like SELECT or EXPLAIN) that return a list of rows.
-   * @return a [SqliteResultSet] for [sqliteStatement] that can be used to navigate the result of the query.
+   * @return a [SqliteResultSet] for [sqliteStatement] that can be used to navigate the result of
+   * the query.
    */
   fun query(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet>
 
   /**
-   * Executes [sqliteStatement] and ignore the result.
-   * Use this method to run SQLite statements that have no result, such as UPDATE and INSERT
+   * Executes [sqliteStatement] and ignore the result. Use this method to run SQLite statements that
+   * have no result, such as UPDATE and INSERT
    */
   fun execute(sqliteStatement: SqliteStatement): ListenableFuture<Unit>
 

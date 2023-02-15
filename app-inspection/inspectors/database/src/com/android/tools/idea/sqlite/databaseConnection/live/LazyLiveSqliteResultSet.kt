@@ -35,17 +35,26 @@ class LazyLiveSqliteResultSet(
     get() = sendQueryCommand(sqliteStatement).mapToColumns(taskExecutor)
 
   override val totalRowCount: ListenableFuture<Int>
-    get() = sendQueryCommand(sqliteStatement).transform(taskExecutor) { response ->
-      response.query.rowsList.size
-    }
+    get() =
+      sendQueryCommand(sqliteStatement).transform(taskExecutor) { response ->
+        response.query.rowsList.size
+      }
 
-  override fun getRowBatch(rowOffset: Int, rowBatchSize: Int, responseSizeByteLimitHint: Long?): ListenableFuture<List<SqliteRow>> {
+  override fun getRowBatch(
+    rowOffset: Int,
+    rowBatchSize: Int,
+    responseSizeByteLimitHint: Long?
+  ): ListenableFuture<List<SqliteRow>> {
     checkOffsetAndSize(rowOffset, rowBatchSize)
-    return sendQueryCommand(sqliteStatement, responseSizeByteLimitHint).transform(taskExecutor) { response ->
+    return sendQueryCommand(sqliteStatement, responseSizeByteLimitHint).transform(taskExecutor) {
+      response ->
       val columnNames = response.query.columnNamesList
       val rows = response.query.rowsList
       rows.subList(rowOffset, minOf(rowOffset + rowBatchSize, rows.size)).map {
-        val sqliteColumnValues = it.valuesList.mapIndexed { index, cellValue -> cellValue.toSqliteColumnValue(columnNames[index]) }
+        val sqliteColumnValues =
+          it.valuesList.mapIndexed { index, cellValue ->
+            cellValue.toSqliteColumnValue(columnNames[index])
+          }
         SqliteRow(sqliteColumnValues)
       }
     }

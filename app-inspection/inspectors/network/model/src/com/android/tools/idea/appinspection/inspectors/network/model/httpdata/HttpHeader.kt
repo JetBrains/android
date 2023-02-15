@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 
-import org.jetbrains.annotations.VisibleForTesting
-import java.util.Locale
 import java.util.TreeMap
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val FIELD_CONTENT_TYPE = "content-type"
 const val FIELD_CONTENT_LENGTH = "content-length"
@@ -33,8 +32,8 @@ sealed class HttpHeader {
   abstract val fields: Map<String, String>
 
   /**
-   * This function does not care about the case of the key.
-   * For example: Content-Type and content-type will return the same mapped value.
+   * This function does not care about the case of the key. For example: Content-Type and
+   * content-type will return the same mapped value.
    */
   @VisibleForTesting
   fun getField(key: String): String {
@@ -44,9 +43,7 @@ sealed class HttpHeader {
   val contentType: HttpData.ContentType
     get() = HttpData.ContentType(getField(FIELD_CONTENT_TYPE))
 
-  /**
-   * @return value of "content-length" in the headers, or -1 if the headers does not contain it.
-   */
+  /** @return value of "content-length" in the headers, or -1 if the headers does not contain it. */
   val contentLength: Int
     get() {
       val contentLength = getField(FIELD_CONTENT_LENGTH)
@@ -55,7 +52,8 @@ sealed class HttpHeader {
 }
 
 private fun parseHeaderFields(fields: String): Map<String, String> {
-  return fields.split('\n')
+  return fields
+    .split('\n')
     .filter { line: String -> line.trim { it <= ' ' }.isNotEmpty() }
     .map { line ->
       val keyAndValue = line.split('=', limit = 2)
@@ -66,8 +64,7 @@ private fun parseHeaderFields(fields: String): Map<String, String> {
     .aggregate { _, accumulator: String?, element, first ->
       if (first) {
         element.second
-      }
-      else {
+      } else {
         "$accumulator;${element.second}"
       }
     }
@@ -76,7 +73,6 @@ private fun parseHeaderFields(fields: String): Map<String, String> {
 class ResponseHeader(@VisibleForTesting val fieldsString: String) : HttpHeader() {
   override val fields = TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER)
   var statusCode = NO_STATUS_CODE
-
 
   init {
     val trimmedFields = fieldsString.trim { it <= ' ' }
@@ -97,13 +93,14 @@ class ResponseHeader(@VisibleForTesting val fieldsString: String) : HttpHeader()
           processedFields = if (firstLineSplit.size > 1) firstLineSplit[1] else ""
         }
       }
-      val fieldsMap = parseHeaderFields(processedFields).filter { entry ->
-        if (entry.key.equals(STATUS_CODE_NAME, ignoreCase = true)) {
-          this.statusCode = entry.value.toInt()
-          false
+      val fieldsMap =
+        parseHeaderFields(processedFields).filter { entry ->
+          if (entry.key.equals(STATUS_CODE_NAME, ignoreCase = true)) {
+            this.statusCode = entry.value.toInt()
+            false
+          }
+          true
         }
-        true
-      }
       assert(statusCode != -1) { "Unexpected http response ($trimmedFields)" }
       fields.putAll(fieldsMap)
     }
@@ -111,7 +108,8 @@ class ResponseHeader(@VisibleForTesting val fieldsString: String) : HttpHeader()
 }
 
 class RequestHeader(@VisibleForTesting val rawFields: String) : HttpHeader() {
-  override val fields = TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER).apply {
-    putAll(parseHeaderFields(rawFields))
-  }
+  override val fields =
+    TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER).apply {
+      putAll(parseHeaderFields(rawFields))
+    }
 }

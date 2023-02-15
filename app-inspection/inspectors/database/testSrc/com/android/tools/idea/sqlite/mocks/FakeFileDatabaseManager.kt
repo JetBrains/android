@@ -23,7 +23,9 @@ import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.vfs.VirtualFile
 import kotlinx.coroutines.delay
 
-open class FakeFileDatabaseManager(private val virtualFile: VirtualFile = MockVirtualFile("mock virtual file")) : FileDatabaseManager {
+open class FakeFileDatabaseManager(
+  private val virtualFile: VirtualFile = MockVirtualFile("mock virtual file")
+) : FileDatabaseManager {
   val databaseFileData = DatabaseFileData(virtualFile)
   val cleanedUpFiles = mutableListOf<DatabaseFileData>()
 
@@ -32,7 +34,8 @@ open class FakeFileDatabaseManager(private val virtualFile: VirtualFile = MockVi
   override suspend fun loadDatabaseFileData(
     packageName: String,
     processDescriptor: ProcessDescriptor,
-    databaseToDownload: SqliteDatabaseId.LiveSqliteDatabaseId): DatabaseFileData {
+    databaseToDownload: SqliteDatabaseId.LiveSqliteDatabaseId
+  ): DatabaseFileData {
     delay(downloadTime)
     return databaseFileData
   }

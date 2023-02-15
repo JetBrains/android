@@ -24,43 +24,72 @@ class WorkEntryTest {
 
   @Test
   fun workStatusUpdates() {
-    val workAddedEvent = WorkManagerInspectorProtocol.Event.newBuilder().apply {
-      workAdded = WorkManagerInspectorProtocol.WorkAddedEvent.newBuilder().apply {
-        work = WorkManagerInspectorProtocol.WorkInfo.newBuilder().apply {
-          id = "1"
-          state = WorkManagerInspectorProtocol.WorkInfo.State.ENQUEUED
-          workerClassName = "worker"
-          scheduleRequestedAt = 123
-        }.build()
-      }.build()
-    }.build()
+    val workAddedEvent =
+      WorkManagerInspectorProtocol.Event.newBuilder()
+        .apply {
+          workAdded =
+            WorkManagerInspectorProtocol.WorkAddedEvent.newBuilder()
+              .apply {
+                work =
+                  WorkManagerInspectorProtocol.WorkInfo.newBuilder()
+                    .apply {
+                      id = "1"
+                      state = WorkManagerInspectorProtocol.WorkInfo.State.ENQUEUED
+                      workerClassName = "worker"
+                      scheduleRequestedAt = 123
+                    }
+                    .build()
+              }
+              .build()
+        }
+        .build()
 
-    val workUpdatedEvent = WorkManagerInspectorProtocol.Event.newBuilder().apply {
-      workUpdated = WorkManagerInspectorProtocol.WorkUpdatedEvent.newBuilder().apply {
-        id = "1"
-        state = WorkManagerInspectorProtocol.WorkInfo.State.RUNNING
-      }.build()
-    }.build()
+    val workUpdatedEvent =
+      WorkManagerInspectorProtocol.Event.newBuilder()
+        .apply {
+          workUpdated =
+            WorkManagerInspectorProtocol.WorkUpdatedEvent.newBuilder()
+              .apply {
+                id = "1"
+                state = WorkManagerInspectorProtocol.WorkInfo.State.RUNNING
+              }
+              .build()
+        }
+        .build()
 
-    val workRetriesUpdatedEvent = WorkManagerInspectorProtocol.Event.newBuilder().apply {
-      workUpdated = WorkManagerInspectorProtocol.WorkUpdatedEvent.newBuilder().apply {
-        id = "1"
-        runAttemptCount = 2
-      }.build()
-    }.build()
+    val workRetriesUpdatedEvent =
+      WorkManagerInspectorProtocol.Event.newBuilder()
+        .apply {
+          workUpdated =
+            WorkManagerInspectorProtocol.WorkUpdatedEvent.newBuilder()
+              .apply {
+                id = "1"
+                runAttemptCount = 2
+              }
+              .build()
+        }
+        .build()
 
-    val workSucceededEvent = WorkManagerInspectorProtocol.Event.newBuilder().apply {
-      workUpdated = WorkManagerInspectorProtocol.WorkUpdatedEvent.newBuilder().apply {
-        id = "1"
-        state = WorkManagerInspectorProtocol.WorkInfo.State.SUCCEEDED
-      }.build()
-    }.build()
+    val workSucceededEvent =
+      WorkManagerInspectorProtocol.Event.newBuilder()
+        .apply {
+          workUpdated =
+            WorkManagerInspectorProtocol.WorkUpdatedEvent.newBuilder()
+              .apply {
+                id = "1"
+                state = WorkManagerInspectorProtocol.WorkInfo.State.SUCCEEDED
+              }
+              .build()
+        }
+        .build()
 
-    val workRemovedEvent = WorkManagerInspectorProtocol.Event.newBuilder().apply {
-      workRemoved = WorkManagerInspectorProtocol.WorkRemovedEvent.newBuilder().apply {
-        id = "1"
-      }.build()
-    }.build()
+    val workRemovedEvent =
+      WorkManagerInspectorProtocol.Event.newBuilder()
+        .apply {
+          workRemoved =
+            WorkManagerInspectorProtocol.WorkRemovedEvent.newBuilder().apply { id = "1" }.build()
+        }
+        .build()
 
     val entry = WorkEntry("1")
     entry.consumeAndAssert(workAddedEvent)
@@ -82,12 +111,18 @@ class WorkEntryTest {
 
   @Test
   fun missingWorkAdded() {
-    val workUpdatedEvent = WorkManagerInspectorProtocol.Event.newBuilder().apply {
-      workUpdated = WorkManagerInspectorProtocol.WorkUpdatedEvent.newBuilder().apply {
-        id = "1"
-        state = WorkManagerInspectorProtocol.WorkInfo.State.RUNNING
-      }.build()
-    }.build()
+    val workUpdatedEvent =
+      WorkManagerInspectorProtocol.Event.newBuilder()
+        .apply {
+          workUpdated =
+            WorkManagerInspectorProtocol.WorkUpdatedEvent.newBuilder()
+              .apply {
+                id = "1"
+                state = WorkManagerInspectorProtocol.WorkInfo.State.RUNNING
+              }
+              .build()
+        }
+        .build()
 
     val entry = WorkEntry("1")
     entry.consume(EventWrapper(workUpdatedEvent))

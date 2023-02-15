@@ -34,7 +34,6 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.scale
 import icons.StudioIcons
 import java.awt.BorderLayout
-import java.awt.Component
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.event.FocusAdapter
@@ -62,16 +61,12 @@ const val SECTION_TITLE_HEADERS = "Headers"
 
 const val REGEX_TEXT = "Regex"
 
-/**
- * Creates a panel with a vertical flowing layout and a consistent style.
- */
+/** Creates a panel with a vertical flowing layout and a consistent style. */
 fun createVerticalPanel(verticalGap: Int): JPanel {
   return JPanel(VerticalFlowLayout(0, verticalGap))
 }
 
-/**
- * Creates a scroll panel that wraps a target component with a consistent style.
- */
+/** Creates a scroll panel that wraps a target component with a consistent style. */
 fun createScrollPane(component: JComponent): JBScrollPane {
   val scrollPane = JBScrollPane(component)
   scrollPane.verticalScrollBar.unitIncrement = SCROLL_UNIT
@@ -80,8 +75,8 @@ fun createScrollPane(component: JComponent): JBScrollPane {
 }
 
 /**
- * Like [.createScrollPane] but for components you only want to support
- * vertical scrolling for. This is useful if scroll panes are nested within scroll panes.
+ * Like [.createScrollPane] but for components you only want to support vertical scrolling for. This
+ * is useful if scroll panes are nested within scroll panes.
  */
 fun createVerticalScrollPane(component: JComponent): JBScrollPane {
   val scrollPane: JBScrollPane = createScrollPane(component)
@@ -89,11 +84,10 @@ fun createVerticalScrollPane(component: JComponent): JBScrollPane {
   return scrollPane
 }
 
-/**
- * Creates a [HideablePanel] with a consistent style.
- */
+/** Creates a [HideablePanel] with a consistent style. */
 fun createHideablePanel(
-  title: String, content: JComponent,
+  title: String,
+  content: JComponent,
   northEastComponent: JComponent?
 ): HideablePanel {
   return HideablePanel.Builder(title, content)
@@ -105,8 +99,8 @@ fun createHideablePanel(
 }
 
 /**
- * Create a component that shows a list of key/value pairs and some additional margins. If there
- * are no values in the map, this returns a label indicating that no data is available.
+ * Create a component that shows a list of key/value pairs and some additional margins. If there are
+ * no values in the map, this returns a label indicating that no data is available.
  */
 fun createStyledMapComponent(map: Map<String, String>): JComponent {
   if (map.isEmpty()) {
@@ -116,25 +110,31 @@ fun createStyledMapComponent(map: Map<String, String>): JComponent {
   val emptyBorder = JBUI.Borders.empty(scaled5, 0, scaled5, scaled5)
   val mainJPanel = JPanel()
   mainJPanel.layout = BoxLayout(mainJPanel, BoxLayout.Y_AXIS)
-  map.toSortedMap(String.CASE_INSENSITIVE_ORDER)
-    .forEach { (key, value) ->
-      val currJPanel = JPanel().apply {
+  map.toSortedMap(String.CASE_INSENSITIVE_ORDER).forEach { (key, value) ->
+    val currJPanel =
+      JPanel().apply {
         layout = BorderLayout(scaled5, scaled5)
-        add(NoWrapBoldLabel("$key:").apply {
-          border = emptyBorder
-          verticalAlignment = JLabel.TOP
-        }, BorderLayout.LINE_START)
-        add(WrappedTextArea(value).apply {
-          border = emptyBorder
-          background = null
-          isOpaque = false
-          isEditable = false
-        }, BorderLayout.CENTER)
+        add(
+          NoWrapBoldLabel("$key:").apply {
+            border = emptyBorder
+            verticalAlignment = JLabel.TOP
+          },
+          BorderLayout.LINE_START
+        )
+        add(
+          WrappedTextArea(value).apply {
+            border = emptyBorder
+            background = null
+            isOpaque = false
+            isEditable = false
+          },
+          BorderLayout.CENTER
+        )
         alignmentX = JPanel.LEFT_ALIGNMENT
         alignmentY = JPanel.TOP_ALIGNMENT
       }
-      mainJPanel.add(currJPanel)
-    }
+    mainJPanel.add(currJPanel)
+  }
   mainJPanel.alignmentX = JPanel.LEFT_ALIGNMENT
   return mainJPanel
 }
@@ -145,13 +145,12 @@ fun createStyledMapComponent(map: Map<String, String>): JComponent {
  * This utility method is meant to be used indirectly only for test purposes - names can be a
  * convenient way to expose child elements to tests to assert their state.
  *
- * Non-unique names throw an exception to help catch accidental copy/paste errors when
- * initializing names.
+ * Non-unique names throw an exception to help catch accidental copy/paste errors when initializing
+ * names.
  */
 fun findComponentWithUniqueName(root: JComponent, name: String): JComponent? {
-  val matches = TreeWalker(root).descendants()
-    .filter { component -> name == component.name }
-    .toList()
+  val matches =
+    TreeWalker(root).descendants().filter { component -> name == component.name }.toList()
   check(matches.size <= 1) { "More than one component found with the name: $name" }
   return if (matches.size == 1) matches[0] as JComponent else null
 }
@@ -174,11 +173,12 @@ fun createCategoryPanel(
 
   for ((index, components) in entryComponents.withIndex()) {
     val (component1, component2) = components
-    val component2Panel = JPanel(BorderLayout()).apply {
-      border = JBUI.Borders.empty(5, 10)
+    val component2Panel =
+      JPanel(BorderLayout()).apply {
+        border = JBUI.Borders.empty(5, 10)
 
-      add(component2, BorderLayout.CENTER)
-    }
+        add(component2, BorderLayout.CENTER)
+      }
 
     bodyPanel.add(component1, TabularLayout.Constraint(index, 0))
     bodyPanel.add(component2Panel, TabularLayout.Constraint(index, 1))
@@ -187,63 +187,60 @@ fun createCategoryPanel(
   return panel
 }
 
-/**
- * Create a [JBTextField] with preferred [width] and focus lost listener.
- */
+/** Create a [JBTextField] with preferred [width] and focus lost listener. */
 fun createTextField(
   initialText: String?,
   hintText: String,
   name: String? = null,
   focusLost: (String) -> Unit = {}
-) = JBTextField(initialText).apply {
-  emptyText.appendText(hintText)
-  // Adjust TextField size to contain hintText properly
-  preferredSize = Dimension(max(preferredSize.width, emptyText.preferredSize.width + font.size),
-                            max(preferredSize.height, emptyText.preferredSize.height))
-  border = BorderFactory.createLineBorder(borderLight)
-  this.name = name
-  addFocusListener(object : FocusAdapter() {
-    override fun focusLost(e: FocusEvent) {
-      focusLost(text.trim())
-    }
-  })
-}
+) =
+  JBTextField(initialText).apply {
+    emptyText.appendText(hintText)
+    // Adjust TextField size to contain hintText properly
+    preferredSize =
+      Dimension(
+        max(preferredSize.width, emptyText.preferredSize.width + font.size),
+        max(preferredSize.height, emptyText.preferredSize.height)
+      )
+    border = BorderFactory.createLineBorder(borderLight)
+    this.name = name
+    addFocusListener(
+      object : FocusAdapter() {
+        override fun focusLost(e: FocusEvent) {
+          focusLost(text.trim())
+        }
+      }
+    )
+  }
 
-fun createWarningLabel(warningText: String, labelName: String?) = JBLabel(StudioIcons.Common.WARNING).apply {
-  isVisible = false
-  border = JBUI.Borders.emptyLeft(5)
-  toolTipText = warningText
-  name = labelName
-}
+fun createWarningLabel(warningText: String, labelName: String?) =
+  JBLabel(StudioIcons.Common.WARNING).apply {
+    isVisible = false
+    border = JBUI.Borders.emptyLeft(5)
+    toolTipText = warningText
+    name = labelName
+  }
 
-fun createPanelWithTextFieldAndWarningLabel(
-  textField: JBTextField,
-  warningLabel: JBLabel
-) = JPanel(TabularLayout("*,Fit")).apply {
-  add(textField, TabularLayout.Constraint(0, 0))
-  add(warningLabel, TabularLayout.Constraint(0, 1))
-}
+fun createPanelWithTextFieldAndWarningLabel(textField: JBTextField, warningLabel: JBLabel) =
+  JPanel(TabularLayout("*,Fit")).apply {
+    add(textField, TabularLayout.Constraint(0, 0))
+    add(warningLabel, TabularLayout.Constraint(0, 1))
+  }
 
-/**
- * Returns a [JPanel] of a [JBCheckBox] with Regex icon and label.
- */
+/** Returns a [JPanel] of a [JBCheckBox] with Regex icon and label. */
 fun JBCheckBox.withRegexLabel(): JPanel {
   val label = JBLabel(REGEX_TEXT)
   label.icon = AllIcons.Actions.RegexHovered
   label.disabledIcon = AllIcons.Actions.Regex
   label.iconTextGap = 0
-  addPropertyChangeListener {
-    label.isEnabled = this@withRegexLabel.isEnabled
-  }
+  addPropertyChangeListener { label.isEnabled = this@withRegexLabel.isEnabled }
   return JPanel(HorizontalLayout(0)).apply {
     add(this@withRegexLabel)
     add(label)
   }
 }
 
-/**
- * This is a label with bold font and does not wrap.
- */
+/** This is a label with bold font and does not wrap. */
 class NoWrapBoldLabel(text: String) : JBLabel(text) {
   init {
     withFont(JBFont.label().asBold())
@@ -254,9 +251,7 @@ class NoWrapBoldLabel(text: String) : JBLabel(text) {
   }
 }
 
-/**
- * This is a text area with line and word wrap and plain text.
- */
+/** This is a text area with line and word wrap and plain text. */
 class WrappedTextArea(text: String) : JBTextArea(text) {
   init {
     font = JBFont.label().asPlain()

@@ -20,10 +20,10 @@ import com.android.annotations.concurrency.UiThread
 /**
  * A set of utility methods used for communicating requests to the IDE.
  *
- * Note that this class, despite containing the word "IDE" in its name, does not belong in the
- * `ide` module -- rather, we expect the `ide` module to implement it. This interface is just an
- * API for making requests that will make sense if we are running in the context of an IDE, but can
- * be ignored otherwise (for example, in tests).
+ * Note that this class, despite containing the word "IDE" in its name, does not belong in the `ide`
+ * module -- rather, we expect the `ide` module to implement it. This interface is just an API for
+ * making requests that will make sense if we are running in the context of an IDE, but can be
+ * ignored otherwise (for example, in tests).
  */
 interface AppInspectionIdeServices {
   enum class Severity {
@@ -31,54 +31,63 @@ interface AppInspectionIdeServices {
     ERROR,
   }
 
-  /**
-   * Shows the App Inspection tool window.
-   */
-  @UiThread
-  fun showToolWindow()
+  /** Shows the App Inspection tool window. */
+  @UiThread fun showToolWindow()
 
   /**
-   * Shows a notification which will be reported by the tool window with UX that is consistent across all inspectors.
+   * Shows a notification which will be reported by the tool window with UX that is consistent
+   * across all inspectors.
    *
-   * @param content Content text for this notification, which can contain html. If an `<a href=.../>` tag is present
-   *   and the user clicks on it, the [hyperlinkClicked] parameter will be triggered.
+   * @param content Content text for this notification, which can contain html. If an `<a
+   * href=.../>` tag is present and the user clicks on it, the [hyperlinkClicked] parameter will be
+   * triggered.
    * @param title A title to show for this notification, which can be empty
-   * @param hyperlinkClicked If the notification contains a hyperlink, this callback will be fired if the user clicks it.
+   * @param hyperlinkClicked If the notification contains a hyperlink, this callback will be fired
+   * if the user clicks it.
    */
   @UiThread
-  fun showNotification(content: String,
-                       title: String = "",
-                       severity: Severity = Severity.INFORMATION,
-                       @UiThread hyperlinkClicked: () -> Unit = {})
+  fun showNotification(
+    content: String,
+    title: String = "",
+    severity: Severity = Severity.INFORMATION,
+    @UiThread hyperlinkClicked: () -> Unit = {}
+  )
 
-
-  class CodeLocation private constructor(val fileName: String?, val fqcn: String?, val lineNumber: Int?) {
+  class CodeLocation
+  private constructor(val fileName: String?, val fqcn: String?, val lineNumber: Int?) {
     companion object {
       fun forClass(fqcn: String) = CodeLocation(null, fqcn, null)
-      fun forFile(fileName: String, lineNumber: Int? = null) = CodeLocation(fileName, null, lineNumber)
+      fun forFile(fileName: String, lineNumber: Int? = null) =
+        CodeLocation(fileName, null, lineNumber)
     }
   }
 
   /**
    * Navigate to the target code location.
    *
-   * This method may do expensive work to convert the [CodeLocation] to an actual navigation point before finally doing
-   * the navigation, which is why it is a suspend function and should get launched on a background thread.
+   * This method may do expensive work to convert the [CodeLocation] to an actual navigation point
+   * before finally doing the navigation, which is why it is a suspend function and should get
+   * launched on a background thread.
    */
   suspend fun navigateTo(codeLocation: CodeLocation)
 
   /**
-   * Returns true if the tab corresponding to [inspectorId] is currently selected in the App Inspection tool window.
+   * Returns true if the tab corresponding to [inspectorId] is currently selected in the App
+   * Inspection tool window.
    */
   fun isTabSelected(inspectorId: String): Boolean
 }
 
 open class AppInspectionIdeServicesAdapter : AppInspectionIdeServices {
-  @UiThread
-  override fun showToolWindow() {}
+  @UiThread override fun showToolWindow() {}
 
   @UiThread
-  override fun showNotification(content: String, title: String, severity: AppInspectionIdeServices.Severity, hyperlinkClicked: () -> Unit) {}
+  override fun showNotification(
+    content: String,
+    title: String,
+    severity: AppInspectionIdeServices.Severity,
+    hyperlinkClicked: () -> Unit
+  ) {}
 
   override suspend fun navigateTo(codeLocation: AppInspectionIdeServices.CodeLocation) {}
 

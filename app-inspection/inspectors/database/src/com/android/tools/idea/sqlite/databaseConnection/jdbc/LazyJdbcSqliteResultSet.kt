@@ -28,13 +28,14 @@ class LazyJdbcSqliteResultSet(
   private val sqliteStatement: SqliteStatement
 ) : JdbcSqliteResultSet(taskExecutor, connection, sqliteStatement) {
   override val totalRowCount: ListenableFuture<Int>
-    get() = getRowCount(sqliteStatement) {
-      var rowCount = 0
-      while (it.next()) {
-        rowCount += 1
+    get() =
+      getRowCount(sqliteStatement) {
+        var rowCount = 0
+        while (it.next()) {
+          rowCount += 1
+        }
+        rowCount
       }
-      rowCount
-    }
 
   override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> {
     checkOffsetAndSize(rowOffset, rowBatchSize)

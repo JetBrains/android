@@ -50,7 +50,8 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 
 class LiveDatabaseConnectionTest : LightPlatformTestCase() {
-  private val taskExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)
+  private val taskExecutor: FutureCallbackExecutor =
+    FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)
   private lateinit var liveDatabaseConnection: LiveDatabaseConnection
   private lateinit var scope: CoroutineScope
 
@@ -70,546 +71,630 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     }
   }
 
-  fun testReadSchema() = runBlocking<Unit> {
-    // Prepare
-    val column1 = SqliteInspectorProtocol.Column.newBuilder()
-      .setName("column1")
-      .setType("TEXT")
-      .build()
+  fun testReadSchema() =
+    runBlocking<Unit> {
+      // Prepare
+      val column1 =
+        SqliteInspectorProtocol.Column.newBuilder().setName("column1").setType("TEXT").build()
 
-    val column2 = SqliteInspectorProtocol.Column.newBuilder()
-      .setName("column2")
-      .setType("INTEGER")
-      .build()
+      val column2 =
+        SqliteInspectorProtocol.Column.newBuilder().setName("column2").setType("INTEGER").build()
 
-    val column3 = SqliteInspectorProtocol.Column.newBuilder()
-      .setName("column3")
-      .setType("FLOAT")
-      .build()
+      val column3 =
+        SqliteInspectorProtocol.Column.newBuilder().setName("column3").setType("FLOAT").build()
 
-    val column4 = SqliteInspectorProtocol.Column.newBuilder()
-      .setName("column4")
-      .setType("BLOB")
-      .build()
+      val column4 =
+        SqliteInspectorProtocol.Column.newBuilder().setName("column4").setType("BLOB").build()
 
-    val table = SqliteInspectorProtocol.Table.newBuilder()
-      .addColumns(column1)
-      .addColumns(column2)
-      .addColumns(column3)
-      .addColumns(column4)
-      .build()
+      val table =
+        SqliteInspectorProtocol.Table.newBuilder()
+          .addColumns(column1)
+          .addColumns(column2)
+          .addColumns(column3)
+          .addColumns(column4)
+          .build()
 
-    val schema = GetSchemaResponse.newBuilder()
-      .addTables(table)
-      .build()
+      val schema = GetSchemaResponse.newBuilder().addTables(table).build()
 
-    val schemaResponse = Response.newBuilder()
-      .setGetSchema(schema)
-      .build()
+      val schemaResponse = Response.newBuilder().setGetSchema(schema).build()
 
-    val mockMessenger = mock(AppInspectorMessenger::class.java)
-    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(schemaResponse.toByteArray())
+      val mockMessenger = mock(AppInspectorMessenger::class.java)
+      whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
+        .thenReturn(schemaResponse.toByteArray())
 
-    liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
+      liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
-    // Act
-    val sqliteSchema = pumpEventsAndWaitForFuture(liveDatabaseConnection.readSchema())
+      // Act
+      val sqliteSchema = pumpEventsAndWaitForFuture(liveDatabaseConnection.readSchema())
 
-    // Assert
-    assertSize(1, sqliteSchema.tables)
-    assertSize(4, sqliteSchema.tables.first().columns)
-    assertEquals(RowIdName._ROWID_, sqliteSchema.tables.first().rowIdName)
-    assertEquals("column1", sqliteSchema.tables.first().columns[0].name)
-    assertEquals("column2", sqliteSchema.tables.first().columns[1].name)
-    assertEquals("column3", sqliteSchema.tables.first().columns[2].name)
-    assertEquals("column4", sqliteSchema.tables.first().columns[3].name)
-    assertEquals(SqliteAffinity.TEXT, sqliteSchema.tables.first().columns[0].affinity)
-    assertEquals(SqliteAffinity.INTEGER, sqliteSchema.tables.first().columns[1].affinity)
-    assertEquals(SqliteAffinity.REAL, sqliteSchema.tables.first().columns[2].affinity)
-    assertEquals(SqliteAffinity.BLOB, sqliteSchema.tables.first().columns[3].affinity)
-  }
+      // Assert
+      assertSize(1, sqliteSchema.tables)
+      assertSize(4, sqliteSchema.tables.first().columns)
+      assertEquals(RowIdName._ROWID_, sqliteSchema.tables.first().rowIdName)
+      assertEquals("column1", sqliteSchema.tables.first().columns[0].name)
+      assertEquals("column2", sqliteSchema.tables.first().columns[1].name)
+      assertEquals("column3", sqliteSchema.tables.first().columns[2].name)
+      assertEquals("column4", sqliteSchema.tables.first().columns[3].name)
+      assertEquals(SqliteAffinity.TEXT, sqliteSchema.tables.first().columns[0].affinity)
+      assertEquals(SqliteAffinity.INTEGER, sqliteSchema.tables.first().columns[1].affinity)
+      assertEquals(SqliteAffinity.REAL, sqliteSchema.tables.first().columns[2].affinity)
+      assertEquals(SqliteAffinity.BLOB, sqliteSchema.tables.first().columns[3].affinity)
+    }
 
-  fun testExecuteQuery() = runBlocking<Unit> {
-    val largeFloat = Float.MAX_VALUE * 2.0
-    val largeInteger = Long.MAX_VALUE
+  fun testExecuteQuery() =
+    runBlocking<Unit> {
+      val largeFloat = Float.MAX_VALUE * 2.0
+      val largeInteger = Long.MAX_VALUE
 
-    // Prepare
-    val cellValueString = SqliteInspectorProtocol.CellValue.newBuilder().setStringValue("a string").build()
+      // Prepare
+      val cellValueString =
+        SqliteInspectorProtocol.CellValue.newBuilder().setStringValue("a string").build()
 
-    val cellValueFloat = SqliteInspectorProtocol.CellValue.newBuilder().setDoubleValue(largeFloat).build()
+      val cellValueFloat =
+        SqliteInspectorProtocol.CellValue.newBuilder().setDoubleValue(largeFloat).build()
 
-    val cellValueBlob = SqliteInspectorProtocol.CellValue.newBuilder()
-      .setBlobValue(ByteString.copyFrom("a blob".toByteArray()))
-      .build()
+      val cellValueBlob =
+        SqliteInspectorProtocol.CellValue.newBuilder()
+          .setBlobValue(ByteString.copyFrom("a blob".toByteArray()))
+          .build()
 
-    val cellValueInt = SqliteInspectorProtocol.CellValue.newBuilder().setLongValue(largeInteger)
-      .build()
+      val cellValueInt =
+        SqliteInspectorProtocol.CellValue.newBuilder().setLongValue(largeInteger).build()
 
-    val cellValueNull = SqliteInspectorProtocol.CellValue.newBuilder().build()
+      val cellValueNull = SqliteInspectorProtocol.CellValue.newBuilder().build()
 
-    val columnNames = listOf("column1", "column2", "column3", "column4", "column5")
+      val columnNames = listOf("column1", "column2", "column3", "column4", "column5")
 
-    val rows = SqliteInspectorProtocol.Row.newBuilder()
-      .addValues(cellValueString)
-      .addValues(cellValueFloat)
-      .addValues(cellValueBlob)
-      .addValues(cellValueInt)
-      .addValues(cellValueNull)
-      .build()
+      val rows =
+        SqliteInspectorProtocol.Row.newBuilder()
+          .addValues(cellValueString)
+          .addValues(cellValueFloat)
+          .addValues(cellValueBlob)
+          .addValues(cellValueInt)
+          .addValues(cellValueNull)
+          .build()
 
-    val cursor = Response.newBuilder()
-      .setQuery(
-        QueryResponse.newBuilder()
-          .addAllColumnNames(columnNames)
-          .addRows(rows)
+      val cursor =
+        Response.newBuilder()
+          .setQuery(QueryResponse.newBuilder().addAllColumnNames(columnNames).addRows(rows))
+          .build()
+
+      val mockMessenger = mock(AppInspectorMessenger::class.java)
+      whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
+        .thenReturn(cursor.toByteArray())
+
+      liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
+
+      // Act
+      val resultSet =
+        pumpEventsAndWaitForFuture(
+          liveDatabaseConnection.query(SqliteStatement(SqliteStatementType.SELECT, "fake query"))
+        )!!
+
+      // Assert
+      val sqliteColumns = pumpEventsAndWaitForFuture(resultSet.columns)
+      val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1))
+
+      assertSize(1, sqliteRows)
+      assertSize(5, sqliteColumns)
+
+      assertEquals("column1", sqliteColumns[0].name)
+      assertEquals("column2", sqliteColumns[1].name)
+      assertEquals("column3", sqliteColumns[2].name)
+      assertEquals("column4", sqliteColumns[3].name)
+      assertEquals("column5", sqliteColumns[4].name)
+
+      assertNull(sqliteColumns[0].affinity)
+      assertNull(sqliteColumns[1].affinity)
+      assertNull(sqliteColumns[2].affinity)
+      assertNull(sqliteColumns[3].affinity)
+      assertNull(sqliteColumns[4].affinity)
+
+      assertEquals(sqliteRows[0].values[0].value, SqliteValue.StringValue("a string"))
+      assertEquals(sqliteRows[0].values[1].value, SqliteValue.StringValue(largeFloat.toString()))
+      // the value for the blob corresponds to the base16 encoding of the byte array of the blob.
+      assertEquals(sqliteRows[0].values[2].value, SqliteValue.StringValue("6120626C6F62"))
+      assertEquals(sqliteRows[0].values[3].value, SqliteValue.StringValue(largeInteger.toString()))
+      assertEquals(sqliteRows[0].values[4].value, SqliteValue.NullValue)
+    }
+
+  fun testExecuteExplain() =
+    runBlocking<Unit> {
+      // Prepare
+      val cellValueString =
+        SqliteInspectorProtocol.CellValue.newBuilder().setStringValue("a string").build()
+
+      val cellValueFloat =
+        SqliteInspectorProtocol.CellValue.newBuilder().setDoubleValue(1.0).build()
+
+      val cellValueBlob =
+        SqliteInspectorProtocol.CellValue.newBuilder()
+          .setBlobValue(ByteString.copyFrom("a blob".toByteArray()))
+          .build()
+
+      val cellValueInt = SqliteInspectorProtocol.CellValue.newBuilder().setLongValue(1).build()
+
+      val cellValueNull = SqliteInspectorProtocol.CellValue.newBuilder().build()
+
+      val columnNames = listOf("column1", "column2", "column3", "column4", "column5")
+
+      val rows =
+        SqliteInspectorProtocol.Row.newBuilder()
+          .addValues(cellValueString)
+          .addValues(cellValueFloat)
+          .addValues(cellValueBlob)
+          .addValues(cellValueInt)
+          .addValues(cellValueNull)
+          .build()
+
+      val cursor =
+        Response.newBuilder()
+          .setQuery(QueryResponse.newBuilder().addAllColumnNames(columnNames).addRows(rows))
+          .build()
+
+      val mockMessenger = mock(AppInspectorMessenger::class.java)
+      whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
+        .thenReturn(cursor.toByteArray())
+
+      liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
+
+      // Act
+      val resultSet =
+        pumpEventsAndWaitForFuture(
+          liveDatabaseConnection.query(SqliteStatement(SqliteStatementType.EXPLAIN, "fake query"))
+        )!!
+
+      // Assert
+      val sqliteColumns = pumpEventsAndWaitForFuture(resultSet.columns)
+      val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1))
+
+      assertSize(1, sqliteRows)
+      assertSize(5, sqliteColumns)
+
+      assertEquals("column1", sqliteColumns[0].name)
+      assertEquals("column2", sqliteColumns[1].name)
+      assertEquals("column3", sqliteColumns[2].name)
+      assertEquals("column4", sqliteColumns[3].name)
+      assertEquals("column5", sqliteColumns[4].name)
+
+      assertNull(sqliteColumns[0].affinity)
+      assertNull(sqliteColumns[1].affinity)
+      assertNull(sqliteColumns[2].affinity)
+      assertNull(sqliteColumns[3].affinity)
+      assertNull(sqliteColumns[4].affinity)
+
+      assertEquals(sqliteRows[0].values[0].value, SqliteValue.StringValue("a string"))
+      assertEquals(sqliteRows[0].values[1].value, SqliteValue.StringValue(1f.toString()))
+      // the value for the blob corresponds to the base16 encoding of the byte array of the blob.
+      assertEquals(sqliteRows[0].values[2].value, SqliteValue.StringValue("6120626C6F62"))
+      assertEquals(sqliteRows[0].values[3].value, SqliteValue.StringValue(1.toString()))
+      assertEquals(sqliteRows[0].values[4].value, SqliteValue.NullValue)
+    }
+
+  fun testExecutePragma() =
+    runBlocking<Unit> {
+      // Prepare
+      val cellValueString =
+        SqliteInspectorProtocol.CellValue.newBuilder().setStringValue("a string").build()
+      val cellValueFloat =
+        SqliteInspectorProtocol.CellValue.newBuilder().setDoubleValue(1.0).build()
+      val cellValueBlob =
+        SqliteInspectorProtocol.CellValue.newBuilder()
+          .setBlobValue(ByteString.copyFrom("a blob".toByteArray()))
+          .build()
+      val cellValueInt = SqliteInspectorProtocol.CellValue.newBuilder().setLongValue(1).build()
+      val cellValueNull = SqliteInspectorProtocol.CellValue.newBuilder().build()
+
+      val columnNames = listOf("column1", "column2", "column3", "column4", "column5")
+
+      val rows =
+        SqliteInspectorProtocol.Row.newBuilder()
+          .addValues(cellValueString)
+          .addValues(cellValueFloat)
+          .addValues(cellValueBlob)
+          .addValues(cellValueInt)
+          .addValues(cellValueNull)
+          .build()
+
+      val cursor =
+        Response.newBuilder()
+          .setQuery(QueryResponse.newBuilder().addAllColumnNames(columnNames).addRows(rows))
+          .build()
+
+      val mockMessenger = mock(AppInspectorMessenger::class.java)
+      whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
+        .thenReturn(cursor.toByteArray())
+
+      liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
+
+      // Act
+      val resultSet =
+        pumpEventsAndWaitForFuture(
+          liveDatabaseConnection.query(
+            SqliteStatement(SqliteStatementType.PRAGMA_QUERY, "fake query")
+          )
+        )
+
+      // Assert
+      val sqliteColumns = pumpEventsAndWaitForFuture(resultSet.columns)
+      val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1))
+
+      assertSize(1, sqliteRows)
+      assertSize(5, sqliteColumns)
+
+      assertEquals("column1", sqliteColumns[0].name)
+      assertEquals("column2", sqliteColumns[1].name)
+      assertEquals("column3", sqliteColumns[2].name)
+      assertEquals("column4", sqliteColumns[3].name)
+      assertEquals("column5", sqliteColumns[4].name)
+
+      assertNull(sqliteColumns[0].affinity)
+      assertNull(sqliteColumns[1].affinity)
+      assertNull(sqliteColumns[2].affinity)
+      assertNull(sqliteColumns[3].affinity)
+      assertNull(sqliteColumns[4].affinity)
+
+      assertEquals(sqliteRows[0].values[0].value, SqliteValue.StringValue("a string"))
+      assertEquals(sqliteRows[0].values[1].value, SqliteValue.StringValue(1f.toString()))
+      // the value for the blob corresponds to the base16 encoding of the byte array of the blob.
+      assertEquals(sqliteRows[0].values[2].value, SqliteValue.StringValue("6120626C6F62"))
+      assertEquals(sqliteRows[0].values[3].value, SqliteValue.StringValue(1.toString()))
+      assertEquals(sqliteRows[0].values[4].value, SqliteValue.NullValue)
+    }
+
+  fun testExecuteStatementWithParameters() =
+    runBlocking<Unit> {
+      // Prepare
+      val mockMessenger = mock(AppInspectorMessenger::class.java)
+      val sqliteStatement =
+        SqliteStatement(
+          SqliteStatementType.UNKNOWN,
+          "fake query",
+          listOf(SqliteValue.StringValue("1"), SqliteValue.NullValue),
+          "fakeQuery"
+        )
+
+      val cursor = Response.newBuilder().setQuery(QueryResponse.newBuilder()).build()
+
+      whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
+        .thenReturn(cursor.toByteArray())
+
+      liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
+
+      // Act
+      pumpEventsAndWaitForFuture(liveDatabaseConnection.execute(sqliteStatement))!!
+
+      // Assert
+      val param1 =
+        SqliteInspectorProtocol.QueryParameterValue.newBuilder().setStringValue("1").build()
+      val paramNull = SqliteInspectorProtocol.QueryParameterValue.newBuilder().build()
+
+      val queryBuilder =
+        SqliteInspectorProtocol.QueryCommand.newBuilder()
+          .setQuery(sqliteStatement.sqliteStatementText)
+          .addAllQueryParameterValues(listOf(param1, paramNull))
+          .setDatabaseId(1)
+
+      val queryCommand = SqliteInspectorProtocol.Command.newBuilder().setQuery(queryBuilder).build()
+
+      verify(mockMessenger).sendRawCommand(queryCommand.toByteArray())
+    }
+
+  fun testReturnsEmptyResultSetForEmptyResponse() =
+    runBlocking<Unit> {
+      // Prepare
+      val cursor = Response.newBuilder().build()
+
+      val mockMessenger = mock(AppInspectorMessenger::class.java)
+      whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
+        .thenReturn(cursor.toByteArray())
+
+      liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
+
+      // Act
+      val resultSet =
+        pumpEventsAndWaitForFuture(
+          liveDatabaseConnection.query(SqliteStatement(SqliteStatementType.SELECT, "fake query"))
+        )!!
+
+      // Assert
+      val sqliteColumns = pumpEventsAndWaitForFuture(resultSet.columns)
+      val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1))
+
+      assertSize(0, sqliteRows)
+      assertSize(0, sqliteColumns)
+    }
+
+  fun testThrowsRecoverableErrorOnErrorOccurredResponse() =
+    runBlocking<Unit> {
+      // Prepare
+      val errorOccurredEvent =
+        SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder()
+          .setContent(
+            SqliteInspectorProtocol.ErrorContent.newBuilder()
+              .setMessage("errorMessage")
+              .setRecoverability(
+                SqliteInspectorProtocol.ErrorRecoverability.newBuilder()
+                  .setIsRecoverable(true)
+                  .build()
+              )
+              .setStackTrace("stackTrace")
+              .build()
+          )
+          .build()
+
+      val cursor = Response.newBuilder().setErrorOccurred(errorOccurredEvent).build()
+
+      val mockMessenger = mock(AppInspectorMessenger::class.java)
+      whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
+        .thenReturn(cursor.toByteArray())
+
+      liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
+
+      // Act / Assert
+      val error1 = pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
+      val error2 =
+        pumpEventsAndWaitForFutureException(
+          liveDatabaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "fake query"))
+        )
+
+      assertEquals(error1.cause, error2.cause)
+      assertInstanceOf(error1.cause, LiveInspectorException::class.java)
+      assertEquals("errorMessage", error1.cause!!.message)
+      assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
+    }
+
+  fun testThrowsNonRecoverableErrorOnErrorOccurredResponse() =
+    runBlocking<Unit> {
+      // Prepare
+      val errorOccurredEvent =
+        SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder()
+          .setContent(
+            SqliteInspectorProtocol.ErrorContent.newBuilder()
+              .setMessage("errorMessage")
+              .setRecoverability(
+                SqliteInspectorProtocol.ErrorRecoverability.newBuilder()
+                  .setIsRecoverable(false)
+                  .build()
+              )
+              .setStackTrace("stackTrace")
+              .build()
+          )
+          .build()
+
+      val cursor = Response.newBuilder().setErrorOccurred(errorOccurredEvent).build()
+
+      val mockMessenger = mock(AppInspectorMessenger::class.java)
+      whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
+        .thenReturn(cursor.toByteArray())
+
+      liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
+
+      // Act / Assert
+      val error1 = pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
+      val error2 =
+        pumpEventsAndWaitForFutureException(
+          liveDatabaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "fake query"))
+        )
+
+      assertEquals(error1.cause, error2.cause)
+      assertInstanceOf(error1.cause, LiveInspectorException::class.java)
+      assertEquals(
+        "An error has occurred which requires you to restart your app: errorMessage",
+        error1.cause!!.message
       )
-      .build()
+      assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
+    }
 
-    val mockMessenger = mock(AppInspectorMessenger::class.java)
-    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
+  fun testThrowsUnknownRecoverableErrorOnErrorOccurredResponse() =
+    runBlocking<Unit> {
+      // Prepare
+      val errorOccurredEvent =
+        SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder()
+          .setContent(
+            SqliteInspectorProtocol.ErrorContent.newBuilder()
+              .setMessage("errorMessage")
+              .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().build())
+              .setStackTrace("stackTrace")
+              .build()
+          )
+          .build()
 
-    liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
+      val cursor = Response.newBuilder().setErrorOccurred(errorOccurredEvent).build()
 
-    // Act
-    val resultSet = pumpEventsAndWaitForFuture(
-      liveDatabaseConnection.query(SqliteStatement(SqliteStatementType.SELECT, "fake query"))
-    )!!
+      val mockMessenger = mock(AppInspectorMessenger::class.java)
+      whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
+        .thenReturn(cursor.toByteArray())
 
-    // Assert
-    val sqliteColumns = pumpEventsAndWaitForFuture(resultSet.columns)
-    val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1))
+      liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
-    assertSize(1, sqliteRows)
-    assertSize(5, sqliteColumns)
+      // Act / Assert
+      val error1 = pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
+      val error2 =
+        pumpEventsAndWaitForFutureException(
+          liveDatabaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "fake query"))
+        )
 
-    assertEquals("column1", sqliteColumns[0].name)
-    assertEquals("column2", sqliteColumns[1].name)
-    assertEquals("column3", sqliteColumns[2].name)
-    assertEquals("column4", sqliteColumns[3].name)
-    assertEquals("column5", sqliteColumns[4].name)
-
-    assertNull(sqliteColumns[0].affinity)
-    assertNull(sqliteColumns[1].affinity)
-    assertNull(sqliteColumns[2].affinity)
-    assertNull(sqliteColumns[3].affinity)
-    assertNull(sqliteColumns[4].affinity)
-
-    assertEquals(sqliteRows[0].values[0].value, SqliteValue.StringValue("a string"))
-    assertEquals(sqliteRows[0].values[1].value, SqliteValue.StringValue(largeFloat.toString()))
-    // the value for the blob corresponds to the base16 encoding of the byte array of the blob.
-    assertEquals(sqliteRows[0].values[2].value, SqliteValue.StringValue("6120626C6F62"))
-    assertEquals(sqliteRows[0].values[3].value, SqliteValue.StringValue(largeInteger.toString()))
-    assertEquals(sqliteRows[0].values[4].value, SqliteValue.NullValue)
-  }
-
-  fun testExecuteExplain() = runBlocking<Unit> {
-    // Prepare
-    val cellValueString = SqliteInspectorProtocol.CellValue.newBuilder().setStringValue("a string").build()
-
-    val cellValueFloat = SqliteInspectorProtocol.CellValue.newBuilder().setDoubleValue(1.0).build()
-
-    val cellValueBlob = SqliteInspectorProtocol.CellValue.newBuilder()
-      .setBlobValue(ByteString.copyFrom("a blob".toByteArray()))
-      .build()
-
-    val cellValueInt = SqliteInspectorProtocol.CellValue.newBuilder().setLongValue(1)
-      .build()
-
-    val cellValueNull = SqliteInspectorProtocol.CellValue.newBuilder().build()
-
-    val columnNames = listOf("column1", "column2", "column3", "column4", "column5")
-
-    val rows = SqliteInspectorProtocol.Row.newBuilder()
-      .addValues(cellValueString)
-      .addValues(cellValueFloat)
-      .addValues(cellValueBlob)
-      .addValues(cellValueInt)
-      .addValues(cellValueNull)
-      .build()
-
-    val cursor = Response.newBuilder()
-      .setQuery(
-        QueryResponse.newBuilder()
-          .addAllColumnNames(columnNames)
-          .addRows(rows)
+      assertEquals(error1.cause, error2.cause)
+      assertInstanceOf(error1.cause, LiveInspectorException::class.java)
+      assertEquals(
+        "An error has occurred which might require you to restart your app: errorMessage",
+        error1.cause!!.message
       )
-      .build()
+      assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
+    }
 
-    val mockMessenger = mock(AppInspectorMessenger::class.java)
-    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
-
-    liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
-
-    // Act
-    val resultSet = pumpEventsAndWaitForFuture(
-      liveDatabaseConnection.query(SqliteStatement(SqliteStatementType.EXPLAIN, "fake query"))
-    )!!
-
-    // Assert
-    val sqliteColumns = pumpEventsAndWaitForFuture(resultSet.columns)
-    val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1))
-
-    assertSize(1, sqliteRows)
-    assertSize(5, sqliteColumns)
-
-    assertEquals("column1", sqliteColumns[0].name)
-    assertEquals("column2", sqliteColumns[1].name)
-    assertEquals("column3", sqliteColumns[2].name)
-    assertEquals("column4", sqliteColumns[3].name)
-    assertEquals("column5", sqliteColumns[4].name)
-
-    assertNull(sqliteColumns[0].affinity)
-    assertNull(sqliteColumns[1].affinity)
-    assertNull(sqliteColumns[2].affinity)
-    assertNull(sqliteColumns[3].affinity)
-    assertNull(sqliteColumns[4].affinity)
-
-    assertEquals(sqliteRows[0].values[0].value, SqliteValue.StringValue("a string"))
-    assertEquals(sqliteRows[0].values[1].value, SqliteValue.StringValue(1f.toString()))
-    // the value for the blob corresponds to the base16 encoding of the byte array of the blob.
-    assertEquals(sqliteRows[0].values[2].value, SqliteValue.StringValue("6120626C6F62"))
-    assertEquals(sqliteRows[0].values[3].value, SqliteValue.StringValue(1.toString()))
-    assertEquals(sqliteRows[0].values[4].value, SqliteValue.NullValue)
-  }
-
-  fun testExecutePragma() = runBlocking<Unit> {
-    // Prepare
-    val cellValueString = SqliteInspectorProtocol.CellValue.newBuilder().setStringValue("a string").build()
-    val cellValueFloat = SqliteInspectorProtocol.CellValue.newBuilder().setDoubleValue(1.0).build()
-    val cellValueBlob = SqliteInspectorProtocol.CellValue.newBuilder()
-      .setBlobValue(ByteString.copyFrom("a blob".toByteArray()))
-      .build()
-    val cellValueInt = SqliteInspectorProtocol.CellValue.newBuilder().setLongValue(1)
-      .build()
-    val cellValueNull = SqliteInspectorProtocol.CellValue.newBuilder().build()
-
-    val columnNames = listOf("column1", "column2", "column3", "column4", "column5")
-
-    val rows = SqliteInspectorProtocol.Row.newBuilder()
-      .addValues(cellValueString)
-      .addValues(cellValueFloat)
-      .addValues(cellValueBlob)
-      .addValues(cellValueInt)
-      .addValues(cellValueNull)
-      .build()
-
-    val cursor = Response.newBuilder()
-      .setQuery(
-        QueryResponse.newBuilder()
-          .addAllColumnNames(columnNames)
-          .addRows(rows)
+  fun testRecoverableErrorAnalytics() =
+    runBlocking<Unit> {
+      // Prepare
+      val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
+      project.registerServiceInstance(
+        DatabaseInspectorAnalyticsTracker::class.java,
+        mockTrackerService
       )
-      .build()
-
-    val mockMessenger = mock(AppInspectorMessenger::class.java)
-    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
-
-    liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
-
-    // Act
-    val resultSet = pumpEventsAndWaitForFuture(
-      liveDatabaseConnection.query(SqliteStatement(SqliteStatementType.PRAGMA_QUERY, "fake query"))
-    )
-
-    // Assert
-    val sqliteColumns = pumpEventsAndWaitForFuture(resultSet.columns)
-    val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1))
-
-    assertSize(1, sqliteRows)
-    assertSize(5, sqliteColumns)
-
-    assertEquals("column1", sqliteColumns[0].name)
-    assertEquals("column2", sqliteColumns[1].name)
-    assertEquals("column3", sqliteColumns[2].name)
-    assertEquals("column4", sqliteColumns[3].name)
-    assertEquals("column5", sqliteColumns[4].name)
-
-    assertNull(sqliteColumns[0].affinity)
-    assertNull(sqliteColumns[1].affinity)
-    assertNull(sqliteColumns[2].affinity)
-    assertNull(sqliteColumns[3].affinity)
-    assertNull(sqliteColumns[4].affinity)
-
-    assertEquals(sqliteRows[0].values[0].value, SqliteValue.StringValue("a string"))
-    assertEquals(sqliteRows[0].values[1].value, SqliteValue.StringValue(1f.toString()))
-    // the value for the blob corresponds to the base16 encoding of the byte array of the blob.
-    assertEquals(sqliteRows[0].values[2].value, SqliteValue.StringValue("6120626C6F62"))
-    assertEquals(sqliteRows[0].values[3].value, SqliteValue.StringValue(1.toString()))
-    assertEquals(sqliteRows[0].values[4].value, SqliteValue.NullValue)
-  }
-
-  fun testExecuteStatementWithParameters() = runBlocking<Unit> {
-    // Prepare
-    val mockMessenger = mock(AppInspectorMessenger::class.java)
-    val sqliteStatement = SqliteStatement(
-      SqliteStatementType.UNKNOWN,
-      "fake query",
-      listOf(SqliteValue.StringValue("1"), SqliteValue.NullValue),
-      "fakeQuery")
-
-    val cursor = Response.newBuilder()
-      .setQuery(QueryResponse.newBuilder())
-      .build()
-
-    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
-
-    liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
-
-    // Act
-    pumpEventsAndWaitForFuture(liveDatabaseConnection.execute(sqliteStatement))!!
-
-    // Assert
-    val param1 = SqliteInspectorProtocol.QueryParameterValue.newBuilder().setStringValue("1").build()
-    val paramNull = SqliteInspectorProtocol.QueryParameterValue.newBuilder().build()
-
-    val queryBuilder = SqliteInspectorProtocol.QueryCommand.newBuilder()
-      .setQuery(sqliteStatement.sqliteStatementText)
-      .addAllQueryParameterValues(listOf(param1, paramNull))
-      .setDatabaseId(1)
-
-    val queryCommand = SqliteInspectorProtocol.Command.newBuilder().setQuery(queryBuilder).build()
-
-    verify(mockMessenger).sendRawCommand(queryCommand.toByteArray())
-  }
-
-  fun testReturnsEmptyResultSetForEmptyResponse() = runBlocking<Unit> {
-    // Prepare
-    val cursor = Response.newBuilder().build()
-
-    val mockMessenger = mock(AppInspectorMessenger::class.java)
-    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
-
-    liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
-
-    // Act
-    val resultSet = pumpEventsAndWaitForFuture(
-      liveDatabaseConnection.query(SqliteStatement(SqliteStatementType.SELECT, "fake query"))
-    )!!
-
-    // Assert
-    val sqliteColumns = pumpEventsAndWaitForFuture(resultSet.columns)
-    val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1))
-
-    assertSize(0, sqliteRows)
-    assertSize(0, sqliteColumns)
-  }
-
-  fun testThrowsRecoverableErrorOnErrorOccurredResponse() = runBlocking<Unit> {
-    // Prepare
-    val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder().setContent(
-      SqliteInspectorProtocol.ErrorContent.newBuilder()
-        .setMessage("errorMessage")
-        .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().setIsRecoverable(true).build())
-        .setStackTrace("stackTrace")
-        .build()
-    ).build()
-
-    val cursor = Response.newBuilder()
-      .setErrorOccurred(errorOccurredEvent)
-      .build()
-
-    val mockMessenger = mock(AppInspectorMessenger::class.java)
-    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
-
-    liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
-
-    // Act / Assert
-    val error1 = pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
-    val error2 = pumpEventsAndWaitForFutureException(
-      liveDatabaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "fake query"))
-    )
-
-    assertEquals(error1.cause, error2.cause)
-    assertInstanceOf(error1.cause, LiveInspectorException::class.java)
-    assertEquals("errorMessage", error1.cause!!.message)
-    assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
-  }
-
-  fun testThrowsNonRecoverableErrorOnErrorOccurredResponse() = runBlocking<Unit> {
-    // Prepare
-    val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder().setContent(
-      SqliteInspectorProtocol.ErrorContent.newBuilder()
-        .setMessage("errorMessage")
-        .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().setIsRecoverable(false).build())
-        .setStackTrace("stackTrace")
-        .build()
-    ).build()
-
-    val cursor = Response.newBuilder()
-      .setErrorOccurred(errorOccurredEvent)
-      .build()
-
-    val mockMessenger = mock(AppInspectorMessenger::class.java)
-    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
-
-    liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
-
-    // Act / Assert
-    val error1 = pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
-    val error2 = pumpEventsAndWaitForFutureException(
-      liveDatabaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "fake query"))
-    )
-
-    assertEquals(error1.cause, error2.cause)
-    assertInstanceOf(error1.cause, LiveInspectorException::class.java)
-    assertEquals("An error has occurred which requires you to restart your app: errorMessage", error1.cause!!.message)
-    assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
-  }
-
-  fun testThrowsUnknownRecoverableErrorOnErrorOccurredResponse() = runBlocking<Unit> {
-    // Prepare
-    val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder().setContent(
-      SqliteInspectorProtocol.ErrorContent.newBuilder()
-        .setMessage("errorMessage")
-        .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().build())
-        .setStackTrace("stackTrace")
-        .build()
-    ).build()
-
-    val cursor = Response.newBuilder()
-      .setErrorOccurred(errorOccurredEvent)
-      .build()
-
-    val mockMessenger = mock(AppInspectorMessenger::class.java)
-    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
-
-    liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
-
-    // Act / Assert
-    val error1 = pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
-    val error2 = pumpEventsAndWaitForFutureException(
-      liveDatabaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "fake query"))
-    )
-
-    assertEquals(error1.cause, error2.cause)
-    assertInstanceOf(error1.cause, LiveInspectorException::class.java)
-    assertEquals("An error has occurred which might require you to restart your app: errorMessage", error1.cause!!.message)
-    assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
-  }
-
-  fun testRecoverableErrorAnalytics() = runBlocking<Unit> {
-    // Prepare
-    val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
-    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
-
-    val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder().setContent(
-      SqliteInspectorProtocol.ErrorContent.newBuilder()
-        .setMessage("errorMessage")
-        .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().setIsRecoverable(true).build())
-        .setStackTrace("stackTrace")
-        .build()
-    ).build()
-
-    val cursor = Response.newBuilder()
-      .setErrorOccurred(errorOccurredEvent)
-      .build()
-
-    val mockMessenger = mock(AppInspectorMessenger::class.java)
-    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
-
-    liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
-
-    // Act / Assert
-    pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
-    pumpEventsAndWaitForFutureException(
-      liveDatabaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "fake query"))
-    )
-
-    verify(mockTrackerService, times(2)).trackErrorOccurred(AppInspectionEvent.DatabaseInspectorEvent.ErrorKind.IS_RECOVERABLE_TRUE)
-  }
-
-  fun testNonRecoverableErrorAnalytics() = runBlocking<Unit> {
-    // Prepare
-    val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
-    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
-
-    val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder().setContent(
-      SqliteInspectorProtocol.ErrorContent.newBuilder()
-        .setMessage("errorMessage")
-        .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().setIsRecoverable(false).build())
-        .setStackTrace("stackTrace")
-        .build()
-    ).build()
-
-    val cursor = Response.newBuilder()
-      .setErrorOccurred(errorOccurredEvent)
-      .build()
-
-    val mockMessenger = mock(AppInspectorMessenger::class.java)
-    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
-
-    liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
-
-    // Act / Assert
-    pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
-    pumpEventsAndWaitForFutureException(
-      liveDatabaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "fake query"))
-    )
-
-    verify(mockTrackerService, times(2)).trackErrorOccurred(AppInspectionEvent.DatabaseInspectorEvent.ErrorKind.IS_RECOVERABLE_FALSE)
-  }
-
-  fun testUnknownRecoverableErrorAnalytics() = runBlocking<Unit> {
-    // Prepare
-    val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
-    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
-
-    val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder().setContent(
-      SqliteInspectorProtocol.ErrorContent.newBuilder()
-        .setMessage("errorMessage")
-        .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().build())
-        .setStackTrace("stackTrace")
-        .build()
-    ).build()
-
-    val cursor = Response.newBuilder()
-      .setErrorOccurred(errorOccurredEvent)
-      .build()
-
-    val mockMessenger = mock(AppInspectorMessenger::class.java)
-    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
-
-    liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
-
-    // Act / Assert
-    pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
-    pumpEventsAndWaitForFutureException(
-      liveDatabaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "fake query"))
-    )
-
-    verify(mockTrackerService, times(2)).trackErrorOccurred(AppInspectionEvent.DatabaseInspectorEvent.ErrorKind.IS_RECOVERABLE_UNKNOWN)
-  }
-
-  fun testErrorNoExistingDbIsNotReportedInAnalytics() = runBlocking<Unit> {
-    // Prepare
-    val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
-    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
-
-    val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder().setContent(
-      SqliteInspectorProtocol.ErrorContent.newBuilder()
-        .setMessage("errorMessage")
-        .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().setIsRecoverable(true).build())
-        .setStackTrace("stackTrace")
-        .setErrorCode(SqliteInspectorProtocol.ErrorContent.ErrorCode.ERROR_NO_OPEN_DATABASE_WITH_REQUESTED_ID)
-        .build()
-    ).build()
-
-    val cursor = Response.newBuilder()
-      .setErrorOccurred(errorOccurredEvent)
-      .build()
-
-    val mockMessenger = mock(AppInspectorMessenger::class.java)
-    whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
-
-    liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
-
-    // Act / Assert
-    pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
-
-    verifyNoMoreInteractions(mockTrackerService)
-  }
-
-  private fun createLiveDatabaseConnection(messenger: AppInspectorMessenger): LiveDatabaseConnection {
+
+      val errorOccurredEvent =
+        SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder()
+          .setContent(
+            SqliteInspectorProtocol.ErrorContent.newBuilder()
+              .setMessage("errorMessage")
+              .setRecoverability(
+                SqliteInspectorProtocol.ErrorRecoverability.newBuilder()
+                  .setIsRecoverable(true)
+                  .build()
+              )
+              .setStackTrace("stackTrace")
+              .build()
+          )
+          .build()
+
+      val cursor = Response.newBuilder().setErrorOccurred(errorOccurredEvent).build()
+
+      val mockMessenger = mock(AppInspectorMessenger::class.java)
+      whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
+        .thenReturn(cursor.toByteArray())
+
+      liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
+
+      // Act / Assert
+      pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
+      pumpEventsAndWaitForFutureException(
+        liveDatabaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "fake query"))
+      )
+
+      verify(mockTrackerService, times(2))
+        .trackErrorOccurred(AppInspectionEvent.DatabaseInspectorEvent.ErrorKind.IS_RECOVERABLE_TRUE)
+    }
+
+  fun testNonRecoverableErrorAnalytics() =
+    runBlocking<Unit> {
+      // Prepare
+      val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
+      project.registerServiceInstance(
+        DatabaseInspectorAnalyticsTracker::class.java,
+        mockTrackerService
+      )
+
+      val errorOccurredEvent =
+        SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder()
+          .setContent(
+            SqliteInspectorProtocol.ErrorContent.newBuilder()
+              .setMessage("errorMessage")
+              .setRecoverability(
+                SqliteInspectorProtocol.ErrorRecoverability.newBuilder()
+                  .setIsRecoverable(false)
+                  .build()
+              )
+              .setStackTrace("stackTrace")
+              .build()
+          )
+          .build()
+
+      val cursor = Response.newBuilder().setErrorOccurred(errorOccurredEvent).build()
+
+      val mockMessenger = mock(AppInspectorMessenger::class.java)
+      whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
+        .thenReturn(cursor.toByteArray())
+
+      liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
+
+      // Act / Assert
+      pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
+      pumpEventsAndWaitForFutureException(
+        liveDatabaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "fake query"))
+      )
+
+      verify(mockTrackerService, times(2))
+        .trackErrorOccurred(
+          AppInspectionEvent.DatabaseInspectorEvent.ErrorKind.IS_RECOVERABLE_FALSE
+        )
+    }
+
+  fun testUnknownRecoverableErrorAnalytics() =
+    runBlocking<Unit> {
+      // Prepare
+      val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
+      project.registerServiceInstance(
+        DatabaseInspectorAnalyticsTracker::class.java,
+        mockTrackerService
+      )
+
+      val errorOccurredEvent =
+        SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder()
+          .setContent(
+            SqliteInspectorProtocol.ErrorContent.newBuilder()
+              .setMessage("errorMessage")
+              .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().build())
+              .setStackTrace("stackTrace")
+              .build()
+          )
+          .build()
+
+      val cursor = Response.newBuilder().setErrorOccurred(errorOccurredEvent).build()
+
+      val mockMessenger = mock(AppInspectorMessenger::class.java)
+      whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
+        .thenReturn(cursor.toByteArray())
+
+      liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
+
+      // Act / Assert
+      pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
+      pumpEventsAndWaitForFutureException(
+        liveDatabaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "fake query"))
+      )
+
+      verify(mockTrackerService, times(2))
+        .trackErrorOccurred(
+          AppInspectionEvent.DatabaseInspectorEvent.ErrorKind.IS_RECOVERABLE_UNKNOWN
+        )
+    }
+
+  fun testErrorNoExistingDbIsNotReportedInAnalytics() =
+    runBlocking<Unit> {
+      // Prepare
+      val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
+      project.registerServiceInstance(
+        DatabaseInspectorAnalyticsTracker::class.java,
+        mockTrackerService
+      )
+
+      val errorOccurredEvent =
+        SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder()
+          .setContent(
+            SqliteInspectorProtocol.ErrorContent.newBuilder()
+              .setMessage("errorMessage")
+              .setRecoverability(
+                SqliteInspectorProtocol.ErrorRecoverability.newBuilder()
+                  .setIsRecoverable(true)
+                  .build()
+              )
+              .setStackTrace("stackTrace")
+              .setErrorCode(
+                SqliteInspectorProtocol.ErrorContent.ErrorCode
+                  .ERROR_NO_OPEN_DATABASE_WITH_REQUESTED_ID
+              )
+              .build()
+          )
+          .build()
+
+      val cursor = Response.newBuilder().setErrorOccurred(errorOccurredEvent).build()
+
+      val mockMessenger = mock(AppInspectorMessenger::class.java)
+      whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
+        .thenReturn(cursor.toByteArray())
+
+      liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
+
+      // Act / Assert
+      pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
+
+      verifyNoMoreInteractions(mockTrackerService)
+    }
+
+  private fun createLiveDatabaseConnection(
+    messenger: AppInspectorMessenger
+  ): LiveDatabaseConnection {
     return LiveDatabaseConnection(
       testRootDisposable,
       DatabaseInspectorMessenger(messenger, scope, taskExecutor, createErrorSideChannel(project)),

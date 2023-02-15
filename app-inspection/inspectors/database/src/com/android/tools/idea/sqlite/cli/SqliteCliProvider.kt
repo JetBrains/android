@@ -22,9 +22,9 @@ import com.android.tools.idea.sqlite.cli.SqliteCliProvider.Companion.SQLITE3_PAT
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.Strings
-import org.jetbrains.annotations.TestOnly
 import java.io.File
 import java.nio.file.Path
+import org.jetbrains.annotations.TestOnly
 
 /** Service locating an instance of the `sqlite3` CLI tool (from Android platform-tools) */
 interface SqliteCliProvider {
@@ -36,8 +36,8 @@ interface SqliteCliProvider {
   }
 
   /**
-   * Searches for `sqlite3` CLI tool (part of platform-tools).
-   * Respects overriding the path through [SQLITE3_PATH_PROPERTY] system property and [SQLITE3_PATH_ENV] environment variable.
+   * Searches for `sqlite3` CLI tool (part of platform-tools). Respects overriding the path through
+   * [SQLITE3_PATH_PROPERTY] system property and [SQLITE3_PATH_ENV] environment variable.
    * @return path to the tool if able to find it. Otherwise `null`.
    */
   fun getSqliteCli(): Path?
@@ -51,17 +51,24 @@ class SqliteCliProviderImpl(private val project: Project) : SqliteCliProvider {
     return getSqliteCli({ key -> System.getProperty(key) }, { key -> System.getenv(key) })
   }
 
-  /** Overload targeted for testing (allows for injecting system env which otherwise is not possible from runtime) */
+  /**
+   * Overload targeted for testing (allows for injecting system env which otherwise is not possible
+   * from runtime)
+   */
   @TestOnly
-  fun getSqliteCli(systemPropertyResolver: (key: String) -> String?, systemEnvResolver: (key: String) -> String?): Path? {
+  fun getSqliteCli(
+    systemPropertyResolver: (key: String) -> String?,
+    systemEnvResolver: (key: String) -> String?
+  ): Path? {
     // check system property/env overrides
-    val overrideFile = listOf(systemPropertyResolver(SQLITE3_PATH_PROPERTY), systemEnvResolver(SQLITE3_PATH_ENV))
-      .filter { Strings.isNotEmpty(it) }
-      .map { File(it!!) }
-      .firstOrNull {
-        logCheckingSqlite3(it.toPath())
-        it.exists()
-      }
+    val overrideFile =
+      listOf(systemPropertyResolver(SQLITE3_PATH_PROPERTY), systemEnvResolver(SQLITE3_PATH_ENV))
+        .filter { Strings.isNotEmpty(it) }
+        .map { File(it!!) }
+        .firstOrNull {
+          logCheckingSqlite3(it.toPath())
+          it.exists()
+        }
     if (overrideFile != null) return overrideFile.toPath().also { logFoundSqlite3(it) }
 
     // check adb location - sqlite3 is its sibling in platform-tools
@@ -77,8 +84,7 @@ class SqliteCliProviderImpl(private val project: Project) : SqliteCliProvider {
     logCheckingSqlite3(adbSibling.toPath())
     return if (adbSibling.exists()) {
       adbSibling.toPath().also { logFoundSqlite3(it) }
-    }
-    else {
+    } else {
       logAny("Adb location: ${adbFile.toPath()}")
       logAny("Adb neighbours: ${adbFile.parentFile.listFiles()?.map { it.toPath() }}")
       logUnableToFind("sqlite3")

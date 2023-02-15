@@ -19,8 +19,10 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent.BackgroundTaskIn
 
 class StubBackgroundTaskInspectorTracker : BackgroundTaskInspectorTracker {
   override fun trackTableModeSelected() = Unit
-  override fun trackGraphModeSelected(context: BackgroundTaskInspectorEvent.Context,
-                                      chainInfo: BackgroundTaskInspectorEvent.ChainInfo) = Unit
+  override fun trackGraphModeSelected(
+    context: BackgroundTaskInspectorEvent.Context,
+    chainInfo: BackgroundTaskInspectorEvent.ChainInfo
+  ) = Unit
   override fun trackJumpedToSource() = Unit
   override fun trackWorkCancelled() = Unit
   override fun trackWorkSelected(context: BackgroundTaskInspectorEvent.Context) = Unit

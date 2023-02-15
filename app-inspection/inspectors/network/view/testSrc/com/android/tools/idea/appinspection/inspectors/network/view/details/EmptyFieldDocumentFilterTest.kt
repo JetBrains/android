@@ -17,9 +17,9 @@ package com.android.tools.idea.appinspection.inspectors.network.view.details
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.components.JBTextField
+import javax.swing.text.AbstractDocument
 import org.junit.Before
 import org.junit.Test
-import javax.swing.text.AbstractDocument
 
 class EmptyFieldDocumentFilterTest {
 
@@ -27,10 +27,10 @@ class EmptyFieldDocumentFilterTest {
   private lateinit var emptyFieldDocumentFilter: EmptyFieldDocumentFilter
   private var updateCounter = 0
 
-  /**
-   * Increment [updateCounter] to denote the method was called
-   */
-  private fun fakeUpdateAction() { updateCounter++ }
+  /** Increment [updateCounter] to denote the method was called */
+  private fun fakeUpdateAction() {
+    updateCounter++
+  }
 
   @Before
   fun setUp() {

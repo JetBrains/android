@@ -21,25 +21,17 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
  * Defines a listener that is fired when a process is available or an existing one is disconnected.
  */
 interface ProcessListener {
-  /**
-   * Subscribers can use this to filter processes they don't care about.
-   */
+  /** Subscribers can use this to filter processes they don't care about. */
   val filter: (ProcessDescriptor) -> Boolean
 
-  /**
-   * Called when a new process on device is available.
-   */
+  /** Called when a new process on device is available. */
   fun onProcessConnected(process: ProcessDescriptor)
 
-  /**
-   * Called when an existing process is disconnected.
-   */
+  /** Called when an existing process is disconnected. */
   fun onProcessDisconnected(process: ProcessDescriptor)
 }
 
-/**
- * Simple listener that accepts all processes found by discovery.
- */
+/** Simple listener that accepts all processes found by discovery. */
 abstract class SimpleProcessListener : ProcessListener {
   final override val filter: (ProcessDescriptor) -> Boolean = { _ -> true }
 }

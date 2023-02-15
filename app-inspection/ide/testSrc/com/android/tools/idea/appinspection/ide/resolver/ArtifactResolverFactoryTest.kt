@@ -29,7 +29,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-
 @RunWith(Parameterized::class)
 class ArtifactResolverFactoryTest(private val ideBrand: IdeBrand) {
   companion object {
@@ -39,29 +38,37 @@ class ArtifactResolverFactoryTest(private val ideBrand: IdeBrand) {
     val variations = listOf(IdeBrand.ANDROID_STUDIO, IdeBrand.ANDROID_STUDIO_WITH_BLAZE)
   }
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val FlagRule = FlagRule(APP_INSPECTION_USE_SNAPSHOT_JAR)
+  @get:Rule val FlagRule = FlagRule(APP_INSPECTION_USE_SNAPSHOT_JAR)
 
   @Test
   fun createResolver() {
     when (ideBrand) {
-      IdeBrand.ANDROID_STUDIO -> run {
-        assertThat(ArtifactResolverFactory(TestFileService()) { ideBrand }.getArtifactResolver(projectRule.project))
-          .isInstanceOf(HttpArtifactResolver::class.java)
+      IdeBrand.ANDROID_STUDIO ->
+        run {
+          assertThat(
+              ArtifactResolverFactory(TestFileService()) { ideBrand }
+                .getArtifactResolver(projectRule.project)
+            )
+            .isInstanceOf(HttpArtifactResolver::class.java)
 
-        APP_INSPECTION_USE_SNAPSHOT_JAR.override(true)
+          APP_INSPECTION_USE_SNAPSHOT_JAR.override(true)
 
-        assertThat(ArtifactResolverFactory(TestFileService()) { ideBrand }.getArtifactResolver(projectRule.project))
-          .isInstanceOf(ModuleSystemArtifactResolver::class.java)
-      }
-
-      IdeBrand.ANDROID_STUDIO_WITH_BLAZE -> run {
-        assertThat(ArtifactResolverFactory(TestFileService()) { ideBrand }.getArtifactResolver(projectRule.project))
-          .isInstanceOf(BlazeArtifactResolver::class.java)
-      }
+          assertThat(
+              ArtifactResolverFactory(TestFileService()) { ideBrand }
+                .getArtifactResolver(projectRule.project)
+            )
+            .isInstanceOf(ModuleSystemArtifactResolver::class.java)
+        }
+      IdeBrand.ANDROID_STUDIO_WITH_BLAZE ->
+        run {
+          assertThat(
+              ArtifactResolverFactory(TestFileService()) { ideBrand }
+                .getArtifactResolver(projectRule.project)
+            )
+            .isInstanceOf(BlazeArtifactResolver::class.java)
+        }
     }
   }
 }

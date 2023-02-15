@@ -27,11 +27,16 @@ interface AppInspectionAnalyticsTracker {
   fun trackInspectionRestarted()
 }
 
-val STUB_TRACKER = object : AppInspectionAnalyticsTracker {
-  override fun trackErrorOccurred(errorKind: AppInspectionEvent.ErrorKind) {}
-  override fun trackToolWindowOpened() {}
-  override fun trackToolWindowHidden() {}
-  override fun trackProcessSelected(device: DeviceDescriptor, numDevices: Int, numProcesses: Int) {}
-  override fun trackInspectionStopped() {}
-  override fun trackInspectionRestarted() {}
-}
+val STUB_TRACKER =
+  object : AppInspectionAnalyticsTracker {
+    override fun trackErrorOccurred(errorKind: AppInspectionEvent.ErrorKind) {}
+    override fun trackToolWindowOpened() {}
+    override fun trackToolWindowHidden() {}
+    override fun trackProcessSelected(
+      device: DeviceDescriptor,
+      numDevices: Int,
+      numProcesses: Int
+    ) {}
+    override fun trackInspectionStopped() {}
+    override fun trackInspectionRestarted() {}
+  }

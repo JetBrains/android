@@ -24,38 +24,41 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.io.readBytes
+import javax.swing.JLabel
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JLabel
 
 @RunsInEdt
 class UiComponentsProviderTest {
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
   @Test
   fun createImageDataViewer() {
     val componentsProvider = DefaultUiComponentsProvider(projectRule.project)
 
     // Valid image results in the creation of an image data viewer.
-    assertThat(componentsProvider.createDataViewer(
-      TEST_IMAGE.readBytes(),
-      ContentType.PNG,
-      DataViewer.Style.RAW,
-      false
-    )).isInstanceOf(IntellijImageDataViewer::class.java)
+    assertThat(
+        componentsProvider.createDataViewer(
+          TEST_IMAGE.readBytes(),
+          ContentType.PNG,
+          DataViewer.Style.RAW,
+          false
+        )
+      )
+      .isInstanceOf(IntellijImageDataViewer::class.java)
 
-    val viewer = componentsProvider.createDataViewer(
-      ByteArray(0),
-      ContentType.GIF,
-      DataViewer.Style.RAW,
-      false
-    )
-    // Invalid image bytes in the creation of a regular data viewer with text saying preview is not available.
+    val viewer =
+      componentsProvider.createDataViewer(
+        ByteArray(0),
+        ContentType.GIF,
+        DataViewer.Style.RAW,
+        false
+      )
+    // Invalid image bytes in the creation of a regular data viewer with text saying preview is not
+    // available.
     assertThat(viewer).isInstanceOf(IntellijDataViewer::class.java)
     assertThat((viewer.component as JLabel).text).isEqualTo("No preview available")
   }
@@ -64,12 +67,13 @@ class UiComponentsProviderTest {
   fun createTextDataViewer() {
     val componentsProvider = DefaultUiComponentsProvider(projectRule.project)
 
-    val viewer = componentsProvider.createDataViewer(
-      "csv,file".toByteArray(),
-      ContentType.CSV,
-      DataViewer.Style.RAW,
-      false
-    )
+    val viewer =
+      componentsProvider.createDataViewer(
+        "csv,file".toByteArray(),
+        ContentType.CSV,
+        DataViewer.Style.RAW,
+        false
+      )
     assertThat(viewer).isInstanceOf(IntellijDataViewer::class.java)
     assertThat(viewer.style).isEqualTo(DataViewer.Style.RAW)
   }
@@ -79,7 +83,12 @@ class UiComponentsProviderTest {
     val componentsProvider = DefaultUiComponentsProvider(projectRule.project)
 
     val viewer =
-      componentsProvider.createDataViewer("<html></html>".toByteArray(), ContentType.HTML, DataViewer.Style.PRETTY, true)
+      componentsProvider.createDataViewer(
+        "<html></html>".toByteArray(),
+        ContentType.HTML,
+        DataViewer.Style.PRETTY,
+        true
+      )
     assertThat(viewer).isInstanceOf(IntellijDataViewer::class.java)
     assertThat(viewer.style).isEqualTo(DataViewer.Style.PRETTY)
   }

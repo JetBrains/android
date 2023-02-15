@@ -19,28 +19,27 @@ import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 
 open class FakeDatabaseInspectorAnalyticsTracker : DatabaseInspectorAnalyticsTracker {
-  override fun trackErrorOccurred(errorKind: AppInspectionEvent.DatabaseInspectorEvent.ErrorKind) {
-  }
+  override fun trackErrorOccurred(errorKind: AppInspectionEvent.DatabaseInspectorEvent.ErrorKind) {}
 
-  override fun trackTableCellEdited() {
-  }
+  override fun trackTableCellEdited() {}
 
-  override fun trackTargetRefreshed(targetType: AppInspectionEvent.DatabaseInspectorEvent.TargetType) {
-  }
+  override fun trackTargetRefreshed(
+    targetType: AppInspectionEvent.DatabaseInspectorEvent.TargetType
+  ) {}
 
-  override fun trackStatementExecuted(connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
-                                      statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext) {
-  }
+  override fun trackStatementExecuted(
+    connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
+    statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext
+  ) {}
 
-  override fun trackStatementExecutionCanceled(connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
-                                               statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext) {
-  }
+  override fun trackStatementExecutionCanceled(
+    connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
+    statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext
+  ) {}
 
-  override fun trackLiveUpdatedToggled(enabled: Boolean) {
-  }
+  override fun trackLiveUpdatedToggled(enabled: Boolean) {}
 
-  override fun trackEnterOfflineModeUserCanceled() {
-  }
+  override fun trackEnterOfflineModeUserCanceled() {}
 
   var offlineDownloadFailed: Boolean? = null
   var offlineDownloadFailedCount = 0
@@ -50,20 +49,24 @@ open class FakeDatabaseInspectorAnalyticsTracker : DatabaseInspectorAnalyticsTra
   }
 
   var metadata: AppInspectionEvent.DatabaseInspectorEvent.OfflineModeMetadata? = null
-  override fun trackOfflineModeEntered(metadata: AppInspectionEvent.DatabaseInspectorEvent.OfflineModeMetadata) {
+  override fun trackOfflineModeEntered(
+    metadata: AppInspectionEvent.DatabaseInspectorEvent.OfflineModeMetadata
+  ) {
     this.metadata = metadata
   }
 
-  override fun trackExportDialogOpened(actionOrigin: AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin) {
-  }
+  override fun trackExportDialogOpened(
+    actionOrigin: AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin
+  ) {}
 
   override fun trackExportCompleted(
     source: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Source,
-    sourceFormat: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat,
-    destination: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination,
+    sourceFormat:
+      AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat,
+    destination:
+      AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination,
     durationMs: Int,
     outcome: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Outcome,
     connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState
-  ) {
-  }
+  ) {}
 }

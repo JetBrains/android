@@ -38,9 +38,9 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.ClassUtil
-import kotlinx.coroutines.withContext
 import javax.swing.JComponent
 import javax.swing.event.HyperlinkEvent
+import kotlinx.coroutines.withContext
 
 class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Project) : Disposable {
   companion object {
@@ -49,76 +49,104 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
       ToolWindowManagerEx.getInstanceEx(project).getToolWindow(APP_INSPECTION_ID)?.show(callback)
   }
 
-  private val ideServices: AppInspectionIdeServices = object : AppInspectionIdeServices {
-    private val notificationGroup =
-      NotificationGroup.toolWindowGroup(APP_INSPECTION_ID, APP_INSPECTION_ID, true, PluginId.getId("org.jetbrains.android"))
+  private val ideServices: AppInspectionIdeServices =
+    object : AppInspectionIdeServices {
+      private val notificationGroup =
+        NotificationGroup.toolWindowGroup(
+          APP_INSPECTION_ID,
+          APP_INSPECTION_ID,
+          true,
+          PluginId.getId("org.jetbrains.android")
+        )
 
-    @UiThread
-    override fun showToolWindow() = toolWindow.show(null)
+      @UiThread override fun showToolWindow() = toolWindow.show(null)
 
-    @UiThread
-    override fun showNotification(content: String,
-                                  title: String,
-                                  severity: AppInspectionIdeServices.Severity,
-                                  hyperlinkClicked: () -> Unit) {
-      val type = when (severity) {
-        AppInspectionIdeServices.Severity.INFORMATION -> NotificationType.INFORMATION
-        AppInspectionIdeServices.Severity.ERROR -> NotificationType.ERROR
-      }
+      @UiThread
+      override fun showNotification(
+        content: String,
+        title: String,
+        severity: AppInspectionIdeServices.Severity,
+        hyperlinkClicked: () -> Unit
+      ) {
+        val type =
+          when (severity) {
+            AppInspectionIdeServices.Severity.INFORMATION -> NotificationType.INFORMATION
+            AppInspectionIdeServices.Severity.ERROR -> NotificationType.ERROR
+          }
 
-      notificationGroup.createNotification(title, content, type).setListener(object : NotificationListener.Adapter() {
-        override fun hyperlinkActivated(notification: Notification, e: HyperlinkEvent) {
-          hyperlinkClicked()
-          notification.expire()
-        }
-      }).notify(project)
-    }
-
-    override suspend fun navigateTo(codeLocation: AppInspectionIdeServices.CodeLocation) {
-      val fqcn = codeLocation.fqcn
-      val navigatable: Navigatable? = runReadAction {
-        if (fqcn != null) {
-          ClassUtil.findPsiClassByJVMName(PsiManager.getInstance(project), fqcn)
-        }
-        else {
-          val fileName = codeLocation.fileName!!
-          FilenameIndex.getFilesByName(project, fileName, GlobalSearchScope.allScope(project), false)
-            .firstOrNull()?.virtualFile
-            ?.let { virtualFile ->
-              OpenFileDescriptor(project, virtualFile, codeLocation.lineNumber?.let { it - 1 } ?: -1, 0)
+        notificationGroup
+          .createNotification(title, content, type)
+          .setListener(
+            object : NotificationListener.Adapter() {
+              override fun hyperlinkActivated(notification: Notification, e: HyperlinkEvent) {
+                hyperlinkClicked()
+                notification.expire()
+              }
             }
+          )
+          .notify(project)
+      }
+
+      override suspend fun navigateTo(codeLocation: AppInspectionIdeServices.CodeLocation) {
+        val fqcn = codeLocation.fqcn
+        val navigatable: Navigatable? = runReadAction {
+          if (fqcn != null) {
+            ClassUtil.findPsiClassByJVMName(PsiManager.getInstance(project), fqcn)
+          } else {
+            val fileName = codeLocation.fileName!!
+            FilenameIndex.getFilesByName(
+                project,
+                fileName,
+                GlobalSearchScope.allScope(project),
+                false
+              )
+              .firstOrNull()
+              ?.virtualFile
+              ?.let { virtualFile ->
+                OpenFileDescriptor(
+                  project,
+                  virtualFile,
+                  codeLocation.lineNumber?.let { it - 1 } ?: -1,
+                  0
+                )
+              }
+          }
+        }
+
+        if (navigatable != null) {
+          withContext(AndroidDispatchers.uiThread) { navigatable.navigate(true) }
         }
       }
 
-      if (navigatable != null) {
-        withContext(AndroidDispatchers.uiThread) {
-          navigatable.navigate(true)
-        }
+      override fun isTabSelected(inspectorId: String): Boolean {
+        return appInspectionView.isTabSelected(inspectorId)
       }
     }
 
-    override fun isTabSelected(inspectorId: String): Boolean {
-      return appInspectionView.isTabSelected(inspectorId)
-    }
-  }
-
-  // Coroutine scope tied to the lifecycle of this tool window. It will be cancelled when the tool window is disposed.
+  // Coroutine scope tied to the lifecycle of this tool window. It will be cancelled when the tool
+  // window is disposed.
   private val scope = AndroidCoroutineScope(this)
 
-  private val appInspectionView = AppInspectionView(
-    project,
-    AppInspectionDiscoveryService.instance.apiServices,
-    ideServices,
-    scope,
-    AndroidDispatchers.uiThread,
-    isPreferredProcess = { RecentProcess.isRecentProcess(it, project) }
-  )
+  private val appInspectionView =
+    AppInspectionView(
+      project,
+      AppInspectionDiscoveryService.instance.apiServices,
+      ideServices,
+      scope,
+      AndroidDispatchers.uiThread,
+      isPreferredProcess = { RecentProcess.isRecentProcess(it, project) }
+    )
   val component: JComponent = appInspectionView.component
 
   init {
     Disposer.register(this, appInspectionView)
-    project.messageBus.connect(this).subscribe(ToolWindowManagerListener.TOPIC,
-                                               AppInspectionToolWindowManagerListener(project, ideServices, toolWindow, appInspectionView))
+    project
+      .messageBus
+      .connect(this)
+      .subscribe(
+        ToolWindowManagerListener.TOPIC,
+        AppInspectionToolWindowManagerListener(project, ideServices, toolWindow, appInspectionView)
+      )
   }
 
   override fun dispose() {

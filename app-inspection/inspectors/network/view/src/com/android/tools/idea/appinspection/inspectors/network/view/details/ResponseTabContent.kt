@@ -22,18 +22,17 @@ import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-/**
- * Tab which shows a response's headers and payload.
- */
+/** Tab which shows a response's headers and payload. */
 class ResponseTabContent : TabContent() {
   private lateinit var panel: JPanel
   override val title: String
     get() = "Response"
 
   override fun createComponent(): JComponent {
-    panel = createVerticalPanel(TAB_SECTION_VGAP).apply {
-      border = JBUI.Borders.empty(0, HORIZONTAL_PADDING)
-    }
+    panel =
+      createVerticalPanel(TAB_SECTION_VGAP).apply {
+        border = JBUI.Borders.empty(0, HORIZONTAL_PADDING)
+      }
     return createVerticalScrollPane(panel)
   }
 
@@ -49,6 +48,9 @@ class ResponseTabContent : TabContent() {
 
   @VisibleForTesting
   fun findPayloadBody(): JComponent? {
-    return findComponentWithUniqueName(panel, HttpDataComponentFactory.ConnectionType.RESPONSE.bodyComponentId)
+    return findComponentWithUniqueName(
+      panel,
+      HttpDataComponentFactory.ConnectionType.RESPONSE.bodyComponentId
+    )
   }
 }

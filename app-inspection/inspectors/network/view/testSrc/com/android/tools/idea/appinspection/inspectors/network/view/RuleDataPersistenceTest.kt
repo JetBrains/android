@@ -36,8 +36,7 @@ import org.junit.Test
 
 class RuleDataPersistenceTest {
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
   private lateinit var scope: CoroutineScope
 
   @After
@@ -129,11 +128,18 @@ class RuleDataPersistenceTest {
     var rulesTableView = createNewRulesTableView()
     // Rule with custom listener that will fail the test if the coroutine is executed
     val rule = RuleData(1, "First Rule", true)
-    rule.ruleDataListener = object: RuleDataListener {
-      override fun onRuleNameChanged(ruleData: RuleData) { /* scope is not used in this listener */ }
-      override fun onRuleIsActiveChanged(ruleData: RuleData) { scope.launch { isClientNotified = true } }
-      override fun onRuleDataChanged(ruleData: RuleData) { scope.launch { isClientNotified = true } }
-    }
+    rule.ruleDataListener =
+      object : RuleDataListener {
+        override fun onRuleNameChanged(ruleData: RuleData) {
+          /* scope is not used in this listener */
+        }
+        override fun onRuleIsActiveChanged(ruleData: RuleData) {
+          scope.launch { isClientNotified = true }
+        }
+        override fun onRuleDataChanged(ruleData: RuleData) {
+          scope.launch { isClientNotified = true }
+        }
+      }
 
     rulesTableView.tableModel.addRow(rule)
     var items = rulesTableView.tableModel.items
@@ -164,9 +170,9 @@ class RuleDataPersistenceTest {
     assertThat(items[0].isActive).isEqualTo(false)
   }
 
-  private fun createNewRulesTableView() : RulesTableView {
+  private fun createNewRulesTableView(): RulesTableView {
     val services = TestNetworkInspectorServices(FakeCodeNavigationProvider(), FakeTimer())
-    if(::scope.isInitialized) scope.cancel()
+    if (::scope.isInitialized) scope.cancel()
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
     val model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(), scope)
     return RulesTableView(projectRule.project, services.client, scope, model, services.usageTracker)

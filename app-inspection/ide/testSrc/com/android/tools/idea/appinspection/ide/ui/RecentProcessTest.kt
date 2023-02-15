@@ -23,22 +23,24 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-val MODERN_DEVICE = object : DeviceDescriptor {
-  override val manufacturer = "Google"
-  override val model = "Modern Model"
-  override val serial = "123456"
-  override val isEmulator = false
-  override val apiLevel = AndroidVersion.VersionCodes.Q
-  override val version = "Q"
-  override val codename: String? = null
-}
+val MODERN_DEVICE =
+  object : DeviceDescriptor {
+    override val manufacturer = "Google"
+    override val model = "Modern Model"
+    override val serial = "123456"
+    override val isEmulator = false
+    override val apiLevel = AndroidVersion.VersionCodes.Q
+    override val version = "Q"
+    override val codename: String? = null
+  }
 
-val LEGACY_DEVICE = object : DeviceDescriptor by MODERN_DEVICE {
-  override val model = "Legacy Model"
-  override val serial = "123"
-  override val apiLevel = AndroidVersion.VersionCodes.M
-  override val version = "M"
-}
+val LEGACY_DEVICE =
+  object : DeviceDescriptor by MODERN_DEVICE {
+    override val model = "Legacy Model"
+    override val serial = "123"
+    override val apiLevel = AndroidVersion.VersionCodes.M
+    override val version = "M"
+  }
 
 fun DeviceDescriptor.createProcess(
   name: String = "com.example",

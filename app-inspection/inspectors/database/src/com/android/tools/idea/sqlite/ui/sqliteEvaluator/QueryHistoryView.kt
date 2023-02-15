@@ -28,10 +28,11 @@ import javax.swing.event.ListSelectionEvent
 /**
  * Class responsible for showing a popup containing a list of previously executed statements.
  *
- * When the selection model of the list changes, the selected item is temporarily shown in [editorTextField].
- * When the user press enter and an item is selected in the list, the text of that item is permanently shown in [editorTextField]
- * and the popup is closed.
- * If the popup is closed without enter being pressed (esc or click outside), the text originally shown in [editorTextField] is restored.
+ * When the selection model of the list changes, the selected item is temporarily shown in
+ * [editorTextField]. When the user press enter and an item is selected in the list, the text of
+ * that item is permanently shown in [editorTextField] and the popup is closed. If the popup is
+ * closed without enter being pressed (esc or click outside), the text originally shown in
+ * [editorTextField] is restored.
  */
 class QueryHistoryView(private val editorTextField: EditorTextField) {
   private val listModel = DefaultListModel<String>()
@@ -43,7 +44,10 @@ class QueryHistoryView(private val editorTextField: EditorTextField) {
 
   private var editorPermanentQuery = ""
 
-  /** if [shouldRestorePermanentQuery] is true, [editorPermanentQuery] should be restored when the hint popup is closed. */
+  /**
+   * if [shouldRestorePermanentQuery] is true, [editorPermanentQuery] should be restored when the
+   * hint popup is closed.
+   */
   private var shouldRestorePermanentQuery = true
 
   init {
@@ -59,17 +63,19 @@ class QueryHistoryView(private val editorTextField: EditorTextField) {
     list.emptyText.isShowAboveCenter = false
     list.selectionMode = ListSelectionModel.SINGLE_SELECTION
     list.cellRenderer = MyListCellRenderer()
-    list.addFocusListener(object : FocusListener {
-      override fun focusGained(e: FocusEvent) {}
+    list.addFocusListener(
+      object : FocusListener {
+        override fun focusGained(e: FocusEvent) {}
 
-      override fun focusLost(e: FocusEvent) {
-        if (shouldRestorePermanentQuery) {
-          editorTextField.text = editorPermanentQuery
+        override fun focusLost(e: FocusEvent) {
+          if (shouldRestorePermanentQuery) {
+            editorTextField.text = editorPermanentQuery
+          }
+          editorTextField.editor?.selectionModel?.setSelection(0, 0)
+          list.clearSelection()
         }
-        editorTextField.editor?.selectionModel?.setSelection(0, 0)
-        list.clearSelection()
       }
-    })
+    )
 
     list.selectionModel.addListSelectionListener { e: ListSelectionEvent ->
       if (e.valueIsAdjusting) return@addListSelectionListener
@@ -82,34 +88,39 @@ class QueryHistoryView(private val editorTextField: EditorTextField) {
       editorTextField.editor?.selectionModel?.setSelection(0, query.length)
     }
 
-    list.addKeyListener(object : KeyListener {
-      override fun keyTyped(e: KeyEvent) {}
+    list.addKeyListener(
+      object : KeyListener {
+        override fun keyTyped(e: KeyEvent) {}
 
-      override fun keyPressed(e: KeyEvent) {}
+        override fun keyPressed(e: KeyEvent) {}
 
-      override fun keyReleased(e: KeyEvent) {
-        if (e.keyCode == KeyEvent.VK_ENTER) {
-          selectEntryAndCloseQueryHistory()
+        override fun keyReleased(e: KeyEvent) {
+          if (e.keyCode == KeyEvent.VK_ENTER) {
+            selectEntryAndCloseQueryHistory()
+          }
         }
       }
-    })
+    )
 
-    list.addMouseMotionListener(object : MouseMotionListener {
-      override fun mouseDragged(e: MouseEvent) {}
+    list.addMouseMotionListener(
+      object : MouseMotionListener {
+        override fun mouseDragged(e: MouseEvent) {}
 
-      override fun mouseMoved(e: MouseEvent) {
-        val viewIndex = list.locationToIndex(e.point)
-        if (viewIndex < 0) return
-        list.selectedIndex = viewIndex
+        override fun mouseMoved(e: MouseEvent) {
+          val viewIndex = list.locationToIndex(e.point)
+          if (viewIndex < 0) return
+          list.selectedIndex = viewIndex
+        }
       }
-    })
+    )
 
-    val doubleClickListener = object : DoubleClickListener() {
-      override fun onDoubleClick(event: MouseEvent): Boolean {
-        selectEntryAndCloseQueryHistory()
-        return false
+    val doubleClickListener =
+      object : DoubleClickListener() {
+        override fun onDoubleClick(event: MouseEvent): Boolean {
+          selectEntryAndCloseQueryHistory()
+          return false
+        }
       }
-    }
 
     doubleClickListener.installOn(list)
 

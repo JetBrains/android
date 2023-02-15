@@ -20,12 +20,10 @@ import com.android.tools.idea.codenavigation.CodeLocation
 import com.android.tools.inspectors.common.api.stacktrace.StackFrameParser
 import com.android.tools.inspectors.common.api.stacktrace.ThreadId
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView
-import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.JComponent
+import org.jetbrains.annotations.VisibleForTesting
 
-/**
- * Tab which shows a stack trace to where a network request was created.
- */
+/** Tab which shows a stack trace to where a network request was created. */
 class CallStackTabContent(@VisibleForTesting val stackTraceView: StackTraceView) : TabContent() {
   override val title = "Call Stack"
 
@@ -36,17 +34,16 @@ class CallStackTabContent(@VisibleForTesting val stackTraceView: StackTraceView)
   override fun populateFor(data: HttpData?, httpDataComponentFactory: HttpDataComponentFactory) {
     if (data != null) {
       stackTraceView.model.setStackFrames(ThreadId.INVALID_THREAD_ID, data.codeLocations())
-    }
-    else {
+    } else {
       stackTraceView.model.clearStackFrames()
     }
   }
 }
 
-/**
- * Captures the stacktrace content contained in an [HttpData] object.
- */
-private fun HttpData.codeLocations(): List<CodeLocation> = trace.split('\n')
-  .map { line -> line.trim { it <= ' ' } }
-  .filter { line -> line.isNotEmpty() }
-  .mapNotNull { line -> StackFrameParser.parseFrame(line) }
+/** Captures the stacktrace content contained in an [HttpData] object. */
+private fun HttpData.codeLocations(): List<CodeLocation> =
+  trace
+    .split('\n')
+    .map { line -> line.trim { it <= ' ' } }
+    .filter { line -> line.isNotEmpty() }
+    .mapNotNull { line -> StackFrameParser.parseFrame(line) }

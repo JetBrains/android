@@ -61,7 +61,9 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0)))
+    view.updateDatabases(
+      listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0))
+    )
 
     // Act
     view.updateDatabaseSchema(ViewDatabase(databaseId, true), listOf(RemoveTable(table1.name)))
@@ -78,7 +80,9 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0)))
+    view.updateDatabases(
+      listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0))
+    )
 
     val tableToAdd = SqliteTable("t2", listOf(column1, column2), null, false)
 
@@ -86,12 +90,18 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     view.updateDatabaseSchema(
       ViewDatabase(databaseId, true),
       listOf(
-        AddTable(IndexedSqliteTable(tableToAdd, 1), listOf(IndexedSqliteColumn(column1, 0), IndexedSqliteColumn(column2, 1)))
+        AddTable(
+          IndexedSqliteTable(tableToAdd, 1),
+          listOf(IndexedSqliteColumn(column1, 0), IndexedSqliteColumn(column2, 1))
+        )
       )
     )
 
     // Assert
-    assertTreeContainsNodes(tree, mapOf(Pair(ViewDatabase(databaseId, true), listOf(table1, tableToAdd))))
+    assertTreeContainsNodes(
+      tree,
+      mapOf(Pair(ViewDatabase(databaseId, true), listOf(table1, tableToAdd)))
+    )
   }
 
   fun testUpdateDatabaseAddsColumn() {
@@ -102,13 +112,18 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0)))
+    view.updateDatabases(
+      listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0))
+    )
 
     val column3 = SqliteColumn("c3", SqliteAffinity.TEXT, false, false)
     val table2 = SqliteTable("t1", listOf(column1, column2, column3), null, false)
 
     // Act
-    view.updateDatabaseSchema(ViewDatabase(databaseId, true), listOf(AddColumns(table2.name, listOf(IndexedSqliteColumn(column3, 2)), table2)))
+    view.updateDatabaseSchema(
+      ViewDatabase(databaseId, true),
+      listOf(AddColumns(table2.name, listOf(IndexedSqliteColumn(column3, 2)), table2))
+    )
 
     // Assert
     assertTreeContainsNodes(tree, mapOf(Pair(ViewDatabase(databaseId, true), listOf(table2))))
@@ -122,12 +137,17 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0)))
+    view.updateDatabases(
+      listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0))
+    )
 
     val table2 = SqliteTable("t1", listOf(column1), null, false)
 
     // Act
-    view.updateDatabaseSchema(ViewDatabase(databaseId, true), listOf(RemoveColumns(table1.name, listOf(column2), table2)))
+    view.updateDatabaseSchema(
+      ViewDatabase(databaseId, true),
+      listOf(RemoveColumns(table1.name, listOf(column2), table2))
+    )
 
     // Assert
     assertTreeContainsNodes(tree, mapOf(Pair(ViewDatabase(databaseId, true), listOf(table2))))
@@ -141,7 +161,9 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0)))
+    view.updateDatabases(
+      listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0))
+    )
 
     val newTable = SqliteTable("t2", listOf(column1, column2), null, false)
 
@@ -150,7 +172,11 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
       ViewDatabase(databaseId, true),
       listOf(
         RemoveTable(table1.name),
-        AddTable(IndexedSqliteTable(newTable, 0), listOf(IndexedSqliteColumn(column1, 0), IndexedSqliteColumn(column2, 1))))
+        AddTable(
+          IndexedSqliteTable(newTable, 0),
+          listOf(IndexedSqliteColumn(column1, 0), IndexedSqliteColumn(column2, 1))
+        )
+      )
     )
 
     // Assert
@@ -165,7 +191,9 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0)))
+    view.updateDatabases(
+      listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0))
+    )
 
     val newColumn = SqliteColumn("c3", SqliteAffinity.TEXT, false, false)
     val table1AfterRemove = SqliteTable("t1", listOf(column1), null, false)
@@ -192,17 +220,28 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0)))
+    view.updateDatabases(
+      listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0))
+    )
 
     val tableToAdd = SqliteTable("t2", listOf(column1, column2), null, false)
 
     // Act
-    view.updateDatabaseSchema(ViewDatabase(databaseId, true), listOf(
-      AddTable(IndexedSqliteTable(tableToAdd, 0), listOf(IndexedSqliteColumn(column1, 0), IndexedSqliteColumn(column2, 1)))
-    ))
+    view.updateDatabaseSchema(
+      ViewDatabase(databaseId, true),
+      listOf(
+        AddTable(
+          IndexedSqliteTable(tableToAdd, 0),
+          listOf(IndexedSqliteColumn(column1, 0), IndexedSqliteColumn(column2, 1))
+        )
+      )
+    )
 
     // Assert
-    assertTreeContainsNodes(tree, mapOf(Pair(ViewDatabase(databaseId, true), listOf(tableToAdd, table1))))
+    assertTreeContainsNodes(
+      tree,
+      mapOf(Pair(ViewDatabase(databaseId, true), listOf(tableToAdd, table1)))
+    )
   }
 
   fun testUpdateDatabaseAddsColumnAccordingToIndex() {
@@ -213,13 +252,18 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0)))
+    view.updateDatabases(
+      listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0))
+    )
 
     val column3 = SqliteColumn("c3", SqliteAffinity.TEXT, false, false)
     val table2 = SqliteTable("t1", listOf(column3, column1, column2), null, false)
 
     // Act
-    view.updateDatabaseSchema(ViewDatabase(databaseId, true), listOf(AddColumns(table2.name, listOf(IndexedSqliteColumn(column3, 0)), table2)))
+    view.updateDatabaseSchema(
+      ViewDatabase(databaseId, true),
+      listOf(AddColumns(table2.name, listOf(IndexedSqliteColumn(column3, 0)), table2))
+    )
 
     // Assert
     assertTreeContainsNodes(tree, mapOf(Pair(ViewDatabase(databaseId, true), listOf(table2))))
@@ -227,10 +271,14 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
   fun testEmptyStateIsShownInitially() {
     // Prepare
-    val emptyStateRightPanel = TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
-    val syncSchemaButton = TreeWalker(view.component).descendants().first { it.name == "refresh-schema-button" }
-    val runSqlButton = TreeWalker(view.component).descendants().first { it.name == "run-sql-button" }
-    val tree = TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
+    val emptyStateRightPanel =
+      TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
+    val syncSchemaButton =
+      TreeWalker(view.component).descendants().first { it.name == "refresh-schema-button" }
+    val runSqlButton =
+      TreeWalker(view.component).descendants().first { it.name == "run-sql-button" }
+    val tree =
+      TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
 
     // Assert
     assertTrue(emptyStateRightPanel.isVisible)
@@ -243,15 +291,27 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
   fun testTreeEmptyStateIsHiddenAfterOpeningADatabase() {
     // Prepare
-    val tree = TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
+    val tree =
+      TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
 
     // Act
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), SqliteSchema(emptyList()), 0)))
+    view.updateDatabases(
+      listOf(
+        DatabaseDiffOperation.AddDatabase(
+          ViewDatabase(databaseId, true),
+          SqliteSchema(emptyList()),
+          0
+        )
+      )
+    )
 
     // Assert
-    val tabsPanelAfterAddingDb = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-tabs-panel" }
-    val syncSchemaButtonAfterAddingDb = TreeWalker(view.component).descendants().first { it.name == "refresh-schema-button" }
-    val runSqlButtonAfterAddingDb = TreeWalker(view.component).descendants().first { it.name == "run-sql-button" }
+    val tabsPanelAfterAddingDb =
+      TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-tabs-panel" }
+    val syncSchemaButtonAfterAddingDb =
+      TreeWalker(view.component).descendants().first { it.name == "refresh-schema-button" }
+    val runSqlButtonAfterAddingDb =
+      TreeWalker(view.component).descendants().first { it.name == "run-sql-button" }
     val treeRootAfterAddingDb = tree.model.root
 
     assertNull(tabsPanelAfterAddingDb)
@@ -263,12 +323,22 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
   fun testRightPanelEmptyStateIsHiddenAfterOpeningATab() {
     // Act
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), SqliteSchema(emptyList()), 0)))
+    view.updateDatabases(
+      listOf(
+        DatabaseDiffOperation.AddDatabase(
+          ViewDatabase(databaseId, true),
+          SqliteSchema(emptyList()),
+          0
+        )
+      )
+    )
     view.openTab(TabId.AdHocQueryTab(1), "new tab", StudioIcons.DatabaseInspector.TABLE, JPanel())
 
     // Assert
-    val emptyStateRightPanelAfterAddingTab = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-empty-state" }
-    val tabsPanelAfterAddingTab = TreeWalker(view.component).descendants().first { it.name == "right-panel-tabs-panel" }
+    val emptyStateRightPanelAfterAddingTab =
+      TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-empty-state" }
+    val tabsPanelAfterAddingTab =
+      TreeWalker(view.component).descendants().first { it.name == "right-panel-tabs-panel" }
 
     assertNull(emptyStateRightPanelAfterAddingTab)
     assertNotNull(tabsPanelAfterAddingTab)
@@ -279,12 +349,22 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val tabId = TabId.AdHocQueryTab(1)
 
     // Act
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), SqliteSchema(emptyList()), 0)))
+    view.updateDatabases(
+      listOf(
+        DatabaseDiffOperation.AddDatabase(
+          ViewDatabase(databaseId, true),
+          SqliteSchema(emptyList()),
+          0
+        )
+      )
+    )
     view.openTab(tabId, "new tab", StudioIcons.DatabaseInspector.TABLE, JPanel())
 
     // Assert
-    val emptyStateRightPanelAfterAddingTab = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-empty-state" }
-    val tabsPanelAfterAddingTab = TreeWalker(view.component).descendants().first { it.name == "right-panel-tabs-panel" }
+    val emptyStateRightPanelAfterAddingTab =
+      TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-empty-state" }
+    val tabsPanelAfterAddingTab =
+      TreeWalker(view.component).descendants().first { it.name == "right-panel-tabs-panel" }
 
     assertNull(emptyStateRightPanelAfterAddingTab)
     assertNotNull(tabsPanelAfterAddingTab)
@@ -293,8 +373,10 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     view.closeTab(tabId)
 
     // Assert
-    val emptyStateRightPanelAfterRemovingTab = TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
-    val tabsPanelAfterRemovingTab = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-tabs-panel" }
+    val emptyStateRightPanelAfterRemovingTab =
+      TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
+    val tabsPanelAfterRemovingTab =
+      TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-tabs-panel" }
 
     assertNotNull(emptyStateRightPanelAfterRemovingTab)
     assertNull(tabsPanelAfterRemovingTab)
@@ -302,17 +384,32 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
   fun testEmptyStateIsShownAfterOpenDatabasesAreRemoved() {
     // Prepare
-    val tree = TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
+    val tree =
+      TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
 
     // Act
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), SqliteSchema(emptyList()), 0)))
-    view.updateDatabases(listOf(DatabaseDiffOperation.RemoveDatabase(ViewDatabase(databaseId, true))))
+    view.updateDatabases(
+      listOf(
+        DatabaseDiffOperation.AddDatabase(
+          ViewDatabase(databaseId, true),
+          SqliteSchema(emptyList()),
+          0
+        )
+      )
+    )
+    view.updateDatabases(
+      listOf(DatabaseDiffOperation.RemoveDatabase(ViewDatabase(databaseId, true)))
+    )
 
     // Assert
-    val emptyStateRightPanelAfterRemovingDb = TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
-    val tabsPanelAfterRemovingDb = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-tabs-panel" }
-    val syncSchemaButtonAfterRemovingDb = TreeWalker(view.component).descendants().first { it.name == "refresh-schema-button" }
-    val runSqlButtonAfterRemovingDb = TreeWalker(view.component).descendants().first { it.name == "run-sql-button" }
+    val emptyStateRightPanelAfterRemovingDb =
+      TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
+    val tabsPanelAfterRemovingDb =
+      TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-tabs-panel" }
+    val syncSchemaButtonAfterRemovingDb =
+      TreeWalker(view.component).descendants().first { it.name == "refresh-schema-button" }
+    val runSqlButtonAfterRemovingDb =
+      TreeWalker(view.component).descendants().first { it.name == "run-sql-button" }
     val treeRootAfterRemovingDb = tree.model.root
 
     assertNotNull(emptyStateRightPanelAfterRemovingDb)
@@ -328,15 +425,35 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Prepare
     val databaseId1 = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("db1")))
     val databaseId2 = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("db2")))
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId1, true), SqliteSchema(emptyList()), 0)))
+    view.updateDatabases(
+      listOf(
+        DatabaseDiffOperation.AddDatabase(
+          ViewDatabase(databaseId1, true),
+          SqliteSchema(emptyList()),
+          0
+        )
+      )
+    )
 
     // Act
     view.openTab(TabId.AdHocQueryTab(1), "tab", StudioIcons.DatabaseInspector.TABLE, JPanel())
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId2, true), SqliteSchema(emptyList()), 0)))
+    view.updateDatabases(
+      listOf(
+        DatabaseDiffOperation.AddDatabase(
+          ViewDatabase(databaseId2, true),
+          SqliteSchema(emptyList()),
+          0
+        )
+      )
+    )
 
     // Assert
-    val emptyStateRightPanel = TreeWalker(view.component).descendants().firstOrNull() { it.name == "right-panel-empty-state" }
-    val tabsPanel = TreeWalker(view.component).descendants().first { it.name == "right-panel-tabs-panel" }
+    val emptyStateRightPanel =
+      TreeWalker(view.component).descendants().firstOrNull() {
+        it.name == "right-panel-empty-state"
+      }
+    val tabsPanel =
+      TreeWalker(view.component).descendants().first { it.name == "right-panel-tabs-panel" }
 
     assertNull(emptyStateRightPanel)
     assertTrue(tabsPanel.isVisible)
@@ -344,7 +461,9 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
   fun testUpdateKeepConnectionOpenButton() {
     // Prepare
-    val button = TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" } as JButton
+    val button =
+      TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" } as
+        JButton
 
     // Assert
     assertEquals(StudioIcons.DatabaseInspector.KEEP_DATABASES_OPEN, button.icon)
@@ -364,13 +483,33 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
   fun testKeepConnectionOpenIsDisabledWithOfflineDatabases() {
     // Prepare
-    val fileDatabaseId1 = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file1")))
-    val fileDatabaseId2 = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file2")))
-    val keepConnectionsOpenButton = TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" } as JButton
+    val fileDatabaseId1 =
+      SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file1")))
+    val fileDatabaseId2 =
+      SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file2")))
+    val keepConnectionsOpenButton =
+      TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" } as
+        JButton
 
     // Act
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(fileDatabaseId1, true), SqliteSchema(emptyList()), 0)))
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(fileDatabaseId2, true), SqliteSchema(emptyList()), 0)))
+    view.updateDatabases(
+      listOf(
+        DatabaseDiffOperation.AddDatabase(
+          ViewDatabase(fileDatabaseId1, true),
+          SqliteSchema(emptyList()),
+          0
+        )
+      )
+    )
+    view.updateDatabases(
+      listOf(
+        DatabaseDiffOperation.AddDatabase(
+          ViewDatabase(fileDatabaseId2, true),
+          SqliteSchema(emptyList()),
+          0
+        )
+      )
+    )
 
     // Assert
     assertFalse(keepConnectionsOpenButton.isEnabled)
@@ -379,10 +518,20 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
   fun testKeepConnectionOpenIsEnabledWithLiveDatabases() {
     // Prepare
     val liveDatabaseId = SqliteDatabaseId.fromLiveDatabase("", 0)
-    val keepConnectionsOpenButton = TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" } as JButton
+    val keepConnectionsOpenButton =
+      TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" } as
+        JButton
 
     // Act
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(liveDatabaseId, true), SqliteSchema(emptyList()), 0)))
+    view.updateDatabases(
+      listOf(
+        DatabaseDiffOperation.AddDatabase(
+          ViewDatabase(liveDatabaseId, true),
+          SqliteSchema(emptyList()),
+          0
+        )
+      )
+    )
 
     // Assert
     assertTrue(keepConnectionsOpenButton.isEnabled)
@@ -390,21 +539,51 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
   fun testKeepConnectionOpenIsEnableIfAtLeastOneOnlineDatabase() {
     // Prepare
-    val fileDatabaseId1 = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file1")))
-    val fileDatabaseId2 = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file2")))
+    val fileDatabaseId1 =
+      SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file1")))
+    val fileDatabaseId2 =
+      SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file2")))
     val liveDatabaseId = SqliteDatabaseId.fromLiveDatabase("", 0)
-    val keepConnectionsOpenButton = TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" } as JButton
+    val keepConnectionsOpenButton =
+      TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" } as
+        JButton
 
     // Act
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(fileDatabaseId1, true), SqliteSchema(emptyList()), 0)))
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(liveDatabaseId, true), SqliteSchema(emptyList()), 0)))
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(fileDatabaseId2, true), SqliteSchema(emptyList()), 0)))
+    view.updateDatabases(
+      listOf(
+        DatabaseDiffOperation.AddDatabase(
+          ViewDatabase(fileDatabaseId1, true),
+          SqliteSchema(emptyList()),
+          0
+        )
+      )
+    )
+    view.updateDatabases(
+      listOf(
+        DatabaseDiffOperation.AddDatabase(
+          ViewDatabase(liveDatabaseId, true),
+          SqliteSchema(emptyList()),
+          0
+        )
+      )
+    )
+    view.updateDatabases(
+      listOf(
+        DatabaseDiffOperation.AddDatabase(
+          ViewDatabase(fileDatabaseId2, true),
+          SqliteSchema(emptyList()),
+          0
+        )
+      )
+    )
 
     // Assert
     assertTrue(keepConnectionsOpenButton.isEnabled)
 
     // Act
-    view.updateDatabases(listOf(DatabaseDiffOperation.RemoveDatabase(ViewDatabase(liveDatabaseId, true))))
+    view.updateDatabases(
+      listOf(DatabaseDiffOperation.RemoveDatabase(ViewDatabase(liveDatabaseId, true)))
+    )
 
     // Assert
     assertFalse(keepConnectionsOpenButton.isEnabled)
@@ -412,10 +591,13 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
   fun testTreeRootNodeIsExpandedWhenEmptyNodeIsAdded() {
     // Prepare
-    val fileDatabaseId1 = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file1")))
+    val fileDatabaseId1 =
+      SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file1")))
 
-    val tree = TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
-    val diffOperations = listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(fileDatabaseId1, true), null, 0))
+    val tree =
+      TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
+    val diffOperations =
+      listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(fileDatabaseId1, true), null, 0))
 
     // Act
     view.updateDatabases(diffOperations)

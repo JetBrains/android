@@ -50,6 +50,12 @@ import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.table.TableView
 import com.intellij.util.containers.getIfSingle
+import java.awt.Component
+import java.awt.event.FocusEvent
+import javax.swing.JCheckBox
+import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.JTextField
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
@@ -60,12 +66,6 @@ import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCommand
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria
 import studio.network.inspection.NetworkInspectorProtocol.MatchingText.Type
-import java.awt.Component
-import java.awt.event.FocusEvent
-import javax.swing.JCheckBox
-import javax.swing.JComponent
-import javax.swing.JPanel
-import javax.swing.JTextField
 
 @RunsInEdt
 class RuleDetailsViewTest {
@@ -79,34 +79,27 @@ class RuleDetailsViewTest {
     override suspend fun interceptResponse(command: InterceptCommand) {
       if (command.hasReorderInterceptRules()) {
         latestReorderCommand = command
-      }
-      else {
+      } else {
         latestRegularCommand = command
       }
     }
 
-    /**
-     * Verifies the latest command not for reordering.
-     */
+    /** Verifies the latest command not for reordering. */
     fun verifyLatestCommand(checker: (InterceptCommand) -> Unit) {
       checker(latestRegularCommand)
       latestRegularCommand = InterceptCommand.getDefaultInstance()
     }
 
-    /**
-     * Verifies the latest command for reordering.
-     */
+    /** Verifies the latest command for reordering. */
     fun verifyLatestReorderCommand(checker: (InterceptCommand) -> Unit) {
       checker(latestReorderCommand)
       latestReorderCommand = InterceptCommand.getDefaultInstance()
     }
   }
 
-  @get:Rule
-  val flagRule = FlagRule(StudioFlags.ENABLE_NETWORK_INTERCEPTION, true)
+  @get:Rule val flagRule = FlagRule(StudioFlags.ENABLE_NETWORK_INTERCEPTION, true)
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   private val testRootDisposable
     get() = projectRule.fixture.testRootDisposable
@@ -129,20 +122,35 @@ class RuleDetailsViewTest {
     client = TestNetworkInspectorClient()
     tracker = TestNetworkInspectorUsageTracker()
     Disposer.register(testRootDisposable, tracker)
-    services = TestNetworkInspectorServices(
-      codeNavigationProvider,
-      timer,
-      client,
-      IdeNetworkInspectorTracker(projectRule.project)
-    )
+    services =
+      TestNetworkInspectorServices(
+        codeNavigationProvider,
+        timer,
+        client,
+        IdeNetworkInspectorTracker(projectRule.project)
+      )
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
-    model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(), scope, object : HttpDataModel {
-      override fun getData(timeCurrentRangeUs: Range) = listOf<HttpData>()
-    })
+    model =
+      NetworkInspectorModel(
+        services,
+        FakeNetworkInspectorDataSource(),
+        scope,
+        object : HttpDataModel {
+          override fun getData(timeCurrentRangeUs: Range) = listOf<HttpData>()
+        }
+      )
     model.detailContent = NetworkInspectorModel.DetailContent.RULE
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
-    inspectorView = NetworkInspectorView(projectRule.project, model, FakeUiComponentsProvider(), component, services, scope)
+    inspectorView =
+      NetworkInspectorView(
+        projectRule.project,
+        model,
+        FakeUiComponentsProvider(),
+        component,
+        services,
+        scope
+      )
     parentPanel.add(inspectorView.component)
     detailsPanel = inspectorView.detailsPanel
   }
@@ -273,12 +281,14 @@ class RuleDetailsViewTest {
   fun updateRuleOriginFromDetailsView() {
     val rule = addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
-    val protocolComponent = findComponentWithUniqueName(ruleDetailsView, "protocolComboBox") as CommonComboBox<*, *>
+    val protocolComponent =
+      findComponentWithUniqueName(ruleDetailsView, "protocolComboBox") as CommonComboBox<*, *>
     assertThat(protocolComponent.getModel().text).isEqualTo("https")
     protocolComponent.setSelectedIndex(1)
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.URL_PROTOCOL)
+      assertThat(it.ruleDetailUpdated.component)
+        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.URL_PROTOCOL)
     }
 
     val urlComponent = findComponentWithUniqueName(ruleDetailsView, "urlTextField") as JTextField
@@ -288,7 +298,8 @@ class RuleDetailsViewTest {
     urlComponent.onFocusLost()
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.URL_HOST)
+      assertThat(it.ruleDetailUpdated.component)
+        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.URL_HOST)
     }
 
     val portComponent = findComponentWithUniqueName(ruleDetailsView, "portTextField") as JTextField
@@ -297,7 +308,8 @@ class RuleDetailsViewTest {
     portComponent.onFocusLost()
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.URL_PORT)
+      assertThat(it.ruleDetailUpdated.component)
+        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.URL_PORT)
     }
 
     // A '/' prefix should be added to path automatically if not already there.
@@ -307,24 +319,29 @@ class RuleDetailsViewTest {
     pathComponent.onFocusLost()
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.URL_PATH)
+      assertThat(it.ruleDetailUpdated.component)
+        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.URL_PATH)
     }
 
-    val queryComponent = findComponentWithUniqueName(ruleDetailsView, "queryTextField") as JTextField
+    val queryComponent =
+      findComponentWithUniqueName(ruleDetailsView, "queryTextField") as JTextField
     assertThat(queryComponent.text).isEmpty()
     queryComponent.text = "title=Query_string&action=edit"
     queryComponent.onFocusLost()
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.URL_QUERY)
+      assertThat(it.ruleDetailUpdated.component)
+        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.URL_QUERY)
     }
 
-    val methodComponent = findComponentWithUniqueName(ruleDetailsView, "methodComboBox") as CommonComboBox<*, *>
+    val methodComponent =
+      findComponentWithUniqueName(ruleDetailsView, "methodComboBox") as CommonComboBox<*, *>
     assertThat(methodComponent.getModel().text).isEqualTo("GET")
     methodComponent.setSelectedIndex(1)
 
     assertThat(rule.criteria.host).isEqualTo(url)
-    assertThat(inspectorView.rulesView.table.getValueAt(0, 2)).isEqualTo("http://www.google.com:8080/path?title=Query_string&action=edit")
+    assertThat(inspectorView.rulesView.table.getValueAt(0, 2))
+      .isEqualTo("http://www.google.com:8080/path?title=Query_string&action=edit")
     client.verifyLatestCommand {
       it.interceptRuleUpdated.rule.criteria.also { criteria ->
         assertThat(criteria.protocol).isEqualTo(InterceptCriteria.Protocol.PROTOCOL_HTTP)
@@ -341,15 +358,20 @@ class RuleDetailsViewTest {
   fun updateStatusCodeFromDetailsView() {
     addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
-    val findCodeTextField = findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
-    val newCodeTextField = findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
-    val isActiveCheckBox = TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
+    val findCodeTextField =
+      findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
+    val newCodeTextField =
+      findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
+    val isActiveCheckBox =
+      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as
+        JCheckBox
     findCodeTextField.text = "200"
     findCodeTextField.onFocusLost()
 
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_CODE)
+      assertThat(it.ruleDetailUpdated.component)
+        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_CODE)
     }
     assertThat(newCodeTextField.isEnabled).isFalse()
     isActiveCheckBox.doClick()
@@ -359,7 +381,8 @@ class RuleDetailsViewTest {
 
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_CODE)
+      assertThat(it.ruleDetailUpdated.component)
+        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_CODE)
     }
     client.verifyLatestCommand {
       val transformation = it.interceptRuleUpdated.rule.getTransformation(0)
@@ -375,9 +398,13 @@ class RuleDetailsViewTest {
     addNewRule()
     val table = inspectorView.rulesView.table
     table.selectionModel.addSelectionInterval(0, 0)
-    val savedFindCodeTextField = findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
-    val savedNewCodeTextField = findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
-    val savedIsActiveCheckBox = TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
+    val savedFindCodeTextField =
+      findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
+    val savedNewCodeTextField =
+      findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
+    val savedIsActiveCheckBox =
+      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as
+        JCheckBox
     assertThat(savedFindCodeTextField.text).isEqualTo("200")
     assertThat(savedFindCodeTextField.isEnabled).isTrue()
     assertThat(savedNewCodeTextField.text).isEqualTo("404")
@@ -411,7 +438,8 @@ class RuleDetailsViewTest {
     }
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.ADD_HEADER)
+      assertThat(it.ruleDetailUpdated.component)
+        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.ADD_HEADER)
     }
 
     assertThat(headerTable.rowCount).isEqualTo(1)
@@ -471,7 +499,8 @@ class RuleDetailsViewTest {
 
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_HEADER)
+      assertThat(it.ruleDetailUpdated.component)
+        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_HEADER)
     }
     assertThat(headerTable.rowCount).isEqualTo(1)
     assertThat(headerTable.getValueAt(0, 0)).isEqualTo("Edit")
@@ -517,7 +546,8 @@ class RuleDetailsViewTest {
     }
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.ADD_HEADER)
+      assertThat(it.ruleDetailUpdated.component)
+        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.ADD_HEADER)
     }
 
     val editAction = findAction(headerTable.parent.parent.parent, "Edit")
@@ -547,7 +577,8 @@ class RuleDetailsViewTest {
     }
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_HEADER)
+      assertThat(it.ruleDetailUpdated.component)
+        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_HEADER)
     }
 
     createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent()) }) {
@@ -571,14 +602,15 @@ class RuleDetailsViewTest {
 
     val model = ruleData.headerRuleTableModel
     val headerAddedRule = RuleData.HeaderAddedRuleData("name", "value")
-    val headerReplacedRule = RuleData.HeaderReplacedRuleData(
-      "findName",
-      true,
-      "findValue",
-      false,
-      "replaceName",
-      "replaceValue"
-    )
+    val headerReplacedRule =
+      RuleData.HeaderReplacedRuleData(
+        "findName",
+        true,
+        "findValue",
+        false,
+        "replaceName",
+        "replaceValue"
+      )
     model.addRow(headerAddedRule)
     model.addRow(headerReplacedRule)
     assertThat(headerTable.rowCount).isEqualTo(2)
@@ -607,14 +639,8 @@ class RuleDetailsViewTest {
 
     val model = ruleData.headerRuleTableModel
     val headerAddedRule = RuleData.HeaderAddedRuleData("name", "value")
-    val headerReplacedRule = RuleData.HeaderReplacedRuleData(
-      "findName",
-      true,
-      null,
-      false,
-      null,
-      "replaceValue"
-    )
+    val headerReplacedRule =
+      RuleData.HeaderReplacedRuleData("findName", true, null, false, null, "replaceValue")
     model.addRow(headerAddedRule)
     model.addRow(headerReplacedRule)
     assertThat(headerTable.rowCount).isEqualTo(2)
@@ -722,7 +748,8 @@ class RuleDetailsViewTest {
 
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.REPLACE_BODY)
+      assertThat(it.ruleDetailUpdated.component)
+        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.REPLACE_BODY)
     }
     assertThat(bodyTable.rowCount).isEqualTo(1)
     assertThat(bodyTable.getValueAt(0, 0)).isEqualTo("Replace")
@@ -771,7 +798,8 @@ class RuleDetailsViewTest {
 
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_BODY)
+      assertThat(it.ruleDetailUpdated.component)
+        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_BODY)
     }
     assertThat(bodyTable.rowCount).isEqualTo(1)
     assertThat(bodyTable.getValueAt(0, 0)).isEqualTo("Edit")
@@ -813,7 +841,8 @@ class RuleDetailsViewTest {
 
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.REPLACE_BODY)
+      assertThat(it.ruleDetailUpdated.component)
+        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.REPLACE_BODY)
     }
     val editAction = findAction(bodyTable.parent.parent.parent, "Edit")
     createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent()) }) {
@@ -828,7 +857,8 @@ class RuleDetailsViewTest {
 
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_BODY)
+      assertThat(it.ruleDetailUpdated.component)
+        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_BODY)
     }
     createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent()) }) {
       val dialog = it as BodyRuleDialog
@@ -904,7 +934,8 @@ class RuleDetailsViewTest {
     val ruleDetailsView = detailsPanel.ruleDetailsView
 
     val portComponent = findComponentWithUniqueName(ruleDetailsView, "portTextField") as JTextField
-    val portWarningLabel = findComponentWithUniqueName(ruleDetailsView, "portWarningLabel") as JBLabel
+    val portWarningLabel =
+      findComponentWithUniqueName(ruleDetailsView, "portWarningLabel") as JBLabel
     assertThat(portComponent.text).isEmpty()
     portComponent.text = invalidPort
     portComponent.onFocusLost()
@@ -931,9 +962,13 @@ class RuleDetailsViewTest {
   fun warningShownForInvalidFindStatusCode() {
     addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
-    val findCodeTextField = findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
-    val findCodeWarningLabel = findComponentWithUniqueName(ruleDetailsView, "findCodeWarningLabel") as JBLabel
-    val isActiveCheckBox = TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
+    val findCodeTextField =
+      findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
+    val findCodeWarningLabel =
+      findComponentWithUniqueName(ruleDetailsView, "findCodeWarningLabel") as JBLabel
+    val isActiveCheckBox =
+      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as
+        JCheckBox
 
     findCodeTextField.text = "ABC"
     findCodeTextField.onFocusLost()
@@ -964,14 +999,17 @@ class RuleDetailsViewTest {
     assertThat(findCodeWarningLabel.isVisible).isTrue()
   }
 
-
   @Test
   fun warningShownForInvalidNewStatusCode() {
     addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
-    val newCodeTextField = findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
-    val newCodeWarningLabel = findComponentWithUniqueName(ruleDetailsView, "newCodeWarningLabel") as JBLabel
-    val isActiveCheckBox = TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
+    val newCodeTextField =
+      findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
+    val newCodeWarningLabel =
+      findComponentWithUniqueName(ruleDetailsView, "newCodeWarningLabel") as JBLabel
+    val isActiveCheckBox =
+      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as
+        JCheckBox
     isActiveCheckBox.doClick()
 
     // Warning label is visible since the current input is "" which is invalid
@@ -991,9 +1029,13 @@ class RuleDetailsViewTest {
   fun ruleNotUpdatedWhenNewCodeIsBlank() {
     addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
-    val findCodeTextField = findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
-    val newCodeTextField = findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
-    val isActiveCheckBox = TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
+    val findCodeTextField =
+      findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
+    val newCodeTextField =
+      findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
+    val isActiveCheckBox =
+      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as
+        JCheckBox
 
     findCodeTextField.text = "123"
     isActiveCheckBox.doClick()
@@ -1008,11 +1050,17 @@ class RuleDetailsViewTest {
   fun ruleNotUpdatedWhenBothStatusCodeBlank() {
     addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
-    val findCodeTextField = findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
-    val findCodeWarningLabel = findComponentWithUniqueName(ruleDetailsView, "findCodeWarningLabel") as JBLabel
-    val newCodeTextField = findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
-    val newCodeWarningLabel = findComponentWithUniqueName(ruleDetailsView, "newCodeWarningLabel") as JBLabel
-    val isActiveCheckBox = TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
+    val findCodeTextField =
+      findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
+    val findCodeWarningLabel =
+      findComponentWithUniqueName(ruleDetailsView, "findCodeWarningLabel") as JBLabel
+    val newCodeTextField =
+      findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
+    val newCodeWarningLabel =
+      findComponentWithUniqueName(ruleDetailsView, "newCodeWarningLabel") as JBLabel
+    val isActiveCheckBox =
+      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as
+        JCheckBox
 
     isActiveCheckBox.doClick()
 
@@ -1030,11 +1078,17 @@ class RuleDetailsViewTest {
   fun statusCodeInactiveWhenAnyStatusCodeInvalid() {
     val rule = addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
-    val findCodeTextField = findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
-    val findCodeWarningLabel = findComponentWithUniqueName(ruleDetailsView, "findCodeWarningLabel") as JBLabel
-    val newCodeTextField = findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
-    val newCodeWarningLabel = findComponentWithUniqueName(ruleDetailsView, "newCodeWarningLabel") as JBLabel
-    val isActiveCheckBox = TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
+    val findCodeTextField =
+      findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
+    val findCodeWarningLabel =
+      findComponentWithUniqueName(ruleDetailsView, "findCodeWarningLabel") as JBLabel
+    val newCodeTextField =
+      findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
+    val newCodeWarningLabel =
+      findComponentWithUniqueName(ruleDetailsView, "newCodeWarningLabel") as JBLabel
+    val isActiveCheckBox =
+      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as
+        JCheckBox
 
     findCodeTextField.text = "ABC"
     findCodeTextField.onFocusLost()
@@ -1062,7 +1116,7 @@ class RuleDetailsViewTest {
 
     // Valid find code. Invalid new code. Rule should not update
     newCodeTextField.text = "DEF"
-    findCodeTextField.text =  "123"
+    findCodeTextField.text = "123"
     newCodeTextField.onFocusLost()
     findCodeTextField.onFocusLost()
 
@@ -1081,9 +1135,13 @@ class RuleDetailsViewTest {
   fun statusCodeInActiveWhenCheckBoxUnchecked() {
     val rule = addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
-    val findCodeTextField = findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
-    val newCodeTextField = findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
-    val isActiveCheckBox = TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
+    val findCodeTextField =
+      findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
+    val newCodeTextField =
+      findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
+    val isActiveCheckBox =
+      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as
+        JCheckBox
 
     // Assert checkbox is unselected by default
     assertThat(isActiveCheckBox.isSelected).isFalse()
@@ -1134,8 +1192,10 @@ class RuleDetailsViewTest {
     focusListeners.forEach { it.focusLost(FocusEvent(this, FocusEvent.FOCUS_LOST)) }
   }
 
-  private fun findAction(decoratedTable: Component, templateText: String) = TreeWalker(decoratedTable)
-    .descendants().filterIsInstance<ActionToolbar>()[0].actions.first { it.templateText?.contains(templateText) == true }
+  private fun findAction(decoratedTable: Component, templateText: String) =
+    TreeWalker(decoratedTable).descendants().filterIsInstance<ActionToolbar>()[0].actions.first {
+      it.templateText?.contains(templateText) == true
+    }
 
   private fun Component.isVisibleToRoot(root: Component): Boolean {
     var current = this

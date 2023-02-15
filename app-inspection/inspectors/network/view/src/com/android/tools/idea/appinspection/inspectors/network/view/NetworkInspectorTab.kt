@@ -39,11 +39,6 @@ import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.GridBagLayout
@@ -54,14 +49,17 @@ import javax.swing.JPanel
 import javax.swing.KeyStroke
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.SwingConstants
-
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val ZOOM_IN = "Zoom in"
 private const val ZOOM_OUT = "Zoom out"
 private const val ATTACH_LIVE = "Attach to live"
 private const val DETACH_LIVE = "Detach live"
 private val SHORTCUT_MODIFIER_MASK_NUMBER = if (SystemInfo.isMac) META_DOWN_MASK else CTRL_DOWN_MASK
-
 
 class NetworkInspectorTab(
   project: Project,
@@ -72,17 +70,14 @@ class NetworkInspectorTab(
   parentDisposable: Disposable
 ) : AspectObserver(), Disposable {
 
-  @VisibleForTesting
-  lateinit var model: NetworkInspectorModel
+  @VisibleForTesting lateinit var model: NetworkInspectorModel
   private lateinit var view: NetworkInspectorView
   val component: TooltipLayeredPane
   private lateinit var goLiveButton: CommonToggleButton
 
-  @VisibleForTesting
-  lateinit var actionsToolBar: JPanel
+  @VisibleForTesting lateinit var actionsToolBar: JPanel
 
-  @VisibleForTesting
-  val launchJob: Job
+  @VisibleForTesting val launchJob: Job
 
   init {
     Disposer.register(parentDisposable, this)
@@ -96,133 +91,144 @@ class NetworkInspectorTab(
     splitter.lastComponent = parentPanel
 
     component = TooltipLayeredPane(splitter)
-    launchJob = scope.launch {
-      val deviceTime = services.client.getStartTimeStampNs()
-      withContext(services.uiDispatcher) {
-        val stagePanel = JPanel(BorderLayout())
-        val toolbar = JPanel(BorderLayout())
-        toolbar.border = DEFAULT_BOTTOM_BORDER
-        toolbar.preferredSize = Dimension(0, TOOLBAR_HEIGHT)
+    launchJob =
+      scope.launch {
+        val deviceTime = services.client.getStartTimeStampNs()
+        withContext(services.uiDispatcher) {
+          val stagePanel = JPanel(BorderLayout())
+          val toolbar = JPanel(BorderLayout())
+          toolbar.border = DEFAULT_BOTTOM_BORDER
+          toolbar.preferredSize = Dimension(0, TOOLBAR_HEIGHT)
 
-        parentPanel.add(toolbar, BorderLayout.NORTH)
-        parentPanel.add(stagePanel, BorderLayout.CENTER)
+          parentPanel.add(toolbar, BorderLayout.NORTH)
+          parentPanel.add(stagePanel, BorderLayout.CENTER)
 
-        model = NetworkInspectorModel(services, dataSource, scope, startTimeStampNs = deviceTime)
-        view = NetworkInspectorView(project, model, componentsProvider, component, services, scope)
-        stagePanel.add(view.component)
+          model = NetworkInspectorModel(services, dataSource, scope, startTimeStampNs = deviceTime)
+          view =
+            NetworkInspectorView(project, model, componentsProvider, component, services, scope)
+          stagePanel.add(view.component)
 
-        actionsToolBar = JPanel(GridBagLayout())
-        toolbar.add(actionsToolBar, BorderLayout.EAST)
-        actionsToolBar.border = JBUI.Borders.empty(0, 0, 0, 2)
+          actionsToolBar = JPanel(GridBagLayout())
+          toolbar.add(actionsToolBar, BorderLayout.EAST)
+          actionsToolBar.border = JBUI.Borders.empty(0, 0, 0, 2)
 
-        val zoomOut = CommonButton(AllIcons.General.ZoomOut)
-        zoomOut.disabledIcon = IconLoader.getDisabledIcon(AllIcons.General.ZoomOut)
-        zoomOut.addActionListener {
-          model.timeline.zoomOut()
-        }
-        val zoomOutAction = DefaultContextMenuItem.Builder(ZOOM_OUT)
-          .setContainerComponent(splitter)
-          .setActionRunnable { zoomOut.doClick(0) }
-          .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, SHORTCUT_MODIFIER_MASK_NUMBER),
-                         KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, SHORTCUT_MODIFIER_MASK_NUMBER))
-          .build()
+          val zoomOut = CommonButton(AllIcons.General.ZoomOut)
+          zoomOut.disabledIcon = IconLoader.getDisabledIcon(AllIcons.General.ZoomOut)
+          zoomOut.addActionListener { model.timeline.zoomOut() }
+          val zoomOutAction =
+            DefaultContextMenuItem.Builder(ZOOM_OUT)
+              .setContainerComponent(splitter)
+              .setActionRunnable { zoomOut.doClick(0) }
+              .setKeyStrokes(
+                KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, SHORTCUT_MODIFIER_MASK_NUMBER),
+                KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, SHORTCUT_MODIFIER_MASK_NUMBER)
+              )
+              .build()
 
-        zoomOut.toolTipText = zoomOutAction.defaultToolTipText
-        actionsToolBar.add(zoomOut)
+          zoomOut.toolTipText = zoomOutAction.defaultToolTipText
+          actionsToolBar.add(zoomOut)
 
-        val zoomIn = CommonButton(AllIcons.General.ZoomIn)
-        zoomIn.disabledIcon = IconLoader.getDisabledIcon(AllIcons.General.ZoomIn)
-        zoomIn.addActionListener {
-          model.timeline.zoomIn()
-        }
-        val zoomInAction = DefaultContextMenuItem.Builder(ZOOM_IN)
-          .setContainerComponent(splitter)
-          .setActionRunnable { zoomIn.doClick(0) }
-          .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, SHORTCUT_MODIFIER_MASK_NUMBER),
-                         KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, SHORTCUT_MODIFIER_MASK_NUMBER),
-                         KeyStroke.getKeyStroke(KeyEvent.VK_ADD, SHORTCUT_MODIFIER_MASK_NUMBER)).build()
-        zoomIn.toolTipText = zoomInAction.defaultToolTipText
-        actionsToolBar.add(zoomIn)
+          val zoomIn = CommonButton(AllIcons.General.ZoomIn)
+          zoomIn.disabledIcon = IconLoader.getDisabledIcon(AllIcons.General.ZoomIn)
+          zoomIn.addActionListener { model.timeline.zoomIn() }
+          val zoomInAction =
+            DefaultContextMenuItem.Builder(ZOOM_IN)
+              .setContainerComponent(splitter)
+              .setActionRunnable { zoomIn.doClick(0) }
+              .setKeyStrokes(
+                KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, SHORTCUT_MODIFIER_MASK_NUMBER),
+                KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, SHORTCUT_MODIFIER_MASK_NUMBER),
+                KeyStroke.getKeyStroke(KeyEvent.VK_ADD, SHORTCUT_MODIFIER_MASK_NUMBER)
+              )
+              .build()
+          zoomIn.toolTipText = zoomInAction.defaultToolTipText
+          actionsToolBar.add(zoomIn)
 
-        val resetZoom = CommonButton(StudioIcons.Common.RESET_ZOOM)
-        resetZoom.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Common.RESET_ZOOM)
-        resetZoom.addActionListener {
-          model.timeline.resetZoom()
-        }
-        val resetZoomAction = DefaultContextMenuItem.Builder("Reset zoom")
-          .setContainerComponent(splitter)
-          .setActionRunnable { resetZoom.doClick(0) }
-          .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, 0),
-                         KeyStroke.getKeyStroke(KeyEvent.VK_0, 0)).build()
-        resetZoom.toolTipText = resetZoomAction.defaultToolTipText
-        actionsToolBar.add(resetZoom)
+          val resetZoom = CommonButton(StudioIcons.Common.RESET_ZOOM)
+          resetZoom.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Common.RESET_ZOOM)
+          resetZoom.addActionListener { model.timeline.resetZoom() }
+          val resetZoomAction =
+            DefaultContextMenuItem.Builder("Reset zoom")
+              .setContainerComponent(splitter)
+              .setActionRunnable { resetZoom.doClick(0) }
+              .setKeyStrokes(
+                KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, 0),
+                KeyStroke.getKeyStroke(KeyEvent.VK_0, 0)
+              )
+              .build()
+          resetZoom.toolTipText = resetZoomAction.defaultToolTipText
+          actionsToolBar.add(resetZoom)
 
-        val zoomToSelection = CommonButton(StudioIcons.Common.ZOOM_SELECT)
-        zoomToSelection.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_SELECT)
-        zoomToSelection.addActionListener {
-          model.timeline.frameViewToRange(model.timeline.selectionRange)
-        }
-        val zoomToSelectionAction = DefaultContextMenuItem.Builder("Zoom to Selection")
-          .setContainerComponent(splitter)
-          .setActionRunnable { zoomToSelection.doClick(0) }
-          .setEnableBooleanSupplier { model.timeline.selectionRange.isEmpty }
-          .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_M, 0))
-          .build()
-        zoomToSelection.toolTipText = zoomToSelectionAction.defaultToolTipText
-        actionsToolBar.add(zoomToSelection)
-
-        val goLiveToolbar = JPanel(GridBagLayout())
-        goLiveToolbar.add(FlatSeparator())
-
-        goLiveButton = CommonToggleButton("", StudioIcons.Profiler.Toolbar.GOTO_LIVE)
-        goLiveButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.GOTO_LIVE)
-        goLiveButton.font = H4_FONT
-        goLiveButton.horizontalTextPosition = SwingConstants.LEFT
-        goLiveButton.horizontalAlignment = SwingConstants.LEFT
-        goLiveButton.border = JBUI.Borders.empty(3, 7, 3, 7)
-        val attachAction = DefaultContextMenuItem.Builder(ATTACH_LIVE)
-          .setContainerComponent(splitter)
-          .setActionRunnable { goLiveButton.doClick(0) }
-          .setEnableBooleanSupplier {
-            goLiveButton.isEnabled &&
-            !goLiveButton.isSelected
+          val zoomToSelection = CommonButton(StudioIcons.Common.ZOOM_SELECT)
+          zoomToSelection.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_SELECT)
+          zoomToSelection.addActionListener {
+            model.timeline.frameViewToRange(model.timeline.selectionRange)
           }
-          .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, SHORTCUT_MODIFIER_MASK_NUMBER))
-          .build()
-        val detachAction = DefaultContextMenuItem.Builder(DETACH_LIVE)
-          .setContainerComponent(splitter)
-          .setActionRunnable { goLiveButton.doClick(0) }
-          .setEnableBooleanSupplier {
-            goLiveButton.isEnabled &&
-            goLiveButton.isSelected
+          val zoomToSelectionAction =
+            DefaultContextMenuItem.Builder("Zoom to Selection")
+              .setContainerComponent(splitter)
+              .setActionRunnable { zoomToSelection.doClick(0) }
+              .setEnableBooleanSupplier { model.timeline.selectionRange.isEmpty }
+              .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_M, 0))
+              .build()
+          zoomToSelection.toolTipText = zoomToSelectionAction.defaultToolTipText
+          actionsToolBar.add(zoomToSelection)
+
+          val goLiveToolbar = JPanel(GridBagLayout())
+          goLiveToolbar.add(FlatSeparator())
+
+          goLiveButton = CommonToggleButton("", StudioIcons.Profiler.Toolbar.GOTO_LIVE)
+          goLiveButton.disabledIcon =
+            IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.GOTO_LIVE)
+          goLiveButton.font = H4_FONT
+          goLiveButton.horizontalTextPosition = SwingConstants.LEFT
+          goLiveButton.horizontalAlignment = SwingConstants.LEFT
+          goLiveButton.border = JBUI.Borders.empty(3, 7, 3, 7)
+          val attachAction =
+            DefaultContextMenuItem.Builder(ATTACH_LIVE)
+              .setContainerComponent(splitter)
+              .setActionRunnable { goLiveButton.doClick(0) }
+              .setEnableBooleanSupplier { goLiveButton.isEnabled && !goLiveButton.isSelected }
+              .setKeyStrokes(
+                KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, SHORTCUT_MODIFIER_MASK_NUMBER)
+              )
+              .build()
+          val detachAction =
+            DefaultContextMenuItem.Builder(DETACH_LIVE)
+              .setContainerComponent(splitter)
+              .setActionRunnable { goLiveButton.doClick(0) }
+              .setEnableBooleanSupplier { goLiveButton.isEnabled && goLiveButton.isSelected }
+              .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0))
+              .build()
+
+          goLiveButton.toolTipText = detachAction.defaultToolTipText
+          goLiveButton.addActionListener {
+            val currentStageTimeline: Timeline = model.timeline
+            assert(currentStageTimeline is StreamingTimeline)
+            (currentStageTimeline as StreamingTimeline).toggleStreaming()
           }
-          .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0)).build()
+          goLiveButton.addChangeListener {
+            val isSelected: Boolean = goLiveButton.isSelected
+            goLiveButton.icon =
+              if (isSelected) StudioIcons.Profiler.Toolbar.PAUSE_LIVE
+              else StudioIcons.Profiler.Toolbar.GOTO_LIVE
+            goLiveButton.toolTipText =
+              if (isSelected) detachAction.defaultToolTipText else attachAction.defaultToolTipText
+          }
+          model.timeline.addDependency(this@NetworkInspectorTab).onChange(
+              StreamingTimeline.Aspect.STREAMING
+            ) { goLiveButton.isSelected = model.timeline.isStreaming }
+          goLiveToolbar.add(goLiveButton)
+          actionsToolBar.add(goLiveToolbar)
 
-        goLiveButton.toolTipText = detachAction.defaultToolTipText
-        goLiveButton.addActionListener {
-          val currentStageTimeline: Timeline = model.timeline
-          assert(currentStageTimeline is StreamingTimeline)
-          (currentStageTimeline as StreamingTimeline).toggleStreaming()
+          zoomOut.isEnabled = true
+          zoomIn.isEnabled = true
+          resetZoom.isEnabled = true
+          zoomToSelection.isEnabled = zoomToSelectionAction.isEnabled
+          goLiveButton.isEnabled = true
+          goLiveButton.isSelected = true
         }
-        goLiveButton.addChangeListener {
-          val isSelected: Boolean = goLiveButton.isSelected
-          goLiveButton.icon = if (isSelected) StudioIcons.Profiler.Toolbar.PAUSE_LIVE else StudioIcons.Profiler.Toolbar.GOTO_LIVE
-          goLiveButton.toolTipText = if (isSelected) detachAction.defaultToolTipText else attachAction.defaultToolTipText
-        }
-        model.timeline.addDependency(this@NetworkInspectorTab)
-          .onChange(StreamingTimeline.Aspect.STREAMING) { goLiveButton.isSelected = model.timeline.isStreaming }
-        goLiveToolbar.add(goLiveButton)
-        actionsToolBar.add(goLiveToolbar)
-
-
-        zoomOut.isEnabled = true
-        zoomIn.isEnabled = true
-        resetZoom.isEnabled = true
-        zoomToSelection.isEnabled = zoomToSelectionAction.isEnabled
-        goLiveButton.isEnabled = true
-        goLiveButton.isSelected = true
       }
-    }
   }
 
   fun stopInspection() {

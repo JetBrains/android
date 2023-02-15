@@ -23,7 +23,8 @@ import javax.swing.tree.MutableTreeNode
  *
  * Includes: Workers, Alarms, Jobs, Wake Locks.
  */
-class BackgroundTaskCategoryNode(val name: String, emptyMessage: String) : DefaultMutableTreeNode(name) {
+class BackgroundTaskCategoryNode(val name: String, emptyMessage: String) :
+  DefaultMutableTreeNode(name) {
   private val emptyMessageNode = EmptyMessageNode(emptyMessage)
 
   init {

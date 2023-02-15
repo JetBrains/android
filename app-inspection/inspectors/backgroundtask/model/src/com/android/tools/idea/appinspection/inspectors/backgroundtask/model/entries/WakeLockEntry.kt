@@ -37,13 +37,17 @@ class WakeLockEntry(override val id: String) : BackgroundTaskEntry {
   private var _startTime = -1L
   private var _isValid = false
 
-  override val isValid get() = _isValid
+  override val isValid
+    get() = _isValid
 
-  override val className get() = _className
+  override val className
+    get() = _className
 
-  override val status get() = _status.name
+  override val status
+    get() = _status.name
 
-  override val startTimeMs get() = _startTime
+  override val startTimeMs
+    get() = _startTime
 
   override val tags = mutableListOf<String>()
   override val callstacks = mutableListOf<BackgroundTaskCallStack>()
@@ -59,18 +63,26 @@ class WakeLockEntry(override val id: String) : BackgroundTaskEntry {
       BackgroundTaskEvent.MetadataCase.WAKE_LOCK_ACQUIRED -> {
         _isValid = true
         acquired = backgroundTaskEvent
-        _className = getTopExternalClassSimpleName(backgroundTaskEvent.backgroundTaskEvent.stacktrace,
-                                                   "android.os.PowerManager\$WakeLock") ?: "WakeLock $id"
+        _className =
+          getTopExternalClassSimpleName(
+            backgroundTaskEvent.backgroundTaskEvent.stacktrace,
+            "android.os.PowerManager\$WakeLock"
+          )
+            ?: "WakeLock $id"
         _status = State.ACQUIRED
         _startTime = timestamp
         tags.add(acquired!!.backgroundTaskEvent.wakeLockAcquired.tag)
         callstacks.clear()
-        callstacks.add(BackgroundTaskCallStack(timestamp, backgroundTaskEvent.backgroundTaskEvent.stacktrace))
+        callstacks.add(
+          BackgroundTaskCallStack(timestamp, backgroundTaskEvent.backgroundTaskEvent.stacktrace)
+        )
       }
       BackgroundTaskEvent.MetadataCase.WAKE_LOCK_RELEASED -> {
         released = backgroundTaskEvent
         _status = State.RELEASED
-        callstacks.add(BackgroundTaskCallStack(timestamp, backgroundTaskEvent.backgroundTaskEvent.stacktrace))
+        callstacks.add(
+          BackgroundTaskCallStack(timestamp, backgroundTaskEvent.backgroundTaskEvent.stacktrace)
+        )
       }
     }
   }

@@ -23,22 +23,20 @@ import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.io.createFile
-import kotlinx.coroutines.runBlocking
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import java.net.URI
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import kotlin.test.assertFailsWith
+import kotlinx.coroutines.runBlocking
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 class BlazeArtifactResolverTest {
-  @get:Rule
-  val temporaryDirectoryRule = TemporaryDirectoryRule()
+  @get:Rule val temporaryDirectoryRule = TemporaryDirectoryRule()
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   private lateinit var testFileService: TestFileService
 
@@ -49,7 +47,13 @@ class BlazeArtifactResolverTest {
 
   @Test
   fun resolveInspectorJarWithBlazeResolver() = runBlocking {
-    val artifactCoordinate = ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01", ArtifactCoordinate.Type.AAR)
+    val artifactCoordinate =
+      ArtifactCoordinate(
+        "androidx.work",
+        "work-runtime",
+        "2.5.0-beta01",
+        ArtifactCoordinate.Type.AAR
+      )
     val artifactDir = temporaryDirectoryRule.newPath("test")
     val inspectorPath = artifactDir.resolve("inspector.jar").createFile()
 
@@ -65,11 +69,24 @@ class BlazeArtifactResolverTest {
   }
 
   @Test
-  fun failToResolveInspector() = runBlocking<Unit> {
-    val artifactCoordinate = ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01", ArtifactCoordinate.Type.AAR)
-    val resolver = BlazeArtifactResolver(testFileService, ModuleSystemArtifactFinder(projectRule.project) {
-      throw AppInspectionArtifactNotFoundException("blah", artifactCoordinate)
-    })
-    assertFailsWith(AppInspectionArtifactNotFoundException::class) { resolver.resolveArtifact(artifactCoordinate) }
-  }
+  fun failToResolveInspector() =
+    runBlocking<Unit> {
+      val artifactCoordinate =
+        ArtifactCoordinate(
+          "androidx.work",
+          "work-runtime",
+          "2.5.0-beta01",
+          ArtifactCoordinate.Type.AAR
+        )
+      val resolver =
+        BlazeArtifactResolver(
+          testFileService,
+          ModuleSystemArtifactFinder(projectRule.project) {
+            throw AppInspectionArtifactNotFoundException("blah", artifactCoordinate)
+          }
+        )
+      assertFailsWith(AppInspectionArtifactNotFoundException::class) {
+        resolver.resolveArtifact(artifactCoordinate)
+      }
+    }
 }

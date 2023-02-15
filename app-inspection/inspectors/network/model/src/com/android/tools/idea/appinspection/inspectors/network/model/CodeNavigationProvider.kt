@@ -20,8 +20,8 @@ import com.android.tools.idea.codenavigation.CodeNavigator
 /**
  * An interface that returns an implementation dependent [CodeNavigator].
  *
- * The code navigator needs to interface with the implementing IDE so the
- * appropriate code editor window can be brought up when navigating to it.
+ * The code navigator needs to interface with the implementing IDE so the appropriate code editor
+ * window can be brought up when navigating to it.
  */
 interface CodeNavigationProvider {
   val codeNavigator: CodeNavigator

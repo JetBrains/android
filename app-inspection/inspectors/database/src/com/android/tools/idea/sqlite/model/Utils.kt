@@ -26,17 +26,20 @@ import java.util.LinkedList
 /**
  * Returns a valid [RowIdName] in the context of the list of columns passed as argument.
  *
- * The RowId column has different valid names: rowid, oid and _rowid_.
- * Each one of these names stops being valid for the RowId column if the table has a user-defined column using that name.
- * eg. CREATE TABLE t (oid TEXT), here oid is a user-defined column and can't be used to get the RowId column.
+ * The RowId column has different valid names: rowid, oid and _rowid_. Each one of these names stops
+ * being valid for the RowId column if the table has a user-defined column using that name. eg.
+ * CREATE TABLE t (oid TEXT), here oid is a user-defined column and can't be used to get the RowId
+ * column.
  *
  * If all three names are used for user-define column it's not possible to get the RowId column,
- * unless the table has an integer primary key, in that case the name of the integer primary key column corresponds to the RowId column.
+ * unless the table has an integer primary key, in that case the name of the integer primary key
+ * column corresponds to the RowId column.
  */
 fun getRowIdName(columns: List<SqliteColumn>): RowIdName? {
   // if the db has an integer primary key, that column is also used for rowid.
   // otherwise we need to find the correct alias to use for the rowid column.
-  val hasIntegerPrimaryKey = columns.any { it.inPrimaryKey && it.affinity == SqliteAffinity.INTEGER }
+  val hasIntegerPrimaryKey =
+    columns.any { it.inPrimaryKey && it.affinity == SqliteAffinity.INTEGER }
   return when {
     hasIntegerPrimaryKey -> null
     columns.none { it.name == RowIdName._ROWID_.stringName } -> RowIdName._ROWID_
@@ -47,13 +50,21 @@ fun getRowIdName(columns: List<SqliteColumn>): RowIdName? {
 }
 
 /**
- * Returns a new [SqliteStatement], the text of which is obtained applying [func] to the text of the original [SqliteStatement].
- * The parameters are the same of the original [SqliteStatement].
+ * Returns a new [SqliteStatement], the text of which is obtained applying [func] to the text of the
+ * original [SqliteStatement]. The parameters are the same of the original [SqliteStatement].
  */
-fun SqliteStatement.transform(newStatementType: SqliteStatementType, func: (String) -> String): SqliteStatement {
+fun SqliteStatement.transform(
+  newStatementType: SqliteStatementType,
+  func: (String) -> String
+): SqliteStatement {
   val newStatement = func(this.sqliteStatementText)
   val newStatementStringRepresentation = func(this.sqliteStatementWithInlineParameters)
-  return SqliteStatement(newStatementType, newStatement, parametersValues, newStatementStringRepresentation)
+  return SqliteStatement(
+    newStatementType,
+    newStatement,
+    parametersValues,
+    newStatementStringRepresentation
+  )
 }
 
 @UiThread
@@ -63,12 +74,20 @@ fun createSqliteStatement(
   parametersValues: List<SqliteValue> = emptyList()
 ): SqliteStatement {
   val psiElement = AndroidSqlParserDefinition.parseSqlQuery(project, sqliteStatementText)
-  val statementStringRepresentation = inlineParameterValues(psiElement, LinkedList(parametersValues))
+  val statementStringRepresentation =
+    inlineParameterValues(psiElement, LinkedList(parametersValues))
   val statementType = getSqliteStatementType(project, sqliteStatementText)
-  val sqliteStatementTextWithNoTrailingSemicolon = getWrappableStatement(project, sqliteStatementText)
-  return SqliteStatement(statementType, sqliteStatementTextWithNoTrailingSemicolon, parametersValues, statementStringRepresentation)
+  val sqliteStatementTextWithNoTrailingSemicolon =
+    getWrappableStatement(project, sqliteStatementText)
+  return SqliteStatement(
+    statementType,
+    sqliteStatementTextWithNoTrailingSemicolon,
+    parametersValues,
+    statementStringRepresentation
+  )
 }
 
-fun DatabaseInspectorModel.getAllDatabaseIds(): List<SqliteDatabaseId> = getOpenDatabaseIds() + getCloseDatabaseIds()
+fun DatabaseInspectorModel.getAllDatabaseIds(): List<SqliteDatabaseId> =
+  getOpenDatabaseIds() + getCloseDatabaseIds()
 
 data class DatabaseIdNotFoundException(override val message: String?) : RuntimeException(message)

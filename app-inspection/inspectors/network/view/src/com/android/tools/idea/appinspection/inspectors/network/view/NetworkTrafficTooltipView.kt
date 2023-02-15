@@ -24,14 +24,24 @@ import com.android.tools.idea.appinspection.inspectors.network.view.constants.NE
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_SENDING_COLOR
 import javax.swing.JComponent
 
-class NetworkTrafficTooltipView internal constructor(view: NetworkInspectorView, private val tooltip: NetworkTrafficTooltipModel) :
+class NetworkTrafficTooltipView
+internal constructor(view: NetworkInspectorView, private val tooltip: NetworkTrafficTooltipModel) :
   TooltipView(view.model.timeline) {
   override fun createTooltip(): JComponent {
     val legends: LegendsModel = tooltip.getLegends()
     val legend: LegendComponent =
-      LegendComponent.Builder(legends).setVerticalPadding(0).setOrientation(LegendComponent.Orientation.VERTICAL).build()
-    legend.configure(legends.rxLegend, LegendConfig(LegendConfig.IconType.BOX, NETWORK_RECEIVING_COLOR))
-    legend.configure(legends.txLegend, LegendConfig(LegendConfig.IconType.BOX, NETWORK_SENDING_COLOR))
+      LegendComponent.Builder(legends)
+        .setVerticalPadding(0)
+        .setOrientation(LegendComponent.Orientation.VERTICAL)
+        .build()
+    legend.configure(
+      legends.rxLegend,
+      LegendConfig(LegendConfig.IconType.BOX, NETWORK_RECEIVING_COLOR)
+    )
+    legend.configure(
+      legends.txLegend,
+      LegendConfig(LegendConfig.IconType.BOX, NETWORK_SENDING_COLOR)
+    )
     return legend
   }
 }

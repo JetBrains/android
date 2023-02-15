@@ -19,7 +19,10 @@ import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.tableView.ViewColumn
 
-internal fun List<ResultSetSqliteColumn>.toViewColumns(table: SqliteTable? = null) = map { it.toViewColumn(table) }
+internal fun List<ResultSetSqliteColumn>.toViewColumns(table: SqliteTable? = null) = map {
+  it.toViewColumn(table)
+}
+
 internal fun ResultSetSqliteColumn.toViewColumn(table: SqliteTable? = null): ViewColumn {
   val schemaColumn = table?.columns?.firstOrNull { it.name == name }
   return ViewColumn(

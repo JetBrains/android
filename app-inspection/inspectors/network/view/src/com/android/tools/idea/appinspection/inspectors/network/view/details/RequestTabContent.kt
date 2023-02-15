@@ -26,9 +26,7 @@ import javax.swing.JPanel
 // may be missed if users do not set.
 private const val HEADERS_TITLE = "Application Headers"
 
-/**
- * Tab which shows a request's headers and payload.
- */
+/** Tab which shows a request's headers and payload. */
 class RequestTabContent : TabContent() {
   private lateinit var contentPanel: JPanel
   override val title = "Request"
@@ -51,6 +49,9 @@ class RequestTabContent : TabContent() {
 
   @VisibleForTesting
   fun findPayloadBody(): JComponent? {
-    return findComponentWithUniqueName(contentPanel, HttpDataComponentFactory.ConnectionType.REQUEST.bodyComponentId)
+    return findComponentWithUniqueName(
+      contentPanel,
+      HttpDataComponentFactory.ConnectionType.REQUEST.bodyComponentId
+    )
   }
 }

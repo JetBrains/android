@@ -46,11 +46,14 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
   override val isValid: Boolean
     get() = _isValid
 
-  override val className get() = _className
+  override val className
+    get() = _className
 
-  override val status get() = _status.name
+  override val status
+    get() = _status.name
 
-  override val startTimeMs get() = _startTime
+  override val startTimeMs
+    get() = _startTime
 
   override val tags = listOf<String>()
   override val callstacks = mutableListOf<BackgroundTaskCallStack>()
@@ -84,7 +87,8 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
         jobInfo?.extras?.let { extras ->
           val workIdSuffix = extras.substringAfter("EXTRA_WORK_SPEC_ID=", "")
           if (workIdSuffix.isNotEmpty()) {
-            val endIndex = workIdSuffix.indexOfFirst { it != '-' && !it.isDigit() && !it.isLetter() }
+            val endIndex =
+              workIdSuffix.indexOfFirst { it != '-' && !it.isDigit() && !it.isLetter() }
             if (endIndex != -1) {
               targetWorkId = workIdSuffix.substring(0, endIndex)
             }

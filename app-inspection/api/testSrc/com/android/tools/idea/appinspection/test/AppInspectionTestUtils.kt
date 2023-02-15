@@ -34,24 +34,27 @@ const val INSPECTOR_ID = "test.inspector.1"
 const val INSPECTOR_ID_2 = "test.inspector.2"
 const val INSPECTOR_ID_3 = "test.inspector.3"
 
-val TEST_JAR_PATH: Path = Paths.get("test","resolved")
-val TEST_JAR = AppInspectorJar(TEST_JAR_PATH.fileName.toString(), TEST_JAR_PATH.parent.toString(), TEST_JAR_PATH.parent.toString())
-
+val TEST_JAR_PATH: Path = Paths.get("test", "resolved")
+val TEST_JAR =
+  AppInspectorJar(
+    TEST_JAR_PATH.fileName.toString(),
+    TEST_JAR_PATH.parent.toString(),
+    TEST_JAR_PATH.parent.toString()
+  )
 
 const val TEST_PROJECT = "test.project"
 
 const val MIN_VERSION = "0.0.0-dev"
-val TEST_ARTIFACT = ArtifactCoordinate("test_group_id", "test_artifact_id", MIN_VERSION, ArtifactCoordinate.Type.JAR)
+val TEST_ARTIFACT =
+  ArtifactCoordinate("test_group_id", "test_artifact_id", MIN_VERSION, ArtifactCoordinate.Type.JAR)
 val TEST_COMPATIBILITY = LibraryCompatibility(TEST_ARTIFACT)
 
-/**
- * A collection of utility functions for inspection tests.
- */
+/** A collection of utility functions for inspection tests. */
 object AppInspectionTestUtils {
 
   /**
-   * Creates a list of [AppInspection.AppInspectionPayload] messages, containing the original
-   * [data] broken up into chunks of [chunkSize] bytes.
+   * Creates a list of [AppInspection.AppInspectionPayload] messages, containing the original [data]
+   * broken up into chunks of [chunkSize] bytes.
    *
    * This chunks should be sent, in order
    */
@@ -67,37 +70,31 @@ object AppInspectionTestUtils {
     }
   }
 
-  /**
-   * Creates an [AppInspectionEvent] with the provided [data] and inspector [name].
-   */
+  /** Creates an [AppInspectionEvent] with the provided [data] and inspector [name]. */
   fun createRawAppInspectionEvent(
     data: ByteArray,
     name: String = INSPECTOR_ID
-  ): AppInspection.AppInspectionEvent = AppInspection.AppInspectionEvent.newBuilder()
-    .setInspectorId(name)
-    .setRawEvent(
-      AppInspection.RawEvent.newBuilder()
-        .setContent(ByteString.copyFrom(data))
-        .build()
-    )
-    .build()
+  ): AppInspection.AppInspectionEvent =
+    AppInspection.AppInspectionEvent.newBuilder()
+      .setInspectorId(name)
+      .setRawEvent(
+        AppInspection.RawEvent.newBuilder().setContent(ByteString.copyFrom(data)).build()
+      )
+      .build()
 
   /**
    * Creates an [AppInspectionEvent] with the provided inspector [name], along with a unique
-   * [payloadId] which will be used after this event is received to search a cache for some
-   * byte array data.
+   * [payloadId] which will be used after this event is received to search a cache for some byte
+   * array data.
    */
   fun createRawAppInspectionEvent(
     payloadId: Long,
     name: String = INSPECTOR_ID
-  ): AppInspection.AppInspectionEvent = AppInspection.AppInspectionEvent.newBuilder()
-    .setInspectorId(name)
-    .setRawEvent(
-      AppInspection.RawEvent.newBuilder()
-        .setPayloadId(payloadId)
-        .build()
-    )
-    .build()
+  ): AppInspection.AppInspectionEvent =
+    AppInspection.AppInspectionEvent.newBuilder()
+      .setInspectorId(name)
+      .setRawEvent(AppInspection.RawEvent.newBuilder().setPayloadId(payloadId).build())
+      .build()
 
   fun createFakeProcessDescriptor(
     device: Common.Device = FakeTransportService.FAKE_DEVICE,
@@ -121,9 +118,7 @@ object AppInspectionTestUtils {
     type: ArtifactCoordinate.Type = ArtifactCoordinate.Type.JAR
   ) = ArtifactCoordinate(groupId, artifactId, version, type)
 
-  /**
-   * Keeps track of the copied jar so tests could verify the operation happened.
-   */
+  /** Keeps track of the copied jar so tests could verify the operation happened. */
   object TestTransportJarCopier : AppInspectionJarCopier {
     private const val deviceBasePath = "/test/"
     lateinit var copiedJar: AppInspectorJar

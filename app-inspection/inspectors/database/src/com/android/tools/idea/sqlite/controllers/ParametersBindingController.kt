@@ -27,14 +27,15 @@ import com.intellij.psi.PsiElement
 import java.util.LinkedList
 
 /**
- * Implementation of the application logic to show a dialog through which the user can assign values to parameters in a SQLite statement.
+ * Implementation of the application logic to show a dialog through which the user can assign values
+ * to parameters in a SQLite statement.
  */
 @UiThread
 class ParametersBindingController(
   private val view: ParametersBindingDialogView,
   private val sqliteStatementPsi: PsiElement,
   private val runStatement: (SqliteStatement) -> Unit
-): Disposable {
+) : Disposable {
 
   private val listener = ParametersBindingViewListenerImpl()
   private val parameters: List<SqliteParameter>
@@ -42,9 +43,10 @@ class ParametersBindingController(
   init {
     val (_, myParameters) = replaceNamedParametersWithPositionalParameters(sqliteStatementPsi)
     // rename parameters that start with '?' (eg: '?' and '?1') with 'param #'
-    parameters = myParameters.mapIndexed { i, p ->
-      SqliteParameter(if (p.name.startsWith("?")) "param ${i + 1}" else p.name, p.isCollection)
-    }
+    parameters =
+      myParameters.mapIndexed { i, p ->
+        SqliteParameter(if (p.name.startsWith("?")) "param ${i + 1}" else p.name, p.isCollection)
+      }
   }
 
   fun setUp() {
@@ -62,18 +64,20 @@ class ParametersBindingController(
 
   private inner class ParametersBindingViewListenerImpl : ParametersBindingDialogView.Listener {
     override fun bindingCompletedInvoked(parameters: Map<SqliteParameter, SqliteParameterValue>) {
-      val parametersValues = this@ParametersBindingController.parameters.map {
-        parameters[it] ?: error("No value assigned to parameter $it.")
-      }
+      val parametersValues =
+        this@ParametersBindingController.parameters.map {
+          parameters[it] ?: error("No value assigned to parameter $it.")
+        }
 
       val newPsi = expandCollectionParameters(sqliteStatementPsi, LinkedList(parametersValues))
       val (sqliteStatement, _) = replaceNamedParametersWithPositionalParameters(newPsi)
-      val sqliteValues = parametersValues.flatMap { sqliteParameterValue ->
-        when (sqliteParameterValue) {
-          is SqliteParameterValue.SingleValue -> listOf(sqliteParameterValue.value)
-          is SqliteParameterValue.CollectionValue -> sqliteParameterValue.value
+      val sqliteValues =
+        parametersValues.flatMap { sqliteParameterValue ->
+          when (sqliteParameterValue) {
+            is SqliteParameterValue.SingleValue -> listOf(sqliteParameterValue.value)
+            is SqliteParameterValue.CollectionValue -> sqliteParameterValue.value
+          }
         }
-      }
 
       runStatement(createSqliteStatement(sqliteStatementPsi.project, sqliteStatement, sqliteValues))
     }
@@ -87,8 +91,7 @@ sealed class SqliteParameterValue {
     fun fromAny(vararg values: Any?): SqliteParameterValue {
       return if (values.size == 1) {
         SingleValue(SqliteValue.fromAny(values[0]))
-      }
-      else {
+      } else {
         CollectionValue(values.map { SqliteValue.fromAny(it) })
       }
     }

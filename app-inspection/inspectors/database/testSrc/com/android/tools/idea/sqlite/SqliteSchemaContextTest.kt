@@ -37,9 +37,10 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
   /**
    * Skips tests on Windows.
    *
-   * Our current Bazel setup leaks a Disposer instance when running any editor tests on Windows, which is why most targets are tagged with
-   * no_test_windows. Disabling this whole target could be dangerous, in the past we had Windows-specific bugs like leaking file handles
-   * that were caught by tests, so for now we disable this editor-centric test.
+   * Our current Bazel setup leaks a Disposer instance when running any editor tests on Windows,
+   * which is why most targets are tagged with no_test_windows. Disabling this whole target could be
+   * dangerous, in the past we had Windows-specific bugs like leaking file handles that were caught
+   * by tests, so for now we disable this editor-centric test.
    */
   override fun shouldRunTest() = !SystemInfo.isWindows && super.shouldRunTest()
 
@@ -50,10 +51,11 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
   }
 
   fun testConvertSqliteTableToAndroidSqlTable() {
-    val columns: List<SqliteColumn> = listOf(
-      SqliteColumn("col1", SqliteAffinity.TEXT, true, false),
-      SqliteColumn("col2", SqliteAffinity.INTEGER, true, false)
-    )
+    val columns: List<SqliteColumn> =
+      listOf(
+        SqliteColumn("col1", SqliteAffinity.TEXT, true, false),
+        SqliteColumn("col2", SqliteAffinity.INTEGER, true, false)
+      )
     val table = SqliteTable("table", columns, null, false)
 
     val sqlFile = myFixture.configureByText(AndroidSqlFileType.INSTANCE, "")
@@ -65,16 +67,19 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
 
     val androidSqlColumns = columnsProcessor.result.toList()
 
-    assertThat(androidSqlColumns).containsExactly(
-      SqliteSchemaColumn(columns[0].name, sqlFile, SqliteSchemaSqlType(columns[0].affinity.name)),
-      SqliteSchemaColumn(columns[1].name, sqlFile, SqliteSchemaSqlType(columns[1].affinity.name))
-    )
+    assertThat(androidSqlColumns)
+      .containsExactly(
+        SqliteSchemaColumn(columns[0].name, sqlFile, SqliteSchemaSqlType(columns[0].affinity.name)),
+        SqliteSchemaColumn(columns[1].name, sqlFile, SqliteSchemaSqlType(columns[1].affinity.name))
+      )
   }
 
   fun testGetContextFromFile() {
-    val schema = SqliteSchema(listOf(SqliteTable("User", emptyList(), null,false)))
+    val schema = SqliteSchema(listOf(SqliteTable("User", emptyList(), null, false)))
 
-    val sqlFile = myFixture.configureByText(AndroidSqlFileType.INSTANCE, "SELECT * FROM Us<caret>er").virtualFile
+    val sqlFile =
+      myFixture.configureByText(AndroidSqlFileType.INSTANCE, "SELECT * FROM Us<caret>er")
+        .virtualFile
     sqlFile.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
     myFixture.configureFromExistingVirtualFile(sqlFile)
 
@@ -83,8 +88,19 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
   }
 
   fun testGetContextFromFileDuringCompletion() {
-    val schema = SqliteSchema(listOf(SqliteTable("User", listOf(SqliteColumn("name", SqliteAffinity.TEXT, true, false)), null, false)))
-    val sqlFile = myFixture.configureByText(AndroidSqlFileType.INSTANCE, "SELECT <caret> FROM User").virtualFile
+    val schema =
+      SqliteSchema(
+        listOf(
+          SqliteTable(
+            "User",
+            listOf(SqliteColumn("name", SqliteAffinity.TEXT, true, false)),
+            null,
+            false
+          )
+        )
+      )
+    val sqlFile =
+      myFixture.configureByText(AndroidSqlFileType.INSTANCE, "SELECT <caret> FROM User").virtualFile
     sqlFile.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
 
     val lookupElements = myFixture.completeBasic()
@@ -94,14 +110,26 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
   }
 
   fun testProvideCorrectDescription() {
-    val schema = SqliteSchema(listOf(SqliteTable("User", listOf(SqliteColumn("name", SqliteAffinity.TEXT, true, false)), null, false)))
-    val sqlFile = myFixture.configureByText(AndroidSqlFileType.INSTANCE, "SELECT n<caret>ame FROM User").virtualFile
+    val schema =
+      SqliteSchema(
+        listOf(
+          SqliteTable(
+            "User",
+            listOf(SqliteColumn("name", SqliteAffinity.TEXT, true, false)),
+            null,
+            false
+          )
+        )
+      )
+    val sqlFile =
+      myFixture.configureByText(AndroidSqlFileType.INSTANCE, "SELECT n<caret>ame FROM User")
+        .virtualFile
     sqlFile.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
 
     val ref = myFixture.file.findReferenceAt(myFixture.editor.caretModel.offset)
 
     assertThat(ref).isNotNull()
-    assertThat(CtrlMouseHandler.getInfo(ref!!.resolve(), ref.element)).isEqualTo("${SqliteAffinity.TEXT.name} \"name\"")
+    assertThat(CtrlMouseHandler.getInfo(ref!!.resolve(), ref.element))
+      .isEqualTo("${SqliteAffinity.TEXT.name} \"name\"")
   }
-
 }

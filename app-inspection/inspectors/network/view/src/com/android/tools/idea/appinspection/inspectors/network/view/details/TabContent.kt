@@ -21,25 +21,19 @@ import javax.swing.JComponent
 import javax.swing.JTabbedPane
 
 /**
- * Base class for all tabs shown in the [ConnectionDetailsView]. To use, construct
- * subclass instances and add their title, icon, and component content to a target
- * [JTabbedPane] using [JTabbedPane.addTab]
+ * Base class for all tabs shown in the [ConnectionDetailsView]. To use, construct subclass
+ * instances and add their title, icon, and component content to a target [JTabbedPane] using
+ * [JTabbedPane.addTab]
  */
 abstract class TabContent {
-  /**
-   * Return the component associated with this tab. Guaranteed to be the same value every time.
-   */
-  val component: JComponent by lazy {
-    createComponent().apply {
-      border = JBUI.Borders.empty()
-    }
-  }
+  /** Return the component associated with this tab. Guaranteed to be the same value every time. */
+  val component: JComponent by lazy { createComponent().apply { border = JBUI.Borders.empty() } }
 
   abstract val title: String
 
   /**
-   * Populates the contents of this tab with information from the target `data`. This value
-   * might possibly be `null`, if the user cleared the current selection.
+   * Populates the contents of this tab with information from the target `data`. This value might
+   * possibly be `null`, if the user cleared the current selection.
    */
   abstract fun populateFor(data: HttpData?, httpDataComponentFactory: HttpDataComponentFactory)
 

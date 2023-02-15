@@ -27,20 +27,22 @@ import com.android.tools.idea.transport.manager.StreamDisconnected
 import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.profiler.proto.Common
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.Executor
 
 /**
  * A class that manages processes discovered from transport pipeline.
  *
- * Definition: An inspectable process is a process that has certain inspection flags indicated in its manifest. However, currently it is
- * simply a process that is known by transport pipeline and is running on a JVMTI-compatible (O+) device.
- * TODO(b/148540564): tracks the work needed to make process detection feasible.
+ * Definition: An inspectable process is a process that has certain inspection flags indicated in
+ * its manifest. However, currently it is simply a process that is known by transport pipeline and
+ * is running on a JVMTI-compatible (O+) device. TODO(b/148540564): tracks the work needed to make
+ * process detection feasible.
  *
- * [addProcessListener] allows the frontend to listen for new inspectable processes. Meant for populating the AppInspection combobox.
+ * [addProcessListener] allows the frontend to listen for new inspectable processes. Meant for
+ * populating the AppInspection combobox.
  */
 @AnyThread
 internal class AppInspectionProcessDiscovery(
@@ -51,9 +53,10 @@ internal class AppInspectionProcessDiscovery(
   private val streamIdMap = ConcurrentHashMap<Long, TransportStreamChannel>()
 
   override val devices
-    get() = streamIdMap.values
-      .filter { it.stream.hasDevice() && it.stream.device.state == Common.Device.State.ONLINE }
-      .map { it.stream.device.toDeviceDescriptor() }
+    get() =
+      streamIdMap.values
+        .filter { it.stream.hasDevice() && it.stream.device.state == Common.Device.State.ONLINE }
+        .map { it.stream.device.toDeviceDescriptor() }
 
   private data class StreamProcessIdPair(val streamId: Long, val pid: Int)
 
@@ -62,8 +65,7 @@ internal class AppInspectionProcessDiscovery(
     @GuardedBy("processData")
     val processesMap = mutableMapOf<StreamProcessIdPair, ProcessDescriptor>()
 
-    @GuardedBy("processData")
-    val processListeners = mutableMapOf<ProcessListener, Executor>()
+    @GuardedBy("processData") val processListeners = mutableMapOf<ProcessListener, Executor>()
   }
 
   private val processData: ProcessData = ProcessData()
@@ -73,64 +75,65 @@ internal class AppInspectionProcessDiscovery(
   }
 
   /**
-   * Adds an [ProcessListener] to discovery service. Listener will receive future connections when they come online.
+   * Adds an [ProcessListener] to discovery service. Listener will receive future connections when
+   * they come online.
    *
-   * This has the side effect of notifying users of all existing live targets the discovery service is aware of.
+   * This has the side effect of notifying users of all existing live targets the discovery service
+   * is aware of.
    */
-  override fun addProcessListener(
-    executor: Executor,
-    listener: ProcessListener
-  ) {
+  override fun addProcessListener(executor: Executor, listener: ProcessListener) {
     synchronized(processData) {
       if (processData.processListeners.putIfAbsent(listener, executor) == null) {
-        processData.processesMap.values.forEach { executor.execute { listener.onProcessConnected(it) } }
+        processData.processesMap.values.forEach {
+          executor.execute { listener.onProcessConnected(it) }
+        }
+      }
+    }
+  }
+
+  /** Removes a [ProcessListener] and so stops it from hearing future process events. */
+  override fun removeProcessListener(listener: ProcessListener): Unit =
+    synchronized(processData) { processData.processListeners.remove(listener) }
+
+  /** Register listeners to receive stream and process events from transport pipeline. */
+  private fun registerListenersForDiscovery() {
+    scope.launch {
+      manager.streamActivityFlow().collect { activity ->
+        val streamChannel = activity.streamChannel
+        if (activity is StreamConnected) {
+          streamIdMap[streamChannel.stream.streamId] = streamChannel
+          launch {
+            streamChannel.processesFlow(
+                filter = { _, process ->
+                  process.exposureLevel == Common.Process.ExposureLevel.DEBUGGABLE
+                }
+              )
+              .collect { process ->
+                when (process.state) {
+                  Common.Process.State.ALIVE -> addProcess(streamChannel, process)
+                  Common.Process.State.DEAD ->
+                    removeProcess(streamChannel.stream.streamId, process.pid)
+                  else -> Unit
+                }
+              }
+          }
+        } else if (activity is StreamDisconnected) {
+          removeProcesses(streamChannel.stream.streamId)
+          streamIdMap.remove(streamChannel.stream.streamId)
+        }
       }
     }
   }
 
   /**
-   * Removes a [ProcessListener] and so stops it from hearing future process events.
-   */
-  override fun removeProcessListener(listener: ProcessListener): Unit = synchronized(processData) {
-    processData.processListeners.remove(listener)
-  }
-
-  /**
-   * Register listeners to receive stream and process events from transport pipeline.
-   */
-  private fun registerListenersForDiscovery() {
-    scope.launch {
-      manager.streamActivityFlow()
-        .collect { activity ->
-          val streamChannel = activity.streamChannel
-          if (activity is StreamConnected) {
-            streamIdMap[streamChannel.stream.streamId] = streamChannel
-            launch {
-              streamChannel.processesFlow(filter = { _, process ->
-                process.exposureLevel == Common.Process.ExposureLevel.DEBUGGABLE
-              }).collect { process ->
-                when (process.state) {
-                  Common.Process.State.ALIVE -> addProcess(streamChannel, process)
-                  Common.Process.State.DEAD -> removeProcess(streamChannel.stream.streamId, process.pid)
-                  else -> Unit
-                }
-              }
-            }
-          }
-          else if (activity is StreamDisconnected) {
-            removeProcesses(streamChannel.stream.streamId)
-            streamIdMap.remove(streamChannel.stream.streamId)
-          }
-        }
-    }
-  }
-
-  /**
-   * Adds a process to internal cache. This is called when transport pipeline is aware of a new process.
+   * Adds a process to internal cache. This is called when transport pipeline is aware of a new
+   * process.
    */
   private fun addProcess(streamChannel: TransportStreamChannel, process: Common.Process) {
     synchronized(processData) {
-      processData.processesMap.computeIfAbsent(StreamProcessIdPair(streamChannel.stream.streamId, process.pid)) {
+      processData.processesMap.computeIfAbsent(
+        StreamProcessIdPair(streamChannel.stream.streamId, process.pid)
+      ) {
         val descriptor = TransportProcessDescriptor(streamChannel.stream, process)
         processData.processListeners.forEach { (listener, executor) ->
           if (listener.filter(descriptor)) {
@@ -142,21 +145,20 @@ internal class AppInspectionProcessDiscovery(
     }
   }
 
-  /**
-   * Removes a process from internal cache. This function is called when a process goes offline.
-   */
+  /** Removes a process from internal cache. This function is called when a process goes offline. */
   private fun removeProcess(streamId: Long, processId: Int) {
     synchronized(processData) {
-      processData.processesMap.remove(
-        StreamProcessIdPair(streamId, processId))?.let { descriptor ->
-        processData.processListeners.forEach { (listener, executor) -> executor.execute { listener.onProcessDisconnected(descriptor) } }
+      processData.processesMap.remove(StreamProcessIdPair(streamId, processId))?.let { descriptor ->
+        processData.processListeners.forEach { (listener, executor) ->
+          executor.execute { listener.onProcessDisconnected(descriptor) }
+        }
       }
     }
   }
 
   /**
-   * Remove all processes from the internal cache associated with the parent stream ID. This function is called when a device goes
-   * offline (e.g. emulator closed or USB plug pulled)
+   * Remove all processes from the internal cache associated with the parent stream ID. This
+   * function is called when a device goes offline (e.g. emulator closed or USB plug pulled)
    */
   private fun removeProcesses(streamId: Long) {
     synchronized(processData) {
@@ -167,7 +169,8 @@ internal class AppInspectionProcessDiscovery(
   }
 
   /**
-   * Gets the [TransportStreamChannel] for the given [streamId]. Returns null if stream does not exist (ex: may have recently closed).
+   * Gets the [TransportStreamChannel] for the given [streamId]. Returns null if stream does not
+   * exist (ex: may have recently closed).
    */
   internal fun getStreamChannel(streamId: Long) = streamIdMap[streamId]
 }

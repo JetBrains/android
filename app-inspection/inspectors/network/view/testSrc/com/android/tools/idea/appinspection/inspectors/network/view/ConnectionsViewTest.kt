@@ -35,6 +35,11 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import java.awt.Color
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import javax.swing.JPanel
+import javax.swing.JTable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
@@ -42,35 +47,32 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Color
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import javax.swing.JPanel
-import javax.swing.JTable
 
-private val FAKE_DATA = listOf(
-  createHttpData(1, 1, 2, ByteString.copyFromUtf8("1")),
-  createHttpData(2, 3,  5, ByteString.copyFromUtf8("12")),
-  createHttpData(3, 8,  13, ByteString.copyFromUtf8("1234")),
-  createHttpData(4, 21,  34, ByteString.copyFromUtf8("123"))
-    .copy(responseFields = fakeResponseFields(4, "bmp"))
-)
+private val FAKE_DATA =
+  listOf(
+    createHttpData(1, 1, 2, ByteString.copyFromUtf8("1")),
+    createHttpData(2, 3, 5, ByteString.copyFromUtf8("12")),
+    createHttpData(3, 8, 13, ByteString.copyFromUtf8("1234")),
+    createHttpData(4, 21, 34, ByteString.copyFromUtf8("123"))
+      .copy(responseFields = fakeResponseFields(4, "bmp"))
+  )
 
-private fun createHttpData(
-  id: Long,
-  startS: Long,
-  endS: Long,
-  responsePayload: ByteString
-) = createFakeHttpData(id, TimeUnit.SECONDS.toMicros(startS), TimeUnit.SECONDS.toMicros(startS), TimeUnit.SECONDS.toMicros(endS),
-                       TimeUnit.SECONDS.toMicros(endS), TimeUnit.SECONDS.toMicros(endS), responsePayload = responsePayload)
+private fun createHttpData(id: Long, startS: Long, endS: Long, responsePayload: ByteString) =
+  createFakeHttpData(
+    id,
+    TimeUnit.SECONDS.toMicros(startS),
+    TimeUnit.SECONDS.toMicros(startS),
+    TimeUnit.SECONDS.toMicros(endS),
+    TimeUnit.SECONDS.toMicros(endS),
+    TimeUnit.SECONDS.toMicros(endS),
+    responsePayload = responsePayload
+  )
 
 @RunsInEdt
 class ConnectionsViewTest {
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   private lateinit var model: NetworkInspectorModel
   private lateinit var inspectorView: NetworkInspectorView
@@ -87,21 +89,37 @@ class ConnectionsViewTest {
     return view.component as JTable
   }
 
-
   @Before
   fun setUp() {
     val codeNavigationProvider = FakeCodeNavigationProvider()
     val services = TestNetworkInspectorServices(codeNavigationProvider, timer)
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
-    model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(), scope, object : HttpDataModel {
-      private val dataList = FAKE_DATA
-      override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
-        return dataList.filter { it.requestStartTimeUs >= timeCurrentRangeUs.min && it.requestStartTimeUs <= timeCurrentRangeUs.max }
-      }
-    })
+    model =
+      NetworkInspectorModel(
+        services,
+        FakeNetworkInspectorDataSource(),
+        scope,
+        object : HttpDataModel {
+          private val dataList = FAKE_DATA
+          override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
+            return dataList.filter {
+              it.requestStartTimeUs >= timeCurrentRangeUs.min &&
+                it.requestStartTimeUs <= timeCurrentRangeUs.max
+            }
+          }
+        }
+      )
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
-    inspectorView = NetworkInspectorView(projectRule.project, model, FakeUiComponentsProvider(), component, services, scope)
+    inspectorView =
+      NetworkInspectorView(
+        projectRule.project,
+        model,
+        FakeUiComponentsProvider(),
+        component,
+        services,
+        scope
+      )
     parentPanel.add(inspectorView.component)
   }
 
@@ -120,8 +138,10 @@ class ConnectionsViewTest {
     assertThat(ConnectionsView.Column.SIZE.getValueFrom(data)).isEqualTo(4)
     assertThat(FAKE_CONTENT_TYPE).endsWith(ConnectionsView.Column.TYPE.getValueFrom(data) as String)
     assertThat(ConnectionsView.Column.STATUS.getValueFrom(data)).isEqualTo(FAKE_RESPONSE_CODE)
-    assertThat(ConnectionsView.Column.TIME.getValueFrom(data)).isEqualTo(TimeUnit.SECONDS.toMicros(5))
-    assertThat(ConnectionsView.Column.TIMELINE.getValueFrom(data)).isEqualTo(TimeUnit.SECONDS.toMicros(8))
+    assertThat(ConnectionsView.Column.TIME.getValueFrom(data))
+      .isEqualTo(TimeUnit.SECONDS.toMicros(5))
+    assertThat(ConnectionsView.Column.TIMELINE.getValueFrom(data))
+      .isEqualTo(TimeUnit.SECONDS.toMicros(8))
   }
 
   @Test
@@ -129,7 +149,8 @@ class ConnectionsViewTest {
     val data = FAKE_DATA[0] // Request: id = 1
     assertThat(data.id).isEqualTo(1)
     assertThat(FAKE_CONTENT_TYPE).endsWith(ConnectionsView.Column.TYPE.getValueFrom(data) as String)
-    assertThat(FAKE_CONTENT_TYPE).isNotEqualTo(ConnectionsView.Column.TYPE.getValueFrom(data) as String)
+    assertThat(FAKE_CONTENT_TYPE)
+      .isNotEqualTo(ConnectionsView.Column.TYPE.getValueFrom(data) as String)
   }
 
   @Test
@@ -145,15 +166,20 @@ class ConnectionsViewTest {
     val table = getConnectionsTable(view)
     // With no selection, table should show all connections.
     model.timeline.reset(0, TimeUnit.SECONDS.toNanos(50))
-    assertThat((table.getCellRenderer(0, 5) as TimelineTable.CellRenderer).activeRange).isEqualTo(model.timeline.dataRange)
+    assertThat((table.getCellRenderer(0, 5) as TimelineTable.CellRenderer).activeRange)
+      .isEqualTo(model.timeline.dataRange)
     assertThat(table.rowCount).isEqualTo(4)
     // When a range is selected, table should only show connections within.
-    model.timeline.selectionRange.set(TimeUnit.SECONDS.toMicros(3).toDouble(), TimeUnit.SECONDS.toMicros(10).toDouble())
+    model.timeline.selectionRange.set(
+      TimeUnit.SECONDS.toMicros(3).toDouble(),
+      TimeUnit.SECONDS.toMicros(10).toDouble()
+    )
     assertThat(table.rowCount).isEqualTo(2)
     // Once selection is cleared, table goes back to showing everything.
     model.timeline.selectionRange.set(0.0, -1.0)
     assertThat(table.rowCount).isEqualTo(4)
-    assertThat((table.getCellRenderer(0, 5) as TimelineTable.CellRenderer).activeRange).isEqualTo(model.timeline.dataRange)
+    assertThat((table.getCellRenderer(0, 5) as TimelineTable.CellRenderer).activeRange)
+      .isEqualTo(model.timeline.dataRange)
   }
 
   @Test
@@ -200,7 +226,10 @@ class ConnectionsViewTest {
 
     // Include middle two requests: 3->5 (time = 2), and 8->13 (time=5)
     // This should still be shown in reverse sorted over
-    model.timeline.selectionRange.set(TimeUnit.SECONDS.toMicros(3).toDouble(), TimeUnit.SECONDS.toMicros(10).toDouble())
+    model.timeline.selectionRange.set(
+      TimeUnit.SECONDS.toMicros(3).toDouble(),
+      TimeUnit.SECONDS.toMicros(10).toDouble()
+    )
     assertThat(table.rowCount).isEqualTo(2)
     assertThat(table.convertRowIndexToView(0)).isEqualTo(1)
     assertThat(table.convertRowIndexToView(1)).isEqualTo(0)
@@ -238,8 +267,10 @@ class ConnectionsViewTest {
     table.background = backgroundColor
     table.selectionBackground = selectionColor
     val renderer = table.getCellRenderer(1, timelineColumn)
-    assertThat(table.prepareRenderer(renderer, 1, timelineColumn).background).isEqualTo(backgroundColor)
+    assertThat(table.prepareRenderer(renderer, 1, timelineColumn).background)
+      .isEqualTo(backgroundColor)
     table.setRowSelectionInterval(1, 1)
-    assertThat(table.prepareRenderer(renderer, 1, timelineColumn).background).isEqualTo(selectionColor)
+    assertThat(table.prepareRenderer(renderer, 1, timelineColumn).background)
+      .isEqualTo(selectionColor)
   }
 }

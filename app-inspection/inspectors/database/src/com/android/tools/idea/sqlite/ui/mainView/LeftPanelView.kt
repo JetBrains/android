@@ -17,7 +17,6 @@ package com.android.tools.idea.sqlite.ui.mainView
 
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.stdui.CommonButton
-import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.ExportDialogParams
 import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportDatabaseDialogParams
@@ -68,11 +67,13 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
 
   private val refreshSchemaButton = CommonButton(AllIcons.Actions.Refresh)
   private val runSqlButton = CommonButton(StudioIcons.DatabaseInspector.NEW_QUERY)
-  private val keepConnectionsOpenButton = CommonButton(StudioIcons.DatabaseInspector.KEEP_DATABASES_OPEN)
+  private val keepConnectionsOpenButton =
+    CommonButton(StudioIcons.DatabaseInspector.KEEP_DATABASES_OPEN)
   private val exportButton = CommonButton(AllIcons.ToolbarDecorator.Export)
 
   val component = rootPanel
-  val databasesCount: Int get() = (tree.model.root as? DefaultMutableTreeNode)?.childCount ?: 0
+  val databasesCount: Int
+    get() = (tree.model.root as? DefaultMutableTreeNode)?.childCount ?: 0
 
   init {
     val northPanel = createNorthPanel()
@@ -91,24 +92,25 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   fun updateKeepConnectionOpenButton(enabled: Boolean) {
     if (enabled) {
       keepConnectionsOpenButton.icon = StudioIcons.DatabaseInspector.KEEP_DATABASES_OPEN
-    }
-    else {
+    } else {
       keepConnectionsOpenButton.icon = StudioIcons.DatabaseInspector.ALLOW_DATABASES_TO_CLOSE
     }
 
-    keepConnectionsOpenButton.disabledIcon = IconLoader.getDisabledIcon(keepConnectionsOpenButton.icon)
+    keepConnectionsOpenButton.disabledIcon =
+      IconLoader.getDisabledIcon(keepConnectionsOpenButton.icon)
   }
 
   fun addDatabaseSchema(viewDatabase: ViewDatabase, schema: SqliteSchema?, index: Int) {
     val treeModel = tree.model as DefaultTreeModel
 
-    val root = if (treeModel.root == null) {
-      val root = DefaultMutableTreeNode("Databases")
-      treeModel.setRoot(root)
-      root
-    } else {
-      treeModel.root as DefaultMutableTreeNode
-    }
+    val root =
+      if (treeModel.root == null) {
+        val root = DefaultMutableTreeNode("Databases")
+        treeModel.setRoot(root)
+        root
+      } else {
+        treeModel.root as DefaultMutableTreeNode
+      }
 
     val schemaNode = DefaultMutableTreeNode(viewDatabase)
     schema?.tables?.sortedBy { it.name }?.forEach { table ->
@@ -120,11 +122,11 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     treeModel.insertNodeInto(schemaNode, root, index)
 
     // if schema node has no children it cannot be expanded
-    // if we don't expand the root of the tree children are not visible, since the root itself is not visible
+    // if we don't expand the root of the tree children are not visible, since the root itself is
+    // not visible
     if (schema == null) {
       tree.expandPath(TreePath(root))
-    }
-    else {
+    } else {
       tree.expandPath(TreePath(schemaNode.path))
     }
 
@@ -145,23 +147,28 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
           addNewTableNode(treeModel, databaseNode, diffOp.indexedSqliteTable, diffOp.columns)
         }
         is AddColumns -> {
-          val tableNode = findTableNode(databaseNode, diffOp.tableName)
-                          ?: error(DatabaseInspectorBundle.message("tree.node.not.found", diffOp.tableName))
+          val tableNode =
+            findTableNode(databaseNode, diffOp.tableName)
+              ?: error(DatabaseInspectorBundle.message("tree.node.not.found", diffOp.tableName))
           tableNode.userObject = diffOp.newTable
           addColumnsToTableNode(treeModel, tableNode, diffOp.columns)
         }
         is RemoveTable -> {
-          val tableNode = findTableNode(databaseNode, diffOp.tableName)
-                          ?: error(DatabaseInspectorBundle.message("tree.node.not.found", diffOp.tableName))
+          val tableNode =
+            findTableNode(databaseNode, diffOp.tableName)
+              ?: error(DatabaseInspectorBundle.message("tree.node.not.found", diffOp.tableName))
 
           treeModel.removeNodeFromParent(tableNode)
         }
         is RemoveColumns -> {
-          val tableNode = findTableNode(databaseNode, diffOp.tableName)
-                          ?: error(DatabaseInspectorBundle.message("tree.node.not.found", diffOp.tableName))
+          val tableNode =
+            findTableNode(databaseNode, diffOp.tableName)
+              ?: error(DatabaseInspectorBundle.message("tree.node.not.found", diffOp.tableName))
 
           tableNode.userObject = diffOp.newTable
-          diffOp.columnsToRemove.map { findColumnNode(tableNode, it.name) }.forEach { treeModel.removeNodeFromParent(it) }
+          diffOp.columnsToRemove.map { findColumnNode(tableNode, it.name) }.forEach {
+            treeModel.removeNodeFromParent(it)
+          }
         }
       }
     }
@@ -194,7 +201,8 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     refreshSchemaButton.disabledIcon = IconLoader.getDisabledIcon(AllIcons.Actions.Refresh)
     refreshSchemaButton.name = "refresh-schema-button"
     refreshSchemaButton.isEnabled = false
-    refreshSchemaButton.toolTipText = DatabaseInspectorBundle.message("action.refresh.schema.tooltip")
+    refreshSchemaButton.toolTipText =
+      DatabaseInspectorBundle.message("action.refresh.schema.tooltip")
     northPanel.add(refreshSchemaButton)
     refreshSchemaButton.addActionListener {
       mainView.listeners.forEach { it.refreshAllOpenDatabasesSchemaActionInvoked() }
@@ -206,9 +214,12 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     runSqlButton.toolTipText = DatabaseInspectorBundle.message("action.run.query.tooltip")
     northPanel.add(runSqlButton)
 
-    runSqlButton.addActionListener { mainView.listeners.forEach { it.openSqliteEvaluatorTabActionInvoked() } }
+    runSqlButton.addActionListener {
+      mainView.listeners.forEach { it.openSqliteEvaluatorTabActionInvoked() }
+    }
 
-    keepConnectionsOpenButton.disabledIcon = IconLoader.getDisabledIcon(keepConnectionsOpenButton.icon)
+    keepConnectionsOpenButton.disabledIcon =
+      IconLoader.getDisabledIcon(keepConnectionsOpenButton.icon)
     keepConnectionsOpenButton.name = "keep-connections-open-button"
     keepConnectionsOpenButton.isEnabled = false
     HelpTooltip()
@@ -220,7 +231,9 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
       .installOn(keepConnectionsOpenButton)
     northPanel.add(keepConnectionsOpenButton)
 
-    keepConnectionsOpenButton.addActionListener { mainView.listeners.forEach { it.toggleKeepConnectionOpenActionInvoked() } }
+    keepConnectionsOpenButton.addActionListener {
+      mainView.listeners.forEach { it.toggleKeepConnectionOpenActionInvoked() }
+    }
 
     exportButton.name = "export-button"
     exportButton.disabledIcon = IconLoader.getDisabledIcon(exportButton.icon)
@@ -232,13 +245,11 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     exportButton.addActionListener {
       val exportParams =
         createExportDialogParams(SCHEMA_TREE_EXPORT_BUTTON)
-        ?: return@addActionListener // TODO(161081452): log an error / show to user
+          ?: return@addActionListener // TODO(161081452): log an error / show to user
       mainView.listeners.forEach { it.showExportToFileDialogInvoked(exportParams) }
     }
     updateExportButtonEnabledState()
-    tree.addTreeSelectionListener {
-      updateExportButtonEnabledState()
-    }
+    tree.addTreeSelectionListener { updateExportButtonEnabledState() }
 
     return northPanel
   }
@@ -247,17 +258,21 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     exportButton.isEnabled = createExportDialogParams(SCHEMA_TREE_EXPORT_BUTTON) != null
   }
 
-  /** Tries to create an [ExportDialogParams] object based on the currently selected schema tree element */
+  /**
+   * Tries to create an [ExportDialogParams] object based on the currently selected schema tree
+   * element
+   */
   private fun createExportDialogParams(actionOrigin: Origin): ExportDialogParams? {
-      val selectedNode = tree.selectedNode
-      val selected = selectedNode?.userObject
-      val parent = selectedNode?.let { (it.parent as? DefaultMutableTreeNode)?.userObject }
-      return when {
-        selected is ViewDatabase -> ExportDatabaseDialogParams(selected.databaseId, actionOrigin)
-        selected is SqliteTable && parent is ViewDatabase -> ExportTableDialogParams(parent.databaseId, selected.name, actionOrigin)
-        else -> null
-      }
+    val selectedNode = tree.selectedNode
+    val selected = selectedNode?.userObject
+    val parent = selectedNode?.let { (it.parent as? DefaultMutableTreeNode)?.userObject }
+    return when {
+      selected is ViewDatabase -> ExportDatabaseDialogParams(selected.databaseId, actionOrigin)
+      selected is SqliteTable && parent is ViewDatabase ->
+        ExportTableDialogParams(parent.databaseId, selected.name, actionOrigin)
+      else -> null
     }
+  }
 
   private val Tree.selectedNode: DefaultMutableTreeNode?
     get() = selectionPath?.lastPathComponent as? DefaultMutableTreeNode
@@ -290,39 +305,46 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   }
 
   private fun setUpExportPopUp(tree: Tree) {
-    val exportAction = object : AnAction(DatabaseInspectorBundle.message("action.export.button.tooltip.title")) {
-      override fun actionPerformed(e: AnActionEvent) {
-        val exportParams = createExportDialogParams(SCHEMA_TREE_CONTEXT_MENU) ?: return  // TODO(161081452): log an error
-        mainView.listeners.forEach { it.showExportToFileDialogInvoked(exportParams) }
-      }
+    val exportAction =
+      object : AnAction(DatabaseInspectorBundle.message("action.export.button.tooltip.title")) {
+        override fun actionPerformed(e: AnActionEvent) {
+          val exportParams =
+            createExportDialogParams(SCHEMA_TREE_CONTEXT_MENU)
+              ?: return // TODO(161081452): log an error
+          mainView.listeners.forEach { it.showExportToFileDialogInvoked(exportParams) }
+        }
 
-      override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = createExportDialogParams(SCHEMA_TREE_CONTEXT_MENU) != null
-        super.update(e)
+        override fun update(e: AnActionEvent) {
+          e.presentation.isEnabled = createExportDialogParams(SCHEMA_TREE_CONTEXT_MENU) != null
+          super.update(e)
+        }
       }
-    }
 
     PopupHandler.installFollowingSelectionTreePopup(
-      tree, DefaultActionGroup(exportAction), ActionPlaces.UNKNOWN
+      tree,
+      DefaultActionGroup(exportAction),
+      ActionPlaces.UNKNOWN
     )
   }
 
   private fun setUpSchemaTreeListeners(tree: Tree) {
     // TODO(b/137731627) why do we have to do this manually? Check how is done in Device Explorer.
-    val treeKeyAdapter = object : KeyAdapter() {
-      override fun keyPressed(event: KeyEvent) {
-        if (event.keyCode == KeyEvent.VK_ENTER) {
-          fireAction(tree, event)
+    val treeKeyAdapter =
+      object : KeyAdapter() {
+        override fun keyPressed(event: KeyEvent) {
+          if (event.keyCode == KeyEvent.VK_ENTER) {
+            fireAction(tree, event)
+          }
         }
       }
-    }
 
-    val treeDoubleClickListener = object : DoubleClickListener() {
-      override fun onDoubleClick(event: MouseEvent): Boolean {
-        fireAction(tree, event)
-        return true
+    val treeDoubleClickListener =
+      object : DoubleClickListener() {
+        override fun onDoubleClick(event: MouseEvent): Boolean {
+          fireAction(tree, event)
+          return true
+        }
       }
-    }
 
     tree.addKeyListener(treeKeyAdapter)
     treeDoubleClickListener.installOn(tree)
@@ -335,25 +357,34 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     if (sqliteTable is SqliteTable) {
       val parentNode = selectedNode.parent as DefaultMutableTreeNode
       val viewDatabase = parentNode.userObject as ViewDatabase
-      mainView.listeners.forEach { l -> l.tableNodeActionInvoked(viewDatabase.databaseId, sqliteTable) }
+      mainView.listeners.forEach { l ->
+        l.tableNodeActionInvoked(viewDatabase.databaseId, sqliteTable)
+      }
       e.consume()
-    }
-    else {
+    } else {
       val path = TreePath(selectedNode.path)
       if (tree.isExpanded(path)) {
         tree.collapsePath(path)
-      }
-      else {
+      } else {
         tree.expandPath(path)
       }
     }
   }
 
-  /** Adds a child node to [databaseNode] for the table in [sqliteTableToAdd] at the specified index. */
-  private fun addNewTableNode(treeModel: DefaultTreeModel, databaseNode: DefaultMutableTreeNode, sqliteTableToAdd: IndexedSqliteTable, sqliteColumnsToAdd: List<IndexedSqliteColumn>) {
+  /**
+   * Adds a child node to [databaseNode] for the table in [sqliteTableToAdd] at the specified index.
+   */
+  private fun addNewTableNode(
+    treeModel: DefaultTreeModel,
+    databaseNode: DefaultMutableTreeNode,
+    sqliteTableToAdd: IndexedSqliteTable,
+    sqliteColumnsToAdd: List<IndexedSqliteColumn>
+  ) {
     val (sqliteTable, index) = sqliteTableToAdd
     val newTableNode = DefaultMutableTreeNode(sqliteTable)
-    sqliteColumnsToAdd.sortedBy { it.index }.map { it.sqliteColumn }.forEach { column -> newTableNode.add(DefaultMutableTreeNode(column)) }
+    sqliteColumnsToAdd.sortedBy { it.index }.map { it.sqliteColumn }.forEach { column ->
+      newTableNode.add(DefaultMutableTreeNode(column))
+    }
     treeModel.insertNodeInto(newTableNode, databaseNode, index)
   }
 
@@ -363,7 +394,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     tableNode: DefaultMutableTreeNode,
     columnsToAdd: List<IndexedSqliteColumn>
   ) {
-    columnsToAdd.forEach {  indexedSqliteColumn ->
+    columnsToAdd.forEach { indexedSqliteColumn ->
       val (sqliteColumn, index) = indexedSqliteColumn
       val newColumnNode = DefaultMutableTreeNode(sqliteColumn)
       treeModel.insertNodeInto(newColumnNode, tableNode, index)
@@ -372,20 +403,30 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
 
   private fun findDatabaseNode(viewDatabase: ViewDatabase): DefaultMutableTreeNode {
     val root = tree.model.root as DefaultMutableTreeNode
-    return root.children().asSequence()
-      .map { it as DefaultMutableTreeNode }
-      .first { it.userObject == viewDatabase }
+    return root.children().asSequence().map { it as DefaultMutableTreeNode }.first {
+      it.userObject == viewDatabase
+    }
   }
 
-  private fun findTableNode(databaseNode: DefaultMutableTreeNode, tableName: String): DefaultMutableTreeNode? {
-    return databaseNode.children().asSequence()
+  private fun findTableNode(
+    databaseNode: DefaultMutableTreeNode,
+    tableName: String
+  ): DefaultMutableTreeNode? {
+    return databaseNode
+      .children()
+      .asSequence()
       .map { it as DefaultMutableTreeNode }
       .filter { it.userObject is SqliteTable }
       .firstOrNull { (it.userObject as SqliteTable).name == tableName }
   }
 
-  private fun findColumnNode(databaseNode: DefaultMutableTreeNode, columnName: String): DefaultMutableTreeNode? {
-    return databaseNode.children().asSequence()
+  private fun findColumnNode(
+    databaseNode: DefaultMutableTreeNode,
+    columnName: String
+  ): DefaultMutableTreeNode? {
+    return databaseNode
+      .children()
+      .asSequence()
       .map { it as DefaultMutableTreeNode }
       .filter { it.userObject is SqliteColumn }
       .firstOrNull { (it.userObject as SqliteColumn).name == columnName }
@@ -394,7 +435,9 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   /** Returns true if at least one live database exists in this view */
   private fun hasLiveDatabases(): Boolean {
     val root = tree.model.root as DefaultMutableTreeNode
-    return root.children().asSequence()
+    return root
+      .children()
+      .asSequence()
       .map { (it as DefaultMutableTreeNode).userObject as ViewDatabase }
       .filter { it.databaseId is SqliteDatabaseId.LiveSqliteDatabaseId }
       .toList()
@@ -406,7 +449,8 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   }
 
   private class SchemaTreeCellRenderer : ColoredTreeCellRenderer() {
-    private val colorTextAttributes = SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, JBColor.gray)
+    private val colorTextAttributes =
+      SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, JBColor.gray)
 
     override fun customizeCellRenderer(
       tree: JTree,
@@ -423,30 +467,27 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
           is ViewDatabase -> {
             append(userObject.databaseId.name)
             if (userObject.isOpen) {
-              icon = if (userObject.databaseId is SqliteDatabaseId.LiveSqliteDatabaseId) {
-                StudioIcons.DatabaseInspector.DATABASE
-              }
-              else {
-                StudioIcons.DatabaseInspector.DATABASE_OFFLINE
-              }
-            }
-            else {
+              icon =
+                if (userObject.databaseId is SqliteDatabaseId.LiveSqliteDatabaseId) {
+                  StudioIcons.DatabaseInspector.DATABASE
+                } else {
+                  StudioIcons.DatabaseInspector.DATABASE_OFFLINE
+                }
+            } else {
               append(" (closed)", colorTextAttributes)
               icon = StudioIcons.DatabaseInspector.DATABASE_UNAVAILABLE
             }
             toolTipText = userObject.databaseId.path
           }
-
           is SqliteTable -> {
-            icon = if (userObject.isView) {
-              StudioIcons.DatabaseInspector.VIEW
-            }
-            else {
-              StudioIcons.DatabaseInspector.TABLE
-            }
+            icon =
+              if (userObject.isView) {
+                StudioIcons.DatabaseInspector.VIEW
+              } else {
+                StudioIcons.DatabaseInspector.TABLE
+              }
             append(userObject.name)
           }
-
           is SqliteColumn -> {
             if (userObject.inPrimaryKey) icon = StudioIcons.DatabaseInspector.PRIMARY_KEY
             else icon = StudioIcons.DatabaseInspector.COLUMN

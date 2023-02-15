@@ -17,7 +17,6 @@ package com.android.tools.idea.sqlite.ui.tableView
 
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.stdui.CommonButton
-import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteValue
@@ -32,7 +31,6 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.IconLoader
-import com.intellij.ui.ColorUtil
 import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.JBColor
@@ -44,14 +42,11 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
-import org.apache.commons.lang.StringUtils
-import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
-import java.awt.FlowLayout
 import java.awt.LayoutManager
 import java.awt.Point
 import java.awt.Toolkit
@@ -75,10 +70,10 @@ import javax.swing.KeyStroke
 import javax.swing.table.AbstractTableModel
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellRenderer
+import org.apache.commons.lang.StringUtils
+import org.jetbrains.annotations.TestOnly
 
-/**
- * Abstraction on the UI component used to display tables.
- */
+/** Abstraction on the UI component used to display tables. */
 class TableViewImpl : TableView {
   private val tableIsEmptyText = DatabaseInspectorBundle.message("table.is.empty")
   private val loadingTableDataText = DatabaseInspectorBundle.message("loading.data")
@@ -103,7 +98,8 @@ class TableViewImpl : TableView {
 
   private val refreshButton = CommonButton(AllIcons.Actions.Refresh)
 
-  private val liveUpdatesCheckBox = JBCheckBox(DatabaseInspectorBundle.message("action.live.updates"))
+  private val liveUpdatesCheckBox =
+    JBCheckBox(DatabaseInspectorBundle.message("action.live.updates"))
 
   private val exportButton = CommonButton(AllIcons.ToolbarDecorator.Export)
 
@@ -134,9 +130,7 @@ class TableViewImpl : TableView {
   private var refreshEnabled = true
 
   init {
-    val tableActionsPanel = JPanel().also {
-      it.layout = BoxLayout(it, BoxLayout.X_AXIS)
-    }
+    val tableActionsPanel = JPanel().also { it.layout = BoxLayout(it, BoxLayout.X_AXIS) }
 
     rootPanel.add(tableActionsPanel, BorderLayout.NORTH)
     rootPanel.add(centerPanel, BorderLayout.CENTER)
@@ -144,11 +138,12 @@ class TableViewImpl : TableView {
     centerPanel.background = primaryContentBackground
 
     tableActionsPanel.name = "table-actions-panel"
-    tableActionsPanel.border = JBUI.Borders.merge(
-      BorderFactory.createEmptyBorder(2, 0, 2, 0),
-      IdeBorderFactory.createBorder(SideBorder.BOTTOM),
-      true
-    )
+    tableActionsPanel.border =
+      JBUI.Borders.merge(
+        BorderFactory.createEmptyBorder(2, 0, 2, 0),
+        IdeBorderFactory.createBorder(SideBorder.BOTTOM),
+        true
+      )
 
     val pagingControlsPanel = createPagingControlsPanel()
 
@@ -205,40 +200,46 @@ class TableViewImpl : TableView {
     table.setDefaultRenderer(String::class.java, MyColoredTableCellRenderer())
     table.tableHeader.defaultRenderer = MyTableHeaderRenderer()
     table.tableHeader.reorderingAllowed = false
-    table.tableHeader.addMouseListener(object : MouseAdapter() {
-      override fun mouseClicked(e: MouseEvent) {
-        if (isLoading) return
+    table.tableHeader.addMouseListener(
+      object : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent) {
+          if (isLoading) return
 
-        table.cellEditor?.cancelCellEditing()
-        val columnIndex = table.columnAtPoint(e.point)
-        if (columnIndex <= 0) return
+          table.cellEditor?.cancelCellEditing()
+          val columnIndex = table.columnAtPoint(e.point)
+          if (columnIndex <= 0) return
 
-        listeners.forEach { it.toggleOrderByColumnInvoked(columns!![columnIndex - 1]) }
-      }
-    })
-    table.addMouseListener(object : PopupHandler() {
-      override fun invokePopup(comp: Component, x: Int, y: Int) {
-        table.cellEditor?.cancelCellEditing()
-
-        val mousePoint = Point(x, y)
-        val viewRowIndex = table.rowAtPoint(mousePoint)
-        val viewColumnIndex = table.columnAtPoint(mousePoint)
-
-        if (viewRowIndex < 0 || viewColumnIndex < 0) {
-          return
+          listeners.forEach { it.toggleOrderByColumnInvoked(columns!![columnIndex - 1]) }
         }
-
-        table.clearSelection()
-        table.addRowSelectionInterval(viewRowIndex, viewRowIndex)
-        table.addColumnSelectionInterval(viewColumnIndex, viewColumnIndex)
       }
-    })
+    )
+    table.addMouseListener(
+      object : PopupHandler() {
+        override fun invokePopup(comp: Component, x: Int, y: Int) {
+          table.cellEditor?.cancelCellEditing()
 
-    tableScrollPane.addComponentListener(object : ComponentAdapter() {
-      override fun componentResized(e: ComponentEvent) {
-        setAutoResizeMode()
+          val mousePoint = Point(x, y)
+          val viewRowIndex = table.rowAtPoint(mousePoint)
+          val viewColumnIndex = table.columnAtPoint(mousePoint)
+
+          if (viewRowIndex < 0 || viewColumnIndex < 0) {
+            return
+          }
+
+          table.clearSelection()
+          table.addRowSelectionInterval(viewRowIndex, viewRowIndex)
+          table.addColumnSelectionInterval(viewColumnIndex, viewColumnIndex)
+        }
       }
-    })
+    )
+
+    tableScrollPane.addComponentListener(
+      object : ComponentAdapter() {
+        override fun componentResized(e: ComponentEvent) {
+          setAutoResizeMode()
+        }
+      }
+    )
 
     centerPanel.add(layeredPane, BorderLayout.CENTER)
 
@@ -250,7 +251,8 @@ class TableViewImpl : TableView {
     progressBarPanel.add(progressBar, BorderLayout.NORTH)
     progressBarPanel.isOpaque = false
 
-    // add the table first, otherwise the "resise column" is not shown when hovering the table's header
+    // add the table first, otherwise the "resise column" is not shown when hovering the table's
+    // header
     layeredPane.add(tablePanel)
     layeredPane.add(progressBarPanel)
     layeredPane.layout = MatchParentLayoutManager()
@@ -264,17 +266,17 @@ class TableViewImpl : TableView {
   }
 
   private fun createPagingControlsPanel(): Component {
-    val pagingControlsPanel = JPanel().also {
-      it.layout = BoxLayout(it, BoxLayout.X_AXIS)
-    }
+    val pagingControlsPanel = JPanel().also { it.layout = BoxLayout(it, BoxLayout.X_AXIS) }
 
-    firstRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.GO_TO_START)
+    firstRowsPageButton.disabledIcon =
+      IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.GO_TO_START)
     firstRowsPageButton.toolTipText = "Go to first page"
     pagingControlsPanel.add(Box.createHorizontalStrut(2))
     pagingControlsPanel.add(firstRowsPageButton)
     firstRowsPageButton.addActionListener { listeners.forEach { it.loadFirstRowsInvoked() } }
 
-    previousRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.PREVIOUS_TICK)
+    previousRowsPageButton.disabledIcon =
+      IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.PREVIOUS_TICK)
     previousRowsPageButton.toolTipText = "Go to previous page"
     pagingControlsPanel.add(Box.createHorizontalStrut(2))
     pagingControlsPanel.add(previousRowsPageButton)
@@ -289,15 +291,19 @@ class TableViewImpl : TableView {
     pageSizeComboBox.maximumSize = pageSizeComboBox.preferredSize
     pagingControlsPanel.add(Box.createHorizontalStrut(2))
     pagingControlsPanel.add(pageSizeComboBox)
-    pageSizeComboBox.addActionListener { listeners.forEach { it.rowCountChanged((pageSizeComboBox.selectedItem!!.toString())) } }
+    pageSizeComboBox.addActionListener {
+      listeners.forEach { it.rowCountChanged((pageSizeComboBox.selectedItem!!.toString())) }
+    }
 
-    nextRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.NEXT_TICK)
+    nextRowsPageButton.disabledIcon =
+      IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.NEXT_TICK)
     nextRowsPageButton.toolTipText = "Go to next page"
     pagingControlsPanel.add(Box.createHorizontalStrut(2))
     pagingControlsPanel.add(nextRowsPageButton)
     nextRowsPageButton.addActionListener { listeners.forEach { it.loadNextRowsInvoked() } }
 
-    lastRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.GO_TO_END)
+    lastRowsPageButton.disabledIcon =
+      IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.GO_TO_END)
     lastRowsPageButton.toolTipText = "Go to last page"
     pagingControlsPanel.add(Box.createHorizontalStrut(2))
     pagingControlsPanel.add(lastRowsPageButton)
@@ -307,7 +313,8 @@ class TableViewImpl : TableView {
   }
 
   override fun showPageSizeValue(maxRowCount: Int) {
-    // Avoid setting the item if it's already selected, so we don't trigger the action listener for now reason.
+    // Avoid setting the item if it's already selected, so we don't trigger the action listener for
+    // now reason.
     val currentRowCount = pageSizeComboBox.selectedItem
     if (currentRowCount != maxRowCount) {
       pageSizeComboBox.selectedItem = maxRowCount
@@ -445,16 +452,15 @@ class TableViewImpl : TableView {
   }
 
   /**
-   * Changes the auto resize mode of JTable so that if the preferred width of the table is less than the width of the parent,
-   * the table is set to AUTO_RESIZE_SUBSEQUENT_COLUMNS, to fill the parent's width.
-   * Otherwise, if the preferred width of the table is greater than or equal to the width of the parent,
-   * horizontal scrolling is enabled with AUTO_RESIZE_OFF.
+   * Changes the auto resize mode of JTable so that if the preferred width of the table is less than
+   * the width of the parent, the table is set to AUTO_RESIZE_SUBSEQUENT_COLUMNS, to fill the
+   * parent's width. Otherwise, if the preferred width of the table is greater than or equal to the
+   * width of the parent, horizontal scrolling is enabled with AUTO_RESIZE_OFF.
    */
   private fun setAutoResizeMode() {
     if (table.preferredSize.width < table.parent.width) {
       table.autoResizeMode = JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS
-    }
-    else {
+    } else {
       table.autoResizeMode = JTable.AUTO_RESIZE_OFF
 
       for (i in 1 until table.columnModel.columnCount) {
@@ -464,58 +470,71 @@ class TableViewImpl : TableView {
   }
 
   private fun setUpPopUp() {
-    val setNullAction = object : AnAction(DatabaseInspectorBundle.message("action.set.to.null")) {
-      override fun actionPerformed(e: AnActionEvent) {
-        val rowIndex = table.selectedRow
-        val columnIndex = table.selectedColumn
+    val setNullAction =
+      object : AnAction(DatabaseInspectorBundle.message("action.set.to.null")) {
+        override fun actionPerformed(e: AnActionEvent) {
+          val rowIndex = table.selectedRow
+          val columnIndex = table.selectedColumn
 
-        if (columnIndex > 0) {
-          (table.model as MyTableModel).setValueAt(null, rowIndex, columnIndex)
+          if (columnIndex > 0) {
+            (table.model as MyTableModel).setValueAt(null, rowIndex, columnIndex)
+          }
+        }
+
+        override fun update(e: AnActionEvent) {
+          val columnIndex = table.selectedColumn
+
+          val isNullable =
+            if (columnIndex > 0) {
+              val column = (table.model as MyTableModel).columns[columnIndex - 1]
+              column.isNullable
+            } else {
+              false
+            }
+
+          e.presentation.isEnabled =
+            (table.model as? MyTableModel)?.isEditable ?: false && isNullable
+          super.update(e)
         }
       }
 
-      override fun update(e: AnActionEvent) {
-        val columnIndex = table.selectedColumn
+    val copyToClipboardAction =
+      object : AnAction(DatabaseInspectorBundle.message("action.copy.to.clipboard")) {
+        override fun actionPerformed(e: AnActionEvent) {
+          val row = table.selectedRow
+          val column = table.selectedColumn
 
-        val isNullable = if (columnIndex > 0) {
-          val column = (table.model as MyTableModel).columns[columnIndex-1]
-          column.isNullable
+          val value = (table.model as MyTableModel).getValueAt(row, column)
+          val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+          clipboard.setContents(StringSelection(value), null)
         }
-        else {
-          false
+
+        override fun update(e: AnActionEvent) {
+          val column = table.selectedColumn
+
+          e.presentation.isEnabled = column > 0
+          super.update(e)
         }
-
-        e.presentation.isEnabled = (table.model as? MyTableModel)?.isEditable ?: false && isNullable
-        super.update(e)
       }
-    }
-
-    val copyToClipboardAction = object : AnAction(DatabaseInspectorBundle.message("action.copy.to.clipboard")) {
-      override fun actionPerformed(e: AnActionEvent) {
-        val row = table.selectedRow
-        val column = table.selectedColumn
-
-        val value = (table.model as MyTableModel).getValueAt(row, column)
-        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
-        clipboard.setContents(StringSelection(value), null)
-      }
-
-      override fun update(e: AnActionEvent) {
-        val column = table.selectedColumn
-
-        e.presentation.isEnabled = column > 0
-        super.update(e)
-      }
-    }
 
     setNullAction.registerCustomShortcutSet(
       CustomShortcutSet(
-        KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.ALT_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK), null)
+        KeyboardShortcut(
+          KeyStroke.getKeyStroke(
+            KeyEvent.VK_N,
+            InputEvent.ALT_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK
+          ),
+          null
+        )
       ),
       table
     )
 
-    PopupHandler.installPopupMenu(table, DefaultActionGroup(copyToClipboardAction, setNullAction), "SqliteTablePopup")
+    PopupHandler.installPopupMenu(
+      table,
+      DefaultActionGroup(copyToClipboardAction, setNullAction),
+      "SqliteTablePopup"
+    )
   }
 
   private inner class MyTableHeaderRenderer : TableCellRenderer {
@@ -534,23 +553,26 @@ class TableViewImpl : TableView {
         columnNameLabel.icon = null
         columnNameLabel.iconTextGap = 0
         columnNameLabel.text = ""
-      }
-      else {
+      } else {
         val columns = (table.model as MyTableModel).columns
-        val inPk = columns[viewColumnIndex-1].inPrimaryKey
+        val inPk = columns[viewColumnIndex - 1].inPrimaryKey
         if (inPk != null && inPk) {
           columnNameLabel.icon = StudioIcons.DatabaseInspector.PRIMARY_KEY
           columnNameLabel.iconTextGap = 8
-        }
-        else {
+        } else {
           columnNameLabel.border = BorderFactory.createEmptyBorder(0, 4, 0, 0)
         }
 
-        sortIcon.icon = when (val o = orderBy) {
-          is OrderBy.NotOrdered -> AllIcons.General.ArrowSplitCenterV
-          is OrderBy.Asc -> if (o.columnName == value as String) AllIcons.General.ArrowDown else AllIcons.General.ArrowSplitCenterV
-          is OrderBy.Desc -> if (o.columnName == value as String) AllIcons.General.ArrowUp else AllIcons.General.ArrowSplitCenterV
-        }
+        sortIcon.icon =
+          when (val o = orderBy) {
+            is OrderBy.NotOrdered -> AllIcons.General.ArrowSplitCenterV
+            is OrderBy.Asc ->
+              if (o.columnName == value as String) AllIcons.General.ArrowDown
+              else AllIcons.General.ArrowSplitCenterV
+            is OrderBy.Desc ->
+              if (o.columnName == value as String) AllIcons.General.ArrowUp
+              else AllIcons.General.ArrowSplitCenterV
+          }
 
         columnNameLabel.text = value as String
       }
@@ -574,8 +596,7 @@ class TableViewImpl : TableView {
     ) {
       if (value == null) {
         append("NULL", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES)
-      }
-      else {
+      } else {
         append(StringUtils.abbreviate(value as String, 200))
       }
     }
@@ -590,8 +611,7 @@ class TableViewImpl : TableView {
     override fun getColumnName(modelColumnIndex: Int): String {
       return if (modelColumnIndex == 0) {
         ""
-      }
-      else {
+      } else {
         columns[modelColumnIndex - 1].name
       }
     }
@@ -605,8 +625,7 @@ class TableViewImpl : TableView {
     override fun getValueAt(modelRowIndex: Int, modelColumnIndex: Int): String? {
       return if (modelColumnIndex == 0) {
         (rowOffset + modelRowIndex + 1).toString()
-      }
-      else {
+      } else {
         when (val value = rows[modelRowIndex].values[modelColumnIndex - 1]) {
           is SqliteValue.StringValue -> value.value
           is SqliteValue.NullValue -> null
@@ -623,12 +642,12 @@ class TableViewImpl : TableView {
       }
 
       // if old value was null and new value is empty string, set back to null
-      val newSqliteValue = if (oldValue == null && (newValue as? String)?.isEmpty() == true) {
-        SqliteValue.NullValue
-      }
-      else {
-        SqliteValue.fromAny(newValue)
-      }
+      val newSqliteValue =
+        if (oldValue == null && (newValue as? String)?.isEmpty() == true) {
+          SqliteValue.NullValue
+        } else {
+          SqliteValue.fromAny(newValue)
+        }
 
       // the first column doesn't exist, it's used to show the row index
       val actualColumnIndex = modelColumnIndex - 1
@@ -645,13 +664,15 @@ class TableViewImpl : TableView {
       listeners.forEach { it.updateCellInvoked(modelRowIndex, column, newSqliteValue) }
     }
 
-    override fun isCellEditable(modelRowIndex: Int, modelColumnIndex: Int) = modelColumnIndex != 0 && isEditable
+    override fun isCellEditable(modelRowIndex: Int, modelColumnIndex: Int) =
+      modelColumnIndex != 0 && isEditable
 
     fun applyRowsDiff(rowDiffOperations: List<RowDiffOperation>) {
       for (diffOperation in rowDiffOperations) {
         when (diffOperation) {
           is RowDiffOperation.UpdateCell -> {
-            rows[diffOperation.rowIndex].values[diffOperation.colIndex] = diffOperation.newValue.value
+            rows[diffOperation.rowIndex].values[diffOperation.colIndex] =
+              diffOperation.newValue.value
             fireTableCellUpdated(diffOperation.rowIndex, diffOperation.colIndex + 1)
           }
           is RowDiffOperation.AddRow -> {
@@ -670,9 +691,7 @@ class TableViewImpl : TableView {
     }
   }
 
-  /**
-   * Layout manager that uses the size of the parent component to display the components.
-   */
+  /** Layout manager that uses the size of the parent component to display the components. */
   private class MatchParentLayoutManager : LayoutManager {
     override fun layoutContainer(parent: Container) {
       val parentBounds = parent.bounds
@@ -680,14 +699,13 @@ class TableViewImpl : TableView {
         parentBounds.size = parent.preferredSize
       }
 
-      parent.components.forEach {
-        it.bounds = parentBounds
-      }
+      parent.components.forEach { it.bounds = parentBounds }
     }
 
     // Request max available space
     override fun preferredLayoutSize(parent: Container): Dimension =
-      if (parent.isPreferredSizeSet) parent.preferredSize else Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
+      if (parent.isPreferredSizeSet) parent.preferredSize
+      else Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
     override fun minimumLayoutSize(parent: Container): Dimension = Dimension(0, 0)
     override fun addLayoutComponent(name: String?, comp: Component?) {}
     override fun removeLayoutComponent(comp: Component?) {}

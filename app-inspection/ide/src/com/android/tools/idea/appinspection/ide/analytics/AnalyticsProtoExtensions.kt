@@ -28,12 +28,18 @@ fun DeviceDescriptor.toDeviceInfo(): DeviceInfo {
     .setBuildVersionRelease(this.version)
     .setBuildApiLevelFull(AndroidVersion(this.apiLevel, this.codename).apiString)
     .setManufacturer(this.manufacturer)
-    .setDeviceType(if (this.isEmulator) DeviceInfo.DeviceType.LOCAL_EMULATOR else DeviceInfo.DeviceType.LOCAL_PHYSICAL)
-    .setMdnsConnectionType(when {
-                             isMdnsAutoConnectUnencrypted(this.serial) -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_UNENCRYPTED
-                             isMdnsAutoConnectTls(this.serial) -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_TLS
-                             else -> DeviceInfo.MdnsConnectionType.MDNS_NONE
-                           })
+    .setDeviceType(
+      if (this.isEmulator) DeviceInfo.DeviceType.LOCAL_EMULATOR
+      else DeviceInfo.DeviceType.LOCAL_PHYSICAL
+    )
+    .setMdnsConnectionType(
+      when {
+        isMdnsAutoConnectUnencrypted(this.serial) ->
+          DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_UNENCRYPTED
+        isMdnsAutoConnectTls(this.serial) -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_TLS
+        else -> DeviceInfo.MdnsConnectionType.MDNS_NONE
+      }
+    )
     .setModel(this.model)
     .build()
 }

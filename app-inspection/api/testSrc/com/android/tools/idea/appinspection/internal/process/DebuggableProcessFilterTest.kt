@@ -22,18 +22,28 @@ import com.android.fakeadbserver.DeviceState.HostConnectionType.USB
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.google.common.truth.Truth.assertThat
+import java.net.Socket
 import org.junit.Rule
 import org.junit.Test
-import java.net.Socket
 
 class DebuggableProcessFilterTest {
   private val commandHandler = FakeShellDumpSysCommandHandler()
-  @get:Rule
-  val adbRule = FakeAdbRule().withDeviceCommandHandler(commandHandler)
+  @get:Rule val adbRule = FakeAdbRule().withDeviceCommandHandler(commandHandler)
 
   @Test
   fun testIsProcessDebuggable() {
-    adbRule.attachDevice("emulator-123", "Google", "Pixel", "29", "29", "arm64-v8a", emptyMap(), USB, "MyAvd", "/path")
+    adbRule.attachDevice(
+      "emulator-123",
+      "Google",
+      "Pixel",
+      "29",
+      "29",
+      "arm64-v8a",
+      emptyMap(),
+      USB,
+      "MyAvd",
+      "/path"
+    )
     val device: IDevice = adbRule.bridge.devices.single()
     assertThat(device.isPackageDebuggable("com.google.android.webview")).isFalse()
     assertThat(device.isPackageDebuggable("androidx.compose.ui.test")).isTrue()
@@ -44,11 +54,18 @@ class DebuggableProcessFilterTest {
 private const val DUMP_PACKAGE = "dumpsys package "
 
 private class FakeShellDumpSysCommandHandler : DeviceCommandHandler("shell") {
-  override fun accept(server: FakeAdbServer, socket: Socket, device: DeviceState, command: String, args: String): Boolean {
-    val response = when (command) {
-      "shell" -> handleShellCommand(args)
-      else -> return false
-    }
+  override fun accept(
+    server: FakeAdbServer,
+    socket: Socket,
+    device: DeviceState,
+    command: String,
+    args: String
+  ): Boolean {
+    val response =
+      when (command) {
+        "shell" -> handleShellCommand(args)
+        else -> return false
+      }
     writeOkay(socket.getOutputStream())
     writeString(socket.getOutputStream(), response)
     return true
@@ -61,8 +78,10 @@ private class FakeShellDumpSysCommandHandler : DeviceCommandHandler("shell") {
     return ""
   }
 
-  private fun dumpPackage(args: String): String = when (args) {
-    "com.google.android.webview" -> """
+  private fun dumpPackage(args: String): String =
+    when (args) {
+      "com.google.android.webview" ->
+        """
       Package [com.google.android.webview] (a768fce):
         userId=10116
         pkg=Package{ba02eef com.google.android.webview}
@@ -102,8 +121,8 @@ private class FakeShellDumpSysCommandHandler : DeviceCommandHandler("shell") {
         User 0: ceDataInode=0 installed=true hidden=false suspended=false distractionFlags=0 stopped=false notLaunched=false enabled=0 instant=false virtual=false
           gids=[3003]
     """.trimIndent()
-
-    "androidx.compose.ui.test" -> """
+      "androidx.compose.ui.test" ->
+        """
       Package [androidx.compose.ui.test] (37f7072):
         userId=10137
         pkg=Package{bb1ccc3 androidx.compose.ui.test}
@@ -139,7 +158,6 @@ private class FakeShellDumpSysCommandHandler : DeviceCommandHandler("shell") {
         overlay paths:
           /product/overlay/DisplayCutoutEmulationEmu01/DisplayCutoutEmulationEmu01Overlay.apk
       """.trimIndent()
-
-    else -> ""
-  }
+      else -> ""
+    }
 }
