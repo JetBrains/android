@@ -23,8 +23,10 @@ import com.android.tools.idea.npw.module.recipes.androidModule.buildGradle
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleColors
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStrings
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemes
+import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.CppStandardType
+import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 
@@ -49,7 +51,8 @@ fun RecipeExecutor.generateCommonModule(
   colorsXml: String? = androidModuleColors(),
   addLintOptions: Boolean = false,
   enableCpp: Boolean = false,
-  cppStandard: CppStandardType = CppStandardType.`Toolchain Default`
+  cppStandard: CppStandardType = CppStandardType.`Toolchain Default`,
+  bytecodeLevel: BytecodeLevel = BytecodeLevel.default,
   ) {
   val (projectData, srcOut, resOut, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) = data
   val (useAndroidX, agpVersion) = projectData
@@ -91,6 +94,7 @@ fun RecipeExecutor.generateCommonModule(
     else -> applyPlugin("com.android.application", projectData.gradlePluginVersion)
   }
   addKotlinIfNeeded(projectData, targetApi = apis.targetApi.api)
+  requireJavaVersion(bytecodeLevel.versionString, data.projectTemplateData.language == Language.Kotlin)
 
   save(manifestXml, manifestOut.resolve(FN_ANDROID_MANIFEST_XML))
   save(gitignore(), moduleOut.resolve(".gitignore"))
