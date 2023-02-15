@@ -60,6 +60,7 @@ class PsiUtilsTest {
 
     runReadAction {
       assertThat(fixture.elementAtCaret.isComposableFunction()).isTrue()
+      assertThat(fixture.elementAtCaret.getComposableAnnotation()).isNotNull()
     }
   }
 
@@ -77,6 +78,7 @@ class PsiUtilsTest {
 
     runReadAction {
       assertThat(fixture.elementAtCaret.isComposableFunction()).isFalse()
+      assertThat(fixture.elementAtCaret.getComposableAnnotation()).isNull()
     }
   }
 
@@ -94,6 +96,7 @@ class PsiUtilsTest {
 
     runReadAction {
       assertThat(fixture.elementAtCaret.isComposableFunction()).isFalse()
+      assertThat(fixture.elementAtCaret.getComposableAnnotation()).isNull()
     }
   }
 
@@ -166,6 +169,7 @@ class PsiUtilsTest {
 
     runReadAction {
       assertThat(fixture.elementAtCaret.isComposableFunction()).isFalse()
+      assertThat(fixture.elementAtCaret.getComposableAnnotation()).isNull()
       assertThat(fixture.elementAtCaret.isDeprecated()).isTrue()
     }
 
@@ -184,6 +188,7 @@ class PsiUtilsTest {
 
     runReadAction {
       assertThat(fixture.elementAtCaret.isComposableFunction()).isTrue()
+      assertThat(fixture.elementAtCaret.getComposableAnnotation()).isNotNull()
       assertThat(fixture.elementAtCaret.isDeprecated()).isFalse()
     }
   }

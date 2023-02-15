@@ -30,26 +30,29 @@ import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
-private val composableFunctionKey = Key.create<CachedValue<Boolean>>("com.android.tools.compose.PsiUtil.isComposableFunction")
-private val deprecatedKey = Key.create<CachedValue<Boolean>>("com.android.tools.compose.PsiUtil.isDeprecated")
+private val composableFunctionKey = Key.create<CachedValue<KtAnnotationEntry?>>("com.android.tools.compose.PsiUtil.isComposableFunction")
+private val deprecatedKey = Key.create<CachedValue<KtAnnotationEntry?>>("com.android.tools.compose.PsiUtil.isDeprecated")
 
-fun PsiElement.isComposableFunction(): Boolean =
-  (this as? KtNamedFunction)?.checkHasAnnotationWithCaching(composableFunctionKey) { it.isComposableAnnotation() } ?: false
+fun PsiElement.isComposableFunction(): Boolean = this.getComposableAnnotation() != null
+
+fun PsiElement.getComposableAnnotation(): KtAnnotationEntry? =
+  (this as? KtNamedFunction)?.getAnnotationWithCaching(composableFunctionKey) { it.isComposableAnnotation() }
 
 fun PsiElement.isDeprecated(): Boolean =
-  (this as? KtAnnotated)?.checkHasAnnotationWithCaching(deprecatedKey) { it.isDeprecatedAnnotation() } ?: false
+  (this as? KtAnnotated)?.getAnnotationWithCaching(deprecatedKey) { it.isDeprecatedAnnotation() } != null
 
-private fun KtAnnotated.checkHasAnnotationWithCaching(key: Key<CachedValue<Boolean>>, doCheck: (KtAnnotationEntry) -> Boolean): Boolean {
-  return CachedValuesManager.getCachedValue(this, key) {
-    val hasAnnotation = annotationEntries.any { doCheck(it) }
-    val containingKtFile = this.containingKtFile
+private fun KtAnnotated.getAnnotationWithCaching(key: Key<CachedValue<KtAnnotationEntry?>>, doCheck: (KtAnnotationEntry) -> Boolean)
+  : KtAnnotationEntry? {
+    return CachedValuesManager.getCachedValue(this, key) {
+      val annotationEntry = annotationEntries.firstOrNull { doCheck(it) }
+      val containingKtFile = this.containingKtFile
 
-    CachedValueProvider.Result.create(
-      // TODO: see if we can handle alias imports without ruining performance.
-      hasAnnotation,
-      containingKtFile,
-      ProjectRootModificationTracker.getInstance(project)
-    )
+      CachedValueProvider.Result.create(
+        // TODO: see if we can handle alias imports without ruining performance.
+        annotationEntry,
+        containingKtFile,
+        ProjectRootModificationTracker.getInstance(project)
+      )
   }
 }
 

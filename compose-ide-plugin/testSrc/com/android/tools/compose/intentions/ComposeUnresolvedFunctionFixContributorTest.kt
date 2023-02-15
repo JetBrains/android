@@ -15,19 +15,33 @@
  */
 package com.android.tools.compose.intentions
 
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
+@RunWith(JUnit4::class)
+class ComposeUnresolvedFunctionFixContributorTest {
 
-class ComposeUnresolvedFunctionFixContributorTest : JavaCodeInsightFixtureTestCase() {
-  public override fun setUp() {
-    super.setUp()
+  @get:Rule
+  val projectRule = AndroidProjectRule.onDisk()
+
+  private lateinit var myFixture: CodeInsightTestFixture
+
+  @Before
+  fun setUp() {
+    myFixture = projectRule.fixture
     myFixture.stubComposableAnnotation()
   }
 
+  @Test
   fun testCreateComposableFunction() {
     myFixture.loadNewFile(
       "src/com/example/Test.kt",
@@ -72,6 +86,7 @@ class ComposeUnresolvedFunctionFixContributorTest : JavaCodeInsightFixtureTestCa
     )
   }
 
+  @Test
   fun `test don't create Composable function if return type is not Unit`() {
     myFixture.loadNewFile(
       "src/com/example/Test.kt",
@@ -92,6 +107,7 @@ class ComposeUnresolvedFunctionFixContributorTest : JavaCodeInsightFixtureTestCa
     assertThat(action).isNull()
   }
 
+  @Test
   fun `test don't create Composable function if unresolved function starts with lowercase letter`() {
     myFixture.loadNewFile(
       "src/com/example/Test.kt",
@@ -110,5 +126,50 @@ class ComposeUnresolvedFunctionFixContributorTest : JavaCodeInsightFixtureTestCa
 
     val action = myFixture.availableIntentions.find { it.text == "Create @Composable function 'unresolvedFunction'" }
     assertThat(action).isNull()
+  }
+
+  @Test
+  fun testCreateComposableFunctionWithLambda() {
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun NewsStory() {
+          <caret>UnresolvedFunction {}
+      }
+      """.trimIndent()
+    )
+
+    val action = myFixture.availableIntentions.find { it.text == "Create @Composable function 'UnresolvedFunction'" }
+    assertThat(action).isNotNull()
+
+    WriteCommandAction.runWriteCommandAction(myFixture.project) {
+      action!!.invoke(myFixture.project, myFixture.editor, myFixture.file)
+    }
+
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun NewsStory() {
+          UnresolvedFunction {}
+      }
+
+      @Composable
+      fun UnresolvedFunction(content: @Composable () -> Unit) {
+          TODO("Not yet implemented")
+      }
+
+    """.trimIndent()
+    )
   }
 }
