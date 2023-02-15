@@ -63,6 +63,7 @@ class LayoutInspector private constructor(
   val inspectorClientSettings: InspectorClientSettings,
   val treeSettings: TreeSettings,
   val isSnapshot: Boolean,
+  val launcher: InspectorClientLauncher?,
   private val currentClientProvider: () -> InspectorClient,
   workerExecutor: Executor = AndroidExecutors.getInstance().workerThreadExecutor
 ) {
@@ -89,6 +90,7 @@ class LayoutInspector private constructor(
     inspectorClientSettings,
     treeSettings,
     false,
+    launcher,
     { launcher.activeClient },
     executor
   ) {
@@ -114,6 +116,7 @@ class LayoutInspector private constructor(
     inspectorClientSettings = layoutInspectorClientSettings,
     treeSettings = treeSettings,
     isSnapshot = true,
+    launcher = null,
     currentClientProvider = { client },
     workerExecutor = executor
   ) {

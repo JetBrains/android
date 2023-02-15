@@ -37,7 +37,6 @@ import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.TransportService
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.DataManager
 import com.intellij.ide.highlighter.ProjectFileType
 import com.intellij.openapi.application.ApplicationManager
@@ -72,7 +71,6 @@ import java.util.concurrent.TimeUnit
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess()
 private val LEGACY_PROCESS = LEGACY_DEVICE.createProcess()
-private val OLDER_LEGACY_PROCESS = OLDER_LEGACY_DEVICE.createProcess()
 
 class LayoutInspectorToolWindowFactoryTest {
 
@@ -150,7 +148,7 @@ class LayoutInspectorToolWindowFactoryTest {
   }
 
   @Test
-  fun testShowInspectionNotificationWhenInspectorIsRunning() {
+  fun testCollapseToolWindowShowsInspectionNotificationWhenInspectorIsRunning() {
     val listener = LayoutInspectorToolWindowManagerListener(inspectorRule.project, inspectorRule.launcher)
 
     val toolWindow = FakeToolWindow(inspectorRule.project, listener)
@@ -190,23 +188,6 @@ class LayoutInspectorToolWindowFactoryTest {
 
     inspectorRule.processNotifier.fireDisconnected(LEGACY_PROCESS)
     assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
-  }
-
-  @Test
-  fun testCreateProcessesModel() {
-    val factory = LayoutInspectorToolWindowFactory()
-    val model = factory.createProcessesModel(
-      inspectorRule.project, inspectorRule.disposable, inspectorRule.processNotifier, MoreExecutors.directExecutor()
-    )
-    // Verify that devices older than M will be included in the processes model:
-    inspectorRule.processNotifier.fireConnected(OLDER_LEGACY_PROCESS)
-    assertThat(model.processes).hasSize(1)
-    // An M device as well:
-    inspectorRule.processNotifier.fireConnected(LEGACY_PROCESS)
-    assertThat(model.processes).hasSize(2)
-    // And newer devices as well:
-    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    assertThat(model.processes).hasSize(3)
   }
 
   @Test

@@ -39,6 +39,8 @@
                              provider="com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurableProvider"/>
 
     <applicationService serviceImplementation="com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings"/>
+
+    <projectService serviceImplementation="com.android.tools.idea.layoutinspector.LayoutInspectorProjectService" />
   </extensions>
 
   <extensions defaultExtensionNs="com.android.run">
