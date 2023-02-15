@@ -45,7 +45,7 @@ import java.io.IOException
  * Both `android.defaultConfig {}` and `android.productFlavors.xyz {}` uses the same structure with same attributes.
  * In this test, the product flavor structure defined by [ProductFlavorModelImpl] is tested in great deal to cover all combinations using
  * the `android.defaultConfig {}` block. The general structure of `android.productFlavors {}` is tested in
- * [ProductFlavorModelTest].
+ * [ProductFlavorsElementTest].
  */
 class ProductFlavorModelTest : GradleFileModelTestCase() {
   @Test
