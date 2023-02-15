@@ -135,13 +135,8 @@ public class SdksCleanupStepTest extends PlatformTestCase {
     Set<Sdk> invalidSdks = new HashSet<>();
 
     Module appModule = createModule("app");
-    // Simulate this is an Android module.
-    AndroidFacet androidFacet = createAndAddAndroidFacet(appModule);
 
     cleanupStep.cleanUpSdk(appModule, fixedSdks, invalidSdks);
-
-    // There should be no attempts to fix the SDK.
-    verify(sdks, never()).getAndroidSdkAdditionalData(sdk);
 
     assertThat(fixedSdks).containsExactly(sdk);
     assertThat(invalidSdks).isEmpty();
@@ -159,13 +154,8 @@ public class SdksCleanupStepTest extends PlatformTestCase {
     invalidSdks.add(sdk);
 
     Module appModule = createModule("app");
-    // Simulate this is an Android module.
-    AndroidFacet androidFacet = createAndAddAndroidFacet(appModule);
 
     cleanupStep.cleanUpSdk(appModule, fixedSdks, invalidSdks);
-
-    // There should be no attempts to fix the SDK.
-    verify(sdks, never()).getAndroidSdkAdditionalData(sdk);
 
     assertThat(invalidSdks).containsExactly(sdk);
     assertThat(fixedSdks).isEmpty();

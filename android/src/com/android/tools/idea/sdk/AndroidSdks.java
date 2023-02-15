@@ -105,7 +105,7 @@ public class AndroidSdks {
   @Nullable
   public Sdk findSuitableAndroidSdk(@NotNull String targetHash) {
     for (Sdk sdk : getAllAndroidSdks()) {
-      AndroidSdkAdditionalData originalData = getAndroidSdkAdditionalData(sdk);
+      AndroidSdkAdditionalData originalData = AndroidSdkAdditionalData.from(sdk);
       if (originalData == null) {
         continue;
       }
@@ -115,12 +115,6 @@ public class AndroidSdks {
     }
 
     return null;
-  }
-
-  @Nullable
-  public AndroidSdkAdditionalData getAndroidSdkAdditionalData(@NotNull Sdk sdk) {
-    SdkAdditionalData data = sdk.getSdkAdditionalData();
-    return data instanceof AndroidSdkAdditionalData ? (AndroidSdkAdditionalData)data : null;
   }
 
   public void setSdkData(@Nullable AndroidSdkData data) {

@@ -48,7 +48,7 @@ public class SdksCleanupUtil {
   // If the sdk is outdated, then all of its roots will be recreated.
   // An Sdk is considered outdated if any of the roots are different from expected roots.
   public static void updateSdkIfNeeded(@NotNull Sdk sdk, @NotNull AndroidSdks androidSdks) {
-    IAndroidTarget target = getTarget(sdk, androidSdks);
+    IAndroidTarget target = getTarget(sdk);
     if (target != null) {
       updateSdkIfNeeded(sdk, androidSdks, target);
     }
@@ -73,8 +73,8 @@ public class SdksCleanupUtil {
   }
 
   @Nullable
-  private static IAndroidTarget getTarget(@NotNull Sdk sdk, @NotNull AndroidSdks androidSdks) {
-    AndroidSdkAdditionalData additionalData = androidSdks.getAndroidSdkAdditionalData(sdk);
+  private static IAndroidTarget getTarget(@NotNull Sdk sdk) {
+    AndroidSdkAdditionalData additionalData = AndroidSdkAdditionalData.from(sdk);
     AndroidSdkData sdkData = StudioAndroidSdkData.getSdkData(sdk);
     if (additionalData == null || sdkData == null) {
       return null;

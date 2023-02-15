@@ -76,4 +76,10 @@ public class AndroidSdkAdditionalData implements SdkAdditionalData {
     }
     return myAndroidPlatform;
   }
+
+  @Nullable
+  public static AndroidSdkAdditionalData from(@NotNull Sdk sdk) {
+    SdkAdditionalData data = sdk.getSdkAdditionalData();
+    return data instanceof AndroidSdkAdditionalData ? (AndroidSdkAdditionalData)data : null;
+  }
 }

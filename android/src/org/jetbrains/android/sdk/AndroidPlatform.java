@@ -47,7 +47,7 @@ public class AndroidPlatform {
 
   @Nullable
   public static AndroidPlatform getInstance(@NotNull Sdk sdk) {
-    AndroidSdkAdditionalData data = AndroidSdks.getInstance().getAndroidSdkAdditionalData(sdk);
+    AndroidSdkAdditionalData data = AndroidSdkAdditionalData.from(sdk);
     return data != null ? data.getAndroidPlatform() : null;
   }
 

@@ -206,7 +206,7 @@ public class AndroidSdksTest extends PlatformTestCase {
   @NotNull
   private AndroidSdkAdditionalData getAndroidSdkAdditionalData(@NotNull Sdk sdk) {
     // Indirectly tests AndroidSdks#getAndroidSdkAdditionalData
-    AndroidSdkAdditionalData data = myAndroidSdks.getAndroidSdkAdditionalData(sdk);
+    AndroidSdkAdditionalData data = AndroidSdkAdditionalData.from(sdk);
     assertNotNull(data);
     return data;
   }
