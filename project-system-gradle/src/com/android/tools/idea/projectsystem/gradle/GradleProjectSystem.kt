@@ -357,7 +357,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
   }
 
   fun IdeAndroidArtifact.toGeneratedIdeaSourceProvider(): IdeaSourceProvider {
-    val sourceFolders = getGeneratedSourceFoldersToUse(this, model.data)
+    val sourceFolders = getGeneratedSourceFoldersToUse(this, model.androidProject)
     return IdeaSourceProviderImpl(
       scopeType,
       object : IdeaSourceProviderImpl.Core {
@@ -382,7 +382,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
   }
 
   fun IdeJavaArtifact.toGeneratedIdeaSourceProvider(): IdeaSourceProvider {
-    val sourceFolders = getGeneratedSourceFoldersToUse(this, model.data)
+    val sourceFolders = getGeneratedSourceFoldersToUse(this, model.androidProject)
     return IdeaSourceProviderImpl(
       ScopeType.UNIT_TEST,
       object : IdeaSourceProviderImpl.Core {

@@ -108,8 +108,11 @@ public class GradleProjectSystemUtil {
    * Wrapper around {@link IdeBaseArtifact#getGeneratedSourceFolders()} that skips the aapt sources folder when light classes are used by the
    * IDE.
    */
-  public static Collection<File> getGeneratedSourceFoldersToUse(@NotNull IdeBaseArtifactCore artifact, @NotNull GradleAndroidModelData model) {
-    File buildFolder = model.getAndroidProject().getBuildFolder();
+  public static Collection<File> getGeneratedSourceFoldersToUse(
+    @NotNull IdeBaseArtifactCore artifact,
+    @NotNull IdeAndroidProject androidProject
+  ) {
+    File buildFolder = androidProject.getBuildFolder();
     return artifact.getGeneratedSourceFolders()
       .stream()
       .filter(folder -> !isAaptGeneratedSourcesFolder(folder, buildFolder))
