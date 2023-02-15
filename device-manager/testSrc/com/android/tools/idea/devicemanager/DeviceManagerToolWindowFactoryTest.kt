@@ -45,6 +45,9 @@ class DeviceManagerToolWindowFactoryTest {
   @get:Rule
   val projectRule = ProjectRule()
 
+  val project
+    get() = projectRule.project
+
   private lateinit var factory: ToolWindowFactory
 
   @Before
@@ -68,7 +71,7 @@ class DeviceManagerToolWindowFactoryTest {
       }
     }
     val table = JBTable()
-    val successfulPanel: DevicePanel = object : DevicePanel(projectRule.project) {
+    val successfulPanel: DevicePanel = object : DevicePanel(project) {
       override fun newTable() = table
       override fun newDetailsPanel() = DetailsPanel("my details")
     }
@@ -81,9 +84,9 @@ class DeviceManagerToolWindowFactoryTest {
     DeviceManagerTab.EP_NAME.point.registerExtension(failingTab, disposableRule.disposable)
     DeviceManagerTab.EP_NAME.point.registerExtension(failingTab2, disposableRule.disposable)
     DeviceManagerTab.EP_NAME.point.registerExtension(successfulTab, disposableRule.disposable)
-    val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)
+    val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
 
-    factory.createToolWindowContent(projectRule.project, toolWindow)
+    factory.createToolWindowContent(project, toolWindow)
 
     val tabs = toolWindow.contentManager.contents[0].component as JBTabbedPane
     assertEquals(5, tabs.tabCount)
@@ -104,7 +107,7 @@ class DeviceManagerToolWindowFactoryTest {
   fun testReloadErrorTab() {
     lateinit var callback: Runnable
     val table = JBTable()
-    val successfulPanel: DevicePanel = object : DevicePanel(projectRule.project) {
+    val successfulPanel: DevicePanel = object : DevicePanel(project) {
       override fun newTable() = table
       override fun newDetailsPanel() = DetailsPanel("my details")
     }
@@ -120,9 +123,9 @@ class DeviceManagerToolWindowFactoryTest {
       }
     }
     DeviceManagerTab.EP_NAME.point.registerExtension(tab, disposableRule.disposable)
-    val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)
+    val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
 
-    factory.createToolWindowContent(projectRule.project, toolWindow)
+    factory.createToolWindowContent(project, toolWindow)
 
     val tabs = toolWindow.contentManager.contents[0].component as JBTabbedPane
     assertEquals("My Tab", (tabs.getTabComponentAt(2) as JLabel).text)
@@ -133,5 +136,19 @@ class DeviceManagerToolWindowFactoryTest {
 
     assertEquals("My Tab", (tabs.getTabComponentAt(2) as JLabel).text)
     assertSame(successfulPanel, tabs.getComponentAt(2))
+  }
+
+  @Test
+  fun testSelectedTabPreservation() {
+    val toolWindow1 = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
+    factory.createToolWindowContent(project, toolWindow1)
+    val tabs1 = toolWindow1.contentManager.contents[0].component as JBTabbedPane
+    assertEquals("Virtual", tabs1.getTitleAt(tabs1.selectedIndex))
+    tabs1.selectedIndex = tabs1.indexOfTab("Physical")
+
+    val toolWindow2 = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
+    factory.createToolWindowContent(project, toolWindow2)
+    val tabs2 = toolWindow2.contentManager.contents[0].component as JBTabbedPane
+    assertEquals("Physical", tabs2.getTitleAt(tabs2.selectedIndex))
   }
 }

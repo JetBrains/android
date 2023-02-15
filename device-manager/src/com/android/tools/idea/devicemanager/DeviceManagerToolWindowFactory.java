@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanager;
 import com.android.tools.idea.AndroidEnvironmentUtils;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevicePanel;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDevicePanel;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
@@ -36,6 +37,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
 
 public final class DeviceManagerToolWindowFactory implements ToolWindowFactory, DumbAware {
+  private static final String CURRENT_TAB_PROPERTY = "com.android.tools.idea.devicemanager.tab";
+
   public static final String ID = "Device Manager";
   private final @NotNull BiFunction<Project, Disposable, Component> myNewVirtualDevicePanel;
 
@@ -70,7 +73,8 @@ public final class DeviceManagerToolWindowFactory implements ToolWindowFactory, 
     JBTabbedPane pane = new JBTabbedPane();
     pane.setTabComponentInsets(JBUI.emptyInsets());
 
-    pane.addTab("Virtual", myNewVirtualDevicePanel.apply(project, parent));
+    String defaultTabTitle = "Virtual";
+    pane.addTab(defaultTabTitle, myNewVirtualDevicePanel.apply(project, parent));
     pane.addTab("Physical", new PhysicalDevicePanel(project, parent));
     for (DeviceManagerTab tab : DeviceManagerTab.EP_NAME.getExtensions()) {
       if (tab.isApplicable()) {
@@ -79,6 +83,26 @@ public final class DeviceManagerToolWindowFactory implements ToolWindowFactory, 
         tab.setRecreateCallback(() -> pane.setComponentAt(index, createTabContent(project, parent, tab)), parent);
       }
     }
+
+    // Select the tab that was selected in the prior session.
+    PropertiesComponent properties = PropertiesComponent.getInstance(project);
+    String tabTitle = properties.getValue(CURRENT_TAB_PROPERTY, defaultTabTitle);
+    int index = pane.indexOfTab(tabTitle);
+    if (index >= 0) {
+      pane.setSelectedIndex(index);
+    }
+
+    pane.addChangeListener(event -> {
+      // Remember the currently selected tab.
+      int selectedIndex = pane.getSelectedIndex();
+      if (selectedIndex >= 0) {
+        properties.setValue(CURRENT_TAB_PROPERTY, pane.getTitleAt(selectedIndex), defaultTabTitle);
+      }
+      else {
+        properties.setValue(CURRENT_TAB_PROPERTY, null);
+      }
+    });
+
     return pane;
   }
 
