@@ -429,10 +429,10 @@
                             implementationClass="org.jetbrains.android.AndroidNonTransitiveRClassKotlinCompletionContributor"
                             order="first, after KotlinCompletionContributor"/>
     <completion.contributor language="kotlin"
-                            implementationClass="com.android.tools.idea.lang.IntDefCompletionContributorKotlin"
+                            implementationClass="com.android.tools.idea.lang.typedef.KotlinTypeDefCompletionContributor"
                             order="first, before KotlinCompletionContributor"/>
     <completion.contributor language="JAVA"
-                            implementationClass="com.android.tools.idea.lang.IntDefCompletionContributorJava"
+                            implementationClass="com.android.tools.idea.lang.typedef.JavaTypeDefCompletionContributor"
                             order="first, before AndroidJavaCompletionContributor"/>
     <completion.contributor language="JAVA"
                             implementationClass="org.jetbrains.android.AndroidNonTransitiveRClassJavaCompletionContributor"
