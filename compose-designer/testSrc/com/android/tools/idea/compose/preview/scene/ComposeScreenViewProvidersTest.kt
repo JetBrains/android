@@ -80,10 +80,11 @@ class ComposeScreenViewProvidersTest {
 
     // When showDecorations is true, the scene view should always use the device shape. In this
     // case, round.
-    listOf(COMPOSE_SCREEN_VIEW_PROVIDER).forEach {
-      val sceneView = it.createPrimarySceneView(surface, surface.sceneManager!!)
-      assertTrue(sceneView.screenShape is Ellipse2D)
-    }
+    assertTrue(
+      COMPOSE_SCREEN_VIEW_PROVIDER.createPrimarySceneView(surface, surface.sceneManager!!)
+        .screenShape is
+        Ellipse2D
+    )
 
     // When showDecorations is false, the scene view should always use a square shape
     previewElement =
@@ -92,9 +93,10 @@ class ComposeScreenViewProvidersTest {
         displayName = "displayName",
         showDecorations = false
       )
-    listOf(COMPOSE_SCREEN_VIEW_PROVIDER).forEach {
-      val sceneView = it.createPrimarySceneView(surface, surface.sceneManager!!)
-      assertTrue(sceneView.screenShape is Rectangle)
-    }
+    assertTrue(
+      COMPOSE_SCREEN_VIEW_PROVIDER.createPrimarySceneView(surface, surface.sceneManager!!)
+        .screenShape is
+        Rectangle
+    )
   }
 }
