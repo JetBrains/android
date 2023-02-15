@@ -63,6 +63,7 @@ import com.android.tools.idea.stats.recordTestLibraries
 import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.TestLibraries
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.vfs.VfsUtil
@@ -70,7 +71,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.versions.LOG
 import java.io.File
 import java.nio.file.Path
 import java.util.Collections
@@ -98,6 +98,8 @@ private fun <K, V> notNullMapOf(vararg pairs: Pair<K, V?>): Map<K, V> {
     .filter { it.second != null }
     .toMap() as Map<K, V>
 }
+
+private val LOG = Logger.getInstance(GradleModuleSystem::class.java)
 
 class GradleModuleSystem(
   override val module: Module,
