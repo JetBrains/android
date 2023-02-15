@@ -25,6 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFix
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.CppStandardType;
+import com.intellij.openapi.util.SystemInfo;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -120,7 +121,10 @@ public class NewCppProjectTestUtil {
                                                         .selectAndroidPane();
 
     try {
-      androidPane.clickPath(path);
+      if (SystemInfo.isMac) {
+        androidPane.expand();
+      }
+        androidPane.clickPath(path);
     }
     catch (Throwable ex) {
       if (expectedToExist) {

@@ -16,8 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
-import static java.awt.event.InputEvent.CTRL_MASK;
-import static java.awt.event.InputEvent.META_MASK;
 import static junit.framework.TestCase.assertTrue;
 import static org.fest.swing.awt.AWT.translate;
 
@@ -154,19 +152,32 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   }
 
   public void zoomInByShortcutKeys() {
-    robot().pressAndReleaseKey(KeyEvent.VK_ADD, SystemInfo.isMac ? META_MASK : CTRL_MASK);
+    pressControlKeyAndOtherKey(KeyEvent.VK_ADD);
+  }
+
+  private void pressControlKeyAndOtherKey(int keyEvent) {
+    if (SystemInfo.isMac) {
+      robot().pressKey(KeyEvent.META_MASK);
+      robot().pressAndReleaseKey(keyEvent);
+      robot().releaseKey(KeyEvent.META_MASK);
+    }
+    else {
+      robot().pressKey(KeyEvent.VK_CONTROL);
+      robot().pressAndReleaseKey(keyEvent);
+      robot().releaseKey(KeyEvent.VK_CONTROL);
+    }
   }
 
   public void zoomOutByShortcutKeys() {
-    robot().pressAndReleaseKey(KeyEvent.VK_MINUS, SystemInfo.isMac ? META_MASK : CTRL_MASK);
+    pressControlKeyAndOtherKey(KeyEvent.VK_MINUS);
   }
 
   public void zoomtoFitByShortcutKeys() {
-    robot().pressAndReleaseKey(KeyEvent.VK_SLASH, SystemInfo.isMac ? META_MASK : CTRL_MASK);
+    pressControlKeyAndOtherKey(KeyEvent.VK_SLASH);
   }
 
   public void zoomto100PercentByShortcutKeys() {
-    robot().pressAndReleaseKey(KeyEvent.VK_0, SystemInfo.isMac ? META_MASK : CTRL_MASK);
+    pressControlKeyAndOtherKey(KeyEvent.VK_0);
   }
 
   public boolean panButtonPresent() {

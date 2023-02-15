@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.visual.VisualizationForm;
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
 import icons.StudioIcons;
 import java.awt.event.KeyEvent;
 import java.util.stream.Collectors;
@@ -48,7 +49,20 @@ public class VisualizationFixture extends ToolWindowFixture {
 
   public void expandWindow() {
     myDesignSurfaceFixture.focus();
-    robot().pressAndReleaseKey(KeyEvent.VK_QUOTE, KeyEvent.CTRL_MASK, KeyEvent.SHIFT_MASK);
+    pressControlKeyAndOtherKey(KeyEvent.VK_QUOTE);
+  }
+
+  private void pressControlKeyAndOtherKey(int keyEvent) {
+    if (SystemInfo.isMac) {
+      robot().pressKey(KeyEvent.CTRL_MASK);
+      robot().pressKey(KeyEvent.SHIFT_MASK);
+      robot().pressAndReleaseKey(keyEvent);
+      robot().releaseKey(KeyEvent.CTRL_MASK);
+      robot().releaseKey(KeyEvent.SHIFT_MASK);
+    }
+    else {
+      robot().pressAndReleaseKey(keyEvent, KeyEvent.CTRL_MASK, KeyEvent.SHIFT_MASK);
+    }
   }
 
   public void zoomToFit() {
