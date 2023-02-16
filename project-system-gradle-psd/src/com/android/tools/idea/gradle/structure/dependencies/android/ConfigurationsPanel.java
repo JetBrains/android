@@ -71,7 +71,7 @@ class ConfigurationsPanel extends JPanel {
 
     myConfigurationsList.setSelectionChangeListener(newSelection -> updateSelection());
 
-    new ListSpeedSearch(myConfigurationsList);
+    ListSpeedSearch.installOn(myConfigurationsList);
 
     JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(myConfigurationsList);
     scrollPane.setBorder(IdeBorderFactory.createBorder(LEFT | RIGHT | BOTTOM));

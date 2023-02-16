@@ -93,7 +93,7 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
     selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     selectionModel.addListSelectionListener(this);
 
-    new ListSpeedSearch<>(myList) {
+    ListSpeedSearch<PsiClass> search = new ListSpeedSearch<>(myList, null, null) {
       @Override
       protected boolean isMatchingElement(Object element, String pattern) {
         PsiClass psiClass = (PsiClass)element;
@@ -101,6 +101,7 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
         return compare(psiClass.getName(), pattern) || compare(psiClass.getQualifiedName(), pattern);
       }
     };
+    search.setupListeners();
 
     setTitle(title);
     setOKActionEnabled(false);

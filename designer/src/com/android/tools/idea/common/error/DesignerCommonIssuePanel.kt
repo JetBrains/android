@@ -141,7 +141,7 @@ class DesignerCommonIssuePanel(
     tree.isRootVisible = false
     tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
 
-    TreeSpeedSearch(tree)
+    TreeSpeedSearch.installOn(tree)
     EditSourceOnDoubleClickHandler.install(tree)
     EditSourceOnEnterKeyHandler.install(tree)
 

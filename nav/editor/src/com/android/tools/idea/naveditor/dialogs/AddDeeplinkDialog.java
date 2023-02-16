@@ -118,6 +118,7 @@ public class AddDeeplinkDialog extends DialogWrapper {
     if (!uri.isEmpty()) {
       try {
         // replace placeholders with "dummy"
+        //noinspection ResultOfObjectAllocationIgnored
         new URI(uri.replaceAll("\\{[^}]*}", "dummy"));
       }
       catch (URISyntaxException e) {

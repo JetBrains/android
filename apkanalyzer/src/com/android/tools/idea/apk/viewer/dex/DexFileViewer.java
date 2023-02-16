@@ -141,7 +141,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     myTree.setRootVisible(true);
     myTree.setShowsRootHandles(true);
 
-    new TreeSpeedSearch(myTree, true, path -> {
+    TreeSpeedSearch.installOn(myTree, true, path -> {
       Object o = path.getLastPathComponent();
       if (!(o instanceof DexElementNode)) {
         return "";

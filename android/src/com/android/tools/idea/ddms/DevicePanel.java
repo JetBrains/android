@@ -214,7 +214,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     });
     // Don't use ComboboxSpeedSearch.installSpeedSearch() because it compares using SpeedSearchComparator#matchingFragments():
     //   matchingFragments("com.google.android.app", "cgaa") == true
-    new ComboboxSpeedSearch(processComboBox) {
+    ComboboxSpeedSearch search = new ComboboxSpeedSearch(processComboBox, null) {
       @Override
       protected String getElementText(@NotNull Object element) {
         // Use the same client name that the renderer uses.
@@ -226,6 +226,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
         return pattern != null && CharSequences.indexOfIgnoreCase(text, pattern, 0) >= 0;
       }
     };
+    search.setupListeners();
   }
 
   @NotNull

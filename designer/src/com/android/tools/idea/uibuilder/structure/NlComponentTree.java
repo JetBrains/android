@@ -141,7 +141,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     ToolTipManager.sharedInstance().registerComponent(this);
     TreeUtil.installActions(this);
     addTreeSelectionListener(new StructurePaneSelectionListener());
-    new StructureSpeedSearch(this);
+    StructureSpeedSearch.installOn(this);
 
     enableDnD();
 
@@ -649,8 +649,14 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   }
 
   private static final class StructureSpeedSearch extends TreeSpeedSearch {
-    StructureSpeedSearch(@NotNull NlComponentTree tree) {
-      super(tree);
+    private StructureSpeedSearch(@NotNull NlComponentTree tree) {
+      super(tree, (Void)null);
+    }
+
+    static @NotNull StructureSpeedSearch installOn(@NotNull NlComponentTree tree) {
+      StructureSpeedSearch search = new StructureSpeedSearch(tree);
+      search.setupListeners();
+      return search;
     }
 
     @Override
