@@ -22,6 +22,7 @@ import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.Pr
 import com.android.annotations.Nullable;
 import com.android.annotations.Trace;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ThreeState;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
@@ -173,6 +174,11 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     compiler.resetState();
   }
 
+  @VisibleForTesting
+  int numFilesWithCompilationErrors() {
+    return filesWithCompilationErrors.size();
+  }
+
   @NotNull
   public Set<IDevice> devices() {
     return deviceStatusManager.devices();
@@ -294,7 +300,8 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     methodChangesExecutor.schedule(this::doOnManualLETrigger, 0, TimeUnit.MILLISECONDS);
   }
 
-  private void doOnManualLETrigger() {
+  @VisibleForTesting
+  void doOnManualLETrigger() {
 
     // If user to trigger a LE push twice in a row with compilation errors, the second trigger would set the state to "synced" even
     // though the compilation error prevented a push on the first trigger
@@ -334,10 +341,11 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
   }
 
   @Trace
+  @VisibleForTesting
   /**
    * @return true is the changes were successfully processed (without being interrupted). Otherwise, false.
    */
-  private boolean processChanges(Project project, List<EditEvent> changes, LiveEditEvent.Mode mode) {
+  boolean processChanges(Project project, List<EditEvent> changes, LiveEditEvent.Mode mode) {
     LiveEditEvent.Builder event = LiveEditEvent.newBuilder().setMode(mode);
 
     long start = System.nanoTime();
@@ -368,6 +376,13 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
       updateEditableStatus(recoverable ?
                            LiveEditStatus.createPausedStatus(errorMessage(e)) :
                            LiveEditStatus.createErrorStatus(errorMessage(e)));
+      return true;
+    }
+
+    if (mode == LiveEditEvent.Mode.AUTO && !filesWithCompilationErrors.isEmpty()) {
+      Optional<String> errorFilename = filesWithCompilationErrors.stream().findFirst();
+      String errorMsg = ErrorReporterKt.leErrorMessage(LiveEditUpdateException.Error.COMPILATION_ERROR, errorFilename.get());
+      updateEditStatus(LiveEditStatus.createPausedStatus(errorMsg));
       return true;
     }
 
