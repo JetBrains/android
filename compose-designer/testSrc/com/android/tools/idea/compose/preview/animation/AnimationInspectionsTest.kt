@@ -78,6 +78,8 @@ class AnimationInspectionsTest {
       package androidx.compose.animation
 
       fun <S> AnimatedContent(targetState: S, label: String = "AnimatedContent") {}
+      // Extension is without label.
+      fun <S> Transition.AnimatedContent(targetState: S) {}
       """
         .trimIndent()
     )
@@ -143,6 +145,49 @@ class AnimationInspectionsTest {
     fixture.enableInspections(AnimateAsStateLabelInspection() as InspectionProfileEntry)
     fixture.enableInspections(CrossfadeLabelInspection() as InspectionProfileEntry)
   }
+
+  // region AnimatedContent Extension
+
+  @Test
+  fun animatedContentExtensionLabelNotSet() {
+    // language=kotlin
+    val fileContent =
+      """
+      import androidx.compose.animation.AnimatedContent
+      import androidx.compose.animation.core.updateTransition
+
+      fun MyComposable() {
+        val transition = updateTransition(targetState = false)
+        transition.AnimatedContent(targetState = 10)
+      }
+    """
+        .trimIndent()
+
+    fixture.configureByText("Test.kt", fileContent)
+    assertEquals(
+      UPDATE_TRANSITION_LABEL_NOT_SET_MESSAGE,
+      fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().description
+    )
+  }
+  @Test
+  fun animatedContentExtensionLabelIsNotExpected() {
+    // language=kotlin
+    val fileContent =
+      """
+      import androidx.compose.animation.AnimatedContent
+      import androidx.compose.animation.core.updateTransition
+
+      fun MyComposable() {
+        val transition = updateTransition(targetState = false, "Label")
+        transition.AnimatedContent(targetState = 10)
+      }
+    """
+        .trimIndent()
+
+    fixture.configureByText("Test.kt", fileContent)
+    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+  }
+  // endregion
 
   // region AnimatedContent
   @Test
