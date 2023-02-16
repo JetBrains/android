@@ -41,6 +41,7 @@ import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.Row
 import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.JComboBox
@@ -135,10 +136,10 @@ class ConfigureBenchmarkModuleStep(
       cell(apiLevelCombo).align(AlignX.FILL)
     }
 
-    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get() || model.useGradleKts.get()) {
-      row {
-        cell(gradleKtsCheck)
-      }.topGap(TopGap.SMALL)
+    if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
+      row("Build configuration language") {
+        cell(buildConfigurationLanguageCombo).horizontalAlign(HorizontalAlign.FILL)
+      }
     }
   }.withBorder(empty(6))
 

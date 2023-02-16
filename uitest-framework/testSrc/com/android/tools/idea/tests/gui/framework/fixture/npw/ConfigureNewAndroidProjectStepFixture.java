@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguage;
 import com.android.tools.idea.wizard.template.Language;
 import java.io.File;
 import javax.swing.JComboBox;
@@ -104,8 +105,9 @@ public class ConfigureNewAndroidProjectStepFixture<W extends AbstractWizardFixtu
   }
 
   @NotNull
-  public ConfigureNewAndroidProjectStepFixture<W> setUseKtsBuildFiles(boolean select) {
-    selectCheckBoxWithText("Use Kotlin script (.kts) for Gradle build files", select);
+  public ConfigureNewAndroidProjectStepFixture<W> selectBuildConfigurationLanguage(BuildConfigurationLanguage language) {
+    new JComboBoxFixture(robot(), robot().finder().findByName(target(), "buildConfigurationLanguageCombo", JComboBox.class, true))
+      .selectItem(language.toString());
     return this;
   }
 }

@@ -3,7 +3,7 @@
   <grid id="27dc6" binding="myPanel" layout-manager="GridLayoutManager" row-count="20" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
-      <xy x="20" y="20" width="445" height="641"/>
+      <xy x="20" y="20" width="410" height="641"/>
     </constraints>
     <properties/>
     <border type="none"/>
@@ -79,16 +79,6 @@
           </grid>
         </constraints>
       </vspacer>
-      <component id="51d95" class="com.intellij.ui.components.JBCheckBox" binding="myGradleKtsCheck">
-        <constraints>
-          <grid row="18" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <font style="0"/>
-          <label value="Use Kotlin script (.kts) for Gradle build files"/>
-          <text value="Use Kotlin script (.kts) for Gradle build files"/>
-        </properties>
-      </component>
       <vspacer id="93364">
         <constraints>
           <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
@@ -248,6 +238,23 @@
           <grid row="13" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties/>
+      </component>
+      <component id="7cde" class="javax.swing.JComboBox" binding="myBuildConfigurationLanguageCombo">
+        <constraints>
+          <grid row="18" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <model/>
+          <name value="buildConfigurationLanguageCombo"/>
+        </properties>
+      </component>
+      <component id="bc94e" class="javax.swing.JLabel" binding="myBuildConfigurationLanguageLabel">
+        <constraints>
+          <grid row="18" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Build configuration language"/>
+        </properties>
       </component>
     </children>
   </grid>

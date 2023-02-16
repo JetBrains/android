@@ -32,10 +32,12 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
+import com.android.tools.idea.npw.model.hasKtsUsage
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.sdkManagerLocalPath
 import com.android.tools.idea.npw.project.determineAgpVersion
 import com.android.tools.idea.npw.project.determineVersionCatalogUse
+import com.android.tools.idea.npw.template.components.BuildConfigurationLanguageComboProvider
 import com.android.tools.idea.npw.template.components.LanguageComboProvider
 import com.android.tools.idea.npw.validator.ApiVersionValidator
 import com.android.tools.idea.npw.validator.ModuleValidator
@@ -48,7 +50,6 @@ import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.expressions.Expression
 import com.android.tools.idea.observable.ui.SelectedItemProperty
-import com.android.tools.idea.observable.ui.SelectedProperty
 import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep
@@ -56,11 +57,13 @@ import com.android.tools.idea.sdk.wizard.LicenseAgreementModel
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguage
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguage.Groovy
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguage.KTS
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.ui.WizardUtils.WIZARD_BORDER.SMALL
 import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
 import com.intellij.openapi.application.ModalityState
-import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -86,6 +89,10 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
   protected val listeners = ListenerManager()
   protected val agpVersion: OptionalValueProperty<AgpVersion> = OptionalValueProperty()
   private val versionCatalogUse: OptionalValueProperty<Boolean> = OptionalValueProperty()
+  // If StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX is false, the Combobox for Build configuration language is not visible,
+  // thus, build script is determined if the existing project has KTS usage
+  private val buildConfigurationLanguage: OptionalValueProperty<BuildConfigurationLanguage> = OptionalValueProperty(
+    if(model.project.hasKtsUsage()) KTS else Groovy)
 
   private val androidVersionsInfo = AndroidVersionsInfo()
   private var installRequests: List<UpdatablePackage> = listOf()
@@ -95,7 +102,8 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
   protected val packageName: JTextField = JBTextField()
   protected val languageCombo: JComboBox<Language> = LanguageComboProvider().createComponent()
   protected val apiLevelCombo: AndroidApiLevelComboBox = AndroidApiLevelComboBox()
-  protected val gradleKtsCheck: JBCheckBox = JBCheckBox("Use Kotlin script (.kts) for Gradle build files")
+  protected val buildConfigurationLanguageCombo: JComboBox<BuildConfigurationLanguage> = BuildConfigurationLanguageComboProvider().createComponent()
+
   protected val validatorPanel: ValidatorPanel by lazy {
     ValidatorPanel(this, createMainPanel()).apply {
       registerValidator(model.moduleName, moduleValidator)
@@ -144,7 +152,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
   init {
     bindings.bindTwoWay(SelectedItemProperty(languageCombo), model.language)
     bindings.bind(model.androidSdkInfo, SelectedItemProperty(apiLevelCombo))
-    bindings.bindTwoWay(SelectedProperty(gradleKtsCheck), model.useGradleKts)
+    bindings.bindTwoWay(SelectedItemProperty(buildConfigurationLanguageCombo), buildConfigurationLanguage)
 
     val isPackageNameSynced: BoolProperty = BoolValueProperty(true)
     val packageNameText = TextProperty(packageName)
@@ -179,14 +187,14 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
     androidVersionsInfo.loadLocalVersions()
     apiLevelCombo.init(formFactor, androidVersionsInfo.getKnownTargetVersions(formFactor, minSdkLevel)) // Pre-populate
     androidVersionsInfo.loadRemoteTargetVersions(
-      formFactor, minSdkLevel, { items -> apiLevelCombo.init(formFactor, items) }
-    )
+      formFactor, minSdkLevel
+    ) { items -> apiLevelCombo.init(formFactor, items) }
   }
 
   override fun onProceeding() {
     // Now that the module name was validated, update the model template
     model.template.set(GradleAndroidModuleTemplate.createDefaultModuleTemplate(model.project, model.moduleName.get()))
-
+    model.useGradleKts.set(buildConfigurationLanguage.value == KTS)
     installRequests = androidVersionsInfo.loadInstallPackageList(listOf(model.androidSdkInfo.value))
     installLicenseRequests = installRequests.map { it.remote!! }
   }

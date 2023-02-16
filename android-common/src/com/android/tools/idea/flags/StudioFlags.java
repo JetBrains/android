@@ -76,11 +76,10 @@ public final class StudioFlags {
     "Show fragment gallery which contains fragment based templates",
     true);
 
-  public static final Flag<Boolean> NPW_SHOW_GRADLE_KTS_OPTION = Flag.create(
-    NPW, "show.gradle.kts.option", "Show gradle kts option",
-    "Shows an option on new Project/Module to allow the use of Kotlin script",
-    false);
-
+  public static final Flag<Boolean> NPW_SHOW_KTS_GRADLE_COMBO_BOX = Flag.create(
+    NPW, "show.kts.gradle.combobox", "Show KTS/Gradle Combobox",
+    "Show KTS/Gradle Combobox to which build script is used for the generated code",
+    true);
   public static final Flag<Boolean> NPW_NEW_NATIVE_MODULE = Flag.create(
     NPW, "new.native.module", "New Android Native Module",
     "Show template to create a new Android Native module in the new module wizard.",

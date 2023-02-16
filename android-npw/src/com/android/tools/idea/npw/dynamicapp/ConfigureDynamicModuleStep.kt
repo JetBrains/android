@@ -36,6 +36,7 @@ import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle
 import javax.swing.JCheckBox
@@ -82,15 +83,15 @@ class ConfigureDynamicModuleStep(
       }
     }
 
+    if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
+      row("Build configuration language") {
+        cell(buildConfigurationLanguageCombo).horizontalAlign(HorizontalAlign.FILL)
+      }
+    }
+
     row {
       cell(fusingCheckbox)
     }.topGap(TopGap.SMALL)
-
-    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()  || model.useGradleKts.get()) {
-      row {
-        cell(gradleKtsCheck)
-      }
-    }
   }.withBorder(empty(6))
 
   init {
